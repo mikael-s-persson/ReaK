@@ -35,174 +35,197 @@
 #include "rotations_2D.hpp"
 
 #include <ReaK/core/base/shared_object.hpp>
-
+#include <utility>
 
 namespace ReaK {
-
 
 /**
  * This class represents the pose of a 2D coordinate frame (static).
  */
-template < typename T >
+template <typename T>
 class pose_2D : public shared_object {
-public:
-  typedef T value_type;
-  typedef pose_2D< T > self;
+ public:
+  using value_type = T;
+  using self = pose_2D<T>;
 
-  typedef T* pointer;
-  typedef const T* const_pointer;
-  typedef T& reference;
-  typedef const T& const_reference;
+  using pointer = T*;
+  using const_pointer = const T*;
+  using reference = T&;
+  using const_reference = const T&;
 
-  typedef vect< T, 2 > position_type;
-  typedef vect< T, 2 > vector_type;
-  typedef rot_mat_2D< T > rotation_type;
+  using position_type = vect<T, 2>;
+  using vector_type = vect<T, 2>;
+  using rotation_type = rot_mat_2D<T>;
 
-  weak_ptr< self > Parent; ///< Holds a weak pointer to the pose relative to which this pose is expressed.
+  /// Holds a weak pointer to the pose relative to which this pose is expressed.
+  std::weak_ptr<self> Parent;
 
-  position_type Position; ///< Position vector of the pose.
-  rotation_type Rotation; ///< Rotation matrix of the coordinate axes.
+  /// Position vector of the pose.
+  position_type Position;
+  /// Rotation matrix of the coordinate axes.
+  rotation_type Rotation;
 
   /**
    * Default constructor, all is set to zero.
    */
-  pose_2D() : shared_object(), Parent(), Position(), Rotation(){};
+  pose_2D() : shared_object(), Parent(), Position(), Rotation() {}
 
   /**
    * Parametrized constructor, all is set to corresponding parameters.
    */
-  pose_2D( const weak_ptr< self >& aParent, const position_type& aPosition, const rotation_type& aRotation )
-      : shared_object(), Parent( aParent ), Position( aPosition ), Rotation( aRotation ){};
+  pose_2D(std::weak_ptr<self> aParent, const position_type& aPosition,
+          const rotation_type& aRotation)
+      : shared_object(),
+        Parent(std::move(aParent)),
+        Position(aPosition),
+        Rotation(aRotation) {}
 
   /**
    * Copy-constructor.
    */
-  pose_2D( const self& aPose )
-      : shared_object(), Parent( aPose.Parent ), Position( aPose.Position ), Rotation( aPose.Rotation ){};
+  pose_2D(const self& aPose)
+      : shared_object(),
+        Parent(aPose.Parent),
+        Position(aPose.Position),
+        Rotation(aPose.Rotation) {}
 
   /**
    * Default destructor.
    */
-  virtual ~pose_2D(){};
+  ~pose_2D() override = default;
 
-protected:
-  bool isParentPoseImpl( const self* P ) const {
-    if( Parent.expired() ) {
-      if( P )
-        return true;
-      else
-        return false;
-    } else {
-      if( P )
-        return false;
-      else if( P == Parent.lock().get() )
-        return true;
-      else
-        return Parent.lock()->isParentPoseImpl( P );
-    };
-  };
+ protected:
+  bool isParentPoseImpl(const self* P) const {
+    if (Parent.expired()) {
+      return static_cast<bool>(P);
+    }
+    if (P) {
+      return false;
+    }
+    if (P == Parent.lock().get()) {
+      return true;
+    }
+    return Parent.lock()->isParentPoseImpl(P);
+  }
 
-  self getPoseRelativeToImpl( const self* P ) const {
-    if( !P )
+  self getPoseRelativeToImpl(const self* P) const {
+    if (!P) {
       return getGlobalPose();
-    if( isParentPoseImpl( P ) ) {
-      if( Parent.lock().get() == P )
+    }
+    if (isParentPoseImpl(P)) {
+      if (Parent.lock().get() == P) {
         return *this;
-      else
-        return Parent.lock()->getPoseRelativeToImpl( P ) * ( *this );
-    } else if( P->isParentPoseImpl( this ) )
-      return ~( P->getPoseRelativeToImpl( this ) );
-    else if( Parent.expired() )
-      return ( ~( P->getGlobalPose() ) ) * ( *this );
-    else
-      return Parent.lock()->getPoseRelativeToImpl( P ) * ( *this );
-  };
+      }
+      return Parent.lock()->getPoseRelativeToImpl(P) * (*this);
+    }
+    if (P->isParentPoseImpl(this)) {
+      return ~(P->getPoseRelativeToImpl(this));
+    }
+    if (Parent.expired()) {
+      return (~(P->getGlobalPose())) * (*this);
+    }
+    return Parent.lock()->getPoseRelativeToImpl(P) * (*this);
+  }
 
-public:
+ public:
   /**
    * Returns this 2D pose relative to the global (null) coordinate system.
    */
   self getGlobalPose() const {
-    if( !Parent.expired() ) {
+    if (!Parent.expired()) {
       self result = Parent.lock()->getGlobalPose();
       result.Position += result.Rotation * Position;
       result.Rotation *= Rotation;
       return result;
-    } else
-      return *this;
-  };
+    }
+    return *this;
+  }
 
   /**
    * Returns true if P is part of the parent chain from this pose.
    */
-  bool isParentPose( const self& P ) const { return isParentPoseImpl( &P ); };
+  bool isParentPose(const self& P) const { return isParentPoseImpl(&P); }
 
   /**
    * Returns true if P is part of the parent chain from this pose.
    */
-  bool isParentPose( const shared_ptr< const self >& P ) const { return isParentPoseImpl( P.get() ); };
+  bool isParentPose(const std::shared_ptr<const self>& P) const {
+    return isParentPoseImpl(P.get());
+  }
 
   /**
    * Returns this 2D pose relative to pose P.
    */
-  self getPoseRelativeTo( const self& P ) const { return getPoseRelativeToImpl( &P ); };
+  self getPoseRelativeTo(const self& P) const {
+    return getPoseRelativeToImpl(&P);
+  }
 
   /**
    * Returns this 2D pose relative to pose P.
    */
-  self getPoseRelativeTo( const shared_ptr< const self >& P ) const {
-    if( !P )
+  self getPoseRelativeTo(const std::shared_ptr<const self>& P) const {
+    if (!P) {
       return getGlobalPose();
-    return getPoseRelativeToImpl( P.get() );
-  };
+    }
+    return getPoseRelativeToImpl(P.get());
+  }
 
   /**
    * Returns the free vector V (expressed in this coordinate system) expressed in the parent coordinate system.
    */
-  vector_type rotateToParent( const vector_type& V ) const { return Rotation * V; };
+  vector_type rotateToParent(const vector_type& V) const {
+    return Rotation * V;
+  }
 
   /**
    * Returns the free vector V (expressed in this coordinate system) expressed in the global coordinate system.
    */
-  vector_type rotateToGlobal( const vector_type& V ) const { return getGlobalPose().Rotation * V; };
+  vector_type rotateToGlobal(const vector_type& V) const {
+    return getGlobalPose().Rotation * V;
+  }
 
   /**
    * Returns the free vector V (expressed in the parent coordinate system) expressed in this coordinate system.
    */
-  vector_type rotateFromParent( const vector_type& V ) const {
-    return V * Rotation; // Rotation.invert() * V;
-  };
+  vector_type rotateFromParent(const vector_type& V) const {
+    return V * Rotation;  // Rotation.invert() * V;
+  }
 
   /**
    * Returns the free vector V (expressed in the global coordinate system) expressed in this coordinate system.
    */
-  vector_type rotateFromGlobal( const vector_type& V ) const {
-    return V * getGlobalPose().Rotation; // getGlobalPose().Rotation.invert() * V;
-  };
+  vector_type rotateFromGlobal(const vector_type& V) const {
+    return V *
+           getGlobalPose().Rotation;  // getGlobalPose().Rotation.invert() * V;
+  }
 
   /**
    * Returns the position vector V (expressed in this coordinate system) expressed in the parent coordinate system.
    */
-  position_type transformToParent( const position_type& V ) const { return Position + Rotation * V; };
+  position_type transformToParent(const position_type& V) const {
+    return Position + Rotation * V;
+  }
 
   /**
    * Returns the position vector V (expressed in this coordinate system) expressed in the global coordinate system.
    */
-  position_type transformToGlobal( const position_type& V ) const { return getGlobalPose().transformToParent( V ); };
+  position_type transformToGlobal(const position_type& V) const {
+    return getGlobalPose().transformToParent(V);
+  }
 
   /**
    * Returns the position vector V (expressed in the parent coordinate system) expressed in this coordinate system.
    */
-  position_type transformFromParent( const position_type& V ) const {
-    return ( V - Position ) * Rotation; // Rotation.invert() * (V - Position);
-  };
+  position_type transformFromParent(const position_type& V) const {
+    return (V - Position) * Rotation;  // Rotation.invert() * (V - Position);
+  }
 
   /**
    * Returns the position vector V (expressed in the global coordinate system) expressed in this coordinate system.
    */
-  position_type transformFromGlobal( const position_type& V ) const {
-    return getGlobalPose().transformFromParent( V );
-  };
+  position_type transformFromGlobal(const position_type& V) const {
+    return getGlobalPose().transformFromParent(V);
+  }
 
   /**
    * Adds the coordinate tranform of Pose_ before this coordinate transform.
@@ -210,11 +233,11 @@ public:
    * \post then "V == this->transformToParent( U )" after.
    * \note ignores the parent of Pose_.
    */
-  self& addBefore( const self& aPose ) {
+  self& addBefore(const self& aPose) {
     Position += Rotation * aPose.Position;
     Rotation *= aPose.Rotation;
     return *this;
-  };
+  }
 
   /**
    * Adds the coordinate tranform of Pose_ after this coordinate transform.
@@ -222,105 +245,97 @@ public:
    * \post then "V == this->transformToParent( U )" after.
    * \note ignores the parent of this coordinate system.
    */
-  self& addAfter( const self& aPose ) {
-    Position = aPose.Position + ( Rotation * Position );
+  self& addAfter(const self& aPose) {
+    Position = aPose.Position + (Rotation * Position);
     Rotation *= aPose.Rotation;
     Parent = aPose.Parent;
     return *this;
-  };
+  }
 
   /**
    * Adds a translation V to this transformation, where V is expressed in this coordinate system.
    */
-  self& translateLocal( const vector_type& V ) {
-    Position += rotateToParent( V );
+  self& translateLocal(const vector_type& V) {
+    Position += rotateToParent(V);
     return *this;
-  };
+  }
 
   /**
    * Adds a translation V to this transformation, where V is expressed in the global coordinate system.
    */
-  self& translateGlobal( const vector_type& V ) {
-    Position += rotateToParent( transformFromGlobal( V ) );
+  self& translateGlobal(const vector_type& V) {
+    Position += rotateToParent(transformFromGlobal(V));
     return *this;
-  };
+  }
 
   /**
    * Adds a rotation R to this transformation.
    */
-  self& rotate( const rotation_type& R ) {
+  self& rotate(const rotation_type& R) {
     Rotation *= R;
     return *this;
-  };
+  }
 
   /**
    * Assignment operator.
    */
-  self& operator=( const self& P ) {
+  self& operator=(const self& P) {
     Parent = P.Parent;
     Position = P.Position;
     Rotation = P.Rotation;
     return *this;
-  };
+  }
 
   /**
    * Multiplication-assignment operator, equivalent to "this->addBefore( P )".
    */
-  self& operator*=( const self& P ) { return addBefore( P ); };
+  self& operator*=(const self& P) { return addBefore(P); }
 
   /**
    * Multiplication operator, equivalent to "result = *this; result->addBefore( P )".
    */
-  friend self operator*( const self& P1, const self& P2 ) {
-    return self( P1.Parent, P1.Position + ( P1.Rotation * P2.Position ), P1.Rotation * P2.Rotation );
-  };
+  friend self operator*(const self& P1, const self& P2) {
+    return self(P1.Parent, P1.Position + (P1.Rotation * P2.Position),
+                P1.Rotation * P2.Rotation);
+  }
 
   /**
    * Inversion operator, i.e. "this->addBefore( ~this ) == Parent".
    */
-  self operator~() const { return self( Parent, ( -Position ) * Rotation, invert( Rotation ) ); };
+  self operator~() const {
+    return self(Parent, (-Position) * Rotation, invert(Rotation));
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    if( Parent.expired() )
-      A& RK_SERIAL_SAVE_WITH_ALIAS( "Parent", shared_ptr< serializable >() );
-    else
-      A& RK_SERIAL_SAVE_WITH_ALIAS( "Parent", Parent.lock() );
-    A& RK_SERIAL_SAVE_WITH_NAME( Position ) & RK_SERIAL_SAVE_WITH_NAME( Rotation );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    shared_ptr< self > tmp;
-    A& RK_SERIAL_LOAD_WITH_ALIAS( "Parent", tmp ) & RK_SERIAL_LOAD_WITH_NAME( Position )
-      & RK_SERIAL_LOAD_WITH_NAME( Rotation );
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    if (Parent.expired()) {
+      A& RK_SERIAL_SAVE_WITH_ALIAS("Parent", std::shared_ptr<serializable>());
+    } else {
+      A& RK_SERIAL_SAVE_WITH_ALIAS("Parent", Parent.lock());
+    }
+    A& RK_SERIAL_SAVE_WITH_NAME(Position) & RK_SERIAL_SAVE_WITH_NAME(Rotation);
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
+    std::shared_ptr<self> tmp;
+    A& RK_SERIAL_LOAD_WITH_ALIAS("Parent", tmp) &
+        RK_SERIAL_LOAD_WITH_NAME(Position) & RK_SERIAL_LOAD_WITH_NAME(Rotation);
     Parent = tmp;
-  };
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0x0000001D, 1, "pose_2D", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0x0000001D, 1, "pose_2D", shared_object)
 };
 
-template < typename T >
-std::ostream& operator<<( std::ostream& out, const pose_2D< T >& g ) {
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const pose_2D<T>& g) {
   out << "(Position = " << g.Position << "; Rotation = " << g.Rotation << ")";
   return out;
-};
+}
 
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
-extern template class pose_2D< double >;
-
-extern template std::ostream& operator<<( std::ostream& out, const pose_2D< double >& g );
-
-
-extern template class pose_2D< float >;
-
-extern template std::ostream& operator<<( std::ostream& out, const pose_2D< float >& g );
-
-#endif
-};
-
+}  // namespace ReaK
 
 #endif

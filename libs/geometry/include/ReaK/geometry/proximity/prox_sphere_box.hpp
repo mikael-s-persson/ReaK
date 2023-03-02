@@ -34,46 +34,47 @@
 
 #include "proximity_finder_3D.hpp"
 
-#include <ReaK/geometry/shapes/sphere.hpp>
 #include <ReaK/geometry/shapes/box.hpp>
+#include <ReaK/geometry/shapes/sphere.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
+proximity_record_3D compute_proximity(const sphere& aSphere,
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const box& aBox,
+                                      const shape_3D_precompute_pack& aPack2);
 
-
-proximity_record_3D compute_proximity( const sphere& aSphere, const shape_3D_precompute_pack& aPack1, const box& aBox,
-                                       const shape_3D_precompute_pack& aPack2 );
-
-proximity_record_3D compute_proximity( const box& aBox, const shape_3D_precompute_pack& aPack1, const sphere& aSphere,
-                                       const shape_3D_precompute_pack& aPack2 );
+proximity_record_3D compute_proximity(const box& aBox,
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const sphere& aSphere,
+                                      const shape_3D_precompute_pack& aPack2);
 
 /**
  * This class is for proximity queries between a sphere and a box.
  */
 class prox_sphere_box : public proximity_finder_3D {
-protected:
+ protected:
   const sphere* mSphere;
   const box* mBox;
 
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_3D computeProximity( const shape_3D_precompute_pack& aPack1,
-                                                const shape_3D_precompute_pack& aPack2 );
+  proximity_record_3D computeProximity(
+      const shape_3D_precompute_pack& aPack1,
+      const shape_3D_precompute_pack& aPack2) override;
 
   /**
    * Default constructor.
    * \param aSphere The sphere involved in the proximity query.
    * \param aBox The box involved in the proximity query.
    */
-  prox_sphere_box( const sphere* aSphere = nullptr, const box* aBox = nullptr );
+  explicit prox_sphere_box(const sphere* aSphere = nullptr,
+                           const box* aBox = nullptr);
 
   /** Destructor. */
-  virtual ~prox_sphere_box(){};
+  ~prox_sphere_box() override = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

@@ -41,11 +41,7 @@
 #include "metric_space_concept.hpp"
 
 /** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Path-Planning */
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This concept defines the requirements to fulfill in order to model a probability distribution function
@@ -64,18 +60,18 @@ namespace pp {
  * \tparam ProbDistFunction The probability distribution function type to be checked for this concept.
  * \tparam Topology The topology on which the probability distribution function should apply.
  */
-template < typename ProbDistFunction, typename Topology >
+template <typename ProbDistFunction, typename Topology>
 struct ProbDistFunctionConcept {
   ProbDistFunction pdf_function;
   Topology space;
-  typename topology_traits< Topology >::point_type p;
+  topology_point_type_t<Topology> p;
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< Topology > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
 
-  BOOST_CONCEPT_USAGE( ProbDistFunctionConcept ) {
-    double d = pdf_function( p, space );
-    RK_UNUSED( d );
-  };
+  BOOST_CONCEPT_USAGE(ProbDistFunctionConcept) {
+    double d = pdf_function(p, space);
+    RK_UNUSED(d);
+  }
 };
 
 /**
@@ -88,10 +84,11 @@ enum prob_dist_function_t { prob_dist_function };
  * This traits class defines the types and constants associated to a probability distribution.
  * \tparam ProbabilityDistribution The topology type for which the probability distribution traits are sought.
  */
-template < typename ProbabilityDistribution >
+template <typename ProbabilityDistribution>
 struct probability_distribution_traits {
   /** The type that describes the probability distribution function type for the distribution. */
-  typedef typename ProbabilityDistribution::prob_dist_function_type prob_dist_function_type;
+  using prob_dist_function_type =
+      typename ProbabilityDistribution::prob_dist_function_type;
 };
 
 /**
@@ -112,21 +109,24 @@ struct probability_distribution_traits {
  *
  * \tparam ProbabilityDistribution The topology type to be checked for this concept.
  */
-template < typename ProbabilityDistribution >
+template <typename ProbabilityDistribution>
 struct ProbabilityDistributionConcept {
-  typename topology_traits< ProbabilityDistribution >::point_type p1, p2;
-  typename probability_distribution_traits< ProbabilityDistribution >::prob_dist_function_type pdf_function;
+  topology_point_type_t<ProbabilityDistribution> p1, p2;
+  typename probability_distribution_traits<
+      ProbabilityDistribution>::prob_dist_function_type pdf_function;
   ProbabilityDistribution space;
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< ProbabilityDistribution > ) );
-  BOOST_CONCEPT_ASSERT( ( ProbDistFunctionConcept< typename probability_distribution_traits< ProbabilityDistribution >::
-                                                     prob_dist_function_type,
-                                                   ProbabilityDistribution > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<ProbabilityDistribution>));
+  BOOST_CONCEPT_ASSERT((ProbDistFunctionConcept<
+                        typename probability_distribution_traits<
+                            ProbabilityDistribution>::prob_dist_function_type,
+                        ProbabilityDistribution>));
 
-  BOOST_CONCEPT_USAGE( ProbabilityDistributionConcept ) { pdf_function = get( prob_dist_function, space ); };
-};
-};
+  BOOST_CONCEPT_USAGE(ProbabilityDistributionConcept) {
+    pdf_function = get(prob_dist_function, space);
+  }
 };
 
+}  // namespace ReaK::pp
 
 #endif

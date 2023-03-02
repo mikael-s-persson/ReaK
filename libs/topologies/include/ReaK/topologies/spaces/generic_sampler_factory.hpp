@@ -42,68 +42,81 @@
 
 #include <boost/concept_check.hpp>
 #include <cmath>
+#include <utility>
 
-namespace ReaK {
-
-namespace pp {
+namespace ReaK::pp {
 
 namespace detail {
 namespace {
 
+template <typename Sampler, typename PointType, typename SpaceType,
+          typename Factory>
+void generate_sample_impl(const Sampler& sampler, PointType& result,
+                          const SpaceType& space, const Factory& factory) {
+  result = sampler(space, factory);
+}
 
-template < typename Sampler, typename PointType, typename SpaceType, typename Factory >
-void generate_sample_impl( const Sampler& sampler, PointType& result, const SpaceType& space, const Factory& factory ) {
-  result = sampler( space, factory );
-};
+template <typename Sampler, typename PointType, typename SpaceType>
+void generate_sample_impl(const Sampler& sampler, PointType& result,
+                          const SpaceType& space) {
+  result = sampler(space);
+}
 
-template < typename Sampler, typename PointType, typename SpaceType >
-void generate_sample_impl( const Sampler& sampler, PointType& result, const SpaceType& space ) {
-  result = sampler( space );
-};
+template <typename Sampler, typename PointType, typename SpaceTuple,
+          typename TupleDistMetric, typename Factory>
+void generate_sample_impl(
+    const Sampler& sampler, PointType& result,
+    const metric_space_tuple<SpaceTuple, TupleDistMetric>& space,
+    const Factory& factory);
 
-template < typename Sampler, typename PointType, typename SpaceTuple, typename TupleDistMetric, typename Factory >
-void generate_sample_impl( const Sampler& sampler, PointType& result,
-                           const metric_space_tuple< SpaceTuple, TupleDistMetric >& space, const Factory& factory );
+template <typename Sampler, typename PointType, typename SpaceTuple,
+          typename TupleDistMetric>
+void generate_sample_impl(
+    const Sampler& sampler, PointType& result,
+    const metric_space_tuple<SpaceTuple, TupleDistMetric>& space);
 
-template < typename Sampler, typename PointType, typename SpaceTuple, typename TupleDistMetric >
-void generate_sample_impl( const Sampler& sampler, PointType& result,
-                           const metric_space_tuple< SpaceTuple, TupleDistMetric >& space );
-
-template < typename Sampler, typename Factory = void >
+template <typename Sampler, typename Factory = void>
 struct tuple_sample_generator {
   Sampler* p_sampler;
   const Factory* p_factory;
-  tuple_sample_generator( Sampler& sampler, const Factory& factory ) : p_sampler( &sampler ), p_factory( &factory ){};
-  template < typename PointType, typename SpaceType >
-  void operator()( PointType& result, const SpaceType& space ) const {
-    generate_sample_impl( *p_sampler, result, space, *p_factory );
-  };
+  tuple_sample_generator(Sampler& sampler, const Factory& factory)
+      : p_sampler(&sampler), p_factory(&factory) {}
+  template <typename PointType, typename SpaceType>
+  void operator()(PointType& result, const SpaceType& space) const {
+    generate_sample_impl(*p_sampler, result, space, *p_factory);
+  }
 };
 
-template < typename Sampler >
-struct tuple_sample_generator< Sampler, void > {
+template <typename Sampler>
+struct tuple_sample_generator<Sampler, void> {
   Sampler* p_sampler;
-  tuple_sample_generator( Sampler& sampler ) : p_sampler( &sampler ){};
-  template < typename PointType, typename SpaceType >
-  void operator()( PointType& result, const SpaceType& space ) const {
-    generate_sample_impl( *p_sampler, result, space );
-  };
+  explicit tuple_sample_generator(Sampler& sampler) : p_sampler(&sampler) {}
+  template <typename PointType, typename SpaceType>
+  void operator()(PointType& result, const SpaceType& space) const {
+    generate_sample_impl(*p_sampler, result, space);
+  }
 };
 
-template < typename Sampler, typename PointType, typename SpaceTuple, typename TupleDistMetric, typename Factory >
-void generate_sample_impl( const Sampler& sampler, PointType& result,
-                           const metric_space_tuple< SpaceTuple, TupleDistMetric >& space, const Factory& factory ) {
-  tuple_for_each( result, space, tuple_sample_generator< Sampler, Factory >( sampler, factory ) );
-};
+template <typename Sampler, typename PointType, typename SpaceTuple,
+          typename TupleDistMetric, typename Factory>
+void generate_sample_impl(
+    const Sampler& sampler, PointType& result,
+    const metric_space_tuple<SpaceTuple, TupleDistMetric>& space,
+    const Factory& factory) {
+  tuple_for_each(result, space,
+                 tuple_sample_generator<Sampler, Factory>(sampler, factory));
+}
 
-template < typename Sampler, typename PointType, typename SpaceTuple, typename TupleDistMetric >
-void generate_sample_impl( const Sampler& sampler, PointType& result,
-                           const metric_space_tuple< SpaceTuple, TupleDistMetric >& space ) {
-  tuple_for_each( result, space, tuple_sample_generator< Sampler >( sampler ) );
-};
-};
-};
+template <typename Sampler, typename PointType, typename SpaceTuple,
+          typename TupleDistMetric>
+void generate_sample_impl(
+    const Sampler& sampler, PointType& result,
+    const metric_space_tuple<SpaceTuple, TupleDistMetric>& space) {
+  tuple_for_each(result, space, tuple_sample_generator<Sampler>(sampler));
+}
 
+}  // namespace
+}  // namespace detail
 
 /**
  * This functor class implements a generic sampler in a topology.
@@ -111,68 +124,72 @@ void generate_sample_impl( const Sampler& sampler, PointType& result,
  * whatever global parameters are needed by the sampler implementation).
  * \tparam Sampler The sampler implementation which is used to perform the specifics of the actual sampling.
  */
-template < typename Sampler, typename SpaceType, typename Factory = void >
+template <typename Sampler, typename SpaceType, typename Factory = void>
 class generic_sampler {
-public:
-  typedef generic_sampler< Sampler, SpaceType, Factory > self;
-  typedef typename topology_traits< SpaceType >::point_type point_type;
-  typedef SpaceType topology;
+ public:
+  using self = generic_sampler<Sampler, SpaceType, Factory>;
+  using point_type = typename topology_traits<SpaceType>::point_type;
+  using topology = SpaceType;
 
-private:
+ private:
   const Factory* parent;
   Sampler sampler;
 
-public:
+ public:
   /**
    * Default constructor.
    */
-  generic_sampler( Sampler aSampler = Sampler(), const Factory* aParent = nullptr )
-      : parent( aParent ), sampler( aSampler ){};
+  explicit generic_sampler(Sampler aSampler = Sampler(),
+                           const Factory* aParent = nullptr)
+      : parent(aParent), sampler(aSampler) {}
 
-  template < typename OtherFactory >
-  point_type operator()( const topology& space, const OtherFactory& aNewParent ) const {
+  template <typename OtherFactory>
+  point_type operator()(const topology& space,
+                        const OtherFactory& aNewParent) const {
     point_type result;
-    detail::generate_sample_impl( sampler, result, space, aNewParent );
+    detail::generate_sample_impl(sampler, result, space, aNewParent);
     return result;
-  };
+  }
 
-  point_type operator()( const topology& space ) const {
+  point_type operator()(const topology& space) const {
     point_type result;
-    detail::generate_sample_impl( sampler, result, space, *parent );
+    detail::generate_sample_impl(sampler, result, space, *parent);
     return result;
-  };
+  }
 };
 
-template < typename Sampler, typename SpaceType >
-class generic_sampler< Sampler, SpaceType, void > {
-public:
-  typedef generic_sampler< Sampler, SpaceType, void > self;
-  typedef typename topology_traits< SpaceType >::point_type point_type;
-  typedef SpaceType topology;
+template <typename Sampler, typename SpaceType>
+class generic_sampler<Sampler, SpaceType, void> {
+ public:
+  using self = generic_sampler<Sampler, SpaceType, void>;
+  using point_type = typename topology_traits<SpaceType>::point_type;
+  using topology = SpaceType;
 
-private:
+ private:
   Sampler sampler;
 
-public:
+ public:
   /**
    * Default constructor.
    */
-  generic_sampler( Sampler aSampler = Sampler() ) : sampler( aSampler ){};
+  explicit generic_sampler(Sampler aSampler = Sampler())
+      : sampler(std::move(aSampler)) {}
 
-  template < typename OtherFactory >
-  point_type operator()( const topology& space, const OtherFactory& aParent ) const {
+  template <typename OtherFactory>
+  point_type operator()(const topology& space,
+                        const OtherFactory& aParent) const {
     point_type result;
-    detail::generate_sample_impl( sampler, result, space, aParent );
+    detail::generate_sample_impl(sampler, result, space, aParent);
     return result;
-  };
+  }
 
-  point_type operator()( const topology& space ) const {
+  point_type operator()(const topology& space) const {
     point_type result;
-    detail::generate_sample_impl( sampler, result, space );
+    detail::generate_sample_impl(sampler, result, space);
     return result;
-  };
+  }
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

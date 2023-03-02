@@ -32,28 +32,9 @@
 #ifndef REAK_PY_FIXES_HPP
 #define REAK_PY_FIXES_HPP
 
-
 #include <ReaK/core/base/defs.hpp>
 
-#include <boost/version.hpp>
 #include <boost/python.hpp>
-
-
-#ifndef BOOST_NO_CXX11_SMART_PTR
-
-#if( BOOST_VERSION < 105300 )
-
-namespace std {
-
-template < typename T >
-T* get_pointer( const std::shared_ptr< T >& s ) {
-  return s.get();
-};
-};
-
-#endif
-
-#endif
-
+#include <boost/version.hpp>
 
 #endif

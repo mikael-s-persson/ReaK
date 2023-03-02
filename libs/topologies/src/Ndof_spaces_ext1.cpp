@@ -23,65 +23,50 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
 #include <ReaK/topologies/spaces/Ndof_spaces.hpp>
 
-namespace ReaK {
+namespace ReaK::pp {
 
-namespace pp {
+#define RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS(NDOF)                          \
+  template class differentiable_space<                                        \
+      time_topology, arithmetic_tuple<hyperbox_topology<                      \
+                         vect<double, NDOF>, manhattan_distance_metric>>>;    \
+  template class differentiable_space<                                        \
+      time_topology,                                                          \
+      arithmetic_tuple<                                                       \
+          hyperbox_topology<vect<double, NDOF>, manhattan_distance_metric>,   \
+          hyperbox_topology<vect<double, NDOF>, manhattan_distance_metric>>>; \
+  template class differentiable_space<                                        \
+      time_topology,                                                          \
+      arithmetic_tuple<                                                       \
+          hyperbox_topology<vect<double, NDOF>, manhattan_distance_metric>,   \
+          hyperbox_topology<vect<double, NDOF>, manhattan_distance_metric>,   \
+          hyperbox_topology<vect<double, NDOF>, manhattan_distance_metric>>>;
 
-#define RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS( NDOF )                                                       \
-  template class differentiable_space< time_topology,                                                        \
-                                       arithmetic_tuple< hyperbox_topology< vect< double, NDOF >,            \
-                                                                            manhattan_distance_metric > > >; \
-  template class differentiable_space< time_topology,                                                        \
-                                       arithmetic_tuple< hyperbox_topology< vect< double, NDOF >,            \
-                                                                            manhattan_distance_metric >,     \
-                                                         hyperbox_topology< vect< double, NDOF >,            \
-                                                                            manhattan_distance_metric > > >; \
-  template class differentiable_space< time_topology,                                                        \
-                                       arithmetic_tuple< hyperbox_topology< vect< double, NDOF >,            \
-                                                                            manhattan_distance_metric >,     \
-                                                         hyperbox_topology< vect< double, NDOF >,            \
-                                                                            manhattan_distance_metric >,     \
-                                                         hyperbox_topology< vect< double, NDOF >,            \
-                                                                            manhattan_distance_metric > > >;
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS(1)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS(2)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS(3)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS(4)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS(5)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS(6)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS(7)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS(8)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS(9)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS(10)
 
-RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS( 1 )
-RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS( 2 )
-RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS( 3 )
-RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS( 4 )
-RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS( 5 )
-RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS( 6 )
-RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS( 7 )
-RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS( 8 )
-RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS( 9 )
-RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DEFS( 10 )
+template class differentiable_space<
+    time_topology, arithmetic_tuple<hyperbox_topology<
+                       vect_n<double>, manhattan_distance_metric>>>;
+template class differentiable_space<
+    time_topology,
+    arithmetic_tuple<
+        hyperbox_topology<vect_n<double>, manhattan_distance_metric>,
+        hyperbox_topology<vect_n<double>, manhattan_distance_metric>>>;
+template class differentiable_space<
+    time_topology,
+    arithmetic_tuple<
+        hyperbox_topology<vect_n<double>, manhattan_distance_metric>,
+        hyperbox_topology<vect_n<double>, manhattan_distance_metric>,
+        hyperbox_topology<vect_n<double>, manhattan_distance_metric>>>;
 
-template class differentiable_space< time_topology,
-                                     arithmetic_tuple< hyperbox_topology< vect_n< double >,
-                                                                          manhattan_distance_metric > > >;
-template class differentiable_space< time_topology,
-                                     arithmetic_tuple< hyperbox_topology< vect_n< double >, manhattan_distance_metric >,
-                                                       hyperbox_topology< vect_n< double >,
-                                                                          manhattan_distance_metric > > >;
-template class differentiable_space< time_topology,
-                                     arithmetic_tuple< hyperbox_topology< vect_n< double >, manhattan_distance_metric >,
-                                                       hyperbox_topology< vect_n< double >, manhattan_distance_metric >,
-                                                       hyperbox_topology< vect_n< double >,
-                                                                          manhattan_distance_metric > > >;
-};
-};
-
-#else
-
-namespace ReaK {
-
-namespace pp {
-
-void dummy_Ndof_spaces_externs_1_symbol(){};
-};
-};
-
-#endif
+}  // namespace ReaK::pp

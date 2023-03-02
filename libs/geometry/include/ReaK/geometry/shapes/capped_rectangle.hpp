@@ -34,36 +34,33 @@
 
 #include "shape_2D.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
+namespace ReaK::geom {
 
 /** This class represents a capped rectangle in 2D (aligned about its center pose, with x-axis ends capped with
  * circles). */
 class capped_rectangle : public shape_2D {
-protected:
-  vect< double, 2 > mDimensions;
+ protected:
+  vect<double, 2> mDimensions;
 
-public:
+ public:
   /**
    * This function returns the maximum radius of the shape (radius of the circle that bounds the shape).
    * \return The maximum radius of the shape.
    */
-  virtual double getBoundingRadius() const;
+  double getBoundingRadius() const override;
 
   /**
    * This function returns the dimensions of the capped rectangle.
    * \return The dimensions of the capped rectangle.
    */
-  const vect< double, 2 >& getDimensions() const { return mDimensions; };
+  const vect<double, 2>& getDimensions() const { return mDimensions; }
   /**
    * This function sets the new dimensions of the capped rectangle.
    * \param aDimensions The new dimensions of the capped rectangle.
    */
-  void setDimensions( const vect< double, 2 >& aDimensions ) { mDimensions = aDimensions; };
+  void setDimensions(const vect<double, 2>& aDimensions) {
+    mDimensions = aDimensions;
+  }
 
   /**
    * Default constructor.
@@ -72,28 +69,31 @@ public:
    * \param aPose The pose of the geometry (relative to the anchor).
    * \param aDimensions The dimensions.
    */
-  capped_rectangle( const std::string& aName = "",
-                    const shared_ptr< pose_2D< double > >& aAnchor = shared_ptr< pose_2D< double > >(),
-                    const pose_2D< double >& aPose = pose_2D< double >(),
-                    const vect< double, 2 >& aDimensions = ( vect< double, 2 >() ) );
+  explicit capped_rectangle(
+      const std::string& aName = "",
+      const std::shared_ptr<pose_2D<double>>& aAnchor =
+          std::shared_ptr<pose_2D<double>>(),
+      const pose_2D<double>& aPose = pose_2D<double>(),
+      const vect<double, 2>& aDimensions = (vect<double, 2>()));
 
   /**
    * Default destructor.
    */
-  virtual ~capped_rectangle(){};
-
+  ~capped_rectangle() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( capped_rectangle, 0xC310000D, 1, "capped_rectangle", shape_2D )
+  RK_RTTI_MAKE_CONCRETE_1BASE(capped_rectangle, 0xC310000D, 1,
+                              "capped_rectangle", shape_2D)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

@@ -30,45 +30,42 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef REAK_RPC_SERVER_HPP
 #define REAK_RPC_SERVER_HPP
 
 #include "detail/remote_function.hpp"
 
-#include <ReaK/core/base/thread_incl.hpp>
+#include <future>
+#include <thread>
 
-namespace ReaK {
-
-namespace rpc {
-
+namespace ReaK::rpc {
 
 // Singleton
 class server {
-private:
+ private:
   server();
   ~server();
 
   struct impl;
   impl* pimpl;
 
-public:
+ public:
   static server& instance();
 
-  static void set_name( const std::string& aName );
+  static void set_name(const std::string& aName);
 
   friend class detail::remote_function;
 
-private:
-  void publish_function( detail::remote_function* aFunc );
-  void unpublish_function( detail::remote_function* aFunc );
+ private:
+  void publish_function(detail::remote_function* aFunc);
+  void unpublish_function(detail::remote_function* aFunc);
 
-  detail::call_preparations prepare_call( detail::remote_function* aPFunc ) const;
-  ReaKaux::future< detail::call_results > make_remote_call( detail::remote_function* aPFunc,
-                                                            detail::call_preparations&& pre_data ) const;
-};
-};
+  detail::call_preparations prepare_call(detail::remote_function* aPFunc) const;
+  std::future<detail::call_results> make_remote_call(
+      detail::remote_function* aPFunc,
+      detail::call_preparations&& pre_data) const;
 };
 
+}  // namespace ReaK::rpc
 
-#endif
+#endif  // REAK_RPC_SERVER_HPP

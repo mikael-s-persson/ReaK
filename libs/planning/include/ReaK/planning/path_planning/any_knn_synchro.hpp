@@ -36,26 +36,23 @@
 #include <ReaK/core/base/shared_object.hpp>
 #include <ReaK/planning/graph_alg/any_graph.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Path-Planning */
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class can be used as the base for a dynamically polymorphic KNN synchronizer.
  */
 class any_knn_synchro {
-public:
-  typedef any_knn_synchro self;
+ public:
+  using self = any_knn_synchro;
 
-protected:
-  virtual void added_vertex_impl( graph::any_graph::vertex_descriptor, graph::any_graph& ) const {};
-  virtual void removed_vertex_impl( graph::any_graph::vertex_descriptor, graph::any_graph& ) const {};
+ protected:
+  virtual void added_vertex_impl(graph::any_graph::vertex_descriptor,
+                                 graph::any_graph&) const {}
+  virtual void removed_vertex_impl(graph::any_graph::vertex_descriptor,
+                                   graph::any_graph&) const {}
 
-public:
-  virtual ~any_knn_synchro(){};
+ public:
+  virtual ~any_knn_synchro() {}
 
   /**
    * Called to notify the synchronizer that a vertex was just added to the graph.
@@ -64,11 +61,12 @@ public:
    * \param v The vertex that was just added to the graph.
    * \param g The graph to which a vertex was just added.
    */
-  template < typename Vertex, typename Graph >
-  void added_vertex( Vertex v, Graph& g ) const {
-    graph::type_erased_graph< Graph > teg( &g );
-    this->added_vertex_impl( graph::any_graph::vertex_descriptor( boost::any( v ) ), teg );
-  };
+  template <typename Vertex, typename Graph>
+  void added_vertex(Vertex v, Graph& g) const {
+    graph::type_erased_graph<Graph> teg(&g);
+    this->added_vertex_impl(graph::any_graph::vertex_descriptor(std::any(v)),
+                            teg);
+  }
 
   /**
    * Called to notify the synchronizer that a vertex is about to be removed from the graph.
@@ -77,13 +75,13 @@ public:
    * \param v The vertex that is about to be removed from the graph.
    * \param g The graph from which a vertex is about to be removed.
    */
-  template < typename Vertex, typename Graph >
-  void removed_vertex( Vertex v, Graph& g ) const {
-    graph::type_erased_graph< Graph > teg( &g );
-    this->removed_vertex_impl( graph::any_graph::vertex_descriptor( boost::any( v ) ), teg );
-  };
+  template <typename Vertex, typename Graph>
+  void removed_vertex(Vertex v, Graph& g) const {
+    graph::type_erased_graph<Graph> teg(&g);
+    this->removed_vertex_impl(graph::any_graph::vertex_descriptor(std::any(v)),
+                              teg);
+  }
 };
-
 
 /**
  * This class can be used to wrap a generic KNN synchronizer within a dynamically
@@ -91,35 +89,39 @@ public:
  * \tparam Graph The graph type.
  * \tparam KNNSynchro The KNN synchronizer object type to be encapsulated by this type-erasure class.
  */
-template < typename Graph, typename KNNSynchro >
+template <typename Graph, typename KNNSynchro>
 class type_erased_knn_synchro : public any_knn_synchro {
-public:
-  typedef any_knn_synchro base_type;
-  typedef type_erased_knn_synchro< Graph, KNNSynchro > self;
+ public:
+  using base_type = any_knn_synchro;
+  using self = type_erased_knn_synchro<Graph, KNNSynchro>;
 
-protected:
-  typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
+ protected:
+  using Vertex = graph::graph_vertex_t<Graph>;
 
   KNNSynchro synchro;
 
-protected:
-  virtual void added_vertex_impl( graph::any_graph::vertex_descriptor tev, graph::any_graph& teg ) const {
-    synchro.added_vertex( boost::any_cast< Vertex >( tev ),
-                          static_cast< graph::type_erased_graph< Graph >& >( teg ).base() );
-  };
+ protected:
+  void added_vertex_impl(graph::any_graph::vertex_descriptor tev,
+                         graph::any_graph& teg) const override {
+    synchro.added_vertex(
+        std::any_cast<Vertex>(tev),
+        static_cast<graph::type_erased_graph<Graph>&>(teg).base());
+  }
 
-  virtual void removed_vertex_impl( graph::any_graph::vertex_descriptor tev, graph::any_graph& teg ) const {
-    synchro.removed_vertex( boost::any_cast< Vertex >( tev ),
-                            static_cast< graph::type_erased_graph< Graph >& >( teg ).base() );
-  };
+  void removed_vertex_impl(graph::any_graph::vertex_descriptor tev,
+                           graph::any_graph& teg) const override {
+    synchro.removed_vertex(
+        std::any_cast<Vertex>(tev),
+        static_cast<graph::type_erased_graph<Graph>&>(teg).base());
+  }
 
-public:
-  explicit type_erased_knn_synchro( KNNSynchro aSynchro = KNNSynchro() ) : any_knn_synchro(), synchro( aSynchro ){};
+ public:
+  explicit type_erased_knn_synchro(KNNSynchro aSynchro = KNNSynchro())
+      : any_knn_synchro(), synchro(aSynchro) {}
 
-  virtual ~type_erased_knn_synchro(){};
+  ~type_erased_knn_synchro() override = default;
 };
-};
-};
 
+}  // namespace ReaK::pp
 
 #endif

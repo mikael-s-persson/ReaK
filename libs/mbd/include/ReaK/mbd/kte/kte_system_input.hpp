@@ -38,10 +38,7 @@
 
 #include <vector>
 
-
-namespace ReaK {
-
-namespace kte {
+namespace ReaK::kte {
 
 /**
  * This class is a base class for system inputs to a KTE model. A system input
@@ -49,16 +46,16 @@ namespace kte {
  * when using a KTE model into a state-space system definition.
  */
 class system_input : public virtual named_object {
-public:
+ public:
   /**
    * Constructs a system input class with the given name.
    */
-  system_input( const std::string& aName = "" ) { this->setName( aName ); };
+  explicit system_input(const std::string& aName = "") { this->setName(aName); }
 
   /**
    * Destructor.
    */
-  virtual ~system_input(){};
+  ~system_input() override = default;
 
   /**
    * Returns the number of input variables provided by this system input.
@@ -71,25 +68,29 @@ public:
    * \param i The index of the input variable.
    * \return The variable at index i.
    */
-  virtual void setInput( unsigned int i, double val ) = 0;
+  virtual void setInput(unsigned int i, double val) = 0;
   /**
    * Returns the input variable at index i, with read-only access.
    * \param i The index of the input variable.
    * \return The variable at index i.
    */
-  virtual double getInput( unsigned int i ) const = 0;
+  virtual double getInput(unsigned int i) const = 0;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    ReaK::named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    ReaK::named_object::save(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    ReaK::named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    ReaK::named_object::load(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( system_input, 0xC2100033, 1, "system_input", named_object )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(system_input, 0xC2100033, 1, "system_input",
+                              named_object)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

@@ -37,10 +37,7 @@
 
 #include "temporal_space_concept.hpp"
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class is a functor type which models the TemporalDistMetricConcept, and computes the
@@ -48,10 +45,10 @@ namespace pp {
  */
 struct spatial_distance_only : public serializable {
 
-  spatial_distance_only(){};
+  spatial_distance_only() = default;
 
-  template < typename TemporalTopology >
-  spatial_distance_only( const TemporalTopology& ){};
+  template <typename TemporalTopology>
+  explicit spatial_distance_only(const TemporalTopology& /*unused*/) {}
 
   /**
    * Computes the distance by calling the distance-function of the space-topology (s) on two points (a,b).
@@ -62,11 +59,13 @@ struct spatial_distance_only : public serializable {
    * \param s The temporal-space.
    * \return the spatial-distance between the two points.
    */
-  template < typename Point, typename TemporalTopology >
-  double operator()( const Point& a, const Point& b, const TemporalTopology& s ) const {
-    BOOST_CONCEPT_ASSERT( (TemporalSpaceConcept< TemporalTopology >));
-    return get( distance_metric, s.get_space_topology() )( a.pt, b.pt, s.get_space_topology() );
-  };
+  template <typename Point, typename TemporalTopology>
+  double operator()(const Point& a, const Point& b,
+                    const TemporalTopology& s) const {
+    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+    return get(distance_metric, s.get_space_topology())(a.pt, b.pt,
+                                                        s.get_space_topology());
+  }
   /**
    * Computes the norm by calling the norm-function of the space-topology (s) on a point-difference (a).
    * \tparam PointDiff The point-difference type of points on the temporal-space.
@@ -75,23 +74,25 @@ struct spatial_distance_only : public serializable {
    * \param s The temporal-space.
    * \return The spatial-norm of the difference between the two points.
    */
-  template < typename PointDiff, typename TemporalTopology >
-  double operator()( const PointDiff& a, const TemporalTopology& s ) const {
-    BOOST_CONCEPT_ASSERT( (TemporalSpaceConcept< TemporalTopology >));
-    return get( distance_metric, s.get_space_topology() )( a.pt, s.get_space_topology() );
-  };
+  template <typename PointDiff, typename TemporalTopology>
+  double operator()(const PointDiff& a, const TemporalTopology& s) const {
+    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+    return get(distance_metric, s.get_space_topology())(a.pt,
+                                                        s.get_space_topology());
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( spatial_distance_only, 0xC2410010, 1, "spatial_distance_only", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(spatial_distance_only, 0xC2410010, 1,
+                              "spatial_distance_only", serializable)
 };
-
 
 /**
  * This class is a functor type which models the TemporalDistMetricConcept, and computes the
@@ -99,10 +100,10 @@ struct spatial_distance_only : public serializable {
  */
 struct time_distance_only : public serializable {
 
-  time_distance_only(){};
+  time_distance_only() = default;
 
-  template < typename TemporalTopology >
-  time_distance_only( const TemporalTopology& ){};
+  template <typename TemporalTopology>
+  explicit time_distance_only(const TemporalTopology& /*unused*/) {}
 
   /**
    * Computes the distance by calling the distance-function of the time-topology (t) on two points (a,b).
@@ -113,10 +114,12 @@ struct time_distance_only : public serializable {
    * \param s The temporal-space.
    * \return the temporal-distance between the two points.
    */
-  template < typename Point, typename TemporalTopology >
-  double operator()( const Point& a, const Point& b, const TemporalTopology& s ) const {
-    return get( distance_metric, s.get_time_topology() )( a.time, b.time, s.get_time_topology() );
-  };
+  template <typename Point, typename TemporalTopology>
+  double operator()(const Point& a, const Point& b,
+                    const TemporalTopology& s) const {
+    return get(distance_metric, s.get_time_topology())(a.time, b.time,
+                                                       s.get_time_topology());
+  }
   /**
    * Computes the norm by calling the norm-function of the time-topology (t) on a point-difference (a).
    * \tparam PointDiff The point-difference type of points on the temporal-space.
@@ -125,22 +128,25 @@ struct time_distance_only : public serializable {
    * \param s The temporal-space.
    * \return The temporal-norm of the difference between the two points.
    */
-  template < typename PointDiff, typename TemporalTopology >
-  double operator()( const PointDiff& a, const TemporalTopology& s ) const {
-    return get( distance_metric, s.get_time_topology() )( a.time, s.get_time_topology() );
-  };
+  template <typename PointDiff, typename TemporalTopology>
+  double operator()(const PointDiff& a, const TemporalTopology& s) const {
+    return get(distance_metric, s.get_time_topology())(a.time,
+                                                       s.get_time_topology());
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( time_distance_only, 0xC2410011, 1, "time_distance_only", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(time_distance_only, 0xC2410011, 1,
+                              "time_distance_only", serializable)
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

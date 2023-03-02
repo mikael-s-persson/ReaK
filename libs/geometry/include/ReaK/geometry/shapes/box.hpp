@@ -34,35 +34,32 @@
 
 #include "shape_3D.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
+namespace ReaK::geom {
 
 /** This class represents a box aligned along its center pose. */
 class box : public shape_3D {
-protected:
-  vect< double, 3 > mDimensions;
+ protected:
+  vect<double, 3> mDimensions;
 
-public:
+ public:
   /**
    * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
    * \return The maximum radius of the shape.
    */
-  virtual double getBoundingRadius() const;
+  double getBoundingRadius() const override;
 
   /**
    * This function returns the dimensions of the box.
    * \return The dimensions of the box.
    */
-  const vect< double, 3 >& getDimensions() const { return mDimensions; };
+  const vect<double, 3>& getDimensions() const { return mDimensions; }
   /**
    * This function sets the dimensions of the box.
    * \param aDimensions The new dimensions of the box.
    */
-  void setDimensions( const vect< double, 3 >& aDimensions ) { mDimensions = aDimensions; };
+  void setDimensions(const vect<double, 3>& aDimensions) {
+    mDimensions = aDimensions;
+  }
 
   /**
    * Default constructor.
@@ -71,28 +68,30 @@ public:
    * \param aPose The pose of the geometry (relative to the anchor).
    * \param aDimensions The dimensions of the box.
    */
-  box( const std::string& aName = "",
-       const shared_ptr< pose_3D< double > >& aAnchor = shared_ptr< pose_3D< double > >(),
-       const pose_3D< double >& aPose = pose_3D< double >(),
-       const vect< double, 3 >& aDimensions = ( vect< double, 3 >( 1.0, 1.0, 1.0 ) ) );
+  explicit box(const std::string& aName = "",
+               const std::shared_ptr<pose_3D<double>>& aAnchor =
+                   std::shared_ptr<pose_3D<double>>(),
+               const pose_3D<double>& aPose = pose_3D<double>(),
+               const vect<double, 3>& aDimensions = (vect<double, 3>(1.0, 1.0,
+                                                                     1.0)));
 
   /**
    * Default destructor.
    */
-  virtual ~box(){};
-
+  ~box() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( box, 0xC3100013, 1, "box", shape_3D )
+  RK_RTTI_MAKE_CONCRETE_1BASE(box, 0xC3100013, 1, "box", shape_3D)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

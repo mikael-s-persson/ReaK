@@ -37,23 +37,23 @@
 
 namespace Ui {
 class ChaserTargetMdlConfig;
-};
+}  // namespace Ui
 
-namespace ReaK {
-
-namespace qt {
+namespace ReaK::qt {
 
 class ChaserTargetConfigWidget : public QDockWidget {
   Q_OBJECT
 
-private:
+ private:
   Ui::ChaserTargetMdlConfig* ui;
 
-public:
-  ChaserTargetConfigWidget( View3DMenu* aView3dMenu = nullptr, QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
-  virtual ~ChaserTargetConfigWidget();
+ public:
+  ChaserTargetConfigWidget(View3DMenu* aView3dMenu = nullptr,
+                           QWidget* parent = nullptr,
+                           Qt::WindowFlags flags = 0);
+  ~ChaserTargetConfigWidget() override;
 
-private slots:
+ private slots:
 
   void loadChaserMdl();
   void editChaserMdl();
@@ -72,21 +72,21 @@ private slots:
   void editCompleteMdl();
   void saveCompleteMdl();
 
-public:
-signals:
+ public:
+ signals:
 
   void onTargetLoaded();
   void onChaserLoaded();
 
-public:
+ public:
   View3DMenu* view3d_menu;
 
   kte::chaser_target_data sceneData;
 
-  void loadCompleteModel( const std::string& aFilename );
-  void saveCompleteModel( const std::string& aFilename );
+  void loadCompleteModel(const std::string& aFilename);
+  void saveCompleteModel(const std::string& aFilename);
 };
-};
-};
+
+}  // namespace ReaK::qt
 
 #endif

@@ -32,31 +32,25 @@
 #ifndef REAK_SHAPE_2D_HPP
 #define REAK_SHAPE_2D_HPP
 
-#include "geometry_2D.hpp"
 #include <ReaK/math/kinetostatics/pose_2D.hpp>
+#include "geometry_2D.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
-
-class shape_2D; // forward-decl
+class shape_2D;  // forward-decl
 
 class shape_2D_precompute_pack {
-public:
-  const shape_2D* parent;
-  pose_2D< double > global_pose;
+ public:
+  const shape_2D* parent{};
+  pose_2D<double> global_pose;
 
-  shape_2D_precompute_pack() : parent(), global_pose(){};
+  shape_2D_precompute_pack() = default;
 };
-
 
 /** This class is a base-class for all 2D shapes (collidable primitives). */
 class shape_2D : public geometry_2D {
-protected:
-public:
+ protected:
+ public:
   /**
    * This function returns the maximum radius of the shape (radius of the circle that bounds the shape).
    * \return The maximum radius of the shape.
@@ -71,27 +65,28 @@ public:
    * \param aAnchor The anchor object for the geometry.
    * \param aPose The pose of the geometry (relative to the anchor).
    */
-  shape_2D( const std::string& aName = "",
-            const shared_ptr< pose_2D< double > >& aAnchor = shared_ptr< pose_2D< double > >(),
-            const pose_2D< double >& aPose = pose_2D< double >() );
+  explicit shape_2D(const std::string& aName = "",
+                    const std::shared_ptr<pose_2D<double>>& aAnchor =
+                        std::shared_ptr<pose_2D<double>>(),
+                    const pose_2D<double>& aPose = pose_2D<double>());
 
   /**
    * Default destructor.
    */
-  virtual ~shape_2D(){};
-
+  ~shape_2D() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( shape_2D, 0xC3100008, 1, "shape_2D", geometry_2D )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(shape_2D, 0xC3100008, 1, "shape_2D", geometry_2D)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

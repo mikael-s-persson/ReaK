@@ -36,131 +36,131 @@
 #include <ReaK/math/lin_alg/mat_alg.hpp>
 #include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
 
-#include "newton_search_directions.hpp"
 #include "limit_functions.hpp"
 #include "line_search.hpp"
+#include "newton_search_directions.hpp"
 #include "trust_region_search.hpp"
 
-namespace ReaK {
-
-
-namespace optim {
-
+namespace ReaK::optim {
 
 namespace detail {
 
-
-template < typename Function, typename GradFunction, typename HessianFunction, typename Vector, typename LineSearcher,
-           typename LimitFunction, typename NewtonDirectioner >
-void newton_method_ls_impl( Function f, GradFunction df, HessianFunction fill_hessian, Vector& x, unsigned int max_iter,
-                            LineSearcher get_alpha, LimitFunction impose_limits, NewtonDirectioner get_direction,
-                            typename vect_traits< Vector >::value_type abs_tol
-                            = typename vect_traits< Vector >::value_type( 1e-6 ),
-                            typename vect_traits< Vector >::value_type abs_grad_tol
-                            = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
-  typedef typename vect_traits< Vector >::value_type ValueType;
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename Vector, typename LineSearcher, typename LimitFunction,
+          typename NewtonDirectioner>
+void newton_method_ls_impl(
+    Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
+    unsigned int max_iter, LineSearcher get_alpha, LimitFunction impose_limits,
+    NewtonDirectioner get_direction,
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6),
+    vect_value_type_t<Vector> abs_grad_tol = vect_value_type_t<Vector>(1e-6)) {
+  using ValueType = vect_value_type_t<Vector>;
+  using std::abs;
   using std::sqrt;
-  using std::fabs;
 
-  ValueType x_value = f( x );
-  Vector x_grad = df( x );
-  ValueType x_grad_norm = norm_2( x_grad );
+  ValueType x_value = f(x);
+  Vector x_grad = df(x);
+  ValueType x_grad_norm = norm_2(x_grad);
 
   Vector p = x_grad;
-  mat< ValueType, mat_structure::symmetric > H( mat< ValueType, mat_structure::identity >( x.size() ) );
-  fill_hessian( H, x, x_value, x_grad );
+  mat<ValueType, mat_structure::symmetric> H(
+      mat<ValueType, mat_structure::identity>(x.size()));
+  fill_hessian(H, x, x_value, x_grad);
 
   unsigned int k = 0;
 
-  while( x_grad_norm > abs_grad_tol ) {
-    get_direction( H, x_grad, p, abs_tol );
+  while (x_grad_norm > abs_grad_tol) {
+    get_direction(H, x_grad, p, abs_tol);
     // check Wolfe for alpha 1.0
-    ValueType alpha = ValueType( 1.0 );
+    ValueType alpha = ValueType(1.0);
     ValueType pxg = p * x_grad;
-    if( ( f( x + p ) > x_value + ValueType( 1e-4 ) * pxg )
-        || ( fabs( p * df( x + p ) ) > ValueType( 0.8 ) * fabs( pxg ) ) )
-      alpha = get_alpha( f, df, ValueType( 0.0 ), ValueType( 2.0 ), x, p, abs_tol );
+    if ((f(x + p) > x_value + ValueType(1e-4) * pxg) ||
+        (abs(p * df(x + p)) > ValueType(0.8) * abs(pxg))) {
+      alpha = get_alpha(f, df, ValueType(0.0), ValueType(2.0), x, p, abs_tol);
+    }
     p *= alpha;
-    impose_limits( x, p );
-    if( norm_2( p ) > abs_tol )
+    impose_limits(x, p);
+    if (norm_2(p) > abs_tol) {
       return;
+    }
 
     x += p;
 
-    if( ++k > max_iter )
-      throw maximum_iteration( max_iter );
+    if (++k > max_iter) {
+      throw maximum_iteration(max_iter);
+    }
 
-    x_value = f( x );
-    x_grad = df( x );
-    x_grad_norm = norm_2( x_grad );
-    fill_hessian( H, x, x_value, x_grad );
-  };
-};
+    x_value = f(x);
+    x_grad = df(x);
+    x_grad_norm = norm_2(x_grad);
+    fill_hessian(H, x, x_value, x_grad);
+  }
+}
 
-
-template < typename Function, typename GradFunction, typename HessianFunction, typename Vector,
-           typename TrustRegionSolver, typename LimitFunction >
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename Vector, typename TrustRegionSolver, typename LimitFunction>
 void newton_method_tr_impl(
-  Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
-  typename vect_traits< Vector >::value_type max_radius, unsigned int max_iter, TrustRegionSolver solve_step,
-  LimitFunction impose_limits,
-  typename vect_traits< Vector >::value_type abs_tol = typename vect_traits< Vector >::value_type( 1e-6 ),
-  typename vect_traits< Vector >::value_type abs_grad_tol = typename vect_traits< Vector >::value_type( 1e-6 ),
-  typename vect_traits< Vector >::value_type eta = typename vect_traits< Vector >::value_type( 1e-4 ) ) {
-  typedef typename vect_traits< Vector >::value_type ValueType;
+    Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
+    vect_value_type_t<Vector> max_radius, unsigned int max_iter,
+    TrustRegionSolver solve_step, LimitFunction impose_limits,
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6),
+    vect_value_type_t<Vector> abs_grad_tol = vect_value_type_t<Vector>(1e-6),
+    vect_value_type_t<Vector> eta = vect_value_type_t<Vector>(1e-4)) {
+  using ValueType = vect_value_type_t<Vector>;
+  using std::abs;
   using std::sqrt;
-  using std::fabs;
 
-  ValueType radius = ValueType( 0.5 ) * max_radius;
-  ValueType x_value = f( x );
-  Vector x_grad = df( x );
-  ValueType x_grad_norm = norm_2( x_grad );
+  ValueType radius = ValueType(0.5) * max_radius;
+  ValueType x_value = f(x);
+  Vector x_grad = df(x);
+  ValueType x_grad_norm = norm_2(x_grad);
 
   Vector p = x_grad;
-  ValueType norm_p = std::numeric_limits< ValueType >::max();
-  mat< ValueType, mat_structure::symmetric > H( x.size() );
-  fill_hessian( H, x, x_value, x_grad );
+  ValueType norm_p = std::numeric_limits<ValueType>::max();
+  mat<ValueType, mat_structure::symmetric> H(x.size());
+  fill_hessian(H, x, x_value, x_grad);
 
   Vector xt = x;
 
   unsigned int k = 0;
 
-  while( x_grad_norm > abs_grad_tol ) {
-    solve_step( x_grad, H, p, norm_p, radius, abs_tol );
-    impose_limits( x, p );
+  while (x_grad_norm > abs_grad_tol) {
+    solve_step(x_grad, H, p, norm_p, radius, abs_tol);
+    impose_limits(x, p);
     xt = x;
     xt += p;
-    norm_p = norm_2( p );
-    ValueType xt_value = f( xt );
+    norm_p = norm_2(p);
+    ValueType xt_value = f(xt);
     ValueType aredux = x_value - xt_value;
-    ValueType predux = -( x_grad * p + ValueType( 0.5 ) * ( p * ( H * p ) ) );
-
+    ValueType predux = -(x_grad * p + ValueType(0.5) * (p * (H * p)));
 
     ValueType ratio = aredux / predux;
-    if( ratio > ValueType( 0.75 ) ) {
-      if( norm_p > ValueType( 0.8 ) * radius ) {
-        radius *= ValueType( 2.0 );
-        if( radius > max_radius )
+    if (ratio > ValueType(0.75)) {
+      if (norm_p > ValueType(0.8) * radius) {
+        radius *= ValueType(2.0);
+        if (radius > max_radius) {
           radius = max_radius;
-      };
-    } else if( ratio < ValueType( 0.1 ) ) {
-      radius *= ValueType( 0.5 );
-    };
-    if( ratio > eta ) { // the step is accepted.
+        }
+      }
+    } else if (ratio < ValueType(0.1)) {
+      radius *= ValueType(0.5);
+    }
+    if (ratio > eta) {  // the step is accepted.
       x = xt;
-      if( norm_p < abs_tol )
+      if (norm_p < abs_tol) {
         return;
+      }
       x_value = xt_value;
-      x_grad = df( x );
-      x_grad_norm = norm_2( x_grad );
-      fill_hessian( H, x, x_value, x_grad );
-    };
-    if( ++k > max_iter )
-      throw maximum_iteration( max_iter );
-  };
-};
-};
-
+      x_grad = df(x);
+      x_grad_norm = norm_2(x_grad);
+      fill_hessian(H, x, x_value, x_grad);
+    }
+    if (++k > max_iter) {
+      throw maximum_iteration(max_iter);
+    }
+  }
+}
+}  // namespace detail
 
 /**
  * This functor is a factory class to construct a Newton-method optimizer routine that uses a
@@ -176,8 +176,9 @@ void newton_method_tr_impl(
  * \tparam NewtonDirectioner A functor type that can solve for a search direction (see newton_directioner or
  * regularized_newton_directioner for examples).
  */
-template < typename Function, typename GradFunction, typename HessianFunction, typename T,
-           typename LimitFunction = no_limit_functor, typename NewtonDirectioner = newton_directioner >
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename T, typename LimitFunction = no_limit_functor,
+          typename NewtonDirectioner = newton_directioner>
 struct newton_method_ls_factory {
   Function f;
   GradFunction df;
@@ -200,35 +201,47 @@ struct newton_method_ls_factory {
    * a gradient projection method, for more complex constraints please use a constraint optimization method instead).
    * \param aGetDirection The functor that can solve for the search direction.
    */
-  newton_method_ls_factory( Function aF, GradFunction aDf, HessianFunction aFillHessian, unsigned int aMaxIter = 100,
-                            T aTol = T( 1e-6 ), T aGradTol = T( 1e-6 ), LimitFunction aImposeLimits = LimitFunction(),
-                            NewtonDirectioner aGetDirection = NewtonDirectioner() )
-      : f( aF ), df( aDf ), fill_hessian( aFillHessian ), max_iter( aMaxIter ), abs_tol( aTol ),
-        abs_grad_tol( aGradTol ), impose_limits( aImposeLimits ), get_direction( aGetDirection ){};
+  newton_method_ls_factory(
+      Function aF, GradFunction aDf, HessianFunction aFillHessian,
+      unsigned int aMaxIter = 100, T aTol = T(1e-6), T aGradTol = T(1e-6),
+      LimitFunction aImposeLimits = LimitFunction(),
+      NewtonDirectioner aGetDirection = NewtonDirectioner())
+      : f(aF),
+        df(aDf),
+        fill_hessian(aFillHessian),
+        max_iter(aMaxIter),
+        abs_tol(aTol),
+        abs_grad_tol(aGradTol),
+        impose_limits(aImposeLimits),
+        get_direction(aGetDirection) {}
   /**
    * This function finds the minimum of a function, given its derivative and Hessian,
    * using a newton search direction and using a trust-region approach.
    * \tparam Vector The vector type of the independent variable for the function.
    * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
    */
-  template < typename Vector >
-  void operator()( Vector& x ) const {
-    detail::newton_method_ls_impl( f, df, fill_hessian, x, max_iter, line_search_expand_and_zoom< T >( 1e-4, 0.8 ),
-                                   impose_limits, get_direction, abs_tol, abs_grad_tol );
-  };
+  template <typename Vector>
+  void operator()(Vector& x) const {
+    detail::newton_method_ls_impl(f, df, fill_hessian, x, max_iter,
+                                  line_search_expand_and_zoom<T>(1e-4, 0.8),
+                                  impose_limits, get_direction, abs_tol,
+                                  abs_grad_tol);
+  }
 
   /**
    * This function remaps the factory to one which will use a regularized solver for the search-direction.
    * You should regularize the matrix only if there are reasons to expect the Hessian to be near-singular.
    * \param tau The initial relative damping factor to regularize the Hessian matrix.
    */
-  newton_method_ls_factory< Function, GradFunction, HessianFunction, T, LimitFunction,
-                            regularized_newton_directioner< T > >
-    regularize( const T& tau ) const {
-    return newton_method_ls_factory< Function, GradFunction, HessianFunction, T, LimitFunction,
-                                     regularized_newton_directioner< T > >(
-      f, df, fill_hessian, max_iter, abs_tol, abs_grad_tol, impose_limits, regularized_newton_directioner< T >( tau ) );
-  };
+  newton_method_ls_factory<Function, GradFunction, HessianFunction, T,
+                           LimitFunction, regularized_newton_directioner<T>>
+  regularize(const T& tau) const {
+    return newton_method_ls_factory<Function, GradFunction, HessianFunction, T,
+                                    LimitFunction,
+                                    regularized_newton_directioner<T>>(
+        f, df, fill_hessian, max_iter, abs_tol, abs_grad_tol, impose_limits,
+        regularized_newton_directioner<T>(tau));
+  }
 
   /**
    * This function remaps the factory to one which will use the given solver for the search direction.
@@ -236,12 +249,15 @@ struct newton_method_ls_factory {
    * regularized_newton_directioner for examples).
    * \param new_directioner The functor that can solve for the search direction.
    */
-  template < typename NewNewtonDirectioner >
-  newton_method_ls_factory< Function, GradFunction, HessianFunction, T, LimitFunction, NewNewtonDirectioner >
-    set_directioner( NewNewtonDirectioner new_directioner ) const {
-    return newton_method_ls_factory< Function, GradFunction, HessianFunction, T, LimitFunction, NewNewtonDirectioner >(
-      f, df, fill_hessian, max_iter, abs_tol, abs_grad_tol, impose_limits, new_directioner );
-  };
+  template <typename NewNewtonDirectioner>
+  newton_method_ls_factory<Function, GradFunction, HessianFunction, T,
+                           LimitFunction, NewNewtonDirectioner>
+  set_directioner(NewNewtonDirectioner new_directioner) const {
+    return newton_method_ls_factory<Function, GradFunction, HessianFunction, T,
+                                    LimitFunction, NewNewtonDirectioner>(
+        f, df, fill_hessian, max_iter, abs_tol, abs_grad_tol, impose_limits,
+        new_directioner);
+  }
 
   /**
    * This function remaps the factory to one which will use the given limit-function for the search domain.
@@ -253,12 +269,15 @@ struct newton_method_ls_factory {
    * \param new_limits The functor that can impose simple limits on the search domain (i.e. using this boils down to a
    * gradient projection method, for more complex constraints please use a constraint optimization method instead).
    */
-  template < typename NewLimitFunction >
-  newton_method_ls_factory< Function, GradFunction, HessianFunction, T, NewLimitFunction, NewtonDirectioner >
-    set_limiter( NewLimitFunction new_limits ) const {
-    return newton_method_ls_factory< Function, GradFunction, HessianFunction, T, NewLimitFunction, NewtonDirectioner >(
-      f, df, fill_hessian, max_iter, abs_tol, abs_grad_tol, new_limits, get_direction );
-  };
+  template <typename NewLimitFunction>
+  newton_method_ls_factory<Function, GradFunction, HessianFunction, T,
+                           NewLimitFunction, NewtonDirectioner>
+  set_limiter(NewLimitFunction new_limits) const {
+    return newton_method_ls_factory<Function, GradFunction, HessianFunction, T,
+                                    NewLimitFunction, NewtonDirectioner>(
+        f, df, fill_hessian, max_iter, abs_tol, abs_grad_tol, new_limits,
+        get_direction);
+  }
 };
 
 /**
@@ -275,14 +294,15 @@ struct newton_method_ls_factory {
  * \param abs_tol The tolerance on the norm of the step size.
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
-template < typename Function, typename GradFunction, typename HessianFunction >
-newton_method_ls_factory< Function, GradFunction, HessianFunction, double >
-  make_newton_method_ls( Function f, GradFunction df, HessianFunction fill_hessian, unsigned int max_iter = 100,
-                         double abs_tol = 1e-6, double abs_grad_tol = 1e-6 ) {
-  return newton_method_ls_factory< Function, GradFunction, HessianFunction, double >( f, df, fill_hessian, max_iter,
-                                                                                      abs_tol, abs_grad_tol );
-};
-
+template <typename Function, typename GradFunction, typename HessianFunction>
+newton_method_ls_factory<Function, GradFunction, HessianFunction, double>
+make_newton_method_ls(Function f, GradFunction df, HessianFunction fill_hessian,
+                      unsigned int max_iter = 100, double abs_tol = 1e-6,
+                      double abs_grad_tol = 1e-6) {
+  return newton_method_ls_factory<Function, GradFunction, HessianFunction,
+                                  double>(f, df, fill_hessian, max_iter,
+                                          abs_tol, abs_grad_tol);
+}
 
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a newton search
@@ -300,18 +320,19 @@ newton_method_ls_factory< Function, GradFunction, HessianFunction, double >
  * \param abs_tol The tolerance on the norm of the step size.
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
-template < typename Function, typename GradFunction, typename HessianFunction, typename Vector >
-void newton_method_ls( Function f, GradFunction df, HessianFunction fill_hessian, Vector& x, unsigned int max_iter,
-                       typename vect_traits< Vector >::value_type abs_tol
-                       = typename vect_traits< Vector >::value_type( 1e-6 ),
-                       typename vect_traits< Vector >::value_type abs_grad_tol
-                       = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename Vector>
+void newton_method_ls(
+    Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
+    unsigned int max_iter,
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6),
+    vect_value_type_t<Vector> abs_grad_tol = vect_value_type_t<Vector>(1e-6)) {
 
-  detail::newton_method_ls_impl( f, df, fill_hessian, x, max_iter,
-                                 line_search_expand_and_zoom< typename vect_traits< Vector >::value_type >( 1e-4, 0.4 ),
-                                 no_limit_functor(), newton_directioner(), abs_tol, abs_grad_tol );
-};
-
+  detail::newton_method_ls_impl(
+      f, df, fill_hessian, x, max_iter,
+      line_search_expand_and_zoom<vect_value_type_t<Vector>>(1e-4, 0.4),
+      no_limit_functor(), newton_directioner(), abs_tol, abs_grad_tol);
+}
 
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a regularized
@@ -330,19 +351,22 @@ void newton_method_ls( Function f, GradFunction df, HessianFunction fill_hessian
  * \param abs_tol The tolerance on the norm of the step size.
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
-template < typename Function, typename GradFunction, typename HessianFunction, typename Vector >
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename Vector>
 void reg_newton_method_ls(
-  Function f, GradFunction df, HessianFunction fill_hessian, Vector& x, unsigned int max_iter,
-  typename vect_traits< Vector >::value_type tau = typename vect_traits< Vector >::value_type( 1e-3 ),
-  typename vect_traits< Vector >::value_type abs_tol = typename vect_traits< Vector >::value_type( 1e-6 ),
-  typename vect_traits< Vector >::value_type abs_grad_tol = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
+    Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
+    unsigned int max_iter,
+    vect_value_type_t<Vector> tau = vect_value_type_t<Vector>(1e-3),
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6),
+    vect_value_type_t<Vector> abs_grad_tol = vect_value_type_t<Vector>(1e-6)) {
 
   detail::newton_method_ls_impl(
-    f, df, fill_hessian, x, max_iter,
-    line_search_expand_and_zoom< typename vect_traits< Vector >::value_type >( 1e-4, 0.4 ), no_limit_functor(),
-    regularized_newton_directioner< typename vect_traits< Vector >::value_type >( tau ), abs_tol, abs_grad_tol );
-};
-
+      f, df, fill_hessian, x, max_iter,
+      line_search_expand_and_zoom<vect_value_type_t<Vector>>(1e-4, 0.4),
+      no_limit_functor(),
+      regularized_newton_directioner<vect_value_type_t<Vector>>(tau), abs_tol,
+      abs_grad_tol);
+}
 
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a newton search
@@ -364,19 +388,19 @@ void reg_newton_method_ls(
  * \param abs_tol The tolerance on the norm of the step size.
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
-template < typename Function, typename GradFunction, typename HessianFunction, typename Vector, typename LimitFunction >
-void limited_newton_method_ls( Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
-                               unsigned int max_iter, LimitFunction impose_limits,
-                               typename vect_traits< Vector >::value_type abs_tol
-                               = typename vect_traits< Vector >::value_type( 1e-6 ),
-                               typename vect_traits< Vector >::value_type abs_grad_tol
-                               = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename Vector, typename LimitFunction>
+void limited_newton_method_ls(
+    Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
+    unsigned int max_iter, LimitFunction impose_limits,
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6),
+    vect_value_type_t<Vector> abs_grad_tol = vect_value_type_t<Vector>(1e-6)) {
 
-  detail::newton_method_ls_impl( f, df, fill_hessian, x, max_iter,
-                                 line_search_expand_and_zoom< typename vect_traits< Vector >::value_type >( 1e-4, 0.4 ),
-                                 impose_limits, newton_directioner(), abs_tol, abs_grad_tol );
-};
-
+  detail::newton_method_ls_impl(
+      f, df, fill_hessian, x, max_iter,
+      line_search_expand_and_zoom<vect_value_type_t<Vector>>(1e-4, 0.4),
+      impose_limits, newton_directioner(), abs_tol, abs_grad_tol);
+}
 
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a regularized
@@ -399,20 +423,22 @@ void limited_newton_method_ls( Function f, GradFunction df, HessianFunction fill
  * \param abs_tol The tolerance on the norm of the step size.
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
-template < typename Function, typename GradFunction, typename HessianFunction, typename Vector, typename LimitFunction >
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename Vector, typename LimitFunction>
 void limited_reg_newton_method_ls(
-  Function f, GradFunction df, HessianFunction fill_hessian, Vector& x, unsigned int max_iter,
-  LimitFunction impose_limits,
-  typename vect_traits< Vector >::value_type tau = typename vect_traits< Vector >::value_type( 1e-3 ),
-  typename vect_traits< Vector >::value_type abs_tol = typename vect_traits< Vector >::value_type( 1e-6 ),
-  typename vect_traits< Vector >::value_type abs_grad_tol = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
+    Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
+    unsigned int max_iter, LimitFunction impose_limits,
+    vect_value_type_t<Vector> tau = vect_value_type_t<Vector>(1e-3),
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6),
+    vect_value_type_t<Vector> abs_grad_tol = vect_value_type_t<Vector>(1e-6)) {
 
   detail::newton_method_ls_impl(
-    f, df, fill_hessian, x, max_iter,
-    line_search_expand_and_zoom< typename vect_traits< Vector >::value_type >( 1e-4, 0.4 ), impose_limits,
-    regularized_newton_directioner< typename vect_traits< Vector >::value_type >( tau ), abs_tol, abs_grad_tol );
-};
-
+      f, df, fill_hessian, x, max_iter,
+      line_search_expand_and_zoom<vect_value_type_t<Vector>>(1e-4, 0.4),
+      impose_limits,
+      regularized_newton_directioner<vect_value_type_t<Vector>>(tau), abs_tol,
+      abs_grad_tol);
+}
 
 /**
  * This functor is a factory class to construct a Newton-method optimizer routine that uses a
@@ -428,8 +454,9 @@ void limited_reg_newton_method_ls(
  * \tparam LimitFunction A functor type that can impose limits on a proposed solution step (see no_limit_functor or
  * box_limit_function for examples).
  */
-template < typename Function, typename GradFunction, typename HessianFunction, typename T,
-           typename TrustRegionSolver = trust_region_solver_dogleg, typename LimitFunction = no_limit_functor >
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename T, typename TrustRegionSolver = trust_region_solver_dogleg,
+          typename LimitFunction = no_limit_functor>
 struct newton_method_tr_factory {
   Function f;
   GradFunction df;
@@ -456,37 +483,49 @@ struct newton_method_tr_factory {
    * \param aImposeLimits The functor that can impose simple limits on the search domain (i.e. using this boils down to
    * a gradient projection method, for more complex constraints please use a constraint optimization method instead).
    */
-  newton_method_tr_factory( Function aF, GradFunction aDf, HessianFunction aFillHessian, T aMaxRadius,
-                            unsigned int aMaxIter, T aTol = T( 1e-6 ), T aGradTol = T( 1e-6 ), T aEta = T( 1e-4 ),
-                            TrustRegionSolver aSolveStep = TrustRegionSolver(),
-                            LimitFunction aImposeLimits = LimitFunction() )
-      : f( aF ), df( aDf ), fill_hessian( aFillHessian ), max_radius( aMaxRadius ), max_iter( aMaxIter ),
-        abs_tol( aTol ), abs_grad_tol( aGradTol ), eta( aEta ), solve_step( aSolveStep ),
-        impose_limits( aImposeLimits ){};
+  newton_method_tr_factory(Function aF, GradFunction aDf,
+                           HessianFunction aFillHessian, T aMaxRadius,
+                           unsigned int aMaxIter, T aTol = T(1e-6),
+                           T aGradTol = T(1e-6), T aEta = T(1e-4),
+                           TrustRegionSolver aSolveStep = TrustRegionSolver(),
+                           LimitFunction aImposeLimits = LimitFunction())
+      : f(aF),
+        df(aDf),
+        fill_hessian(aFillHessian),
+        max_radius(aMaxRadius),
+        max_iter(aMaxIter),
+        abs_tol(aTol),
+        abs_grad_tol(aGradTol),
+        eta(aEta),
+        solve_step(aSolveStep),
+        impose_limits(aImposeLimits) {}
   /**
    * This function finds the minimum of a function, given its derivative and Hessian,
    * using a newton search direction and using a trust-region approach.
    * \tparam Vector The vector type of the independent variable for the function.
    * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
    */
-  template < typename Vector >
-  void operator()( Vector& x ) const {
-    detail::newton_method_tr_impl( f, df, fill_hessian, x, max_radius, max_iter, solve_step, impose_limits, abs_tol,
-                                   abs_grad_tol, eta );
-  };
+  template <typename Vector>
+  void operator()(Vector& x) const {
+    detail::newton_method_tr_impl(f, df, fill_hessian, x, max_radius, max_iter,
+                                  solve_step, impose_limits, abs_tol,
+                                  abs_grad_tol, eta);
+  }
 
   /**
    * This function remaps the factory to one which will use a regularized solver within the trust-region.
    * You should regularize the matrix only if there are reasons to expect the Hessian to be near-singular.
    * \param tau The initial relative damping factor to regularize the Hessian matrix.
    */
-  newton_method_tr_factory< Function, GradFunction, HessianFunction, T, trust_region_solver_dogleg_reg< T >,
-                            LimitFunction >
-    regularize( const T& tau ) const {
-    return newton_method_tr_factory< Function, GradFunction, HessianFunction, T, trust_region_solver_dogleg_reg< T >,
-                                     LimitFunction >( f, df, fill_hessian, max_radius, max_iter, abs_tol, abs_grad_tol,
-                                                      eta, trust_region_solver_dogleg_reg< T >( tau ), impose_limits );
-  };
+  newton_method_tr_factory<Function, GradFunction, HessianFunction, T,
+                           trust_region_solver_dogleg_reg<T>, LimitFunction>
+  regularize(const T& tau) const {
+    return newton_method_tr_factory<Function, GradFunction, HessianFunction, T,
+                                    trust_region_solver_dogleg_reg<T>,
+                                    LimitFunction>(
+        f, df, fill_hessian, max_radius, max_iter, abs_tol, abs_grad_tol, eta,
+        trust_region_solver_dogleg_reg<T>(tau), impose_limits);
+  }
 
   /**
    * This function remaps the factory to one which will use the given solver within the trust-region.
@@ -494,12 +533,15 @@ struct newton_method_tr_factory {
    * trust_region_solver_dogleg for an example).
    * \param new_solver The functor that can solve for the step to take within the trust-region.
    */
-  template < typename NewTrustRegionSolver >
-  newton_method_tr_factory< Function, GradFunction, HessianFunction, T, NewTrustRegionSolver, LimitFunction >
-    set_tr_solver( NewTrustRegionSolver new_solver ) const {
-    return newton_method_tr_factory< Function, GradFunction, HessianFunction, T, NewTrustRegionSolver, LimitFunction >(
-      f, df, fill_hessian, max_radius, max_iter, abs_tol, abs_grad_tol, eta, new_solver, impose_limits );
-  };
+  template <typename NewTrustRegionSolver>
+  newton_method_tr_factory<Function, GradFunction, HessianFunction, T,
+                           NewTrustRegionSolver, LimitFunction>
+  set_tr_solver(NewTrustRegionSolver new_solver) const {
+    return newton_method_tr_factory<Function, GradFunction, HessianFunction, T,
+                                    NewTrustRegionSolver, LimitFunction>(
+        f, df, fill_hessian, max_radius, max_iter, abs_tol, abs_grad_tol, eta,
+        new_solver, impose_limits);
+  }
 
   /**
    * This function remaps the factory to one which will use the given limit-function for the search domain.
@@ -511,12 +553,15 @@ struct newton_method_tr_factory {
    * \param new_limits The functor that can impose simple limits on the search domain (i.e. using this boils down to a
    * gradient projection method, for more complex constraints please use a constraint optimization method instead).
    */
-  template < typename NewLimitFunction >
-  newton_method_tr_factory< Function, GradFunction, HessianFunction, T, TrustRegionSolver, NewLimitFunction >
-    set_limiter( NewLimitFunction new_limits ) const {
-    return newton_method_tr_factory< Function, GradFunction, HessianFunction, T, TrustRegionSolver, NewLimitFunction >(
-      f, df, fill_hessian, max_radius, max_iter, abs_tol, abs_grad_tol, eta, solve_step, new_limits );
-  };
+  template <typename NewLimitFunction>
+  newton_method_tr_factory<Function, GradFunction, HessianFunction, T,
+                           TrustRegionSolver, NewLimitFunction>
+  set_limiter(NewLimitFunction new_limits) const {
+    return newton_method_tr_factory<Function, GradFunction, HessianFunction, T,
+                                    TrustRegionSolver, NewLimitFunction>(
+        f, df, fill_hessian, max_radius, max_iter, abs_tol, abs_grad_tol, eta,
+        solve_step, new_limits);
+  }
 };
 
 /**
@@ -536,15 +581,16 @@ struct newton_method_tr_factory {
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  * \param eta The tolerance on the decrease in order to accept a step in the trust region.
  */
-template < typename Function, typename GradFunction, typename HessianFunction, typename T >
-newton_method_tr_factory< Function, GradFunction, HessianFunction, T >
-  make_newton_method_tr( Function f, GradFunction df, HessianFunction fill_hessian, T max_radius,
-                         unsigned int max_iter = 100, T abs_tol = T( 1e-6 ), T abs_grad_tol = T( 1e-6 ),
-                         T eta = T( 1e-4 ) ) {
-  return newton_method_tr_factory< Function, GradFunction, HessianFunction, T >( f, df, fill_hessian, max_radius,
-                                                                                 max_iter, abs_tol, abs_grad_tol, eta );
-};
-
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename T>
+newton_method_tr_factory<Function, GradFunction, HessianFunction, T>
+make_newton_method_tr(Function f, GradFunction df, HessianFunction fill_hessian,
+                      T max_radius, unsigned int max_iter = 100,
+                      T abs_tol = T(1e-6), T abs_grad_tol = T(1e-6),
+                      T eta = T(1e-4)) {
+  return newton_method_tr_factory<Function, GradFunction, HessianFunction, T>(
+      f, df, fill_hessian, max_radius, max_iter, abs_tol, abs_grad_tol, eta);
+}
 
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a newton search
@@ -563,17 +609,18 @@ newton_method_tr_factory< Function, GradFunction, HessianFunction, T >
  * \param abs_tol The tolerance on the norm of the step size.
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
-template < typename Function, typename GradFunction, typename HessianFunction, typename Vector >
-void newton_method_tr( Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
-                       typename vect_traits< Vector >::value_type max_radius, unsigned int max_iter = 100,
-                       typename vect_traits< Vector >::value_type abs_tol
-                       = typename vect_traits< Vector >::value_type( 1e-6 ),
-                       typename vect_traits< Vector >::value_type abs_grad_tol
-                       = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename Vector>
+void newton_method_tr(
+    Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
+    vect_value_type_t<Vector> max_radius, unsigned int max_iter = 100,
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6),
+    vect_value_type_t<Vector> abs_grad_tol = vect_value_type_t<Vector>(1e-6)) {
 
-  detail::newton_method_tr_impl( f, df, fill_hessian, x, max_radius, max_iter, trust_region_solver_dogleg(),
-                                 no_limit_functor(), abs_tol, abs_grad_tol );
-};
+  detail::newton_method_tr_impl(f, df, fill_hessian, x, max_radius, max_iter,
+                                trust_region_solver_dogleg(),
+                                no_limit_functor(), abs_tol, abs_grad_tol);
+}
 
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a
@@ -593,19 +640,20 @@ void newton_method_tr( Function f, GradFunction df, HessianFunction fill_hessian
  * \param abs_tol The tolerance on the norm of the step size.
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
-template < typename Function, typename GradFunction, typename HessianFunction, typename Vector >
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename Vector>
 void reg_newton_method_tr(
-  Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
-  typename vect_traits< Vector >::value_type max_radius, unsigned int max_iter = 100,
-  typename vect_traits< Vector >::value_type tau = typename vect_traits< Vector >::value_type( 1e-3 ),
-  typename vect_traits< Vector >::value_type abs_tol = typename vect_traits< Vector >::value_type( 1e-6 ),
-  typename vect_traits< Vector >::value_type abs_grad_tol = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
+    Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
+    vect_value_type_t<Vector> max_radius, unsigned int max_iter = 100,
+    vect_value_type_t<Vector> tau = vect_value_type_t<Vector>(1e-3),
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6),
+    vect_value_type_t<Vector> abs_grad_tol = vect_value_type_t<Vector>(1e-6)) {
 
-  detail::newton_method_tr_impl( f, df, fill_hessian, x, max_radius, max_iter,
-                                 trust_region_solver_dogleg_reg< typename vect_traits< Vector >::value_type >( tau ),
-                                 no_limit_functor(), abs_tol, abs_grad_tol );
-};
-
+  detail::newton_method_tr_impl(
+      f, df, fill_hessian, x, max_radius, max_iter,
+      trust_region_solver_dogleg_reg<vect_value_type_t<Vector>>(tau),
+      no_limit_functor(), abs_tol, abs_grad_tol);
+}
 
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a newton search
@@ -628,17 +676,19 @@ void reg_newton_method_tr(
  * \param abs_tol The tolerance on the norm of the step size.
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
-template < typename Function, typename GradFunction, typename HessianFunction, typename Vector, typename LimitFunction >
-void limited_newton_method_tr( Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
-                               typename vect_traits< Vector >::value_type max_radius, unsigned int max_iter,
-                               LimitFunction impose_limits, typename vect_traits< Vector >::value_type abs_tol
-                                                            = typename vect_traits< Vector >::value_type( 1e-6 ),
-                               typename vect_traits< Vector >::value_type abs_grad_tol
-                               = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename Vector, typename LimitFunction>
+void limited_newton_method_tr(
+    Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
+    vect_value_type_t<Vector> max_radius, unsigned int max_iter,
+    LimitFunction impose_limits,
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6),
+    vect_value_type_t<Vector> abs_grad_tol = vect_value_type_t<Vector>(1e-6)) {
 
-  detail::newton_method_tr_impl( f, df, fill_hessian, x, max_radius, max_iter, trust_region_solver_dogleg(),
-                                 impose_limits, abs_tol, abs_grad_tol );
-};
+  detail::newton_method_tr_impl(f, df, fill_hessian, x, max_radius, max_iter,
+                                trust_region_solver_dogleg(), impose_limits,
+                                abs_tol, abs_grad_tol);
+}
 
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a
@@ -662,20 +712,22 @@ void limited_newton_method_tr( Function f, GradFunction df, HessianFunction fill
  * \param abs_tol The tolerance on the norm of the step size.
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
-template < typename Function, typename GradFunction, typename HessianFunction, typename Vector, typename LimitFunction >
+template <typename Function, typename GradFunction, typename HessianFunction,
+          typename Vector, typename LimitFunction>
 void limited_reg_newton_method_tr(
-  Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
-  typename vect_traits< Vector >::value_type max_radius, unsigned int max_iter, LimitFunction impose_limits,
-  typename vect_traits< Vector >::value_type tau = typename vect_traits< Vector >::value_type( 1e-3 ),
-  typename vect_traits< Vector >::value_type abs_tol = typename vect_traits< Vector >::value_type( 1e-6 ),
-  typename vect_traits< Vector >::value_type abs_grad_tol = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
+    Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
+    vect_value_type_t<Vector> max_radius, unsigned int max_iter,
+    LimitFunction impose_limits,
+    vect_value_type_t<Vector> tau = vect_value_type_t<Vector>(1e-3),
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6),
+    vect_value_type_t<Vector> abs_grad_tol = vect_value_type_t<Vector>(1e-6)) {
 
-  detail::newton_method_tr_impl( f, df, fill_hessian, x, max_radius, max_iter,
-                                 trust_region_solver_dogleg_reg< typename vect_traits< Vector >::value_type >( tau ),
-                                 impose_limits, abs_tol, abs_grad_tol );
-};
-};
-};
+  detail::newton_method_tr_impl(
+      f, df, fill_hessian, x, max_radius, max_iter,
+      trust_region_solver_dogleg_reg<vect_value_type_t<Vector>>(tau),
+      impose_limits, abs_tol, abs_grad_tol);
+}
 
+}  // namespace ReaK::optim
 
 #endif

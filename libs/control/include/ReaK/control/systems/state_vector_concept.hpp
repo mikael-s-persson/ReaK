@@ -35,37 +35,33 @@
 #ifndef REAK_STATE_VECTOR_CONCEPT_HPP
 #define REAK_STATE_VECTOR_CONCEPT_HPP
 
-#include <ReaK/math/lin_alg/vect_concepts.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
 #include <ReaK/math/lin_alg/mat_slices.hpp>
+#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include <ReaK/math/lin_alg/vect_concepts.hpp>
 
 #include <boost/concept_check.hpp>
 
-
-namespace ReaK {
-
-namespace ctrl {
+namespace ReaK::ctrl {
 
 /**
  * This class template is the traits class that defines the traits that a
  * state-vector should have.
  * \tparam StateVector The state-vector type for which the traits are sought.
  */
-template < typename StateVector >
+template <typename StateVector>
 struct state_vector_traits {
   /** This is the type of the state-vector descriptor, usually the same as StateVector. */
-  typedef typename StateVector::state_type state_type;
+  using state_type = typename StateVector::state_type;
   /** This is the type that describes the difference between two state-vectors. */
-  typedef typename StateVector::state_difference_type state_difference_type;
+  using state_difference_type = typename StateVector::state_difference_type;
   /** This is the value-type of the elements of the state-vector. */
-  typedef typename StateVector::value_type value_type;
+  using value_type = typename StateVector::value_type;
   /** This is the type that describes the size of the state-vector. */
-  typedef typename StateVector::size_type size_type;
+  using size_type = typename StateVector::size_type;
 
   /** This constant describes the dimension of the state-vector (0 if only known at run-time). */
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = StateVector::dimensions );
+  static constexpr std::size_t dimensions = StateVector::dimensions;
 };
-
 
 /**
  * This class template defines the concept that state-vectors should model.
@@ -100,32 +96,32 @@ struct state_vector_traits {
  *
  * \tparam StateVector The state-vector type to test for modeling the state-vector concept.
  */
-template < typename StateVector >
+template <typename StateVector>
 struct StateVectorConcept {
-  typename state_vector_traits< StateVector >::state_type s;
-  typename state_vector_traits< StateVector >::state_difference_type ds;
-  typename state_vector_traits< StateVector >::value_type v;
-  typename state_vector_traits< StateVector >::size_type sz;
+  typename state_vector_traits<StateVector>::state_type s;
+  typename state_vector_traits<StateVector>::state_difference_type ds1, ds2;
+  typename state_vector_traits<StateVector>::value_type v;
+  typename state_vector_traits<StateVector>::size_type sz;
 
   BOOST_CONCEPT_ASSERT(
-    ( ReadableVectorConcept< typename state_vector_traits< StateVector >::state_difference_type > ) );
+      (ReadableVectorConcept<
+          typename state_vector_traits<StateVector>::state_difference_type>));
 
-  BOOST_CONCEPT_USAGE( StateVectorConcept ) {
-    ds = diff( s, s );
-    s = add( s, ds );
-    ds = v * ds;
-    ds *= v;
-    ds = ds + ds;
-    ds += ds;
-    ds = ds - ds;
-    ds -= ds;
-    ds = -ds;
-    ds = unit( ds );
-    v = norm_2( ds );
-    sz = ds.size();
-  };
+  BOOST_CONCEPT_USAGE(StateVectorConcept) {
+    ds1 = diff(s, s);
+    s = add(s, ds2);
+    ds1 = v * ds2;
+    ds1 *= v;
+    ds1 = ds2 + ds2;
+    ds1 += ds2;
+    ds1 = ds2 - ds2;
+    ds1 -= ds2;
+    ds1 = -ds2;
+    ds1 = unit(ds2);
+    v = norm_2(ds2);
+    sz = ds2.size();
+  }
 };
-
 
 /**
  * This meta-function is used to evaluate whether a type models the StateVectorConcept.
@@ -134,46 +130,47 @@ struct StateVectorConcept {
  * specialize this meta-function to evaluate to true.
  * \tparam StateVector The type which may or may not be a state-vector type.
  */
-template < typename StateVector >
+template <typename StateVector>
 struct is_state_vector {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_state_vector< StateVector > type;
+  static constexpr bool value = false;
+  using type = is_state_vector<StateVector>;
 };
 
+template <typename StateVector>
+static constexpr bool is_state_vector_v = is_state_vector_v<StateVector>;
 
-template < typename T, typename Allocator >
-struct state_vector_traits< vect_n< T, Allocator > > {
-  typedef vect_n< T, Allocator > state_type;
-  typedef vect_n< T, Allocator > state_difference_type;
-  typedef typename vect_traits< vect_n< T, Allocator > >::value_type value_type;
-  typedef typename vect_traits< vect_n< T, Allocator > >::size_type size_type;
+template <typename T, typename Allocator>
+struct state_vector_traits<vect_n<T, Allocator>> {
+  using state_type = vect_n<T, Allocator>;
+  using state_difference_type = vect_n<T, Allocator>;
+  using value_type = typename vect_traits<vect_n<T, Allocator>>::value_type;
+  using size_type = typename vect_traits<vect_n<T, Allocator>>::size_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = vect_traits< state_type >::dimensions );
+  static constexpr std::size_t dimensions = vect_traits<state_type>::dimensions;
 };
 
-template < typename T, typename Allocator >
-struct is_state_vector< vect_n< T, Allocator > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_state_vector< vect_n< T, Allocator > > type;
+template <typename T, typename Allocator>
+struct is_state_vector<vect_n<T, Allocator>> {
+  static constexpr bool value = true;
+  using type = is_state_vector<vect_n<T, Allocator>>;
 };
 
+template <typename T, unsigned int Size>
+struct state_vector_traits<vect<T, Size>> {
+  using state_type = vect<T, Size>;
+  using state_difference_type = vect<T, Size>;
+  using value_type = typename vect_traits<vect<T, Size>>::value_type;
+  using size_type = typename vect_traits<vect<T, Size>>::size_type;
 
-template < typename T, unsigned int Size >
-struct state_vector_traits< vect< T, Size > > {
-  typedef vect< T, Size > state_type;
-  typedef vect< T, Size > state_difference_type;
-  typedef typename vect_traits< vect< T, Size > >::value_type value_type;
-  typedef typename vect_traits< vect< T, Size > >::size_type size_type;
-
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = vect_traits< state_type >::dimensions );
+  static constexpr std::size_t dimensions = vect_traits<state_type>::dimensions;
 };
 
-template < typename T, unsigned int Size >
-struct is_state_vector< vect< T, Size > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_state_vector< vect< T, Size > > type;
+template <typename T, unsigned int Size>
+struct is_state_vector<vect<T, Size>> {
+  static constexpr bool value = true;
+  using type = is_state_vector<vect<T, Size>>;
 };
-};
-};
+
+}  // namespace ReaK::ctrl
 
 #endif

@@ -54,8 +54,9 @@
 
 #include "mat_cholesky.hpp"
 
-namespace ReaK {
+#include <type_traits>
 
+namespace ReaK {
 
 /*************************************************************************
                 Stabilized Gram-Schmidt Orthogonalization
@@ -77,55 +78,63 @@ namespace ReaK {
  *
  * \author Mikael Persson
  */
-template < typename Matrix >
-typename boost::enable_if< is_fully_writable_matrix< Matrix >, void >::type
-  orthogonalize_StableGramSchmidt( Matrix& A, bool Normalize = false,
-                                   typename mat_traits< Matrix >::value_type NumTol = 1E-8 ) {
-  if( A.get_row_count() < A.get_col_count() )
-    throw std::range_error( "Orthogonalization only possible on a matrix with row-count >= column-count!" );
-  typedef typename mat_traits< Matrix >::value_type ValueType;
-  typedef typename mat_traits< Matrix >::size_type SizeType;
-  using std::fabs;
+template <typename Matrix>
+void orthogonalize_StableGramSchmidt(Matrix& A, bool Normalize = false,
+                                     mat_value_type_t<Matrix> NumTol = 1E-8) {
+  static_assert(is_fully_writable_matrix_v<Matrix>);
+  if (A.get_row_count() < A.get_col_count()) {
+    throw std::range_error(
+        "Orthogonalization only possible on a matrix with row-count >= "
+        "column-count!");
+  }
+  using ValueType = mat_value_type_t<Matrix>;
+  using std::abs;
   using std::sqrt;
 
-  SizeType N = A.get_row_count();
-  SizeType M = A.get_col_count();
+  int N = A.get_row_count();
+  int M = A.get_col_count();
   ValueType u;
-  vect_n< ValueType > v( Normalize ? M : 0 );
+  vect_n<ValueType> v(Normalize ? M : 0);
 
-  for( SizeType i = 0; i < M; ++i ) {
-    for( SizeType j = 0; j < i; ++j ) {
+  for (int i = 0; i < M; ++i) {
+    for (int j = 0; j < i; ++j) {
       u = 0.0;
-      for( SizeType k = 0; k < N; ++k ) {
-        u += A( k, i ) * A( k, j );
-      };
-      if( Normalize ) {
-        for( SizeType k = 0; k < N; k++ )
-          A( k, i ) -= u * A( k, j );
+      for (int k = 0; k < N; ++k) {
+        u += A(k, i) * A(k, j);
+      }
+      if (Normalize) {
+        for (int k = 0; k < N; k++) {
+          A(k, i) -= u * A(k, j);
+        }
       } else {
-        for( SizeType k = 0; k < N; k++ )
-          A( k, i ) -= u * A( k, j ) / v[j];
-      };
-    };
-    if( Normalize ) {
+        for (int k = 0; k < N; k++) {
+          A(k, i) -= u * A(k, j) / v[j];
+        }
+      }
+    }
+    if (Normalize) {
       u = 0.0;
-      for( SizeType k = 0; k < N; k++ )
-        u += A( k, i ) * A( k, i );
-      if( fabs( u ) < NumTol )
-        throw singularity_error( "A" );
-      u = sqrt( u );
-      for( SizeType k = 0; k < N; k++ )
-        A( k, i ) /= u;
+      for (int k = 0; k < N; k++) {
+        u += A(k, i) * A(k, i);
+      }
+      if (abs(u) < NumTol) {
+        throw singularity_error("A");
+      }
+      u = sqrt(u);
+      for (int k = 0; k < N; k++) {
+        A(k, i) /= u;
+      }
     } else {
       v[i] = 0.0;
-      for( SizeType k = 0; k < N; ++k )
-        v[i] += A( k, i ) * A( k, i );
-      if( fabs( v[i] ) < NumTol )
-        throw singularity_error( "A" );
-    };
-  };
-};
-
+      for (int k = 0; k < N; ++k) {
+        v[i] += A(k, i) * A(k, i);
+      }
+      if (abs(v[i]) < NumTol) {
+        throw singularity_error("A");
+      }
+    }
+  }
+}
 
 /*************************************************************************
                           QR Decomposition
@@ -133,397 +142,431 @@ typename boost::enable_if< is_fully_writable_matrix< Matrix >, void >::type
 
 namespace detail {
 
+template <typename Matrix1, typename Matrix2>
+void decompose_QR_impl(Matrix1& A, Matrix2* Q,
+                       mat_value_type_t<Matrix1> NumTol) {
+  using ValueType = mat_value_type_t<Matrix1>;
+  int N = A.get_row_count();
+  int M = A.get_col_count();
+  householder_matrix<vect_n<ValueType>> hhm;
 
-template < typename Matrix1, typename Matrix2 >
-void decompose_QR_impl( Matrix1& A, Matrix2* Q, typename mat_traits< Matrix1 >::value_type NumTol ) {
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
-  SizeType N = A.get_row_count();
-  SizeType M = A.get_col_count();
-  householder_matrix< vect_n< ValueType > > hhm;
+  int t = (N - 1 > M ? M : N - 1);
 
-  SizeType t = ( N - 1 > M ? M : N - 1 );
+  for (int i = 0; i < t; ++i) {
 
-  for( SizeType i = 0; i < t; ++i ) {
+    hhm.set(mat_row_slice<Matrix1>(A, i, i, N - i), NumTol);
 
-    hhm.set( mat_row_slice< Matrix1 >( A, i, i, N - i ), NumTol );
+    mat_sub_block<Matrix1> subA(A, N - i, M - i, i, i);
+    householder_prod(hhm, subA);  // P * R
 
-    mat_sub_block< Matrix1 > subA( A, N - i, M - i, i, i );
-    householder_prod( hhm, subA ); // P * R
+    if (Q) {
+      mat_sub_block<Matrix2> subQ(*Q, Q->get_row_count(), N - i, 0, i);
+      householder_prod(subQ, hhm);  // Q_prev * P
+    }
+  }
+}
 
-    if( Q ) {
-      mat_sub_block< Matrix2 > subQ( *Q, Q->get_row_count(), N - i, 0, i );
-      householder_prod( subQ, hhm ); // Q_prev * P
-    };
-  };
-};
+template <typename Matrix1, typename Matrix2>
+void decompose_RQ_impl(Matrix1& A, Matrix2* Q,
+                       mat_value_type_t<Matrix1> NumTol) {
+  using ValueType = mat_value_type_t<Matrix1>;
+  int N = A.get_row_count();
+  int M = A.get_col_count();
+  householder_matrix<vect_n<ValueType>> hhm;
 
+  int t = (N > M - 1 ? M - 1 : N);
 
-template < typename Matrix1, typename Matrix2 >
-void decompose_RQ_impl( Matrix1& A, Matrix2* Q, typename mat_traits< Matrix1 >::value_type NumTol ) {
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
-  SizeType N = A.get_row_count();
-  SizeType M = A.get_col_count();
-  householder_matrix< vect_n< ValueType > > hhm;
+  for (int i = 0; i < t; ++i) {
 
-  SizeType t = ( N > M - 1 ? M - 1 : N );
+    hhm.set_inv(mat_col_slice<Matrix1>(A, N - i - 1, 0, M - i), NumTol);
 
-  for( SizeType i = 0; i < t; ++i ) {
+    mat_sub_block<Matrix1> subA(A, N - i, M - i, 0, 0);
+    householder_prod(subA, hhm);  // P * R
 
-    hhm.set_inv( mat_col_slice< Matrix1 >( A, N - i - 1, 0, M - i ), NumTol );
+    if (Q) {
+      mat_sub_block<Matrix2> subQ(*Q, Q->get_row_count(), M - i, 0, 0);
+      householder_prod(subQ, hhm);  // Q_prev * P
+    }
+  }
+}
 
-    mat_sub_block< Matrix1 > subA( A, N - i, M - i, 0, 0 );
-    householder_prod( subA, hhm ); // P * R
-
-    if( Q ) {
-      mat_sub_block< Matrix2 > subQ( *Q, Q->get_row_count(), M - i, 0, 0 );
-      householder_prod( subQ, hhm ); // Q_prev * P
-    };
-  };
-};
-
-
-template < typename Matrix1, typename Matrix2 >
-void backsub_R_impl( const Matrix1& R, Matrix2& b, typename mat_traits< Matrix1 >::value_type NumTol ) {
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
-  using std::fabs;
-  SizeType N = R.get_row_count();
-  SizeType M = R.get_col_count();
-  N = ( N > M ? M : N );
+template <typename Matrix1, typename Matrix2>
+void backsub_R_impl(const Matrix1& R, Matrix2& b,
+                    mat_value_type_t<Matrix1> NumTol) {
+  using ValueType = mat_value_type_t<Matrix1>;
+  using std::abs;
+  int N = R.get_row_count();
+  int M = R.get_col_count();
+  N = (N > M ? M : N);
 
   // back-substitution
-  for( SizeType i = N; i > 0; --i ) {
-    for( SizeType j = 0; j < b.get_col_count(); ++j ) {
-      ValueType sum = b( i - 1, j );
-      for( SizeType k = i; k < N; ++k )
-        sum -= b( k, j ) * R( i - 1, k );
-      if( fabs( R( i - 1, i - 1 ) ) < NumTol )
-        throw singularity_error( "R" );
-      b( i - 1, j ) = sum / R( i - 1, i - 1 );
-    };
-  };
-};
+  for (int i = N; i > 0; --i) {
+    for (int j = 0; j < b.get_col_count(); ++j) {
+      ValueType sum = b(i - 1, j);
+      for (int k = i; k < N; ++k) {
+        sum -= b(k, j) * R(i - 1, k);
+      }
+      if (abs(R(i - 1, i - 1)) < NumTol) {
+        throw singularity_error("R");
+      }
+      b(i - 1, j) = sum / R(i - 1, i - 1);
+    }
+  }
+}
 
-
-template < typename Matrix1, typename Matrix2 >
-void forwardsub_L_impl( const Matrix1& L, Matrix2& B, typename mat_traits< Matrix1 >::value_type NumTol ) {
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
-  using std::fabs;
-  SizeType N = L.get_row_count();
-  SizeType M = B.get_col_count();
-  for( SizeType j = 0; j < M; ++j ) { // for every column of B
+template <typename Matrix1, typename Matrix2>
+void forwardsub_L_impl(const Matrix1& L, Matrix2& B,
+                       mat_value_type_t<Matrix1> NumTol) {
+  using std::abs;
+  int N = L.get_row_count();
+  int M = B.get_col_count();
+  for (int j = 0; j < M; ++j) {  // for every column of B
     // Start solving L * Y = B
-    for( SizeType i = 0; i < N; ++i ) {     // for every row of L
-      for( SizeType k = 0; k < i; ++k )     // for every element of row i in L before the diagonal.
-        B( i, j ) -= L( i, k ) * B( k, j ); // subtract to B(i,j) the product of L(i,k) * Y(k,j)
-      if( fabs( L( i, i ) ) < NumTol )
-        throw singularity_error( "L" );
-      B( i, j ) /= L( i, i ); // do Y(i,j) = (B(i,j) - sum_k(L(i,k) * Y(k,j))) / L(i,i)
-    };
-  };
-};
-
+    for (int i = 0; i < N; ++i) {  // for every row of L
+      for (int k = 0; k < i;
+           ++k) {  // for every element of row i in L before the diagonal.
+        B(i, j) -=
+            L(i, k) *
+            B(k, j);  // subtract to B(i,j) the product of L(i,k) * Y(k,j)
+      }
+      if (abs(L(i, i)) < NumTol) {
+        throw singularity_error("L");
+      }
+      B(i, j) /=
+          L(i, i);  // do Y(i,j) = (B(i,j) - sum_k(L(i,k) * Y(k,j))) / L(i,i)
+    }
+  }
+}
 
 /* This implementation is that of Golub and vanLoan, the QR with column pivoting.
  * Produces P-Q-R as follows:  A P = Q R
    This algorithm is not guaranteed to always reveal the rank. */
-template < typename Matrix1, typename Matrix2 >
-typename mat_traits< Matrix1 >::size_type
-  decompose_RRQR_impl( Matrix1& A, Matrix2* Q,
-                       mat< typename mat_traits< Matrix1 >::value_type, mat_structure::permutation >& P,
-                       typename mat_traits< Matrix1 >::value_type NumTol ) {
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
+template <typename Matrix1, typename Matrix2>
+mat_size_type_t<Matrix1> decompose_RRQR_impl(
+    Matrix1& A, Matrix2* Q,
+    mat<mat_value_type_t<Matrix1>, mat_structure::permutation>& P,
+    mat_value_type_t<Matrix1> NumTol) {
+  using ValueType = mat_value_type_t<Matrix1>;
   using std::swap;
-  SizeType N = A.get_row_count();
-  SizeType M = A.get_col_count();
-  P.set_row_count( M );
-  householder_matrix< vect_n< ValueType > > hhm;
+  int N = A.get_row_count();
+  int M = A.get_col_count();
+  P.set_row_count(M);
+  householder_matrix<vect_n<ValueType>> hhm;
 
-  SizeType t = ( N - 1 > M ? M : N - 1 );
+  int t = (N - 1 > M ? M : N - 1);
 
-  vect_n< ValueType > c( M );
-  for( SizeType i = 0; i < M; ++i )
-    c[i] = slice( A )( range( 0, N ), i ) * slice( A )( range( 0, N ), i );
+  vect_n<ValueType> c(M);
+  for (int i = 0; i < M; ++i) {
+    c[i] = slice(A)(range(0, N), i) * slice(A)(range(0, N), i);
+  }
 
-  for( SizeType i = 0; i < t; ++i ) {
+  for (int i = 0; i < t; ++i) {
 
-    ValueType tau( 0.0 );
-    SizeType k = i;
-    for( SizeType j = i; j < M; ++j ) {
-      if( c[j] > tau ) {
+    ValueType tau(0.0);
+    int k = i;
+    for (int j = i; j < M; ++j) {
+      if (c[j] > tau) {
         tau = c[j];
         k = j;
-      };
-    };
-    if( tau < NumTol )
+      }
+    }
+    if (tau < NumTol) {
       return i;
-    if( k != i ) {
-      P.add_column_swap( i, k );
-      for( SizeType j = 0; j < N; ++j )
-        swap( A( j, i ), A( j, k ) );
-      swap( c[i], c[k] );
-    };
+    }
+    if (k != i) {
+      P.add_column_swap(i, k);
+      for (int j = 0; j < N; ++j) {
+        swap(A(j, i), A(j, k));
+      }
+      swap(c[i], c[k]);
+    }
 
-    hhm.set( mat_row_slice< Matrix1 >( A, i, i, N - i ), NumTol );
+    hhm.set(mat_row_slice<Matrix1>(A, i, i, N - i), NumTol);
 
-    mat_sub_block< Matrix1 > subA( A, N - i, M - i, i, i );
-    householder_prod( hhm, subA ); // P * R
+    mat_sub_block<Matrix1> subA(A, N - i, M - i, i, i);
+    householder_prod(hhm, subA);  // P * R
 
-    if( Q ) {
-      mat_sub_block< Matrix2 > subQ( *Q, Q->get_row_count(), N - i, 0, i );
-      householder_prod( subQ, hhm ); // Q_prev * P
-    };
+    if (Q) {
+      mat_sub_block<Matrix2> subQ(*Q, Q->get_row_count(), N - i, 0, i);
+      householder_prod(subQ, hhm);  // Q_prev * P
+    }
 
-    for( SizeType j = i + 1; j < M; ++j )
-      c[j] -= A( i, j ) * A( i, j );
-  };
+    for (int j = i + 1; j < M; ++j) {
+      c[j] -= A(i, j) * A(i, j);
+    }
+  }
   return t;
-};
-
+}
 
 /* This implementation is that of Gu and Eisenstat (1994 tech. report), the Strong RRQR algorithm.
    This algorithm is guaranteed to always reveal the rank but will incur higher cost than the simpler
    column pivoting QR. */
-template < typename Matrix1, typename Matrix2 >
-typename mat_traits< Matrix1 >::size_type decompose_StrongRRQR_impl(
-  Matrix1& A, Matrix2* Q, mat< typename mat_traits< Matrix1 >::value_type, mat_structure::permutation >& P,
-  typename mat_traits< Matrix1 >::value_type f, typename mat_traits< Matrix1 >::value_type NumTol ) {
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
-  using std::swap;
+template <typename Matrix1, typename Matrix2>
+mat_size_type_t<Matrix1> decompose_StrongRRQR_impl(
+    Matrix1& A, Matrix2* Q,
+    mat<mat_value_type_t<Matrix1>, mat_structure::permutation>& P,
+    mat_value_type_t<Matrix1> f, mat_value_type_t<Matrix1> NumTol) {
+  using ValueType = mat_value_type_t<Matrix1>;
+  using std::abs;
   using std::sqrt;
-  using std::fabs;
-  SizeType N = A.get_row_count();
-  SizeType M = A.get_col_count();
-  P.set_row_count( M );
-  householder_matrix< vect_n< ValueType > > hhm;
+  using std::swap;
+  int N = A.get_row_count();
+  int M = A.get_col_count();
+  P.set_row_count(M);
+  householder_matrix<vect_n<ValueType>> hhm;
 
-  SizeType t = ( N - 1 > M ? M : N - 1 );
+  int t = (N - 1 > M ? M : N - 1);
 
-  mat< ValueType, mat_structure::rectangular > AB( 0, M );
-  mat< ValueType, mat_structure::rectangular > AB_prev( 0, M );
+  mat<ValueType, mat_structure::rectangular> AB(0, M);
+  mat<ValueType, mat_structure::rectangular> AB_prev(0, M);
 
-  vect_n< ValueType > c( M );
-  for( SizeType i = 0; i < M; ++i )
-    c[i] = slice( A )( range( 0, N ), i ) * slice( A )( range( 0, N ), i );
-  vect_n< ValueType > w( t, ValueType( 0.0 ) );
+  vect_n<ValueType> c(M);
+  for (int i = 0; i < M; ++i) {
+    c[i] = slice(A)(range(0, N), i) * slice(A)(range(0, N), i);
+  }
+  vect_n<ValueType> w(t, ValueType(0.0));
 
-  for( SizeType i = 0; i < t; ++i ) {
+  for (int i = 0; i < t; ++i) {
 
-    ValueType tau( 0.0 );
-    SizeType k = i;
-    for( SizeType j = i; j < M; ++j ) {
-      if( c[j] > tau ) {
+    ValueType tau(0.0);
+    int k = i;
+    for (int j = i; j < M; ++j) {
+      if (c[j] > tau) {
         tau = c[j];
         k = j;
-      };
-    };
+      }
+    }
 
-    if( tau < NumTol )
+    if (tau < NumTol) {
       return i;
+    }
 
-    if( k != i ) {
-      P.add_column_swap( i, k );
-      for( SizeType j = 0; j < N; ++j )
-        swap( A( j, i ), A( j, k ) );
-      swap( c[i], c[k] );
-      for( SizeType j = 0; j < i; ++j )
-        swap( AB( j, 0 ), AB( j, k - i ) );
-    };
+    if (k != i) {
+      P.add_column_swap(i, k);
+      for (int j = 0; j < N; ++j) {
+        swap(A(j, i), A(j, k));
+      }
+      swap(c[i], c[k]);
+      for (int j = 0; j < i; ++j) {
+        swap(AB(j, 0), AB(j, k - i));
+      }
+    }
 
     // perform the QR update:
-    hhm.set( mat_row_slice< Matrix1 >( A, i, i, N - i ), NumTol );
+    hhm.set(mat_row_slice<Matrix1>(A, i, i, N - i), NumTol);
 
-    mat_sub_block< Matrix1 > subA( A, N - i, M - i, i, i );
-    householder_prod( hhm, subA ); // P * R
+    mat_sub_block<Matrix1> subA(A, N - i, M - i, i, i);
+    householder_prod(hhm, subA);  // P * R
 
-    if( Q ) {
-      mat_sub_block< Matrix2 > subQ( *Q, Q->get_row_count(), N - i, 0, i );
-      householder_prod( subQ, hhm ); // Q_prev * P
-    };
+    if (Q) {
+      mat_sub_block<Matrix2> subQ(*Q, Q->get_row_count(), N - i, 0, i);
+      householder_prod(subQ, hhm);  // Q_prev * P
+    }
 
     // update c, w, AB.
-    AB_prev.set_row_count( i + 1 );
-    AB_prev.set_col_count( M - i - 1 );
-    for( SizeType j = i + 1; j < M; ++j ) {
-      for( SizeType l = 0; l < i; ++l )
-        AB_prev( l, j - i - 1 ) = AB( l, j - i ) - AB( l, 0 ) * A( i, j ) / tau;
-      c[j] = sqrt( c[j] * c[j] - A( i, j ) * A( i, j ) );
-      AB_prev( i, j - i - 1 ) = A( i, j ) / tau;
-    };
-    for( SizeType l = 0; l < i; ++l )
-      w[l] = sqrt( ValueType( 1.0 )
-                   / ( ValueType( 1.0 ) / ( w[l] * w[l] ) + ( AB( l, 0 ) * AB( l, 0 ) ) / ( tau * tau ) ) );
+    AB_prev.set_row_count(i + 1);
+    AB_prev.set_col_count(M - i - 1);
+    for (int j = i + 1; j < M; ++j) {
+      for (int l = 0; l < i; ++l) {
+        AB_prev(l, j - i - 1) = AB(l, j - i) - AB(l, 0) * A(i, j) / tau;
+      }
+      c[j] = sqrt(c[j] * c[j] - A(i, j) * A(i, j));
+      AB_prev(i, j - i - 1) = A(i, j) / tau;
+    }
+    for (int l = 0; l < i; ++l) {
+      w[l] = sqrt(ValueType(1.0) / (ValueType(1.0) / (w[l] * w[l]) +
+                                    (AB(l, 0) * AB(l, 0)) / (tau * tau)));
+    }
     w[i] = tau;
-    swap( AB_prev, AB );
+    swap(AB_prev, AB);
 
-    if( i == t - 1 )
+    if (i == t - 1) {
       break;
+    }
 
-    while( true ) {
+    while (true) {
       // compute rho
-      ValueType rho( 0.0 );
-      SizeType r_i = 0;
-      SizeType r_j = i + 1;
-      for( SizeType j = i + 1; j < M; ++j ) {
-        for( SizeType l = 0; l <= i; ++l ) {
-          if( rho < fabs( AB( l, j - i - 1 ) ) ) {
-            rho = fabs( AB( l, j - i - 1 ) );
+      ValueType rho(0.0);
+      int r_i = 0;
+      int r_j = i + 1;
+      for (int j = i + 1; j < M; ++j) {
+        for (int l = 0; l <= i; ++l) {
+          if (rho < abs(AB(l, j - i - 1))) {
+            rho = abs(AB(l, j - i - 1));
             r_i = l;
             r_j = j;
-          };
-          if( rho < c[j] / w[l] ) {
-            rho = fabs( AB( l, j - i - 1 ) );
+          }
+          if (rho < c[j] / w[l]) {
+            rho = abs(AB(l, j - i - 1));
             r_i = l;
             r_j = j;
-          };
-        };
-      };
+          }
+        }
+      }
 
       // break if rho is satisfactory.
-      if( rho <= f )
+      if (rho <= f) {
         break;
+      }
 
-      if( r_j != i + 1 ) {
+      if (r_j != i + 1) {
         // swap r_j and i+1:
-        P.add_column_swap( r_j, i + 1 );
-        for( SizeType j = 0; j < N; ++j )
-          swap( A( j, i + 1 ), A( j, r_j ) );
-        swap( c[i + 1], c[r_j] );
-        for( SizeType j = 0; j < i; ++j )
-          swap( AB( j, 0 ), AB( j, r_j - i - 1 ) );
-      };
+        P.add_column_swap(r_j, i + 1);
+        for (int j = 0; j < N; ++j) {
+          swap(A(j, i + 1), A(j, r_j));
+        }
+        swap(c[i + 1], c[r_j]);
+        for (int j = 0; j < i; ++j) {
+          swap(AB(j, 0), AB(j, r_j - i - 1));
+        }
+      }
 
-      if( r_i != i ) {
+      if (r_i != i) {
         // swap i and r_i:
-        P.add_column_swap( r_i, i );
-        swap( w[r_i], w[i] );
-        for( SizeType j = 0; j < M - i - 1; ++j )
-          swap( AB( r_i, j ), AB( i, j ) );
-        for( SizeType j = 0; j <= i; ++j )
-          swap( A( j, r_i ), A( j, i ) );
+        P.add_column_swap(r_i, i);
+        swap(w[r_i], w[i]);
+        for (int j = 0; j < M - i - 1; ++j) {
+          swap(AB(r_i, j), AB(i, j));
+        }
+        for (int j = 0; j <= i; ++j) {
+          swap(A(j, r_i), A(j, i));
+        }
 
         // do a QR pass on the sub-matrix:
-        if( Q ) {
-          mat_sub_block< Matrix2 > subQ2( *Q, Q->get_row_count(), i - r_i + 1, 0, r_i );
-          mat_sub_block< Matrix1 > subA2( A, i - r_i + 1, M - r_i, r_i, r_i );
-          decompose_QR_impl( subA2, &subQ2, NumTol );
+        if (Q) {
+          mat_sub_block<Matrix2> subQ2(*Q, Q->get_row_count(), i - r_i + 1, 0,
+                                       r_i);
+          mat_sub_block<Matrix1> subA2(A, i - r_i + 1, M - r_i, r_i, r_i);
+          decompose_QR_impl(subA2, &subQ2, NumTol);
         } else {
-          mat_sub_block< Matrix1 > subA2( A, i - r_i + 1, M - r_i, r_i, r_i );
-          decompose_QR_impl( subA2, static_cast< Matrix2* >( nullptr ), NumTol );
-        };
-      };
+          mat_sub_block<Matrix1> subA2(A, i - r_i + 1, M - r_i, r_i, r_i);
+          decompose_QR_impl(subA2, static_cast<Matrix2*>(nullptr), NumTol);
+        }
+      }
 
       // perform the QR update:
-      hhm.set( mat_row_slice< Matrix1 >( A, i + 1, i + 1, N - i - 1 ), NumTol );
+      hhm.set(mat_row_slice<Matrix1>(A, i + 1, i + 1, N - i - 1), NumTol);
 
-      mat_sub_block< Matrix1 > subA3( A, N - i - 1, M - i - 1, i + 1, i + 1 );
-      householder_prod( hhm, subA3 ); // P * R
+      mat_sub_block<Matrix1> subA3(A, N - i - 1, M - i - 1, i + 1, i + 1);
+      householder_prod(hhm, subA3);  // P * R
 
-      if( Q ) {
-        mat_sub_block< Matrix2 > subQ3( *Q, Q->get_row_count(), N - i - 1, 0, i + 1 );
-        householder_prod( subQ3, hhm ); // Q_prev * P
-      };
+      if (Q) {
+        mat_sub_block<Matrix2> subQ3(*Q, Q->get_row_count(), N - i - 1, 0,
+                                     i + 1);
+        householder_prod(subQ3, hhm);  // Q_prev * P
+      }
 
-      for( SizeType j = i + 2; j < M; ++j )
-        c[j] = sqrt( c[j] * c[j] - A( i, j ) * A( i, j ) );
+      for (int j = i + 2; j < M; ++j) {
+        c[j] = sqrt(c[j] * c[j] - A(i, j) * A(i, j));
+      }
 
       // modify the diagonal block of columns i and i + 1.
-      ValueType gamma = A( i, i );
-      ValueType mu = A( i, i + 1 ) / gamma;
-      ValueType nu = A( i + 1, i + 1 ) / gamma;
+      ValueType gamma = A(i, i);
+      ValueType mu = A(i, i + 1) / gamma;
+      ValueType nu = A(i + 1, i + 1) / gamma;
       ValueType rho2 = mu * mu + nu * nu;
-      vect_n< ValueType > c2( M - i - 2 );
-      for( SizeType j = i + 2; j < M; ++j )
-        c2[j - i - 2] = A( i + 1, j );
-      mat< ValueType, mat_structure::rectangular > u( i, 1 );
-      for( SizeType j = 0; j < i; ++j )
-        u( j, 0 ) = A( j, i );
-      backsub_R_impl( sub( A )( range( 0, i ), range( 0, i ) ), u, NumTol );
+      vect_n<ValueType> c2(M - i - 2);
+      for (int j = i + 2; j < M; ++j) {
+        c2[j - i - 2] = A(i + 1, j);
+      }
+      mat<ValueType, mat_structure::rectangular> u(i, 1);
+      for (int j = 0; j < i; ++j) {
+        u(j, 0) = A(j, i);
+      }
+      backsub_R_impl(sub(A)(range(0, i), range(0, i)), u, NumTol);
 
-      P.add_column_swap( i, i + 1 );
-      for( SizeType j = 0; j <= i + 1; ++j )
-        swap( A( j, i ), A( j, i + 1 ) );
+      P.add_column_swap(i, i + 1);
+      for (int j = 0; j <= i + 1; ++j) {
+        swap(A(j, i), A(j, i + 1));
+      }
 
-      hhm.set( mat_row_slice< Matrix1 >( A, i, i, 2 ), NumTol );
+      hhm.set(mat_row_slice<Matrix1>(A, i, i, 2), NumTol);
 
-      mat_sub_block< Matrix1 > subA4( A, 2, M - i, i, i );
-      householder_prod( hhm, subA4 ); // P * R
+      mat_sub_block<Matrix1> subA4(A, 2, M - i, i, i);
+      householder_prod(hhm, subA4);  // P * R
 
-      if( Q ) {
-        mat_sub_block< Matrix2 > subQ4( *Q, Q->get_row_count(), 2, 0, i );
-        householder_prod( subQ4, hhm ); // Q_prev * P
-      };
+      if (Q) {
+        mat_sub_block<Matrix2> subQ4(*Q, Q->get_row_count(), 2, 0, i);
+        householder_prod(subQ4, hhm);  // Q_prev * P
+      }
 
-      for( SizeType j = 0; j < i; ++j )
-        w[j] = sqrt( w[j] * w[j]
-                     + ( ( AB( j, 0 ) + mu * u( j, 0 ) ) * ( AB( j, 0 ) + mu * u( j, 0 ) ) ) / ( A( i, i ) * A( i, i ) )
-                     - ( u( j, 0 ) * u( j, 0 ) ) / ( gamma * gamma ) );
-      w[i] = A( i, i );
+      for (int j = 0; j < i; ++j) {
+        w[j] = sqrt(w[j] * w[j] +
+                    ((AB(j, 0) + mu * u(j, 0)) * (AB(j, 0) + mu * u(j, 0))) /
+                        (A(i, i) * A(i, i)) -
+                    (u(j, 0) * u(j, 0)) / (gamma * gamma));
+      }
+      w[i] = A(i, i);
 
-      c[i + 1] = A( i + 1, i + 1 );
-      for( SizeType j = i + 2; j < M; ++j )
-        c[j] = sqrt( c[j] * c[j] + A( i + 1, j ) * A( i + 1, j ) - c2[j] * c2[j] );
+      c[i + 1] = A(i + 1, i + 1);
+      for (int j = i + 2; j < M; ++j) {
+        c[j] = sqrt(c[j] * c[j] + A(i + 1, j) * A(i + 1, j) - c2[j] * c2[j]);
+      }
 
-      for( SizeType j = i + 2; j < M; ++j ) {
-        for( SizeType l = 0; l < i; ++l )
-          AB( l, j - i - 1 ) += ( nu * u( l, 0 ) * A( i + 1, j ) - AB( l, 0 ) * A( i, j ) ) / A( i, i );
-        AB( i, j - i - 1 ) = A( i, j ) / A( i, i );
-      };
-      for( SizeType j = 0; j < i; ++j )
-        AB( j, 0 ) = ( nu * nu * u( j, 0 ) - mu * AB( j, 0 ) ) / rho2;
-      AB( i, 0 ) = mu / rho2;
-    };
-  };
+      for (int j = i + 2; j < M; ++j) {
+        for (int l = 0; l < i; ++l) {
+          AB(l, j - i - 1) +=
+              (nu * u(l, 0) * A(i + 1, j) - AB(l, 0) * A(i, j)) / A(i, i);
+        }
+        AB(i, j - i - 1) = A(i, j) / A(i, i);
+      }
+      for (int j = 0; j < i; ++j) {
+        AB(j, 0) = (nu * nu * u(j, 0) - mu * AB(j, 0)) / rho2;
+      }
+      AB(i, 0) = mu / rho2;
+    }
+  }
   return t;
-};
+}
 
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+void linlsq_QR_impl(const Matrix1& A, Matrix2& x, const Matrix3& b,
+                    mat_value_type_t<Matrix1> NumTol) {
+  using std::abs;
+  using ValueType = mat_value_type_t<Matrix1>;
+  int N = A.get_row_count();
+  int M = A.get_col_count();
+  mat<ValueType, mat_structure::rectangular> R =
+      mat<ValueType, mat_structure::rectangular>(A);
+  householder_matrix<vect_n<ValueType>> hhm;
 
-template < typename Matrix1, typename Matrix2, typename Matrix3 >
-void linlsq_QR_impl( const Matrix1& A, Matrix2& x, const Matrix3& b,
-                     typename mat_traits< Matrix1 >::value_type NumTol ) {
-  using std::fabs;
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
-  SizeType N = A.get_row_count();
-  SizeType M = A.get_col_count();
-  mat< ValueType, mat_structure::rectangular > R = mat< ValueType, mat_structure::rectangular >( A );
-  householder_matrix< vect_n< ValueType > > hhm;
+  mat<ValueType, mat_structure::rectangular> b_store =
+      mat<ValueType, mat_structure::rectangular>(b);
 
-  mat< ValueType, mat_structure::rectangular > b_store = mat< ValueType, mat_structure::rectangular >( b );
+  int t = (N - 1 > M ? M : N - 1);
 
-  SizeType t = ( N - 1 > M ? M : N - 1 );
+  for (int i = 0; i < t; ++i) {
 
-  for( SizeType i = 0; i < t; ++i ) {
+    hhm.set(mat_row_slice<mat<ValueType, mat_structure::rectangular>>(R, i, i,
+                                                                      N - i),
+            NumTol);
 
-    hhm.set( mat_row_slice< mat< ValueType, mat_structure::rectangular > >( R, i, i, N - i ), NumTol );
+    mat_sub_block<mat<ValueType, mat_structure::rectangular>> subR(R, N - i,
+                                                                   M - i, i, i);
+    householder_prod(hhm, subR);  // P * R
 
-    mat_sub_block< mat< ValueType, mat_structure::rectangular > > subR( R, N - i, M - i, i, i );
-    householder_prod( hhm, subR ); // P * R
-
-    mat_sub_block< mat< ValueType, mat_structure::rectangular > > subb( b_store, b_store.get_row_count() - i,
-                                                                        b_store.get_col_count(), i, 0 );
-    householder_prod( hhm, subb ); // P * b
-  };
+    mat_sub_block<mat<ValueType, mat_structure::rectangular>> subb(
+        b_store, b_store.get_row_count() - i, b_store.get_col_count(), i, 0);
+    householder_prod(hhm, subb);  // P * b
+  }
 
   // back-substitution
-  x.set_row_count( M );
-  x.set_col_count( b_store.get_col_count() );
-  for( SizeType i = M; i > 0; --i ) {
-    for( SizeType j = 0; j < b_store.get_col_count(); ++j ) {
-      ValueType sum = b_store( i - 1, j );
-      for( SizeType k = i; k < M; ++k )
-        sum -= x( k, j ) * R( i - 1, k );
-      if( fabs( R( i - 1, i - 1 ) ) < NumTol )
-        throw singularity_error( "R" );
-      x( i - 1, j ) = sum / R( i - 1, i - 1 );
-    };
-  };
-};
-};
+  x.set_row_count(M);
+  x.set_col_count(b_store.get_col_count());
+  for (int i = M; i > 0; --i) {
+    for (int j = 0; j < b_store.get_col_count(); ++j) {
+      ValueType sum = b_store(i - 1, j);
+      for (int k = i; k < M; ++k) {
+        sum -= x(k, j) * R(i - 1, k);
+      }
+      if (abs(R(i - 1, i - 1)) < NumTol) {
+        throw singularity_error("R");
+      }
+      x(i - 1, j) = sum / R(i - 1, i - 1);
+    }
+  }
+}
+}  // namespace detail
 
 /**
  * Performs the QR decomposition on a matrix, using Householder reflections approach.
@@ -541,58 +584,45 @@ void linlsq_QR_impl( const Matrix1& A, Matrix2& x, const Matrix3& b,
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                                             is_fully_writable_matrix< Matrix3 > >,
-                           void >::type
-  decompose_QR( const Matrix1& A, Matrix2& Q, Matrix3& R, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  if( A.get_row_count() < A.get_col_count() )
-    throw std::range_error( "QR decomposition is only possible on a matrix with row-count >= column-count!" );
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+void decompose_QR(const Matrix1& A, Matrix2& Q, Matrix3& R,
+                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_readable_matrix_v<Matrix1>);
+  static_assert(is_writable_matrix_v<Matrix2>);
+  static_assert(is_writable_matrix_v<Matrix3>);
+  if (A.get_row_count() < A.get_col_count()) {
+    throw std::range_error(
+        "QR decomposition is only possible on a matrix with row-count >= "
+        "column-count!");
+  }
 
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
+  using ValueType = mat_value_type_t<Matrix1>;
 
-  Q = mat< ValueType, mat_structure::identity >( A.get_row_count() );
-  R = A;
-
-  detail::decompose_QR_impl( R, &Q, NumTol );
-};
-
-/**
- * Performs the QR decomposition on a matrix, using Householder reflections approach.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A writable matrix type.
- * \param A rectangular matrix with row-count >= column-count, a real full-rank matrix.
- * \param Q holds as output, the orthogonal rectangular matrix Q.
- * \param R holds as output, the upper-triangular or right-triangular matrix R in A = QR.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- *
- * \throws std::range_error if the matrix A does not have equal-or-more rows than columns.
- *
- * \author Mikael Persson
- */
-template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                                             is_writable_matrix< Matrix3 >,
-                                             boost::mpl::not_< is_fully_writable_matrix< Matrix3 > >,
-                                             boost::mpl::bool_< ( mat_traits< Matrix3 >::structure
-                                                                  == mat_structure::upper_triangular ) > >,
-                           void >::type
-  decompose_QR( const Matrix1& A, Matrix2& Q, Matrix3& R, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  if( A.get_row_count() < A.get_col_count() )
-    throw std::range_error( "QR decomposition is only possible on a matrix with row-count >= column-count!" );
-
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-
-  Q = mat< ValueType, mat_structure::identity >( A.get_row_count() );
-  mat< typename mat_traits< Matrix3 >::value_type, mat_structure::rectangular > R_tmp( A );
-
-  detail::decompose_QR_impl( R_tmp, &Q, NumTol );
-  R = R_tmp;
-};
-
+  if constexpr (is_fully_writable_matrix_v<Matrix2> &&
+                is_fully_writable_matrix_v<Matrix3>) {
+    Q = mat<ValueType, mat_structure::identity>(A.get_row_count());
+    R = A;
+    detail::decompose_QR_impl(R, &Q, NumTol);
+  } else if constexpr (is_fully_writable_matrix_v<Matrix2>) {
+    Q = mat<ValueType, mat_structure::identity>(A.get_row_count());
+    mat<mat_value_type_t<Matrix3>, mat_structure::rectangular> R_tmp(A);
+    detail::decompose_QR_impl(R_tmp, &Q, NumTol);
+    R = R_tmp;
+  } else if constexpr (is_fully_writable_matrix_v<Matrix3>) {
+    mat<mat_value_type_t<Matrix3>, mat_structure::square> Q_tmp(
+        mat<ValueType, mat_structure::identity>(A.get_row_count()));
+    R = A;
+    detail::decompose_QR_impl(R, &Q_tmp, NumTol);
+    Q = Q_tmp;
+  } else {
+    mat<mat_value_type_t<Matrix3>, mat_structure::square> Q_tmp(
+        mat<ValueType, mat_structure::identity>(A.get_row_count()));
+    mat<mat_value_type_t<Matrix3>, mat_structure::rectangular> R_tmp(A);
+    detail::decompose_QR_impl(R_tmp, &Q_tmp, NumTol);
+    R = R_tmp;
+    Q = Q_tmp;
+  }
+}
 
 /**
  * Computes the determinant via QR decomposition of a matrix, using Householder reflections approach.
@@ -607,23 +637,25 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_f
  *
  * \author Mikael Persson
  */
-template < typename Matrix >
-typename boost::enable_if< is_readable_matrix< Matrix >, typename mat_traits< Matrix >::value_type >::type
-  determinant_QR( const Matrix& A, typename mat_traits< Matrix >::value_type NumTol = 1E-8 ) {
-  if( A.get_row_count() != A.get_col_count() )
-    throw std::range_error( "Determinant is only defined for a square matrix!" );
-  typedef typename mat_traits< Matrix >::value_type ValueType;
-  typedef typename mat_traits< Matrix >::size_type SizeType;
+template <typename Matrix>
+mat_value_type_t<Matrix> determinant_QR(
+    const Matrix& A, mat_value_type_t<Matrix> NumTol = 1E-8) {
+  static_assert(is_readable_matrix_v<Matrix>);
+  if (A.get_row_count() != A.get_col_count()) {
+    throw std::range_error("Determinant is only defined for a square matrix!");
+  }
+  using ValueType = mat_value_type_t<Matrix>;
 
-  mat< ValueType, mat_structure::square > R( A );
-  detail::decompose_QR_impl( R, static_cast< mat< ValueType, mat_structure::square >* >( nullptr ), NumTol );
+  mat<ValueType, mat_structure::square> R(A);
+  detail::decompose_QR_impl(
+      R, static_cast<mat<ValueType, mat_structure::square>*>(nullptr), NumTol);
 
-  ValueType result( 1.0 );
-  for( SizeType i = 0; i < R.get_row_count(); ++i )
-    result *= R( i, i );
+  ValueType result(1.0);
+  for (int i = 0; i < R.get_row_count(); ++i) {
+    result *= R(i, i);
+  }
   return result;
-};
-
+}
 
 /**
  * Solves the linear least square problem (AX \approx B or X = min_X(||AX - B||)) via Householder reflections.
@@ -643,34 +675,36 @@ typename boost::enable_if< is_readable_matrix< Matrix >, typename mat_traits< Ma
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                                             is_readable_matrix< Matrix3 > >,
-                           void >::type
-  linlsq_QR( const Matrix1& A, Matrix2& x, const Matrix3& b,
-             typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  if( A.get_row_count() < A.get_col_count() )
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+void linlsq_QR(const Matrix1& A, Matrix2& x, const Matrix3& b,
+               mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_readable_matrix_v<Matrix1>);
+  static_assert(is_fully_writable_matrix_v<Matrix2>);
+  static_assert(is_readable_matrix_v<Matrix3>);
+  if (A.get_row_count() < A.get_col_count()) {
     throw std::range_error(
-      "Linear Least-square solution is only possible on a matrix with row-count >= column-count!" );
-  if( A.get_row_count() != b.get_row_count() )
+        "Linear Least-square solution is only possible on a matrix with "
+        "row-count >= column-count!");
+  }
+  if (A.get_row_count() != b.get_row_count()) {
     throw std::range_error(
-      "Linear Least-square solution is only possible if row count of b is equal to row count of A!" );
+        "Linear Least-square solution is only possible if row count of b is "
+        "equal to row count of A!");
+  }
 
-  detail::linlsq_QR_impl( A, x, b, NumTol );
-};
-
+  detail::linlsq_QR_impl(A, x, b, NumTol);
+}
 
 /**
  * Functor to wrap a call to a QR decomposition-based linear-least-square solver.
  */
 struct QR_linlsqsolver {
-  template < typename Matrix1, typename Matrix2, typename Matrix3 >
-  void operator()( const Matrix1& A, Matrix2& X, const Matrix3& B,
-                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-    linlsq_QR( A, X, B, NumTol );
-  };
+  template <typename Matrix1, typename Matrix2, typename Matrix3>
+  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B,
+                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
+    linlsq_QR(A, X, B, NumTol);
+  }
 };
-
 
 /**
  * Solves the linear minimum-norm problem (AX = B with min_X(||X||)) via QR decomposition.
@@ -690,44 +724,47 @@ struct QR_linlsqsolver {
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                                             is_readable_matrix< Matrix3 > >,
-                           void >::type
-  minnorm_QR( const Matrix1& A, Matrix2& x, const Matrix3& b,
-              typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  if( A.get_row_count() > A.get_col_count() )
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+void minnorm_QR(const Matrix1& A, Matrix2& x, const Matrix3& b,
+                mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_readable_matrix_v<Matrix1>);
+  static_assert(is_fully_writable_matrix_v<Matrix2>);
+  static_assert(is_readable_matrix_v<Matrix3>);
+  if (A.get_row_count() > A.get_col_count()) {
     throw std::range_error(
-      "Linear Minimum-Norm solution is only possible on a matrix with row-count <= column-count!" );
-  if( A.get_row_count() != b.get_row_count() )
+        "Linear Minimum-Norm solution is only possible on a matrix with "
+        "row-count <= column-count!");
+  }
+  if (A.get_row_count() != b.get_row_count()) {
     throw std::range_error(
-      "Linear Minimum-Norm solution is only possible if row count of b is equal to row count of A!" );
+        "Linear Minimum-Norm solution is only possible if row count of b is "
+        "equal to row count of A!");
+  }
 
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
+  using ValueType = mat_value_type_t<Matrix1>;
 
-  mat< ValueType, mat_structure::rectangular > R( A );
-  mat_transpose_view< mat< ValueType, mat_structure::rectangular > > R_t( R );
-  mat< ValueType, mat_structure::square > Q
-    = mat< ValueType, mat_structure::square >( mat< ValueType, mat_structure::identity >( A.get_col_count() ) );
-  detail::decompose_QR_impl( R_t, &Q, NumTol );
+  mat<ValueType, mat_structure::rectangular> R(A);
+  mat_transpose_view<mat<ValueType, mat_structure::rectangular>> R_t(R);
+  mat<ValueType, mat_structure::square> Q =
+      mat<ValueType, mat_structure::square>(
+          mat<ValueType, mat_structure::identity>(A.get_col_count()));
+  detail::decompose_QR_impl(R_t, &Q, NumTol);
 
-  mat< ValueType, mat_structure::rectangular > b_tmp( b );
-  detail::forwardsub_L_impl( R, b_tmp, NumTol );
-  x = sub( Q )( range( 0, A.get_col_count() ), range( 0, A.get_row_count() ) ) * b_tmp;
-};
-
+  mat<ValueType, mat_structure::rectangular> b_tmp(b);
+  detail::forwardsub_L_impl(R, b_tmp, NumTol);
+  x = sub(Q)(range(0, A.get_col_count()), range(0, A.get_row_count())) * b_tmp;
+}
 
 /**
  * Functor to wrap a call to a QR decomposition-based linear minimum-norm solver.
  */
 struct QR_minnormsolver {
-  template < typename Matrix1, typename Matrix2, typename Matrix3 >
-  void operator()( const Matrix1& A, Matrix2& X, const Matrix3& B,
-                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-    minnorm_QR( A, X, B, NumTol );
-  };
+  template <typename Matrix1, typename Matrix2, typename Matrix3>
+  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B,
+                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
+    minnorm_QR(A, X, B, NumTol);
+  }
 };
-
 
 /**
  * Performs back-substitution to solve R x = b, where R is an upper-triangular matrix.
@@ -746,19 +783,21 @@ struct QR_minnormsolver {
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                                             is_readable_matrix< Matrix3 > >,
-                           void >::type
-  backsub_R( const Matrix1& R, Matrix2& x, const Matrix3& b,
-             typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  if( R.get_row_count() > b.get_row_count() )
-    throw std::range_error( "Back-substitution is only possible if row count of b is equal to row count of R!" );
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+void backsub_R(const Matrix1& R, Matrix2& x, const Matrix3& b,
+               mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_readable_matrix_v<Matrix1>);
+  static_assert(is_fully_writable_matrix_v<Matrix2>);
+  static_assert(is_readable_matrix_v<Matrix3>);
+  if (R.get_row_count() > b.get_row_count()) {
+    throw std::range_error(
+        "Back-substitution is only possible if row count of b is equal to row "
+        "count of R!");
+  }
 
   x = b;
-  detail::backsub_R_impl( R, x, NumTol );
-};
-
+  detail::backsub_R_impl(R, x, NumTol);
+}
 
 /**
  * Performs back-substitution to solve R x = b, where R is an upper-triangular matrix.
@@ -776,16 +815,19 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_f
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                           void >::type
-  backsub_R( const Matrix1& R, Matrix2& x, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  if( R.get_row_count() > x.get_row_count() )
-    throw std::range_error( "Back-substitution is only possible if row count of b is equal to row count of R!" );
+template <typename Matrix1, typename Matrix2>
+void backsub_R(const Matrix1& R, Matrix2& x,
+               mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_readable_matrix_v<Matrix1>);
+  static_assert(is_fully_writable_matrix_v<Matrix2>);
+  if (R.get_row_count() > x.get_row_count()) {
+    throw std::range_error(
+        "Back-substitution is only possible if row count of b is equal to row "
+        "count of R!");
+  }
 
-  detail::backsub_R_impl( R, x, NumTol );
-};
-
+  detail::backsub_R_impl(R, x, NumTol);
+}
 
 /**
  * Computes the pseudo-inverse of a matrix via Householder reflections (left/right Moore-Penrose Pseudo-Inverse).
@@ -803,20 +845,24 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_f
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                           void >::type
-  pseudoinvert_QR( const Matrix1& A, Matrix2& A_pinv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
+template <typename Matrix1, typename Matrix2>
+void pseudoinvert_QR(const Matrix1& A, Matrix2& A_pinv,
+                     mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_readable_matrix_v<Matrix1>);
+  static_assert(is_fully_writable_matrix_v<Matrix2>);
 
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
+  using ValueType = mat_value_type_t<Matrix1>;
 
-  if( A.get_row_count() < A.get_col_count() ) {
-    minnorm_QR( A, A_pinv, mat< ValueType, mat_structure::identity >( A.get_row_count() ), NumTol );
+  if (A.get_row_count() < A.get_col_count()) {
+    minnorm_QR(A, A_pinv,
+               mat<ValueType, mat_structure::identity>(A.get_row_count()),
+               NumTol);
   } else {
-    linlsq_QR( A, A_pinv, mat< ValueType, mat_structure::identity >( A.get_row_count() ), NumTol );
-  };
-};
-
+    linlsq_QR(A, A_pinv,
+              mat<ValueType, mat_structure::identity>(A.get_row_count()),
+              NumTol);
+  }
+}
 
 /**
  * Solves the linear least square problem (AX \approx B or X = min_X(||AX - B||)) via Householder
@@ -837,57 +883,62 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_f
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                                             is_readable_matrix< Matrix3 > >,
-                           void >::type
-  linlsq_RRQR( const Matrix1& A, Matrix2& x, const Matrix3& b,
-               typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  if( A.get_row_count() < A.get_col_count() )
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+void linlsq_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b,
+                 mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_readable_matrix_v<Matrix1>);
+  static_assert(is_fully_writable_matrix_v<Matrix2>);
+  static_assert(is_readable_matrix_v<Matrix3>);
+  if (A.get_row_count() < A.get_col_count()) {
     throw std::range_error(
-      "Linear Least-square solution is only possible on a matrix with row-count >= column-count!" );
-  if( A.get_row_count() != b.get_row_count() )
+        "Linear Least-square solution is only possible on a matrix with "
+        "row-count >= column-count!");
+  }
+  if (A.get_row_count() != b.get_row_count()) {
     throw std::range_error(
-      "Linear Least-square solution is only possible if row count of b is equal to row count of A!" );
+        "Linear Least-square solution is only possible if row count of b is "
+        "equal to row count of A!");
+  }
 
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
+  using ValueType = mat_value_type_t<Matrix1>;
 
-  mat< ValueType, mat_structure::rectangular > R( A );
-  mat< ValueType, mat_structure::square > Q
-    = mat< ValueType, mat_structure::square >( mat< ValueType, mat_structure::identity >( A.get_row_count() ) );
-  mat< ValueType, mat_structure::permutation > P( A.get_col_count() );
+  mat<ValueType, mat_structure::rectangular> R(A);
+  mat<ValueType, mat_structure::square> Q =
+      mat<ValueType, mat_structure::square>(
+          mat<ValueType, mat_structure::identity>(A.get_row_count()));
+  mat<ValueType, mat_structure::permutation> P(A.get_col_count());
 
-  SizeType K = detail::decompose_RRQR_impl( R, &Q, P, NumTol );
-  mat_sub_block< mat< ValueType, mat_structure::square > > subQ( Q, A.get_row_count(), A.get_col_count() );
-  mat< ValueType, mat_structure::rectangular > x_tmp( transpose_view( subQ ) * b );
+  int K = detail::decompose_RRQR_impl(R, &Q, P, NumTol);
+  mat_sub_block<mat<ValueType, mat_structure::square>> subQ(
+      Q, A.get_row_count(), A.get_col_count());
+  mat<ValueType, mat_structure::rectangular> x_tmp(transpose_view(subQ) * b);
 
-  if( K < A.get_col_count() ) {
+  if (K < A.get_col_count()) {
     // A is rank-deficient.
-    mat< ValueType, mat_structure::rectangular > x_tmp2( R.get_col_count(), x_tmp.get_col_count() );
-    minnorm_QR( sub( R )( range( 0, K ), range( 0, R.get_col_count() ) ), x_tmp2,
-                sub( x_tmp )( range( 0, K ), range( 0, x_tmp.get_col_count() ) ), NumTol );
+    mat<ValueType, mat_structure::rectangular> x_tmp2(R.get_col_count(),
+                                                      x_tmp.get_col_count());
+    minnorm_QR(sub(R)(range(0, K), range(0, R.get_col_count())), x_tmp2,
+               sub(x_tmp)(range(0, K), range(0, x_tmp.get_col_count())),
+               NumTol);
     x_tmp = x_tmp2;
   } else {
     // A is full-rank.
-    detail::backsub_R_impl( R, x_tmp, NumTol );
-  };
+    detail::backsub_R_impl(R, x_tmp, NumTol);
+  }
 
   x = P * x_tmp;
-};
-
+}
 
 /**
  * Functor to wrap a call to a QR decomposition-based linear-least-square solver.
  */
 struct RRQR_linlsqsolver {
-  template < typename Matrix1, typename Matrix2, typename Matrix3 >
-  void operator()( const Matrix1& A, Matrix2& X, const Matrix3& B,
-                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-    linlsq_RRQR( A, X, B, NumTol );
-  };
+  template <typename Matrix1, typename Matrix2, typename Matrix3>
+  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B,
+                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
+    linlsq_RRQR(A, X, B, NumTol);
+  }
 };
-
 
 /**
  * Solves the linear minimum-norm problem (AX = B with min_X(||X||)) via RRQR decomposition.
@@ -907,58 +958,66 @@ struct RRQR_linlsqsolver {
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                                             is_readable_matrix< Matrix3 > >,
-                           void >::type
-  minnorm_RRQR( const Matrix1& A, Matrix2& x, const Matrix3& b,
-                typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  if( A.get_row_count() > A.get_col_count() )
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+void minnorm_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b,
+                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_readable_matrix_v<Matrix1>);
+  static_assert(is_fully_writable_matrix_v<Matrix2>);
+  static_assert(is_readable_matrix_v<Matrix3>);
+  if (A.get_row_count() > A.get_col_count()) {
     throw std::range_error(
-      "Linear Minimum-norm solution is only possible on a matrix with row-count <= column-count!" );
-  if( A.get_row_count() != b.get_row_count() )
+        "Linear Minimum-norm solution is only possible on a matrix with "
+        "row-count <= column-count!");
+  }
+  if (A.get_row_count() != b.get_row_count()) {
     throw std::range_error(
-      "Linear Minimum-norm solution is only possible if row count of b is equal to row count of A!" );
+        "Linear Minimum-norm solution is only possible if row count of b is "
+        "equal to row count of A!");
+  }
 
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
+  using ValueType = mat_value_type_t<Matrix1>;
 
-  mat< ValueType, mat_structure::rectangular > R( A );
-  mat_transpose_view< mat< ValueType, mat_structure::rectangular > > R_t( R );
-  mat< ValueType, mat_structure::square > Q
-    = mat< ValueType, mat_structure::square >( mat< ValueType, mat_structure::identity >( A.get_col_count() ) );
+  mat<ValueType, mat_structure::rectangular> R(A);
+  mat_transpose_view<mat<ValueType, mat_structure::rectangular>> R_t(R);
+  mat<ValueType, mat_structure::square> Q =
+      mat<ValueType, mat_structure::square>(
+          mat<ValueType, mat_structure::identity>(A.get_col_count()));
 
-  mat< ValueType, mat_structure::permutation > P( A.get_col_count() );
-  SizeType K = detail::decompose_RRQR_impl( R_t, &Q, P, NumTol );
+  mat<ValueType, mat_structure::permutation> P(A.get_col_count());
+  int K = detail::decompose_RRQR_impl(R_t, &Q, P, NumTol);
 
-  mat< ValueType, mat_structure::rectangular > b_tmp;
-  b_tmp = transpose( P ) * b;
-  if( K < A.get_row_count() ) {
-    mat< ValueType, mat_structure::rectangular > x_tmp( K, b.get_col_count() );
-    detail::linlsq_QR_impl( sub( R )( range( 0, A.get_row_count() ), range( 0, K ) ), x_tmp, b_tmp, NumTol );
-    for( SizeType i = 0; i < K; ++i )
-      for( SizeType j = 0; j < b_tmp.get_col_count(); ++j )
-        b_tmp( i, j ) = x_tmp( i, j );
-    for( SizeType i = K; i < A.get_row_count(); ++i )
-      for( SizeType j = 0; j < b_tmp.get_col_count(); ++j )
-        b_tmp( i, j ) = ValueType( 0.0 );
+  mat<ValueType, mat_structure::rectangular> b_tmp;
+  b_tmp = transpose(P) * b;
+  if (K < A.get_row_count()) {
+    mat<ValueType, mat_structure::rectangular> x_tmp(K, b.get_col_count());
+    detail::linlsq_QR_impl(sub(R)(range(0, A.get_row_count()), range(0, K)),
+                           x_tmp, b_tmp, NumTol);
+    for (int i = 0; i < K; ++i) {
+      for (int j = 0; j < b_tmp.get_col_count(); ++j) {
+        b_tmp(i, j) = x_tmp(i, j);
+      }
+    }
+    for (int i = K; i < A.get_row_count(); ++i) {
+      for (int j = 0; j < b_tmp.get_col_count(); ++j) {
+        b_tmp(i, j) = ValueType(0.0);
+      }
+    }
   } else {
-    detail::forwardsub_L_impl( R, b_tmp, NumTol );
-  };
+    detail::forwardsub_L_impl(R, b_tmp, NumTol);
+  }
 
-  x = sub( Q )( range( 0, A.get_col_count() ), range( 0, A.get_row_count() ) ) * b_tmp;
-};
-
+  x = sub(Q)(range(0, A.get_col_count()), range(0, A.get_row_count())) * b_tmp;
+}
 
 /**
  * Functor to wrap a call to a RRQR decomposition-based linear minimum-norm solver.
  */
 struct RRQR_minnormsolver {
-  template < typename Matrix1, typename Matrix2, typename Matrix3 >
-  void operator()( const Matrix1& A, Matrix2& X, const Matrix3& B,
-                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-    minnorm_RRQR( A, X, B, NumTol );
-  };
+  template <typename Matrix1, typename Matrix2, typename Matrix3>
+  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B,
+                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
+    minnorm_RRQR(A, X, B, NumTol);
+  }
 };
 
 /**
@@ -977,161 +1036,24 @@ struct RRQR_minnormsolver {
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                           void >::type
-  pseudoinvert_RRQR( const Matrix1& A, Matrix2& A_pinv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
+template <typename Matrix1, typename Matrix2>
+void pseudoinvert_RRQR(const Matrix1& A, Matrix2& A_pinv,
+                       mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_readable_matrix_v<Matrix1>);
+  static_assert(is_fully_writable_matrix_v<Matrix2>);
+  using ValueType = mat_value_type_t<Matrix1>;
 
-  if( A.get_row_count() < A.get_col_count() ) {
-    minnorm_RRQR( A, A_pinv, mat< ValueType, mat_structure::identity >( A.get_row_count() ), NumTol );
+  if (A.get_row_count() < A.get_col_count()) {
+    minnorm_RRQR(A, A_pinv,
+                 mat<ValueType, mat_structure::identity>(A.get_row_count()),
+                 NumTol);
   } else {
-    linlsq_RRQR( A, A_pinv, mat< ValueType, mat_structure::identity >( A.get_row_count() ), NumTol );
-  };
-};
+    linlsq_RRQR(A, A_pinv,
+                mat<ValueType, mat_structure::identity>(A.get_row_count()),
+                NumTol);
+  }
+}
 
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
-
-extern template void decompose_QR( const mat< double, mat_structure::rectangular >& A,
-                                   mat< double, mat_structure::rectangular >& Q,
-                                   mat< double, mat_structure::rectangular >& R, double NumTol );
-extern template void decompose_QR( const mat< double, mat_structure::rectangular >& A,
-                                   mat< double, mat_structure::square >& Q,
-                                   mat< double, mat_structure::rectangular >& R, double NumTol );
-extern template void decompose_QR( const mat< double, mat_structure::square >& A,
-                                   mat< double, mat_structure::square >& Q, mat< double, mat_structure::square >& R,
-                                   double NumTol );
-
-extern template double determinant_QR( const mat< double, mat_structure::rectangular >& A, double NumTol );
-extern template double determinant_QR( const mat< double, mat_structure::square >& A, double NumTol );
-
-extern template void linlsq_QR( const mat< double, mat_structure::rectangular >& A,
-                                mat< double, mat_structure::rectangular >& x,
-                                const mat< double, mat_structure::rectangular >& b, double NumTol );
-extern template void linlsq_QR( const mat< double, mat_structure::square >& A,
-                                mat< double, mat_structure::rectangular >& x,
-                                const mat< double, mat_structure::rectangular >& b, double NumTol );
-extern template void linlsq_QR( const mat< double, mat_structure::square >& A, mat< double, mat_structure::square >& x,
-                                const mat< double, mat_structure::square >& b, double NumTol );
-
-extern template void minnorm_QR( const mat< double, mat_structure::rectangular >& A,
-                                 mat< double, mat_structure::rectangular >& x,
-                                 const mat< double, mat_structure::rectangular >& b, double NumTol );
-extern template void minnorm_QR( const mat< double, mat_structure::square >& A,
-                                 mat< double, mat_structure::rectangular >& x,
-                                 const mat< double, mat_structure::rectangular >& b, double NumTol );
-extern template void minnorm_QR( const mat< double, mat_structure::square >& A, mat< double, mat_structure::square >& x,
-                                 const mat< double, mat_structure::square >& b, double NumTol );
-
-extern template void pseudoinvert_QR( const mat< double, mat_structure::rectangular >& A,
-                                      mat< double, mat_structure::rectangular >& A_pinv, double NumTol );
-extern template void pseudoinvert_QR( const mat< double, mat_structure::rectangular >& A,
-                                      mat< double, mat_structure::square >& A_pinv, double NumTol );
-extern template void pseudoinvert_QR( const mat< double, mat_structure::square >& A,
-                                      mat< double, mat_structure::rectangular >& A_pinv, double NumTol );
-extern template void pseudoinvert_QR( const mat< double, mat_structure::square >& A,
-                                      mat< double, mat_structure::square >& A_pinv, double NumTol );
-
-extern template void linlsq_RRQR( const mat< double, mat_structure::rectangular >& A,
-                                  mat< double, mat_structure::rectangular >& x,
-                                  const mat< double, mat_structure::rectangular >& b, double NumTol );
-extern template void linlsq_RRQR( const mat< double, mat_structure::square >& A,
-                                  mat< double, mat_structure::rectangular >& x,
-                                  const mat< double, mat_structure::rectangular >& b, double NumTol );
-extern template void linlsq_RRQR( const mat< double, mat_structure::square >& A,
-                                  mat< double, mat_structure::square >& x,
-                                  const mat< double, mat_structure::square >& b, double NumTol );
-
-extern template void minnorm_RRQR( const mat< double, mat_structure::rectangular >& A,
-                                   mat< double, mat_structure::rectangular >& x,
-                                   const mat< double, mat_structure::rectangular >& b, double NumTol );
-extern template void minnorm_RRQR( const mat< double, mat_structure::square >& A,
-                                   mat< double, mat_structure::rectangular >& x,
-                                   const mat< double, mat_structure::rectangular >& b, double NumTol );
-extern template void minnorm_RRQR( const mat< double, mat_structure::square >& A,
-                                   mat< double, mat_structure::square >& x,
-                                   const mat< double, mat_structure::square >& b, double NumTol );
-
-extern template void pseudoinvert_RRQR( const mat< double, mat_structure::rectangular >& A,
-                                        mat< double, mat_structure::rectangular >& A_pinv, double NumTol );
-extern template void pseudoinvert_RRQR( const mat< double, mat_structure::rectangular >& A,
-                                        mat< double, mat_structure::square >& A_pinv, double NumTol );
-extern template void pseudoinvert_RRQR( const mat< double, mat_structure::square >& A,
-                                        mat< double, mat_structure::rectangular >& A_pinv, double NumTol );
-extern template void pseudoinvert_RRQR( const mat< double, mat_structure::square >& A,
-                                        mat< double, mat_structure::square >& A_pinv, double NumTol );
-
-
-extern template void decompose_QR( const mat< float, mat_structure::rectangular >& A,
-                                   mat< float, mat_structure::rectangular >& Q,
-                                   mat< float, mat_structure::rectangular >& R, float NumTol );
-extern template void decompose_QR( const mat< float, mat_structure::rectangular >& A,
-                                   mat< float, mat_structure::square >& Q, mat< float, mat_structure::rectangular >& R,
-                                   float NumTol );
-extern template void decompose_QR( const mat< float, mat_structure::square >& A, mat< float, mat_structure::square >& Q,
-                                   mat< float, mat_structure::square >& R, float NumTol );
-
-extern template float determinant_QR( const mat< float, mat_structure::rectangular >& A, float NumTol );
-extern template float determinant_QR( const mat< float, mat_structure::square >& A, float NumTol );
-
-extern template void linlsq_QR( const mat< float, mat_structure::rectangular >& A,
-                                mat< float, mat_structure::rectangular >& x,
-                                const mat< float, mat_structure::rectangular >& b, float NumTol );
-extern template void linlsq_QR( const mat< float, mat_structure::square >& A,
-                                mat< float, mat_structure::rectangular >& x,
-                                const mat< float, mat_structure::rectangular >& b, float NumTol );
-extern template void linlsq_QR( const mat< float, mat_structure::square >& A, mat< float, mat_structure::square >& x,
-                                const mat< float, mat_structure::square >& b, float NumTol );
-
-extern template void minnorm_QR( const mat< float, mat_structure::rectangular >& A,
-                                 mat< float, mat_structure::rectangular >& x,
-                                 const mat< float, mat_structure::rectangular >& b, float NumTol );
-extern template void minnorm_QR( const mat< float, mat_structure::square >& A,
-                                 mat< float, mat_structure::rectangular >& x,
-                                 const mat< float, mat_structure::rectangular >& b, float NumTol );
-extern template void minnorm_QR( const mat< float, mat_structure::square >& A, mat< float, mat_structure::square >& x,
-                                 const mat< float, mat_structure::square >& b, float NumTol );
-
-extern template void pseudoinvert_QR( const mat< float, mat_structure::rectangular >& A,
-                                      mat< float, mat_structure::rectangular >& A_pinv, float NumTol );
-extern template void pseudoinvert_QR( const mat< float, mat_structure::rectangular >& A,
-                                      mat< float, mat_structure::square >& A_pinv, float NumTol );
-extern template void pseudoinvert_QR( const mat< float, mat_structure::square >& A,
-                                      mat< float, mat_structure::rectangular >& A_pinv, float NumTol );
-extern template void pseudoinvert_QR( const mat< float, mat_structure::square >& A,
-                                      mat< float, mat_structure::square >& A_pinv, float NumTol );
-
-extern template void linlsq_RRQR( const mat< float, mat_structure::rectangular >& A,
-                                  mat< float, mat_structure::rectangular >& x,
-                                  const mat< float, mat_structure::rectangular >& b, float NumTol );
-extern template void linlsq_RRQR( const mat< float, mat_structure::square >& A,
-                                  mat< float, mat_structure::rectangular >& x,
-                                  const mat< float, mat_structure::rectangular >& b, float NumTol );
-extern template void linlsq_RRQR( const mat< float, mat_structure::square >& A, mat< float, mat_structure::square >& x,
-                                  const mat< float, mat_structure::square >& b, float NumTol );
-
-extern template void minnorm_RRQR( const mat< float, mat_structure::rectangular >& A,
-                                   mat< float, mat_structure::rectangular >& x,
-                                   const mat< float, mat_structure::rectangular >& b, float NumTol );
-extern template void minnorm_RRQR( const mat< float, mat_structure::square >& A,
-                                   mat< float, mat_structure::rectangular >& x,
-                                   const mat< float, mat_structure::rectangular >& b, float NumTol );
-extern template void minnorm_RRQR( const mat< float, mat_structure::square >& A, mat< float, mat_structure::square >& x,
-                                   const mat< float, mat_structure::square >& b, float NumTol );
-
-extern template void pseudoinvert_RRQR( const mat< float, mat_structure::rectangular >& A,
-                                        mat< float, mat_structure::rectangular >& A_pinv, float NumTol );
-extern template void pseudoinvert_RRQR( const mat< float, mat_structure::rectangular >& A,
-                                        mat< float, mat_structure::square >& A_pinv, float NumTol );
-extern template void pseudoinvert_RRQR( const mat< float, mat_structure::square >& A,
-                                        mat< float, mat_structure::rectangular >& A_pinv, float NumTol );
-extern template void pseudoinvert_RRQR( const mat< float, mat_structure::square >& A,
-                                        mat< float, mat_structure::square >& A_pinv, float NumTol );
-
-
-#endif
-};
+}  // namespace ReaK
 
 #endif

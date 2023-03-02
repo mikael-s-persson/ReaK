@@ -23,25 +23,28 @@
 
 #include <ReaK/geometry/shapes/grid_3D.hpp>
 
-namespace ReaK {
+namespace ReaK::geom {
 
-namespace geom {
+grid_3D::grid_3D(const std::string& aName,
+                 const std::shared_ptr<pose_3D<double>>& aAnchor,
+                 const pose_3D<double>& aPose,
+                 const vect<double, 3>& aDimensions,
+                 const vect<std::size_t, 3>& aSquareCounts)
+    : geometry_3D(aName, aAnchor, aPose),
+      mDimensions(aDimensions),
+      mSquareCounts(aSquareCounts) {}
 
+void grid_3D::save(ReaK::serialization::oarchive& A,
+                   unsigned int /*unused*/) const {
+  geometry_3D::save(A, geometry_3D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_SAVE_WITH_NAME(mDimensions) &
+      RK_SERIAL_SAVE_WITH_NAME(mSquareCounts);
+}
 
-grid_3D::grid_3D( const std::string& aName, const shared_ptr< pose_3D< double > >& aAnchor,
-                  const pose_3D< double >& aPose, const vect< double, 3 >& aDimensions,
-                  const vect< std::size_t, 3 >& aSquareCounts )
-    : geometry_3D( aName, aAnchor, aPose ), mDimensions( aDimensions ), mSquareCounts( aSquareCounts ){};
+void grid_3D::load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) {
+  geometry_3D::load(A, geometry_3D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_LOAD_WITH_NAME(mDimensions) &
+      RK_SERIAL_LOAD_WITH_NAME(mSquareCounts);
+}
 
-
-void RK_CALL grid_3D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
-  geometry_3D::save( A, geometry_3D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_SAVE_WITH_NAME( mDimensions ) & RK_SERIAL_SAVE_WITH_NAME( mSquareCounts );
-};
-
-void RK_CALL grid_3D::load( ReaK::serialization::iarchive& A, unsigned int ) {
-  geometry_3D::load( A, geometry_3D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_LOAD_WITH_NAME( mDimensions ) & RK_SERIAL_LOAD_WITH_NAME( mSquareCounts );
-};
-};
-};
+}  // namespace ReaK::geom

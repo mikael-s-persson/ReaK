@@ -29,100 +29,97 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef REAK_RPC_EXCEPTIONS_HPP
 #define REAK_RPC_EXCEPTIONS_HPP
 
 #include <stdexcept>
+#include <string>
+#include <utility>
 
-namespace ReaK {
-
-namespace rpc {
+namespace ReaK::rpc {
 
 namespace detail {
 class remote_function;
-};
-
+}  // namespace detail
 
 class publishing_mismatch : public std::exception {
-private:
+ private:
   std::string msg;
 
-public:
+ public:
   /**
    * Default constructor.
    * \param aAction The action that was attempted when the mismatch was detected.
    * \param aGiven The remote function that was attempted to be published / unpublished / whatever.
    * \param aExisting The remote function that already existed and conflicted with the given remote function.
    */
-  publishing_mismatch( const std::string& aAction, detail::remote_function* aGiven,
-                       detail::remote_function* aExisting );
+  publishing_mismatch(const std::string& aAction,
+                      detail::remote_function* aGiven,
+                      detail::remote_function* aExisting);
   /**
    * Destructor.
    */
-  ~publishing_mismatch() throw(){};
+  ~publishing_mismatch() noexcept override = default;
 
   /**
    * Gets the error message.
    * \return c_string of the error message.
    */
-  const char* what() const throw() { return msg.c_str(); };
+  const char* what() const noexcept override { return msg.c_str(); }
 };
 
-
 class communication_error : public std::exception {
-private:
+ private:
   std::string msg;
 
-public:
+ public:
   /**
    * Default constructor.
    * \param aMsg The message associated to the communication error.
    */
-  communication_error( std::string aMsg = "" ) : msg( std::move( aMsg ) ){};
+  explicit communication_error(std::string aMsg = "") : msg(std::move(aMsg)) {}
   /**
    * Destructor.
    */
-  ~communication_error() throw(){};
+  ~communication_error() noexcept override = default;
 
-  void set_message( std::string aMsg ) { msg = std::move( aMsg ); };
+  void set_message(std::string aMsg) { msg = std::move(aMsg); }
 
   /**
    * Gets the error message.
    * \return c_string of the error message.
    */
-  const char* what() const throw() { return msg.c_str(); };
+  const char* what() const noexcept override { return msg.c_str(); }
 };
 
 class unrecognized_function : public communication_error {
-public:
+ public:
   /**
    * Default constructor.
    * \param aPFunc The remote function that was not recognized.
    */
-  unrecognized_function( detail::remote_function* aPFunc );
+  explicit unrecognized_function(detail::remote_function* aPFunc);
   /**
    * Destructor.
    */
-  ~unrecognized_function() throw(){};
+  ~unrecognized_function() noexcept override = default;
 };
 
-
 class marshalling_error : public communication_error {
-public:
+ public:
   /**
    * Default constructor.
    * \param aPFunc The remote function that could not be marshalled correctly.
    * \param aSerialExceptMsg The marshalling / serializing exception message obtained when attempting the operation.
    */
-  marshalling_error( detail::remote_function* aPFunc, const std::string& aSerialExceptMsg );
+  marshalling_error(detail::remote_function* aPFunc,
+                    const std::string& aSerialExceptMsg);
   /**
    * Destructor.
    */
-  ~marshalling_error() throw(){};
-};
-};
+  ~marshalling_error() noexcept override = default;
 };
 
+}  // namespace ReaK::rpc
 
-#endif
+#endif  // REAK_RPC_EXCEPTIONS_HPP

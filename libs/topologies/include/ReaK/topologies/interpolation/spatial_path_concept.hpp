@@ -35,42 +35,39 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include <cmath>
 #include <boost/concept_check.hpp>
+#include <cmath>
 
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 
 #include <exception>
 #include <string>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This traits class defines the traits that characterize a spatial path within a
  * topology.
  * \tparam SpatialPath The spatial path type for which the traits are sought.
  */
-template < typename SpatialPath >
+template <typename SpatialPath>
 struct spatial_path_traits {
   /** This type describes a point in the space or topology. */
-  typedef typename SpatialPath::point_type point_type;
+  using point_type = typename SpatialPath::point_type;
   /** This type describes the difference between two points in the space or topology. */
-  typedef typename SpatialPath::point_difference_type point_difference_type;
+  using point_difference_type = typename SpatialPath::point_difference_type;
 
   /** This type describes waypoints used by the path to quickly access local parameters of the path. */
-  typedef typename SpatialPath::waypoint_descriptor waypoint_descriptor;
+  using waypoint_descriptor = typename SpatialPath::waypoint_descriptor;
   /** This type describes const-waypoints used by the path to quickly access local parameters of the path. */
-  typedef typename SpatialPath::const_waypoint_descriptor const_waypoint_descriptor;
+  using const_waypoint_descriptor =
+      typename SpatialPath::const_waypoint_descriptor;
 
   /** This type is the topology type in which the path exists. */
-  typedef typename SpatialPath::topology topology;
+  using topology = typename SpatialPath::topology;
   /** This type is the distance metric type used on the topology and defining the travel distances along the path. */
-  typedef typename SpatialPath::distance_metric distance_metric;
+  using distance_metric = typename SpatialPath::distance_metric;
 };
-
 
 /**
  * This concept class defines the requirements for a type to model a spatial-path as used in
@@ -108,44 +105,47 @@ struct spatial_path_traits {
  * \tparam SpatialPath The type to be checked for the requirements of this concept.
  * \tparam Topology The topology in which the spatial-path should reside.
  */
-template < typename SpatialPath, typename Topology >
+template <typename SpatialPath, typename Topology>
 struct SpatialPathConcept {
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< Topology > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
   BOOST_CONCEPT_ASSERT(
-    ( DistanceMetricConcept< typename spatial_path_traits< SpatialPath >::distance_metric, Topology > ) );
+      (DistanceMetricConcept<
+          typename spatial_path_traits<SpatialPath>::distance_metric,
+          Topology>));
 
   SpatialPath p;
-  typename topology_traits< Topology >::point_type pt;
-  std::pair< typename spatial_path_traits< SpatialPath >::const_waypoint_descriptor,
-             typename topology_traits< Topology >::point_type > w_p;
+  typename topology_traits<Topology>::point_type pt;
+  std::pair<
+      typename spatial_path_traits<SpatialPath>::const_waypoint_descriptor,
+      typename topology_traits<Topology>::point_type>
+      w_p;
   double d;
-  BOOST_CONCEPT_USAGE( SpatialPathConcept ) {
-    pt = p.move_away_from( pt, d );
-    d = p.travel_distance( pt, pt );
-    w_p = p.move_away_from( w_p, d );
-    d = p.travel_distance( w_p, w_p );
+  BOOST_CONCEPT_USAGE(SpatialPathConcept) {
+    pt = p.move_away_from(pt, d);
+    d = p.travel_distance(pt, pt);
+    w_p = p.move_away_from(w_p, d);
+    d = p.travel_distance(w_p, w_p);
 
     pt = p.get_start_point();
     w_p = p.get_start_waypoint();
     pt = p.get_end_point();
     w_p = p.get_end_waypoint();
-  };
+  }
 };
-
 
 /**
  * This exception class represents an exception occurring when a path is invalid.
  */
 struct invalid_path : public std::exception {
   std::string message;
-  invalid_path( const std::string& aSender )
-      : message( std::string( "Invalid path reported! Originating from " ) + aSender ){};
-  virtual ~invalid_path() throw(){};
-  const char* what() const throw() { return message.c_str(); };
-};
-};
+  explicit invalid_path(const std::string& aSender)
+      : message(std::string("Invalid path reported! Originating from ") +
+                aSender) {}
+  ~invalid_path() noexcept override = default;
+  const char* what() const noexcept override { return message.c_str(); }
 };
 
+}  // namespace ReaK::pp
 
 #endif

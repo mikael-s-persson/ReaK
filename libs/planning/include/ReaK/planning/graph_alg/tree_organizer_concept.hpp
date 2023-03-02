@@ -33,14 +33,13 @@
 #ifndef REAK_TREE_ORGANIZER_CONCEPT_HPP
 #define REAK_TREE_ORGANIZER_CONCEPT_HPP
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
+#include <boost/config.hpp>
+#include <boost/graph/graph_concepts.hpp>
 
-namespace ReaK {
+#include "simple_graph_traits.hpp"
 
-namespace graph {
-
+namespace ReaK::graph {
 
 /**
  * This concept defines the requirements to fulfill in order to model a tree-organizing visitor concept
@@ -52,31 +51,28 @@ namespace graph {
  *
  * v = vis.add_vertex(tree_vp, tree);  The visitor can perform the addition a vertex (v) with property (vp) to the tree.
  *
- * C++0x / C++11 only:
- *
  * v = vis.add_vertex(std::move(tree_vp), tree);  The visitor can perform the addition a vertex (v) by moving in the
  *property (vp) to the tree.
  *
  * \tparam TreeOrganizerVisitor The visitor type to be checked for this concept.
  * \tparam TreeType The tree type on which the visitor must operate.
  */
-template < typename TreeOrganizerVisitor, typename TreeType >
+template <typename TreeOrganizerVisitor, typename TreeType>
 struct TreeOrganizerVisitorConcept {
   TreeType tree;
   TreeOrganizerVisitor vis;
-  typename TreeType::vertex_property_type vp;
-  typename boost::graph_traits< TreeType >::vertex_descriptor v;
+  graph_vertex_t<TreeType> v;
+  graph_vertex_property_t<TreeType> vp;
 
-  BOOST_CONCEPT_ASSERT( ( boost::IncidenceGraphConcept< TreeType > ) );
+  BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<TreeType>));
 
-  BOOST_CONCEPT_USAGE( TreeOrganizerVisitorConcept ) {
-    vis.remove_vertex( v, tree );
-    vis.add_vertex( vp, tree );
-    vis.add_vertex( std::move( vp ), tree );
-  };
-};
-};
+  BOOST_CONCEPT_USAGE(TreeOrganizerVisitorConcept) {
+    vis.remove_vertex(v, tree);
+    vis.add_vertex(vp, tree);
+    vis.add_vertex(std::move(vp), tree);
+  }
 };
 
+}  // namespace ReaK::graph
 
 #endif

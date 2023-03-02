@@ -38,18 +38,19 @@
 #include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
 #include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
 
-#include "spatial_trajectory_concept.hpp"
 #include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
+#include "spatial_trajectory_concept.hpp"
 
-#include "interpolated_trajectory.hpp"
 #include "generic_interpolator_factory.hpp"
+#include "interpolated_trajectory.hpp"
 
 #include <boost/concept_check.hpp>
 #include <cmath>
 
+#include <limits>
 #include <list>
 #include <map>
-#include <limits>
+#include <type_traits>
 
 namespace ReaK {
 
@@ -60,44 +61,30 @@ namespace pp {
  */
 struct linear_interpolation_tag {};
 
-
 namespace detail {
 
-template < typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace >
-inline typename boost::enable_if< boost::mpl::less< Idx, boost::mpl::size_t< 1 > >, void >::type
-  linear_interpolate_HOT_impl( PointType& result, const PointDiff0& dp1p0, const DiffSpace& space,
-                               const TimeSpace& t_space, double t_factor, double t_normal ){/* nothing to do. */
-  };
+template <int Order, typename PointType, typename PointDiff0,
+          typename DiffSpace, typename TimeSpace>
+void linear_interpolate_impl(PointType& result, const PointType& a,
+                             const PointDiff0& dp1p0, const DiffSpace& space,
+                             const TimeSpace& t_space, double t_factor,
+                             double t_normal) {
+  if constexpr (Order > 1) {
+    linear_interpolate_impl<(Order - 1)>(result, a, dp1p0, space, t_space,
+                                         t_factor, t_normal);
+    get<Order>(result) = get_space<Order>(space, t_space).origin();
+    return;
+  }
 
-template < typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace >
-inline typename boost::enable_if< boost::mpl::equal_to< Idx, boost::mpl::size_t< 1 > >, void >::type
-  linear_interpolate_HOT_impl( PointType& result, const PointDiff0& dp1p0, const DiffSpace& space,
-                               const TimeSpace& t_space, double t_factor, double t_normal ) {
-  get< 1 >( result ) = lift_to_space< 1 >( dp1p0, t_factor, space, t_space );
-};
+  get<0>(result) =
+      get_space<0>(space, t_space).adjust(get<0>(a), t_normal * dp1p0);
 
-template < typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace >
-inline typename boost::enable_if< boost::mpl::less< Idx, boost::mpl::size_t< 2 > >, void >::type
-  linear_interpolate_impl( PointType& result, const PointType& a, const PointDiff0& dp1p0, const DiffSpace& space,
-                           const TimeSpace& t_space, double t_factor, double t_normal ) {
+  if constexpr (Order > 0) {
+    get<1>(result) = lift_to_space<1>(dp1p0, t_factor, space, t_space);
+  }
+}
 
-  get< 0 >( result ) = get_space< 0 >( space, t_space ).adjust( get< 0 >( a ), t_normal * dp1p0 );
-
-  linear_interpolate_HOT_impl< Idx, PointType, PointDiff0, DiffSpace, TimeSpace >( result, dp1p0, space, t_space,
-                                                                                   t_factor, t_normal );
-};
-
-template < typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace >
-inline typename boost::enable_if< boost::mpl::greater< Idx, boost::mpl::size_t< 1 > >, void >::type
-  linear_interpolate_impl( PointType& result, const PointType& a, const PointDiff0 dp1p0, const DiffSpace& space,
-                           const TimeSpace& t_space, double t_factor, double t_normal ) {
-  linear_interpolate_impl< typename boost::mpl::prior< Idx >::type, PointType, PointDiff0, DiffSpace, TimeSpace >(
-    result, a, dp1p0, space, t_space, t_factor, t_normal );
-
-  get< Idx::type::value >( result ) = get_space< Idx::type::value >( space, t_space ).origin();
-};
-};
-
+}  // namespace detail
 
 /**
  * This function template computes a linear interpolation between two points in a
@@ -110,37 +97,43 @@ inline typename boost::enable_if< boost::mpl::greater< Idx, boost::mpl::size_t< 
  * \param space The space on which the points reside.
  * \return The interpolated point at time t, between a and b.
  */
-template < typename PointType, typename Topology >
-PointType linear_interpolate( const PointType& a, const PointType& b, double t, const Topology& space ) {
-  typedef typename temporal_space_traits< Topology >::space_topology SpaceType;
-  typedef typename temporal_space_traits< Topology >::time_topology TimeSpaceType;
+template <typename PointType, typename Topology>
+PointType linear_interpolate(const PointType& a, const PointType& b, double t,
+                             const Topology& space) {
+  using SpaceType = typename temporal_space_traits<Topology>::space_topology;
+  using TimeSpaceType = typename temporal_space_traits<Topology>::time_topology;
 
-  BOOST_CONCEPT_ASSERT( (TemporalSpaceConcept< Topology >));
-  BOOST_CONCEPT_ASSERT( (TangentBundleConcept< SpaceType, 0, TimeSpaceType >));
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((TangentBundleConcept<SpaceType, 0, TimeSpaceType>));
 
   double t_factor = b.time - a.time;
-  if( std::fabs( t_factor ) < std::numeric_limits< double >::epsilon() )
-    throw singularity_error( "Normalizing factor in cubic Hermite spline is zero!" );
-  double t_normal = ( t - a.time ) / ( b.time - a.time );
+  if (std::abs(t_factor) < std::numeric_limits<double>::epsilon()) {
+    throw singularity_error(
+        "Normalizing factor in cubic Hermite spline is zero!");
+  }
+  double t_normal = (t - a.time) / (b.time - a.time);
 
   PointType result;
   result.time = t;
 
-  typedef typename derived_N_order_space< SpaceType, TimeSpaceType, 0 >::type Space0;
+  using Space0 =
+      typename derived_N_order_space<SpaceType, TimeSpaceType, 0>::type;
 
-  BOOST_CONCEPT_ASSERT( (LieGroupConcept< Space0 >));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
 
-  typedef typename topology_traits< Space0 >::point_difference_type PointDiff0;
+  using PointDiff0 = topology_point_difference_type_t<Space0>;
 
-  PointDiff0 dp1p0 = get_space< 0 >( space.get_space_topology(), space.get_time_topology() )
-                       .difference( get< 0 >( b.pt ), get< 0 >( a.pt ) );
+  PointDiff0 dp1p0 =
+      get_space<0>(space.get_space_topology(), space.get_time_topology())
+          .difference(get<0>(b.pt), get<0>(a.pt));
 
-  detail::linear_interpolate_impl< max_derivation_order< SpaceType, TimeSpaceType > >(
-    result.pt, a.pt, dp1p0, space.get_space_topology(), space.get_time_topology(), t_factor, t_normal );
+  detail::linear_interpolate_impl<
+      max_derivation_order_v<SpaceType, TimeSpaceType>>(
+      result.pt, a.pt, dp1p0, space.get_space_topology(),
+      space.get_time_topology(), t_factor, t_normal);
 
   return result;
-};
-
+}
 
 /**
  * This functor class implements a linear interpolation in a temporal and zero-differentiable
@@ -150,28 +143,29 @@ PointType linear_interpolate( const PointType& a, const PointType& b, double t, 
  * \tparam TimeSpaceType The time topology.
  */
 
-template < typename SpaceType, typename TimeSpaceType >
+template <typename SpaceType, typename TimeSpaceType>
 class linear_interpolator {
-public:
-  typedef linear_interpolator< SpaceType, TimeSpaceType > self;
-  typedef typename topology_traits< SpaceType >::point_type point_type;
+ public:
+  using self = linear_interpolator<SpaceType, TimeSpaceType>;
+  using point_type = topology_point_type_t<SpaceType>;
 
-  typedef typename derived_N_order_space< SpaceType, TimeSpaceType, 0 >::type Space0;
-  typedef typename topology_traits< Space0 >::point_type PointType0;
-  typedef typename topology_traits< Space0 >::point_difference_type PointDiff0;
+  using Space0 =
+      typename derived_N_order_space<SpaceType, TimeSpaceType, 0>::type;
+  using PointType0 = topology_point_type_t<Space0>;
+  using PointDiff0 = topology_point_difference_type_t<Space0>;
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< SpaceType > ) );
-  BOOST_CONCEPT_ASSERT( ( LieGroupConcept< Space0 > ) );
-  BOOST_CONCEPT_ASSERT( ( TangentBundleConcept< SpaceType, 0, TimeSpaceType > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<SpaceType>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((TangentBundleConcept<SpaceType, 0, TimeSpaceType>));
 
-private:
+ private:
   PointDiff0 delta_first_order;
 
-public:
+ public:
   /**
    * Default constructor.
    */
-  linear_interpolator(){};
+  linear_interpolator() = default;
 
   /**
    * Constructs the interpolator with its start and end points.
@@ -182,11 +176,13 @@ public:
    * \param t_space The time-space against which the interpolation is done.
    * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
    */
-  template < typename Factory >
-  linear_interpolator( const point_type& start_point, const point_type& end_point, double dt, const SpaceType& space,
-                       const TimeSpaceType& t_space, const Factory& factory ) {
-    initialize( start_point, end_point, dt, space, t_space, factory );
-  };
+  template <typename Factory>
+  linear_interpolator(const point_type& start_point,
+                      const point_type& end_point, double dt,
+                      const SpaceType& space, const TimeSpaceType& t_space,
+                      const Factory& factory) {
+    initialize(start_point, end_point, dt, space, t_space, factory);
+  }
 
   /**
    * Initializes the interpolator with its start and end points.
@@ -197,11 +193,13 @@ public:
    * \param t_space The time-space against which the interpolation is done.
    * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
    */
-  template < typename Factory >
-  void initialize( const point_type& start_point, const point_type& end_point, double, const SpaceType& space,
-                   const TimeSpaceType& t_space, const Factory& factory ) {
-    delta_first_order = get_space< 0 >( space, t_space ).difference( get< 0 >( end_point ), get< 0 >( start_point ) );
-  };
+  template <typename Factory>
+  void initialize(const point_type& start_point, const point_type& end_point,
+                  double /*unused*/, const SpaceType& space,
+                  const TimeSpaceType& t_space, const Factory& factory) {
+    delta_first_order = get_space<0>(space, t_space)
+                            .difference(get<0>(end_point), get<0>(start_point));
+  }
 
   /**
    * Computes the point at a given delta-time from the start-point.
@@ -215,77 +213,96 @@ public:
    * \param dt_total The time difference from the start-point to the end point.
    * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
    */
-  template < typename Factory >
-  void compute_point( point_type& result, const point_type& start_point, const point_type& end_point,
-                      const SpaceType& space, const TimeSpaceType& t_space, double dt, double dt_total,
-                      const Factory& factory ) const {
-    if( std::fabs( dt_total ) < std::numeric_limits< double >::epsilon() )
-      throw singularity_error( "Normalizing factor in linear interpolation is zero!" );
+  template <typename Factory>
+  void compute_point(point_type& result, const point_type& start_point,
+                     const point_type& end_point, const SpaceType& space,
+                     const TimeSpaceType& t_space, double dt, double dt_total,
+                     const Factory& factory) const {
+    if (std::abs(dt_total) < std::numeric_limits<double>::epsilon()) {
+      throw singularity_error(
+          "Normalizing factor in linear interpolation is zero!");
+    }
     double t_normal = dt / dt_total;
 
-    detail::linear_interpolate_impl< max_derivation_order< SpaceType, TimeSpaceType > >(
-      result, start_point, delta_first_order, space, t_space, dt_total, t_normal );
-  };
+    detail::linear_interpolate_impl<
+        max_derivation_order_v<SpaceType, TimeSpaceType>>(
+        result, start_point, delta_first_order, space, t_space, dt_total,
+        t_normal);
+  }
 
   /**
    * Returns the minimum travel time between the initialized start and end points.
    * \return The minimum travel time between the initialized start and end points.
    */
-  double get_minimum_travel_time() const { return 0.0; };
+  double get_minimum_travel_time() const { return 0.0; }
 };
-
 
 /**
  * This class is a factory class for linear interpolators on a temporal differentiable space.
  * \tparam TemporalTopology The temporal topology on which the interpolation is done, should model TemporalSpaceConcept.
  */
-template < typename TemporalTopology >
+template <typename TemporalTopology>
 class linear_interpolator_factory : public serializable {
-public:
-  typedef linear_interpolator_factory< TemporalTopology > self;
-  typedef TemporalTopology topology;
-  typedef typename topology_traits< TemporalTopology >::point_type point_type;
-  typedef generic_interpolator< self, linear_interpolator > interpolator_type;
+ public:
+  using self = linear_interpolator_factory<TemporalTopology>;
+  using topology = TemporalTopology;
+  using point_type = topology_point_type_t<TemporalTopology>;
+  using interpolator_type = generic_interpolator<self, linear_interpolator>;
 
-  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< topology > ) );
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
 
-private:
-  shared_ptr< topology > space;
+ private:
+  std::shared_ptr<topology> space;
 
-public:
-  linear_interpolator_factory( const shared_ptr< topology >& aSpace = shared_ptr< topology >() ) : space( aSpace ){};
+ public:
+  explicit linear_interpolator_factory(const std::shared_ptr<topology>& aSpace)
+      : space(aSpace) {}
 
-  void set_temporal_space( const shared_ptr< topology >& aSpace ) { space = aSpace; };
-  const shared_ptr< topology >& get_temporal_space() const { return space; };
+  linear_interpolator_factory()
+      : linear_interpolator_factory(std::shared_ptr<topology>()) {}
 
-  interpolator_type create_interpolator( const point_type* pp1, const point_type* pp2 ) const {
-    return interpolator_type( this, pp1, pp2 );
-  };
+  void set_temporal_space(const std::shared_ptr<topology>& aSpace) {
+    space = aSpace;
+  }
+  const std::shared_ptr<topology>& get_temporal_space() const { return space; }
 
+  interpolator_type create_interpolator(const point_type* pp1,
+                                        const point_type* pp2) const {
+    return interpolator_type(this, pp1, pp2);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const { A& RK_SERIAL_SAVE_WITH_NAME( space ); };
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    A& RK_SERIAL_SAVE_WITH_NAME(space);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) { A& RK_SERIAL_LOAD_WITH_NAME( space ); };
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
+    A& RK_SERIAL_LOAD_WITH_NAME(space);
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC2430001, 1, "linear_interpolator_factory", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2430001, 1,
+                              "linear_interpolator_factory", serializable)
 };
 
-
-template < typename SpaceType, typename TimeTopology >
-struct get_tagged_spatial_interpolator< linear_interpolation_tag, SpaceType, TimeTopology > {
-  typedef detail::generic_interpolator_impl< linear_interpolator, SpaceType, TimeTopology > type;
-  typedef void* pseudo_factory_type;
+template <typename SpaceType, typename TimeTopology>
+struct get_tagged_spatial_interpolator<linear_interpolation_tag, SpaceType,
+                                       TimeTopology> {
+  using type = detail::generic_interpolator_impl<linear_interpolator, SpaceType,
+                                                 TimeTopology>;
+  using pseudo_factory_type = void*;
 };
 
-template < typename TemporalSpaceType >
-struct get_tagged_temporal_interpolator< linear_interpolation_tag, TemporalSpaceType > {
-  typedef generic_interpolator< linear_interpolator_factory< TemporalSpaceType >, linear_interpolator > type;
+template <typename TemporalSpaceType>
+struct get_tagged_temporal_interpolator<linear_interpolation_tag,
+                                        TemporalSpaceType> {
+  using type =
+      generic_interpolator<linear_interpolator_factory<TemporalSpaceType>,
+                           linear_interpolator>;
 };
-
 
 /**
  * This class implements a trajectory in a temporal and zero-differentiable topology.
@@ -296,31 +313,40 @@ struct get_tagged_temporal_interpolator< linear_interpolation_tag, TemporalSpace
  * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the
  * DistanceMetricConcept.
  */
-template < typename Topology, typename DistanceMetric = typename metric_space_traits< Topology >::distance_metric_type >
+template <typename Topology,
+          typename DistanceMetric =
+              typename metric_space_traits<Topology>::distance_metric_type>
 class linear_interp_traj
-  : public interpolated_trajectory< Topology, linear_interpolator_factory< Topology >, DistanceMetric > {
-public:
-  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< Topology > ) );
-  BOOST_CONCEPT_ASSERT( ( TangentBundleConcept< typename temporal_space_traits< Topology >::space_topology, 1,
-                                                typename temporal_space_traits< Topology >::time_topology > ) );
+    : public interpolated_trajectory<
+          Topology, linear_interpolator_factory<Topology>, DistanceMetric> {
+ public:
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT(
+      (TangentBundleConcept<
+          typename temporal_space_traits<Topology>::space_topology, 1,
+          typename temporal_space_traits<Topology>::time_topology>));
 
-  typedef linear_interp_traj< Topology, DistanceMetric > self;
-  typedef interpolated_trajectory< Topology, linear_interpolator_factory< Topology >, DistanceMetric > base_class_type;
+  using self = linear_interp_traj<Topology, DistanceMetric>;
+  using base_class_type =
+      interpolated_trajectory<Topology, linear_interpolator_factory<Topology>,
+                              DistanceMetric>;
 
-  typedef typename base_class_type::point_type point_type;
-  typedef typename base_class_type::topology topology;
-  typedef typename base_class_type::distance_metric distance_metric;
+  using point_type = typename base_class_type::point_type;
+  using topology = typename base_class_type::topology;
+  using distance_metric = typename base_class_type::distance_metric;
 
-public:
   /**
    * Constructs the path from a space, assumes the start and end are at the origin
    * of the space.
    * \param aSpace The space on which the path is.
    * \param aDist The distance metric functor that the path should use.
    */
-  explicit linear_interp_traj( const shared_ptr< topology >& aSpace = shared_ptr< topology >( new topology() ),
-                               const distance_metric& aDist = distance_metric() )
-      : base_class_type( aSpace, aDist, linear_interpolator_factory< Topology >( aSpace ) ){};
+  explicit linear_interp_traj(const std::shared_ptr<topology>& aSpace,
+                              const distance_metric& aDist = distance_metric())
+      : base_class_type(aSpace, aDist,
+                        linear_interpolator_factory<Topology>(aSpace)) {}
+
+  linear_interp_traj() : linear_interp_traj(std::make_shared<topology>()) {}
 
   /**
    * Constructs the path from a space, the start and end points.
@@ -329,9 +355,11 @@ public:
    * \param aEnd The end-point of the path.
    * \param aDist The distance metric functor that the path should use.
    */
-  linear_interp_traj( const shared_ptr< topology >& aSpace, const point_type& aStart, const point_type& aEnd,
-                      const distance_metric& aDist = distance_metric() )
-      : base_class_type( aSpace, aStart, aEnd, aDist, linear_interpolator_factory< Topology >( aSpace ) ){};
+  linear_interp_traj(const std::shared_ptr<topology>& aSpace,
+                     const point_type& aStart, const point_type& aEnd,
+                     const distance_metric& aDist = distance_metric())
+      : base_class_type(aSpace, aStart, aEnd, aDist,
+                        linear_interpolator_factory<Topology>(aSpace)) {}
 
   /**
    * Constructs the path from a range of points and their space.
@@ -341,42 +369,45 @@ public:
    * \param aSpace The space on which the path is.
    * \param aDist The distance metric functor that the path should use.
    */
-  template < typename ForwardIter >
-  linear_interp_traj( ForwardIter aBegin, ForwardIter aEnd, const shared_ptr< topology >& aSpace,
-                      const distance_metric& aDist = distance_metric() )
-      : base_class_type( aBegin, aEnd, aSpace, aDist, linear_interpolator_factory< Topology >( aSpace ) ){};
-
+  template <typename ForwardIter>
+  linear_interp_traj(ForwardIter aBegin, ForwardIter aEnd,
+                     const std::shared_ptr<topology>& aSpace,
+                     const distance_metric& aDist = distance_metric())
+      : base_class_type(aBegin, aEnd, aSpace, aDist,
+                        linear_interpolator_factory<Topology>(aSpace)) {}
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    base_class_type::save( A, base_class_type::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    base_class_type::save(
+        A, base_class_type::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    base_class_type::load( A, base_class_type::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    base_class_type::load(
+        A, base_class_type::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2440003, 1, "linear_interp_traj", base_class_type )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2440003, 1, "linear_interp_traj",
+                              base_class_type)
 };
-};
 
+}  // namespace pp
 
 namespace rtti {
 
 template <>
-struct get_type_id< pp::linear_interpolation_tag > {
-  BOOST_STATIC_CONSTANT( unsigned int, ID = 1 );
-#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "linear_interpolation_tag" );
-#else
-  static const char* type_name() BOOST_NOEXCEPT { return "linear_interpolation_tag"; };
-#endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
+struct get_type_id<pp::linear_interpolation_tag> {
+  static constexpr unsigned int ID = 1;
+  static constexpr auto type_name =
+      std::string_view{"linear_interpolation_tag"};
+  static construct_ptr CreatePtr() noexcept { return nullptr; }
 };
-};
-};
+
+}  // namespace rtti
+}  // namespace ReaK
 
 #endif

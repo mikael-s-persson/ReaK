@@ -23,163 +23,62 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "Configured for build-type: ${CMAKE_BUILD_TYPE}")
 
+set(CMAKE_CXX_STANDARD 17)
+
 
 enable_testing()
 
 include(CheckCXXCompilerFlag)
 
-# Check and enable C++11 or C++0x features:
-if(MSVC)
-  if(MSVC_VERSION GREATER 1700)
-    message(STATUS "This MSVC compiler version (>1700) has C++11 support enabled by default.")
-    set(_COMPILER_SUPPORTS_CXX11 TRUE)
-    set(_COMPILER_SUPPORTS_CXX0X TRUE)
-  elseif(MSVC_VERSION GREATER 1600)
-    message(STATUS "This MSVC compiler version (1700) has limited C++11 support. Consider using a newer version with better C++11 support, such as Visual Studio 2013 and above.")
-    set(_COMPILER_SUPPORTS_CXX11 FALSE)
-    set(_COMPILER_SUPPORTS_CXX0X TRUE)
-  else()
-    message(FATAL_ERROR "This MSVC compiler version (<1700) has no C++11 support. Use a newer compiler, such as Visual Studio 2013 and above.")
-    set(_COMPILER_SUPPORTS_CXX11 FALSE)
-    set(_COMPILER_SUPPORTS_CXX0X FALSE)
-  endif()
-else()
-  CHECK_CXX_COMPILER_FLAG("-std=c++11" _COMPILER_SUPPORTS_CXX11)
-  if(_COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-    message(STATUS "The compiler has C++11 support. C++11 mode was enabled.")
-    set(_COMPILER_SUPPORTS_CXX0X TRUE)
-  else()
-    CHECK_CXX_COMPILER_FLAG("-std=c++0x" _COMPILER_SUPPORTS_CXX0X)
-    if(_COMPILER_SUPPORTS_CXX0X)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-      message(STATUS "The compiler only has experimental C++11 support. Consider using a newer compiler with full C++11 support.")
-    else()
-      message(FATAL_ERROR "The compiler has no detectable C++11 support. Use a newer compiler.")
-      set(_COMPILER_SUPPORTS_CXX0X FALSE)
-    endif()
-  endif()
-endif()
-mark_as_advanced(_COMPILER_SUPPORTS_CXX0X)
-mark_as_advanced(_COMPILER_SUPPORTS_CXX11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -stdlib=libstdc++ -pthread -ftemplate-depth=2000 -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
+# These flags are required for Boost libraries, which don't work with libc++.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=0)
 
-if (MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /bigobj /wd4996 /D_SCL_SECURE_NO_WARNINGS /DBOOST_NO_CXX11_EXTERN_TEMPLATE")
-#   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox")
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -ftemplate-depth=2000 -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor")
-#   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-  if (WIN32)
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} --enable-stdcall-fixup")
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-  endif()
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
-  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    # This is a hack because the major-minor version variables (${CLANG_VERSION_MAJOR}.${CLANG_VERSION_MINOR}) from cmake seem unreliable 
-    execute_process( COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE clang_full_version_string )
-    string (REGEX REPLACE ".*clang version ([0-9]+\\.[0-9]+).*" "\\1" CLANG_VERSION_STRING ${clang_full_version_string})
-    
-    # TODO This is just a temporary hack because of a version of clang failing to compile with a experimental 4.9 version of libstdc++.
-#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc++ -isystem /usr/include/c++/4.8 -isystem /usr/include/x86_64-linux-gnu/c++/4.8")
-    message(STATUS "Detected Clang version: ${CLANG_VERSION_STRING}")
-    if( CLANG_VERSION_STRING VERSION_LESS 3.6 )
-#     if( "${CLANG_VERSION_MAJOR}.${CLANG_VERSION_MINOR}" STRLESS "3.6") 
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces")
-    else()
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedef -Wno-missing-braces")
-    endif()
-  endif()
-endif()
-message(STATUS "Configured compiler options for ${CMAKE_SYSTEM_NAME} system with ${CMAKE_CXX_COMPILER_ID} toolset.")
+execute_process( COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE clang_full_version_string )
+message(STATUS "Detected compiler version: ${clang_full_version_string}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedef -Wno-missing-braces")
+
+# search for clang-tidy
+find_program(CLANG_TIDY_EXE NAMES "clang-tidy" REQUIRED)
+# setup clang-tidy command from executable + options
+set(CLANG_TIDY_COMMAND "${CLANG_TIDY_EXE}" "-checks=-*,cppcoreguidelines-init-variables,google-explicit-constructor,misc-unused-using-decls,performance-noexcept-move-constructor,performance-trivially-destructible,performance-unnecessary-copy-initialization,readability-*,-readability-identifier-length,-readability-magic-numbers,-readability-function-cognitive-complexity,-readability-convert-member-functions-to-static,modernize-*,-modernize-use-trailing-return-type,-modernize-use-nodiscard,-modernize-pass-by-value" "-fix" "-header-filter=include/ReaK")
+
+message(STATUS "Configured compiler options for ${CMAKE_SYSTEM_NAME} system.")
 message(STATUS "   using C++ options: ${CMAKE_CXX_FLAGS}")
 
 
-# Look for winsock2:
+# Look for Python (needed by Boost.Python):
 
-if( WIN32 )
-# #  find_library( WINSOCK_LIB wsock32 PATHS "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.0A/Lib")
-#   find_library( WINSOCK_LIB wsock32 )
-#   find_library( WS2_32_LIB ws2_32 )7
-  set( WINSOCK_LIB wsock32 )
-  set( WS2_32_LIB ws2_32 )
-  if( NOT WINSOCK_LIB AND NOT WS2_32_LIB )
-    message( FATAL_ERROR  "Could not located the winsock library (ws2_32)")
-  else()
-    if( WS2_32_LIB )
-      set(EXTRA_SYSTEM_LIBS ${EXTRA_SYSTEM_LIBS} ${WS2_32_LIB})
-    endif()
-    if( WINSOCK_LIB )
-      set(EXTRA_SYSTEM_LIBS ${EXTRA_SYSTEM_LIBS} ${WINSOCK_LIB})
-    endif()
-  endif()
+find_package(Python3 COMPONENTS Development)
+if(Python3_FOUND)
+  include_directories(SYSTEM ${Python3_INCLUDE_DIRS})
+  link_directories(${Python3_LIBRARY_DIRS})
+  link_libraries(${Python3_LIBRARIES})
+else()
+  message(WARNING "The ReaK python bindings module requires the presence of the python libraries!")
 endif()
+
 
 # Look for Boost:
 
-# set(Boost_DEBUG TRUE)
+set(Boost_DEBUG TRUE)
 
-set(Boost_ADDITIONAL_VERSIONS "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0" "1.54" "1.54.0" "1.55" "1.55.0" "1.56" "1.56.0" "1.57" "1.57.0")
-set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_USE_MULTITHREADED ON)
+set(Boost_ADDITIONAL_VERSIONS "1.70" "1.70.0" "1.71" "1.71.0" "1.72" "1.72.0" "1.73" "1.73.0" "1.74" "1.74.0")
+set(Boost_USE_STATIC_LIBS ON)
+#set(Boost_USE_MULTITHREADED ON)
 
-# if a custom path for boost is provided, than use that (and suppress system paths).
-if(EXISTS "${CUSTOM_BOOST_PATH}/include/boost")
-  set(Boost_INCLUDE_DIR "${CUSTOM_BOOST_PATH}/include")
-  set(Boost_LIBRARY_DIR "${CUSTOM_BOOST_PATH}/lib")
-  set(Boost_NO_SYSTEM_PATHS TRUE)
-endif()
+find_package(Boost 1.70 COMPONENTS program_options unit_test_framework python REQUIRED)
 
-if (NOT WIN32)
-  # make sure that the *nix suffixes and prefixes are correct (some cmake installs of findBoost.cmake are wrong with this).
-  set(_ORIGINAL_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
-  set(_ORIGINAL_CMAKE_FIND_LIBRARY_PREFIXES ${CMAKE_FIND_LIBRARY_PREFIXES})
-  if( Boost_USE_STATIC_LIBS )
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
-  else()
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .so ${CMAKE_FIND_LIBRARY_SUFFIXES})
-  endif()
-  set(CMAKE_FIND_LIBRARY_PREFIXES lib ${CMAKE_FIND_LIBRARY_PREFIXES})
-endif()
-
-if (MSVC)
-find_package(Boost 1.49)
-else()
-find_package(Boost 1.49 COMPONENTS thread chrono date_time system program_options unit_test_framework filesystem random REQUIRED)
-endif()
 if(Boost_FOUND)
   include_directories(SYSTEM ${Boost_INCLUDE_DIR})
   add_definitions( "-DREAK_HAS_BOOST" )
-  if(MSVC)
-    if(MSVC_VERSION EQUAL 1900)
-      set(MSVC_LIB_VERSION_NUMBER 13)
-    elseif(MSVC_VERSION EQUAL 1800)
-      set(MSVC_LIB_VERSION_NUMBER 12)
-    elseif(MSVC_VERSION EQUAL 1700)
-      set(MSVC_LIB_VERSION_NUMBER 11)
-    endif()
-    # Disable the libraries, since it uses automatic linking:
-    set(Boost_LIBRARIES "")
-    find_path(Boost_LIBRARY_DIRS "boost_atomic-vc${MSVC_LIB_VERSION_NUMBER}0-mt-${Boost_LIB_VERSION}.lib" 
-              HINTS
-              "${Boost_INCLUDE_DIR}/lib64-msvc-${MSVC_LIB_VERSION_NUMBER}.0"
-              "${Boost_INCLUDE_DIR}/lib32-msvc-${MSVC_LIB_VERSION_NUMBER}.0"
-              "${Boost_INCLUDE_DIR}/stage/lib" "${Boost_INCLUDE_DIR}/stage/lib32" "${Boost_INCLUDE_DIR}/stage/lib64")
-  endif()
   link_directories(${Boost_LIBRARY_DIRS})
   message(STATUS "Boost library version ${Boost_LIB_VERSION} found, with headers at '${Boost_INCLUDE_DIR}' and libraries at '${Boost_LIBRARY_DIRS}' for libraries: \n${Boost_LIBRARIES}")
 endif()
-
-if( NOT WIN32 )
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ${_ORIGINAL_CMAKE_FIND_LIBRARY_SUFFIXES})
-  set(CMAKE_FIND_LIBRARY_PREFIXES ${_ORIGINAL_CMAKE_FIND_LIBRARY_PREFIXES})
-endif()
-
-
 
 
 macro(get_subdir_list result curdir)
@@ -211,11 +110,13 @@ macro(ReaK_setup_tool_program target_name)
 endmacro(ReaK_setup_tool_program)
 
 macro(ReaK_setup_static_library target_name)
+  set_target_properties(${target_name} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
   install(TARGETS ${target_name} ARCHIVE DESTINATION lib COMPONENT ReaK_${REAK_CURRENT_MODULE})
   message(STATUS "Registered ReaK static library ${target_name}.")
 endmacro(ReaK_setup_static_library)
 
 macro(ReaK_setup_shared_library target_name)
+  set_target_properties(${target_name} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
   install(TARGETS ${target_name} LIBRARY DESTINATION lib COMPONENT ReaK_${REAK_CURRENT_MODULE})
   message(STATUS "Registered ReaK shared library ${target_name}.")
 endmacro(ReaK_setup_shared_library)

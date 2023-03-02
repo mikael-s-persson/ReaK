@@ -35,9 +35,9 @@
 
 #include <ReaK/core/base/defs.hpp>
 
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 #include <ReaK/geometry/shapes/color.hpp>
 #include <ReaK/geometry/shapes/colored_model.hpp>
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
 #include <map>
 #include <vector>
@@ -45,16 +45,13 @@
 // forward-declarations of the open-inventory node classes:
 class SoSeparator;
 
-
-/** Main namespace for ReaK */
 namespace ReaK {
 
-template < typename T >
+template <typename T>
 class pose_2D;
-template < typename T >
+template <typename T>
 class pose_3D;
 
-/** Main namespace for ReaK.Geometry */
 namespace geom {
 
 class geometry_2D;
@@ -65,11 +62,11 @@ class geometry_3D;
  * collection of geometric entities for ReaK.
  */
 class oi_reader {
-protected:
+ protected:
   SoSeparator* mRoot;
 
-public:
-  SoSeparator* getSceneGraph() const { return mRoot; };
+ public:
+  SoSeparator* getSceneGraph() const { return mRoot; }
 
   /**
    * This function computes the characteristic length used to scale the illustrative components (e.g., coordinate axes,
@@ -88,19 +85,18 @@ public:
   /**
    * Default constructor from a file-name.
    */
-  oi_reader( const std::string& aFileName );
+  explicit oi_reader(const std::string& aFileName);
 
   /**
    * Default constructor from an input stream.
    */
-  oi_reader( std::istream& aStream );
+  explicit oi_reader(std::istream& aStream);
 
+  oi_reader(const oi_reader& /*rhs*/);
+  oi_reader& operator=(const oi_reader& /*rhs*/);
 
-  oi_reader( const oi_reader& );
-  oi_reader& operator=( const oi_reader& );
-
-  oi_reader( oi_reader&& );
-  oi_reader& operator=( oi_reader&& );
+  oi_reader(oi_reader&& /*rhs*/) noexcept;
+  oi_reader& operator=(oi_reader&& /*rhs*/) noexcept;
 
   /**
    * Default destructor.
@@ -110,26 +106,25 @@ public:
   /**
    * Open a given file.
    */
-  oi_reader& read_file( const std::string& aFileName );
+  oi_reader& read_file(const std::string& aFileName);
 
   /**
    * Read scene-graph from a given stream.
    */
-  oi_reader& read_stream( std::istream& aStream );
+  oi_reader& read_stream(std::istream& aStream);
 
   /**
    * Check if the.
    */
-  operator bool() const { return ( mRoot != nullptr ); };
+  explicit operator bool() const { return (mRoot != nullptr); }
 
+  friend oi_reader& operator>>(oi_reader& aSG, colored_model_3D& aModel);
 
-  friend oi_reader& operator>>( oi_reader& aSG, colored_model_3D& aModel );
+  friend oi_reader& operator>>(oi_reader& aSG, proxy_query_model_3D& aProxy);
 
-  friend oi_reader& operator>>( oi_reader& aSG, proxy_query_model_3D& aProxy );
-
-  oi_reader& translate_into( colored_model_3D& aModel, proxy_query_model_3D& aProxy );
+  oi_reader& translate_into(colored_model_3D& aModel,
+                            proxy_query_model_3D& aProxy);
 };
-
 
 // Re-declaration down in the geom namespace directly as some compilers give trouble with friend functions only declared
 // in the class.
@@ -140,7 +135,7 @@ public:
  * \param aModel The 3D colored geometric model constructed by the scene-graph reader.
  * \return The Open-Inventor scene-graph reader given as the first parameter, by reference.
  */
-oi_reader& operator>>( oi_reader& aSG, colored_model_3D& aModel );
+oi_reader& operator>>(oi_reader& aSG, colored_model_3D& aModel);
 
 /**
  * This operator creates a 3D proximity-query model from an Open-Inventor scene-graph.
@@ -148,8 +143,9 @@ oi_reader& operator>>( oi_reader& aSG, colored_model_3D& aModel );
  * \param aProxy The 3D proximity-query model constructed by the scene-graph reader.
  * \return The Open-Inventor scene-graph reader given as the first parameter, by reference.
  */
-oi_reader& operator>>( oi_reader& aSG, proxy_query_model_3D& aProxy );
-};
-};
+oi_reader& operator>>(oi_reader& aSG, proxy_query_model_3D& aProxy);
+
+}  // namespace geom
+}  // namespace ReaK
 
 #endif

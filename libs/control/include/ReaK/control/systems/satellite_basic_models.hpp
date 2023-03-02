@@ -39,20 +39,19 @@
 
 #include <ReaK/core/base/named_object.hpp>
 
+#include <ReaK/control/estimators/covar_topology.hpp>
+#include <ReaK/control/estimators/covariance_matrix.hpp>
+#include <ReaK/control/estimators/gaussian_belief_space.hpp>
 #include <ReaK/control/systems/invariant_system_concept.hpp>
 #include <ReaK/topologies/spaces/se3_topologies.hpp>
 #include <ReaK/topologies/spaces/temporal_space.hpp>
 #include <ReaK/topologies/spaces/time_poisson_topology.hpp>
-#include <ReaK/control/estimators/gaussian_belief_space.hpp>
-#include <ReaK/control/estimators/covariance_matrix.hpp>
-#include <ReaK/control/estimators/covar_topology.hpp>
 
 #include <ReaK/math/lin_alg/mat_alg.hpp>
 
-namespace ReaK {
+#include <type_traits>
 
-namespace ctrl {
-
+namespace ReaK::ctrl {
 
 /**
  * This class implements a basic linearized discrete-time state-space system for
@@ -64,81 +63,88 @@ namespace ctrl {
  * \note THIS CLASS SHOULD NOT BE USED FOR THE LINEARIZATION / KALMAN-FILTERING.
  */
 class satellite3D_lin_dt_system : public named_object {
-public:
-  typedef pp::se3_1st_order_topology< double >::type state_space_type;
+ public:
+  using state_space_type = pp::se3_1st_order_topology_t<double>;
 
-  typedef pp::topology_traits< state_space_type >::point_type point_type;
-  typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
-  typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+  using point_type = pp::topology_traits<state_space_type>::point_type;
+  using point_difference_type =
+      pp::topology_traits<state_space_type>::point_difference_type;
+  using point_derivative_type =
+      pp::topology_traits<state_space_type>::point_difference_type;
 
-  typedef double time_type;
-  typedef double time_difference_type;
+  using time_type = double;
+  using time_difference_type = double;
 
-  typedef vect_n< double > input_type;
-  typedef vect_n< double > output_type;
+  using input_type = vect_n<double>;
+  using output_type = vect_n<double>;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 13 );
-  BOOST_STATIC_CONSTANT( std::size_t, input_dimensions = 6 );
-  BOOST_STATIC_CONSTANT( std::size_t, output_dimensions = 7 );
+  static constexpr std::size_t dimensions = 13;
+  static constexpr std::size_t input_dimensions = 6;
+  static constexpr std::size_t output_dimensions = 7;
 
-  typedef mat< double, mat_structure::square > matrixA_type;
-  typedef mat< double, mat_structure::rectangular > matrixB_type;
-  typedef mat< double, mat_structure::rectangular > matrixC_type;
-  typedef mat< double, mat_structure::rectangular > matrixD_type;
+  using matrixA_type = mat<double, mat_structure::square>;
+  using matrixB_type = mat<double, mat_structure::rectangular>;
+  using matrixC_type = mat<double, mat_structure::rectangular>;
+  using matrixD_type = mat<double, mat_structure::rectangular>;
 
   struct zero_input_trajectory {
-    input_type get_point( time_type ) const { return input_type( 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ); };
+    auto get_point(time_type /*unused*/) const {
+      return input_type(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    }
   };
 
+  using covar_type = covariance_matrix<vect_n<double>>;
+  using covar_space_type = covar_topology<covar_type>;
+  using temporal_state_space_type =
+      pp::temporal_space<state_space_type, pp::time_poisson_topology,
+                         pp::time_distance_only>;
+  using belief_space_type =
+      gaussian_belief_space<state_space_type, covar_space_type>;
+  using temporal_belief_space_type =
+      pp::temporal_space<belief_space_type, pp::time_poisson_topology,
+                         pp::time_distance_only>;
+  using state_belief_type = gaussian_belief_state<point_type, covar_type>;
+  using input_belief_type = gaussian_belief_state<input_type, covar_type>;
+  using output_belief_type = gaussian_belief_state<output_type, covar_type>;
 
-  typedef covariance_matrix< vect_n< double > > covar_type;
-  typedef covar_topology< covar_type > covar_space_type;
-  typedef pp::temporal_space< state_space_type, pp::time_poisson_topology, pp::time_distance_only >
-    temporal_state_space_type;
-  typedef gaussian_belief_space< state_space_type, covar_space_type > belief_space_type;
-  typedef pp::temporal_space< belief_space_type, pp::time_poisson_topology, pp::time_distance_only >
-    temporal_belief_space_type;
-  typedef gaussian_belief_state< point_type, covar_type > state_belief_type;
-  typedef gaussian_belief_state< input_type, covar_type > input_belief_type;
-  typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
+  virtual std::shared_ptr<temporal_state_space_type> get_temporal_state_space(
+      double aStartTime = 0.0, double aEndTime = 1.0) const;
+  virtual std::shared_ptr<state_space_type> get_state_space() const;
 
-  virtual shared_ptr< temporal_state_space_type > get_temporal_state_space( double aStartTime = 0.0,
-                                                                            double aEndTime = 1.0 ) const;
-  virtual shared_ptr< state_space_type > get_state_space() const;
+  virtual std::shared_ptr<temporal_belief_space_type> get_temporal_belief_space(
+      double aStartTime = 0.0, double aEndTime = 1.0) const;
+  virtual std::shared_ptr<belief_space_type> get_belief_space() const;
 
-  virtual shared_ptr< temporal_belief_space_type > get_temporal_belief_space( double aStartTime = 0.0,
-                                                                              double aEndTime = 1.0 ) const;
-  virtual shared_ptr< belief_space_type > get_belief_space() const;
+  virtual state_belief_type get_zero_state_belief(
+      double aCovValue = 10.0) const;
+  virtual input_belief_type get_zero_input_belief(double aCovValue = 1.0) const;
+  virtual output_belief_type get_zero_output_belief(
+      double aCovValue = 1.0) const;
 
-  virtual state_belief_type get_zero_state_belief( double aCovValue = 10.0 ) const;
-  virtual input_belief_type get_zero_input_belief( double aCovValue = 1.0 ) const;
-  virtual output_belief_type get_zero_output_belief( double aCovValue = 1.0 ) const;
-
-
-protected:
+ protected:
   double mMass;
-  mat< double, mat_structure::symmetric > mInertiaMoment;
-  mat< double, mat_structure::symmetric > mInertiaMomentInv;
+  mat<double, mat_structure::symmetric> mInertiaMoment;
+  mat<double, mat_structure::symmetric> mInertiaMomentInv;
   time_difference_type mDt;
 
-public:
+ public:
   /**
    * Returns the dimensions of the states of the system.
    * \return The dimensions of the states of the system.
    */
-  virtual std::size_t get_state_dimensions() const { return 13; };
+  virtual std::size_t get_state_dimensions() const { return 13; }
 
   /**
    * Returns the dimensions of the input of the system.
    * \return The dimensions of the input of the system.
    */
-  virtual std::size_t get_input_dimensions() const { return 6; };
+  virtual std::size_t get_input_dimensions() const { return 6; }
 
   /**
    * Returns the dimensions of the output of the system.
    * \return The dimensions of the output of the system.
    */
-  virtual std::size_t get_output_dimensions() const { return 7; };
+  virtual std::size_t get_output_dimensions() const { return 7; }
 
   /**
    * Constructor.
@@ -147,23 +153,26 @@ public:
    * \param aInertiaMoment The inertia tensor of the satellite.
    * \param aDt The time-step for this discrete-time system.
    */
-  satellite3D_lin_dt_system(
-    const std::string& aName = "", double aMass = 1.0,
-    const mat< double, mat_structure::symmetric >& aInertiaMoment
-    = ( mat< double, mat_structure::symmetric >( mat< double, mat_structure::identity >( 3 ) ) ),
-    double aDt = 0.001 );
+  explicit satellite3D_lin_dt_system(
+      const std::string& aName, double aMass = 1.0,
+      const mat<double, mat_structure::symmetric>& aInertiaMoment =
+          (mat<double, mat_structure::symmetric>(
+              mat<double, mat_structure::identity>(3))),
+      double aDt = 0.001);
+
+  satellite3D_lin_dt_system() : satellite3D_lin_dt_system("") {}
 
   /**
    * This function returns the time-step for this discrete-time system.
    * \return The time-step for this discrete-time system.
    */
-  time_difference_type get_time_step() const { return mDt; };
+  time_difference_type get_time_step() const { return mDt; }
 
   /**
    * This function sets the time-step for this discrete-time system.
    * \param aDt The new time-step for this discrete-time system.
    */
-  virtual void set_time_step( time_difference_type aDt ) { mDt = aDt; };
+  virtual void set_time_step(time_difference_type aDt) { mDt = aDt; }
 
   /**
    * This function computes the next state of the system, i.e., the state at one time-step after the current time.
@@ -173,8 +182,9 @@ public:
    * \param t The current time.
    * \return The state after one time-step beyond the given current state of the system.
    */
-  virtual point_type get_next_state( const state_space_type& space, const point_type& x, const input_type& u,
-                                     const time_type& t = 0.0 ) const;
+  virtual point_type get_next_state(const state_space_type& space,
+                                    const point_type& x, const input_type& u,
+                                    const time_type& t = 0.0) const;
 
   /**
    * This function computes the linearization of the state-transitions of the system.
@@ -190,9 +200,11 @@ public:
    * \param u_0 The input before the state-transition occurred.
    * \param u_1 The input after the state-transition occurred.
    */
-  virtual void get_state_transition_blocks( matrixA_type& A, matrixB_type& B, const state_space_type& space,
-                                            const time_type& t_0, const time_type& t_1, const point_type& p_0,
-                                            const point_type& p_1, const input_type& u_0, const input_type& u_1 ) const;
+  virtual void get_state_transition_blocks(
+      matrixA_type& A, matrixB_type& B, const state_space_type& space,
+      const time_type& t_0, const time_type& t_1, const point_type& p_0,
+      const point_type& p_1, const input_type& u_0,
+      const input_type& u_1) const;
 
   /**
    * This function computes the output of the system corresponding to the current state.
@@ -202,8 +214,9 @@ public:
    * \param t The current time.
    * \return The output for the given current state of the system.
    */
-  virtual output_type get_output( const state_space_type& space, const point_type& x, const input_type& u,
-                                  const time_type& t = 0.0 ) const;
+  virtual output_type get_output(const state_space_type& space,
+                                 const point_type& x, const input_type& u,
+                                 const time_type& t = 0.0) const;
 
   /**
    * This function computes the linearization of the output-function of the system.
@@ -216,19 +229,23 @@ public:
    * \param p The current state of the system.
    * \param u The input at the current time.
    */
-  virtual void get_output_function_blocks( matrixC_type& C, matrixD_type& D, const state_space_type& space,
-                                           const time_type& t, const point_type& p, const input_type& u ) const;
+  virtual void get_output_function_blocks(matrixC_type& C, matrixD_type& D,
+                                          const state_space_type& space,
+                                          const time_type& t,
+                                          const point_type& p,
+                                          const input_type& u) const;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( satellite3D_lin_dt_system, 0xC2310013, 1, "satellite3D_lin_dt_system", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_lin_dt_system, 0xC2310013, 1,
+                              "satellite3D_lin_dt_system", named_object)
 };
-
 
 /**
  * This class implements a basic linearized discrete-time state-space system for
@@ -242,47 +259,52 @@ public:
  * \note THIS CLASS SHOULD NOT BE USED FOR THE LINEARIZATION / KALMAN-FILTERING.
  */
 class satellite3D_gyro_lin_dt_system : public satellite3D_lin_dt_system {
-public:
-  typedef satellite3D_lin_dt_system::state_space_type state_space_type;
+ public:
+  using state_space_type = satellite3D_lin_dt_system::state_space_type;
 
-  typedef satellite3D_lin_dt_system::covar_type covar_type;
-  typedef satellite3D_lin_dt_system::covar_space_type covar_space_type;
-  typedef satellite3D_lin_dt_system::temporal_state_space_type temporal_state_space_type;
-  typedef satellite3D_lin_dt_system::belief_space_type belief_space_type;
-  typedef satellite3D_lin_dt_system::temporal_belief_space_type temporal_belief_space_type;
-  typedef satellite3D_lin_dt_system::state_belief_type state_belief_type;
-  typedef satellite3D_lin_dt_system::input_belief_type input_belief_type;
-  typedef satellite3D_lin_dt_system::output_belief_type output_belief_type;
+  using covar_type = satellite3D_lin_dt_system::covar_type;
+  using covar_space_type = satellite3D_lin_dt_system::covar_space_type;
+  using temporal_state_space_type =
+      satellite3D_lin_dt_system::temporal_state_space_type;
+  using belief_space_type = satellite3D_lin_dt_system::belief_space_type;
+  using temporal_belief_space_type =
+      satellite3D_lin_dt_system::temporal_belief_space_type;
+  using state_belief_type = satellite3D_lin_dt_system::state_belief_type;
+  using input_belief_type = satellite3D_lin_dt_system::input_belief_type;
+  using output_belief_type = satellite3D_lin_dt_system::output_belief_type;
 
-  typedef satellite3D_lin_dt_system::point_type point_type;
-  typedef satellite3D_lin_dt_system::point_difference_type point_difference_type;
-  typedef satellite3D_lin_dt_system::point_derivative_type point_derivative_type;
+  using point_type = satellite3D_lin_dt_system::point_type;
+  using point_difference_type =
+      satellite3D_lin_dt_system::point_difference_type;
+  using point_derivative_type =
+      satellite3D_lin_dt_system::point_derivative_type;
 
-  typedef satellite3D_lin_dt_system::time_type time_type;
-  typedef satellite3D_lin_dt_system::time_difference_type time_difference_type;
+  using time_type = satellite3D_lin_dt_system::time_type;
+  using time_difference_type = satellite3D_lin_dt_system::time_difference_type;
 
-  typedef satellite3D_lin_dt_system::input_type input_type;
-  typedef satellite3D_lin_dt_system::output_type output_type;
+  using input_type = satellite3D_lin_dt_system::input_type;
+  using output_type = satellite3D_lin_dt_system::output_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 13 );
-  BOOST_STATIC_CONSTANT( std::size_t, input_dimensions = 6 );
-  BOOST_STATIC_CONSTANT( std::size_t, output_dimensions = 10 );
+  static constexpr std::size_t dimensions = 13;
+  static constexpr std::size_t input_dimensions = 6;
+  static constexpr std::size_t output_dimensions = 10;
 
-  typedef satellite3D_lin_dt_system::matrixA_type matrixA_type;
-  typedef satellite3D_lin_dt_system::matrixB_type matrixB_type;
-  typedef satellite3D_lin_dt_system::matrixC_type matrixC_type;
-  typedef satellite3D_lin_dt_system::matrixD_type matrixD_type;
+  using matrixA_type = satellite3D_lin_dt_system::matrixA_type;
+  using matrixB_type = satellite3D_lin_dt_system::matrixB_type;
+  using matrixC_type = satellite3D_lin_dt_system::matrixC_type;
+  using matrixD_type = satellite3D_lin_dt_system::matrixD_type;
 
-  typedef satellite3D_lin_dt_system::zero_input_trajectory zero_input_trajectory;
+  using zero_input_trajectory =
+      satellite3D_lin_dt_system::zero_input_trajectory;
 
-  virtual output_belief_type get_zero_output_belief( double aCovValue = 1.0 ) const;
+  output_belief_type get_zero_output_belief(
+      double aCovValue = 1.0) const override;
 
-public:
   /**
    * Returns the dimensions of the output of the system.
    * \return The dimensions of the output of the system.
    */
-  virtual std::size_t get_output_dimensions() const { return 10; };
+  std::size_t get_output_dimensions() const override { return 10; }
 
   /**
    * Constructor.
@@ -291,33 +313,44 @@ public:
    * \param aInertiaMoment The inertia tensor of the satellite.
    * \param aDt The time-step for this discrete-time system.
    */
-  satellite3D_gyro_lin_dt_system(
-    const std::string& aName = "", double aMass = 1.0,
-    const mat< double, mat_structure::symmetric >& aInertiaMoment
-    = ( mat< double, mat_structure::symmetric >( mat< double, mat_structure::identity >( 3 ) ) ),
-    double aDt = 0.001 );
+  explicit satellite3D_gyro_lin_dt_system(
+      const std::string& aName, double aMass = 1.0,
+      const mat<double, mat_structure::symmetric>& aInertiaMoment =
+          (mat<double, mat_structure::symmetric>(
+              mat<double, mat_structure::identity>(3))),
+      double aDt = 0.001);
 
-  virtual output_type get_output( const state_space_type&, const point_type& x, const input_type& u,
-                                  const time_type& t = 0.0 ) const;
+  satellite3D_gyro_lin_dt_system() : satellite3D_gyro_lin_dt_system("") {}
 
-  virtual void get_output_function_blocks( matrixC_type& C, matrixD_type& D, const state_space_type&, const time_type&,
-                                           const point_type&, const input_type& ) const;
+  output_type get_output(const state_space_type& /*space*/, const point_type& x,
+                         const input_type& u,
+                         const time_type& t = 0.0) const override;
+
+  void get_output_function_blocks(matrixC_type& C, matrixD_type& D,
+                                  const state_space_type& /*space*/,
+                                  const time_type& /*t*/,
+                                  const point_type& /*p*/,
+                                  const input_type& /*u*/) const override;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    satellite3D_lin_dt_system::save( A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    satellite3D_lin_dt_system::load( A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion() );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    satellite3D_lin_dt_system::save(
+        A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    satellite3D_lin_dt_system::load(
+        A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( satellite3D_gyro_lin_dt_system, 0xC2310018, 1, "satellite3D_gyro_lin_dt_system",
-                               satellite3D_lin_dt_system )
+  RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_gyro_lin_dt_system, 0xC2310018, 1,
+                              "satellite3D_gyro_lin_dt_system",
+                              satellite3D_lin_dt_system)
 };
-
 
 /**
  * This class implements an invariantized discrete-time state-space system for
@@ -328,81 +361,88 @@ public:
  * Also, this system operates within a first-order (once-differentiable) SE(3) topology.
  */
 class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
-public:
-  typedef satellite3D_lin_dt_system::state_space_type state_space_type;
+ public:
+  using state_space_type = satellite3D_lin_dt_system::state_space_type;
 
-  typedef satellite3D_lin_dt_system::covar_type covar_type;
-  typedef satellite3D_lin_dt_system::covar_space_type covar_space_type;
-  typedef satellite3D_lin_dt_system::temporal_state_space_type temporal_state_space_type;
-  typedef satellite3D_lin_dt_system::belief_space_type belief_space_type;
-  typedef satellite3D_lin_dt_system::temporal_belief_space_type temporal_belief_space_type;
-  typedef satellite3D_lin_dt_system::state_belief_type state_belief_type;
-  typedef satellite3D_lin_dt_system::input_belief_type input_belief_type;
-  typedef satellite3D_lin_dt_system::output_belief_type output_belief_type;
+  using covar_type = satellite3D_lin_dt_system::covar_type;
+  using covar_space_type = satellite3D_lin_dt_system::covar_space_type;
+  using temporal_state_space_type =
+      satellite3D_lin_dt_system::temporal_state_space_type;
+  using belief_space_type = satellite3D_lin_dt_system::belief_space_type;
+  using temporal_belief_space_type =
+      satellite3D_lin_dt_system::temporal_belief_space_type;
+  using state_belief_type = satellite3D_lin_dt_system::state_belief_type;
+  using input_belief_type = satellite3D_lin_dt_system::input_belief_type;
+  using output_belief_type = satellite3D_lin_dt_system::output_belief_type;
 
-  typedef satellite3D_lin_dt_system::point_type point_type;
-  typedef satellite3D_lin_dt_system::point_difference_type point_difference_type;
-  typedef satellite3D_lin_dt_system::point_derivative_type point_derivative_type;
+  using point_type = satellite3D_lin_dt_system::point_type;
+  using point_difference_type =
+      satellite3D_lin_dt_system::point_difference_type;
+  using point_derivative_type =
+      satellite3D_lin_dt_system::point_derivative_type;
 
-  typedef satellite3D_lin_dt_system::time_type time_type;
-  typedef satellite3D_lin_dt_system::time_difference_type time_difference_type;
+  using time_type = satellite3D_lin_dt_system::time_type;
+  using time_difference_type = satellite3D_lin_dt_system::time_difference_type;
 
-  typedef satellite3D_lin_dt_system::input_type input_type;
-  typedef satellite3D_lin_dt_system::output_type output_type;
+  using input_type = satellite3D_lin_dt_system::input_type;
+  using output_type = satellite3D_lin_dt_system::output_type;
 
-  typedef vect_n< double > invariant_error_type;
-  typedef vect_n< double > invariant_correction_type;
-  typedef mat< double, mat_structure::square > invariant_frame_type;
+  using invariant_error_type = vect_n<double>;
+  using invariant_correction_type = vect_n<double>;
+  using invariant_frame_type = mat<double, mat_structure::square>;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 13 );
-  BOOST_STATIC_CONSTANT( std::size_t, input_dimensions = 6 );
-  BOOST_STATIC_CONSTANT( std::size_t, output_dimensions = 7 );
-  BOOST_STATIC_CONSTANT( std::size_t, invariant_error_dimensions = 6 );
-  BOOST_STATIC_CONSTANT( std::size_t, invariant_correction_dimensions = 12 );
+  static constexpr std::size_t dimensions = 13;
+  static constexpr std::size_t input_dimensions = 6;
+  static constexpr std::size_t output_dimensions = 7;
+  static constexpr std::size_t invariant_error_dimensions = 6;
+  static constexpr std::size_t invariant_correction_dimensions = 12;
 
-  typedef satellite3D_lin_dt_system::matrixA_type matrixA_type;
-  typedef satellite3D_lin_dt_system::matrixB_type matrixB_type;
-  typedef satellite3D_lin_dt_system::matrixC_type matrixC_type;
-  typedef satellite3D_lin_dt_system::matrixD_type matrixD_type;
+  using matrixA_type = satellite3D_lin_dt_system::matrixA_type;
+  using matrixB_type = satellite3D_lin_dt_system::matrixB_type;
+  using matrixC_type = satellite3D_lin_dt_system::matrixC_type;
+  using matrixD_type = satellite3D_lin_dt_system::matrixD_type;
 
-  typedef satellite3D_lin_dt_system::zero_input_trajectory zero_input_trajectory;
+  using zero_input_trajectory =
+      satellite3D_lin_dt_system::zero_input_trajectory;
 
-  virtual shared_ptr< temporal_belief_space_type > get_temporal_belief_space( double aStartTime = 0.0,
-                                                                              double aEndTime = 1.0 ) const;
-  virtual shared_ptr< belief_space_type > get_belief_space() const;
+  std::shared_ptr<temporal_belief_space_type> get_temporal_belief_space(
+      double aStartTime = 0.0, double aEndTime = 1.0) const override;
+  std::shared_ptr<belief_space_type> get_belief_space() const override;
 
-  virtual state_belief_type get_zero_state_belief( double aCovValue = 10.0 ) const;
-  virtual output_belief_type get_zero_output_belief( double aCovValue = 1.0 ) const;
+  state_belief_type get_zero_state_belief(
+      double aCovValue = 10.0) const override;
+  output_belief_type get_zero_output_belief(
+      double aCovValue = 1.0) const override;
 
   /**
    * Returns the dimensions of the states of the system.
    * \return The dimensions of the states of the system.
    */
-  virtual std::size_t get_state_dimensions() const { return 13; };
+  std::size_t get_state_dimensions() const override { return 13; }
 
   /**
    * Returns the dimensions of the input of the system.
    * \return The dimensions of the input of the system.
    */
-  virtual std::size_t get_input_dimensions() const { return 6; };
+  std::size_t get_input_dimensions() const override { return 6; }
 
   /**
    * Returns the dimensions of the output of the system.
    * \return The dimensions of the output of the system.
    */
-  virtual std::size_t get_output_dimensions() const { return 7; };
+  std::size_t get_output_dimensions() const override { return 7; }
 
   /**
    * Returns the dimensions of the invariant errors of the system.
    * \return The dimensions of the invariant errors of the system.
    */
-  virtual std::size_t get_invariant_error_dimensions() const { return 6; };
+  virtual std::size_t get_invariant_error_dimensions() const { return 6; }
 
   /**
    * Returns the dimensions of the corrections to the states of the system.
    * \return The dimensions of the corrections to the states of the system.
    */
-  virtual std::size_t get_correction_dimensions() const { return 12; };
+  virtual std::size_t get_correction_dimensions() const { return 12; }
 
   /**
    * Constructor.
@@ -411,18 +451,26 @@ public:
    * \param aInertiaMoment The inertia tensor of the satellite.
    * \param aDt The time-step for this discrete-time system.
    */
-  satellite3D_inv_dt_system(
-    const std::string& aName = "", double aMass = 1.0,
-    const mat< double, mat_structure::symmetric >& aInertiaMoment
-    = ( mat< double, mat_structure::symmetric >( mat< double, mat_structure::identity >( 3 ) ) ),
-    double aDt = 0.001 );
+  explicit satellite3D_inv_dt_system(
+      const std::string& aName, double aMass = 1.0,
+      const mat<double, mat_structure::symmetric>& aInertiaMoment =
+          (mat<double, mat_structure::symmetric>(
+              mat<double, mat_structure::identity>(3))),
+      double aDt = 0.001);
 
-  void get_state_transition_blocks( matrixA_type& A, matrixB_type& B, const state_space_type&, const time_type& t_0,
-                                    const time_type&, const point_type& p_0, const point_type&, const input_type&,
-                                    const input_type& ) const;
+  satellite3D_inv_dt_system() : satellite3D_inv_dt_system("") {}
 
-  void get_output_function_blocks( matrixC_type& C, matrixD_type& D, const state_space_type&, const time_type&,
-                                   const point_type&, const input_type& ) const;
+  void get_state_transition_blocks(
+      matrixA_type& A, matrixB_type& B, const state_space_type& /*space*/,
+      const time_type& t_0, const time_type& /*t_1*/, const point_type& p_0,
+      const point_type& /*p_1*/, const input_type& /*u_0*/,
+      const input_type& /*u_1*/) const override;
+
+  void get_output_function_blocks(matrixC_type& C, matrixD_type& D,
+                                  const state_space_type& /*space*/,
+                                  const time_type& /*t*/,
+                                  const point_type& /*p*/,
+                                  const input_type& /*u*/) const override;
 
   /**
    * This function computes the invariant output-error of the system corresponding to the current state and the given
@@ -434,9 +482,9 @@ public:
    * \param t The current time.
    * \return The invariant output-error for the given state and output.
    */
-  virtual invariant_error_type get_invariant_error( const state_space_type& space, const point_type& x,
-                                                    const input_type& u, const output_type& y,
-                                                    const time_type& t ) const;
+  virtual invariant_error_type get_invariant_error(
+      const state_space_type& space, const point_type& x, const input_type& u,
+      const output_type& y, const time_type& t) const;
 
   /**
    * This function computes a state corresponding to the given state corrected by a given invariant term.
@@ -447,9 +495,11 @@ public:
    * \param t The current time.
    * \return The corrected state of the system.
    */
-  virtual point_type apply_correction( const state_space_type& space, const point_type& x,
-                                       const invariant_correction_type& c, const input_type& u,
-                                       const time_type& t ) const;
+  virtual point_type apply_correction(const state_space_type& space,
+                                      const point_type& x,
+                                      const invariant_correction_type& c,
+                                      const input_type& u,
+                                      const time_type& t) const;
 
   /**
    * This function computes the invariant frame transition matrix for the prior stage,
@@ -462,11 +512,12 @@ public:
    * \param t The time before the state-transition.
    * \return The invariant frame transition matrix for the prior stage.
    */
-  virtual invariant_frame_type get_invariant_prior_frame( const state_space_type& space, const point_type& x_0,
-                                                          const point_type& x_1, const input_type& u,
-                                                          const time_type& t ) const {
-    return invariant_frame_type( mat< double, mat_structure::identity >( invariant_correction_dimensions ) );
-  };
+  virtual invariant_frame_type get_invariant_prior_frame(
+      const state_space_type& space, const point_type& x_0,
+      const point_type& x_1, const input_type& u, const time_type& t) const {
+    return invariant_frame_type(
+        mat<double, mat_structure::identity>(invariant_correction_dimensions));
+  }
 
   /**
    * This function computes the invariant frame transition matrix for the posterior stage,
@@ -479,30 +530,35 @@ public:
    * \param t The current time.
    * \return The invariant frame transition matrix for the posterior stage.
    */
-  virtual invariant_frame_type get_invariant_posterior_frame( const state_space_type& space, const point_type& x_0,
-                                                              const point_type& x_1, const input_type& u,
-                                                              const time_type& t ) const {
-    return invariant_frame_type( mat< double, mat_structure::identity >( invariant_correction_dimensions ) );
-  };
+  virtual invariant_frame_type get_invariant_posterior_frame(
+      const state_space_type& space, const point_type& x_0,
+      const point_type& x_1, const input_type& u, const time_type& t) const {
+    return invariant_frame_type(
+        mat<double, mat_structure::identity>(invariant_correction_dimensions));
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    satellite3D_lin_dt_system::save( A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion() );
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    satellite3D_lin_dt_system::save(
+        A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion());
   };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    satellite3D_lin_dt_system::load( A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion() );
-  };
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    satellite3D_lin_dt_system::load(
+        A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( satellite3D_inv_dt_system, 0xC2310014, 1, "satellite3D_inv_dt_system",
-                               satellite3D_lin_dt_system )
+  RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_inv_dt_system, 0xC2310014, 1,
+                              "satellite3D_inv_dt_system",
+                              satellite3D_lin_dt_system)
 };
 
 template <>
-struct is_invariant_system< satellite3D_inv_dt_system > : boost::mpl::true_ {};
-
+struct is_invariant_system<satellite3D_inv_dt_system> : std::true_type {};
 
 /**
  * This class implements an invariantized discrete-time state-space system for
@@ -515,59 +571,65 @@ struct is_invariant_system< satellite3D_inv_dt_system > : boost::mpl::true_ {};
  * (once-differentiable) SE(3) topology.
  */
 class satellite3D_gyro_inv_dt_system : public satellite3D_inv_dt_system {
-public:
-  typedef satellite3D_inv_dt_system::state_space_type state_space_type;
+ public:
+  using state_space_type = satellite3D_inv_dt_system::state_space_type;
 
-  typedef satellite3D_inv_dt_system::covar_type covar_type;
-  typedef satellite3D_inv_dt_system::covar_space_type covar_space_type;
-  typedef satellite3D_inv_dt_system::temporal_state_space_type temporal_state_space_type;
-  typedef satellite3D_inv_dt_system::belief_space_type belief_space_type;
-  typedef satellite3D_inv_dt_system::temporal_belief_space_type temporal_belief_space_type;
-  typedef satellite3D_inv_dt_system::state_belief_type state_belief_type;
-  typedef satellite3D_inv_dt_system::input_belief_type input_belief_type;
-  typedef satellite3D_inv_dt_system::output_belief_type output_belief_type;
+  using covar_type = satellite3D_inv_dt_system::covar_type;
+  using covar_space_type = satellite3D_inv_dt_system::covar_space_type;
+  using temporal_state_space_type =
+      satellite3D_inv_dt_system::temporal_state_space_type;
+  using belief_space_type = satellite3D_inv_dt_system::belief_space_type;
+  using temporal_belief_space_type =
+      satellite3D_inv_dt_system::temporal_belief_space_type;
+  using state_belief_type = satellite3D_inv_dt_system::state_belief_type;
+  using input_belief_type = satellite3D_inv_dt_system::input_belief_type;
+  using output_belief_type = satellite3D_inv_dt_system::output_belief_type;
 
-  typedef satellite3D_inv_dt_system::point_type point_type;
-  typedef satellite3D_inv_dt_system::point_difference_type point_difference_type;
-  typedef satellite3D_inv_dt_system::point_derivative_type point_derivative_type;
+  using point_type = satellite3D_inv_dt_system::point_type;
+  using point_difference_type =
+      satellite3D_inv_dt_system::point_difference_type;
+  using point_derivative_type =
+      satellite3D_inv_dt_system::point_derivative_type;
 
-  typedef satellite3D_inv_dt_system::time_type time_type;
-  typedef satellite3D_inv_dt_system::time_difference_type time_difference_type;
+  using time_type = satellite3D_inv_dt_system::time_type;
+  using time_difference_type = satellite3D_inv_dt_system::time_difference_type;
 
-  typedef satellite3D_inv_dt_system::input_type input_type;
-  typedef satellite3D_inv_dt_system::output_type output_type;
+  using input_type = satellite3D_inv_dt_system::input_type;
+  using output_type = satellite3D_inv_dt_system::output_type;
 
-  typedef satellite3D_inv_dt_system::invariant_error_type invariant_error_type;
-  typedef satellite3D_inv_dt_system::invariant_correction_type invariant_correction_type;
-  typedef satellite3D_inv_dt_system::invariant_frame_type invariant_frame_type;
+  using invariant_error_type = satellite3D_inv_dt_system::invariant_error_type;
+  using invariant_correction_type =
+      satellite3D_inv_dt_system::invariant_correction_type;
+  using invariant_frame_type = satellite3D_inv_dt_system::invariant_frame_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 13 );
-  BOOST_STATIC_CONSTANT( std::size_t, input_dimensions = 6 );
-  BOOST_STATIC_CONSTANT( std::size_t, output_dimensions = 10 );
-  BOOST_STATIC_CONSTANT( std::size_t, invariant_error_dimensions = 9 );
-  BOOST_STATIC_CONSTANT( std::size_t, invariant_correction_dimensions = 12 );
+  static constexpr std::size_t dimensions = 13;
+  static constexpr std::size_t input_dimensions = 6;
+  static constexpr std::size_t output_dimensions = 10;
+  static constexpr std::size_t invariant_error_dimensions = 9;
+  static constexpr std::size_t invariant_correction_dimensions = 12;
 
-  typedef satellite3D_inv_dt_system::matrixA_type matrixA_type;
-  typedef satellite3D_inv_dt_system::matrixB_type matrixB_type;
-  typedef satellite3D_inv_dt_system::matrixC_type matrixC_type;
-  typedef satellite3D_inv_dt_system::matrixD_type matrixD_type;
+  using matrixA_type = satellite3D_inv_dt_system::matrixA_type;
+  using matrixB_type = satellite3D_inv_dt_system::matrixB_type;
+  using matrixC_type = satellite3D_inv_dt_system::matrixC_type;
+  using matrixD_type = satellite3D_inv_dt_system::matrixD_type;
 
-  typedef satellite3D_inv_dt_system::zero_input_trajectory zero_input_trajectory;
+  using zero_input_trajectory =
+      satellite3D_inv_dt_system::zero_input_trajectory;
 
-  virtual output_belief_type get_zero_output_belief( double aCovValue = 1.0 ) const;
+  output_belief_type get_zero_output_belief(
+      double aCovValue = 1.0) const override;
 
-public:
   /**
    * Returns the dimensions of the output of the system.
    * \return The dimensions of the output of the system.
    */
-  virtual std::size_t get_output_dimensions() const { return 10; };
+  std::size_t get_output_dimensions() const override { return 10; }
 
   /**
    * Returns the dimensions of the invariant errors of the system.
    * \return The dimensions of the invariant errors of the system.
    */
-  virtual std::size_t get_invariant_error_dimensions() const { return 9; };
+  std::size_t get_invariant_error_dimensions() const override { return 9; }
 
   /**
    * Constructor.
@@ -576,39 +638,54 @@ public:
    * \param aInertiaMoment The inertia tensor of the satellite.
    * \param aDt The time-step for this discrete-time system.
    */
-  satellite3D_gyro_inv_dt_system(
-    const std::string& aName = "", double aMass = 1.0,
-    const mat< double, mat_structure::symmetric >& aInertiaMoment
-    = ( mat< double, mat_structure::symmetric >( mat< double, mat_structure::identity >( 3 ) ) ),
-    double aDt = 0.001 );
+  explicit satellite3D_gyro_inv_dt_system(
+      const std::string& aName, double aMass = 1.0,
+      const mat<double, mat_structure::symmetric>& aInertiaMoment =
+          (mat<double, mat_structure::symmetric>(
+              mat<double, mat_structure::identity>(3))),
+      double aDt = 0.001);
 
-  virtual output_type get_output( const state_space_type&, const point_type& x, const input_type& u,
-                                  const time_type& t = 0.0 ) const;
+  satellite3D_gyro_inv_dt_system() : satellite3D_gyro_inv_dt_system("") {}
 
-  virtual void get_output_function_blocks( matrixC_type& C, matrixD_type& D, const state_space_type&, const time_type&,
-                                           const point_type&, const input_type& ) const;
+  output_type get_output(const state_space_type& /*space*/, const point_type& x,
+                         const input_type& u,
+                         const time_type& t = 0.0) const override;
 
-  virtual invariant_error_type get_invariant_error( const state_space_type&, const point_type& x, const input_type& u,
-                                                    const output_type& y, const time_type& t ) const;
+  void get_output_function_blocks(matrixC_type& C, matrixD_type& D,
+                                  const state_space_type& /*unused*/,
+                                  const time_type& /*unused*/,
+                                  const point_type& /*unused*/,
+                                  const input_type& /*unused*/) const override;
+
+  invariant_error_type get_invariant_error(const state_space_type& /*space*/,
+                                           const point_type& x,
+                                           const input_type& u,
+                                           const output_type& y,
+                                           const time_type& t) const override;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    satellite3D_inv_dt_system::save( A, satellite3D_inv_dt_system::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    satellite3D_inv_dt_system::load( A, satellite3D_inv_dt_system::getStaticObjectType()->TypeVersion() );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    satellite3D_inv_dt_system::save(
+        A, satellite3D_inv_dt_system::getStaticObjectType()->TypeVersion());
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    satellite3D_inv_dt_system::load(
+        A, satellite3D_inv_dt_system::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( satellite3D_gyro_inv_dt_system, 0xC2310019, 1, "satellite3D_gyro_inv_dt_system",
-                               satellite3D_inv_dt_system )
+  RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_gyro_inv_dt_system, 0xC2310019, 1,
+                              "satellite3D_gyro_inv_dt_system",
+                              satellite3D_inv_dt_system)
 };
 
 template <>
-struct is_invariant_system< satellite3D_gyro_inv_dt_system > : boost::mpl::true_ {};
-};
-};
+struct is_invariant_system<satellite3D_gyro_inv_dt_system> : std::true_type {};
+
+}  // namespace ReaK::ctrl
 
 #endif

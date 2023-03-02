@@ -25,26 +25,26 @@
 
 #include <cmath>
 
-namespace ReaK {
+namespace ReaK::geom {
 
-namespace geom {
+double cylinder::getBoundingRadius() const {
+  return std::sqrt(mRadius * mRadius + 0.25 * mLength * mLength);
+}
 
+cylinder::cylinder(const std::string& aName,
+                   const std::shared_ptr<pose_3D<double>>& aAnchor,
+                   const pose_3D<double>& aPose, double aLength, double aRadius)
+    : shape_3D(aName, aAnchor, aPose), mLength(aLength), mRadius(aRadius) {}
 
-double cylinder::getBoundingRadius() const { return std::sqrt( mRadius * mRadius + 0.25 * mLength * mLength ); };
+void cylinder::save(ReaK::serialization::oarchive& A,
+                    unsigned int /*unused*/) const {
+  shape_3D::save(A, shape_3D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_SAVE_WITH_NAME(mLength) & RK_SERIAL_SAVE_WITH_NAME(mRadius);
+}
 
+void cylinder::load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) {
+  shape_3D::load(A, shape_3D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_LOAD_WITH_NAME(mLength) & RK_SERIAL_LOAD_WITH_NAME(mRadius);
+}
 
-cylinder::cylinder( const std::string& aName, const shared_ptr< pose_3D< double > >& aAnchor,
-                    const pose_3D< double >& aPose, double aLength, double aRadius )
-    : shape_3D( aName, aAnchor, aPose ), mLength( aLength ), mRadius( aRadius ){};
-
-void RK_CALL cylinder::save( ReaK::serialization::oarchive& A, unsigned int ) const {
-  shape_3D::save( A, shape_3D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_SAVE_WITH_NAME( mLength ) & RK_SERIAL_SAVE_WITH_NAME( mRadius );
-};
-
-void RK_CALL cylinder::load( ReaK::serialization::iarchive& A, unsigned int ) {
-  shape_3D::load( A, shape_3D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_LOAD_WITH_NAME( mLength ) & RK_SERIAL_LOAD_WITH_NAME( mRadius );
-};
-};
-};
+}  // namespace ReaK::geom

@@ -45,11 +45,7 @@
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 #include "any_sbmp_reporter.hpp"
 
-
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class solves path planning problems using the
@@ -62,31 +58,34 @@ namespace pp {
  * configuration space.
  * \tparam SBPPReporter The reporter type to use to report the progress of the path-planning.
  */
-template < typename FreeSpaceType >
-class rrtstar_planner : public sample_based_planner< FreeSpaceType > {
-public:
-  typedef sample_based_planner< FreeSpaceType > base_type;
-  typedef rrtstar_planner< FreeSpaceType > self;
+template <typename FreeSpaceType>
+class rrtstar_planner : public sample_based_planner<FreeSpaceType> {
+ public:
+  using base_type = sample_based_planner<FreeSpaceType>;
+  using self = rrtstar_planner<FreeSpaceType>;
 
-  typedef FreeSpaceType space_type;
-  typedef typename subspace_traits< FreeSpaceType >::super_space_type super_space_type;
+  using space_type = FreeSpaceType;
+  using super_space_type =
+      typename subspace_traits<FreeSpaceType>::super_space_type;
 
-  BOOST_CONCEPT_ASSERT( ( SubSpaceConcept< FreeSpaceType > ) );
+  BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
 
-  typedef typename topology_traits< super_space_type >::point_type point_type;
-  typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
+  using point_type = topology_point_type_t<super_space_type>;
+  using point_difference_type =
+      topology_point_difference_type_t<super_space_type>;
 
-protected:
-  template < typename RRTStarFactory >
-  void solve_planning_query_impl( planning_query< FreeSpaceType >& aQuery );
+ protected:
+  template <typename RRTStarFactory>
+  void solve_planning_query_impl(planning_query<FreeSpaceType>& aQuery);
 
-public:
-  virtual std::size_t get_motion_graph_kind() const {
-    if( ( this->m_planning_method_flags & PLANNING_DIRECTIONALITY_MASK ) == UNIDIRECTIONAL_PLANNING )
+ public:
+  std::size_t get_motion_graph_kind() const override {
+    if ((this->m_planning_method_flags & PLANNING_DIRECTIONALITY_MASK) ==
+        UNIDIRECTIONAL_PLANNING) {
       return OPTIMAL_MOTION_GRAPH_KIND;
-    else
-      return BIDIR_OPTIMAL_MOTION_GRAPH_KIND;
-  };
+    }
+    return BIDIR_OPTIMAL_MOTION_GRAPH_KIND;
+  }
 
   /**
    * This function computes a valid path in the C-free. If it cannot
@@ -97,7 +96,7 @@ public:
    * \param aQuery The query object that defines as input the parameters of the query,
    *               and as output, the recorded solutions.
    */
-  virtual void solve_planning_query( planning_query< FreeSpaceType >& aQuery );
+  void solve_planning_query(planning_query<FreeSpaceType>& aQuery) override;
 
   /**
    * Parametrized constructor.
@@ -120,37 +119,40 @@ public:
    * \param aSpaceDimensionality The dimensionality of the space used by this planner.
    * \param aReporter The path-planning reporter to be used by this planner.
    */
-  rrtstar_planner( const shared_ptr< space_type >& aWorld = shared_ptr< space_type >(),
-                   std::size_t aMaxVertexCount = 5000, std::size_t aProgressInterval = 100,
-                   std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH | DVP_BF2_TREE_KNN,
-                   std::size_t aPlanningMethodFlags = BIDIRECTIONAL_PLANNING, double aSteerProgressTolerance = 0.1,
-                   double aConnectionTolerance = 0.1, std::size_t aSpaceDimensionality = 1,
-                   const any_sbmp_reporter_chain< space_type >& aReporter = any_sbmp_reporter_chain< space_type >() )
-      : base_type( "rrtstar_planner", aWorld, aMaxVertexCount, aProgressInterval, aDataStructureFlags,
-                   aPlanningMethodFlags, aSteerProgressTolerance, aConnectionTolerance, 1.0, aSpaceDimensionality,
-                   aReporter ){};
+  explicit rrtstar_planner(
+      const std::shared_ptr<space_type>& aWorld,
+      std::size_t aMaxVertexCount = 5000, std::size_t aProgressInterval = 100,
+      std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH |
+                                        DVP_BF2_TREE_KNN,
+      std::size_t aPlanningMethodFlags = BIDIRECTIONAL_PLANNING,
+      double aSteerProgressTolerance = 0.1, double aConnectionTolerance = 0.1,
+      std::size_t aSpaceDimensionality = 1,
+      const any_sbmp_reporter_chain<space_type>& aReporter =
+          any_sbmp_reporter_chain<space_type>())
+      : base_type("rrtstar_planner", aWorld, aMaxVertexCount, aProgressInterval,
+                  aDataStructureFlags, aPlanningMethodFlags,
+                  aSteerProgressTolerance, aConnectionTolerance, 1.0,
+                  aSpaceDimensionality, aReporter) {}
 
-  virtual ~rrtstar_planner(){};
+  rrtstar_planner() : rrtstar_planner(std::shared_ptr<space_type>()) {}
+
+  ~rrtstar_planner() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    base_type::save( A, base_type::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    base_type::load( A, base_type::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2460009, 1, "rrtstar_planner", base_type )
-};
-};
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2460009, 1, "rrtstar_planner", base_type)
 };
 
-#ifdef BOOST_NO_CXX11_EXTERN_TEMPLATE
-#include "rrtstar_path_planner.tpp"
-#endif
+}  // namespace ReaK::pp
 
 #endif

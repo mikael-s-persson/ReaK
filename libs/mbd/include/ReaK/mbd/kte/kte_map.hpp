@@ -40,36 +40,32 @@
 
 #include <boost/noncopyable.hpp>
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * These flags signify which type of KTE-pass is requested to be performed, for self-contained algorithms.
  */
 enum kte_pass_flag {
-  nothing,          ///< Does nothing special, default mode.
-  store_kinematics, ///< Request to store the calculated kinematics value (in a doMotion pass).
-  store_dynamics,   ///< Request to store the calculated force values (in a doForce pass).
+  nothing,  ///< Does nothing special, default mode.
+  store_kinematics,  ///< Request to store the calculated kinematics value (in a doMotion pass).
+  store_dynamics,  ///< Request to store the calculated force values (in a doForce pass).
   adapt_parameters  ///< Request to adapt the system parameters based on recorded kinematics and forces.
 };
-
 
 /**
  * This class is the base class for all the kinetostatic transmission elements (KTE).
  */
 class kte_map : public virtual named_object, public boost::noncopyable {
-public:
+ public:
   /**
    * Default constructor.
    */
-  kte_map( const std::string& aName = "" ) { this->setName( aName ); };
+  explicit kte_map(const std::string& aName = "") { this->setName(aName); }
 
   /**
    * Default destructor.
    */
-  virtual ~kte_map(){};
+  ~kte_map() override = default;
 
   /**
    * This method performs a motion calculation pass (i.e. computes the kinematics).
@@ -79,8 +75,9 @@ public:
    * \param aStorage a map of kinetostatic frame storage for stored kinematics and dynamics.
    * \note adaptivity is not yet supported.
    */
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) = 0;
+  virtual void doMotion(kte_pass_flag aFlag = nothing,
+                        const std::shared_ptr<frame_storage>& aStorage =
+                            std::shared_ptr<frame_storage>()) = 0;
 
   /**
    * This method performs a force calculation pass (i.e. computes the dynamics).
@@ -90,8 +87,9 @@ public:
    * \param aStorage a map of kinetostatic frame storage for stored kinematics and dynamics.
    * \note adaptivity is not yet supported.
    */
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) = 0;
+  virtual void doForce(kte_pass_flag aFlag = nothing,
+                       const std::shared_ptr<frame_storage>& aStorage =
+                           std::shared_ptr<frame_storage>()) = 0;
 
   /**
    * This method performs a force clearance pass (i.e. resets all force values to zero).
@@ -104,20 +102,20 @@ public:
    */
   virtual void clearForce() = 0;
 
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    ReaK::named_object::save(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    ReaK::named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    ReaK::named_object::load(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    ReaK::named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
-
-  RK_RTTI_MAKE_ABSTRACT_1BASE( kte_map, 0xC2100001, 1, "kte_map", named_object )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(kte_map, 0xC2100001, 1, "kte_map", named_object)
 };
 
-
-}; // kte
-};
+}  // namespace ReaK::kte
 
 #endif

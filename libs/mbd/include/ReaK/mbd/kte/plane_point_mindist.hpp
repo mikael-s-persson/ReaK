@@ -36,58 +36,63 @@
 #include "kte_map.hpp"
 
 #include <ReaK/math/kinetostatics/kinetostatics.hpp>
+#include <utility>
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class implements the geometric calculation of a 3D end-frame which follows a (fixed) plane while
  * maintain the minimum distance to a base-frame.
  */
 class plane_point_mindist_3D : public kte_map {
-private:
-  shared_ptr< frame_3D< double > > mBase; ///< Holds the base-frame, or kinematic input, or free-point.
-  shared_ptr< frame_3D< double > >
-    mEnd; ///< Holds the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
-  vect< double, 3 > mNormal; ///< Holds the normal vector of the plane, in global coordinates.
-  double mOrigin; ///< Holds the distance to the origin, i.e., mOrigin * mNormal is the vector from the plane to a plane
-                  ///parallel and intersecting the origin.
+ private:
+  std::shared_ptr<frame_3D<double>>
+      mBase;  ///< Holds the base-frame, or kinematic input, or free-point.
+  std::shared_ptr<frame_3D<double>>
+      mEnd;  ///< Holds the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
+  vect<double, 3>
+      mNormal;  ///< Holds the normal vector of the plane, in global coordinates.
+  double
+      mOrigin;  ///< Holds the distance to the origin, i.e., mOrigin * mNormal is the vector from the plane to a plane
+                ///parallel and intersecting the origin.
 
-public:
+ public:
   /**
    * Sets the base-frame, or kinematic input, or free-point.
    * \param aPtr The new base-frame, or kinematic input, or free-point.
    */
-  void setBaseFrame( const shared_ptr< frame_3D< double > >& aPtr ) { mBase = aPtr; };
+  void setBaseFrame(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mBase = aPtr;
+  }
   /**
    * Returns the base-frame, or kinematic input, or free-point.
    * \return The base-frame, or kinematic input, or free-point.
    */
-  shared_ptr< frame_3D< double > > BaseFrame() const { return mBase; };
+  std::shared_ptr<frame_3D<double>> BaseFrame() const { return mBase; }
 
   /**
    * Sets the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
    * \param aPtr The new end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
    */
-  void setEndFrame( const shared_ptr< frame_3D< double > >& aPtr ) { mEnd = aPtr; };
+  void setEndFrame(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mEnd = aPtr;
+  }
   /**
    * Returns the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
    * \return The end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
    */
-  shared_ptr< frame_3D< double > > EndFrame() const { return mEnd; };
+  std::shared_ptr<frame_3D<double>> EndFrame() const { return mEnd; }
 
   /**
    * Sets the normal vector of the plane, in global coordinates.
    * \param aValue The new normal vector of the plane, in global coordinates.
    */
-  void setNormal( const vect< double, 3 >& aValue ) { mNormal = aValue; };
+  void setNormal(const vect<double, 3>& aValue) { mNormal = aValue; }
   /**
    * Returns the normal vector of the plane, in global coordinates.
    * \return The normal vector of the plane, in global coordinates.
    */
-  vect< double, 3 > Normal() const { return mNormal; };
+  vect<double, 3> Normal() const { return mNormal; }
 
   /**
    * Sets the distance to the origin, i.e., aOrigin * aNormal is the vector from the plane to a plane parallel and
@@ -95,20 +100,20 @@ public:
    * \param aValue The new distance to the origin, i.e., aOrigin * aNormal is the vector from the plane to a plane
    * parallel and intersecting the origin.
    */
-  void setOrigin( double& aValue ) { mOrigin = aValue; };
+  void setOrigin(double& aValue) { mOrigin = aValue; }
   /**
    * Returns the distance to the origin, i.e., aOrigin * aNormal is the vector from the plane to a plane parallel and
    * intersecting the origin.
    * \return The distance to the origin, i.e., aOrigin * aNormal is the vector from the plane to a plane parallel and
    * intersecting the origin.
    */
-  double Origin() const { return mOrigin; };
+  double Origin() const { return mOrigin; }
 
   /**
    * Default constructor.
    */
-  plane_point_mindist_3D( const std::string& aName = "" )
-      : kte_map( aName ), mBase(), mEnd(), mNormal(), mOrigin( 0.0 ){};
+  explicit plane_point_mindist_3D(const std::string& aName = "")
+      : kte_map(aName), mOrigin(0.0) {}
 
   /**
    * Parametrized constructor.
@@ -119,40 +124,48 @@ public:
    * \param aOrigin the distance to the origin, i.e., aOrigin * aNormal is the vector from the plane to a plane parallel
    * and intersecting the origin.
    */
-  plane_point_mindist_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aBase,
-                          const shared_ptr< frame_3D< double > >& aEnd, const vect< double, 3 >& aNormal,
-                          double aOrigin )
-      : kte_map( aName ), mBase( aBase ), mEnd( aEnd ), mNormal( aNormal ), mOrigin( aOrigin ){};
+  plane_point_mindist_3D(const std::string& aName,
+                         std::shared_ptr<frame_3D<double>> aBase,
+                         std::shared_ptr<frame_3D<double>> aEnd,
+                         const vect<double, 3>& aNormal, double aOrigin)
+      : kte_map(aName),
+        mBase(std::move(aBase)),
+        mEnd(std::move(aEnd)),
+        mNormal(aNormal),
+        mOrigin(aOrigin) {}
 
   /**
    * Default destructor.
    */
-  virtual ~plane_point_mindist_3D(){};
+  ~plane_point_mindist_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mBase ) & RK_SERIAL_SAVE_WITH_NAME( mEnd ) & RK_SERIAL_SAVE_WITH_NAME( mNormal )
-      & RK_SERIAL_SAVE_WITH_NAME( mOrigin );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mBase) & RK_SERIAL_SAVE_WITH_NAME(mEnd) &
+        RK_SERIAL_SAVE_WITH_NAME(mNormal) & RK_SERIAL_SAVE_WITH_NAME(mOrigin);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mBase ) & RK_SERIAL_LOAD_WITH_NAME( mEnd ) & RK_SERIAL_LOAD_WITH_NAME( mNormal )
-      & RK_SERIAL_LOAD_WITH_NAME( mOrigin );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mBase) & RK_SERIAL_LOAD_WITH_NAME(mEnd) &
+        RK_SERIAL_LOAD_WITH_NAME(mNormal) & RK_SERIAL_LOAD_WITH_NAME(mOrigin);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( plane_point_mindist_3D, 0xC2100030, 1, "plane_point_mindist_3D", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(plane_point_mindist_3D, 0xC2100030, 1,
+                              "plane_point_mindist_3D", kte_map)
 };
-};
-};
 
+}  // namespace ReaK::kte
 
 #endif

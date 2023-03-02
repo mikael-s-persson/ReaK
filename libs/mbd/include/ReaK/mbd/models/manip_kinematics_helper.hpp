@@ -32,40 +32,40 @@
 #ifndef REAK_MANIP_KINEMATICS_HELPER_HPP
 #define REAK_MANIP_KINEMATICS_HELPER_HPP
 
+#include <utility>
+
 #include "manip_kinematics_model.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 class manip_kin_mdl_joint_io {
-private:
-  shared_ptr< const direct_kinematics_model > model;
+ private:
+  std::shared_ptr<const direct_kinematics_model> model;
 
-public:
-  manip_kin_mdl_joint_io( const shared_ptr< const direct_kinematics_model >& aModel ) : model( aModel ){};
-  ~manip_kin_mdl_joint_io(){};
+ public:
+  explicit manip_kin_mdl_joint_io(
+      std::shared_ptr<const direct_kinematics_model> aModel)
+      : model(std::move(aModel)) {}
+  ~manip_kin_mdl_joint_io() = default;
 
-  void getJointPositions( double* result ) const;
+  void getJointPositions(double* result) const;
 
-  void setJointPositions( const double* aJointPositions );
+  void setJointPositions(const double* aJointPositions);
 
-  void getJointVelocities( double* result ) const;
+  void getJointVelocities(double* result) const;
 
-  void setJointVelocities( const double* aJointVelocities );
+  void setJointVelocities(const double* aJointVelocities);
 
-  void getJointAccelerations( double* result ) const;
+  void getJointAccelerations(double* result) const;
 
-  void setJointAccelerations( const double* aJointAccelerations );
+  void setJointAccelerations(const double* aJointAccelerations);
 
-  void getDependentPositions( double* result ) const;
+  void getDependentPositions(double* result) const;
 
-  void getDependentVelocities( double* result ) const;
+  void getDependentVelocities(double* result) const;
 
-  void getDependentAccelerations( double* result ) const;
+  void getDependentAccelerations(double* result) const;
 };
-
 
 /**
  * This class is a helper of the direct_kinematics_model class which is used to fill in
@@ -75,22 +75,25 @@ public:
  * fill in any kind of matrix type (e.g. enabling the filling of matrix sub-blocks for example).
  */
 class manip_kin_mdl_jac_calculator {
-private:
-  shared_ptr< const direct_kinematics_model > model;
+ private:
+  std::shared_ptr<const direct_kinematics_model> model;
 
-  void getJacobianMatrixAndDerivativeImpl( mat< double, mat_structure::rectangular >& Jac,
-                                           mat< double, mat_structure::rectangular >* JacDot ) const;
+  void getJacobianMatrixAndDerivativeImpl(
+      mat<double, mat_structure::rectangular>& Jac,
+      mat<double, mat_structure::rectangular>* JacDot) const;
 
-public:
+ public:
   /**
    * Default constructor.
    */
-  manip_kin_mdl_jac_calculator( const shared_ptr< const direct_kinematics_model >& aModel ) : model( aModel ){};
+  explicit manip_kin_mdl_jac_calculator(
+      std::shared_ptr<const direct_kinematics_model> aModel)
+      : model(std::move(aModel)) {}
 
   /**
    * Default destructor.
    */
-  ~manip_kin_mdl_jac_calculator(){};
+  ~manip_kin_mdl_jac_calculator() = default;
 
   /**
    * Get the Jacobian matrix for the system (or twist-shaping matrix). The Jacobian takes the velocity
@@ -98,9 +101,10 @@ public:
    * of the system's dependent coordinates and frames.
    * \param Jac stores, as output, the calculated system's Jacobian matrix.
    */
-  void getJacobianMatrix( mat< double, mat_structure::rectangular >& Jac ) const {
-    getJacobianMatrixAndDerivativeImpl( Jac, static_cast< mat< double, mat_structure::rectangular >* >( nullptr ) );
-  };
+  void getJacobianMatrix(mat<double, mat_structure::rectangular>& Jac) const {
+    getJacobianMatrixAndDerivativeImpl(
+        Jac, static_cast<mat<double, mat_structure::rectangular>*>(nullptr));
+  }
 
   /**
    * Get the Jacobian matrix for the system (or twist-shaping matrix), and its time-derivative.
@@ -111,12 +115,13 @@ public:
    * \param Jac stores, as output, the calculated system's Jacobian matrix.
    * \param JacDot stores, as output, the calculated time-derivative of the system's Jacobian matrix.
    */
-  void getJacobianMatrixAndDerivative( mat< double, mat_structure::rectangular >& Jac,
-                                       mat< double, mat_structure::rectangular >& JacDot ) const {
-    getJacobianMatrixAndDerivativeImpl( Jac, &JacDot );
-  };
+  void getJacobianMatrixAndDerivative(
+      mat<double, mat_structure::rectangular>& Jac,
+      mat<double, mat_structure::rectangular>& JacDot) const {
+    getJacobianMatrixAndDerivativeImpl(Jac, &JacDot);
+  }
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

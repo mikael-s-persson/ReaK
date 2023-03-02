@@ -37,20 +37,19 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/serializable.hpp>
 
+#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
 #include "metric_space_concept.hpp"
 #include "prob_distribution_concept.hpp"
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
 
-#include "tuple_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 #include "differentiable_space.hpp"
+#include "tuple_distance_metrics.hpp"
 
 #include "rate_limited_space_metamaps.hpp"
 
-namespace ReaK {
+#include <type_traits>
 
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class defines the differentiation rule to apply either to lift a
@@ -62,7 +61,8 @@ struct reach_time_differentiation : public serializable {
 
   double max_rate_reach_time;
 
-  reach_time_differentiation( double aMaxRateReachTime = 1.0 ) : max_rate_reach_time( aMaxRateReachTime ){};
+  explicit reach_time_differentiation(double aMaxRateReachTime = 1.0)
+      : max_rate_reach_time(aMaxRateReachTime) {}
 
   /**
    * This function will lift a point-difference vector into its corresponding tangent vector.
@@ -75,10 +75,10 @@ struct reach_time_differentiation : public serializable {
    * \param dp The point-difference that is being lifted.
    * \param dt The time-difference value (i.e. the difference in the independent variable).
    */
-  template < typename T, typename U, typename V, typename TSpace >
-  void lift( T& v, const U& dp, const V& dt, const TSpace& ) const {
-    v = dp * ( max_rate_reach_time / dt );
-  };
+  template <typename T, typename U, typename V, typename TSpace>
+  void lift(T& v, const U& dp, const V& dt, const TSpace& /*unused*/) const {
+    v = dp * (max_rate_reach_time / dt);
+  }
   /**
    * This function will descend a tangent vector into its corresponding point-difference vector.
    * This function performs a simple multiplication, v * (dt / max_rate_reach_time).
@@ -90,54 +90,48 @@ struct reach_time_differentiation : public serializable {
    * \param v The point in the tangent space that is being descended.
    * \param dt The time-difference value (i.e. the difference in the independent variable).
    */
-  template < typename T, typename U, typename V, typename TSpace >
-  void descend( T& dp, const U& v, const V& dt, const TSpace& ) const {
-    dp = v * ( dt / max_rate_reach_time );
-  };
+  template <typename T, typename U, typename V, typename TSpace>
+  void descend(T& dp, const U& v, const V& dt, const TSpace& /*unused*/) const {
+    dp = v * (dt / max_rate_reach_time);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    A& RK_SERIAL_SAVE_WITH_NAME( max_rate_reach_time );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    A& RK_SERIAL_SAVE_WITH_NAME(max_rate_reach_time);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    A& RK_SERIAL_LOAD_WITH_NAME( max_rate_reach_time );
-  };
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
+    A& RK_SERIAL_LOAD_WITH_NAME(max_rate_reach_time);
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( reach_time_differentiation, 0xC2420001, 1, "reach_time_differentiation", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(reach_time_differentiation, 0xC2420001, 1,
+                              "reach_time_differentiation", serializable)
 };
-
 
 namespace detail {
 
-template < typename Idx, typename ForwardIter, typename ReachTimeDiffTuple >
-typename boost::disable_if< boost::mpl::less< Idx, arithmetic_tuple_size< ReachTimeDiffTuple > >, void >::type
-  assign_reach_time_diff_rules( ForwardIter, ReachTimeDiffTuple& ); // declaration only.
+template <int Idx, typename ForwardIter, typename ReachTimeDiffTuple>
+void assign_reach_time_diff_rules(ForwardIter it,
+                                  ReachTimeDiffTuple& diff_rule) {
+  if constexpr (Idx < arithmetic_tuple_size_v<ReachTimeDiffTuple>) {
+    get<Idx>(diff_rule) = reach_time_differentiation{*it};
+    assign_reach_time_diff_rules<Idx + 1>(++it, diff_rule);
+  }
+}
 
-template < typename Idx, typename ForwardIter, typename ReachTimeDiffTuple >
-typename boost::enable_if< boost::mpl::less< Idx, arithmetic_tuple_size< ReachTimeDiffTuple > >, void >::type
-  assign_reach_time_diff_rules( ForwardIter it, ReachTimeDiffTuple& diff_rule ) {
-  get< Idx::type::value >( diff_rule ) = *it;
-  assign_reach_time_diff_rules< typename boost::mpl::next< Idx >::type >( ++it, diff_rule );
-};
-
-template < typename Idx, typename ForwardIter, typename ReachTimeDiffTuple >
-typename boost::disable_if< boost::mpl::less< Idx, arithmetic_tuple_size< ReachTimeDiffTuple > >, void >::type
-  assign_reach_time_diff_rules( ForwardIter, ReachTimeDiffTuple& ){/* stop TMP-recursion */
-  };
-
-
-template < typename ReachTimeDiffTuple, typename ForwardIter >
-ReachTimeDiffTuple construct_reach_time_diff_rules( ForwardIter first, ForwardIter last ) {
+template <typename ReachTimeDiffTuple, typename ForwardIter>
+ReachTimeDiffTuple construct_reach_time_diff_rules(ForwardIter first,
+                                                   ForwardIter last) {
   ReachTimeDiffTuple result;
-  assign_reach_time_diff_rules< boost::mpl::size_t< 0 > >( first, result );
+  assign_reach_time_diff_rules<0>(first, result);
   return result;
-};
-};
+}
 
+}  // namespace detail
 
 /**
  * This class template can be used to glue together a number of spaces by a reach-time differentiation
@@ -155,16 +149,21 @@ ReachTimeDiffTuple construct_reach_time_diff_rules( ForwardIter first, ForwardIt
  * \tparam TupleDistanceMetric A distance metric type which models the DistanceMetricConcept and operates on a
  *                             space-tuple (e.g. arithmetic_tuple).
  */
-template < typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric = manhattan_tuple_distance >
+template <typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric = manhattan_tuple_distance>
 class reach_time_diff_space
-  : public differentiable_space< IndependentSpace, SpaceTuple, TupleDistanceMetric, reach_time_differentiation > {
-public:
-  typedef reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric > self;
-  typedef differentiable_space< IndependentSpace, SpaceTuple, TupleDistanceMetric, reach_time_differentiation >
-    base_type;
-  typedef typename base_type::diff_rule_tuple diff_rule_tuple;
+    : public differentiable_space<IndependentSpace, SpaceTuple,
+                                  TupleDistanceMetric,
+                                  reach_time_differentiation> {
+ public:
+  using self =
+      reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>;
+  using base_type =
+      differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric,
+                           reach_time_differentiation>;
+  using diff_rule_tuple = typename base_type::diff_rule_tuple;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = base_type::dimensions );
+  static constexpr std::size_t dimensions = base_type::dimensions;
 
   /**
    * Parametrized and default constructor.
@@ -172,10 +171,11 @@ public:
    * \param aDist The distance metric functor on the space-tuple.
    * \param aDiffRules The differentiation rule tuple to initialize the diff-rule functors with.
    */
-  reach_time_diff_space( const SpaceTuple& aSpaces = SpaceTuple(),
-                         const TupleDistanceMetric& aDist = TupleDistanceMetric(),
-                         const diff_rule_tuple& aDiffRules = diff_rule_tuple() )
-      : base_type( aSpaces, aDist, aDiffRules ){};
+  explicit reach_time_diff_space(
+      const SpaceTuple& aSpaces = SpaceTuple{},
+      const TupleDistanceMetric& aDist = TupleDistanceMetric{},
+      const diff_rule_tuple& aDiffRules = diff_rule_tuple{})
+      : base_type(aSpaces, aDist, aDiffRules) {}
 
   /**
    * Parametrized constructor which creates the reach-time differentiation rules from a list
@@ -186,12 +186,15 @@ public:
    * \param aSpaces The space tuple to initialize the spaces with.
    * \param aDist The distance metric functor on the space-tuple.
    */
-  template < typename ForwardIter >
-  reach_time_diff_space( ForwardIter first, ForwardIter last, const SpaceTuple& aSpaces = SpaceTuple(),
-                         const TupleDistanceMetric& aDist = TupleDistanceMetric() )
-      : base_type( aSpaces, aDist, detail::construct_reach_time_diff_rules< diff_rule_tuple >( first, last ) ){};
+  template <typename ForwardIter>
+  reach_time_diff_space(
+      ForwardIter first, ForwardIter last,
+      const SpaceTuple& aSpaces = SpaceTuple{},
+      const TupleDistanceMetric& aDist = TupleDistanceMetric{})
+      : base_type(aSpaces, aDist,
+                  detail::construct_reach_time_diff_rules<diff_rule_tuple>(
+                      first, last)) {}
 
-#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   /**
    * Parametrized constructor which creates the reach-time differentiation rules from a list
    * of rate-limits on spaces of the tangent bundle (element 0 should be the velocity limit,
@@ -200,105 +203,131 @@ public:
    * \param aSpaces The space tuple to initialize the spaces with.
    * \param aDist The distance metric functor on the space-tuple.
    */
-  reach_time_diff_space( std::initializer_list< double > aList, const SpaceTuple& aSpaces = SpaceTuple(),
-                         const TupleDistanceMetric& aDist = TupleDistanceMetric() )
-      : base_type( aSpaces, aDist,
-                   detail::construct_reach_time_diff_rules< diff_rule_tuple >( aList.begin(), aList.end() ) ){};
-#endif
-
+  reach_time_diff_space(
+      std::initializer_list<double> aList,
+      const SpaceTuple& aSpaces = SpaceTuple{},
+      const TupleDistanceMetric& aDist = TupleDistanceMetric{})
+      : base_type(aSpaces, aDist,
+                  detail::construct_reach_time_diff_rules<diff_rule_tuple>(
+                      aList.begin(), aList.end())) {}
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    base_type::save( A, base_type::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    base_type::load( A, base_type::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+  }
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2400010, 1, "reach_time_diff_space", base_type )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400010, 1, "reach_time_diff_space",
+                              base_type)
 };
 
-template < typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric >
-struct is_metric_space< reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric > >
-  : boost::mpl::true_ {};
+template <typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric>
+struct is_metric_space<
+    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>>
+    : std::true_type {};
 
-template < typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric >
-struct is_reversible_space< reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric > >
-  : is_reversible_space< typename reach_time_diff_space< IndependentSpace, SpaceTuple,
-                                                         TupleDistanceMetric >::base_type > {};
+template <typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric>
+struct is_reversible_space<
+    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>>
+    : is_reversible_space<typename reach_time_diff_space<
+          IndependentSpace, SpaceTuple, TupleDistanceMetric>::base_type> {};
 
-template < typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric >
-struct is_point_distribution< reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric > >
-  : boost::mpl::true_ {};
+template <typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric>
+struct is_point_distribution<
+    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>>
+    : std::true_type {};
 
-template < typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric >
-struct is_metric_symmetric< reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric > >
-  : is_metric_symmetric< typename reach_time_diff_space< IndependentSpace, SpaceTuple,
-                                                         TupleDistanceMetric >::base_type > {};
+template <typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric>
+struct is_metric_symmetric<
+    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>>
+    : is_metric_symmetric<typename reach_time_diff_space<
+          IndependentSpace, SpaceTuple, TupleDistanceMetric>::base_type> {};
 
+template <typename SpaceTuple, typename TupleDistanceMetric,
+          typename IndependentSpace, typename IndependentSpace2>
+struct max_derivation_order<
+    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>,
+    IndependentSpace2>
+    : max_derivation_order<
+          typename reach_time_diff_space<IndependentSpace, SpaceTuple,
+                                         TupleDistanceMetric>::base_type,
+          IndependentSpace2> {};
 
-template < typename SpaceTuple, typename TupleDistanceMetric, typename IndependentSpace, typename IndependentSpace2,
-           std::size_t Order >
-struct derived_N_order_space< reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric >,
-                              IndependentSpace2, Order > {
-  typedef typename arithmetic_tuple_element< Order, SpaceTuple >::type type;
+template <typename SpaceTuple, typename TupleDistanceMetric,
+          typename IndependentSpace, typename IndependentSpace2,
+          std::size_t Order>
+struct derived_N_order_space<
+    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>,
+    IndependentSpace2, Order> {
+  using type = arithmetic_tuple_element_t<Order, SpaceTuple>;
 };
 
-#if 1
 /**
  * This function returns the space at a given differential order against a given independent-space.
  * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
  */
-template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric,
-           typename IndependentSpace2 >
-const typename arithmetic_tuple_element< Idx, SpaceTuple >::type&
-  get_space( const reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric >& s,
-             const IndependentSpace2& t ) {
-  return get_space< Idx >( static_cast< const differentiable_space< IndependentSpace, SpaceTuple, TupleDistanceMetric,
-                                                                    reach_time_differentiation >& >( s ),
-                           t );
-};
+template <int Idx, typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric, typename IndependentSpace2>
+const auto& get_space(const reach_time_diff_space<IndependentSpace, SpaceTuple,
+                                                  TupleDistanceMetric>& s,
+                      const IndependentSpace2& t) {
+  return get_space<Idx>(
+      static_cast<const differentiable_space<IndependentSpace, SpaceTuple,
+                                             TupleDistanceMetric,
+                                             reach_time_differentiation>&>(s),
+      t);
+}
 
 /**
  * This function returns the space at a given differential order against a given independent-space.
  * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
  */
-template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric,
-           typename IndependentSpace2 >
-typename arithmetic_tuple_element< Idx, SpaceTuple >::type&
-  get_space( reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric >& s,
-             const IndependentSpace2& t ) {
-  return get_space< Idx >( static_cast< differentiable_space< IndependentSpace, SpaceTuple, TupleDistanceMetric,
-                                                              reach_time_differentiation >& >( s ),
-                           t );
-};
+template <int Idx, typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric, typename IndependentSpace2>
+auto& get_space(
+    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>& s,
+    const IndependentSpace2& t) {
+  return get_space<Idx>(
+      static_cast<differentiable_space<IndependentSpace, SpaceTuple,
+                                       TupleDistanceMetric,
+                                       reach_time_differentiation>&>(s),
+      t);
+}
 
 /**
  * This function returns the differentiation functor at a given order against a given independent-space.
  * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
  */
-template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric,
-           typename IndependentSpace2 >
-const reach_time_differentiation&
-  get_diff_rule( const reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric >& s,
-                 const IndependentSpace2& ) {
-  return s.template get_diff_rule_impl< Idx >();
-};
+template <int Idx, typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric, typename IndependentSpace2>
+const reach_time_differentiation& get_diff_rule(
+    const reach_time_diff_space<IndependentSpace, SpaceTuple,
+                                TupleDistanceMetric>& s,
+    const IndependentSpace2& /*unused*/) {
+  return s.template get_diff_rule_impl<Idx>();
+}
 
 /**
  * This function returns the differentiation functor at a given order against a given independent-space.
  * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
  */
-template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric,
-           typename IndependentSpace2 >
-reach_time_differentiation&
-  get_diff_rule( reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric >& s,
-                 const IndependentSpace2& ) {
-  return s.template get_diff_rule_impl< Idx >();
-};
+template <int Idx, typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric, typename IndependentSpace2>
+reach_time_differentiation& get_diff_rule(
+    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>& s,
+    const IndependentSpace2& /*unused*/) {
+  return s.template get_diff_rule_impl<Idx>();
+}
 
 /**
  * This function lifts a point-difference in space Idx-1 into a point in space Idx.
@@ -309,19 +338,21 @@ reach_time_differentiation&
  * \param t_space The independent-space.
  * \return The point in space Idx which is the tangential lift of the point-difference in space Idx-1.
  */
-template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric,
-           typename IndependentSpace2 >
-typename arithmetic_tuple_element< Idx, typename reach_time_diff_space< IndependentSpace, SpaceTuple,
-                                                                        TupleDistanceMetric >::point_type >::type
-  lift_to_space(
-    const typename arithmetic_tuple_element< Idx - 1, typename reach_time_diff_space< IndependentSpace, SpaceTuple,
-                                                                                      TupleDistanceMetric >::
-                                                        point_difference_type >::type& dp,
-    const typename topology_traits< IndependentSpace2 >::point_difference_type& dt,
-    const reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric >& space,
-    const IndependentSpace2& t_space ) {
-  return space.template lift_to_space< Idx >( dp, dt, t_space );
-};
+template <int Idx, typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric, typename IndependentSpace2>
+arithmetic_tuple_element_t<
+    Idx, typename reach_time_diff_space<IndependentSpace, SpaceTuple,
+                                        TupleDistanceMetric>::point_type>
+lift_to_space(const arithmetic_tuple_element_t<
+                  Idx - 1, typename reach_time_diff_space<
+                               IndependentSpace, SpaceTuple,
+                               TupleDistanceMetric>::point_difference_type>& dp,
+              const topology_point_difference_type_t<IndependentSpace2>& dt,
+              const reach_time_diff_space<IndependentSpace, SpaceTuple,
+                                          TupleDistanceMetric>& space,
+              const IndependentSpace2& t_space) {
+  return space.template lift_to_space<Idx>(dp, dt, t_space);
+}
 
 /**
  * This function descends a point in space Idx+1 into a point-difference in space Idx.
@@ -332,445 +363,158 @@ typename arithmetic_tuple_element< Idx, typename reach_time_diff_space< Independ
  * \param t_space The independent-space.
  * \return The point-difference in space Idx which is the tangential descent of the point in space Idx+1.
  */
-template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric,
-           typename IndependentSpace2 >
-typename arithmetic_tuple_element< Idx,
-                                   typename reach_time_diff_space< IndependentSpace, SpaceTuple,
-                                                                   TupleDistanceMetric >::point_difference_type >::type
-  descend_to_space(
-    const typename arithmetic_tuple_element< Idx + 1,
-                                             typename reach_time_diff_space< IndependentSpace, SpaceTuple,
-                                                                             TupleDistanceMetric >::point_type >::type&
-      v,
-    const typename topology_traits< IndependentSpace2 >::point_difference_type& dt,
-    const reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric >& space,
-    const IndependentSpace2& t_space ) {
-  return space.template descend_to_space< Idx >( v, dt, t_space );
-};
-
-#endif
-
+template <int Idx, typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric, typename IndependentSpace2>
+arithmetic_tuple_element_t<Idx, typename reach_time_diff_space<
+                                    IndependentSpace, SpaceTuple,
+                                    TupleDistanceMetric>::point_difference_type>
+descend_to_space(
+    const arithmetic_tuple_element_t<
+        Idx + 1,
+        typename reach_time_diff_space<IndependentSpace, SpaceTuple,
+                                       TupleDistanceMetric>::point_type>& v,
+    const topology_point_difference_type_t<IndependentSpace2>& dt,
+    const reach_time_diff_space<IndependentSpace, SpaceTuple,
+                                TupleDistanceMetric>& space,
+    const IndependentSpace2& t_space) {
+  return space.template descend_to_space<Idx>(v, dt, t_space);
+}
 
 namespace detail {
 
-
-template < std::size_t Size, typename SpaceTuple >
+template <std::size_t Size, typename SpaceTuple>
 struct get_rate_illimited_space_tuple_impl {
-  // BOOST_STATIC_ASSERT(false);
+  // static_assert(false);
 };
 
-#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
-
-template < std::size_t Size, typename... Spaces >
-struct get_rate_illimited_space_tuple_impl< Size, std::tuple< Spaces... > > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< Spaces >::type... > type;
+template <std::size_t Size, typename... Spaces>
+struct get_rate_illimited_space_tuple_impl<Size, std::tuple<Spaces...>> {
+  using type = arithmetic_tuple<get_rate_illimited_space_t<Spaces>...>;
 };
 
-template < std::size_t Size, typename... Spaces >
-struct get_rate_illimited_space_tuple_impl< Size, arithmetic_tuple< Spaces... > > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< Spaces >::type... > type;
+template <std::size_t Size, typename... Spaces>
+struct get_rate_illimited_space_tuple_impl<Size, arithmetic_tuple<Spaces...>> {
+  using type = arithmetic_tuple<get_rate_illimited_space_t<Spaces>...>;
 };
 
-#else
-template < typename SpaceTuple >
-struct get_rate_illimited_space_tuple_impl< 1, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                                 type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_illimited_space_tuple_impl< 2, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                                 type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_illimited_space_tuple_impl< 3, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                                 type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_illimited_space_tuple_impl< 4, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                                 type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_illimited_space_tuple_impl< 5, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                                 type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_illimited_space_tuple_impl< 6, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 5, SpaceTuple >::
-                                                                 type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_illimited_space_tuple_impl< 7, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 5, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 6, SpaceTuple >::
-                                                                 type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_illimited_space_tuple_impl< 8, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 5, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 6, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 7, SpaceTuple >::
-                                                                 type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_illimited_space_tuple_impl< 9, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 5, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 6, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 7, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 8, SpaceTuple >::
-                                                                 type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_illimited_space_tuple_impl< 10, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 5, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 6, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 7, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 8, SpaceTuple >::
-                                                                 type >::type,
-                            typename get_rate_illimited_space< typename arithmetic_tuple_element< 9, SpaceTuple >::
-                                                                 type >::type > type;
-};
-
-#endif
-
-template < typename SpaceTuple >
+template <typename SpaceTuple>
 struct get_rate_illimited_space_tuple
-  : get_rate_illimited_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::type::value, SpaceTuple > {};
+    : get_rate_illimited_space_tuple_impl<arithmetic_tuple_size_v<SpaceTuple>,
+                                          SpaceTuple> {};
 
+template <typename SpaceTuple>
+using get_rate_illimited_space_tuple_t =
+    typename get_rate_illimited_space_tuple<SpaceTuple>::type;
 
-template < std::size_t Size, typename SpaceTuple >
+template <std::size_t Size, typename SpaceTuple>
 struct get_rate_limited_space_tuple_impl {
-  // BOOST_STATIC_ASSERT(false);
+  // static_assert(false);
 };
 
-#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
-
-template < std::size_t Size, typename... Spaces >
-struct get_rate_limited_space_tuple_impl< Size, std::tuple< Spaces... > > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< Spaces >::type... > type;
+template <std::size_t Size, typename... Spaces>
+struct get_rate_limited_space_tuple_impl<Size, std::tuple<Spaces...>> {
+  using type = arithmetic_tuple<get_rate_limited_space_t<Spaces>...>;
 };
 
-template < std::size_t Size, typename... Spaces >
-struct get_rate_limited_space_tuple_impl< Size, arithmetic_tuple< Spaces... > > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< Spaces >::type... > type;
+template <std::size_t Size, typename... Spaces>
+struct get_rate_limited_space_tuple_impl<Size, arithmetic_tuple<Spaces...>> {
+  using type = arithmetic_tuple<get_rate_limited_space_t<Spaces>...>;
 };
 
-#else
-template < typename SpaceTuple >
-struct get_rate_limited_space_tuple_impl< 1, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                               type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_limited_space_tuple_impl< 2, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                               type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_limited_space_tuple_impl< 3, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                               type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_limited_space_tuple_impl< 4, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                               type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_limited_space_tuple_impl< 5, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                               type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_limited_space_tuple_impl< 6, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 5, SpaceTuple >::
-                                                               type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_limited_space_tuple_impl< 7, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 5, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 6, SpaceTuple >::
-                                                               type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_limited_space_tuple_impl< 8, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 5, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 6, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 7, SpaceTuple >::
-                                                               type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_limited_space_tuple_impl< 9, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 5, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 6, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 7, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 8, SpaceTuple >::
-                                                               type >::type > type;
-};
-
-template < typename SpaceTuple >
-struct get_rate_limited_space_tuple_impl< 10, SpaceTuple > {
-  typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element< 0, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 1, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 2, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 3, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 4, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 5, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 6, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 7, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 8, SpaceTuple >::
-                                                               type >::type,
-                            typename get_rate_limited_space< typename arithmetic_tuple_element< 9, SpaceTuple >::
-                                                               type >::type > type;
-};
-
-#endif
-
-template < typename SpaceTuple >
+template <typename SpaceTuple>
 struct get_rate_limited_space_tuple
-  : get_rate_limited_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::type::value, SpaceTuple > {};
+    : get_rate_limited_space_tuple_impl<arithmetic_tuple_size_v<SpaceTuple>,
+                                        SpaceTuple> {};
+
+template <typename SpaceTuple>
+using get_rate_limited_space_tuple_t =
+    typename get_rate_limited_space_tuple<SpaceTuple>::type;
+
+}  // namespace detail
+
+template <typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric>
+struct get_rate_illimited_space<
+    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>> {
+  using type =
+      differentiable_space<IndependentSpace,
+                           detail::get_rate_illimited_space_tuple_t<SpaceTuple>,
+                           TupleDistanceMetric>;
 };
 
-
-template < typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric >
-struct get_rate_illimited_space< reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric > > {
-  typedef differentiable_space< IndependentSpace, typename detail::get_rate_illimited_space_tuple< SpaceTuple >::type,
-                                TupleDistanceMetric > type;
+template <typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric>
+struct get_rate_limited_space<
+    differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>> {
+  using type =
+      reach_time_diff_space<IndependentSpace,
+                            detail::get_rate_limited_space_tuple_t<SpaceTuple>,
+                            TupleDistanceMetric>;
 };
 
-
-template < typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric >
-struct get_rate_limited_space< differentiable_space< IndependentSpace, SpaceTuple, TupleDistanceMetric > > {
-  typedef reach_time_diff_space< IndependentSpace, typename detail::get_rate_limited_space_tuple< SpaceTuple >::type,
-                                 TupleDistanceMetric > type;
+template <typename SpaceTuple, typename TupleDistanceMetric>
+struct get_rate_illimited_space<
+    metric_space_tuple<SpaceTuple, TupleDistanceMetric>> {
+  using type =
+      metric_space_tuple<detail::get_rate_illimited_space_tuple_t<SpaceTuple>,
+                         TupleDistanceMetric>;
 };
 
-
-template < typename SpaceTuple, typename TupleDistanceMetric >
-struct get_rate_illimited_space< metric_space_tuple< SpaceTuple, TupleDistanceMetric > > {
-  typedef metric_space_tuple< typename detail::get_rate_illimited_space_tuple< SpaceTuple >::type, TupleDistanceMetric >
-    type;
+template <typename SpaceTuple, typename TupleDistanceMetric>
+struct get_rate_limited_space<
+    metric_space_tuple<SpaceTuple, TupleDistanceMetric>> {
+  using type =
+      metric_space_tuple<detail::get_rate_limited_space_tuple_t<SpaceTuple>,
+                         TupleDistanceMetric>;
 };
 
-
-template < typename SpaceTuple, typename TupleDistanceMetric >
-struct get_rate_limited_space< metric_space_tuple< SpaceTuple, TupleDistanceMetric > > {
-  typedef metric_space_tuple< typename detail::get_rate_limited_space_tuple< SpaceTuple >::type, TupleDistanceMetric >
-    type;
-};
-};
-};
-
+}  // namespace ReaK::pp
 
 namespace ReaK {
 
+/* Specialization, see general template docs. */
+template <typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric>
+struct arithmetic_tuple_size<pp::reach_time_diff_space<
+    IndependentSpace, SpaceTuple, TupleDistanceMetric>>
+    : arithmetic_tuple_size<SpaceTuple> {};
 
 /* Specialization, see general template docs. */
-template < typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric >
-struct arithmetic_tuple_size< pp::reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric > >
-  : arithmetic_tuple_size< SpaceTuple > {};
-
-
-/* Specialization, see general template docs. */
-template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric >
-struct arithmetic_tuple_element< Idx, pp::reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric > > {
-  typedef typename arithmetic_tuple_element< Idx, SpaceTuple >::type type;
+template <int Idx, typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric>
+struct arithmetic_tuple_element<
+    Idx, pp::reach_time_diff_space<IndependentSpace, SpaceTuple,
+                                   TupleDistanceMetric>> {
+  using type = arithmetic_tuple_element_t<Idx, SpaceTuple>;
 };
 
 /* Specialization, see general template docs. */
-template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric >
-struct arithmetic_tuple_element< Idx, const pp::reach_time_diff_space< IndependentSpace, SpaceTuple,
-                                                                       TupleDistanceMetric > > {
-  typedef typename arithmetic_tuple_element< Idx, const SpaceTuple >::type type;
+template <int Idx, typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric>
+struct arithmetic_tuple_element<
+    Idx, const pp::reach_time_diff_space<IndependentSpace, SpaceTuple,
+                                         TupleDistanceMetric>> {
+  using type = arithmetic_tuple_element_t<Idx, const SpaceTuple>;
 };
 
 /* Specialization, see general template docs. */
-template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric >
-struct arithmetic_tuple_element< Idx, volatile pp::reach_time_diff_space< IndependentSpace, SpaceTuple,
-                                                                          TupleDistanceMetric > > {
-  typedef typename arithmetic_tuple_element< Idx, volatile SpaceTuple >::type type;
+template <int Idx, typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric>
+struct arithmetic_tuple_element<
+    Idx, volatile pp::reach_time_diff_space<IndependentSpace, SpaceTuple,
+                                            TupleDistanceMetric>> {
+  using type = arithmetic_tuple_element_t<Idx, volatile SpaceTuple>;
 };
 
 /* Specialization, see general template docs. */
-template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric >
-struct arithmetic_tuple_element< Idx, const volatile pp::reach_time_diff_space< IndependentSpace, SpaceTuple,
-                                                                                TupleDistanceMetric > > {
-  typedef typename arithmetic_tuple_element< Idx, const volatile SpaceTuple >::type type;
-};
+template <int Idx, typename IndependentSpace, typename SpaceTuple,
+          typename TupleDistanceMetric>
+struct arithmetic_tuple_element<
+    Idx, const volatile pp::reach_time_diff_space<IndependentSpace, SpaceTuple,
+                                                  TupleDistanceMetric>> {
+  using type = arithmetic_tuple_element_t<Idx, const volatile SpaceTuple>;
 };
 
+}  // namespace ReaK
 
 #endif

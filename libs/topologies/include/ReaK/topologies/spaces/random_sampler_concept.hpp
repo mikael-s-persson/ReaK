@@ -42,11 +42,7 @@
 #include "metric_space_concept.hpp"
 
 /** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Path-Planning */
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This concept defines the requirements to fulfill in order to model a random-sampler
@@ -65,15 +61,15 @@ namespace pp {
  * \tparam RandomSampler The random-sampler type to be checked for this concept.
  * \tparam Topology The topology to which the random sampler should apply.
  */
-template < typename RandomSampler, typename Topology >
+template <typename RandomSampler, typename Topology>
 struct RandomSamplerConcept {
   RandomSampler rand_sampler;
   Topology space;
-  typename topology_traits< Topology >::point_type p;
+  topology_point_type_t<Topology> p;
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< Topology > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
 
-  BOOST_CONCEPT_USAGE( RandomSamplerConcept ) { p = rand_sampler( space ); };
+  BOOST_CONCEPT_USAGE(RandomSamplerConcept) { p = rand_sampler(space); }
 };
 
 /**
@@ -86,16 +82,20 @@ enum random_sampler_t { random_sampler };
  * This traits class defines the types and constants associated to a point distribution.
  * \tparam PointDistribution The topology type for which the point distribution traits are sought.
  */
-template < typename PointDistribution >
+template <typename PointDistribution>
 struct point_distribution_traits {
   /** The type that describes the random-sampler type for the distribution. */
-  typedef typename PointDistribution::random_sampler_type random_sampler_type;
+  using random_sampler_type = typename PointDistribution::random_sampler_type;
 };
 
-template < typename PointDistribution >
+template <typename PointDistribution>
 struct point_distribution_random_sampler {
-  typedef typename point_distribution_traits< PointDistribution >::random_sampler_type type;
+  using type = typename point_distribution_traits<
+      PointDistribution>::random_sampler_type;
 };
+template <typename PointDistribution>
+using point_distribution_random_sampler_t =
+    typename point_distribution_random_sampler<PointDistribution>::type;
 
 /**
  * This concept defines the requirements to fulfill in order to model a point distribution
@@ -115,25 +115,30 @@ struct point_distribution_random_sampler {
  *
  * \tparam PointDistribution The topology type to be checked for this concept.
  */
-template < typename PointDistribution >
+template <typename PointDistribution>
 struct PointDistributionConcept {
-  typename topology_traits< PointDistribution >::point_type p1, p2;
-  typename point_distribution_traits< PointDistribution >::random_sampler_type rand_sampler;
+  topology_point_type_t<PointDistribution> p1, p2;
+  typename point_distribution_traits<PointDistribution>::random_sampler_type
+      rand_sampler;
   PointDistribution space;
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< PointDistribution > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<PointDistribution>));
   BOOST_CONCEPT_ASSERT(
-    ( RandomSamplerConcept< typename point_distribution_traits< PointDistribution >::random_sampler_type,
-                            PointDistribution > ) );
+      (RandomSamplerConcept<typename point_distribution_traits<
+                                PointDistribution>::random_sampler_type,
+                            PointDistribution>));
 
-  BOOST_CONCEPT_USAGE( PointDistributionConcept ) { rand_sampler = get( random_sampler, space ); };
+  BOOST_CONCEPT_USAGE(PointDistributionConcept) {
+    rand_sampler = get(random_sampler, space);
+  }
 };
 
+template <typename T>
+struct is_point_distribution : std::false_type {};
 
-template < typename T >
-struct is_point_distribution : boost::mpl::false_ {};
-};
-};
+template <typename T>
+static constexpr bool is_point_distribution_v = is_point_distribution<T>::value;
 
+}  // namespace ReaK::pp
 
 #endif

@@ -41,11 +41,11 @@
 
 #include "mat_norms.hpp"
 
+#include <type_traits>
+
 namespace ReaK {
 
-
-namespace detail {}; // detail
-
+namespace detail {}  // namespace detail
 
 /**
  * This function will reduce a state-space representation of the state transition (A,B) into
@@ -79,64 +79,69 @@ namespace detail {}; // detail
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
-typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                                             is_fully_writable_matrix< Matrix3 >, is_fully_writable_matrix< Matrix4 > >,
-                           std::size_t >::type
-  ctrl_reduction( Matrix1& A, Matrix2& B, Matrix3& Q, Matrix4& Z,
-                  typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  if( ( A.get_row_count() != A.get_col_count() ) || ( B.get_row_count() != A.get_row_count() ) )
-    throw std::range_error( "The dimensions of the system matrices do not match! Should be A(n x n) and B(n x m)." );
+template <typename Matrix1, typename Matrix2, typename Matrix3,
+          typename Matrix4>
+int ctrl_reduction(Matrix1& A, Matrix2& B, Matrix3& Q, Matrix4& Z,
+                   mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_fully_writable_matrix_v<Matrix1>);
+  static_assert(is_fully_writable_matrix_v<Matrix2>);
+  static_assert(is_fully_writable_matrix_v<Matrix3>);
+  static_assert(is_fully_writable_matrix_v<Matrix4>);
+  if ((A.get_row_count() != A.get_col_count()) ||
+      (B.get_row_count() != A.get_row_count())) {
+    throw std::range_error(
+        "The dimensions of the system matrices do not match! Should be A(n x "
+        "n) and B(n x m).");
+  }
 
-  if( ( A.get_row_count() == 0 ) || ( B.get_col_count() == 0 ) )
+  if ((A.get_row_count() == 0) || (B.get_col_count() == 0)) {
     return 0;
+  }
 
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
-  using std::fabs;
+  using ValueType = mat_value_type_t<Matrix1>;
+  using std::abs;
   using std::swap;
 
-  SizeType N = A.get_row_count();
-  SizeType M = B.get_col_count();
+  int N = A.get_row_count();
+  int M = B.get_col_count();
 
-  if( ( N != Q.get_col_count() ) || ( Q.get_row_count() != Q.get_col_count() ) ) {
-    Q = mat< ValueType, mat_structure::identity >( N );
-  };
+  if ((N != Q.get_col_count()) || (Q.get_row_count() != Q.get_col_count())) {
+    Q = mat<ValueType, mat_structure::identity>(N);
+  }
 
-  if( ( M != Z.get_col_count() ) || ( Z.get_row_count() != Z.get_col_count() ) ) {
-    Z = mat< ValueType, mat_structure::identity >( N );
-  };
+  if ((M != Z.get_col_count()) || (Z.get_row_count() != Z.get_col_count())) {
+    Z = mat<ValueType, mat_structure::identity>(N);
+  }
 
-
-  mat< ValueType, mat_structure::square > Tr( ( mat< ValueType, mat_structure::identity >( N ) ) );
-  mat< ValueType, mat_structure::permutation > PCr( M );
-  SizeType r = detail::decompose_RRQR_impl( B, &Tr, PCr, NumTol );
-  A = transpose_view( Tr ) * A * Tr;
+  mat<ValueType, mat_structure::square> Tr(
+      (mat<ValueType, mat_structure::identity>(N)));
+  mat<ValueType, mat_structure::permutation> PCr(M);
+  int r = detail::decompose_RRQR_impl(B, &Tr, PCr, NumTol);
+  A = transpose_view(Tr) * A * Tr;
   Q = Q * Tr;
   Z = Z * PCr;
-  if( r == N )
+  if (r == N) {
     return N;
-  mat< ValueType, mat_structure::rectangular > AB_accum( B );
-  for( SizeType i = 1; i < N; ++i ) {
-    AB_accum = sub( A )( range( r, N ), range( N - AB_accum.get_row_count(), N ) ) * AB_accum;
-    mat< ValueType, mat_structure::square > Tr2( ( mat< ValueType, mat_structure::identity >( N ) ) );
-    mat< ValueType, mat_structure::permutation > PCr2( M );
-    mat_sub_block< mat< ValueType, mat_structure::square > > Tr2_sub( Tr2, N - r, N - r, r, r );
-    r += detail::decompose_RRQR_impl( AB_accum, &Tr2_sub, PCr2, NumTol );
-    A = transpose_view( Tr2 ) * A * Tr2;
+  }
+  mat<ValueType, mat_structure::rectangular> AB_accum(B);
+  for (int i = 1; i < N; ++i) {
+    AB_accum =
+        sub(A)(range(r, N), range(N - AB_accum.get_row_count(), N)) * AB_accum;
+    mat<ValueType, mat_structure::square> Tr2(
+        (mat<ValueType, mat_structure::identity>(N)));
+    mat<ValueType, mat_structure::permutation> PCr2(M);
+    mat_sub_block<mat<ValueType, mat_structure::square>> Tr2_sub(Tr2, N - r,
+                                                                 N - r, r, r);
+    r += detail::decompose_RRQR_impl(AB_accum, &Tr2_sub, PCr2, NumTol);
+    A = transpose_view(Tr2) * A * Tr2;
     Q = Q * Tr2;
-    if( r == N )
+    if (r == N) {
       return N;
-  };
+    }
+  }
   return r;
-};
+}
 
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
-
-#endif
-};
-
+}  // namespace ReaK
 
 #endif

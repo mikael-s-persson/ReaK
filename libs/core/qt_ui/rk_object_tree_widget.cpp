@@ -32,25 +32,36 @@ namespace ReaK {
 
 namespace qt {
 
+ObjectTreeWidget::ObjectTreeWidget(
+    const std::shared_ptr<serialization::object_graph>& aObjGraph,
+    serialization::object_node_desc aRoot, QWidget* parent,
+    Qt::WindowFlags flags)
+    : QDockWidget(parent, flags),
+      ui(new Ui::RKObjectTreeWidget()),
+      mdl(aObjGraph, aRoot) {
+  ui->setupUi(this);
+  ui->treeView->setModel(&mdl);
+  ui->treeView->setRootIndex(QModelIndex());
 
-ObjectTreeWidget::ObjectTreeWidget( const shared_ptr< serialization::object_graph >& aObjGraph,
-                                    serialization::object_node_desc aRoot, QWidget* parent, Qt::WindowFlags flags )
-    : QDockWidget( parent, flags ), ui( new Ui::RKObjectTreeWidget() ), mdl( aObjGraph, aRoot ) {
-  ui->setupUi( this );
-  ui->treeView->setModel( &mdl );
-  ui->treeView->setRootIndex( QModelIndex() );
-
-  connect( ui->treeView, SIGNAL( clicked( QModelIndex ) ), &mdl, SLOT( itemSelected( QModelIndex ) ) );
-  connect( &mdl, SIGNAL( aboutToResetModel() ), this, SLOT( recordPreviousSelection() ) );
-  connect( &mdl, SIGNAL( justAfterModelReset() ), this, SLOT( restorePreviousSelection() ) );
+  connect(ui->treeView, SIGNAL(clicked(QModelIndex)), &mdl,
+          SLOT(itemSelected(QModelIndex)));
+  connect(&mdl, SIGNAL(aboutToResetModel()), this,
+          SLOT(recordPreviousSelection()));
+  connect(&mdl, SIGNAL(justAfterModelReset()), this,
+          SLOT(restorePreviousSelection()));
 };
 
-ObjectTreeWidget::~ObjectTreeWidget() { delete ui; };
+ObjectTreeWidget::~ObjectTreeWidget() {
+  delete ui;
+};
 
 void ObjectTreeWidget::recordPreviousSelection() {
-  prev_selection = mdl.data( ui->treeView->currentIndex(), Qt::DisplayRole ).toString();
+  prev_selection =
+      mdl.data(ui->treeView->currentIndex(), Qt::DisplayRole).toString();
 };
 
-void ObjectTreeWidget::restorePreviousSelection() { ui->treeView->keyboardSearch( prev_selection ); };
+void ObjectTreeWidget::restorePreviousSelection() {
+  ui->treeView->keyboardSearch(prev_selection);
 };
-};
+};  // namespace qt
+};  // namespace ReaK

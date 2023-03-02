@@ -39,50 +39,53 @@
 
 #include <ReaK/math/kinetostatics/kinetostatics.hpp>
 #include <ReaK/math/lin_alg/mat_alg.hpp>
+#include <utility>
 
 #include "jacobian_joint_map.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class implements inertia on a generalized coordinate.
  */
 class inertia_gen : public kte_map {
-private:
-  shared_ptr< joint_dependent_gen_coord >
-    mCenterOfMass; ///< Holds the center-of-mass generalized coordinate for the inertial element.
-  double mMass;    ///< Holds the mass of the inertial element (in kg or kgm2).
+ private:
+  std::shared_ptr<joint_dependent_gen_coord>
+      mCenterOfMass;  ///< Holds the center-of-mass generalized coordinate for the inertial element.
+  double mMass;  ///< Holds the mass of the inertial element (in kg or kgm2).
 
-public:
+ public:
   /**
    * Sets the mass of the inertial element.
    * \param aValue The new mass of the inertial element.
    */
-  void setMass( double aValue ) { mMass = aValue; };
+  void setMass(double aValue) { mMass = aValue; }
   /**
    * Returns the mass of the inertial element.
    * \return The mass of the inertial element.
    */
-  double Mass() const { return mMass; };
+  double Mass() const { return mMass; }
 
   /**
    * Sets the center-of-mass of the inertial element.
    * \param aPtr The new center-of-mass of the inertial element.
    */
-  void setCenterOfMass( const shared_ptr< joint_dependent_gen_coord >& aPtr ) { mCenterOfMass = aPtr; };
+  void setCenterOfMass(const std::shared_ptr<joint_dependent_gen_coord>& aPtr) {
+    mCenterOfMass = aPtr;
+  }
   /**
    * Returns the center-of-mass of the inertial element.
    * \return The center-of-mass of the inertial element.
    */
-  shared_ptr< joint_dependent_gen_coord > CenterOfMass() const { return mCenterOfMass; };
+  std::shared_ptr<joint_dependent_gen_coord> CenterOfMass() const {
+    return mCenterOfMass;
+  }
 
   /**
    * Default constructor.
    */
-  inertia_gen( const std::string& aName = "" ) : kte_map( aName ), mCenterOfMass(), mMass( 0.0 ){};
+  explicit inertia_gen(const std::string& aName = "")
+      : kte_map(aName), mMass(0.0) {}
 
   /**
    * Parametrized constructor.
@@ -93,83 +96,98 @@ public:
    * \param aUpStream2DJoints the jacobian mappings of up-stream joints.
    * \param aUpStream3DJoints the jacobian mappings of up-stream joints.
    */
-  inertia_gen( const std::string& aName, const shared_ptr< joint_dependent_gen_coord >& aCenterOfMass, double aMass )
-      : kte_map( aName ), mCenterOfMass( aCenterOfMass ), mMass( aMass ){};
+  inertia_gen(const std::string& aName,
+              std::shared_ptr<joint_dependent_gen_coord> aCenterOfMass,
+              double aMass)
+      : kte_map(aName), mCenterOfMass(std::move(aCenterOfMass)), mMass(aMass) {}
 
   /**
    * Default destructor.
    */
-  virtual ~inertia_gen(){};
+  ~inertia_gen() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mCenterOfMass ) & RK_SERIAL_SAVE_WITH_NAME( mMass );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mCenterOfMass) &
+        RK_SERIAL_SAVE_WITH_NAME(mMass);
+  }
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mCenterOfMass ) & RK_SERIAL_LOAD_WITH_NAME( mMass );
-  };
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mCenterOfMass) &
+        RK_SERIAL_LOAD_WITH_NAME(mMass);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( inertia_gen, 0xC210000A, 1, "inertia_gen", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(inertia_gen, 0xC210000A, 1, "inertia_gen",
+                              kte_map)
 };
 
 /**
  * This class implements inertia on a 2D frame.
  */
 class inertia_2D : public kte_map {
-private:
-  shared_ptr< joint_dependent_frame_2D > mCenterOfMass; ///< Holds the center-of-mass 2D frame for the inertial element.
-  double mMass;                                         ///< Holds the mass of the inertial element (in kg).
-  double mMomentOfInertia; ///< Holds the moment of inertia of the inertial element (in kgm2).
+ private:
+  std::shared_ptr<joint_dependent_frame_2D>
+      mCenterOfMass;  ///< Holds the center-of-mass 2D frame for the inertial element.
+  double mMass;  ///< Holds the mass of the inertial element (in kg).
+  double
+      mMomentOfInertia;  ///< Holds the moment of inertia of the inertial element (in kgm2).
 
-public:
+ public:
   /**
    * Sets the mass of the inertial element.
    * \param aValue The new mass of the inertial element.
    */
-  void setMass( double aValue ) { mMass = aValue; };
+  void setMass(double aValue) { mMass = aValue; }
   /**
    * Returns the mass of the inertial element.
    * \return The mass of the inertial element.
    */
-  double Mass() const { return mMass; };
+  double Mass() const { return mMass; }
 
   /**
    * Sets the moment of inertia of the inertial element.
    * \param aValue The new moment of inertia of the inertial element.
    */
-  void setMomentOfInertia( double aValue ) { mMomentOfInertia = aValue; };
+  void setMomentOfInertia(double aValue) { mMomentOfInertia = aValue; }
   /**
    * Returns the moment of inertia of the inertial element.
    * \return The moment of inertia of the inertial element.
    */
-  double MomentOfInertia() const { return mMomentOfInertia; };
+  double MomentOfInertia() const { return mMomentOfInertia; }
 
   /**
    * Sets the center-of-mass of the inertial element.
    * \param aPtr The new center-of-mass of the inertial element.
    */
-  void setCenterOfMass( const shared_ptr< joint_dependent_frame_2D >& aPtr ) { mCenterOfMass = aPtr; };
+  void setCenterOfMass(const std::shared_ptr<joint_dependent_frame_2D>& aPtr) {
+    mCenterOfMass = aPtr;
+  }
   /**
    * Returns the center-of-mass of the inertial element.
    * \return The center-of-mass of the inertial element.
    */
-  shared_ptr< joint_dependent_frame_2D > CenterOfMass() const { return mCenterOfMass; };
+  std::shared_ptr<joint_dependent_frame_2D> CenterOfMass() const {
+    return mCenterOfMass;
+  }
 
   /**
    * Default constructor.
    */
-  inertia_2D( const std::string& aName = "" )
-      : kte_map( aName ), mCenterOfMass(), mMass( 0.0 ), mMomentOfInertia( 0.0 ){};
+  explicit inertia_2D(const std::string& aName = "")
+      : kte_map(aName), mMass(0.0), mMomentOfInertia(0.0) {}
 
   /**
    * Parametrized constructor.
@@ -181,86 +199,105 @@ public:
    * \param aUpStream2DJoints the jacobian mappings of up-stream joints.
    * \param aUpStream3DJoints the jacobian mappings of up-stream joints.
    */
-  inertia_2D( const std::string& aName, const shared_ptr< joint_dependent_frame_2D >& aCenterOfMass, double aMass,
-              double aMomentOfInertia )
-      : kte_map( aName ), mCenterOfMass( aCenterOfMass ), mMass( aMass ), mMomentOfInertia( aMomentOfInertia ){};
+  inertia_2D(const std::string& aName,
+             std::shared_ptr<joint_dependent_frame_2D> aCenterOfMass,
+             double aMass, double aMomentOfInertia)
+      : kte_map(aName),
+        mCenterOfMass(std::move(aCenterOfMass)),
+        mMass(aMass),
+        mMomentOfInertia(aMomentOfInertia) {}
 
   /**
    * Default destructor.
    */
-  virtual ~inertia_2D(){};
+  ~inertia_2D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mCenterOfMass ) & RK_SERIAL_SAVE_WITH_NAME( mMass )
-      & RK_SERIAL_SAVE_WITH_NAME( mMomentOfInertia );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mCenterOfMass) &
+        RK_SERIAL_SAVE_WITH_NAME(mMass) &
+        RK_SERIAL_SAVE_WITH_NAME(mMomentOfInertia);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mCenterOfMass ) & RK_SERIAL_LOAD_WITH_NAME( mMass )
-      & RK_SERIAL_LOAD_WITH_NAME( mMomentOfInertia );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mCenterOfMass) &
+        RK_SERIAL_LOAD_WITH_NAME(mMass) &
+        RK_SERIAL_LOAD_WITH_NAME(mMomentOfInertia);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( inertia_2D, 0xC210000B, 1, "inertia_2D", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(inertia_2D, 0xC210000B, 1, "inertia_2D", kte_map)
 };
 
 /**
  * This class implements inertia on a 3D frame.
  */
 class inertia_3D : public kte_map {
-private:
-  shared_ptr< joint_dependent_frame_3D > mCenterOfMass; ///< Holds the center-of-mass 3D frame for the inertial element.
-  double mMass;                                         ///< Holds the mass of the inertial element (in kg).
-  mat< double, mat_structure::symmetric >
-    mInertiaTensor; ///< Holds the inertia tensor of the inertial element (in kgm2).
+ private:
+  std::shared_ptr<joint_dependent_frame_3D>
+      mCenterOfMass;  ///< Holds the center-of-mass 3D frame for the inertial element.
+  double mMass;  ///< Holds the mass of the inertial element (in kg).
+  mat<double, mat_structure::symmetric>
+      mInertiaTensor;  ///< Holds the inertia tensor of the inertial element (in kgm2).
 
-public:
+ public:
   /**
    * Sets the mass of the inertial element.
    * \param aValue The new mass of the inertial element.
    */
-  void setMass( double aValue ) { mMass = aValue; };
+  void setMass(double aValue) { mMass = aValue; }
   /**
    * Returns the mass of the inertial element.
    * \return The mass of the inertial element.
    */
-  double Mass() const { return mMass; };
+  double Mass() const { return mMass; }
 
   /**
    * Sets the inertia tensor of the inertial element.
    * \param aValue The new inertia tensor of the inertial element.
    */
-  void setInertiaTensor( const mat< double, mat_structure::symmetric >& aValue ) { mInertiaTensor = aValue; };
+  void setInertiaTensor(const mat<double, mat_structure::symmetric>& aValue) {
+    mInertiaTensor = aValue;
+  }
   /**
    * Returns the inertia tensor of the inertial element.
    * \return The inertia tensor of the inertial element.
    */
-  mat< double, mat_structure::symmetric > InertiaTensor() const { return mInertiaTensor; };
+  mat<double, mat_structure::symmetric> InertiaTensor() const {
+    return mInertiaTensor;
+  }
 
   /**
    * Sets the center-of-mass of the inertial element.
    * \param aPtr The new center-of-mass of the inertial element.
    */
-  void setCenterOfMass( const shared_ptr< joint_dependent_frame_3D >& aPtr ) { mCenterOfMass = aPtr; };
+  void setCenterOfMass(const std::shared_ptr<joint_dependent_frame_3D>& aPtr) {
+    mCenterOfMass = aPtr;
+  }
   /**
    * Returns the center-of-mass of the inertial element.
    * \return The center-of-mass of the inertial element.
    */
-  shared_ptr< joint_dependent_frame_3D > CenterOfMass() const { return mCenterOfMass; };
+  std::shared_ptr<joint_dependent_frame_3D> CenterOfMass() const {
+    return mCenterOfMass;
+  }
 
   /**
    * Default constructor.
    */
-  inertia_3D( const std::string& aName = "" ) : kte_map( aName ), mCenterOfMass(), mMass( 0.0 ), mInertiaTensor( 3 ){};
+  explicit inertia_3D(const std::string& aName = "")
+      : kte_map(aName), mMass(0.0), mInertiaTensor(3) {}
 
   /**
    * Parametrized constructor.
@@ -270,39 +307,48 @@ public:
    * \param aInertiaTensor the inertia tensor of the inertial element (in kgm2).
    * \param aUpStreamJoints the jacobian mappings of up-stream joints.
    */
-  inertia_3D( const std::string& aName, const shared_ptr< joint_dependent_frame_3D >& aCenterOfMass, double aMass,
-              const mat< double, mat_structure::symmetric >& aInertiaTensor )
-      : kte_map( aName ), mCenterOfMass( aCenterOfMass ), mMass( aMass ), mInertiaTensor( aInertiaTensor ){};
+  inertia_3D(const std::string& aName,
+             std::shared_ptr<joint_dependent_frame_3D> aCenterOfMass,
+             double aMass,
+             const mat<double, mat_structure::symmetric>& aInertiaTensor)
+      : kte_map(aName),
+        mCenterOfMass(std::move(aCenterOfMass)),
+        mMass(aMass),
+        mInertiaTensor(aInertiaTensor) {}
 
   /**
    * Default destructor.
    */
-  virtual ~inertia_3D(){};
+  ~inertia_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mCenterOfMass ) & RK_SERIAL_SAVE_WITH_NAME( mMass )
-      & RK_SERIAL_SAVE_WITH_NAME( mInertiaTensor );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mCenterOfMass) &
+        RK_SERIAL_SAVE_WITH_NAME(mMass) &
+        RK_SERIAL_SAVE_WITH_NAME(mInertiaTensor);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mCenterOfMass ) & RK_SERIAL_LOAD_WITH_NAME( mMass )
-      & RK_SERIAL_LOAD_WITH_NAME( mInertiaTensor );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mCenterOfMass) &
+        RK_SERIAL_LOAD_WITH_NAME(mMass) &
+        RK_SERIAL_LOAD_WITH_NAME(mInertiaTensor);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( inertia_3D, 0xC210000C, 1, "inertia_3D", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(inertia_3D, 0xC210000C, 1, "inertia_3D", kte_map)
 };
-};
-};
 
+}  // namespace ReaK::kte
 
 #endif

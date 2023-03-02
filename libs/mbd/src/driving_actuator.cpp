@@ -23,43 +23,43 @@
 
 #include <ReaK/mbd/kte/driving_actuator.hpp>
 
-namespace ReaK {
+namespace ReaK::kte {
 
-namespace kte {
-
-
-void driving_actuator_gen::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  RK_UNUSED( aFlag );
-  RK_UNUSED( aStorage );
-  if( ( !mFrame ) || ( !mJoint ) )
+void driving_actuator_gen::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  RK_UNUSED(aFlag);
+  RK_UNUSED(aStorage);
+  if ((!mFrame) || (!mJoint)) {
     return;
+  }
 
   mFrame->f += mDriveForce;
-  mJoint->applyReactionForce( mDriveForce );
-};
+  mJoint->applyReactionForce(mDriveForce);
+}
 
-
-void driving_actuator_2D::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  RK_UNUSED( aFlag );
-  RK_UNUSED( aStorage );
-  if( ( !mFrame ) || ( !mJoint ) )
+void driving_actuator_2D::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  RK_UNUSED(aFlag);
+  RK_UNUSED(aStorage);
+  if ((!mFrame) || (!mJoint)) {
     return;
+  }
 
   mFrame->Force += mDriveForce;
   mFrame->Torque += mDriveTorque;
-  mJoint->applyReactionForce( mDriveForce, mDriveTorque );
-};
+  mJoint->applyReactionForce(mDriveForce, mDriveTorque);
+}
 
-
-void driving_actuator_3D::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  RK_UNUSED( aFlag );
-  RK_UNUSED( aStorage );
-  if( ( !mFrame ) || ( !mJoint ) )
+void driving_actuator_3D::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  RK_UNUSED(aFlag);
+  RK_UNUSED(aStorage);
+  if ((!mFrame) || (!mJoint)) {
     return;
+  }
 
   mFrame->Force += mDriveForce;
   mFrame->Torque += mDriveTorque;
-  mJoint->applyReactionForce( mDriveForce, mDriveTorque );
-};
-};
-};
+  mJoint->applyReactionForce(mDriveForce, mDriveTorque);
+}
+}  // namespace ReaK::kte

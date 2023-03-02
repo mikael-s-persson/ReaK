@@ -36,41 +36,40 @@
 
 #include <ReaK/geometry/shapes/capped_cylinder.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
-
-proximity_record_3D compute_proximity( const capped_cylinder& aCCylinder1, const shape_3D_precompute_pack& aPack1,
-                                       const capped_cylinder& aCCylinder2, const shape_3D_precompute_pack& aPack2 );
+proximity_record_3D compute_proximity(const capped_cylinder& aCCylinder1,
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const capped_cylinder& aCCylinder2,
+                                      const shape_3D_precompute_pack& aPack2);
 
 /**
  * This class is for proximity queries between a capped cylinder and a capped cylinder.
  */
 class prox_ccylinder_ccylinder : public proximity_finder_3D {
-protected:
+ protected:
   const capped_cylinder* mCCylinder1;
   const capped_cylinder* mCCylinder2;
 
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_3D computeProximity( const shape_3D_precompute_pack& aPack1,
-                                                const shape_3D_precompute_pack& aPack2 );
+  proximity_record_3D computeProximity(
+      const shape_3D_precompute_pack& aPack1,
+      const shape_3D_precompute_pack& aPack2) override;
 
   /**
    * Default constructor.
    * \param aCCylinder1 The capped cylinder involved in the proximity query.
    * \param aCCylinder2 The capped cylinder involved in the proximity query.
    */
-  prox_ccylinder_ccylinder( const capped_cylinder* aCCylinder1 = nullptr,
-                            const capped_cylinder* aCCylinder2 = nullptr );
+  explicit prox_ccylinder_ccylinder(
+      const capped_cylinder* aCCylinder1 = nullptr,
+      const capped_cylinder* aCCylinder2 = nullptr);
 
   /** Destructor. */
-  virtual ~prox_ccylinder_ccylinder(){};
+  ~prox_ccylinder_ccylinder() override = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

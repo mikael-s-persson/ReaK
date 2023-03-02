@@ -35,13 +35,10 @@
 #include <ReaK/core/base/defs.hpp>
 
 #include <algorithm>
-#include <iterator>
 #include <functional>
+#include <iterator>
 
-namespace ReaK {
-
-/** This is the namespace for all ReaK sorting algorithms implementations. */
-namespace sorting {
+namespace ReaK::sorting {
 
 /**
  * This function performs a shell sort on a given range of elements, and with the
@@ -52,23 +49,24 @@ namespace sorting {
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template < typename RandomAccessIter, typename Compare >
-void shell_sort( RandomAccessIter first, RandomAccessIter last, Compare comp ) {
-  typedef typename std::iterator_traits< RandomAccessIter >::value_type ValueType;
-  std::size_t max_gap = std::distance( first, last ) / 9;
+template <typename RandomAccessIter, typename Compare>
+void shell_sort(RandomAccessIter first, RandomAccessIter last, Compare comp) {
+  std::size_t max_gap = std::distance(first, last) / 9;
   std::size_t gap = 1;
-  for( ; gap <= max_gap; gap = 3 * gap + 1 )
-    ;
-  for( ; gap > 0; gap = ( gap + 1 ) / 3 ) {
-    for( RandomAccessIter current = first + gap; current < last; ++current ) {
-      ValueType tmp = std::move( *current );
+  for (; gap <= max_gap; gap = 3 * gap + 1) {}
+  for (; gap > 0; gap = (gap + 1) / 3) {
+    for (RandomAccessIter current = first + gap; current < last; ++current) {
+      auto tmp = std::move(*current);
       RandomAccessIter it = current;
-      for( RandomAccessIter it_prev; ( ( it > first + gap ) && ( comp( tmp, *( it_prev = it - gap ) ) ) ); it -= gap )
-        *it = std::move( *it_prev );
-      *it = std::move( tmp );
-    };
-  };
-};
+      for (RandomAccessIter it_prev;
+           ((it > first + gap) && (comp(tmp, *(it_prev = it - gap))));
+           it -= gap) {
+        *it = std::move(*it_prev);
+      }
+      *it = std::move(tmp);
+    }
+  }
+}
 
 /**
  * This function performs a shell sort on a given range of elements, and by using the
@@ -77,11 +75,11 @@ void shell_sort( RandomAccessIter first, RandomAccessIter last, Compare comp ) {
  * \param first The start of the range to be sorted.
  * \param last One element past the end of the range to be sorted.
  */
-template < typename RandomAccessIter >
-void shell_sort( RandomAccessIter first, RandomAccessIter last ) {
-  shell_sort( first, last, std::less< typename std::iterator_traits< RandomAccessIter >::value_type >() );
-};
-};
-};
+template <typename RandomAccessIter>
+void shell_sort(RandomAccessIter first, RandomAccessIter last) {
+  shell_sort(first, last, std::less<>());
+}
 
-#endif
+}  // namespace ReaK::sorting
+
+#endif  // REAK_SHELL_SORT_HPP

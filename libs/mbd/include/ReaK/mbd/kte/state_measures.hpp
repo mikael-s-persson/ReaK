@@ -37,895 +37,999 @@
 #define REAK_STATE_MEASURES_HPP
 
 #include <ReaK/math/kinetostatics/kinetostatics.hpp>
-#include "kte_system_output.hpp"
+#include <utility>
 #include "kte_map.hpp"
+#include "kte_system_output.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class can be used as a system output to get the value of the position of a
  * generalized coordinate.
  */
 class position_measure_gen : public kte_map, public system_output {
-private:
-  shared_ptr< gen_coord< double > > mAnchor;
+ private:
+  std::shared_ptr<gen_coord<double>> mAnchor;
   double mPosMeasure;
 
-public:
+ public:
   /**
    * Sets the frame on which position measure is taken.
    * \param aPtr The new frame on which position measure is taken.
    */
-  void setAnchor( const shared_ptr< gen_coord< double > >& aPtr ) { mAnchor = aPtr; };
+  void setAnchor(const std::shared_ptr<gen_coord<double>>& aPtr) {
+    mAnchor = aPtr;
+  }
   /**
    * Returns the frame on which position measure is taken.
    * \return The frame on which position measure is taken.
    */
-  shared_ptr< gen_coord< double > > Anchor() const { return mAnchor; };
+  std::shared_ptr<gen_coord<double>> Anchor() const { return mAnchor; }
 
   /**
    * Sets the measured position.
    * \param aValue The new measured position.
    */
-  void setPosMeasure( double aValue ) { mPosMeasure = aValue; };
+  void setPosMeasure(double aValue) { mPosMeasure = aValue; }
   /**
    * Returns the measured position.
    * \return the measured position.
    */
-  double PosMeasure() const { return mPosMeasure; };
+  double PosMeasure() const { return mPosMeasure; }
 
-  virtual unsigned int getOutputCount() const { return 1; };
-  virtual double getOutput( unsigned int ) const { return mPosMeasure; };
+  unsigned int getOutputCount() const override { return 1; }
+  double getOutput(unsigned int /*i*/) const override { return mPosMeasure; }
 
   /**
    * Default constructor.
    */
-  position_measure_gen( const std::string& aName = "" ) : kte_map( aName ), mAnchor(), mPosMeasure( 0.0 ){};
+  explicit position_measure_gen(const std::string& aName = "")
+      : kte_map(aName), mPosMeasure(0.0) {}
 
   /**
    * Parametrized constructor.
    * \param aName name of the KTE model.
    * \param aAnchor the coordinate from which position is measured.
    */
-  position_measure_gen( const std::string& aName, const shared_ptr< ReaK::gen_coord< double > >& aAnchor )
-      : kte_map( aName ), system_output( aName ), mAnchor( aAnchor ), mPosMeasure( 0.0 ){};
+  position_measure_gen(const std::string& aName,
+                       std::shared_ptr<ReaK::gen_coord<double>> aAnchor)
+      : kte_map(aName),
+        system_output(aName),
+        mAnchor(std::move(aAnchor)),
+        mPosMeasure(0.0) {}
 
   /**
    * Default destructor.
    */
-  virtual ~position_measure_gen(){};
+  ~position_measure_gen() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mAnchor )
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {
+    if (mAnchor) {
       mPosMeasure = mAnchor->q;
-    else
+    } else {
       mPosMeasure = 0.0;
-  };
+    }
+  }
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {}
 
-  virtual void clearForce(){};
+  void clearForce() override {}
 
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor );
-  };
-
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor );
-    if( mAnchor )
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
+    if (mAnchor) {
       mPosMeasure = mAnchor->q;
-    else
+    } else {
       mPosMeasure = 0.0;
-  };
+    }
+  }
 
-  RK_RTTI_MAKE_CONCRETE_2BASE( position_measure_gen, 0xC2100035, 1, "position_measure_gen", kte_map, system_output )
+  RK_RTTI_MAKE_CONCRETE_2BASE(position_measure_gen, 0xC2100035, 1,
+                              "position_measure_gen", kte_map, system_output)
 };
-
 
 /**
  * This class can be used as a system output to get the value of the position of a
  * 2D coordinate frame.
  */
 class position_measure_2D : public kte_map, public system_output {
-private:
-  shared_ptr< frame_2D< double > > mAnchor;
-  vect< double, 2 > mPosMeasure;
+ private:
+  std::shared_ptr<frame_2D<double>> mAnchor;
+  vect<double, 2> mPosMeasure;
 
-public:
+ public:
   /**
    * Sets the frame on which position measure is taken.
    * \param aPtr The new frame on which position measure is taken.
    */
-  void setAnchor( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor = aPtr; };
+  void setAnchor(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mAnchor = aPtr;
+  }
   /**
    * Returns the frame on which position measure is taken.
    * \return The frame on which position measure is taken.
    */
-  shared_ptr< frame_2D< double > > Anchor() const { return mAnchor; };
+  std::shared_ptr<frame_2D<double>> Anchor() const { return mAnchor; }
 
   /**
    * Sets the measured position.
    * \param aValue The new measured position.
    */
-  void setPosMeasure( const vect< double, 2 >& aValue ) { mPosMeasure = aValue; };
+  void setPosMeasure(const vect<double, 2>& aValue) { mPosMeasure = aValue; }
   /**
    * Returns the measured position.
    * \return the measured position.
    */
-  vect< double, 2 > PosMeasure() const { return mPosMeasure; };
+  vect<double, 2> PosMeasure() const { return mPosMeasure; }
 
-  virtual unsigned int getOutputCount() const { return 2; };
-  virtual double getOutput( unsigned int i ) const {
-    if( i < 2 )
+  unsigned int getOutputCount() const override { return 2; }
+  double getOutput(unsigned int i) const override {
+    if (i < 2) {
       return mPosMeasure[i];
-    else
-      return mPosMeasure[0];
-  };
+    }
+    return mPosMeasure[0];
+  }
 
   /**
    * Default constructor.
    */
-  position_measure_2D( const std::string& aName = "" ) : kte_map( aName ), mAnchor(), mPosMeasure(){};
+  explicit position_measure_2D(const std::string& aName = "")
+      : kte_map(aName) {}
 
   /**
    * Parametrized constructor.
    * \param aName name of the KTE model.
    * \param aAnchor the coordinate from which position is measured.
    */
-  position_measure_2D( const std::string& aName, const shared_ptr< ReaK::frame_2D< double > >& aAnchor )
-      : kte_map( aName ), system_output( aName ), mAnchor( aAnchor ), mPosMeasure(){};
+  position_measure_2D(const std::string& aName,
+                      std::shared_ptr<ReaK::frame_2D<double>> aAnchor)
+      : kte_map(aName), system_output(aName), mAnchor(std::move(aAnchor)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~position_measure_2D(){};
+  ~position_measure_2D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mAnchor )
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {
+    if (mAnchor) {
       mPosMeasure = mAnchor->Position;
-    else
-      mPosMeasure = vect< double, 2 >();
-  };
+    } else {
+      mPosMeasure = vect<double, 2>();
+    }
+  }
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {}
 
-  virtual void clearForce(){};
+  void clearForce() override {}
 
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor );
-  };
-
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor );
-    if( mAnchor )
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
+    if (mAnchor) {
       mPosMeasure = mAnchor->Position;
-    else
-      mPosMeasure = vect< double, 2 >();
-  };
+    } else {
+      mPosMeasure = vect<double, 2>();
+    }
+  }
 
-  RK_RTTI_MAKE_CONCRETE_2BASE( position_measure_2D, 0xC2100036, 1, "position_measure_2D", kte_map, system_output )
+  RK_RTTI_MAKE_CONCRETE_2BASE(position_measure_2D, 0xC2100036, 1,
+                              "position_measure_2D", kte_map, system_output)
 };
-
 
 /**
  * This class can be used as a system output to get the value of the position of a
  * 3D coordinate frame.
  */
 class position_measure_3D : public kte_map, public system_output {
-private:
-  shared_ptr< frame_3D< double > > mAnchor;
-  vect< double, 3 > mPosMeasure;
+ private:
+  std::shared_ptr<frame_3D<double>> mAnchor;
+  vect<double, 3> mPosMeasure;
 
-public:
+ public:
   /**
    * Sets the frame on which position measure is taken.
    * \param aPtr The new frame on which position measure is taken.
    */
-  void setAnchor( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor = aPtr; };
+  void setAnchor(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mAnchor = aPtr;
+  }
   /**
    * Returns the frame on which position measure is taken.
    * \return The frame on which position measure is taken.
    */
-  shared_ptr< frame_3D< double > > Anchor() const { return mAnchor; };
+  std::shared_ptr<frame_3D<double>> Anchor() const { return mAnchor; }
 
   /**
    * Sets the measured position.
    * \param aValue The new measured position.
    */
-  void setPosMeasure( const vect< double, 3 >& aValue ) { mPosMeasure = aValue; };
+  void setPosMeasure(const vect<double, 3>& aValue) { mPosMeasure = aValue; }
   /**
    * Returns the measured position.
    * \return the measured position.
    */
-  vect< double, 3 > PosMeasure() const { return mPosMeasure; };
+  vect<double, 3> PosMeasure() const { return mPosMeasure; }
 
-  virtual unsigned int getOutputCount() const { return 3; };
-  virtual double getOutput( unsigned int i ) const {
-    if( i < 3 )
+  unsigned int getOutputCount() const override { return 3; }
+  double getOutput(unsigned int i) const override {
+    if (i < 3) {
       return mPosMeasure[i];
-    else
-      return mPosMeasure[0];
-  };
+    }
+    return mPosMeasure[0];
+  }
 
   /**
    * Default constructor.
    */
-  position_measure_3D( const std::string& aName = "" ) : kte_map( aName ), mAnchor(), mPosMeasure(){};
+  explicit position_measure_3D(const std::string& aName = "")
+      : kte_map(aName) {}
 
   /**
    * Parametrized constructor.
    * \param aName name of the KTE model.
    * \param aAnchor the coordinate from which position is measured.
    */
-  position_measure_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aAnchor )
-      : kte_map( aName ), system_output( aName ), mAnchor( aAnchor ), mPosMeasure(){};
+  position_measure_3D(const std::string& aName,
+                      std::shared_ptr<frame_3D<double>> aAnchor)
+      : kte_map(aName), system_output(aName), mAnchor(std::move(aAnchor)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~position_measure_3D(){};
+  ~position_measure_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mAnchor )
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {
+    if (mAnchor) {
       mPosMeasure = mAnchor->Position;
-    else
-      mPosMeasure = vect< double, 3 >();
-  };
+    } else {
+      mPosMeasure = vect<double, 3>();
+    }
+  }
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {}
 
-  virtual void clearForce(){};
+  void clearForce() override {}
 
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor );
-  };
-
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor );
-    if( mAnchor )
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
+    if (mAnchor) {
       mPosMeasure = mAnchor->Position;
-    else
-      mPosMeasure = vect< double, 3 >();
-  };
+    } else {
+      mPosMeasure = vect<double, 3>();
+    }
+  }
 
-  RK_RTTI_MAKE_CONCRETE_2BASE( position_measure_3D, 0xC2100037, 1, "position_measure_3D", kte_map, system_output )
+  RK_RTTI_MAKE_CONCRETE_2BASE(position_measure_3D, 0xC2100037, 1,
+                              "position_measure_3D", kte_map, system_output)
 };
-
 
 /**
  * This class can be used as a system output to get the value of the rotation of a
  * 2D coordinate frame.
  */
 class rotation_measure_2D : public kte_map, public system_output {
-private:
-  shared_ptr< frame_2D< double > > mAnchor;
+ private:
+  std::shared_ptr<frame_2D<double>> mAnchor;
   double mAngleMeasure;
 
-public:
+ public:
   /**
    * Sets the frame on which rotation measure is taken.
    * \param aPtr The new frame on which rotation measure is taken.
    */
-  void setAnchor( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor = aPtr; };
+  void setAnchor(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mAnchor = aPtr;
+  }
   /**
    * Returns the frame on which rotation measure is taken.
    * \return The frame on which rotation measure is taken.
    */
-  shared_ptr< frame_2D< double > > Anchor() const { return mAnchor; };
+  std::shared_ptr<frame_2D<double>> Anchor() const { return mAnchor; }
 
   /**
    * Sets the measured rotation.
    * \param aValue The new measured rotation.
    */
-  void setAngleMeasure( double aValue ) { mAngleMeasure = aValue; };
+  void setAngleMeasure(double aValue) { mAngleMeasure = aValue; }
   /**
    * Returns the measured rotation.
    * \return the measured rotation.
    */
-  double AngleMeasure() const { return mAngleMeasure; };
+  double AngleMeasure() const { return mAngleMeasure; }
 
-  virtual unsigned int getOutputCount() const { return 1; };
-  virtual double getOutput( unsigned int ) const { return mAngleMeasure; };
+  unsigned int getOutputCount() const override { return 1; }
+  double getOutput(unsigned int /*i*/) const override { return mAngleMeasure; }
 
   /**
    * Default constructor.
    */
-  rotation_measure_2D( const std::string& aName = "" ) : kte_map( aName ), mAnchor(), mAngleMeasure(){};
+  explicit rotation_measure_2D(const std::string& aName = "")
+      : kte_map(aName), mAngleMeasure() {}
 
   /**
    * Parametrized constructor.
    * \param aName name of the KTE model.
    * \param aAnchor the coordinate from which position is measured.
    */
-  rotation_measure_2D( const std::string& aName, const shared_ptr< frame_2D< double > >& aAnchor )
-      : kte_map( aName ), system_output( aName ), mAnchor( aAnchor ), mAngleMeasure(){};
+  rotation_measure_2D(const std::string& aName,
+                      std::shared_ptr<frame_2D<double>> aAnchor)
+      : kte_map(aName),
+        system_output(aName),
+        mAnchor(std::move(aAnchor)),
+        mAngleMeasure() {}
 
   /**
    * Default destructor.
    */
-  virtual ~rotation_measure_2D(){};
+  ~rotation_measure_2D() override = default;
+  ;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mAnchor )
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {
+    if (mAnchor) {
       mAngleMeasure = mAnchor->Rotation.getAngle();
-    else
+    } else {
       mAngleMeasure = 0.0;
-  };
+    }
+  }
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {}
 
-  virtual void clearForce(){};
+  void clearForce() override {}
 
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor );
-  };
-
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor );
-    if( mAnchor )
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
+    if (mAnchor) {
       mAngleMeasure = mAnchor->Rotation.getAngle();
-    else
+    } else {
       mAngleMeasure = 0.0;
-  };
+    }
+  }
 
-  RK_RTTI_MAKE_CONCRETE_2BASE( rotation_measure_2D, 0xC2100038, 1, "rotation_measure_2D", kte_map, system_output )
+  RK_RTTI_MAKE_CONCRETE_2BASE(rotation_measure_2D, 0xC2100038, 1,
+                              "rotation_measure_2D", kte_map, system_output)
 };
-
 
 /**
  * This class can be used as a system output to get the value of the rotation of a
  * 3D coordinate frame.
  */
 class rotation_measure_3D : public kte_map, public system_output {
-private:
-  shared_ptr< frame_3D< double > > mAnchor;
-  quaternion< double > mQuatMeasure;
+ private:
+  std::shared_ptr<frame_3D<double>> mAnchor;
+  quaternion<double> mQuatMeasure;
 
-public:
+ public:
   /**
    * Sets the frame on which rotation measure is taken.
    * \param aPtr The new frame on which rotation measure is taken.
    */
-  void setAnchor( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor = aPtr; };
+  void setAnchor(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mAnchor = aPtr;
+  }
   /**
    * Returns the frame on which rotation measure is taken.
    * \return The frame on which rotation measure is taken.
    */
-  shared_ptr< frame_3D< double > > Anchor() const { return mAnchor; };
+  std::shared_ptr<frame_3D<double>> Anchor() const { return mAnchor; }
 
   /**
    * Sets the measured rotation.
    * \param aValue The new measured rotation.
    */
-  void setQuatMeasure( const quaternion< double >& aValue ) { mQuatMeasure = aValue; };
+  void setQuatMeasure(const quaternion<double>& aValue) {
+    mQuatMeasure = aValue;
+  }
   /**
    * Returns the measured rotation.
    * \return the measured rotation.
    */
-  quaternion< double > QuatMeasure() const { return mQuatMeasure; };
+  quaternion<double> QuatMeasure() const { return mQuatMeasure; }
 
-  virtual unsigned int getOutputCount() const { return 4; };
-  virtual double getOutput( unsigned int i ) const {
-    if( i < 4 )
+  unsigned int getOutputCount() const override { return 4; }
+  double getOutput(unsigned int i) const override {
+    if (i < 4) {
       return mQuatMeasure[i];
-    else
-      return mQuatMeasure[0];
-  };
+    }
+    return mQuatMeasure[0];
+  }
 
   /**
    * Default constructor.
    */
-  rotation_measure_3D( const std::string& aName = "" ) : kte_map( aName ), mAnchor(), mQuatMeasure(){};
+  explicit rotation_measure_3D(const std::string& aName = "")
+      : kte_map(aName) {}
 
   /**
    * Parametrized constructor.
    * \param aName name of the KTE model.
    * \param aAnchor the coordinate from which position is measured.
    */
-  rotation_measure_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aAnchor )
-      : kte_map( aName ), system_output( aName ), mAnchor( aAnchor ), mQuatMeasure(){};
+  rotation_measure_3D(const std::string& aName,
+                      std::shared_ptr<frame_3D<double>> aAnchor)
+      : kte_map(aName), system_output(aName), mAnchor(std::move(aAnchor)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~rotation_measure_3D(){};
+  ~rotation_measure_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mAnchor )
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {
+    if (mAnchor) {
       mQuatMeasure = mAnchor->Quat;
-    else
-      mQuatMeasure = quaternion< double >();
-  };
+    } else {
+      mQuatMeasure = quaternion<double>();
+    }
+  }
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {}
 
-  virtual void clearForce(){};
+  void clearForce() override {}
 
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor );
-  };
-
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor );
-    if( mAnchor )
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
+    if (mAnchor) {
       mQuatMeasure = mAnchor->Quat;
-    else
-      mQuatMeasure = quaternion< double >();
-  };
+    } else {
+      mQuatMeasure = quaternion<double>();
+    }
+  }
 
-  RK_RTTI_MAKE_CONCRETE_2BASE( rotation_measure_3D, 0xC2100039, 1, "rotation_measure_3D", kte_map, system_output )
+  RK_RTTI_MAKE_CONCRETE_2BASE(rotation_measure_3D, 0xC2100039, 1,
+                              "rotation_measure_3D", kte_map, system_output)
 };
-
 
 /**
  * This class can be used as a system output to get the value of the velocity of a
  * generalized coordinate.
  */
 class velocity_measure_gen : public kte_map, public system_output {
-private:
-  shared_ptr< gen_coord< double > > mAnchor;
+ private:
+  std::shared_ptr<gen_coord<double>> mAnchor;
   double mVelMeasure;
 
-public:
+ public:
   /**
    * Sets the frame on which velocity measure is taken.
    * \param aPtr The new frame on which velocity measure is taken.
    */
-  void setAnchor( const shared_ptr< gen_coord< double > >& aPtr ) { mAnchor = aPtr; };
+  void setAnchor(const std::shared_ptr<gen_coord<double>>& aPtr) {
+    mAnchor = aPtr;
+  }
   /**
    * Returns the frame on which velocity measure is taken.
    * \return The frame on which velocity measure is taken.
    */
-  shared_ptr< gen_coord< double > > Anchor() const { return mAnchor; };
+  std::shared_ptr<gen_coord<double>> Anchor() const { return mAnchor; }
 
   /**
    * Sets the measured velocity.
    * \param aValue The new measured velocity.
    */
-  void setVelMeasure( double aValue ) { mVelMeasure = aValue; };
+  void setVelMeasure(double aValue) { mVelMeasure = aValue; }
   /**
    * Returns the measured velocity.
    * \return the measured velocity.
    */
-  double VelMeasure() const { return mVelMeasure; };
+  double VelMeasure() const { return mVelMeasure; }
 
-  virtual unsigned int getOutputCount() const { return 1; };
-  virtual double getOutput( unsigned int ) const { return mVelMeasure; };
+  unsigned int getOutputCount() const override { return 1; }
+  double getOutput(unsigned int /*i*/) const override { return mVelMeasure; }
 
   /**
    * Default constructor.
    */
-  velocity_measure_gen( const std::string& aName = "" ) : kte_map( aName ), mAnchor(), mVelMeasure( 0.0 ){};
+  explicit velocity_measure_gen(const std::string& aName = "")
+      : kte_map(aName), mVelMeasure(0.0) {}
 
   /**
    * Parametrized constructor.
    * \param aName name of the KTE model.
    * \param aAnchor the coordinate from which position is measured.
    */
-  velocity_measure_gen( const std::string& aName, const shared_ptr< gen_coord< double > >& aAnchor )
-      : kte_map( aName ), system_output( aName ), mAnchor( aAnchor ), mVelMeasure( 0.0 ){};
+  velocity_measure_gen(const std::string& aName,
+                       std::shared_ptr<gen_coord<double>> aAnchor)
+      : kte_map(aName),
+        system_output(aName),
+        mAnchor(std::move(aAnchor)),
+        mVelMeasure(0.0) {}
 
   /**
    * Default destructor.
    */
-  virtual ~velocity_measure_gen(){};
+  ~velocity_measure_gen() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mAnchor )
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {
+    if (mAnchor) {
       mVelMeasure = mAnchor->q_dot;
-    else
+    } else {
       mVelMeasure = 0.0;
-  };
+    }
+  }
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {}
 
-  virtual void clearForce(){};
+  void clearForce() override {}
 
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor );
-  };
-
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor );
-    if( mAnchor )
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
+    if (mAnchor) {
       mVelMeasure = mAnchor->q_dot;
-    else
+    } else {
       mVelMeasure = 0.0;
-  };
+    }
+  }
 
-  RK_RTTI_MAKE_CONCRETE_2BASE( velocity_measure_gen, 0xC210003A, 1, "velocity_measure_gen", kte_map, system_output )
+  RK_RTTI_MAKE_CONCRETE_2BASE(velocity_measure_gen, 0xC210003A, 1,
+                              "velocity_measure_gen", kte_map, system_output)
 };
-
 
 /**
  * This class can be used as a system output to get the value of the velocity of a
  * 2D coordinate frame.
  */
 class velocity_measure_2D : public kte_map, public system_output {
-private:
-  shared_ptr< frame_2D< double > > mAnchor;
-  vect< double, 2 > mVelMeasure;
+ private:
+  std::shared_ptr<frame_2D<double>> mAnchor;
+  vect<double, 2> mVelMeasure;
 
-public:
+ public:
   /**
    * Sets the frame on which velocity measure is taken.
    * \param aPtr The new frame on which velocity measure is taken.
    */
-  void setAnchor( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor = aPtr; };
+  void setAnchor(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mAnchor = aPtr;
+  }
   /**
    * Returns the frame on which velocity measure is taken.
    * \return The frame on which velocity measure is taken.
    */
-  shared_ptr< frame_2D< double > > Anchor() const { return mAnchor; };
+  std::shared_ptr<frame_2D<double>> Anchor() const { return mAnchor; }
 
   /**
    * Sets the measured velocity.
    * \param aValue The new measured velocity.
    */
-  void setVelMeasure( const vect< double, 2 >& aValue ) { mVelMeasure = aValue; };
+  void setVelMeasure(const vect<double, 2>& aValue) { mVelMeasure = aValue; }
   /**
    * Returns the measured velocity.
    * \return the measured velocity.
    */
-  vect< double, 2 > VelMeasure() const { return mVelMeasure; };
+  vect<double, 2> VelMeasure() const { return mVelMeasure; }
 
-  virtual unsigned int getOutputCount() const { return 2; };
-  virtual double getOutput( unsigned int i ) const {
-    if( i < 2 )
+  unsigned int getOutputCount() const override { return 2; }
+  double getOutput(unsigned int i) const override {
+    if (i < 2) {
       return mVelMeasure[i];
-    else
-      return mVelMeasure[0];
-  };
+    }
+    return mVelMeasure[0];
+  }
 
   /**
    * Default constructor.
    */
-  velocity_measure_2D( const std::string& aName = "" ) : kte_map( aName ), mAnchor(), mVelMeasure(){};
+  explicit velocity_measure_2D(const std::string& aName = "")
+      : kte_map(aName) {}
 
   /**
    * Parametrized constructor.
    * \param aName name of the KTE model.
    * \param aAnchor the coordinate from which position is measured.
    */
-  velocity_measure_2D( const std::string& aName, const shared_ptr< frame_2D< double > >& aAnchor )
-      : kte_map( aName ), system_output( aName ), mAnchor( aAnchor ), mVelMeasure(){};
+  velocity_measure_2D(const std::string& aName,
+                      std::shared_ptr<frame_2D<double>> aAnchor)
+      : kte_map(aName), system_output(aName), mAnchor(std::move(aAnchor)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~velocity_measure_2D(){};
+  ~velocity_measure_2D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mAnchor )
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {
+    if (mAnchor) {
       mVelMeasure = mAnchor->Velocity;
-    else
-      mVelMeasure = vect< double, 2 >();
-  };
+    } else {
+      mVelMeasure = vect<double, 2>();
+    }
+  }
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {}
 
-  virtual void clearForce(){};
+  void clearForce() override {}
 
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor );
-  };
-
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor );
-    if( mAnchor )
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
+    if (mAnchor) {
       mVelMeasure = mAnchor->Velocity;
-    else
-      mVelMeasure = vect< double, 2 >();
-  };
+    } else {
+      mVelMeasure = vect<double, 2>();
+    }
+  }
 
-  RK_RTTI_MAKE_CONCRETE_2BASE( velocity_measure_2D, 0xC210003B, 1, "velocity_measure_2D", kte_map, system_output )
+  RK_RTTI_MAKE_CONCRETE_2BASE(velocity_measure_2D, 0xC210003B, 1,
+                              "velocity_measure_2D", kte_map, system_output)
 };
-
 
 /**
  * This class can be used as a system output to get the value of the velocity of a
  * 3D coordinate frame.
  */
 class velocity_measure_3D : public kte_map, public system_output {
-private:
-  shared_ptr< frame_3D< double > > mAnchor;
-  vect< double, 3 > mVelMeasure;
+ private:
+  std::shared_ptr<frame_3D<double>> mAnchor;
+  vect<double, 3> mVelMeasure;
 
-public:
+ public:
   /**
    * Sets the frame on which velocity measure is taken.
    * \param aPtr The new frame on which velocity measure is taken.
    */
-  void setAnchor( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor = aPtr; };
+  void setAnchor(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mAnchor = aPtr;
+  }
   /**
    * Returns the frame on which velocity measure is taken.
    * \return The frame on which velocity measure is taken.
    */
-  shared_ptr< frame_3D< double > > Anchor() const { return mAnchor; };
+  std::shared_ptr<frame_3D<double>> Anchor() const { return mAnchor; }
 
   /**
    * Sets the measured velocity.
    * \param aValue The new measured velocity.
    */
-  void setVelMeasure( const vect< double, 3 >& aValue ) { mVelMeasure = aValue; };
+  void setVelMeasure(const vect<double, 3>& aValue) { mVelMeasure = aValue; }
   /**
    * Returns the measured velocity.
    * \return the measured velocity.
    */
-  vect< double, 3 > VelMeasure() const { return mVelMeasure; };
+  vect<double, 3> VelMeasure() const { return mVelMeasure; }
 
-  virtual unsigned int getOutputCount() const { return 3; };
-  virtual double getOutput( unsigned int i ) const {
-    if( i < 3 )
+  unsigned int getOutputCount() const override { return 3; }
+  double getOutput(unsigned int i) const override {
+    if (i < 3) {
       return mVelMeasure[i];
-    else
-      return mVelMeasure[0];
-  };
+    }
+    return mVelMeasure[0];
+  }
 
   /**
    * Default constructor.
    */
-  velocity_measure_3D( const std::string& aName = "" ) : kte_map( aName ), mAnchor(), mVelMeasure(){};
+  explicit velocity_measure_3D(const std::string& aName = "")
+      : kte_map(aName) {}
 
   /**
    * Parametrized constructor.
    * \param aName name of the KTE model.
    * \param aAnchor the coordinate from which position is measured.
    */
-  velocity_measure_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aAnchor )
-      : kte_map( aName ), system_output( aName ), mAnchor( aAnchor ), mVelMeasure(){};
+  velocity_measure_3D(const std::string& aName,
+                      std::shared_ptr<frame_3D<double>> aAnchor)
+      : kte_map(aName), system_output(aName), mAnchor(std::move(aAnchor)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~velocity_measure_3D(){};
+  ~velocity_measure_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mAnchor )
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {
+    if (mAnchor) {
       mVelMeasure = mAnchor->Velocity;
-    else
-      mVelMeasure = vect< double, 3 >();
-  };
+    } else {
+      mVelMeasure = vect<double, 3>();
+    }
+  }
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {}
 
-  virtual void clearForce(){};
+  void clearForce() override {}
 
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor );
-  };
-
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor );
-    if( mAnchor )
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
+    if (mAnchor) {
       mVelMeasure = mAnchor->Velocity;
-    else
-      mVelMeasure = vect< double, 3 >();
-  };
+    } else {
+      mVelMeasure = vect<double, 3>();
+    }
+  }
 
-  RK_RTTI_MAKE_CONCRETE_2BASE( velocity_measure_3D, 0xC210003C, 1, "velocity_measure_3D", kte_map, system_output )
+  RK_RTTI_MAKE_CONCRETE_2BASE(velocity_measure_3D, 0xC210003C, 1,
+                              "velocity_measure_3D", kte_map, system_output)
 };
-
 
 /**
  * This class can be used as a system output to get the value of the angular velocity of a
  * 3D coordinate frame.
  */
 class ang_velocity_measure_2D : public kte_map, public system_output {
-private:
-  shared_ptr< frame_2D< double > > mAnchor;
+ private:
+  std::shared_ptr<frame_2D<double>> mAnchor;
   double mAngVelMeasure;
 
-public:
+ public:
   /**
    * Sets the frame on which angular velocity measure is taken.
    * \param aPtr The new frame on which angular velocity measure is taken.
    */
-  void setAnchor( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor = aPtr; };
+  void setAnchor(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mAnchor = aPtr;
+  }
   /**
    * Returns the frame on which angular velocity measure is taken.
    * \return The frame on which angular velocity measure is taken.
    */
-  shared_ptr< frame_2D< double > > Anchor() const { return mAnchor; };
+  std::shared_ptr<frame_2D<double>> Anchor() const { return mAnchor; }
 
   /**
    * Sets the measured angular velocity.
    * \param aValue The new measured angular velocity.
    */
-  void setAngVelMeasure( double aValue ) { mAngVelMeasure = aValue; };
+  void setAngVelMeasure(double aValue) { mAngVelMeasure = aValue; }
   /**
    * Returns the measured angular velocity.
    * \return the measured angular velocity.
    */
-  double AngVelMeasure() const { return mAngVelMeasure; };
+  double AngVelMeasure() const { return mAngVelMeasure; }
 
-  virtual unsigned int getOutputCount() const { return 1; };
-  virtual double getOutput( unsigned int ) const { return mAngVelMeasure; };
+  unsigned int getOutputCount() const override { return 1; }
+  double getOutput(unsigned int /*i*/) const override { return mAngVelMeasure; }
 
   /**
    * Default constructor.
    */
-  ang_velocity_measure_2D( const std::string& aName = "" ) : kte_map( aName ), mAnchor(), mAngVelMeasure(){};
+  explicit ang_velocity_measure_2D(const std::string& aName = "")
+      : kte_map(aName), mAngVelMeasure() {}
 
   /**
    * Parametrized constructor.
    * \param aName name of the KTE model.
    * \param aAnchor the coordinate from which position is measured.
    */
-  ang_velocity_measure_2D( const std::string& aName, const shared_ptr< frame_2D< double > >& aAnchor )
-      : kte_map( aName ), system_output( aName ), mAnchor( aAnchor ), mAngVelMeasure(){};
+  ang_velocity_measure_2D(const std::string& aName,
+                          std::shared_ptr<frame_2D<double>> aAnchor)
+      : kte_map(aName),
+        system_output(aName),
+        mAnchor(std::move(aAnchor)),
+        mAngVelMeasure() {}
 
   /**
    * Default destructor.
    */
-  virtual ~ang_velocity_measure_2D(){};
+  ~ang_velocity_measure_2D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mAnchor )
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {
+    if (mAnchor) {
       mAngVelMeasure = mAnchor->AngVelocity;
-    else
+    } else {
       mAngVelMeasure = 0.0;
-  };
+    }
+  }
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {}
 
-  virtual void clearForce(){};
+  void clearForce() override {}
 
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor );
-  };
-
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor );
-    if( mAnchor )
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
+    if (mAnchor) {
       mAngVelMeasure = mAnchor->AngVelocity;
-    else
+    } else {
       mAngVelMeasure = 0.0;
-  };
+    }
+  }
 
-  RK_RTTI_MAKE_CONCRETE_2BASE( ang_velocity_measure_2D, 0xC210003B, 1, "ang_velocity_measure_2D", kte_map,
-                               system_output )
+  RK_RTTI_MAKE_CONCRETE_2BASE(ang_velocity_measure_2D, 0xC210003B, 1,
+                              "ang_velocity_measure_2D", kte_map, system_output)
 };
-
 
 /**
  * This class can be used as a system output to get the value of the angular velocity of a
  * 3D coordinate frame.
  */
 class ang_velocity_measure_3D : public kte_map, public system_output {
-private:
-  shared_ptr< frame_3D< double > > mAnchor;
-  vect< double, 3 > mAngVelMeasure;
+ private:
+  std::shared_ptr<frame_3D<double>> mAnchor;
+  vect<double, 3> mAngVelMeasure;
 
-public:
+ public:
   /**
    * Sets the frame on which angular velocity measure is taken.
    * \param aPtr The new frame on which angular velocity measure is taken.
    */
-  void setAnchor( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor = aPtr; };
+  void setAnchor(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mAnchor = aPtr;
+  }
   /**
    * Returns the frame on which angular velocity measure is taken.
    * \return The frame on which angular velocity measure is taken.
    */
-  shared_ptr< frame_3D< double > > Anchor() const { return mAnchor; };
+  std::shared_ptr<frame_3D<double>> Anchor() const { return mAnchor; }
 
   /**
    * Sets the measured angular velocity.
    * \param aValue The new measured angular velocity.
    */
-  void setAngVelMeasure( const vect< double, 3 >& aValue ) { mAngVelMeasure = aValue; };
+  void setAngVelMeasure(const vect<double, 3>& aValue) {
+    mAngVelMeasure = aValue;
+  }
   /**
    * Returns the measured angular velocity.
    * \return the measured angular velocity.
    */
-  vect< double, 3 > AngVelMeasure() const { return mAngVelMeasure; };
+  vect<double, 3> AngVelMeasure() const { return mAngVelMeasure; }
 
-  virtual unsigned int getOutputCount() const { return 3; };
-  virtual double getOutput( unsigned int i ) const {
-    if( i < 3 )
+  unsigned int getOutputCount() const override { return 3; }
+  double getOutput(unsigned int i) const override {
+    if (i < 3) {
       return mAngVelMeasure[i];
-    else
-      return mAngVelMeasure[0];
-  };
+    }
+    return mAngVelMeasure[0];
+  }
 
   /**
    * Default constructor.
    */
-  ang_velocity_measure_3D( const std::string& aName = "" ) : kte_map( aName ), mAnchor(), mAngVelMeasure(){};
+  explicit ang_velocity_measure_3D(const std::string& aName = "")
+      : kte_map(aName) {}
 
   /**
    * Parametrized constructor.
    * \param aName name of the KTE model.
    * \param aAnchor the coordinate from which position is measured.
    */
-  ang_velocity_measure_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aAnchor )
-      : kte_map( aName ), system_output( aName ), mAnchor( aAnchor ), mAngVelMeasure(){};
+  ang_velocity_measure_3D(const std::string& aName,
+                          std::shared_ptr<frame_3D<double>> aAnchor)
+      : kte_map(aName), system_output(aName), mAnchor(std::move(aAnchor)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~ang_velocity_measure_3D(){};
+  ~ang_velocity_measure_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mAnchor )
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {
+    if (mAnchor) {
       mAngVelMeasure = mAnchor->AngVelocity;
-    else
-      mAngVelMeasure = vect< double, 3 >();
-  };
+    } else {
+      mAngVelMeasure = vect<double, 3>();
+    }
+  }
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {}
 
-  virtual void clearForce(){};
+  void clearForce() override {}
 
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor );
-  };
-
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor );
-    if( mAnchor )
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
+    if (mAnchor) {
       mAngVelMeasure = mAnchor->AngVelocity;
-    else
-      mAngVelMeasure = vect< double, 3 >();
-  };
+    } else {
+      mAngVelMeasure = vect<double, 3>();
+    }
+  }
 
-  RK_RTTI_MAKE_CONCRETE_2BASE( ang_velocity_measure_3D, 0xC210003C, 1, "ang_velocity_measure_3D", kte_map,
-                               system_output )
+  RK_RTTI_MAKE_CONCRETE_2BASE(ang_velocity_measure_3D, 0xC210003C, 1,
+                              "ang_velocity_measure_3D", kte_map, system_output)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

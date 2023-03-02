@@ -39,5 +39,4 @@
 #define REAK_MAJOR_VERSION 0
 #define REAK_MINOR_VERSION 28
 
-
 #endif

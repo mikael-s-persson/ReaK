@@ -29,7 +29,6 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <boost/python.hpp>
 
 namespace PyReaK {
@@ -39,12 +38,11 @@ void export_vect_alg();
 void export_kinetostatics();
 void export_mbd_kte();
 void export_kte_models();
-};
+};  // namespace PyReaK
 
 using namespace boost::python;
 
-
-BOOST_PYTHON_MODULE( libreak_py ) {
+BOOST_PYTHON_MODULE(libreak_py) {
 
   using namespace PyReaK;
 

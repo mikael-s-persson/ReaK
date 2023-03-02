@@ -32,26 +32,23 @@
 #ifndef REAK_GLOBAL_RNG_HPP
 #define REAK_GLOBAL_RNG_HPP
 
-#include "defs.hpp"
-
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/random_device.hpp>
-#include <boost/random.hpp>
+#include <random>
 
 namespace ReaK {
 
 /// This is the type of the global random-number generator used in ReaK's algorithms.
-typedef boost::random::mt19937 global_rng_type;
+using global_rng_type = std::mt19937;
 
 /**
  * This function returns the global (static) instance of the random-number generator (seeded at first use).
  * \return A reference to the global (static) instance of the random-number generator (seeded at first use).
  */
 inline global_rng_type& get_global_rng() {
-  static boost::random::random_device rd;
-  static global_rng_type instance = global_rng_type( rd() );
+  static std::random_device rd;
+  static auto instance = global_rng_type(rd());
   return instance;
-};
-};
+}
+
+}  // namespace ReaK
 
 #endif

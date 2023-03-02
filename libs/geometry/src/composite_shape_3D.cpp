@@ -23,24 +23,25 @@
 
 #include <ReaK/geometry/shapes/composite_shape_3D.hpp>
 
-namespace ReaK {
+namespace ReaK::geom {
 
-namespace geom {
+double composite_shape_3D::getBoundingRadius() const {
+  return 0.0;
+}
 
+composite_shape_3D::composite_shape_3D(const std::string& aName)
+    : shape_3D(aName) {}
 
-double composite_shape_3D::getBoundingRadius() const { return 0.0; };
+void composite_shape_3D::save(ReaK::serialization::oarchive& A,
+                              unsigned int /*unused*/) const {
+  shape_3D::save(A, shape_3D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_SAVE_WITH_NAME(mShapes);
+}
 
+void composite_shape_3D::load(ReaK::serialization::iarchive& A,
+                              unsigned int /*unused*/) {
+  shape_3D::load(A, shape_3D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_LOAD_WITH_NAME(mShapes);
+}
 
-composite_shape_3D::composite_shape_3D( const std::string& aName ) : shape_3D( aName ), mShapes(){};
-
-void RK_CALL composite_shape_3D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
-  shape_3D::save( A, shape_3D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_SAVE_WITH_NAME( mShapes );
-};
-
-void RK_CALL composite_shape_3D::load( ReaK::serialization::iarchive& A, unsigned int ) {
-  shape_3D::load( A, shape_3D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_LOAD_WITH_NAME( mShapes );
-};
-};
-};
+}  // namespace ReaK::geom

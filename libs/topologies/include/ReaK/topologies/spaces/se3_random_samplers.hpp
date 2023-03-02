@@ -39,18 +39,14 @@
 
 #include "se3_topologies.hpp"
 
-namespace ReaK {
+namespace ReaK::pp {
 
-namespace pp {
-
-/**
- */
 struct position_only_sampler : public serializable {
 
-  position_only_sampler(){};
+  position_only_sampler() {}
 
-  template < typename Topology >
-  position_only_sampler( const Topology& ){};
+  template <typename Topology>
+  position_only_sampler(const Topology&) {}
 
   /**
    * This function returns a random sample point on a topology.
@@ -58,27 +54,26 @@ struct position_only_sampler : public serializable {
    * \param s The topology or space on which the points lie.
    * \return A random sample point on the given topology.
    */
-  template < typename SE3Topology >
-  typename topology_traits< SE3Topology >::point_type operator()( const SE3Topology& s ) const {
-    typedef typename topology_traits< SE3Topology >::point_type point_type;
-    point_type result = s.origin();
-    point_type rnd = s.random_point();
-    set_position( result, get_position( rnd ) );
+  template <typename SE3Topology>
+  topology_point_type_t<SE3Topology> operator()(const SE3Topology& s) const {
+    auto result = s.origin();
+    auto rnd = s.random_point();
+    set_position(result, get_position(rnd));
     return result;
-  };
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A, unsigned int) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( position_only_sampler, 0xC2450006, 1, "position_only_sampler", serializable )
-};
-};
+  RK_RTTI_MAKE_ABSTRACT_1BASE(position_only_sampler, 0xC2450006, 1,
+                              "position_only_sampler", serializable)
 };
 
+}  // namespace ReaK::pp
 
 #endif

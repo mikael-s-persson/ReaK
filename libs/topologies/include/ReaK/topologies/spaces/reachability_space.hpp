@@ -34,14 +34,12 @@
 #ifndef REAK_REACHABILITY_SPACE_HPP
 #define REAK_REACHABILITY_SPACE_HPP
 
-#include "temporal_space.hpp"
 #include "reachability_space_concept.hpp"
+#include "temporal_space.hpp"
 
 #include <boost/concept_check.hpp>
 
-namespace ReaK {
-
-namespace pp {
+namespace ReaK::pp {
 
 /**
  * This functor class implements a backward reachable norm for a given point-difference in
@@ -58,10 +56,11 @@ struct backward_reachable_norm {
    * \param s The space-topology of the temporal-space.
    * \return The backward reachable norm for the given point-difference.
    */
-  template < typename PointDiff, typename TimeTopology, typename SpaceTopology >
-  double operator()( const PointDiff& a, const TimeTopology& t, const SpaceTopology& s ) const {
-    return a.time - get( distance_metric, s )( a.pt, s );
-  };
+  template <typename PointDiff, typename TimeTopology, typename SpaceTopology>
+  double operator()(const PointDiff& a, const TimeTopology& t,
+                    const SpaceTopology& s) const {
+    return a.time - get(distance_metric, s)(a.pt, s);
+  }
   /**
    * Computes the backward reachable norm for a given point-difference in a temporal-space.
    * \tparam TimeDiff The time-difference type from the temporal-space.
@@ -74,12 +73,13 @@ struct backward_reachable_norm {
    * \param s The space-topology of the temporal-space.
    * \return The backward reachable norm for the given point-difference.
    */
-  template < typename TimeDiff, typename SpaceDiff, typename TimeTopology, typename SpaceTopology >
-  double operator()( const TimeDiff& dt, const SpaceDiff& dp, const TimeTopology& t, const SpaceTopology& s ) const {
-    return dt - get( distance_metric, s )( dp, s );
-  };
+  template <typename TimeDiff, typename SpaceDiff, typename TimeTopology,
+            typename SpaceTopology>
+  double operator()(const TimeDiff& dt, const SpaceDiff& dp,
+                    const TimeTopology& t, const SpaceTopology& s) const {
+    return dt - get(distance_metric, s)(dp, s);
+  }
 };
-
 
 /**
  * This functor class implements a forward reachable norm for a given point-difference in
@@ -96,10 +96,11 @@ struct forward_reachable_norm {
    * \param s The space-topology of the temporal-space.
    * \return The forward reachable norm for the given point-difference.
    */
-  template < typename PointDiff, typename TimeTopology, typename SpaceTopology >
-  double operator()( const PointDiff& a, const TimeTopology& t, const SpaceTopology& s ) const {
-    return a.time + get( distance_metric, s )( a.pt, s );
-  };
+  template <typename PointDiff, typename TimeTopology, typename SpaceTopology>
+  double operator()(const PointDiff& a, const TimeTopology& t,
+                    const SpaceTopology& s) const {
+    return a.time + get(distance_metric, s)(a.pt, s);
+  }
   /**
    * Computes the forward reachable norm for a given point-difference in a temporal-space.
    * \tparam TimeDiff The time-difference type from the temporal-space.
@@ -112,12 +113,13 @@ struct forward_reachable_norm {
    * \param s The space-topology of the temporal-space.
    * \return The forward reachable norm for the given point-difference.
    */
-  template < typename TimeDiff, typename SpaceDiff, typename TimeTopology, typename SpaceTopology >
-  double operator()( const TimeDiff& dt, const SpaceDiff& dp, const TimeTopology& t, const SpaceTopology& s ) const {
-    return dt + get( distance_metric, s )( dp, s );
-  };
+  template <typename TimeDiff, typename SpaceDiff, typename TimeTopology,
+            typename SpaceTopology>
+  double operator()(const TimeDiff& dt, const SpaceDiff& dp,
+                    const TimeTopology& t, const SpaceTopology& s) const {
+    return dt + get(distance_metric, s)(dp, s);
+  }
 };
-
 
 /**
  * This functor class models the TemporalDistMetricConcept via the reachability norms on a temporal
@@ -137,16 +139,19 @@ struct reachable_distance {
    * \param s The space-topology.
    * \return The reachability distance between the two points of the temporal space (t,s).
    */
-  template < typename Point, typename TimeTopology, typename SpaceTopology >
-  double operator()( const Point& a, const Point& b, const TimeTopology& t, const SpaceTopology& s ) const {
-    typename TimeTopology::point_difference_type time_diff = t.difference( b.time, a.time );
-    typename SpaceTopology::point_difference_type point_diff = s.difference( b.pt, a.pt );
-    if( backward( time_diff, point_diff, t, s ) >= 0.0 )
-      return forward( time_diff, point_diff, t, s );
-    if( backward( -time_diff, -point_diff, t, s ) >= 0.0 )
-      return forward( -time_diff, -point_diff, t, s );
-    return std::numeric_limits< double >::infinity();
-  };
+  template <typename Point, typename TimeTopology, typename SpaceTopology>
+  double operator()(const Point& a, const Point& b, const TimeTopology& t,
+                    const SpaceTopology& s) const {
+    auto time_diff = t.difference(b.time, a.time);
+    auto point_diff = s.difference(b.pt, a.pt);
+    if (backward(time_diff, point_diff, t, s) >= 0.0) {
+      return forward(time_diff, point_diff, t, s);
+    }
+    if (backward(-time_diff, -point_diff, t, s) >= 0.0) {
+      return forward(-time_diff, -point_diff, t, s);
+    }
+    return std::numeric_limits<double>::infinity();
+  }
   /**
    * Computes the reachability distance of a point-difference in a temporal space.
    * \tparam PointDiff The point-difference type of the temporal space.
@@ -157,16 +162,18 @@ struct reachable_distance {
    * \param s The space-topology.
    * \return The reachability distance of the point-difference in the temporal space (t,s).
    */
-  template < typename PointDiff, typename TimeTopology, typename SpaceTopology >
-  double operator()( const PointDiff& a, const TimeTopology& t, const SpaceTopology& s ) const {
-    if( backward( a, t, s ) >= 0 )
-      return forward( a, t, s );
-    if( backward( -a, t, s ) >= 0 )
-      return forward( -a, t, s );
-    return std::numeric_limits< double >::infinity();
-  };
+  template <typename PointDiff, typename TimeTopology, typename SpaceTopology>
+  double operator()(const PointDiff& a, const TimeTopology& t,
+                    const SpaceTopology& s) const {
+    if (backward(a, t, s) >= 0) {
+      return forward(a, t, s);
+    }
+    if (backward(-a, t, s) >= 0) {
+      return forward(-a, t, s);
+    }
+    return std::numeric_limits<double>::infinity();
+  }
 };
-
 
 /**
  * This class realizes a reachability space (see ReachabilitySpaceConcept)
@@ -178,55 +185,58 @@ struct reachable_distance {
  * \tparam RandomNumberGenerator The random number generator functor type that can introduce the randomness needed for
  * generating samples of the space.
  */
-template < typename Topology >
-class reachability_space : public temporal_space< Topology, reachable_distance > {
-public:
-  typedef temporal_space< Topology, reachable_distance > temporal_space_type;
-  typedef typename temporal_space_type::time_topology time_topology;
-  typedef typename temporal_space_type::space_topology space_topology;
-  typedef typename temporal_space_type::distance_metric_type distance_metric_type;
-  typedef typename temporal_space_type::random_sampler_type random_sampler_type;
+template <typename Topology>
+class reachability_space : public temporal_space<Topology, reachable_distance> {
+ public:
+  using temporal_space_type = temporal_space<Topology, reachable_distance>;
+  using time_topology = typename temporal_space_type::time_topology;
+  using space_topology = typename temporal_space_type::space_topology;
+  using distance_metric_type =
+      typename temporal_space_type::distance_metric_type;
+  using random_sampler_type = typename temporal_space_type::random_sampler_type;
 
-  typedef typename temporal_space_type::point_type point_type;
-  typedef typename temporal_space_type::point_difference_type point_difference_type;
+  using point_type = typename temporal_space_type::point_type;
+  using point_difference_type =
+      typename temporal_space_type::point_difference_type;
 
   /**
    * Returns the forward reach of a given point in the temporal-space.
    * \param p The point for which the forward-reach is requested.
    * \return The forward reach of p.
    */
-  double forward_reach( const point_type& p ) const {
-    return forward_reachable_norm()( this->difference( p, this->origin() ), this->time, this->space );
-  };
+  double forward_reach(const point_type& p) const {
+    return forward_reachable_norm()(this->difference(p, this->origin()),
+                                    this->time, this->space);
+  }
 
   /**
    * Returns the backward reach of a given point in the temporal-space.
    * \param p The point for which the backward-reach is requested.
    * \return The backward reach of p.
    */
-  double backward_reach( const point_type& p ) const {
-    return backward_reachable_norm()( this->difference( p, this->origin() ), this->time, this->space );
-  };
+  double backward_reach(const point_type& p) const {
+    return backward_reachable_norm()(this->difference(p, this->origin()),
+                                     this->time, this->space);
+  }
 
   /**
    * Returns the forward reachable norm of a given point-difference in the temporal-space.
    * \param p The point-difference for which the forward reachable norm is requested.
    * \return The forward reachable norm of p.
    */
-  double forward_norm( const point_difference_type& p ) const {
-    return forward_reachable_norm()( p, this->time, this->space );
-  };
+  double forward_norm(const point_difference_type& p) const {
+    return forward_reachable_norm()(p, this->time, this->space);
+  }
 
   /**
    * Returns the backward reachable norm of a given point-difference in the temporal-space.
    * \param p The point-difference for which the backward reachable norm is requested.
    * \return The backward reachable norm of p.
    */
-  double backward_norm( const point_difference_type& p ) const {
-    return backward_reachable_norm()( p, this->time, this->space );
-  };
+  double backward_norm(const point_difference_type& p) const {
+    return backward_reachable_norm()(p, this->time, this->space);
+  }
 };
-
 
 /**
  * This class is a functor type which models the TemporalDistMetricConcept, and computes the
@@ -234,7 +244,7 @@ public:
  */
 struct reach_plus_time_metric : public serializable {
 
-  reach_plus_time_metric(){};
+  reach_plus_time_metric() = default;
 
   /**
    * Computes the distance by calling the distance-function of the space-topology (s) on two points (a,b).
@@ -245,16 +255,21 @@ struct reach_plus_time_metric : public serializable {
    * \param s The temporal-space.
    * \return the spatial-distance between the two points.
    */
-  template < typename Point, typename TemporalTopology >
-  double operator()( const Point& a, const Point& b, const TemporalTopology& s ) const {
-    BOOST_CONCEPT_ASSERT( (TemporalSpaceConcept< TemporalTopology >));
-    if( a.time > b.time ) // Am I trying to go backwards in time (impossible)?
-      return std::numeric_limits< double >::infinity(); // p2 is not reachable from p1.
-    double reach_time = get( distance_metric, s.get_space_topology() )( a.pt, b.pt, s.get_space_topology() );
-    if( ( b.time - a.time ) < reach_time ) // There is not enough time to reach the end-point.
-      return std::numeric_limits< double >::infinity();
-    return ( b.time - a.time ) + reach_time;
-  };
+  template <typename Point, typename TemporalTopology>
+  double operator()(const Point& a, const Point& b,
+                    const TemporalTopology& s) const {
+    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+    if (a.time > b.time) {
+      return std::numeric_limits<
+          double>::infinity();  // p2 is not reachable from p1.
+    }
+    double reach_time = get(distance_metric, s.get_space_topology())(
+        a.pt, b.pt, s.get_space_topology());
+    if ((b.time - a.time) < reach_time) {
+      return std::numeric_limits<double>::infinity();
+    }
+    return (b.time - a.time) + reach_time;
+  }
   /**
    * Computes the norm by calling the norm-function of the space-topology (s) on a point-difference (a).
    * \tparam PointDiff The point-difference type of points on the temporal-space.
@@ -263,32 +278,36 @@ struct reach_plus_time_metric : public serializable {
    * \param s The temporal-space.
    * \return The spatial-norm of the difference between the two points.
    */
-  template < typename PointDiff, typename TemporalTopology >
-  double operator()( const PointDiff& a, const TemporalTopology& s ) const {
-    BOOST_CONCEPT_ASSERT( (TemporalSpaceConcept< TemporalTopology >));
-    if( a.time < 0.0 ) // Am I trying to go backwards in time (impossible)?
-      return std::numeric_limits< double >::infinity(); // p2 is not reachable from p1.
-    double reach_time = get( distance_metric, s.get_space_topology() )( a.pt, s.get_space_topology() );
-    if( a.time < reach_time ) // There is not enough time to reach the end-point.
-      return std::numeric_limits< double >::infinity();
+  template <typename PointDiff, typename TemporalTopology>
+  double operator()(const PointDiff& a, const TemporalTopology& s) const {
+    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+    if (a.time < 0.0) {
+      return std::numeric_limits<
+          double>::infinity();  // p2 is not reachable from p1.
+    }
+    double reach_time = get(distance_metric, s.get_space_topology())(
+        a.pt, s.get_space_topology());
+    if (a.time < reach_time) {
+      return std::numeric_limits<double>::infinity();
+    }
     return a.time + reach_time;
-  };
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( reach_plus_time_metric, 0xC2410012, 1, "reach_plus_time_metric", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(reach_plus_time_metric, 0xC2410012, 1,
+                              "reach_plus_time_metric", serializable)
 };
 
-
 template <>
-struct is_metric_symmetric< reach_plus_time_metric > : boost::mpl::false_ {};
-
+struct is_metric_symmetric<reach_plus_time_metric> : std::false_type {};
 
 /**
  * This class is a functor type which models the TemporalDistMetricConcept, and computes the
@@ -296,10 +315,10 @@ struct is_metric_symmetric< reach_plus_time_metric > : boost::mpl::false_ {};
  */
 struct proper_reach_plus_time_metric : public serializable {
 
-  proper_reach_plus_time_metric(){};
+  proper_reach_plus_time_metric() = default;
 
-  template < typename Anything >
-  proper_reach_plus_time_metric( const Anything& ){};
+  template <typename Anything>
+  explicit proper_reach_plus_time_metric(const Anything& /*unused*/) {}
 
   /**
    * Computes the distance by calling the distance-function of the space-topology (s) on two points (a,b).
@@ -310,13 +329,15 @@ struct proper_reach_plus_time_metric : public serializable {
    * \param s The temporal-space.
    * \return the spatial-distance between the two points.
    */
-  template < typename Point, typename TemporalTopology >
-  double operator()( const Point& a, const Point& b, const TemporalTopology& s ) const {
-    BOOST_CONCEPT_ASSERT( (TemporalSpaceConcept< TemporalTopology >));
-    using std::fabs;
-    double reach_time = get( proper_metric, s.get_space_topology() )( a.pt, b.pt, s.get_space_topology() );
-    return fabs( b.time - a.time ) + reach_time;
-  };
+  template <typename Point, typename TemporalTopology>
+  double operator()(const Point& a, const Point& b,
+                    const TemporalTopology& s) const {
+    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+    using std::abs;
+    double reach_time = get(proper_metric, s.get_space_topology())(
+        a.pt, b.pt, s.get_space_topology());
+    return abs(b.time - a.time) + reach_time;
+  }
   /**
    * Computes the norm by calling the norm-function of the space-topology (s) on a point-difference (a).
    * \tparam PointDiff The point-difference type of points on the temporal-space.
@@ -325,36 +346,36 @@ struct proper_reach_plus_time_metric : public serializable {
    * \param s The temporal-space.
    * \return The spatial-norm of the difference between the two points.
    */
-  template < typename PointDiff, typename TemporalTopology >
-  double operator()( const PointDiff& a, const TemporalTopology& s ) const {
-    BOOST_CONCEPT_ASSERT( (TemporalSpaceConcept< TemporalTopology >));
-    using std::fabs;
-    double reach_time = get( proper_metric, s.get_space_topology() )( a.pt, s.get_space_topology() );
-    return fabs( a.time ) + reach_time;
-  };
+  template <typename PointDiff, typename TemporalTopology>
+  double operator()(const PointDiff& a, const TemporalTopology& s) const {
+    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+    using std::abs;
+    double reach_time = get(proper_metric, s.get_space_topology())(
+        a.pt, s.get_space_topology());
+    return abs(a.time) + reach_time;
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( proper_reach_plus_time_metric, 0xC2410013, 1, "proper_reach_plus_time_metric",
-                               serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(proper_reach_plus_time_metric, 0xC2410013, 1,
+                              "proper_reach_plus_time_metric", serializable)
 };
-
 
 template <>
-struct is_metric_symmetric< proper_reach_plus_time_metric > : boost::mpl::true_ {};
-
+struct is_metric_symmetric<proper_reach_plus_time_metric> : std::true_type {};
 
 template <>
-struct get_proper_metric_from_metric< reach_plus_time_metric > {
-  typedef proper_reach_plus_time_metric type;
+struct get_proper_metric_from_metric<reach_plus_time_metric> {
+  using type = proper_reach_plus_time_metric;
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

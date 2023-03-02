@@ -61,240 +61,268 @@
 #ifndef REAK_RRT_STAR_HPP
 #define REAK_RRT_STAR_HPP
 
-#include <utility>
-#include <limits>
-#include <boost/tuple/tuple.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
+#include <limits>
+#include <tuple>
+#include <utility>
 
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 #include <ReaK/topologies/spaces/random_sampler_concept.hpp>
 
-#include "sbmp_visitor_concepts.hpp"
 #include "neighborhood_functors.hpp"
 #include "node_generators.hpp"
+#include "sbmp_visitor_concepts.hpp"
 
-#include "pruned_connector.hpp"
-#include "lazy_connector.hpp"
 #include "branch_and_bound_connector.hpp"
+#include "lazy_connector.hpp"
+#include "pruned_connector.hpp"
+#include "simple_graph_traits.hpp"
 
 #include <ReaK/math/optimization/optim_exceptions.hpp>
 
-namespace ReaK {
-
-namespace graph {
-
+namespace ReaK::graph {
 
 namespace detail {
 namespace {
 
-
-template < typename Graph, typename RRGVisitor, typename PositionMap, typename WeightMap, typename DistanceMap,
-           typename PredecessorMap, typename FwdDistanceMap = infinite_double_value_prop_map,
-           typename SuccessorMap = null_vertex_prop_map< Graph > >
+template <typename Graph, typename RRGVisitor, typename PositionMap,
+          typename WeightMap, typename DistanceMap, typename PredecessorMap,
+          typename FwdDistanceMap = infinite_double_value_prop_map,
+          typename SuccessorMap = null_vertex_prop_map<Graph>>
 struct rrt_conn_visitor {
 
-  rrt_conn_visitor( RRGVisitor vis, PositionMap pos, WeightMap weight, DistanceMap dist, PredecessorMap pred,
-                    FwdDistanceMap fwd_dist = FwdDistanceMap(), SuccessorMap succ = SuccessorMap() )
-      : m_vis( vis ), m_position( pos ), m_weight( weight ), m_distance( dist ), m_predecessor( pred ),
-        m_fwd_distance( fwd_dist ), m_successor( succ ){};
+  rrt_conn_visitor(RRGVisitor vis, PositionMap pos, WeightMap weight,
+                   DistanceMap dist, PredecessorMap pred,
+                   FwdDistanceMap fwd_dist = FwdDistanceMap(),
+                   SuccessorMap succ = SuccessorMap())
+      : m_vis(vis),
+        m_position(pos),
+        m_weight(weight),
+        m_distance(dist),
+        m_predecessor(pred),
+        m_fwd_distance(fwd_dist),
+        m_successor(succ){};
 
-  typedef typename boost::property_traits< PositionMap >::value_type PositionValue;
-  typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
-  typedef typename Graph::vertex_bundled VertexProp;
-  typedef typename boost::graph_traits< Graph >::edge_descriptor Edge;
-  typedef typename Graph::edge_bundled EdgeProp;
+  using Vertex = graph_vertex_t<Graph>;
+  using Edge = graph_edge_t<Graph>;
 
-  Vertex create_vertex( const PositionValue& p, Graph& g ) const {
-
-    VertexProp up;
-    put( m_position, up, p );
-    put( m_distance, up, std::numeric_limits< double >::infinity() );
-    put( m_predecessor, up, boost::graph_traits< Graph >::null_vertex() );
-    put( m_fwd_distance, up, std::numeric_limits< double >::infinity() );
-    put( m_successor, up, boost::graph_traits< Graph >::null_vertex() );
-    Vertex u = add_vertex( std::move( up ), g );
-    m_vis.vertex_added( u, g );
-
+  template <typename PositionValue>
+  Vertex create_vertex(const PositionValue& p, Graph& g) const {
+    graph_vertex_bundle_t<Graph> up;
+    put(m_position, up, p);
+    put(m_distance, up, std::numeric_limits<double>::infinity());
+    put(m_predecessor, up, boost::graph_traits<Graph>::null_vertex());
+    put(m_fwd_distance, up, std::numeric_limits<double>::infinity());
+    put(m_successor, up, boost::graph_traits<Graph>::null_vertex());
+    Vertex u = add_vertex(std::move(up), g);
+    m_vis.vertex_added(u, g);
     return u;
-  };
+  }
 
-  void vertex_to_be_removed( Vertex u, Graph& g ) const { m_vis.vertex_to_be_removed( u, g ); };
+  void vertex_to_be_removed(Vertex u, Graph& g) const {
+    m_vis.vertex_to_be_removed(u, g);
+  }
 
-  void vertex_added( Vertex v, Graph& g ) const { m_vis.vertex_added( v, g ); };
-  void edge_added( Edge e, Graph& g ) const { m_vis.edge_added( e, g ); };
+  void vertex_added(Vertex v, Graph& g) const { m_vis.vertex_added(v, g); }
+  void edge_added(Edge e, Graph& g) const { m_vis.edge_added(e, g); }
 
-  void travel_explored( Vertex u, Vertex v, Graph& g ) const {};
-  void travel_succeeded( Vertex u, Vertex v, Graph& g ) const {};
-  void travel_failed( Vertex u, Vertex v, Graph& g ) const {};
-  void affected_vertex( Vertex, Graph& ) const {};
+  void travel_explored(Vertex /*unused*/, Vertex /*unused*/,
+                       Graph& /*unused*/) const {}
+  void travel_succeeded(Vertex /*unused*/, Vertex /*unused*/,
+                        Graph& /*unused*/) const {}
+  void travel_failed(Vertex /*unused*/, Vertex /*unused*/,
+                     Graph& /*unused*/) const {}
+  void affected_vertex(Vertex /*unused*/, Graph& /*unused*/) const {}
 
-  bool keep_going() const { return m_vis.keep_going(); };
+  bool keep_going() const { return m_vis.keep_going(); }
 
-  std::pair< bool, EdgeProp > can_be_connected( Vertex u, Vertex v, Graph& g ) const {
-    return m_vis.can_be_connected( u, v, g );
-  };
+  auto can_be_connected(Vertex u, Vertex v, Graph& g) const {
+    return m_vis.can_be_connected(u, v, g);
+  }
 
-  boost::tuple< PositionValue, bool, EdgeProp > steer_towards_position( const PositionValue& p, Vertex u,
-                                                                        Graph& g ) const {
-    return m_vis.steer_towards_position( p, u, g );
-  };
+  template <typename PositionValue>
+  auto steer_towards_position(const PositionValue& p, Vertex u,
+                              Graph& g) const {
+    return m_vis.steer_towards_position(p, u, g);
+  }
 
-  boost::tuple< PositionValue, bool, EdgeProp > steer_back_to_position( const PositionValue& p, Vertex u,
-                                                                        Graph& g ) const {
-    return this->m_vis.steer_back_to_position( p, u, g );
-  };
+  template <typename PositionValue>
+  auto steer_back_to_position(const PositionValue& p, Vertex u,
+                              Graph& g) const {
+    return m_vis.steer_back_to_position(p, u, g);
+  }
 
   RRGVisitor m_vis;
   PositionMap m_position;
-  WeightMap m_weight; // needed by generate_rrt_star_loop (given to connector call)
+  // needed by generate_rrt_star_loop (given to connector call)
+  WeightMap m_weight;
   DistanceMap m_distance;
   PredecessorMap m_predecessor;
   FwdDistanceMap m_fwd_distance;
   SuccessorMap m_successor;
 };
 
+template <typename Graph, typename Topology, typename RRTStarConnVisitor,
+          typename MotionGraphConnector, typename PositionMap,
+          typename NodeGenerator, typename NcSelector>
+void generate_rrt_star_loop(Graph& g, const Topology& super_space,
+                            RRTStarConnVisitor conn_vis,
+                            MotionGraphConnector connect_vertex,
+                            PositionMap position,
+                            NodeGenerator node_generator_func,
+                            NcSelector select_neighborhood) {
+  while (conn_vis.keep_going()) {
+    auto [x_near, p_new, eprop] = node_generator_func(
+        g, conn_vis, boost::bundle_prop_to_vertex_prop(position, g));
 
-template < typename Graph, typename Topology, typename RRTStarConnVisitor, typename MotionGraphConnector,
-           typename PositionMap, typename NodeGenerator, typename NcSelector >
-void generate_rrt_star_loop( Graph& g, const Topology& super_space, RRTStarConnVisitor conn_vis,
-                             MotionGraphConnector connect_vertex, PositionMap position,
-                             NodeGenerator node_generator_func, NcSelector select_neighborhood ) {
-  typedef typename boost::property_traits< PositionMap >::value_type PositionValue;
-  typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
-  typedef typename Graph::edge_bundled EdgeProp;
+    if ((x_near != boost::graph_traits<Graph>::null_vertex()) &&
+        (get(conn_vis.m_distance, g[x_near]) !=
+         std::numeric_limits<double>::infinity())) {
+      connect_vertex(p_new, x_near, eprop, g, super_space, conn_vis,
+                     conn_vis.m_position, conn_vis.m_distance,
+                     conn_vis.m_predecessor, conn_vis.m_weight,
+                     select_neighborhood);
+    }
+  }
+}
 
-  while( conn_vis.keep_going() ) {
+template <typename Graph, typename Topology, typename RRTStarConnVisitor,
+          typename MotionGraphConnector, typename PositionMap,
+          typename NodeGenerator, typename NcSelector>
+void generate_rrt_star_bidir_loop(Graph& g, const Topology& super_space,
+                                  RRTStarConnVisitor conn_vis,
+                                  MotionGraphConnector connect_vertex,
+                                  PositionMap position,
+                                  NodeGenerator node_generator_func,
+                                  NcSelector select_neighborhood) {
+  using Vertex = graph_vertex_t<Graph>;
+  using EdgeProp = graph_edge_bundle_t<Graph>;
 
-    PositionValue p_new;
-    Vertex x_near;
-    EdgeProp eprop;
-    boost::tie( x_near, p_new, eprop )
-      = node_generator_func( g, conn_vis, boost::bundle_prop_to_vertex_prop( position, g ) );
+  while (conn_vis.keep_going()) {
+    auto [x_near_pred, p_new_pred, ep_pred, x_near_succ, p_new_succ, ep_succ] =
+        node_generator_func(g, conn_vis,
+                            boost::bundle_prop_to_vertex_prop(position, g));
 
-    if( ( x_near != boost::graph_traits< Graph >::null_vertex() )
-        && ( get( conn_vis.m_distance, g[x_near] ) != std::numeric_limits< double >::infinity() ) ) {
-      connect_vertex( p_new, x_near, eprop, g, super_space, conn_vis, conn_vis.m_position, conn_vis.m_distance,
-                      conn_vis.m_predecessor, conn_vis.m_weight, select_neighborhood );
-    };
-  };
-};
-
-template < typename Graph, typename Topology, typename RRTStarConnVisitor, typename MotionGraphConnector,
-           typename PositionMap, typename NodeGenerator, typename NcSelector >
-void generate_rrt_star_bidir_loop( Graph& g, const Topology& super_space, RRTStarConnVisitor conn_vis,
-                                   MotionGraphConnector connect_vertex, PositionMap position,
-                                   NodeGenerator node_generator_func, NcSelector select_neighborhood ) {
-  typedef typename boost::property_traits< PositionMap >::value_type PositionValue;
-  typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
-  typedef typename Graph::edge_bundled EdgeProp;
-
-  while( conn_vis.keep_going() ) {
-
-    Vertex x_near_pred, x_near_succ;
-    PositionValue p_new_pred, p_new_succ;
-    EdgeProp ep_pred, ep_succ;
-    boost::tie( x_near_pred, p_new_pred, ep_pred, x_near_succ, p_new_succ, ep_succ )
-      = node_generator_func( g, conn_vis, boost::bundle_prop_to_vertex_prop( position, g ) );
-
-    if( x_near_pred != boost::graph_traits< Graph >::null_vertex() ) {
-      Vertex x_near_other = boost::graph_traits< Graph >::null_vertex();
+    if (x_near_pred != boost::graph_traits<Graph>::null_vertex()) {
+      Vertex x_near_other = boost::graph_traits<Graph>::null_vertex();
       EdgeProp ep_other;
-      connect_vertex( p_new_pred, x_near_pred, ep_pred, x_near_other, ep_other, g, super_space, conn_vis,
-                      conn_vis.m_position, conn_vis.m_distance, conn_vis.m_predecessor, conn_vis.m_fwd_distance,
-                      conn_vis.m_successor, conn_vis.m_weight, select_neighborhood );
-    };
-    if( x_near_succ != boost::graph_traits< Graph >::null_vertex() ) {
-      Vertex x_near_other = boost::graph_traits< Graph >::null_vertex();
+      connect_vertex(p_new_pred, x_near_pred, ep_pred, x_near_other, ep_other,
+                     g, super_space, conn_vis, conn_vis.m_position,
+                     conn_vis.m_distance, conn_vis.m_predecessor,
+                     conn_vis.m_fwd_distance, conn_vis.m_successor,
+                     conn_vis.m_weight, select_neighborhood);
+    }
+    if (x_near_succ != boost::graph_traits<Graph>::null_vertex()) {
+      Vertex x_near_other = boost::graph_traits<Graph>::null_vertex();
       EdgeProp ep_other;
-      connect_vertex( p_new_succ, x_near_other, ep_other, x_near_succ, ep_succ, g, super_space, conn_vis,
-                      conn_vis.m_position, conn_vis.m_distance, conn_vis.m_predecessor, conn_vis.m_fwd_distance,
-                      conn_vis.m_successor, conn_vis.m_weight, select_neighborhood );
-    };
-  };
-};
+      connect_vertex(p_new_succ, x_near_other, ep_other, x_near_succ, ep_succ,
+                     g, super_space, conn_vis, conn_vis.m_position,
+                     conn_vis.m_distance, conn_vis.m_predecessor,
+                     conn_vis.m_fwd_distance, conn_vis.m_successor,
+                     conn_vis.m_weight, select_neighborhood);
+    }
+  }
+}
 
+template <typename Graph, typename Topology, typename RRGVisitor,
+          typename PositionMap, typename DistanceMap, typename PredecessorMap,
+          typename WeightMap, typename NodeGenerator, typename NcSelector>
+void generate_rrt_star_loop(Graph& g, const Topology& super_space,
+                            RRGVisitor vis, PositionMap position,
+                            DistanceMap distance, PredecessorMap pred,
+                            WeightMap weight, NodeGenerator node_generator_func,
+                            NcSelector select_neighborhood) {
+  rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap,
+                   PredecessorMap>
+      conn_vis(vis, position, weight, distance, pred);
 
-template < typename Graph, typename Topology, typename RRGVisitor, typename PositionMap, typename DistanceMap,
-           typename PredecessorMap, typename WeightMap, typename NodeGenerator, typename NcSelector >
-void generate_rrt_star_loop( Graph& g, const Topology& super_space, RRGVisitor vis, PositionMap position,
-                             DistanceMap distance, PredecessorMap pred, WeightMap weight,
-                             NodeGenerator node_generator_func, NcSelector select_neighborhood ) {
+  generate_rrt_star_loop(g, super_space, conn_vis, lazy_node_connector(),
+                         position, node_generator_func, select_neighborhood);
+}
 
-  rrt_conn_visitor< Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap, PredecessorMap > conn_vis(
-    vis, position, weight, distance, pred );
+template <typename Graph, typename Topology, typename RRGVisitor,
+          typename PositionMap, typename DistanceMap, typename PredecessorMap,
+          typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
+          typename NodeGenerator, typename NcSelector>
+void generate_rrt_star_bidir_loop(Graph& g, const Topology& super_space,
+                                  RRGVisitor vis, PositionMap position,
+                                  DistanceMap distance, PredecessorMap pred,
+                                  FwdDistanceMap fwd_distance,
+                                  SuccessorMap succ, WeightMap weight,
+                                  NodeGenerator node_generator_func,
+                                  NcSelector select_neighborhood) {
+  rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap,
+                   PredecessorMap, FwdDistanceMap, SuccessorMap>
+      conn_vis(vis, position, weight, distance, pred, fwd_distance, succ);
 
-  generate_rrt_star_loop( g, super_space, conn_vis, lazy_node_connector(), position, node_generator_func,
-                          select_neighborhood );
-};
+  generate_rrt_star_loop(g, super_space, conn_vis, lazy_node_connector(),
+                         position, node_generator_func, select_neighborhood);
+}
 
-template < typename Graph, typename Topology, typename RRGVisitor, typename PositionMap, typename DistanceMap,
-           typename PredecessorMap, typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
-           typename NodeGenerator, typename NcSelector >
-void generate_rrt_star_bidir_loop( Graph& g, const Topology& super_space, RRGVisitor vis, PositionMap position,
-                                   DistanceMap distance, PredecessorMap pred, FwdDistanceMap fwd_distance,
-                                   SuccessorMap succ, WeightMap weight, NodeGenerator node_generator_func,
-                                   NcSelector select_neighborhood ) {
+}  // namespace
+}  // namespace detail
 
-  rrt_conn_visitor< Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap, PredecessorMap, FwdDistanceMap,
-                    SuccessorMap > conn_vis( vis, position, weight, distance, pred, fwd_distance, succ );
-
-  generate_rrt_star_loop( g, super_space, conn_vis, lazy_node_connector(), position, node_generator_func,
-                          select_neighborhood );
-};
-};
-}; // detail
-
-
-template < typename Graph, typename Topology, typename RRTStarVisitor, typename NcSelector, typename PositionMap,
-           typename WeightMap, typename DistanceMap, typename PredecessorMap,
-           typename FwdDistanceMap = detail::infinite_double_value_prop_map,
-           typename SuccessorMap = detail::null_vertex_prop_map< Graph > >
+template <typename Graph, typename Topology, typename RRTStarVisitor,
+          typename NcSelector, typename PositionMap, typename WeightMap,
+          typename DistanceMap, typename PredecessorMap,
+          typename FwdDistanceMap = detail::infinite_double_value_prop_map,
+          typename SuccessorMap = detail::null_vertex_prop_map<Graph>>
 struct rrtstar_bundle {
-  typedef Graph graph_type;
-  typedef typename boost::graph_traits< Graph >::vertex_descriptor vertex_type;
-  typedef Topology topology_type;
-  typedef RRTStarVisitor visitor_type;
-  typedef NcSelector nc_selector_type;
-  typedef PositionMap position_map_type;
-  typedef WeightMap weight_map_type;
-  typedef DistanceMap distance_map_type;
-  typedef PredecessorMap predecessor_map_type;
-  typedef FwdDistanceMap fwd_distance_map_type;
-  typedef SuccessorMap successor_map_type;
+  using Vertex = graph_vertex_t<Graph>;
 
-  graph_type* m_g;
-  vertex_type m_start_vertex;
-  vertex_type m_goal_vertex;
-  const topology_type* m_super_space;
-  visitor_type m_vis;
-  nc_selector_type m_select_neighborhood;
-  position_map_type m_position;
-  weight_map_type m_weight;
-  distance_map_type m_distance;
-  predecessor_map_type m_predecessor;
-  fwd_distance_map_type m_fwd_distance;
-  successor_map_type m_successor;
+  Graph* m_g;
+  Vertex m_start_vertex;
+  Vertex m_goal_vertex;
+  const Topology* m_super_space;
+  RRTStarVisitor m_vis;
+  NcSelector m_select_neighborhood;
+  PositionMap m_position;
+  WeightMap m_weight;
+  DistanceMap m_distance;
+  PredecessorMap m_predecessor;
+  FwdDistanceMap m_fwd_distance;
+  SuccessorMap m_successor;
 
-  rrtstar_bundle( Graph& g, vertex_type start_vertex, const Topology& super_space, RRTStarVisitor vis,
-                  NcSelector select_neighborhood, PositionMap position, WeightMap weight, DistanceMap distance,
-                  PredecessorMap predecessor, FwdDistanceMap fwd_distance = FwdDistanceMap(),
-                  SuccessorMap successor = SuccessorMap() )
-      : m_g( &g ), m_start_vertex( start_vertex ), m_goal_vertex( boost::graph_traits< Graph >::null_vertex() ),
-        m_super_space( &super_space ), m_vis( vis ), m_select_neighborhood( select_neighborhood ),
-        m_position( position ), m_weight( weight ), m_distance( distance ), m_predecessor( predecessor ),
-        m_fwd_distance( fwd_distance ), m_successor( successor ){};
+  rrtstar_bundle(Graph& g, Vertex start_vertex, const Topology& super_space,
+                 RRTStarVisitor vis, NcSelector select_neighborhood,
+                 PositionMap position, WeightMap weight, DistanceMap distance,
+                 PredecessorMap predecessor,
+                 FwdDistanceMap fwd_distance = FwdDistanceMap(),
+                 SuccessorMap successor = SuccessorMap())
+      : m_g(&g),
+        m_start_vertex(start_vertex),
+        m_goal_vertex(boost::graph_traits<Graph>::null_vertex()),
+        m_super_space(&super_space),
+        m_vis(vis),
+        m_select_neighborhood(select_neighborhood),
+        m_position(position),
+        m_weight(weight),
+        m_distance(distance),
+        m_predecessor(predecessor),
+        m_fwd_distance(fwd_distance),
+        m_successor(successor) {}
 
-  rrtstar_bundle( Graph& g, vertex_type start_vertex, vertex_type goal_vertex, const Topology& super_space,
-                  RRTStarVisitor vis, NcSelector select_neighborhood, PositionMap position, WeightMap weight,
-                  DistanceMap distance, PredecessorMap predecessor, FwdDistanceMap fwd_distance = FwdDistanceMap(),
-                  SuccessorMap successor = SuccessorMap() )
-      : m_g( &g ), m_start_vertex( start_vertex ), m_goal_vertex( goal_vertex ), m_super_space( &super_space ),
-        m_vis( vis ), m_select_neighborhood( select_neighborhood ), m_position( position ), m_weight( weight ),
-        m_distance( distance ), m_predecessor( predecessor ), m_fwd_distance( fwd_distance ),
-        m_successor( successor ){};
+  rrtstar_bundle(Graph& g, Vertex start_vertex, Vertex goal_vertex,
+                 const Topology& super_space, RRTStarVisitor vis,
+                 NcSelector select_neighborhood, PositionMap position,
+                 WeightMap weight, DistanceMap distance,
+                 PredecessorMap predecessor,
+                 FwdDistanceMap fwd_distance = FwdDistanceMap(),
+                 SuccessorMap successor = SuccessorMap())
+      : m_g(&g),
+        m_start_vertex(start_vertex),
+        m_goal_vertex(goal_vertex),
+        m_super_space(&super_space),
+        m_vis(vis),
+        m_select_neighborhood(select_neighborhood),
+        m_position(position),
+        m_weight(weight),
+        m_distance(distance),
+        m_predecessor(predecessor),
+        m_fwd_distance(fwd_distance),
+        m_successor(successor) {}
 };
-
 
 /**
   * This function template creates a bundle of parameters to be fed to any of the
@@ -338,39 +366,48 @@ struct rrtstar_bundle {
   *        vertices together with their optimal predecessor (follow in reverse to discover the
   *        complete path).
   */
-template < typename Graph, typename Topology, typename RRTStarVisitor, typename NcSelector, typename PositionMap,
-           typename WeightMap, typename DistanceMap, typename PredecessorMap >
-rrtstar_bundle< Graph, Topology, RRTStarVisitor, NcSelector, PositionMap, WeightMap, DistanceMap, PredecessorMap >
-  make_rrtstar_bundle( Graph& g, typename boost::graph_traits< Graph >::vertex_descriptor start_vertex,
-                       const Topology& super_space, RRTStarVisitor vis, NcSelector select_neighborhood,
-                       PositionMap position, WeightMap weight, DistanceMap distance, PredecessorMap predecessor ) {
+template <typename Graph, typename Topology, typename RRTStarVisitor,
+          typename NcSelector, typename PositionMap, typename WeightMap,
+          typename DistanceMap, typename PredecessorMap>
+rrtstar_bundle<Graph, Topology, RRTStarVisitor, NcSelector, PositionMap,
+               WeightMap, DistanceMap, PredecessorMap>
+make_rrtstar_bundle(Graph& g, graph_vertex_t<Graph> start_vertex,
+                    const Topology& super_space, RRTStarVisitor vis,
+                    NcSelector select_neighborhood, PositionMap position,
+                    WeightMap weight, DistanceMap distance,
+                    PredecessorMap predecessor) {
 
-  BOOST_CONCEPT_ASSERT( (boost::VertexListGraphConcept< Graph >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::MetricSpaceConcept< Topology >));
-  BOOST_CONCEPT_ASSERT( (RRGVisitorConcept< RRTStarVisitor, Graph, Topology >));
+  BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
+  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRTStarVisitor, Graph, Topology>));
 
-  return rrtstar_bundle< Graph, Topology, RRTStarVisitor, NcSelector, PositionMap, WeightMap, DistanceMap,
-                         PredecessorMap >( g, start_vertex, super_space, vis, select_neighborhood, position, weight,
-                                           distance, predecessor );
-};
+  return rrtstar_bundle<Graph, Topology, RRTStarVisitor, NcSelector,
+                        PositionMap, WeightMap, DistanceMap, PredecessorMap>(
+      g, start_vertex, super_space, vis, select_neighborhood, position, weight,
+      distance, predecessor);
+}
 
-template < typename Graph, typename Topology, typename RRTStarVisitor, typename NcSelector, typename PositionMap,
-           typename WeightMap, typename DistanceMap, typename PredecessorMap >
-rrtstar_bundle< Graph, Topology, RRTStarVisitor, NcSelector, PositionMap, WeightMap, DistanceMap, PredecessorMap >
-  make_rrtstar_bundle( Graph& g, typename boost::graph_traits< Graph >::vertex_descriptor start_vertex,
-                       typename boost::graph_traits< Graph >::vertex_descriptor goal_vertex,
-                       const Topology& super_space, RRTStarVisitor vis, NcSelector select_neighborhood,
-                       PositionMap position, WeightMap weight, DistanceMap distance, PredecessorMap predecessor ) {
+template <typename Graph, typename Topology, typename RRTStarVisitor,
+          typename NcSelector, typename PositionMap, typename WeightMap,
+          typename DistanceMap, typename PredecessorMap>
+rrtstar_bundle<Graph, Topology, RRTStarVisitor, NcSelector, PositionMap,
+               WeightMap, DistanceMap, PredecessorMap>
+make_rrtstar_bundle(Graph& g, graph_vertex_t<Graph> start_vertex,
+                    graph_vertex_t<Graph> goal_vertex,
+                    const Topology& super_space, RRTStarVisitor vis,
+                    NcSelector select_neighborhood, PositionMap position,
+                    WeightMap weight, DistanceMap distance,
+                    PredecessorMap predecessor) {
 
-  BOOST_CONCEPT_ASSERT( (boost::VertexListGraphConcept< Graph >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::MetricSpaceConcept< Topology >));
-  BOOST_CONCEPT_ASSERT( (RRGVisitorConcept< RRTStarVisitor, Graph, Topology >));
+  BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
+  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRTStarVisitor, Graph, Topology>));
 
-  return rrtstar_bundle< Graph, Topology, RRTStarVisitor, NcSelector, PositionMap, WeightMap, DistanceMap,
-                         PredecessorMap >( g, start_vertex, goal_vertex, super_space, vis, select_neighborhood,
-                                           position, weight, distance, predecessor );
-};
-
+  return rrtstar_bundle<Graph, Topology, RRTStarVisitor, NcSelector,
+                        PositionMap, WeightMap, DistanceMap, PredecessorMap>(
+      g, start_vertex, goal_vertex, super_space, vis, select_neighborhood,
+      position, weight, distance, predecessor);
+}
 
 /**
   * This function template creates a bundle of parameters to be fed to any of the
@@ -425,27 +462,32 @@ rrtstar_bundle< Graph, Topology, RRTStarVisitor, NcSelector, PositionMap, Weight
   *        remaining path to the goal).
   */
 
-template < typename Graph, typename Topology, typename RRTStarVisitor, typename NcSelector, typename PositionMap,
-           typename WeightMap, typename DistanceMap, typename PredecessorMap, typename FwdDistanceMap,
-           typename SuccessorMap >
-rrtstar_bundle< Graph, Topology, RRTStarVisitor, NcSelector, PositionMap, WeightMap, DistanceMap, PredecessorMap,
-                FwdDistanceMap, SuccessorMap >
-  make_rrtstar_bundle( Graph& g, typename boost::graph_traits< Graph >::vertex_descriptor start_vertex,
-                       typename boost::graph_traits< Graph >::vertex_descriptor goal_vertex,
-                       const Topology& super_space, RRTStarVisitor vis, NcSelector select_neighborhood,
-                       PositionMap position, WeightMap weight, DistanceMap distance, PredecessorMap predecessor,
-                       FwdDistanceMap fwd_distance, SuccessorMap successor ) {
+template <typename Graph, typename Topology, typename RRTStarVisitor,
+          typename NcSelector, typename PositionMap, typename WeightMap,
+          typename DistanceMap, typename PredecessorMap,
+          typename FwdDistanceMap, typename SuccessorMap>
+rrtstar_bundle<Graph, Topology, RRTStarVisitor, NcSelector, PositionMap,
+               WeightMap, DistanceMap, PredecessorMap, FwdDistanceMap,
+               SuccessorMap>
+make_rrtstar_bundle(Graph& g, graph_vertex_t<Graph> start_vertex,
+                    graph_vertex_t<Graph> goal_vertex,
+                    const Topology& super_space, RRTStarVisitor vis,
+                    NcSelector select_neighborhood, PositionMap position,
+                    WeightMap weight, DistanceMap distance,
+                    PredecessorMap predecessor, FwdDistanceMap fwd_distance,
+                    SuccessorMap successor) {
 
-  BOOST_CONCEPT_ASSERT( (boost::VertexListGraphConcept< Graph >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::MetricSpaceConcept< Topology >));
-  BOOST_CONCEPT_ASSERT( (RRGBidirVisitorConcept< RRTStarVisitor, Graph, Topology >));
+  BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
+  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT(
+      (RRGBidirVisitorConcept<RRTStarVisitor, Graph, Topology>));
 
-  return rrtstar_bundle< Graph, Topology, RRTStarVisitor, NcSelector, PositionMap, WeightMap, DistanceMap,
-                         PredecessorMap, FwdDistanceMap, SuccessorMap >(
-    g, start_vertex, goal_vertex, super_space, vis, select_neighborhood, position, weight, distance, predecessor,
-    fwd_distance, successor );
-};
-
+  return rrtstar_bundle<Graph, Topology, RRTStarVisitor, NcSelector,
+                        PositionMap, WeightMap, DistanceMap, PredecessorMap,
+                        FwdDistanceMap, SuccessorMap>(
+      g, start_vertex, goal_vertex, super_space, vis, select_neighborhood,
+      position, weight, distance, predecessor, fwd_distance, successor);
+}
 
 /**
   * This function template is the RRT* algorithm (refer to rrt_star.hpp dox).
@@ -483,27 +525,34 @@ rrtstar_bundle< Graph, Topology, RRTStarVisitor, NcSelector, PositionMap, Weight
   *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
   *
   */
-template < typename Graph, typename Topology, typename RRGVisitor, typename PositionMap, typename DistanceMap,
-           typename PredecessorMap, typename WeightMap, typename RandomSampler, typename NcSelector >
-void generate_rrt_star( Graph& g, const Topology& super_space, RRGVisitor vis, PositionMap position,
-                        DistanceMap distance, PredecessorMap pred, WeightMap weight, RandomSampler get_sample,
-                        NcSelector select_neighborhood ) {
-  BOOST_CONCEPT_ASSERT( (RRGVisitorConcept< RRGVisitor, Graph, Topology >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::MetricSpaceConcept< Topology >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::RandomSamplerConcept< RandomSampler, Topology >));
+template <typename Graph, typename Topology, typename RRGVisitor,
+          typename PositionMap, typename DistanceMap, typename PredecessorMap,
+          typename WeightMap, typename RandomSampler, typename NcSelector>
+void generate_rrt_star(Graph& g, const Topology& super_space, RRGVisitor vis,
+                       PositionMap position, DistanceMap distance,
+                       PredecessorMap pred, WeightMap weight,
+                       RandomSampler get_sample,
+                       NcSelector select_neighborhood) {
+  BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRGVisitor, Graph, Topology>));
+  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT(
+      (ReaK::pp::RandomSamplerConcept<RandomSampler, Topology>));
 
-  if( num_vertices( g ) == 0 )
-    throw optim::infeasible_problem( "Cannot solve a RRT* problem without start position!" );
+  if (num_vertices(g) == 0) {
+    throw optim::infeasible_problem(
+        "Cannot solve a RRT* problem without start position!");
+  }
 
-  detail::rrt_conn_visitor< Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap, PredecessorMap > conn_vis(
-    vis, position, weight, distance, pred );
+  detail::rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap,
+                           DistanceMap, PredecessorMap>
+      conn_vis(vis, position, weight, distance, pred);
 
   detail::generate_rrt_star_loop(
-    g, super_space, conn_vis, lazy_node_connector(), position,
-    rrg_node_generator< Topology, RandomSampler, NcSelector >( &super_space, get_sample, select_neighborhood ),
-    select_neighborhood );
-};
-
+      g, super_space, conn_vis, lazy_node_connector(), position,
+      rrg_node_generator<Topology, RandomSampler, NcSelector>(
+          &super_space, get_sample, select_neighborhood),
+      select_neighborhood);
+}
 
 /**
   * This function template generates a roadmap to connect a goal location to a start location
@@ -513,16 +562,15 @@ void generate_rrt_star( Graph& g, const Topology& super_space, RRGVisitor vis, P
   * \param bdl A const-reference to a RRT* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
   */
-template < typename RRTStarBundle, typename RandomSampler >
-void generate_rrt_star( const RRTStarBundle& bdl, RandomSampler get_sample ) {
+template <typename RRTStarBundle, typename RandomSampler>
+void generate_rrt_star(const RRTStarBundle& bdl, RandomSampler get_sample) {
+  put(bdl.m_distance, (*(bdl.m_g))[bdl.m_start_vertex], 0.0);
+  put(bdl.m_predecessor, (*(bdl.m_g))[bdl.m_start_vertex], bdl.m_start_vertex);
 
-  put( bdl.m_distance, ( *( bdl.m_g ) )[bdl.m_start_vertex], 0.0 );
-  put( bdl.m_predecessor, ( *( bdl.m_g ) )[bdl.m_start_vertex], bdl.m_start_vertex );
-
-  generate_rrt_star( *( bdl.m_g ), *( bdl.m_super_space ), bdl.m_vis, bdl.m_position, bdl.m_distance, bdl.m_predecessor,
-                     bdl.m_weight, get_sample, bdl.m_select_neighborhood );
-};
-
+  generate_rrt_star(*(bdl.m_g), *(bdl.m_super_space), bdl.m_vis, bdl.m_position,
+                    bdl.m_distance, bdl.m_predecessor, bdl.m_weight, get_sample,
+                    bdl.m_select_neighborhood);
+}
 
 /**
   * This function template is the Bi-directional RRT* algorithm (refer to rrt_star_bidir.hpp dox).
@@ -563,29 +611,38 @@ void generate_rrt_star( const RRTStarBundle& bdl, RandomSampler get_sample ) {
   *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
   *
   */
-template < typename Graph, typename Topology, typename RRGVisitor, typename PositionMap, typename DistanceMap,
-           typename PredecessorMap, typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
-           typename RandomSampler, typename NcSelector >
-void generate_rrt_star_bidir( Graph& g, const Topology& super_space, RRGVisitor vis, PositionMap position,
-                              DistanceMap distance, PredecessorMap pred, FwdDistanceMap fwd_distance, SuccessorMap succ,
-                              WeightMap weight, RandomSampler get_sample, NcSelector select_neighborhood ) {
-  BOOST_CONCEPT_ASSERT( (RRGBidirVisitorConcept< RRGVisitor, Graph, Topology >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::MetricSpaceConcept< Topology >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::RandomSamplerConcept< RandomSampler, Topology >));
+template <typename Graph, typename Topology, typename RRGVisitor,
+          typename PositionMap, typename DistanceMap, typename PredecessorMap,
+          typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
+          typename RandomSampler, typename NcSelector>
+void generate_rrt_star_bidir(Graph& g, const Topology& super_space,
+                             RRGVisitor vis, PositionMap position,
+                             DistanceMap distance, PredecessorMap pred,
+                             FwdDistanceMap fwd_distance, SuccessorMap succ,
+                             WeightMap weight, RandomSampler get_sample,
+                             NcSelector select_neighborhood) {
+  BOOST_CONCEPT_ASSERT((RRGBidirVisitorConcept<RRGVisitor, Graph, Topology>));
+  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT(
+      (ReaK::pp::RandomSamplerConcept<RandomSampler, Topology>));
 
-  if( num_vertices( g ) == 0 )
-    throw optim::infeasible_problem( "Cannot solve a bi-directional RRT* problem without start and goal positions!" );
+  if (num_vertices(g) == 0) {
+    throw optim::infeasible_problem(
+        "Cannot solve a bi-directional RRT* problem without start and goal "
+        "positions!");
+  }
 
-  detail::rrt_conn_visitor< Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap, PredecessorMap, FwdDistanceMap,
-                            SuccessorMap > conn_vis( vis, position, weight, distance, pred, fwd_distance, succ );
+  detail::rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap,
+                           DistanceMap, PredecessorMap, FwdDistanceMap,
+                           SuccessorMap>
+      conn_vis(vis, position, weight, distance, pred, fwd_distance, succ);
 
   detail::generate_rrt_star_bidir_loop(
-    g, super_space, conn_vis, lazy_node_connector(), position,
-    rrg_bidir_generator< Topology, RandomSampler, NcSelector, PredecessorMap, SuccessorMap >(
-      &super_space, get_sample, select_neighborhood, pred, succ ),
-    select_neighborhood );
-};
-
+      g, super_space, conn_vis, lazy_node_connector(), position,
+      rrg_bidir_generator(&super_space, get_sample, select_neighborhood, pred,
+                          succ),
+      select_neighborhood);
+}
 
 /**
   * This function template generates a roadmap to connect a goal location to a start location
@@ -595,22 +652,23 @@ void generate_rrt_star_bidir( Graph& g, const Topology& super_space, RRGVisitor 
   * \param bdl A const-reference to a RRT* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
   */
-template < typename RRTStarBundle, typename RandomSampler >
-void generate_rrt_star_bidir( const RRTStarBundle& bdl, RandomSampler get_sample ) {
-  typedef typename RRTStarBundle::graph_type Graph;
+template <typename RRTStarBundle, typename RandomSampler>
+void generate_rrt_star_bidir(const RRTStarBundle& bdl,
+                             RandomSampler get_sample) {
+  using Graph = std::decay_t<decltype(*(bdl.m_g))>;
 
-  put( bdl.m_distance, ( *( bdl.m_g ) )[bdl.m_start_vertex], 0.0 );
-  put( bdl.m_predecessor, ( *( bdl.m_g ) )[bdl.m_start_vertex], bdl.m_start_vertex );
-  if( bdl.m_goal_vertex != boost::graph_traits< Graph >::null_vertex() ) {
-    put( bdl.m_fwd_distance, ( *( bdl.m_g ) )[bdl.m_goal_vertex], 0.0 );
-    put( bdl.m_successor, ( *( bdl.m_g ) )[bdl.m_goal_vertex], bdl.m_goal_vertex );
-  };
+  put(bdl.m_distance, (*(bdl.m_g))[bdl.m_start_vertex], 0.0);
+  put(bdl.m_predecessor, (*(bdl.m_g))[bdl.m_start_vertex], bdl.m_start_vertex);
+  if (bdl.m_goal_vertex != boost::graph_traits<Graph>::null_vertex()) {
+    put(bdl.m_fwd_distance, (*(bdl.m_g))[bdl.m_goal_vertex], 0.0);
+    put(bdl.m_successor, (*(bdl.m_g))[bdl.m_goal_vertex], bdl.m_goal_vertex);
+  }
 
-  generate_rrt_star_bidir( *( bdl.m_g ), *( bdl.m_super_space ), bdl.m_vis, bdl.m_position, bdl.m_distance,
-                           bdl.m_predecessor, bdl.m_fwd_distance, bdl.m_successor, bdl.m_weight, get_sample,
-                           bdl.m_select_neighborhood );
-};
-
+  generate_rrt_star_bidir(*(bdl.m_g), *(bdl.m_super_space), bdl.m_vis,
+                          bdl.m_position, bdl.m_distance, bdl.m_predecessor,
+                          bdl.m_fwd_distance, bdl.m_successor, bdl.m_weight,
+                          get_sample, bdl.m_select_neighborhood);
+}
 
 /**
   * This function template is the RRT* algorithm (refer to rrt_star.hpp dox).
@@ -651,33 +709,41 @@ void generate_rrt_star_bidir( const RRTStarBundle& bdl, RandomSampler get_sample
   *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
   *
   */
-template < typename Graph, typename Topology, typename RRGVisitor, typename PositionMap, typename DistanceMap,
-           typename PredecessorMap, typename WeightMap, typename RandomSampler, typename NcSelector >
-void generate_bnb_rrt_star( Graph& g, typename boost::graph_traits< Graph >::vertex_descriptor start_vertex,
-                            typename boost::graph_traits< Graph >::vertex_descriptor goal_vertex,
-                            const Topology& super_space, RRGVisitor vis, PositionMap position, DistanceMap distance,
-                            PredecessorMap pred, WeightMap weight, RandomSampler get_sample,
-                            NcSelector select_neighborhood ) {
-  BOOST_CONCEPT_ASSERT( (RRGVisitorConcept< RRGVisitor, Graph, Topology >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::MetricSpaceConcept< Topology >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::RandomSamplerConcept< RandomSampler, Topology >));
+template <typename Graph, typename Topology, typename RRGVisitor,
+          typename PositionMap, typename DistanceMap, typename PredecessorMap,
+          typename WeightMap, typename RandomSampler, typename NcSelector>
+void generate_bnb_rrt_star(Graph& g, graph_vertex_t<Graph> start_vertex,
+                           graph_vertex_t<Graph> goal_vertex,
+                           const Topology& super_space, RRGVisitor vis,
+                           PositionMap position, DistanceMap distance,
+                           PredecessorMap pred, WeightMap weight,
+                           RandomSampler get_sample,
+                           NcSelector select_neighborhood) {
+  BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRGVisitor, Graph, Topology>));
+  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT(
+      (ReaK::pp::RandomSamplerConcept<RandomSampler, Topology>));
 
-  if( ( num_vertices( g ) == 0 ) || ( start_vertex == boost::graph_traits< Graph >::null_vertex() )
-      || ( goal_vertex == boost::graph_traits< Graph >::null_vertex() ) ) {
-    generate_rrt_star( g, super_space, vis, position, distance, pred, weight, get_sample, select_neighborhood );
+  if ((num_vertices(g) == 0) ||
+      (start_vertex == boost::graph_traits<Graph>::null_vertex()) ||
+      (goal_vertex == boost::graph_traits<Graph>::null_vertex())) {
+    generate_rrt_star(g, super_space, vis, position, distance, pred, weight,
+                      get_sample, select_neighborhood);
     return;
-  };
+  }
 
-  detail::rrt_conn_visitor< Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap, PredecessorMap > conn_vis(
-    vis, position, weight, distance, pred );
+  detail::rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap,
+                           DistanceMap, PredecessorMap>
+      conn_vis(vis, position, weight, distance, pred);
 
-  bnb_ordering_data< Graph > bnb_data( g, start_vertex, goal_vertex );
+  bnb_ordering_data<Graph> bnb_data(g, start_vertex, goal_vertex);
 
   detail::generate_rrt_star_loop(
-    g, super_space, conn_vis, bnb_connector< Graph >( bnb_data ), position,
-    rrg_node_generator< Topology, RandomSampler, NcSelector >( &super_space, get_sample, select_neighborhood ),
-    select_neighborhood );
-};
+      g, super_space, conn_vis, bnb_connector<Graph>(bnb_data), position,
+      rrg_node_generator<Topology, RandomSampler, NcSelector>(
+          &super_space, get_sample, select_neighborhood),
+      select_neighborhood);
+}
 
 /**
   * This function template generates a roadmap to connect a goal location to a start location
@@ -688,17 +754,16 @@ void generate_bnb_rrt_star( Graph& g, typename boost::graph_traits< Graph >::ver
   * \param bdl A const-reference to a RRT* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
   */
-template < typename RRTStarBundle, typename RandomSampler >
-void generate_bnb_rrt_star( const RRTStarBundle& bdl, RandomSampler get_sample ) {
+template <typename RRTStarBundle, typename RandomSampler>
+void generate_bnb_rrt_star(const RRTStarBundle& bdl, RandomSampler get_sample) {
+  put(bdl.m_distance, (*(bdl.m_g))[bdl.m_start_vertex], 0.0);
+  put(bdl.m_predecessor, (*(bdl.m_g))[bdl.m_start_vertex], bdl.m_start_vertex);
 
-  put( bdl.m_distance, ( *( bdl.m_g ) )[bdl.m_start_vertex], 0.0 );
-  put( bdl.m_predecessor, ( *( bdl.m_g ) )[bdl.m_start_vertex], bdl.m_start_vertex );
-
-  generate_bnb_rrt_star( *( bdl.m_g ), bdl.m_start_vertex, bdl.m_goal_vertex, *( bdl.m_super_space ), bdl.m_vis,
-                         bdl.m_position, bdl.m_distance, bdl.m_predecessor, bdl.m_weight, get_sample,
-                         bdl.m_select_neighborhood );
-};
-
+  generate_bnb_rrt_star(*(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex,
+                        *(bdl.m_super_space), bdl.m_vis, bdl.m_position,
+                        bdl.m_distance, bdl.m_predecessor, bdl.m_weight,
+                        get_sample, bdl.m_select_neighborhood);
+}
 
 /**
   * This function template is the Bi-directional RRT* algorithm (refer to rrt_star_bidir.hpp dox).
@@ -742,37 +807,45 @@ void generate_bnb_rrt_star( const RRTStarBundle& bdl, RandomSampler get_sample )
   *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
   *
   */
-template < typename Graph, typename Topology, typename RRGVisitor, typename PositionMap, typename DistanceMap,
-           typename PredecessorMap, typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
-           typename RandomSampler, typename NcSelector >
-void generate_bnb_rrt_star_bidir( Graph& g, typename boost::graph_traits< Graph >::vertex_descriptor start_vertex,
-                                  typename boost::graph_traits< Graph >::vertex_descriptor goal_vertex,
-                                  const Topology& super_space, RRGVisitor vis, PositionMap position,
-                                  DistanceMap distance, PredecessorMap pred, FwdDistanceMap fwd_distance,
-                                  SuccessorMap succ, WeightMap weight, RandomSampler get_sample,
-                                  NcSelector select_neighborhood ) {
-  BOOST_CONCEPT_ASSERT( (RRGBidirVisitorConcept< RRGVisitor, Graph, Topology >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::MetricSpaceConcept< Topology >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::RandomSamplerConcept< RandomSampler, Topology >));
+template <typename Graph, typename Topology, typename RRGVisitor,
+          typename PositionMap, typename DistanceMap, typename PredecessorMap,
+          typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
+          typename RandomSampler, typename NcSelector>
+void generate_bnb_rrt_star_bidir(Graph& g, graph_vertex_t<Graph> start_vertex,
+                                 graph_vertex_t<Graph> goal_vertex,
+                                 const Topology& super_space, RRGVisitor vis,
+                                 PositionMap position, DistanceMap distance,
+                                 PredecessorMap pred,
+                                 FwdDistanceMap fwd_distance, SuccessorMap succ,
+                                 WeightMap weight, RandomSampler get_sample,
+                                 NcSelector select_neighborhood) {
+  BOOST_CONCEPT_ASSERT((RRGBidirVisitorConcept<RRGVisitor, Graph, Topology>));
+  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT(
+      (ReaK::pp::RandomSamplerConcept<RandomSampler, Topology>));
 
-  if( ( num_vertices( g ) == 0 ) || ( start_vertex == boost::graph_traits< Graph >::null_vertex() )
-      || ( goal_vertex == boost::graph_traits< Graph >::null_vertex() ) ) {
-    generate_rrt_star_bidir( g, super_space, vis, position, distance, pred, fwd_distance, succ, weight, get_sample,
-                             select_neighborhood );
+  if ((num_vertices(g) == 0) ||
+      (start_vertex == boost::graph_traits<Graph>::null_vertex()) ||
+      (goal_vertex == boost::graph_traits<Graph>::null_vertex())) {
+    generate_rrt_star_bidir(g, super_space, vis, position, distance, pred,
+                            fwd_distance, succ, weight, get_sample,
+                            select_neighborhood);
     return;
-  };
+  }
 
-  detail::rrt_conn_visitor< Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap, PredecessorMap, FwdDistanceMap,
-                            SuccessorMap > conn_vis( vis, position, weight, distance, pred, fwd_distance, succ );
+  detail::rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap,
+                           DistanceMap, PredecessorMap, FwdDistanceMap,
+                           SuccessorMap>
+      conn_vis(vis, position, weight, distance, pred, fwd_distance, succ);
 
-  bnb_ordering_data< Graph > bnb_data( g, start_vertex, goal_vertex );
+  bnb_ordering_data<Graph> bnb_data(g, start_vertex, goal_vertex);
 
   detail::generate_rrt_star_bidir_loop(
-    g, super_space, conn_vis, bnb_connector< Graph >( bnb_data ), position,
-    rrg_bidir_generator< Topology, RandomSampler, NcSelector, PredecessorMap, SuccessorMap >(
-      &super_space, get_sample, select_neighborhood, pred, succ ),
-    select_neighborhood );
-};
+      g, super_space, conn_vis, bnb_connector<Graph>(bnb_data), position,
+      rrg_bidir_generator(&super_space, get_sample, select_neighborhood, pred,
+                          succ),
+      select_neighborhood);
+}
 
 /**
   * This function template generates a roadmap to connect a goal location to a start location
@@ -783,23 +856,25 @@ void generate_bnb_rrt_star_bidir( Graph& g, typename boost::graph_traits< Graph 
   * \param bdl A const-reference to a RRT* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
   */
-template < typename RRTStarBundle, typename RandomSampler >
-void generate_bnb_rrt_star_bidir( const RRTStarBundle& bdl, RandomSampler get_sample ) {
-  typedef typename RRTStarBundle::graph_type Graph;
+template <typename RRTStarBundle, typename RandomSampler>
+void generate_bnb_rrt_star_bidir(const RRTStarBundle& bdl,
+                                 RandomSampler get_sample) {
+  using Graph = std::decay_t<decltype(*(bdl.m_g))>;
 
-  put( bdl.m_distance, ( *( bdl.m_g ) )[bdl.m_start_vertex], 0.0 );
-  put( bdl.m_predecessor, ( *( bdl.m_g ) )[bdl.m_start_vertex], bdl.m_start_vertex );
-  if( bdl.m_goal_vertex != boost::graph_traits< Graph >::null_vertex() ) {
-    put( bdl.m_fwd_distance, ( *( bdl.m_g ) )[bdl.m_goal_vertex], 0.0 );
-    put( bdl.m_successor, ( *( bdl.m_g ) )[bdl.m_goal_vertex], bdl.m_goal_vertex );
-  };
+  put(bdl.m_distance, (*(bdl.m_g))[bdl.m_start_vertex], 0.0);
+  put(bdl.m_predecessor, (*(bdl.m_g))[bdl.m_start_vertex], bdl.m_start_vertex);
+  if (bdl.m_goal_vertex != boost::graph_traits<Graph>::null_vertex()) {
+    put(bdl.m_fwd_distance, (*(bdl.m_g))[bdl.m_goal_vertex], 0.0);
+    put(bdl.m_successor, (*(bdl.m_g))[bdl.m_goal_vertex], bdl.m_goal_vertex);
+  }
 
-  generate_bnb_rrt_star_bidir( *( bdl.m_g ), bdl.m_start_vertex, bdl.m_goal_vertex, *( bdl.m_super_space ), bdl.m_vis,
-                               bdl.m_position, bdl.m_distance, bdl.m_predecessor, bdl.m_fwd_distance, bdl.m_successor,
-                               bdl.m_weight, get_sample, bdl.m_select_neighborhood );
-};
-};
-};
+  generate_bnb_rrt_star_bidir(*(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex,
+                              *(bdl.m_super_space), bdl.m_vis, bdl.m_position,
+                              bdl.m_distance, bdl.m_predecessor,
+                              bdl.m_fwd_distance, bdl.m_successor, bdl.m_weight,
+                              get_sample, bdl.m_select_neighborhood);
+}
 
+}  // namespace ReaK::graph
 
 #endif

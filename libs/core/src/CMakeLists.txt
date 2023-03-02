@@ -17,7 +17,6 @@ set(REAK_CORE_SOURCES
   "xml_archiver.cpp"
 )
 
-if(_COMPILER_SUPPORTS_CXX11)
 set(REAK_CORE_SOURCES ${REAK_CORE_SOURCES} 
   "disc_headers.cpp"
   "remote_function.cpp"
@@ -26,7 +25,6 @@ set(REAK_CORE_SOURCES ${REAK_CORE_SOURCES}
   "rpc_server.cpp"
   "rpc_version.cpp"
 )
-endif()
 
 add_library(reak_core STATIC ${REAK_CORE_SOURCES})
 ReaK_setup_static_library(reak_core)

@@ -40,11 +40,7 @@
 
 #include "covariance_concept.hpp"
 
-
-namespace ReaK {
-
-namespace ctrl {
-
+namespace ReaK::ctrl {
 
 /**
  * This class template represents a covariance matrix type by holding
@@ -59,55 +55,59 @@ namespace ctrl {
  * \tparam VectorType The state-vector type which the covariance matrix is the covariance of, should model
  *ReadableVectorConcept.
  */
-template < typename VectorType >
+template <typename VectorType>
 class decomp_covariance_matrix : public named_object {
-public:
-  BOOST_CONCEPT_ASSERT( ( ReadableVectorConcept< VectorType > ) );
+ public:
+  BOOST_CONCEPT_ASSERT((ReadableVectorConcept<VectorType>));
 
-  typedef decomp_covariance_matrix< VectorType > self;
+  using self = decomp_covariance_matrix<VectorType>;
 
-  typedef typename vect_traits< VectorType >::value_type value_type;
-  typedef mat< value_type, mat_structure::symmetric > matrix_type;
-  typedef typename matrix_type::size_type size_type;
+  using value_type = vect_value_type_t<VectorType>;
+  using matrix_type = mat<value_type, mat_structure::symmetric>;
+  using size_type = typename matrix_type::size_type;
 
-  typedef mat< value_type, mat_structure::square > matrix_block_type;
+  using matrix_block_type = mat<value_type, mat_structure::square>;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = vect_traits< VectorType >::dimensions );
-  BOOST_STATIC_CONSTANT( covariance_storage::tag, storage = covariance_storage::other );
+  static constexpr std::size_t dimensions = vect_traits<VectorType>::dimensions;
+  static constexpr covariance_storage::tag storage = covariance_storage::other;
 
-private:
+ private:
   matrix_block_type mat_X;
   matrix_block_type mat_Y;
 
-public:
+ public:
   /**
    * Parametrized constructor.
    * \param aMatX The covarying matrix block.
    * \param aMatY The informing-inverse matrix block.
    */
-  explicit decomp_covariance_matrix( const matrix_block_type& aMatX = matrix_block_type(),
-                                     const matrix_block_type& aMatY = matrix_block_type(),
-                                     const std::string& aName = "" )
-      : mat_X( aMatX ), mat_Y( aMatY ) {
-    setName( aName );
-  };
+  explicit decomp_covariance_matrix(
+      const matrix_block_type& aMatX,
+      const matrix_block_type& aMatY = matrix_block_type(),
+      const std::string& aName = "")
+      : mat_X(aMatX), mat_Y(aMatY) {
+    setName(aName);
+  }
+
+  decomp_covariance_matrix() : decomp_covariance_matrix(matrix_block_type()) {}
 
   /**
    * Parametrized constructor.
    * \param aSize The size of the covariance matrix.
    * \param aLevel The information level to initialize this object with.
    */
-  explicit decomp_covariance_matrix( size_type aSize,
-                                     covariance_initial_level aLevel = covariance_initial_level::full_info,
-                                     const std::string& aName = "" )
-      : mat_X( aSize, value_type( 0 ) ), mat_Y( aSize, value_type( 0 ) ) {
-    setName( aName );
-    if( aLevel == covariance_initial_level::full_info ) {
-      mat_Y = mat< value_type, mat_structure::identity >( aSize );
+  explicit decomp_covariance_matrix(
+      size_type aSize,
+      covariance_initial_level aLevel = covariance_initial_level::full_info,
+      const std::string& aName = "")
+      : mat_X(aSize, value_type(0)), mat_Y(aSize, value_type(0)) {
+    setName(aName);
+    if (aLevel == covariance_initial_level::full_info) {
+      mat_Y = mat<value_type, mat_structure::identity>(aSize);
     } else {
-      mat_X = mat< value_type, mat_structure::identity >( aSize );
-    };
-  };
+      mat_X = mat<value_type, mat_structure::identity>(aSize);
+    }
+  }
 
   /**
    * Returns the covariance matrix (as a matrix object).
@@ -115,89 +115,92 @@ public:
    */
   matrix_type get_matrix() const {
     try {
-      mat< value_type, mat_structure::square > mY_inv;
-      invert_PLU( mat_Y, mY_inv );
-      return matrix_type( mat_X * mY_inv );
-    } catch( singularity_error& e ) {
-      mat< value_type, mat_structure::square > mY_inv;
-      pseudoinvert_QR( mat_Y, mY_inv );
-      return matrix_type( mat_X * mY_inv );
-    };
-  };
+      mat<value_type, mat_structure::square> mY_inv;
+      invert_PLU(mat_Y, mY_inv);
+      return matrix_type(mat_X * mY_inv);
+    } catch (singularity_error& e) {
+      mat<value_type, mat_structure::square> mY_inv;
+      pseudoinvert_QR(mat_Y, mY_inv);
+      return matrix_type(mat_X * mY_inv);
+    }
+  }
   /**
    * Returns the inverse covariance matrix (information matrix) (as a matrix object).
    * \return The inverse covariance matrix (information matrix) (as a matrix object).
    */
   matrix_type get_inverse_matrix() const {
     try {
-      mat< value_type, mat_structure::square > mX_inv;
-      invert_PLU( mat_X, mX_inv );
-      return matrix_type( mat_Y * mX_inv );
-    } catch( singularity_error& e ) {
-      mat< value_type, mat_structure::square > mX_inv;
-      pseudoinvert_QR( mat_X, mX_inv );
-      return matrix_type( mat_Y * mX_inv );
-    };
-  };
+      mat<value_type, mat_structure::square> mX_inv;
+      invert_PLU(mat_X, mX_inv);
+      return matrix_type(mat_Y * mX_inv);
+    } catch (singularity_error& e) {
+      mat<value_type, mat_structure::square> mX_inv;
+      pseudoinvert_QR(mat_X, mX_inv);
+      return matrix_type(mat_Y * mX_inv);
+    }
+  }
 
   /**
    * Returns the covarying matrix block.
    * \return The covarying matrix block.
    */
-  const matrix_block_type& get_covarying_block() const { return mat_X; };
+  const matrix_block_type& get_covarying_block() const { return mat_X; }
   /**
    * Returns the informing-inverse matrix block.
    * \return The informing-inverse matrix block.
    */
-  const matrix_block_type& get_informing_inv_block() const { return mat_Y; };
+  const matrix_block_type& get_informing_inv_block() const { return mat_Y; }
 
   /**
    * Standard swap function.
    */
-  friend void swap( self& lhs, self& rhs ) throw() {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
-    swap( lhs.mat_X, rhs.mat_X );
-    swap( lhs.mat_Y, rhs.mat_Y );
-  };
+    swap(lhs.mat_X, rhs.mat_X);
+    swap(lhs.mat_Y, rhs.mat_Y);
+  }
 
   /**
    * Standard assignment operator.
    */
-  self& operator=( self rhs ) {
-    swap( rhs, *this );
+  self& operator=(self rhs) {
+    swap(rhs, *this);
     return *this;
-  };
+  }
 
   /**
    * Implicit conversion to a covariance matrix type.
    */
-  operator matrix_type() const { return get_matrix(); };
+  operator matrix_type() const { return get_matrix(); }
 
   /**
    * Conversion to an information matrix type.
    */
-  friend matrix_type invert( const self& aObj ) { return aObj.get_inverse_matrix(); };
+  friend matrix_type invert(const self& aObj) {
+    return aObj.get_inverse_matrix();
+  }
 
   /**
    * Returns the size of the covariance matrix.
    * \return The size of the covariance matrix.
    */
-  size_type size() const { return mat_X.get_row_count(); };
+  size_type size() const { return mat_X.get_row_count(); }
 
+  void save(ReaK::serialization::oarchive& aA, unsigned int) const override {
+    ReaK::named_object::save(
+        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+    aA& RK_SERIAL_SAVE_WITH_NAME(mat_X) & RK_SERIAL_SAVE_WITH_NAME(mat_Y);
+  }
+  void load(ReaK::serialization::iarchive& aA, unsigned int) override {
+    ReaK::named_object::load(
+        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+    aA& RK_SERIAL_LOAD_WITH_NAME(mat_X) & RK_SERIAL_LOAD_WITH_NAME(mat_Y);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& aA, unsigned int ) const {
-    ReaK::named_object::save( aA, ReaK::named_object::getStaticObjectType()->TypeVersion() );
-    aA& RK_SERIAL_SAVE_WITH_NAME( mat_X ) & RK_SERIAL_SAVE_WITH_NAME( mat_Y );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& aA, unsigned int ) {
-    ReaK::named_object::load( aA, ReaK::named_object::getStaticObjectType()->TypeVersion() );
-    aA& RK_SERIAL_LOAD_WITH_NAME( mat_X ) & RK_SERIAL_LOAD_WITH_NAME( mat_Y );
-  };
-
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC230000A, 1, "decomp_covariance_matrix", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC230000A, 1, "decomp_covariance_matrix",
+                              named_object)
 };
-};
-};
 
+}  // namespace ReaK::ctrl
 
 #endif

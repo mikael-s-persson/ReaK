@@ -41,49 +41,19 @@
 
 #include "mat_alg.hpp"
 
-#include "mat_norms.hpp"
-#include "mat_damped_matrix.hpp"
-#include "mat_gaussian_elim.hpp"
-#include "mat_cholesky.hpp"
-#include "mat_jacobi_method.hpp"
-#include "mat_qr_decomp.hpp"
-#include "mat_svd_method.hpp"
+#include "mat_are_solver.hpp"
 #include "mat_balance.hpp"
+#include "mat_cholesky.hpp"
+#include "mat_damped_matrix.hpp"
 #include "mat_exp_methods.hpp"
+#include "mat_gaussian_elim.hpp"
 #include "mat_givens_rot.hpp"
 #include "mat_hess_decomp.hpp"
 #include "mat_householder.hpp"
+#include "mat_jacobi_method.hpp"
+#include "mat_norms.hpp"
+#include "mat_qr_decomp.hpp"
 #include "mat_schur_decomp.hpp"
-#include "mat_are_solver.hpp"
-
-#if 0
-
-//The shit below is just some remnent of earlier versions, these algorithms don't seem very relevant anymore.
-
-namespace ReaK {
-
-/**
- * Performs Gauss-Jordan elimination on a NxM matrix, does as much eliminations as
- * possible, without permutations, and returns the rank of A.
- * \author Mikael Persson
- */
-template <class T>
-unsigned int GaussJordanNoPivot(T* A, unsigned int N, unsigned int M, T* b, bool rowMajor = false);
-
-
-/**
-* Performs the intersection of two linear spaces defined as a point p, a parameter
-* count c, and a "jacobian" matrix A. Returns a resulting linear space, or false if
-* there is no intersection.
-*
-* \author Mikael Persson
-*/
-template <class T>
-bool IntersectLinearSpaces(T *A1, unsigned int c1, T *p1, T *A2, unsigned int c2, T *p2, unsigned int N, T **AR, unsigned int *cR, T *pR, bool rowMajor = false);
-
-}; //end of ReaK namespace.
-
-#endif
-
+#include "mat_svd_method.hpp"
 
 #endif

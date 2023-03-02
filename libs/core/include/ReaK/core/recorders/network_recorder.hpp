@@ -36,27 +36,24 @@
 
 #include "data_record.hpp"
 
-namespace ReaK {
-
-namespace recorder {
-
+namespace ReaK::recorder {
 
 class network_server_impl;
 class network_client_impl;
-
 
 /**
  * This class handles file IO operations for a binary network stream.
  */
 class network_recorder : public data_recorder {
-protected:
-  virtual void writeRow();
-  virtual void writeNames();
-  virtual void setStreamImpl( const shared_ptr< std::ostream >& aStreamPtr ){};
+ protected:
+  void writeRow() override;
+  void writeNames() override;
+  void setStreamImpl(const std::shared_ptr<std::ostream>& aStreamPtr) override {
+  }
 
-  shared_ptr< network_server_impl > pimpl;
+  std::shared_ptr<network_server_impl> pimpl;
 
-public:
+ public:
   /**
    * Default constructor.
    */
@@ -65,39 +62,41 @@ public:
   /**
    * Constructor that opens a file with name aFileName.
    */
-  network_recorder( const std::string& aFileName );
+  explicit network_recorder(const std::string& aFileName);
 
   /**
    * Destructor, closes the file.
    */
-  virtual ~network_recorder();
+  ~network_recorder() override;
 
-  virtual void setFileName( const std::string& aFileName );
+  void setFileName(const std::string& aFileName) override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    data_recorder::save( A, data_recorder::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    data_recorder::load( A, data_recorder::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    data_recorder::save(A, data_recorder::getStaticObjectType()->TypeVersion());
+  }
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    data_recorder::load(A, data_recorder::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( network_recorder, 0x81100005, 1, "network_recorder", data_recorder )
+  RK_RTTI_MAKE_CONCRETE_1BASE(network_recorder, 0x81100005, 1,
+                              "network_recorder", data_recorder)
 };
-
 
 /**
  * This class handles file IO operations for a binary data extractor.
  */
 class network_extractor : public data_extractor {
-protected:
-  virtual bool readRow();
-  virtual bool readNames();
-  virtual void setStreamImpl( const shared_ptr< std::istream >& aStreamPtr ){};
+ protected:
+  bool readRow() override;
+  bool readNames() override;
+  void setStreamImpl(const std::shared_ptr<std::istream>& aStreamPtr) override {
+  }
 
-  shared_ptr< network_client_impl > pimpl;
+  std::shared_ptr<network_client_impl> pimpl;
 
-public:
-  void addName( const std::string& s );
+ public:
+  void addName(const std::string& s);
 
   /**
    * Default constructor.
@@ -107,26 +106,29 @@ public:
   /**
    * Constructor that opens a file with name aFileName.
    */
-  network_extractor( const std::string& aFileName );
+  explicit network_extractor(const std::string& aFileName);
 
   /**
    * Destructor, closes the file.
    */
-  virtual ~network_extractor();
+  ~network_extractor() override;
 
-  virtual void setFileName( const std::string& aFilename );
+  void setFileName(const std::string& aFilename) override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    data_extractor::save( A, data_extractor::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    data_extractor::load( A, data_extractor::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    data_extractor::save(A,
+                         data_extractor::getStaticObjectType()->TypeVersion());
+  }
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    data_extractor::load(A,
+                         data_extractor::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( network_extractor, 0x81200005, 1, "network_extractor", data_extractor )
+  RK_RTTI_MAKE_CONCRETE_1BASE(network_extractor, 0x81200005, 1,
+                              "network_extractor", data_extractor)
 };
-};
-};
 
+}  // namespace ReaK::recorder
 
-#endif
+#endif  // REAK_NETWORK_RECORDER_HPP

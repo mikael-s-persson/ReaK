@@ -37,15 +37,13 @@
 #define REAK_FORCE_ACTUATOR_HPP
 
 #include <ReaK/core/base/defs.hpp>
+#include <utility>
 
 #include "kte_map.hpp"
 
 #include "reacting_kte.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class implements a force actuator acting on a joint with generalized coordinate. This base class'
@@ -53,37 +51,43 @@ namespace kte {
  * as if, the control would cancel all the forces on the joint, e.g., like in a virtual model control scheme.
  */
 class force_actuator_gen : public kte_map {
-protected:
-  shared_ptr< gen_coord< double > > mFrame; ///< Holds the generalized coordinate on which the actuator acts.
-  shared_ptr< reacting_kte_gen > mJoint;    ///< Holds the joint which will react to the actuator's force.
+ protected:
+  std::shared_ptr<gen_coord<double>>
+      mFrame;  ///< Holds the generalized coordinate on which the actuator acts.
+  std::shared_ptr<reacting_kte_gen>
+      mJoint;  ///< Holds the joint which will react to the actuator's force.
 
-public:
+ public:
   /**
    * Sets the frame on which the actuator acts.
    * \param aPtr The new frame on which the actuator acts.
    */
-  void setFrame( const shared_ptr< gen_coord< double > >& aPtr ) { mFrame = aPtr; };
+  void setFrame(const std::shared_ptr<gen_coord<double>>& aPtr) {
+    mFrame = aPtr;
+  }
   /**
    * Returns the frame on which the actuator acts.
    * \return The frame on which the actuator acts.
    */
-  shared_ptr< gen_coord< double > > Frame() const { return mFrame; };
+  std::shared_ptr<gen_coord<double>> Frame() const { return mFrame; }
 
   /**
    * Sets the joint which will react to the actuator's force.
    * \param aPtr The new joint which will react to the actuator's force.
    */
-  void setJoint( const shared_ptr< reacting_kte_gen >& aPtr ) { mJoint = aPtr; };
+  void setJoint(const std::shared_ptr<reacting_kte_gen>& aPtr) {
+    mJoint = aPtr;
+  }
   /**
    * Returns the joint which will react to the actuator's force.
    * \return The joint which will react to the actuator's force.
    */
-  shared_ptr< reacting_kte_gen > Joint() const { return mJoint; };
+  std::shared_ptr<reacting_kte_gen> Joint() const { return mJoint; }
 
   /**
   * Default constructor.
   */
-  force_actuator_gen( const std::string& aName = "" ) : kte_map( aName ), mFrame(), mJoint(){};
+  explicit force_actuator_gen(const std::string& aName = "") : kte_map(aName) {}
 
   /**
    * Parametrized constructor.
@@ -91,36 +95,40 @@ public:
    * \param aFrame the generalized coordinate on which the actuator acts.
    * \param aJoint the joint which will react to the actuator's force.
    */
-  force_actuator_gen( const std::string& aName, const shared_ptr< gen_coord< double > >& aFrame,
-                      const shared_ptr< reacting_kte_gen >& aJoint )
-      : kte_map( aName ), mFrame( aFrame ), mJoint( aJoint ){};
+  force_actuator_gen(const std::string& aName,
+                     std::shared_ptr<gen_coord<double>> aFrame,
+                     std::shared_ptr<reacting_kte_gen> aJoint)
+      : kte_map(aName), mFrame(std::move(aFrame)), mJoint(std::move(aJoint)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~force_actuator_gen(){};
+  ~force_actuator_gen() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mFrame ) & RK_SERIAL_SAVE_WITH_NAME( mJoint );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mFrame) & RK_SERIAL_SAVE_WITH_NAME(mJoint);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mFrame ) & RK_SERIAL_LOAD_WITH_NAME( mJoint );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mFrame) & RK_SERIAL_LOAD_WITH_NAME(mJoint);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( force_actuator_gen, 0xC2100019, 1, "force_actuator_gen", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(force_actuator_gen, 0xC2100019, 1,
+                              "force_actuator_gen", kte_map)
 };
-
 
 /**
  * This class implements a force actuator acting on a joint with a 2D frame. This base class'
@@ -128,37 +136,41 @@ public:
  * as if, the control would cancel all the forces on the joint, e.g., like in a virtual model control scheme.
  */
 class force_actuator_2D : public kte_map {
-protected:
-  shared_ptr< frame_2D< double > > mFrame; ///< Holds the 2D frame on which the actuator acts.
-  shared_ptr< reacting_kte_2D > mJoint;    ///< Holds the joint which will react to the actuator's force and torque.
+ protected:
+  std::shared_ptr<frame_2D<double>>
+      mFrame;  ///< Holds the 2D frame on which the actuator acts.
+  std::shared_ptr<reacting_kte_2D>
+      mJoint;  ///< Holds the joint which will react to the actuator's force and torque.
 
-public:
+ public:
   /**
    * Sets the frame on which the actuator acts.
    * \param aPtr The new frame on which the actuator acts.
    */
-  void setFrame( const shared_ptr< frame_2D< double > >& aPtr ) { mFrame = aPtr; };
+  void setFrame(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mFrame = aPtr;
+  }
   /**
    * Returns the frame on which the actuator acts.
    * \return The frame on which the actuator acts.
    */
-  shared_ptr< frame_2D< double > > Frame() const { return mFrame; };
+  std::shared_ptr<frame_2D<double>> Frame() const { return mFrame; }
 
   /**
    * Sets the joint which will react to the actuator's force.
    * \param aPtr The new joint which will react to the actuator's force.
    */
-  void setJoint( const shared_ptr< reacting_kte_2D >& aPtr ) { mJoint = aPtr; };
+  void setJoint(const std::shared_ptr<reacting_kte_2D>& aPtr) { mJoint = aPtr; }
   /**
    * Returns the joint which will react to the actuator's force.
    * \return The joint which will react to the actuator's force.
    */
-  shared_ptr< reacting_kte_2D > Joint() const { return mJoint; };
+  std::shared_ptr<reacting_kte_2D> Joint() const { return mJoint; }
 
   /**
   * Default constructor.
   */
-  force_actuator_2D( const std::string& aName = "" ) : kte_map( aName ), mFrame(), mJoint(){};
+  explicit force_actuator_2D(const std::string& aName = "") : kte_map(aName) {}
 
   /**
    * Parametrized constructor.
@@ -166,34 +178,39 @@ public:
    * \param aFrame the 2D frame on which the actuator acts.
    * \param aJoint the joint which will react to the actuator's force and torque.
    */
-  force_actuator_2D( const std::string& aName, const shared_ptr< frame_2D< double > >& aFrame,
-                     const shared_ptr< reacting_kte_2D >& aJoint )
-      : kte_map( aName ), mFrame( aFrame ), mJoint( aJoint ){};
+  force_actuator_2D(const std::string& aName,
+                    std::shared_ptr<frame_2D<double>> aFrame,
+                    std::shared_ptr<reacting_kte_2D> aJoint)
+      : kte_map(aName), mFrame(std::move(aFrame)), mJoint(std::move(aJoint)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~force_actuator_2D(){};
+  ~force_actuator_2D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mFrame ) & RK_SERIAL_SAVE_WITH_NAME( mJoint );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mFrame) & RK_SERIAL_SAVE_WITH_NAME(mJoint);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mFrame ) & RK_SERIAL_LOAD_WITH_NAME( mJoint );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mFrame) & RK_SERIAL_LOAD_WITH_NAME(mJoint);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( force_actuator_2D, 0xC210001A, 1, "force_actuator_2D", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(force_actuator_2D, 0xC210001A, 1,
+                              "force_actuator_2D", kte_map)
 };
 
 /**
@@ -202,37 +219,41 @@ public:
  * as if, the control would cancel all the forces on the joint, e.g., like in a virtual model control scheme.
  */
 class force_actuator_3D : public kte_map {
-protected:
-  shared_ptr< frame_3D< double > > mFrame; ///< Holds the 3D frame on which the actuator acts.
-  shared_ptr< reacting_kte_3D > mJoint;    ///< Holds the joint which will react to the actuator's force and torque.
+ protected:
+  std::shared_ptr<frame_3D<double>>
+      mFrame;  ///< Holds the 3D frame on which the actuator acts.
+  std::shared_ptr<reacting_kte_3D>
+      mJoint;  ///< Holds the joint which will react to the actuator's force and torque.
 
-public:
+ public:
   /**
    * Sets the frame on which the actuator acts.
    * \param aPtr The new frame on which the actuator acts.
    */
-  void setFrame( const shared_ptr< frame_3D< double > >& aPtr ) { mFrame = aPtr; };
+  void setFrame(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mFrame = aPtr;
+  }
   /**
    * Returns the frame on which the actuator acts.
    * \return The frame on which the actuator acts.
    */
-  shared_ptr< frame_3D< double > > Frame() const { return mFrame; };
+  std::shared_ptr<frame_3D<double>> Frame() const { return mFrame; }
 
   /**
    * Sets the joint which will react to the actuator's force.
    * \param aPtr The new joint which will react to the actuator's force.
    */
-  void setJoint( const shared_ptr< reacting_kte_3D >& aPtr ) { mJoint = aPtr; };
+  void setJoint(const std::shared_ptr<reacting_kte_3D>& aPtr) { mJoint = aPtr; }
   /**
    * Returns the joint which will react to the actuator's force.
    * \return The joint which will react to the actuator's force.
    */
-  shared_ptr< reacting_kte_3D > Joint() const { return mJoint; };
+  std::shared_ptr<reacting_kte_3D> Joint() const { return mJoint; }
 
   /**
   * Default constructor.
   */
-  force_actuator_3D( const std::string& aName = "" ) : kte_map( aName ), mFrame(), mJoint(){};
+  explicit force_actuator_3D(const std::string& aName = "") : kte_map(aName) {}
 
   /**
    * Parametrized constructor.
@@ -240,36 +261,41 @@ public:
    * \param aFrame the 3D frame on which the actuator acts.
    * \param aJoint the joint which will react to the actuator's force and torque.
    */
-  force_actuator_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aFrame,
-                     const shared_ptr< reacting_kte_3D >& aJoint )
-      : kte_map( aName ), mFrame( aFrame ), mJoint( aJoint ){};
+  force_actuator_3D(const std::string& aName,
+                    std::shared_ptr<frame_3D<double>> aFrame,
+                    std::shared_ptr<reacting_kte_3D> aJoint)
+      : kte_map(aName), mFrame(std::move(aFrame)), mJoint(std::move(aJoint)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~force_actuator_3D(){};
+  ~force_actuator_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mFrame ) & RK_SERIAL_SAVE_WITH_NAME( mJoint );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mFrame) & RK_SERIAL_SAVE_WITH_NAME(mJoint);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mFrame ) & RK_SERIAL_LOAD_WITH_NAME( mJoint );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mFrame) & RK_SERIAL_LOAD_WITH_NAME(mJoint);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( force_actuator_3D, 0xC210001B, 1, "force_actuator_3D", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(force_actuator_3D, 0xC210001B, 1,
+                              "force_actuator_3D", kte_map)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

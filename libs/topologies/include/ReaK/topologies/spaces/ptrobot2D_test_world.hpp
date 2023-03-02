@@ -39,21 +39,17 @@
 #ifndef REAK_PTROBOT2D_TEST_WORLD_HPP
 #define REAK_PTROBOT2D_TEST_WORLD_HPP
 
-
-#include "random_sampler_concept.hpp"
 #include "metric_space_concept.hpp"
+#include "random_sampler_concept.hpp"
 #include "reversible_space_concept.hpp"
 
+#include <ReaK/math/lin_alg/vect_alg.hpp>
 #include "default_random_sampler.hpp"
 #include "hyperbox_topology.hpp"
-#include <ReaK/math/lin_alg/vect_alg.hpp>
 
-namespace ReaK {
+namespace ReaK::pp {
 
-namespace pp {
-
-
-class ptrobot2D_test_world_impl; // forward-declaration, a faint cat.
+class ptrobot2D_test_world_impl;  // forward-declaration, a faint cat.
 
 /**
  * This class is used to represent the free-space consisting of the white pixels of an image. The configuration
@@ -63,53 +59,57 @@ class ptrobot2D_test_world_impl; // forward-declaration, a faint cat.
  * a path-planning problem, respectively.
  */
 class ptrobot2D_test_world : public named_object {
-public:
-  typedef hyperbox_topology< ReaK::vect< double, 2 > > super_space_type;
-  typedef topology_traits< super_space_type >::point_type point_type;
-  typedef topology_traits< super_space_type >::point_difference_type point_difference_type;
+ public:
+  using super_space_type = hyperbox_topology<ReaK::vect<double, 2>>;
+  using point_type = topology_point_type_t<super_space_type>;
+  using point_difference_type =
+      topology_point_difference_type_t<super_space_type>;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = topology_traits< super_space_type >::dimensions );
+  static constexpr std::size_t dimensions =
+      topology_traits<super_space_type>::dimensions;
 
-  typedef default_distance_metric distance_metric_type;
-  typedef default_random_sampler random_sampler_type;
+  using distance_metric_type = default_distance_metric;
+  using random_sampler_type = default_random_sampler;
 
-private:
+ private:
   ptrobot2D_test_world_impl* pimpl;
   std::string world_map_file_name;
   double robot_radius;
   double max_edge_length;
 
   super_space_type m_space;
-  metric_space_traits< super_space_type >::distance_metric_type m_distance;
-  point_distribution_traits< super_space_type >::random_sampler_type m_rand_sampler;
+  metric_space_traits<super_space_type>::distance_metric_type m_distance;
+  point_distribution_traits<super_space_type>::random_sampler_type
+      m_rand_sampler;
 
   ptrobot2D_test_world();
 
-public:
-  double get_robot_radius() const { return robot_radius; };
+ public:
+  double get_robot_radius() const { return robot_radius; }
 
-  double get_max_edge_length() const { return max_edge_length; };
-  void set_max_edge_length( double aMaxEdgeLength ) { max_edge_length = aMaxEdgeLength; };
+  double get_max_edge_length() const { return max_edge_length; }
+  void set_max_edge_length(double aMaxEdgeLength) {
+    max_edge_length = aMaxEdgeLength;
+  }
 
   /**
    * Returns a reference to the super-space in which this test-world is embedded.
    * \return A reference to the super-space in which this test-world is embedded.
    */
-  super_space_type& get_super_space() { return m_space; };
+  super_space_type& get_super_space() { return m_space; }
 
   /**
    * Returns a const-reference to the super-space in which this test-world is embedded.
    * \return A const-reference to the super-space in which this test-world is embedded.
    */
-  const super_space_type& get_super_space() const { return m_space; };
-
+  const super_space_type& get_super_space() const { return m_space; }
 
   /**
    * Checks if the given point is within the free-space.
    * \param p The point to be checked for being collision-free.
    * \return True if p is collision-free.
    */
-  bool is_free( const point_type& p ) const;
+  bool is_free(const point_type& p) const;
 
   /**
    * Resets the output image used to draw the edges of the motion graph.
@@ -119,7 +119,7 @@ public:
   /**
    * Saves the output image to a given filename.
    */
-  void save_output( const std::string& aFilename ) const;
+  void save_output(const std::string& aFilename) const;
 
   /**
    * Draws the given edge to the output image.
@@ -127,7 +127,8 @@ public:
    * \param p_v The end point of the edge.
    * \param goal_path True if the edge is part of the solution path.
    */
-  void draw_edge( const point_type& p_u, const point_type& p_v, bool goal_path = false ) const;
+  void draw_edge(const point_type& p_u, const point_type& p_v,
+                 bool goal_path = false) const;
 
   // Topology concepts:
 
@@ -144,19 +145,20 @@ public:
    * \param p2 The second point.
    * \return The collision-free distance between the two given points.
    */
-  double distance( const point_type& p1, const point_type& p2 ) const;
+  double distance(const point_type& p1, const point_type& p2) const;
 
   /**
    * Computes the norm of the difference between two points.
    * \param dp The point difference.
    * \return The norm of the difference between the two points.
    */
-  double norm( const point_difference_type& dp ) const;
+  double norm(const point_difference_type& dp) const;
 
   /**
    * Returns the difference between two points (a - b).
    */
-  point_difference_type difference( const point_type& p1, const point_type& p2 ) const;
+  point_difference_type difference(const point_type& p1,
+                                   const point_type& p2) const;
 
   /**
    * Returns the addition of a point-difference to a point.
@@ -166,42 +168,43 @@ public:
   /**
    * Returns the addition of a point-difference to a point.
    */
-  point_type adjust( const point_type& p, const point_difference_type& dp ) const;
+  point_type adjust(const point_type& p, const point_difference_type& dp) const;
 
   /**
    * Returns a point which is at a fraction between two points a to b, or as
    * far as it can get before a collision.
    */
-  point_type move_position_toward( const point_type& p1, double fraction, const point_type& p2 ) const;
+  point_type move_position_toward(const point_type& p1, double fraction,
+                                  const point_type& p2) const;
 
   /**
    * Returns a point which is at a backward fraction between two points a to b, or as
    * far as it can get before a collision.
    */
-  point_type move_position_back_to( const point_type& p1, double fraction, const point_type& p2 ) const;
+  point_type move_position_back_to(const point_type& p1, double fraction,
+                                   const point_type& p2) const;
 
   /**
    * Returns a random point fairly near to the given point.
    */
-  std::pair< point_type, bool > random_walk( const point_type& p_u ) const;
+  std::pair<point_type, bool> random_walk(const point_type& p_u) const;
 
   /**
    * Returns a random point fairly near to the given point.
    */
-  std::pair< point_type, bool > random_back_walk( const point_type& p_u ) const;
+  std::pair<point_type, bool> random_back_walk(const point_type& p_u) const;
 
-  double bird_fly_to_goal( const point_type& p_u ) const;
+  double bird_fly_to_goal(const point_type& p_u) const;
 
-  double bird_fly_to_start( const point_type& p_u ) const;
+  double bird_fly_to_start(const point_type& p_u) const;
 
   const point_type& get_start_pos() const;
 
   const point_type& get_goal_pos() const;
 
-  void set_start_pos( const point_type& aStart );
+  void set_start_pos(const point_type& aStart);
 
-  void set_goal_pos( const point_type& aGoal );
-
+  void set_goal_pos(const point_type& aGoal);
 
   /**
    * Parametrized constructor (this class is a RAII class).
@@ -210,35 +213,36 @@ public:
    * \param aMaxEdgeLength The maximum length of an added edge, in pixel-units.
    * \param aRobotRadius The radius of the robot (collision radius), in pixel-units.
    */
-  ptrobot2D_test_world( const std::string& aWorldMapImage, double aMaxEdgeLength, double aRobotRadius );
+  ptrobot2D_test_world(const std::string& aWorldMapImage, double aMaxEdgeLength,
+                       double aRobotRadius);
 
-  ptrobot2D_test_world( const ptrobot2D_test_world& rhs );
+  ptrobot2D_test_world(const ptrobot2D_test_world& rhs);
 
-  ptrobot2D_test_world& operator=( const ptrobot2D_test_world& rhs );
+  ptrobot2D_test_world& operator=(const ptrobot2D_test_world& rhs);
 
-  ~ptrobot2D_test_world();
-
+  ~ptrobot2D_test_world() override;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const;
+  void save(serialization::oarchive& A, unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int );
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( ptrobot2D_test_world, 0xC2400020, 1, "ptrobot2D_test_world", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(ptrobot2D_test_world, 0xC2400020, 1,
+                              "ptrobot2D_test_world", named_object)
 };
 
 template <>
-struct is_metric_space< ptrobot2D_test_world > : boost::mpl::true_ {};
+struct is_metric_space<ptrobot2D_test_world> : std::true_type {};
 
 template <>
-struct is_reversible_space< ptrobot2D_test_world > : boost::mpl::true_ {};
+struct is_reversible_space<ptrobot2D_test_world> : std::true_type {};
 
 template <>
-struct is_point_distribution< ptrobot2D_test_world > : boost::mpl::true_ {};
-};
-};
+struct is_point_distribution<ptrobot2D_test_world> : std::true_type {};
+
+}  // namespace ReaK::pp
 
 #endif

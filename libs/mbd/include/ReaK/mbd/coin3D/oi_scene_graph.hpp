@@ -54,16 +54,11 @@
 
 #include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include <map>
-#include <vector>
-
-#include <ReaK/core/base/thread_incl.hpp>
-
-#ifndef BOOST_NO_CXX11_HDR_FUNCTIONAL
 #include <functional>
-#else
-#include <boost/function.hpp>
-#endif
+#include <map>
+#include <mutex>
+#include <thread>
+#include <vector>
 
 // forward-declarations of the open-inventory node classes:
 class SoSeparator;
@@ -72,21 +67,18 @@ class SoTransform;
 class SoSensor;
 class SoTimerSensor;
 
-
-/** Main namespace for ReaK */
 namespace ReaK {
 
-template < typename T >
+template <typename T>
 class pose_2D;
-template < typename T >
+template <typename T>
 class pose_3D;
 
 namespace kte {
 class kte_map;
 class kte_map_chain;
-};
+}  // namespace kte
 
-/** Main namespace for ReaK.Geometry */
 namespace geom {
 
 class geometry_2D;
@@ -111,30 +103,30 @@ class geometry_3D;
  * the entire ReaK library to Open-Inventor (or require some awkward dummy linking scheme).
  */
 class oi_scene_graph {
-protected:
-  SoSeparator* mRoot;
+ protected:
+  SoSeparator* mRoot{nullptr};
   SoSwitch* mRootSwitch;
-  SoTimerSensor* mTimer;
+  SoTimerSensor* mTimer{nullptr};
   color mCurrentColor;
-  double mCharacteristicLength;
+  double mCharacteristicLength{1.0};
 
-  ReaKaux::recursive_mutex mAnchorUpdatingMutex;
+  std::recursive_mutex mAnchorUpdatingMutex;
 
-  std::map< shared_ptr< pose_2D< double > >, std::pair< SoSeparator*, SoTransform* > > mAnchor2DMap;
-  std::map< shared_ptr< pose_3D< double > >, std::pair< SoSeparator*, SoTransform* > > mAnchor3DMap;
+  std::map<std::shared_ptr<pose_2D<double>>,
+           std::pair<SoSeparator*, SoTransform*>>
+      mAnchor2DMap;
+  std::map<std::shared_ptr<pose_3D<double>>,
+           std::pair<SoSeparator*, SoTransform*>>
+      mAnchor3DMap;
 
-#ifndef BOOST_NO_CXX11_HDR_FUNCTIONAL
-  std::vector< std::function< void() > > mUpdateFuncs;
-#else
-  std::vector< boost::function< void() > > mUpdateFuncs;
-#endif
+  std::vector<std::function<void()>> mUpdateFuncs;
 
-  static void update_anchors( void*, SoSensor* );
+  static void update_anchors(void* /*aData*/, SoSensor* /*unused*/);
 
-public:
-  SoSeparator* getSceneGraph() const { return mRoot; };
+ public:
+  SoSeparator* getSceneGraph() const { return mRoot; }
 
-  void setVisibility( bool aVisible ) const;
+  void setVisibility(bool aVisible) const;
 
   void clearAll();
 
@@ -155,7 +147,7 @@ public:
    * KTE representations, etc.) to a size that is proportionate to the geometries.
    * \return The current value for the characteristic length of subsequent components to be added.
    */
-  double getCharacteristicLength() const { return mCharacteristicLength; };
+  double getCharacteristicLength() const { return mCharacteristicLength; }
 
   /**
    * This function computes the characteristic length used to scale the illustrative components (e.g., coordinate axes,
@@ -173,7 +165,9 @@ public:
    * included in the scene-graph.
    * \param aCharacteristicLength The new value for the characteristic length for subsequent components to be added.
    */
-  void setCharacteristicLength( double aCharacteristicLength ) { mCharacteristicLength = aCharacteristicLength; };
+  void setCharacteristicLength(double aCharacteristicLength) {
+    mCharacteristicLength = aCharacteristicLength;
+  }
 
   /**
    * Default constructor.
@@ -185,15 +179,19 @@ public:
    */
   virtual ~oi_scene_graph();
 
-  friend oi_scene_graph& operator<<( oi_scene_graph& aSG, const shared_ptr< pose_2D< double > >& aAnchor );
+  friend oi_scene_graph& operator<<(
+      oi_scene_graph& aSG, const std::shared_ptr<pose_2D<double>>& aAnchor);
 
-  friend oi_scene_graph& operator<<( oi_scene_graph& aSG, const shared_ptr< pose_3D< double > >& aAnchor );
+  friend oi_scene_graph& operator<<(
+      oi_scene_graph& aSG, const std::shared_ptr<pose_3D<double>>& aAnchor);
 
-  friend oi_scene_graph& operator<<( oi_scene_graph& aSG, const color& aColor );
+  friend oi_scene_graph& operator<<(oi_scene_graph& aSG, const color& aColor);
 
-  friend oi_scene_graph& operator<<( oi_scene_graph& aSG, const geometry_2D& aGeom2D );
+  friend oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                                    const geometry_2D& aGeom2D);
 
-  friend oi_scene_graph& operator<<( oi_scene_graph& aSG, const geometry_3D& aGeom3D );
+  friend oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                                    const geometry_3D& aGeom3D);
 
   /**
    * This operator adds all the elements of a vector to an Open-Inventor scene-graph.
@@ -202,22 +200,28 @@ public:
    * \return The Open-Inventor scene-graph given as the first parameter, by reference.
    * \tparam T Any type for which there is an appropriate scene-graph << operator.
    */
-  template < typename T >
-  friend oi_scene_graph& operator<<( oi_scene_graph& aSG, const std::vector< T >& aItems ) {
-    for( typename std::vector< T >::const_iterator it = aItems.begin(); it != aItems.end(); ++it )
-      aSG << ( *it );
+  template <typename T>
+  friend oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                                    const std::vector<T>& aItems) {
+    for (typename std::vector<T>::const_iterator it = aItems.begin();
+         it != aItems.end(); ++it) {
+      aSG << (*it);
+    }
     return aSG;
-  };
+  }
 
-  friend oi_scene_graph& operator<<( oi_scene_graph& aSG, const colored_model_2D& aModel );
+  friend oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                                    const colored_model_2D& aModel);
 
-  friend oi_scene_graph& operator<<( oi_scene_graph& aSG, const colored_model_3D& aModel );
+  friend oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                                    const colored_model_3D& aModel);
 
-  friend oi_scene_graph& operator<<( oi_scene_graph& aSG, const kte::kte_map& aModel );
+  friend oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                                    const kte::kte_map& aModel);
 
-  friend oi_scene_graph& operator<<( oi_scene_graph& aSG, const kte::kte_map_chain& aModel );
+  friend oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                                    const kte::kte_map_chain& aModel);
 };
-
 
 // Re-declaration down in the geom namespace directly as some compilers give trouble with friend functions only declared
 // in the class.
@@ -228,7 +232,8 @@ public:
  * \param aAnchor The anchor to add to the scene-graph (this will be included in the transformation updates).
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
-oi_scene_graph& operator<<( oi_scene_graph& aSG, const shared_ptr< pose_2D< double > >& aAnchor );
+oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                           const std::shared_ptr<pose_2D<double>>& aAnchor);
 
 /**
  * This operator adds a 3D anchor to an Open-Inventor scene-graph.
@@ -236,7 +241,8 @@ oi_scene_graph& operator<<( oi_scene_graph& aSG, const shared_ptr< pose_2D< doub
  * \param aAnchor The anchor to add to the scene-graph (this will be included in the transformation updates).
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
-oi_scene_graph& operator<<( oi_scene_graph& aSG, const shared_ptr< pose_3D< double > >& aAnchor );
+oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                           const std::shared_ptr<pose_3D<double>>& aAnchor);
 
 /**
  * This operator sets the current color in an Open-Inventor scene-graph, this color will be used for
@@ -245,7 +251,7 @@ oi_scene_graph& operator<<( oi_scene_graph& aSG, const shared_ptr< pose_3D< doub
  * \param aColor The new color to use for subsequent geometries added to the scene-graph.
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
-oi_scene_graph& operator<<( oi_scene_graph& aSG, const color& aColor );
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const color& aColor);
 
 /**
  * This operator adds a 2D geometry to an Open-Inventor scene-graph.
@@ -253,7 +259,7 @@ oi_scene_graph& operator<<( oi_scene_graph& aSG, const color& aColor );
  * \param aGeom2D The geometry to add to the scene-graph.
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
-oi_scene_graph& operator<<( oi_scene_graph& aSG, const geometry_2D& aGeom2D );
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D);
 
 /**
  * This operator adds a 3D geometry to an Open-Inventor scene-graph.
@@ -261,7 +267,7 @@ oi_scene_graph& operator<<( oi_scene_graph& aSG, const geometry_2D& aGeom2D );
  * \param aGeom3D The geometry to add to the scene-graph.
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
-oi_scene_graph& operator<<( oi_scene_graph& aSG, const geometry_3D& aGeom3D );
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D);
 
 /**
  * This operator adds a 2D colored geometric model to an Open-Inventor scene-graph.
@@ -269,7 +275,7 @@ oi_scene_graph& operator<<( oi_scene_graph& aSG, const geometry_3D& aGeom3D );
  * \param aModel The 2D colored geometric model to add to the scene-graph.
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
-oi_scene_graph& operator<<( oi_scene_graph& aSG, const colored_model_2D& aModel );
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_2D& aModel);
 
 /**
  * This operator adds a 3D colored geometric model to an Open-Inventor scene-graph.
@@ -277,7 +283,7 @@ oi_scene_graph& operator<<( oi_scene_graph& aSG, const colored_model_2D& aModel 
  * \param aModel The 3D colored geometric model to add to the scene-graph.
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
-oi_scene_graph& operator<<( oi_scene_graph& aSG, const colored_model_3D& aModel );
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_3D& aModel);
 
 /**
  * This operator adds a 2D proximity-query model to an Open-Inventor scene-graph.
@@ -285,7 +291,8 @@ oi_scene_graph& operator<<( oi_scene_graph& aSG, const colored_model_3D& aModel 
  * \param aModel The 2D proximity-query model to add to the scene-graph.
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
-oi_scene_graph& operator<<( oi_scene_graph& aSG, const proxy_query_model_2D& aModel );
+oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                           const proxy_query_model_2D& aModel);
 
 /**
  * This operator adds a 3D proximity-query model to an Open-Inventor scene-graph.
@@ -293,7 +300,8 @@ oi_scene_graph& operator<<( oi_scene_graph& aSG, const proxy_query_model_2D& aMo
  * \param aModel The 3D proximity-query model to add to the scene-graph.
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
-oi_scene_graph& operator<<( oi_scene_graph& aSG, const proxy_query_model_3D& aModel );
+oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                           const proxy_query_model_3D& aModel);
 
 /**
  * This operator adds a KTE model to an Open-Inventor scene-graph.
@@ -301,7 +309,7 @@ oi_scene_graph& operator<<( oi_scene_graph& aSG, const proxy_query_model_3D& aMo
  * \param aModel The KTE model to add to the scene-graph.
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
-oi_scene_graph& operator<<( oi_scene_graph& aSG, const kte::kte_map& aModel );
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel);
 
 /**
  * This operator adds a KTE chain to an Open-Inventor scene-graph.
@@ -309,8 +317,10 @@ oi_scene_graph& operator<<( oi_scene_graph& aSG, const kte::kte_map& aModel );
  * \param aModel The KTE chain to add to the scene-graph.
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
-oi_scene_graph& operator<<( oi_scene_graph& aSG, const kte::kte_map_chain& aModel );
-};
-};
+oi_scene_graph& operator<<(oi_scene_graph& aSG,
+                           const kte::kte_map_chain& aModel);
+
+}  // namespace geom
+}  // namespace ReaK
 
 #endif

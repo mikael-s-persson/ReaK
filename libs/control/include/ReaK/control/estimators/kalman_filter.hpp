@@ -39,25 +39,22 @@
 #ifndef REAK_KALMAN_FILTER_HPP
 #define REAK_KALMAN_FILTER_HPP
 
-#include <ReaK/math/lin_alg/vect_concepts.hpp>
 #include <ReaK/math/lin_alg/mat_alg.hpp>
 #include <ReaK/math/lin_alg/mat_cholesky.hpp>
+#include <ReaK/math/lin_alg/vect_concepts.hpp>
 
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 
-#include "belief_state_concept.hpp"
 #include <ReaK/control/systems/discrete_linear_sss_concept.hpp>
+#include "belief_state_concept.hpp"
 #include "covariance_concept.hpp"
-#include "gaussian_belief_state.hpp"
 #include "covariance_matrix.hpp"
+#include "gaussian_belief_state.hpp"
 
-#include <boost/utility/enable_if.hpp>
-#include <boost/static_assert.hpp>
+#include <type_traits>
+#include <utility>
 
-
-namespace ReaK {
-
-namespace ctrl {
+namespace ReaK::ctrl {
 
 /**
  * This function template performs one prediction step using the (Extended) Kalman Filter method.
@@ -78,36 +75,45 @@ namespace ctrl {
  * \param t The current time (before the prediction).
  *
  */
-template < typename LinearSystem, typename StateSpaceType, typename BeliefState, typename InputBelief >
-typename boost::enable_if_c< is_continuous_belief_state< BeliefState >::value&&(
-                               belief_state_traits< BeliefState >::representation == belief_representation::gaussian )
-                             && ( belief_state_traits< BeliefState >::distribution == belief_distribution::unimodal ),
-                             void >::type
-  kalman_predict( const LinearSystem& sys, const StateSpaceType& state_space, BeliefState& b_x, const InputBelief& b_u,
-                  typename discrete_sss_traits< LinearSystem >::time_type t = 0 ) {
-  RK_UNUSED( state_space );
+template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
+          typename InputBelief>
+void kalman_predict(
+    const LinearSystem& sys, const StateSpaceType& state_space,
+    BeliefState& b_x, const InputBelief& b_u,
+    typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
+  RK_UNUSED(state_space);
   // here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
-  BOOST_CONCEPT_ASSERT( (pp::TopologyConcept< StateSpaceType >));
-  BOOST_CONCEPT_ASSERT( (DiscreteLinearSSSConcept< LinearSystem, StateSpaceType, DiscreteLinearizedSystemType >));
-  BOOST_CONCEPT_ASSERT( (ContinuousBeliefStateConcept< BeliefState >));
-  BOOST_CONCEPT_ASSERT( (ContinuousBeliefStateConcept< InputBelief >));
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
+  BOOST_CONCEPT_ASSERT(
+      (DiscreteLinearSSSConcept<LinearSystem, StateSpaceType,
+                                DiscreteLinearizedSystemType>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
+  static_assert(is_continuous_belief_state_v<BeliefState>);
+  static_assert(belief_state_traits<BeliefState>::representation ==
+                belief_representation::gaussian);
+  static_assert(belief_state_traits<BeliefState>::distribution ==
+                belief_distribution::unimodal);
 
-  typedef typename pp::topology_traits< StateSpaceType >::point_type StateType;
-  typedef typename continuous_belief_state_traits< BeliefState >::covariance_type CovType;
+  using StateType = typename pp::topology_traits<StateSpaceType>::point_type;
+  using CovType =
+      typename continuous_belief_state_traits<BeliefState>::covariance_type;
 
-  typename discrete_linear_sss_traits< LinearSystem >::matrixA_type A;
-  typename discrete_linear_sss_traits< LinearSystem >::matrixB_type B;
+  typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A;
+  typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
   StateType x = b_x.get_mean_state();
 
-  b_x.set_mean_state( sys.get_next_state( state_space, x, b_u.get_mean_state(), t ) );
-  sys.get_state_transition_blocks( A, B, state_space, t, t + sys.get_time_step(), x, b_x.get_mean_state(),
-                                   b_u.get_mean_state(), b_u.get_mean_state() );
-  b_x.set_covariance( CovType( ( A * b_x.get_covariance().get_matrix() * transpose_view( A ) )
-                               + B * b_u.get_covariance().get_matrix() * transpose_view( B ) ) );
-};
-
+  b_x.set_mean_state(
+      sys.get_next_state(state_space, x, b_u.get_mean_state(), t));
+  sys.get_state_transition_blocks(A, B, state_space, t, t + sys.get_time_step(),
+                                  x, b_x.get_mean_state(), b_u.get_mean_state(),
+                                  b_u.get_mean_state());
+  b_x.set_covariance(
+      CovType((A * b_x.get_covariance().get_matrix() * transpose_view(A)) +
+              B * b_u.get_covariance().get_matrix() * transpose_view(B)));
+}
 
 /**
  * This function template performs one measurement update step using the (Extended) Kalman Filter method.
@@ -131,47 +137,58 @@ typename boost::enable_if_c< is_continuous_belief_state< BeliefState >::value&&(
  * \param t The current time.
  *
  */
-template < typename LinearSystem, typename StateSpaceType, typename BeliefState, typename InputBelief,
-           typename MeasurementBelief >
-typename boost::enable_if_c< is_continuous_belief_state< BeliefState >::value&&(
-                               belief_state_traits< BeliefState >::representation == belief_representation::gaussian )
-                             && ( belief_state_traits< BeliefState >::distribution == belief_distribution::unimodal ),
-                             void >::type
-  kalman_update( const LinearSystem& sys, const StateSpaceType& state_space, BeliefState& b_x, const InputBelief& b_u,
-                 const MeasurementBelief& b_z, typename discrete_sss_traits< LinearSystem >::time_type t = 0 ) {
+template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
+          typename InputBelief, typename MeasurementBelief>
+void kalman_update(
+    const LinearSystem& sys, const StateSpaceType& state_space,
+    BeliefState& b_x, const InputBelief& b_u, const MeasurementBelief& b_z,
+    typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   // here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  BOOST_CONCEPT_ASSERT( (pp::TopologyConcept< StateSpaceType >));
-  BOOST_CONCEPT_ASSERT( (DiscreteLinearSSSConcept< LinearSystem, StateSpaceType, DiscreteLinearizedSystemType >));
-  BOOST_CONCEPT_ASSERT( (ContinuousBeliefStateConcept< BeliefState >));
-  BOOST_CONCEPT_ASSERT( (ContinuousBeliefStateConcept< InputBelief >));
-  BOOST_CONCEPT_ASSERT( (ContinuousBeliefStateConcept< MeasurementBelief >));
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
+  BOOST_CONCEPT_ASSERT(
+      (DiscreteLinearSSSConcept<LinearSystem, StateSpaceType,
+                                DiscreteLinearizedSystemType>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
+  static_assert(is_continuous_belief_state_v<BeliefState>);
+  static_assert(belief_state_traits<BeliefState>::representation ==
+                belief_representation::gaussian);
+  static_assert(belief_state_traits<BeliefState>::distribution ==
+                belief_distribution::unimodal);
 
-  typedef typename pp::topology_traits< StateSpaceType >::point_type StateType;
-  typedef typename pp::topology_traits< StateSpaceType >::point_difference_type StateDiffType;
-  typedef typename continuous_belief_state_traits< BeliefState >::covariance_type CovType;
-  typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
-  typedef typename mat_traits< MatType >::value_type ValueType;
+  using StateType = typename pp::topology_traits<StateSpaceType>::point_type;
+  using StateDiffType =
+      typename pp::topology_traits<StateSpaceType>::point_difference_type;
+  using CovType =
+      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+  using MatType = typename covariance_mat_traits<CovType>::matrix_type;
+  using ValueType = mat_value_type_t<MatType>;
 
-  typename discrete_linear_sss_traits< LinearSystem >::matrixC_type C;
-  typename discrete_linear_sss_traits< LinearSystem >::matrixD_type D;
+  typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
+  typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
   StateType x = b_x.get_mean_state();
   const MatType& P = b_x.get_covariance().get_matrix();
-  sys.get_output_function_blocks( C, D, state_space, t, x, b_u.get_mean_state() );
+  sys.get_output_function_blocks(C, D, state_space, t, x, b_u.get_mean_state());
 
-  vect_n< ValueType > y
-    = to_vect< ValueType >( b_z.get_mean_state() - sys.get_output( state_space, x, b_u.get_mean_state(), t ) );
-  mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S( CP * transpose_view( C ) + b_z.get_covariance().get_matrix() );
-  linsolve_Cholesky( S, CP );
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view( CP ) );
+  vect_n<ValueType> y = to_vect<ValueType>(
+      b_z.get_mean_state() -
+      sys.get_output(state_space, x, b_u.get_mean_state(), t));
+  mat<ValueType, mat_structure::rectangular, mat_alignment::column_major> CP =
+      C * P;
+  mat<ValueType, mat_structure::symmetric> S(CP * transpose_view(C) +
+                                             b_z.get_covariance().get_matrix());
+  linsolve_Cholesky(S, CP);
+  mat<ValueType, mat_structure::rectangular, mat_alignment::row_major> K(
+      transpose_view(CP));
 
-  b_x.set_mean_state( state_space.adjust( x, from_vect< StateDiffType >( K * y ) ) );
-  b_x.set_covariance(
-    CovType( MatType( ( mat< ValueType, mat_structure::identity >( K.get_row_count() ) - K * C ) * P ) ) );
-};
-
+  b_x.set_mean_state(state_space.adjust(x, from_vect<StateDiffType>(K * y)));
+  b_x.set_covariance(CovType(MatType(
+      (mat<ValueType, mat_structure::identity>(K.get_row_count()) - K * C) *
+      P)));
+}
 
 /**
  * This function template performs one complete estimation step using the (Extended) Kalman
@@ -197,55 +214,69 @@ typename boost::enable_if_c< is_continuous_belief_state< BeliefState >::value&&(
  * \param t The current time (before the prediction).
  *
  */
-template < typename LinearSystem, typename StateSpaceType, typename BeliefState, typename InputBelief,
-           typename MeasurementBelief >
-typename boost::enable_if_c< is_continuous_belief_state< BeliefState >::value&&(
-                               belief_state_traits< BeliefState >::representation == belief_representation::gaussian )
-                             && ( belief_state_traits< BeliefState >::distribution == belief_distribution::unimodal ),
-                             void >::type
-  kalman_filter_step( const LinearSystem& sys, const StateSpaceType& state_space, BeliefState& b_x,
-                      const InputBelief& b_u, const MeasurementBelief& b_z,
-                      typename discrete_sss_traits< LinearSystem >::time_type t = 0 ) {
+template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
+          typename InputBelief, typename MeasurementBelief>
+void kalman_filter_step(
+    const LinearSystem& sys, const StateSpaceType& state_space,
+    BeliefState& b_x, const InputBelief& b_u, const MeasurementBelief& b_z,
+    typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   // here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  BOOST_CONCEPT_ASSERT( (pp::TopologyConcept< StateSpaceType >));
-  BOOST_CONCEPT_ASSERT( (DiscreteLinearSSSConcept< LinearSystem, StateSpaceType, DiscreteLinearizedSystemType >));
-  BOOST_CONCEPT_ASSERT( (ContinuousBeliefStateConcept< BeliefState >));
-  BOOST_CONCEPT_ASSERT( (ContinuousBeliefStateConcept< InputBelief >));
-  BOOST_CONCEPT_ASSERT( (ContinuousBeliefStateConcept< MeasurementBelief >));
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
+  BOOST_CONCEPT_ASSERT(
+      (DiscreteLinearSSSConcept<LinearSystem, StateSpaceType,
+                                DiscreteLinearizedSystemType>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
+  static_assert(is_continuous_belief_state_v<BeliefState>);
+  static_assert(belief_state_traits<BeliefState>::representation ==
+                belief_representation::gaussian);
+  static_assert(belief_state_traits<BeliefState>::distribution ==
+                belief_distribution::unimodal);
 
-  typedef typename pp::topology_traits< StateSpaceType >::point_type StateType;
-  typedef typename pp::topology_traits< StateSpaceType >::point_difference_type StateDiffType;
-  typedef typename continuous_belief_state_traits< BeliefState >::covariance_type CovType;
-  typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
-  typedef typename mat_traits< MatType >::value_type ValueType;
+  using StateType = typename pp::topology_traits<StateSpaceType>::point_type;
+  using StateDiffType =
+      typename pp::topology_traits<StateSpaceType>::point_difference_type;
+  using CovType =
+      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+  using MatType = typename covariance_mat_traits<CovType>::matrix_type;
+  using ValueType = mat_value_type_t<MatType>;
 
-  typename discrete_linear_sss_traits< LinearSystem >::matrixA_type A;
-  typename discrete_linear_sss_traits< LinearSystem >::matrixB_type B;
-  typename discrete_linear_sss_traits< LinearSystem >::matrixC_type C;
-  typename discrete_linear_sss_traits< LinearSystem >::matrixD_type D;
+  typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A;
+  typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
+  typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
+  typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
   StateType x = b_x.get_mean_state();
   MatType P = b_x.get_covariance().get_matrix();
 
-  x = sys.get_next_state( state_space, x, b_u.get_mean_state(), t );
-  sys.get_state_transition_blocks( A, B, state_space, t, t + sys.get_time_step(), b_x.get_mean_state(), x,
-                                   b_u.get_mean_state(), b_u.get_mean_state() );
-  P = ( A * P * transpose_view( A ) ) + B * b_u.get_covariance().get_matrix() * transpose_view( B );
+  x = sys.get_next_state(state_space, x, b_u.get_mean_state(), t);
+  sys.get_state_transition_blocks(A, B, state_space, t, t + sys.get_time_step(),
+                                  b_x.get_mean_state(), x, b_u.get_mean_state(),
+                                  b_u.get_mean_state());
+  P = (A * P * transpose_view(A)) +
+      B * b_u.get_covariance().get_matrix() * transpose_view(B);
 
-  sys.get_output_function_blocks( C, D, state_space, t + sys.get_time_step(), x, b_u.get_mean_state() );
-  vect_n< ValueType > y = to_vect< ValueType >(
-    b_z.get_mean_state() - sys.get_output( state_space, x, b_u.get_mean_state(), t + sys.get_time_step() ) );
-  mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S( CP * transpose_view( C ) + b_z.get_covariance().get_matrix() );
-  linsolve_Cholesky( S, CP );
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view( CP ) );
+  sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x,
+                                 b_u.get_mean_state());
+  vect_n<ValueType> y =
+      to_vect<ValueType>(b_z.get_mean_state() -
+                         sys.get_output(state_space, x, b_u.get_mean_state(),
+                                        t + sys.get_time_step()));
+  mat<ValueType, mat_structure::rectangular, mat_alignment::column_major> CP =
+      C * P;
+  mat<ValueType, mat_structure::symmetric> S(CP * transpose_view(C) +
+                                             b_z.get_covariance().get_matrix());
+  linsolve_Cholesky(S, CP);
+  mat<ValueType, mat_structure::rectangular, mat_alignment::row_major> K(
+      transpose_view(CP));
 
-  b_x.set_mean_state( state_space.adjust( x, from_vect< StateDiffType >( K * y ) ) );
-  b_x.set_covariance(
-    CovType( MatType( ( mat< ValueType, mat_structure::identity >( K.get_row_count() ) - K * C ) * P ) ) );
-};
-
+  b_x.set_mean_state(state_space.adjust(x, from_vect<StateDiffType>(K * y)));
+  b_x.set_covariance(CovType(MatType(
+      (mat<ValueType, mat_structure::identity>(K.get_row_count()) - K * C) *
+      P)));
+}
 
 /**
  * This class template can be used as a belief-state predictor (and transfer) that uses the
@@ -253,21 +284,25 @@ typename boost::enable_if_c< is_continuous_belief_state< BeliefState >::value&&(
  * the BeliefPredictorConcept.
  * \tparam KFTransferFactory The factory type which can create this kalman predictor.
  */
-template < typename KFTransferFactory >
+template <typename KFTransferFactory>
 struct KF_belief_transfer {
-  typedef KF_belief_transfer< KFTransferFactory > self;
-  typedef typename KFTransferFactory::state_space_system state_space_system;
-  typedef shared_ptr< state_space_system > state_space_system_ptr;
-  typedef typename discrete_sss_traits< state_space_system >::time_type time_type;
-  typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
+  using self = KF_belief_transfer<KFTransferFactory>;
+  using state_space_system = typename KFTransferFactory::state_space_system;
+  using state_space_system_ptr = std::shared_ptr<state_space_system>;
+  using time_type = typename discrete_sss_traits<state_space_system>::time_type;
+  using time_difference_type =
+      typename discrete_sss_traits<state_space_system>::time_difference_type;
 
-  typedef covariance_matrix< vect_n< double > > covariance_type;
+  using covariance_type = covariance_matrix<vect_n<double>>;
 
-  typedef typename discrete_sss_traits< state_space_system >::input_type input_type;
-  typedef typename discrete_sss_traits< state_space_system >::output_type output_type;
+  using input_type =
+      typename discrete_sss_traits<state_space_system>::input_type;
+  using output_type =
+      typename discrete_sss_traits<state_space_system>::output_type;
 
-  typedef gaussian_belief_state< input_type, covariance_type > input_belief_type;
-  typedef gaussian_belief_state< output_type, covariance_type > output_belief_type;
+  using input_belief_type = gaussian_belief_state<input_type, covariance_type>;
+  using output_belief_type =
+      gaussian_belief_state<output_type, covariance_type>;
 
   const KFTransferFactory* factory;
 
@@ -275,19 +310,24 @@ struct KF_belief_transfer {
    * Parametrized constructor.
    * \param aFactory A pointer to the factory object that is creating this object.
    */
-  explicit KF_belief_transfer( const KFTransferFactory* aFactory = nullptr ) : factory( aFactory ){};
+  explicit KF_belief_transfer(const KFTransferFactory* aFactory = nullptr)
+      : factory(aFactory) {}
 
   /**
    * Returns the time-step of the predictor.
    * \return The time-step of the predictor.
    */
-  time_difference_type get_time_step() const { return factory->get_time_step(); };
+  time_difference_type get_time_step() const {
+    return factory->get_time_step();
+  }
 
   /**
    * Returns a reference to the underlying state-space system.
    * \return A reference to the underlying state-space system.
    */
-  const state_space_system_ptr& get_ss_system() const { return factory->get_state_space_system(); };
+  const state_space_system_ptr& get_ss_system() const {
+    return factory->get_state_space_system();
+  }
 
   /**
    * Returns the belief-state at the next time instant.
@@ -299,15 +339,19 @@ struct KF_belief_transfer {
    * \param y The output that was measured at the next time instant.
    * \return the belief-state at the next time instant.
    */
-  template < typename BeliefSpace >
-  typename pp::topology_traits< BeliefSpace >::point_type
-    get_next_belief( const BeliefSpace& b_space, typename pp::topology_traits< BeliefSpace >::point_type b,
-                     const time_type& t, const input_type& u, const output_type& y ) const {
-    kalman_filter_step( *( factory->get_state_space_system() ), b_space.get_state_topology(), b,
-                        input_belief_type( u, covariance_type( factory->get_input_disturbance_cov() ) ),
-                        output_belief_type( y, covariance_type( factory->get_measurement_noise_cov() ) ), t );
+  template <typename BeliefSpace>
+  pp::topology_point_type_t<BeliefSpace> get_next_belief(
+      const BeliefSpace& b_space, pp::topology_point_type_t<BeliefSpace> b,
+      const time_type& t, const input_type& u, const output_type& y) const {
+    kalman_filter_step(
+        *(factory->get_state_space_system()), b_space.get_state_topology(), b,
+        input_belief_type(
+            u, covariance_type(factory->get_input_disturbance_cov())),
+        output_belief_type(
+            y, covariance_type(factory->get_measurement_noise_cov())),
+        t);
     return b;
-  };
+  }
 
   /**
    * Returns the prediction belief-state at the next time instant.
@@ -318,14 +362,17 @@ struct KF_belief_transfer {
    * \param u The current input given to the system.
    * \return the belief-state at the next time instant, predicted by the filter.
    */
-  template < typename BeliefSpace >
-  typename pp::topology_traits< BeliefSpace >::point_type
-    predict_belief( const BeliefSpace& b_space, typename pp::topology_traits< BeliefSpace >::point_type b,
-                    const time_type& t, const input_type& u ) const {
-    kalman_predict( *( factory->get_state_space_system() ), b_space.get_state_topology(), b,
-                    input_belief_type( u, covariance_type( factory->get_input_disturbance_cov() ) ), t );
+  template <typename BeliefSpace>
+  pp::topology_point_type_t<BeliefSpace> predict_belief(
+      const BeliefSpace& b_space, pp::topology_point_type_t<BeliefSpace> b,
+      const time_type& t, const input_type& u) const {
+    kalman_predict(
+        *(factory->get_state_space_system()), b_space.get_state_topology(), b,
+        input_belief_type(
+            u, covariance_type(factory->get_input_disturbance_cov())),
+        t);
     return b;
-  };
+  }
 
   /**
    * Converts a prediction belief-state into an updated belief-state which assumes the most likely measurement.
@@ -336,18 +383,21 @@ struct KF_belief_transfer {
    * \param u The current input given to the system.
    * \return the updated belief-state when assuming the most likely measurement.
    */
-  template < typename BeliefSpace >
-  typename pp::topology_traits< BeliefSpace >::point_type
-    prediction_to_ML_belief( const BeliefSpace& b_space, typename pp::topology_traits< BeliefSpace >::point_type b,
-                             const time_type& t, const input_type& u ) const {
-    kalman_update( *( factory->get_state_space_system() ), b_space.get_state_topology(), b,
-                   input_belief_type( u, covariance_type( factory->get_input_disturbance_cov() ) ),
-                   output_belief_type( factory->get_state_space_system()->get_output( b_space.get_state_topology(),
-                                                                                      b.get_mean_state(), u, t ),
-                                       covariance_type( factory->get_measurement_noise_cov() ) ),
-                   t );
+  template <typename BeliefSpace>
+  pp::topology_point_type_t<BeliefSpace> prediction_to_ML_belief(
+      const BeliefSpace& b_space, pp::topology_point_type_t<BeliefSpace> b,
+      const time_type& t, const input_type& u) const {
+    kalman_update(
+        *(factory->get_state_space_system()), b_space.get_state_topology(), b,
+        input_belief_type(
+            u, covariance_type(factory->get_input_disturbance_cov())),
+        output_belief_type(
+            factory->get_state_space_system()->get_output(
+                b_space.get_state_topology(), b.get_mean_state(), u, t),
+            covariance_type(factory->get_measurement_noise_cov())),
+        t);
     return b;
-  };
+  }
 
   /**
    * Returns the prediction belief-state at the next time instant, assuming the upcoming measurement to be the most
@@ -359,125 +409,145 @@ struct KF_belief_transfer {
    * \param u The current input given to the system.
    * \return the belief-state at the next time instant, predicted by the filter.
    */
-  template < typename BeliefSpace >
-  typename pp::topology_traits< BeliefSpace >::point_type
-    predict_ML_belief( const BeliefSpace& b_space, typename pp::topology_traits< BeliefSpace >::point_type b,
-                       const time_type& t, const input_type& u ) const {
-    input_belief_type b_u( u, covariance_type( factory->get_input_disturbance_cov() ) );
-    kalman_predict( *( factory->get_state_space_system() ), b_space.get_state_topology(), b, b_u, t );
-    kalman_update( *( factory->get_state_space_system() ), b_space.get_state_topology(), b, b_u,
-                   output_belief_type( factory->get_state_space_system()->get_output( b_space.get_state_topology(),
-                                                                                      b.get_mean_state(), u, t ),
-                                       covariance_type( factory->get_measurement_noise_cov() ) ),
-                   t + factory->get_state_space_system()->get_time_step() );
+  template <typename BeliefSpace>
+  pp::topology_point_type_t<BeliefSpace> predict_ML_belief(
+      const BeliefSpace& b_space, pp::topology_point_type_t<BeliefSpace> b,
+      const time_type& t, const input_type& u) const {
+    input_belief_type b_u(
+        u, covariance_type(factory->get_input_disturbance_cov()));
+    kalman_predict(*(factory->get_state_space_system()),
+                   b_space.get_state_topology(), b, b_u, t);
+    kalman_update(
+        *(factory->get_state_space_system()), b_space.get_state_topology(), b,
+        b_u,
+        output_belief_type(
+            factory->get_state_space_system()->get_output(
+                b_space.get_state_topology(), b.get_mean_state(), u, t),
+            covariance_type(factory->get_measurement_noise_cov())),
+        t + factory->get_state_space_system()->get_time_step());
     return b;
-  };
+  }
 };
-
 
 /**
  * This class is a factory class for Kalman filtering predictors on a belief-space.
  * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept
  *         at least as a DiscreteLinearizedSystemType.
  */
-template < typename LinearSystem >
+template <typename LinearSystem>
 class KF_belief_transfer_factory : public serializable {
-public:
-  typedef KF_belief_transfer_factory< LinearSystem > self;
-  typedef KF_belief_transfer< self > predictor_type;
+ public:
+  using self = KF_belief_transfer_factory<LinearSystem>;
+  using predictor_type = KF_belief_transfer<self>;
 
-  typedef LinearSystem state_space_system;
-  typedef shared_ptr< state_space_system > state_space_system_ptr;
-  typedef covariance_matrix< vect_n< double > > covariance_type;
-  typedef covariance_mat_traits< covariance_type >::matrix_type matrix_type;
+  using state_space_system = LinearSystem;
+  using state_space_system_ptr = std::shared_ptr<state_space_system>;
+  using covariance_type = covariance_matrix<vect_n<double>>;
+  using matrix_type = covariance_mat_traits<covariance_type>::matrix_type;
 
-  typedef typename discrete_sss_traits< state_space_system >::time_type time_type;
-  typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
+  using time_type = typename discrete_sss_traits<state_space_system>::time_type;
+  using time_difference_type =
+      typename discrete_sss_traits<state_space_system>::time_difference_type;
 
-  typedef typename discrete_sss_traits< state_space_system >::input_type input_type;
+  using input_type =
+      typename discrete_sss_traits<state_space_system>::input_type;
 
-  template < typename BeliefSpace >
+  template <typename BeliefSpace>
   struct predictor {
-    typedef predictor_type type;
+    using type = predictor_type;
   };
 
-private:
-  state_space_system_ptr sys; ///< Holds the reference to the system used for the filter.
-  matrix_type Q;              ///< Holds the system's input noise covariance matrix.
-  matrix_type R;              ///< Holds the system's output measurement's covariance matrix.
-public:
+ private:
+  /// Holds the reference to the system used for the filter.
+  state_space_system_ptr sys;
+  /// Holds the system's input noise covariance matrix.
+  matrix_type Q;
+  /// Holds the system's output measurement's covariance matrix.
+  matrix_type R;
+
+ public:
   /**
    * Parametrized constructor.
    * \param aSys The reference to the system used for the filter.
    * \param aQ The system's input noise covariance matrix.
    * \param aR The system's output measurement's covariance matrix.
    */
-  KF_belief_transfer_factory( const state_space_system_ptr& aSys = state_space_system_ptr(),
-                              const matrix_type& aQ = matrix_type(), const matrix_type& aR = matrix_type() )
-      : sys( aSys ), Q( aQ ), R( aR ){};
+  explicit KF_belief_transfer_factory(const state_space_system_ptr& aSys,
+                                      matrix_type aQ = matrix_type(),
+                                      matrix_type aR = matrix_type())
+      : sys(aSys), Q(std::move(aQ)), R(std::move(aR)) {}
+
+  KF_belief_transfer_factory()
+      : KF_belief_transfer_factory(state_space_system_ptr()) {}
 
   /**
    * Returns the time-step of the discrete-time system.
    * \return The time-step of the discrete-time system.
    */
-  time_difference_type get_time_step() const { return sys->get_time_step(); };
+  time_difference_type get_time_step() const { return sys->get_time_step(); }
 
   /**
    * Sets the state-space system used by this kalman filter transfer factory.
    * \param aSys The new state-space system, by shared-pointer.
    */
-  void set_state_space_system( const state_space_system_ptr& aSys ) { sys = aSys; };
+  void set_state_space_system(const state_space_system_ptr& aSys) {
+    sys = aSys;
+  }
   /**
    * Gets the state-space system used by this kalman filter transfer factory.
    * \param aSys The new state-space system, by shared-pointer.
    */
-  const state_space_system_ptr& get_state_space_system() const { return sys; };
+  const state_space_system_ptr& get_state_space_system() const { return sys; }
 
   /**
    * Sets the system input disturbance covariance matrix used by this kalman filter transfer factory.
    * \param aQ The new system input disturbance covariance matrix.
    */
-  void set_input_disturbance_cov( const matrix_type& aQ ) { Q = aQ; };
+  void set_input_disturbance_cov(const matrix_type& aQ) { Q = aQ; }
   /**
    * Returns the system input disturbance covariance matrix used by this kalman filter transfer factory.
    * \return The system input disturbance covariance matrix.
    */
-  const matrix_type& get_input_disturbance_cov() const { return Q; };
+  const matrix_type& get_input_disturbance_cov() const { return Q; }
 
   /**
    * Sets the system measurement noise covariance matrix used by this kalman filter transfer factory.
    * \param aR The new system measurement noise covariance matrix.
    */
-  void set_measurement_noise_cov( const matrix_type& aR ) { R = aR; };
+  void set_measurement_noise_cov(const matrix_type& aR) { R = aR; }
   /**
    * Returns the system measurement noise covariance matrix used by this kalman filter transfer factory.
    * \return The system measurement noise covariance matrix.
    */
-  const matrix_type& get_measurement_noise_cov() const { return R; };
+  const matrix_type& get_measurement_noise_cov() const { return R; }
 
-  template < typename BeliefSpace >
-  predictor_type create_predictor( const BeliefSpace&, const typename pp::topology_traits< BeliefSpace >::point_type*,
-                                   const time_type&, const input_type& ) const {
-    return predictor_type( this );
-  };
-
+  template <typename BeliefSpace>
+  predictor_type create_predictor(
+      const BeliefSpace& /*unused*/,
+      const typename pp::topology_traits<BeliefSpace>::point_type* /*unused*/,
+      const time_type& /*unused*/, const input_type& /*unused*/) const {
+    return predictor_type(this);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    A& RK_SERIAL_SAVE_WITH_NAME( sys ) & RK_SERIAL_SAVE_WITH_NAME( Q ) & RK_SERIAL_SAVE_WITH_NAME( R );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    A& RK_SERIAL_SAVE_WITH_NAME(sys) & RK_SERIAL_SAVE_WITH_NAME(Q) &
+        RK_SERIAL_SAVE_WITH_NAME(R);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    A& RK_SERIAL_LOAD_WITH_NAME( sys ) & RK_SERIAL_LOAD_WITH_NAME( Q ) & RK_SERIAL_LOAD_WITH_NAME( R );
-  };
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
+    A& RK_SERIAL_LOAD_WITH_NAME(sys) & RK_SERIAL_LOAD_WITH_NAME(Q) &
+        RK_SERIAL_LOAD_WITH_NAME(R);
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC2320001, 1, "KF_belief_transfer_factory", serializable )
-};
-};
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2320001, 1, "KF_belief_transfer_factory",
+                              serializable)
 };
 
+}  // namespace ReaK::ctrl
 
 #endif

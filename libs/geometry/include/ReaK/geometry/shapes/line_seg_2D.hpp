@@ -34,41 +34,36 @@
 
 #include "geometry_2D.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
+namespace ReaK::geom {
 
 /** This class defines a 2D line-segment class to render a line in a 2D scene. */
 class line_seg_2D : public geometry_2D {
-protected:
-  vect< double, 2 > mStart;
-  vect< double, 2 > mEnd;
+ protected:
+  vect<double, 2> mStart;
+  vect<double, 2> mEnd;
 
-public:
+ public:
   /**
    * This function returns the start point of the line-segment.
    * \return The start point.
    */
-  const vect< double, 2 >& getStart() const { return mStart; };
+  const vect<double, 2>& getStart() const { return mStart; }
   /**
    * This function sets the new start point of the line-segment.
    * \param aStart The new start point.
    */
-  void setStart( const vect< double, 2 >& aStart ) { mStart = aStart; };
+  void setStart(const vect<double, 2>& aStart) { mStart = aStart; }
 
   /**
    * This function returns the end point of the line-segment.
    * \return The end point.
    */
-  const vect< double, 2 >& getEnd() const { return mEnd; };
+  const vect<double, 2>& getEnd() const { return mEnd; }
   /**
    * This function sets the end point of the line-segment.
    * \param aEnd The new end point.
    */
-  void setEnd( const vect< double, 2 >& aEnd ) { mEnd = aEnd; };
+  void setEnd(const vect<double, 2>& aEnd) { mEnd = aEnd; }
 
   /**
    * Default constructor.
@@ -78,29 +73,31 @@ public:
    * \param aStart The start point of the line-segment.
    * \param aEnd The end point of the line-segment.
    */
-  line_seg_2D( const std::string& aName = "",
-               const shared_ptr< pose_2D< double > >& aAnchor = shared_ptr< pose_2D< double > >(),
-               const pose_2D< double >& aPose = pose_2D< double >(),
-               const vect< double, 2 >& aStart = ( vect< double, 2 >() ),
-               const vect< double, 2 >& aEnd = ( vect< double, 2 >() ) );
+  explicit line_seg_2D(const std::string& aName = "",
+                       const std::shared_ptr<pose_2D<double>>& aAnchor =
+                           std::shared_ptr<pose_2D<double>>(),
+                       const pose_2D<double>& aPose = pose_2D<double>(),
+                       const vect<double, 2>& aStart = (vect<double, 2>()),
+                       const vect<double, 2>& aEnd = (vect<double, 2>()));
 
   /**
    * Default destructor.
    */
-  virtual ~line_seg_2D(){};
-
+  ~line_seg_2D() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( line_seg_2D, 0xC3100004, 1, "line_seg_2D", geometry_2D )
+  RK_RTTI_MAKE_CONCRETE_1BASE(line_seg_2D, 0xC3100004, 1, "line_seg_2D",
+                              geometry_2D)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

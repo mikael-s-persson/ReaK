@@ -38,10 +38,7 @@
 
 #include <boost/concept_check.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This concept defines the requirements to fulfill in order to model a bounded metric-space
@@ -62,22 +59,21 @@ namespace pp {
  *
  * \tparam BoundedSpace The topology type to be checked for this concept.
  */
-template < typename BoundedSpace >
+template <typename BoundedSpace>
 struct BoundedSpaceConcept {
-  typename topology_traits< BoundedSpace >::point_type p;
-  typename topology_traits< BoundedSpace >::point_difference_type pd;
+  typename topology_traits<BoundedSpace>::point_type p;
+  typename topology_traits<BoundedSpace>::point_difference_type pd;
   BoundedSpace space;
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< BoundedSpace > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<BoundedSpace>));
 
-  BOOST_CONCEPT_USAGE( BoundedSpaceConcept ) {
-    pd = space.get_diff_to_boundary( p );
-    bool b = space.is_in_bounds( p );
-    RK_UNUSED( b );
-    space.bring_point_in_bounds( p );
-  };
+  BOOST_CONCEPT_USAGE(BoundedSpaceConcept) {
+    pd = space.get_diff_to_boundary(p);
+    bool b = space.is_in_bounds(p);
+    RK_UNUSED(b);
+    space.bring_point_in_bounds(p);
+  }
 };
-
 
 /**
  * This concept defines the requirements to fulfill in order to model a box-bounded metric-space
@@ -95,14 +91,13 @@ struct BoundedSpaceConcept {
  *
  * \tparam BoundedSpace The topology type to be checked for this concept.
  */
-template < typename BoundedSpace >
-struct BoxBoundedSpaceConcept : BoundedSpaceConcept< BoundedSpace > {
-  BOOST_CONCEPT_USAGE( BoxBoundedSpaceConcept ) {
+template <typename BoundedSpace>
+struct BoxBoundedSpaceConcept : BoundedSpaceConcept<BoundedSpace> {
+  BOOST_CONCEPT_USAGE(BoxBoundedSpaceConcept) {
     this->p = this->space.get_upper_corner();
     this->p = this->space.get_lower_corner();
-  };
+  }
 };
-
 
 /**
  * This concept defines the requirements to fulfill in order to model a sphere-bounded metric-space
@@ -119,17 +114,16 @@ struct BoxBoundedSpaceConcept : BoundedSpaceConcept< BoundedSpace > {
  *
  * \tparam BoundedSpace The topology type to be checked for this concept.
  */
-template < typename BoundedSpace >
-struct SphereBoundedSpaceConcept : BoundedSpaceConcept< BoundedSpace > {
+template <typename BoundedSpace>
+struct SphereBoundedSpaceConcept : BoundedSpaceConcept<BoundedSpace> {
   double d;
 
-  BOOST_CONCEPT_USAGE( SphereBoundedSpaceConcept ) {
+  BOOST_CONCEPT_USAGE(SphereBoundedSpaceConcept) {
     d = this->space.get_radius();
-    RK_UNUSED( d );
-  };
-};
-};
+    RK_UNUSED(d);
+  }
 };
 
+}  // namespace ReaK::pp
 
 #endif

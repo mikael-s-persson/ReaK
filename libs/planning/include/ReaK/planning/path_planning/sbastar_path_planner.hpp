@@ -50,11 +50,7 @@
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 #include "any_sbmp_reporter.hpp"
 
-
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class solves path planning problems using the
@@ -71,35 +67,38 @@ namespace pp {
  * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger
  * configuration space.
  */
-template < typename FreeSpaceType >
-class sbastar_planner : public sample_based_planner< FreeSpaceType > {
-public:
-  typedef sample_based_planner< FreeSpaceType > base_type;
-  typedef sbastar_planner< FreeSpaceType > self;
+template <typename FreeSpaceType>
+class sbastar_planner : public sample_based_planner<FreeSpaceType> {
+ public:
+  using base_type = sample_based_planner<FreeSpaceType>;
+  using self = sbastar_planner<FreeSpaceType>;
 
-  typedef FreeSpaceType space_type;
-  typedef typename subspace_traits< FreeSpaceType >::super_space_type super_space_type;
+  using space_type = FreeSpaceType;
+  using super_space_type =
+      typename subspace_traits<FreeSpaceType>::super_space_type;
 
-  BOOST_CONCEPT_ASSERT( ( SubSpaceConcept< FreeSpaceType > ) );
+  BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
 
-  typedef typename topology_traits< super_space_type >::point_type point_type;
-  typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
+  using point_type = topology_point_type_t<super_space_type>;
+  using point_difference_type =
+      topology_point_difference_type_t<super_space_type>;
 
-protected:
+ protected:
   double m_init_dens_threshold;
   double m_init_relaxation;
   double m_SA_init_temperature;
 
-  template < typename SBAStarFactory >
-  void solve_planning_query_impl( planning_query< FreeSpaceType >& aQuery );
+  template <typename SBAStarFactory>
+  void solve_planning_query_impl(planning_query<FreeSpaceType>& aQuery);
 
-public:
-  virtual std::size_t get_motion_graph_kind() const {
-    if( ( this->m_planning_method_flags & PLANNING_DIRECTIONALITY_MASK ) == UNIDIRECTIONAL_PLANNING )
+ public:
+  std::size_t get_motion_graph_kind() const override {
+    if ((this->m_planning_method_flags & PLANNING_DIRECTIONALITY_MASK) ==
+        UNIDIRECTIONAL_PLANNING) {
       return ASTAR_MOTION_GRAPH_KIND | RECURSIVE_DENSE_MOTION_GRAPH_KIND;
-    else
-      return BIDIR_ASTAR_MOTION_GRAPH_KIND | RECURSIVE_DENSE_MOTION_GRAPH_KIND;
-  };
+    }
+    return BIDIR_ASTAR_MOTION_GRAPH_KIND | RECURSIVE_DENSE_MOTION_GRAPH_KIND;
+  }
 
   /**
    * This function computes a valid path in the C-free. If it cannot
@@ -110,29 +109,33 @@ public:
    * \param aQuery The query object that defines as input the parameters of the query,
    *               and as output, the recorded solutions.
    */
-  virtual void solve_planning_query( planning_query< FreeSpaceType >& aQuery );
+  void solve_planning_query(planning_query<FreeSpaceType>& aQuery) override;
 
   /**
    * Returns the initial density-value threshold used by this planner.
    * \return The initial density-value threshold used by this planner.
    */
-  double get_initial_density_threshold() const { return m_init_dens_threshold; };
+  double get_initial_density_threshold() const { return m_init_dens_threshold; }
   /**
    * Sets the initial density-value threshold to be used by this planner.
    * \param aInitialThreshold The initial density-value threshold to be used by this planner.
    */
-  void set_initial_density_threshold( double aInitialThreshold ) { m_init_dens_threshold = aInitialThreshold; };
+  void set_initial_density_threshold(double aInitialThreshold) {
+    m_init_dens_threshold = aInitialThreshold;
+  }
 
   /**
    * Returns the initial relaxation factor used by this planner.
    * \return The initial relaxation factor used by this planner.
    */
-  double get_initial_relaxation() const { return m_init_relaxation; };
+  double get_initial_relaxation() const { return m_init_relaxation; }
   /**
    * Sets the initial relaxation factor to be used by this planner.
    * \param aInitialRelaxation The initial relaxation factor to be used by this planner.
    */
-  void set_initial_relaxation( double aInitialRelaxation ) { m_init_relaxation = aInitialRelaxation; };
+  void set_initial_relaxation(double aInitialRelaxation) {
+    m_init_relaxation = aInitialRelaxation;
+  }
 
   /**
    * Returns the initial Simulated Annealing temperature use by this planner, if the
@@ -141,7 +144,7 @@ public:
    * only when SBA* seaching stalls (isn't progressing anymore).
    * \return The initial Simulated Annealing temperature used by this planner.
    */
-  double get_initial_SA_temperature() const { return m_SA_init_temperature; };
+  double get_initial_SA_temperature() const { return m_SA_init_temperature; }
   /**
    * Sets the initial Simulated Annealing temperature use by this planner, if the
    * added-bias is set to an exploratory bias (e.g., PLAN_WITH_VORONOI_PULL). If negative,
@@ -149,7 +152,9 @@ public:
    * only when SBA* seaching stalls (isn't progressing anymore).
    * \param aInitialSATemperature The initial Simulated Annealing temperature to be used by this planner.
    */
-  void set_initial_SA_temperature( double aInitialSATemperature ) { m_SA_init_temperature = aInitialSATemperature; };
+  void set_initial_SA_temperature(double aInitialSATemperature) {
+    m_SA_init_temperature = aInitialSATemperature;
+  }
 
   /**
    * Parametrized constructor.
@@ -173,43 +178,50 @@ public:
    * \param aSpaceDimensionality The dimensionality of the space used by this planner.
    * \param aReporter The path-planning reporter to be used by this planner.
    */
-  sbastar_planner( const shared_ptr< space_type >& aWorld = shared_ptr< space_type >(),
-                   std::size_t aMaxVertexCount = 5000, std::size_t aProgressInterval = 100,
-                   std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH | DVP_BF2_TREE_KNN,
-                   std::size_t aPlanningMethodFlags = LAZY_COLLISION_CHECKING | NOMINAL_PLANNER_ONLY,
-                   double aSteerProgressTolerance = 0.1, double aConnectionTolerance = 0.1,
-                   double aSamplingRadius = 1.0, std::size_t aSpaceDimensionality = 1,
-                   const any_sbmp_reporter_chain< space_type >& aReporter = any_sbmp_reporter_chain< space_type >() )
-      : base_type( "sbastar_planner", aWorld, aMaxVertexCount, aProgressInterval, aDataStructureFlags,
-                   aPlanningMethodFlags, aSteerProgressTolerance, aConnectionTolerance, aSamplingRadius,
-                   aSpaceDimensionality, aReporter ),
-        m_init_dens_threshold( 0.8 ), m_init_relaxation( 0.0 ), m_SA_init_temperature( -1.0 ){};
+  explicit sbastar_planner(
+      const std::shared_ptr<space_type>& aWorld,
+      std::size_t aMaxVertexCount = 5000, std::size_t aProgressInterval = 100,
+      std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH |
+                                        DVP_BF2_TREE_KNN,
+      std::size_t aPlanningMethodFlags = LAZY_COLLISION_CHECKING |
+                                         NOMINAL_PLANNER_ONLY,
+      double aSteerProgressTolerance = 0.1, double aConnectionTolerance = 0.1,
+      double aSamplingRadius = 1.0, std::size_t aSpaceDimensionality = 1,
+      const any_sbmp_reporter_chain<space_type>& aReporter =
+          any_sbmp_reporter_chain<space_type>())
+      : base_type("sbastar_planner", aWorld, aMaxVertexCount, aProgressInterval,
+                  aDataStructureFlags, aPlanningMethodFlags,
+                  aSteerProgressTolerance, aConnectionTolerance,
+                  aSamplingRadius, aSpaceDimensionality, aReporter),
+        m_init_dens_threshold(0.8),
+        m_init_relaxation(0.0),
+        m_SA_init_temperature(-1.0) {}
 
-  virtual ~sbastar_planner(){};
+  sbastar_planner() : sbastar_planner(std::shared_ptr<space_type>()) {}
+
+  ~sbastar_planner() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    base_type::save( A, base_type::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( m_init_dens_threshold ) & RK_SERIAL_SAVE_WITH_NAME( m_init_relaxation )
-      & RK_SERIAL_SAVE_WITH_NAME( m_SA_init_temperature );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(m_init_dens_threshold) &
+        RK_SERIAL_SAVE_WITH_NAME(m_init_relaxation) &
+        RK_SERIAL_SAVE_WITH_NAME(m_SA_init_temperature);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    base_type::load( A, base_type::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( m_init_dens_threshold ) & RK_SERIAL_LOAD_WITH_NAME( m_init_relaxation )
-      & RK_SERIAL_LOAD_WITH_NAME( m_SA_init_temperature );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(m_init_dens_threshold) &
+        RK_SERIAL_LOAD_WITH_NAME(m_init_relaxation) &
+        RK_SERIAL_LOAD_WITH_NAME(m_SA_init_temperature);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC246000C, 1, "sbastar_planner", base_type )
-};
-};
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC246000C, 1, "sbastar_planner", base_type)
 };
 
-#ifdef BOOST_NO_CXX11_EXTERN_TEMPLATE
-#include "sbastar_path_planner.tpp"
-#endif
+}  // namespace ReaK::pp
 
 #endif

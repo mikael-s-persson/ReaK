@@ -26,92 +26,102 @@
 
 #include <ReaK/mbd/models/navigation_model_data.hpp>
 
-#include <ReaK/geometry/shapes/colored_model.hpp>
 #include <ReaK/geometry/proximity/proxy_query_model.hpp>
+#include <ReaK/geometry/shapes/colored_model.hpp>
+#include <memory>
 
+namespace ReaK::kte {
 
-namespace ReaK {
+navigation_scenario::navigation_scenario() {
+  this->setName("navigation_scenario");
+}
 
-namespace kte {
+void navigation_scenario::load_robot(const std::string& fileName) {
 
-
-navigation_scenario::navigation_scenario() : named_object() { this->setName( "navigation_scenario" ); };
-
-
-void navigation_scenario::load_robot( const std::string& fileName ) {
-
-  ( *serialization::open_iarchive( fileName ) ) >> robot_base_frame >> robot_kin_model >> robot_jt_limits
-    >> robot_geom_model >> robot_proxy;
+  (*serialization::open_iarchive(fileName)) >> robot_base_frame >>
+      robot_kin_model >> robot_jt_limits >> robot_geom_model >> robot_proxy;
 
   robot_env_proxies.clear();
   create_robot_env_proxies();
-};
+}
 
+void navigation_scenario::save_robot(const std::string& fileName) const {
 
-void navigation_scenario::save_robot( const std::string& fileName ) const {
+  (*serialization::open_oarchive(fileName))
+      << robot_base_frame << robot_kin_model << robot_jt_limits
+      << robot_geom_model << robot_proxy;
+}
 
-  ( *serialization::open_oarchive( fileName ) ) << robot_base_frame << robot_kin_model << robot_jt_limits
-                                                << robot_geom_model << robot_proxy;
-};
+void navigation_scenario::load_environment(const std::string& fileName) {
 
+  std::shared_ptr<geom::proxy_query_model_3D> env_proxy;
+  std::shared_ptr<geom::colored_model_3D> env_geom_model;
 
-void navigation_scenario::load_environment( const std::string& fileName ) {
+  (*serialization::open_iarchive(fileName)) >> env_geom_model >> env_proxy;
 
-  shared_ptr< geom::proxy_query_model_3D > env_proxy;
-  shared_ptr< geom::colored_model_3D > env_geom_model;
-
-  ( *serialization::open_iarchive( fileName ) ) >> env_geom_model >> env_proxy;
-
-  if( env_geom_model )
-    env_geom_models.push_back( env_geom_model );
-  if( env_proxy )
-    env_proxy_models.push_back( env_proxy );
+  if (env_geom_model) {
+    env_geom_models.push_back(env_geom_model);
+  }
+  if (env_proxy) {
+    env_proxy_models.push_back(env_proxy);
+  }
 
   create_robot_env_proxies();
-};
+}
 
-void navigation_scenario::save_environment( std::size_t id, const std::string& fileName ) const {
-  if( id >= env_geom_models.size() )
+void navigation_scenario::save_environment(std::size_t id,
+                                           const std::string& fileName) const {
+  if (id >= env_geom_models.size()) {
     return;
+  }
 
-  ( *serialization::open_oarchive( fileName ) ) << env_geom_models[id] << env_proxy_models[id];
-};
-
+  (*serialization::open_oarchive(fileName))
+      << env_geom_models[id] << env_proxy_models[id];
+}
 
 void navigation_scenario::clear_environment() {
   env_geom_models.clear();
   robot_env_proxies.clear();
-};
-
+}
 
 void navigation_scenario::create_robot_env_proxies() {
 
-  if( robot_proxy ) {
+  if (robot_proxy) {
 
-    for( std::size_t i = robot_env_proxies.size(); i < env_proxy_models.size(); ++i ) {
-      robot_env_proxies.push_back( shared_ptr< geom::proxy_query_pair_3D >( new geom::proxy_query_pair_3D(
-        "robot_env_proxy:" + env_proxy_models[i]->getName(), robot_proxy, env_proxy_models[i] ) ) );
-    };
-  };
-};
+    for (std::size_t i = robot_env_proxies.size(); i < env_proxy_models.size();
+         ++i) {
+      robot_env_proxies.push_back(std::make_shared<geom::proxy_query_pair_3D>(
+          "robot_env_proxy:" + env_proxy_models[i]->getName(), robot_proxy,
+          env_proxy_models[i]));
+    }
+  }
+}
 
+void navigation_scenario::save(serialization::oarchive& A,
+                               unsigned int /*unused*/) const {
+  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_SAVE_WITH_NAME(robot_base_frame) &
+      RK_SERIAL_SAVE_WITH_NAME(robot_kin_model) &
+      RK_SERIAL_SAVE_WITH_NAME(robot_jt_limits) &
+      RK_SERIAL_SAVE_WITH_NAME(robot_proxy) &
+      RK_SERIAL_SAVE_WITH_NAME(robot_geom_model) &
+      RK_SERIAL_SAVE_WITH_NAME(target_frame) &
+      RK_SERIAL_SAVE_WITH_NAME(env_geom_models) &
+      RK_SERIAL_SAVE_WITH_NAME(env_proxy_models) &
+      RK_SERIAL_SAVE_WITH_NAME(robot_env_proxies);
+}
 
-void RK_CALL navigation_scenario::save( serialization::oarchive& A, unsigned int ) const {
-  named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_SAVE_WITH_NAME( robot_base_frame ) & RK_SERIAL_SAVE_WITH_NAME( robot_kin_model )
-    & RK_SERIAL_SAVE_WITH_NAME( robot_jt_limits ) & RK_SERIAL_SAVE_WITH_NAME( robot_proxy )
-    & RK_SERIAL_SAVE_WITH_NAME( robot_geom_model ) & RK_SERIAL_SAVE_WITH_NAME( target_frame )
-    & RK_SERIAL_SAVE_WITH_NAME( env_geom_models ) & RK_SERIAL_SAVE_WITH_NAME( env_proxy_models )
-    & RK_SERIAL_SAVE_WITH_NAME( robot_env_proxies );
-};
-
-void RK_CALL navigation_scenario::load( serialization::iarchive& A, unsigned int ) {
-  named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_LOAD_WITH_NAME( robot_base_frame ) & RK_SERIAL_LOAD_WITH_NAME( robot_kin_model )
-    & RK_SERIAL_LOAD_WITH_NAME( robot_jt_limits ) & RK_SERIAL_LOAD_WITH_NAME( robot_proxy )
-    & RK_SERIAL_LOAD_WITH_NAME( robot_geom_model ) & RK_SERIAL_LOAD_WITH_NAME( target_frame )
-    & RK_SERIAL_LOAD_WITH_NAME( env_geom_models ) & RK_SERIAL_LOAD_WITH_NAME( env_proxy_models )
-    & RK_SERIAL_LOAD_WITH_NAME( robot_env_proxies );
-};
-};
-};
+void navigation_scenario::load(serialization::iarchive& A,
+                               unsigned int /*unused*/) {
+  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_LOAD_WITH_NAME(robot_base_frame) &
+      RK_SERIAL_LOAD_WITH_NAME(robot_kin_model) &
+      RK_SERIAL_LOAD_WITH_NAME(robot_jt_limits) &
+      RK_SERIAL_LOAD_WITH_NAME(robot_proxy) &
+      RK_SERIAL_LOAD_WITH_NAME(robot_geom_model) &
+      RK_SERIAL_LOAD_WITH_NAME(target_frame) &
+      RK_SERIAL_LOAD_WITH_NAME(env_geom_models) &
+      RK_SERIAL_LOAD_WITH_NAME(env_proxy_models) &
+      RK_SERIAL_LOAD_WITH_NAME(robot_env_proxies);
+}
+}  // namespace ReaK::kte

@@ -37,147 +37,154 @@
 
 #include <ReaK/core/base/defs.hpp>
 
+#include <array>
+#include <cmath>
 #include <vector>
 
-#include <boost/bind.hpp>
-
-namespace ReaK {
-
-
-namespace optim {
-
+namespace ReaK::optim {
 
 namespace detail {
 
-template < typename T, typename Function >
-T dichotomous_search_impl( Function f, T& low_bound, T& up_bound, T delta, T tol ) {
-  using std::fabs;
-  while( true ) {
-    T midpoint = ( low_bound + up_bound ) * T( 0.5 );
-    if( fabs( up_bound - low_bound ) < tol )
-      return f( midpoint );
-    T f1 = f( midpoint - delta );
-    T f2 = f( midpoint + delta );
-    if( f1 > f2 ) {
+template <typename T, typename Function>
+T dichotomous_search_impl(Function f, T& low_bound, T& up_bound, T delta,
+                          T tol) {
+  using std::abs;
+  while (true) {
+    T midpoint = (low_bound + up_bound) * T(0.5);
+    if (abs(up_bound - low_bound) < tol) {
+      return f(midpoint);
+    }
+    T f1 = f(midpoint - delta);
+    T f2 = f(midpoint + delta);
+    if (f1 > f2) {
       low_bound = midpoint - delta;
-      delta *= T( 0.5 );
+      delta *= T(0.5);
     } else {
       up_bound = midpoint + delta;
-      delta *= T( 0.5 );
-    };
-  };
-};
+      delta *= T(0.5);
+    }
+  }
+}
 
 const double GoldenRatioPhi = 1.618033988;
 
-template < typename T, typename Function >
-T golden_section_search_impl( Function f, T& low_bound, T& up_bound, T tol ) {
-  using std::fabs;
+template <typename T, typename Function>
+T golden_section_search_impl(Function f, T& low_bound, T& up_bound, T tol) {
+  using std::abs;
 
-  T mid_value = low_bound + ( up_bound - low_bound ) / GoldenRatioPhi;
-  T mid_cost = f( mid_value );
+  T mid_value = low_bound + (up_bound - low_bound) / GoldenRatioPhi;
+  T mid_cost = f(mid_value);
 
-  while( true ) {
-    if( fabs( low_bound - up_bound ) < tol )
-      return f( ( low_bound + up_bound ) * T( 0.5 ) );
+  while (true) {
+    if (abs(low_bound - up_bound) < tol) {
+      return f((low_bound + up_bound) * T(0.5));
+    }
 
-    T test_value = mid_value + ( up_bound - mid_value ) / GoldenRatioPhi;
-    T test_cost = f( test_value );
+    T test_value = mid_value + (up_bound - mid_value) / GoldenRatioPhi;
+    T test_cost = f(test_value);
 
-    if( test_cost < mid_cost ) {
+    if (test_cost < mid_cost) {
       low_bound = mid_value;
       mid_value = test_value;
       mid_cost = test_cost;
     } else {
       up_bound = low_bound;
       low_bound = test_value;
-    };
-  };
-};
+    }
+  }
+}
 
-inline std::vector< int >::reverse_iterator get_fibonacci_iter_for_tolerance( double low_bound, double up_bound,
-                                                                              double tol ) {
-  using std::fabs;
-  static int first_fib[2] = {0, 1};
-  static std::vector< int > fib_seq( first_fib, first_fib + 2 );
-  while( fabs( up_bound - low_bound ) > fib_seq.back() * tol )
-    fib_seq.push_back( fib_seq.back() + ( *( fib_seq.rbegin() + 1 ) ) );
+inline std::vector<int>::reverse_iterator get_fibonacci_iter_for_tolerance(
+    double low_bound, double up_bound, double tol) {
+  using std::abs;
+  static std::array<int, 2> first_fib = {0, 1};
+  static std::vector<int> fib_seq(first_fib.begin(), first_fib.end());
+  while (abs(up_bound - low_bound) > fib_seq.back() * tol) {
+    fib_seq.push_back(fib_seq.back() + (*(fib_seq.rbegin() + 1)));
+  }
   return fib_seq.rbegin();
-};
+}
 
+template <typename T, typename Function>
+T fibonacci_search_impl(Function f, T& low_bound, T& up_bound, T tol) {
+  auto fib_iter = get_fibonacci_iter_for_tolerance(low_bound, up_bound, tol);
 
-template < typename T, typename Function >
-T fibonacci_search_impl( Function f, T& low_bound, T& up_bound, T tol ) {
-  std::vector< int >::reverse_iterator fib_iter = get_fibonacci_iter_for_tolerance( low_bound, up_bound, tol );
-
-  T Lstar2 = ( up_bound - low_bound ) * T( *( fib_iter + 2 ) ) / T( *fib_iter );
+  T Lstar2 = (up_bound - low_bound) * T(*(fib_iter + 2)) / T(*fib_iter);
   T x1 = low_bound + Lstar2;
-  T x1_value = f( x1 );
+  T x1_value = f(x1);
   T x2 = up_bound - Lstar2;
-  T x2_value = f( x2 );
-  while( true ) {
+  T x2_value = f(x2);
+  while (true) {
     ++fib_iter;
-    if( ( *fib_iter ) == 2 )
+    if ((*fib_iter) == 2) {
       return x1_value;
-    if( x1_value > x2_value ) {
+    }
+    if (x1_value > x2_value) {
       low_bound = x1;
       x1 = x2;
       x1_value = x2_value;
-      x2 = up_bound - T( *( fib_iter + 2 ) ) / T( *fib_iter ) * ( up_bound - low_bound );
-      x2_value = f( x2 );
+      x2 =
+          up_bound - T(*(fib_iter + 2)) / T(*fib_iter) * (up_bound - low_bound);
+      x2_value = f(x2);
     } else {
       up_bound = x2;
       x2 = x1;
       x2_value = x1_value;
-      x1 = low_bound + T( *( fib_iter + 2 ) ) / T( *fib_iter ) * ( up_bound - low_bound );
-      x1_value = f( x1 );
-    };
-  };
-};
+      x1 = low_bound +
+           T(*(fib_iter + 2)) / T(*fib_iter) * (up_bound - low_bound);
+      x1_value = f(x1);
+    }
+  }
+}
 
-
-template < typename T, typename Function, typename GradFunction >
-T backtracking_search_impl( Function f, GradFunction df, T& low_bound, T& up_bound, T tol, T c1, T c2, T tau ) {
-  using std::fabs;
-  if( tau >= 1.0 ) {
+template <typename T, typename Function, typename GradFunction>
+T backtracking_search_impl(Function f, GradFunction df, T& low_bound,
+                           T& up_bound, T tol, T c1, T c2, T tau) {
+  using std::abs;
+  if (tau >= 1.0) {
     low_bound = up_bound;
-    return f( up_bound );
-  };
-  T x0_value = f( low_bound );
-  T x0_grad = df( low_bound );
-  T x1_value = f( up_bound );
-  T x1_grad = df( up_bound );
-  while( ( fabs( up_bound - low_bound ) > tol ) && ( ( x1_value > x0_value + c1 * ( up_bound - low_bound ) * x0_grad )
-                                                     || ( fabs( x1_grad ) > c2 * fabs( x0_grad ) ) ) ) {
-    up_bound = low_bound + tau * ( up_bound - low_bound );
-    x1_value = f( up_bound );
-    x1_grad = df( up_bound );
-  };
+    return f(up_bound);
+  }
+  T x0_value = f(low_bound);
+  T x0_grad = df(low_bound);
+  T x1_value = f(up_bound);
+  T x1_grad = df(up_bound);
+  while ((abs(up_bound - low_bound) > tol) &&
+         ((x1_value > x0_value + c1 * (up_bound - low_bound) * x0_grad) ||
+          (abs(x1_grad) > c2 * abs(x0_grad)))) {
+    up_bound = low_bound + tau * (up_bound - low_bound);
+    x1_value = f(up_bound);
+    x1_grad = df(up_bound);
+  }
   low_bound = up_bound;
   return x1_value;
-};
+}
 
-
-template < typename T, typename Function, typename GradFunction >
-void expand_and_zoom_zoom_impl( Function f, GradFunction df, T& low_bound, T x0_value, T x0_grad, T& x1, T& x1_value,
-                                T& x1_grad, T& x2, T& x2_value, T& x2_grad, T& up_bound, T tol, T c1, T c2 ) {
+template <typename T, typename Function, typename GradFunction>
+void expand_and_zoom_zoom_impl(Function f, GradFunction df, T& low_bound,
+                               T x0_value, T x0_grad, T& x1, T& x1_value,
+                               T& x1_grad, T& x2, T& x2_value, T& x2_grad,
+                               T& up_bound, T tol, T c1, T c2) {
+  using std::abs;
   using std::sqrt;
-  using std::fabs;
 
-  while( fabs( x2 - x1 ) > tol * fabs( up_bound - low_bound ) ) {
-    T d1 = x1_grad + x2_grad - T( 3.0 ) * ( x1_value - x2_value ) / ( x1 - x2 );
-    T d2 = sqrt( d1 * d1 - x1_grad * x2_grad );
-    if( x2 < x1 )
-      d2 *= T( -1.0 );
-    T tmp = x2 - ( x2 - x1 ) * ( x2_grad + d2 - d1 ) / ( x2_grad - x1_grad + T( 2.0 ) * d2 );
-    T tmp_value = f( tmp );
-    T tmp_grad = df( tmp );
-    if( ( tmp_value > x0_value + c1 * ( tmp - low_bound ) * x0_grad ) || ( tmp_value >= x1_value ) ) {
+  while (abs(x2 - x1) > tol * abs(up_bound - low_bound)) {
+    T d1 = x1_grad + x2_grad - T(3.0) * (x1_value - x2_value) / (x1 - x2);
+    T d2 = sqrt(d1 * d1 - x1_grad * x2_grad);
+    if (x2 < x1) {
+      d2 *= T(-1.0);
+    }
+    T tmp = x2 -
+            (x2 - x1) * (x2_grad + d2 - d1) / (x2_grad - x1_grad + T(2.0) * d2);
+    T tmp_value = f(tmp);
+    T tmp_grad = df(tmp);
+    if ((tmp_value > x0_value + c1 * (tmp - low_bound) * x0_grad) ||
+        (tmp_value >= x1_value)) {
       x2 = tmp;
       x2_value = tmp_value;
       x2_grad = tmp_grad;
     } else {
-      if( fabs( tmp_grad ) <= -c2 * x0_grad ) {
+      if (abs(tmp_grad) <= -c2 * x0_grad) {
         x1 = tmp;
         x1_value = tmp_value;
         x1_grad = tmp_grad;
@@ -185,57 +192,62 @@ void expand_and_zoom_zoom_impl( Function f, GradFunction df, T& low_bound, T x0_
         x2_value = tmp_value;
         x2_grad = tmp_grad;
         return;
-      };
-      if( tmp_grad * ( x2 - x1 ) >= T( 0.0 ) ) {
+      }
+      if (tmp_grad * (x2 - x1) >= T(0.0)) {
         x2 = x1;
         x2_value = x1_value;
         x2_grad = x1_grad;
-      };
+      }
       x1 = tmp;
       x1_value = tmp_value;
       x1_grad = tmp_grad;
-    };
-  };
-};
+    }
+  }
+}
 
-template < typename T, typename Function, typename GradFunction >
-T expand_and_zoom_search_impl( Function f, GradFunction df, T& low_bound, T& up_bound, T tol, T c1, T c2 ) {
-  using std::fabs;
-  T x0_value = f( low_bound );
-  T x0_grad = df( low_bound );
+template <typename T, typename Function, typename GradFunction>
+T expand_and_zoom_search_impl(Function f, GradFunction df, T& low_bound,
+                              T& up_bound, T tol, T c1, T c2) {
+  using std::abs;
+  T x0_value = f(low_bound);
+  T x0_grad = df(low_bound);
   T x1 = low_bound;
   T x1_value = x0_value;
   T x1_grad = x0_grad;
-  T x2 = ( low_bound + up_bound ) * 0.5;
-  while( true ) {
-    T x2_value = f( x2 );
-    T x2_grad = df( x2 );
-    if( ( x2_value > x0_value + c1 * ( x2 - low_bound ) ) || ( ( x1 != low_bound ) && ( x2_value >= x1_value ) ) ) {
-      expand_and_zoom_zoom_impl( f, df, low_bound, x0_value, x0_grad, x1, x1_value, x1_grad, x2, x2_value, x2_grad,
-                                 up_bound, tol, c1, c2 );
+  T x2 = (low_bound + up_bound) * 0.5;
+  while (true) {
+    T x2_value = f(x2);
+    T x2_grad = df(x2);
+    if ((x2_value > x0_value + c1 * (x2 - low_bound)) ||
+        ((x1 != low_bound) && (x2_value >= x1_value))) {
+      expand_and_zoom_zoom_impl(f, df, low_bound, x0_value, x0_grad, x1,
+                                x1_value, x1_grad, x2, x2_value, x2_grad,
+                                up_bound, tol, c1, c2);
       low_bound = x2;
       up_bound = x2;
       return x2_value;
-    };
-    if( fabs( x2_grad ) <= -c2 * x0_grad ) {
+    }
+    if (abs(x2_grad) <= -c2 * x0_grad) {
       low_bound = x2;
       up_bound = x2;
       return x2_value;
-    };
-    if( x2_grad >= T( 0.0 ) ) {
-      expand_and_zoom_zoom_impl( f, df, low_bound, x0_value, x0_grad, x2, x2_value, x2_grad, x1, x1_value, x1_grad,
-                                 up_bound, tol, c1, c2 );
+    }
+    if (x2_grad >= T(0.0)) {
+      expand_and_zoom_zoom_impl(f, df, low_bound, x0_value, x0_grad, x2,
+                                x2_value, x2_grad, x1, x1_value, x1_grad,
+                                up_bound, tol, c1, c2);
       low_bound = x1;
       up_bound = x1;
       return x1_value;
-    };
+    }
     x1 = x2;
     x1_value = x2_value;
     x1_grad = x2_grad;
-    x2 = low_bound + ( x2 - low_bound ) * 1.105;
-  };
-};
-};
+    x2 = low_bound + (x2 - low_bound) * 1.105;
+  }
+}
+
+}  // namespace detail
 
 /**
  * This function performs a 1D optimum Dichotomous search on a unimodal cost function to find the value for
@@ -250,10 +262,11 @@ T expand_and_zoom_search_impl( Function f, GradFunction df, T& low_bound, T& up_
  * \param tol the uncertainty on the X value at which the optimization should stop.
  * \return the cost that is the optimum point found, within uncertainty interval (low_bound, up_bound).
  */
-template < typename T, typename Function >
-T dichotomous_search( Function f, T& low_bound, T& up_bound, T tol ) {
-  return detail::dichotomous_search_impl( f, low_bound, up_bound, T( ( up_bound - low_bound ) * 0.1 ), tol );
-};
+template <typename T, typename Function>
+T dichotomous_search(Function f, T& low_bound, T& up_bound, T tol) {
+  return detail::dichotomous_search_impl(f, low_bound, up_bound,
+                                         T((up_bound - low_bound) * 0.1), tol);
+}
 
 /**
  * This functor class wraps a call to a Dichotomous search in order to find the minimum of a
@@ -280,11 +293,14 @@ struct bounded_line_srch_dichotomous {
    * \param tol The tolerance at which the search is stopped (i.e. when the interval of convergence is narrow enough).
    * \return The optimal scalar value along the line-search.
    */
-  template < typename Function, typename T, typename U >
-  T operator()( Function f, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    dichotomous_search( [&f, &x0, &dx]( const T& alpha ) -> T { return f( x0 + alpha * dx ); }, a0, a1, tol );
-    return ( a1 + a0 ) * T( 0.5 );
-  };
+  template <typename Function, typename T, typename U>
+  T operator()(Function f, T a0, T a1, const U& x0, const U& dx,
+               const T& tol = T(1e-6)) const {
+    dichotomous_search(
+        [&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); }, a0,
+        a1, tol);
+    return (a1 + a0) * T(0.5);
+  }
 
   /**
    * This overload computes the scalar value (multiplying the search direction vector) which
@@ -305,13 +321,15 @@ struct bounded_line_srch_dichotomous {
    * \param tol The tolerance at which the search is stopped (i.e. when the interval of convergence is narrow enough).
    * \return The optimal scalar value along the line-search.
    */
-  template < typename Function, typename GradFunction, typename T, typename U >
-  T operator()( Function f, GradFunction, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    dichotomous_search( [&f, &x0, &dx]( const T& alpha ) -> T { return f( x0 + alpha * dx ); }, a0, a1, tol );
-    return ( a1 + a0 ) * T( 0.5 );
-  };
+  template <typename Function, typename GradFunction, typename T, typename U>
+  T operator()(Function f, GradFunction /*unused*/, T a0, T a1, const U& x0,
+               const U& dx, const T& tol = T(1e-6)) const {
+    dichotomous_search(
+        [&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); }, a0,
+        a1, tol);
+    return (a1 + a0) * T(0.5);
+  }
 };
-
 
 /**
  * This function performs a 1D optimum Golden-Section search on a unimodal cost function to find the value for
@@ -327,10 +345,10 @@ struct bounded_line_srch_dichotomous {
  * \param tol the uncertainty on the X value at which the optimization should stop.
  * \return the cost that is the optimum point found, within uncertainty interval (bound1, bound2).
  */
-template < typename T, typename Function >
-T golden_section_search( Function f, T& bound1, T& bound2, T tol ) {
-  return detail::golden_section_search_impl( f, bound1, bound2, tol );
-};
+template <typename T, typename Function>
+T golden_section_search(Function f, T& bound1, T& bound2, T tol) {
+  return detail::golden_section_search_impl(f, bound1, bound2, tol);
+}
 
 /**
  * This functor class wraps a call to a Golden-Section search in order to find the minimum of a
@@ -357,11 +375,14 @@ struct bounded_line_srch_gold_sect {
    * \param tol The tolerance at which the search is stopped (i.e. when the interval of convergence is narrow enough).
    * \return The optimal scalar value along the line-search.
    */
-  template < typename Function, typename T, typename U >
-  T operator()( Function f, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    golden_section_search( [&f, &x0, &dx]( const T& alpha ) -> T { return f( x0 + alpha * dx ); }, a0, a1, tol );
-    return ( a1 + a0 ) * T( 0.5 );
-  };
+  template <typename Function, typename T, typename U>
+  T operator()(Function f, T a0, T a1, const U& x0, const U& dx,
+               const T& tol = T(1e-6)) const {
+    golden_section_search(
+        [&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); }, a0,
+        a1, tol);
+    return (a1 + a0) * T(0.5);
+  }
 
   /**
    * This overload computes the scalar value (multiplying the search direction vector) which
@@ -382,11 +403,14 @@ struct bounded_line_srch_gold_sect {
    * \param tol The tolerance at which the search is stopped (i.e. when the interval of convergence is narrow enough).
    * \return The optimal scalar value along the line-search.
    */
-  template < typename Function, typename GradFunction, typename T, typename U >
-  T operator()( Function f, GradFunction, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    golden_section_search( [&f, &x0, &dx]( const T& alpha ) -> T { return f( x0 + alpha * dx ); }, a0, a1, tol );
-    return ( a1 + a0 ) * T( 0.5 );
-  };
+  template <typename Function, typename GradFunction, typename T, typename U>
+  T operator()(Function f, GradFunction /*unused*/, T a0, T a1, const U& x0,
+               const U& dx, const T& tol = T(1e-6)) const {
+    golden_section_search(
+        [&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); }, a0,
+        a1, tol);
+    return (a1 + a0) * T(0.5);
+  }
 };
 
 /**
@@ -402,14 +426,15 @@ struct bounded_line_srch_gold_sect {
  * \param tol the uncertainty on the X value at which the optimization should stop.
  * \return the cost that is the optimum point found, within uncertainty interval (low_bound, up_bound).
  */
-template < typename T, typename Function >
-T fibonacci_search( Function f, T& low_bound, T& up_bound, T tol ) {
+template <typename T, typename Function>
+T fibonacci_search(Function f, T& low_bound, T& up_bound, T tol) {
   using std::swap;
-  if( low_bound > up_bound )
-    swap( low_bound, up_bound );
+  if (low_bound > up_bound) {
+    swap(low_bound, up_bound);
+  }
 
-  return detail::fibonacci_search_impl( f, low_bound, up_bound, tol );
-};
+  return detail::fibonacci_search_impl(f, low_bound, up_bound, tol);
+}
 
 /**
  * This functor class wraps a call to a Fibonacci search in order to find the minimum of a
@@ -436,11 +461,14 @@ struct bounded_line_srch_fibonacci {
    * \param tol The tolerance at which the search is stopped (i.e. when the interval of convergence is narrow enough).
    * \return The optimal scalar value along the line-search.
    */
-  template < typename Function, typename T, typename U >
-  T operator()( Function f, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    fibonacci_search( [&f, &x0, &dx]( const T& alpha ) -> T { return f( x0 + alpha * dx ); }, a0, a1, tol );
-    return ( a1 + a0 ) * T( 0.5 );
-  };
+  template <typename Function, typename T, typename U>
+  T operator()(Function f, T a0, T a1, const U& x0, const U& dx,
+               const T& tol = T(1e-6)) const {
+    fibonacci_search(
+        [&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); }, a0,
+        a1, tol);
+    return (a1 + a0) * T(0.5);
+  }
 
   /**
    * This overload computes the scalar value (multiplying the search direction vector) which
@@ -461,11 +489,14 @@ struct bounded_line_srch_fibonacci {
    * \param tol The tolerance at which the search is stopped (i.e. when the interval of convergence is narrow enough).
    * \return The optimal scalar value along the line-search.
    */
-  template < typename Function, typename GradFunction, typename T, typename U >
-  T operator()( Function f, GradFunction, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    fibonacci_search( [&f, &x0, &dx]( const T& alpha ) -> T { return f( x0 + alpha * dx ); }, a0, a1, tol );
-    return ( a1 + a0 ) * T( 0.5 );
-  };
+  template <typename Function, typename GradFunction, typename T, typename U>
+  T operator()(Function f, GradFunction /*unused*/, T a0, T a1, const U& x0,
+               const U& dx, const T& tol = T(1e-6)) const {
+    fibonacci_search(
+        [&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); }, a0,
+        a1, tol);
+    return (a1 + a0) * T(0.5);
+  }
 };
 
 /**
@@ -487,11 +518,13 @@ struct bounded_line_srch_fibonacci {
  * 1 exclusively).
  * \return the cost that is the optimum point found, within uncertainty interval (low_bound, up_bound).
  */
-template < typename T, typename Function, typename GradFunction >
-T backtracking_search( Function f, GradFunction df, T& low_bound, T& up_bound, T tol = T( 1e-6 ), T c1 = T( 1e-2 ),
-                       T c2 = T( 0.9 ), T tau = T( 0.75 ) ) {
-  return detail::backtracking_search_impl( f, df, low_bound, up_bound, tol, c1, c2, tau );
-};
+template <typename T, typename Function, typename GradFunction>
+T backtracking_search(Function f, GradFunction df, T& low_bound, T& up_bound,
+                      T tol = T(1e-6), T c1 = T(1e-2), T c2 = T(0.9),
+                      T tau = T(0.75)) {
+  return detail::backtracking_search_impl(f, df, low_bound, up_bound, tol, c1,
+                                          c2, tau);
+}
 
 /**
  * This functor class wraps a call to a Backtracking search in order to find the minimum of a
@@ -501,7 +534,7 @@ T backtracking_search( Function f, GradFunction df, T& low_bound, T& up_bound, T
  * TEST PASSED
  * \tparam T A scalar type.
  */
-template < typename T >
+template <typename T>
 struct line_search_backtracking {
   T c1, c2, geom_factor;
 
@@ -514,8 +547,10 @@ struct line_search_backtracking {
    * \param aGeomFactor The geometric decrease factor for the successive decrease of the search interval (should be
    * between 0 and 1 exclusively).
    */
-  line_search_backtracking( const T& aC1 = T( 1e-2 ), const T& aC2 = T( 0.9 ), const T& aGeomFactor = T( 0.75 ) )
-      : c1( aC1 ), c2( aC2 ), geom_factor( aGeomFactor ){};
+  explicit line_search_backtracking(const T& aC1 = T(1e-2),
+                                    const T& aC2 = T(0.9),
+                                    const T& aGeomFactor = T(0.75))
+      : c1(aC1), c2(aC2), geom_factor(aGeomFactor) {}
 
   /**
    * This overload computes the scalar value (multiplying the search direction vector) which
@@ -536,15 +571,18 @@ struct line_search_backtracking {
    * \param tol The tolerance at which the search is stopped (i.e. when the interval of convergence is narrow enough).
    * \return The optimal scalar value along the line-search.
    */
-  template < typename Function, typename GradFunction, typename U >
-  T operator()( Function f, GradFunction df, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    backtracking_search( [&f, &x0, &dx]( const T& alpha ) -> T { return f( x0 + alpha * dx ); },
-                         [&df, &x0, &dx]( const T& alpha ) -> T { return dx * df( x0 + alpha * dx ); }, a0, a1, tol, c1,
-                         c2, geom_factor );
+  template <typename Function, typename GradFunction, typename U>
+  T operator()(Function f, GradFunction df, T a0, T a1, const U& x0,
+               const U& dx, const T& tol = T(1e-6)) const {
+    backtracking_search(
+        [&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); },
+        [&df, &x0, &dx](const T& alpha) -> T {
+          return dx * df(x0 + alpha * dx);
+        },
+        a0, a1, tol, c1, c2, geom_factor);
     return a1;
-  };
+  }
 };
-
 
 /**
  * This function performs a 1D optimum Expand-and-Zoom search on a unimodal cost function f to find the value for
@@ -565,11 +603,12 @@ struct line_search_backtracking {
  * 1 exclusively).
  * \return the cost that is the optimum point found, within uncertainty interval (low_bound, up_bound).
  */
-template < typename T, typename Function, typename GradFunction >
-T expand_and_zoom_search( Function f, GradFunction df, T& low_bound, T& up_bound, T tol = T( 1e-6 ), T c1 = T( 1e-2 ),
-                          T c2 = T( 0.9 ) ) {
-  return detail::expand_and_zoom_search_impl( f, df, low_bound, up_bound, tol, c1, c2 );
-};
+template <typename T, typename Function, typename GradFunction>
+T expand_and_zoom_search(Function f, GradFunction df, T& low_bound, T& up_bound,
+                         T tol = T(1e-6), T c1 = T(1e-2), T c2 = T(0.9)) {
+  return detail::expand_and_zoom_search_impl(f, df, low_bound, up_bound, tol,
+                                             c1, c2);
+}
 
 /**
  * This functor class wraps a call to a Backtracking search in order to find the minimum of a
@@ -579,7 +618,7 @@ T expand_and_zoom_search( Function f, GradFunction df, T& low_bound, T& up_bound
  * TEST PASSED
  * \tparam T A scalar type.
  */
-template < typename T >
+template <typename T>
 struct line_search_expand_and_zoom {
   T c1, c2;
 
@@ -590,7 +629,9 @@ struct line_search_expand_and_zoom {
    * \param aC2 The second parameter defining the strong Wolfe conditions (curvature condition) (should be between 0 and
    * 1 exclusively, and greater than c1).
    */
-  line_search_expand_and_zoom( const T& aC1 = T( 1e-2 ), const T& aC2 = T( 0.9 ) ) : c1( aC1 ), c2( aC2 ){};
+  explicit line_search_expand_and_zoom(const T& aC1 = T(1e-2),
+                                       const T& aC2 = T(0.9))
+      : c1(aC1), c2(aC2) {}
 
   /**
    * This overload computes the scalar value (multiplying the search direction vector) which
@@ -611,16 +652,19 @@ struct line_search_expand_and_zoom {
    * \param tol The tolerance at which the search is stopped (i.e. when the interval of convergence is narrow enough).
    * \return The optimal scalar value along the line-search.
    */
-  template < typename Function, typename GradFunction, typename U >
-  T operator()( Function f, GradFunction df, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    expand_and_zoom_search( [&f, &x0, &dx]( const T& alpha ) -> T { return f( x0 + alpha * dx ); },
-                            [&df, &x0, &dx]( const T& alpha ) -> T { return dx * df( x0 + alpha * dx ); }, a0, a1, tol,
-                            c1, c2 );
+  template <typename Function, typename GradFunction, typename U>
+  T operator()(Function f, GradFunction df, T a0, T a1, const U& x0,
+               const U& dx, const T& tol = T(1e-6)) const {
+    expand_and_zoom_search(
+        [&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); },
+        [&df, &x0, &dx](const T& alpha) -> T {
+          return dx * df(x0 + alpha * dx);
+        },
+        a0, a1, tol, c1, c2);
     return a1;
-  };
-};
-};
+  }
 };
 
+}  // namespace ReaK::optim
 
 #endif

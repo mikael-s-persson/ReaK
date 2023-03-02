@@ -35,24 +35,22 @@
 
 namespace Ui {
 class PlannerAlgConfig;
-};
+}
 
-namespace ReaK {
-
-namespace qt {
+namespace ReaK::qt {
 
 class PlannerAlgConfigWidget : public QDockWidget {
   Q_OBJECT
-private:
+ private:
   Ui::PlannerAlgConfig* ui;
 
-public:
-  PlannerAlgConfigWidget( QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
+ public:
+  PlannerAlgConfigWidget(QWidget* parent = nullptr, Qt::WindowFlags flags = 0);
   virtual ~PlannerAlgConfigWidget();
 
-private slots:
+ private slots:
 
-  void onUpdateAvailableOptions( int );
+  void onUpdateAvailableOptions(int);
 
   void onConfigsChanged();
   void updateConfigs();
@@ -60,7 +58,7 @@ private slots:
   void savePlannerConfig();
   void loadPlannerConfig();
 
-public:
+ public:
   pp::planning_option_collection planOptions;
 
   bool outputTiming() const;
@@ -68,10 +66,10 @@ public:
   bool outputMotionGraph() const;
   bool outputSolution() const;
 
-  void savePlannerConfiguration( const std::string& aFilename );
-  void loadPlannerConfiguration( const std::string& aFilename );
+  void savePlannerConfiguration(const std::string& aFilename);
+  void loadPlannerConfiguration(const std::string& aFilename);
 };
-};
-};
+
+}  // namespace ReaK::qt
 
 #endif

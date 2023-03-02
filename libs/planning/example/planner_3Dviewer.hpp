@@ -24,25 +24,23 @@
 #ifndef REAK_CRS_PLANNER_IMPL_H
 #define REAK_CRS_PLANNER_IMPL_H
 
-
 #include "ui_planner_3Dview.h"
-#include "ui_planner_space_config.h"
 #include "ui_planner_alg_config.h"
+#include "ui_planner_space_config.h"
 
 #include <QDockWidget>
 
 class SoSeparator;
 class SoQtExaminerViewer;
 
-
 class Planner3DWindow : public QMainWindow, private Ui::Planner3DView {
   Q_OBJECT
 
-public:
-  Planner3DWindow( QWidget* parent = 0, Qt::WindowFlags flags = 0 );
+ public:
+  Planner3DWindow(QWidget* parent = 0, Qt::WindowFlags flags = 0);
   ~Planner3DWindow();
 
-private slots:
+ private slots:
 
   void executePlanner();
 #if 0
@@ -62,7 +60,7 @@ private slots:
   void onLoadTopology();
   void onLoadRobotModel();
 
-private:
+ private:
   void refreshTopoData();
 
   void onProxyChange();
@@ -74,10 +72,8 @@ private:
   QDockWidget* alg_configs_dock;
   QWidget* alg_configs_widget;
 
-
   SoQtExaminerViewer* eviewer;
   SoSeparator* sg_root;
 };
-
 
 #endif

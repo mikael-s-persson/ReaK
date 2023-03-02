@@ -23,26 +23,26 @@
 
 #include <ReaK/geometry/shapes/box.hpp>
 
-namespace ReaK {
+namespace ReaK::geom {
 
-namespace geom {
+double box::getBoundingRadius() const {
+  return norm_2(mDimensions) * 0.5;
+}
 
+box::box(const std::string& aName,
+         const std::shared_ptr<pose_3D<double>>& aAnchor,
+         const pose_3D<double>& aPose, const vect<double, 3>& aDimensions)
+    : shape_3D(aName, aAnchor, aPose), mDimensions(aDimensions) {}
 
-double box::getBoundingRadius() const { return norm_2( mDimensions ) * 0.5; };
+void box::save(ReaK::serialization::oarchive& A,
+               unsigned int /*unused*/) const {
+  shape_3D::save(A, shape_3D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_SAVE_WITH_NAME(mDimensions);
+}
 
+void box::load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) {
+  shape_3D::load(A, shape_3D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_LOAD_WITH_NAME(mDimensions);
+}
 
-box::box( const std::string& aName, const shared_ptr< pose_3D< double > >& aAnchor, const pose_3D< double >& aPose,
-          const vect< double, 3 >& aDimensions )
-    : shape_3D( aName, aAnchor, aPose ), mDimensions( aDimensions ){};
-
-void RK_CALL box::save( ReaK::serialization::oarchive& A, unsigned int ) const {
-  shape_3D::save( A, shape_3D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_SAVE_WITH_NAME( mDimensions );
-};
-
-void RK_CALL box::load( ReaK::serialization::iarchive& A, unsigned int ) {
-  shape_3D::load( A, shape_3D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_LOAD_WITH_NAME( mDimensions );
-};
-};
-};
+}  // namespace ReaK::geom

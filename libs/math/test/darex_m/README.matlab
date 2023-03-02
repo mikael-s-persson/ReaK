@@ -4,20 +4,29 @@
 The MATLAB function DAREX is designed to generate all examples of
 discrete-time algebraic Riccati equations (DARE)
 
-                  T            T               T    -1  T       T
-(I)  0 = DR(X) = A X A - X - (A X B + S) (R + B X B)  (B X A + S ) + Q
+          T T T -
+              1 T T(I) 0 = DR(X) = A X A - X -
+                                   (A X B + S)(R + B X B)(B X A + S) +
+                                   Q
 
-collected in [1]. Here, A, Q, and X are n-by-n matrices, B and S are
-n-by-m, and R is m-by-m. The coefficient matrices Q and R are symmetric
-and usually, the required solution matrix X is symmetric, too. The
-coefficient matrix Q is often given in factored form as 
+                                   collected in[1]
+                                       .Here,
+                       A, Q,
+                       and X are n - by - n matrices, B and S are n - by - m,
+                       and R is m - by -
+                           m.The coefficient matrices Q and R are
+                           symmetric and usually,
+                       the required solution matrix X is symmetric,
+                       too.The
+                       coefficient matrix Q is often given in factored form as
 
-                T 
-(II)     Q  =  C  Q0 C,
+                       T(II) Q = C Q0 C,
 
-where C is p-by-n and Q0 is p-by-p. This factorization often arises
-in (but is not limited to) DARE coming from control theory. Also, if R
-is nonsingular, the DARE (I) is equivalent to 
+                       where C is p - by - n and Q0 is p - by -
+                           p.This factorization often arises
+                           in(but is not limited to)
+                               DARE coming from control theory.Also,
+                       if R is nonsingular, the DARE(I) is equivalent to 
 
                           T             T             -1 
 (III)   0  =  DR(X)  =  AA X AA - X - AA X G (I + X G)  X AA + QQ 

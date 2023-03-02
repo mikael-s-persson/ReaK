@@ -45,25 +45,21 @@
 
 #include <boost/concept_check.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This traits class defines the traits that characterize an interpolator factory
  * class.
  * \tparam InterpolatorFactory The trajectory for which the traits are sought.
  */
-template < typename InterpolatorFactory >
+template <typename InterpolatorFactory>
 struct interpolator_factory_traits {
   /** This type describes a point in the temporal space or topology. */
-  typedef typename InterpolatorFactory::point_type point_type;
+  using point_type = typename InterpolatorFactory::point_type;
 
   /** This type is the interpolator type that is generated from the factory. */
-  typedef typename InterpolatorFactory::interpolator_type interpolator_type;
+  using interpolator_type = typename InterpolatorFactory::interpolator_type;
 };
-
 
 /**
  * This concept class defines the requirements for a class to model an interpolator
@@ -100,29 +96,28 @@ struct interpolator_factory_traits {
  * \tparam Topology The temporal-topology type on which the trajectory should be able to exist.
  * \tparam DistanceMetric The distance metric type to be used on the topology and along the interpolated segments.
  */
-template < typename Interpolator, typename Topology, typename DistanceMetric >
+template <typename Interpolator, typename Topology, typename DistanceMetric>
 struct InterpolatorConcept {
-  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< Topology > ) );
-  BOOST_CONCEPT_ASSERT( ( DistanceMetricConcept< DistanceMetric, Topology > ) );
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric, Topology>));
 
   Interpolator interp;
-  typename topology_traits< Topology >::point_type pt;
-  const typename topology_traits< Topology >::point_type* ppt;
-  typedef typename temporal_space_traits< Topology >::time_topology time_topology;
-  typename topology_traits< time_topology >::point_type t;
+  topology_point_type_t<Topology> pt;
+  const topology_point_type_t<Topology>* ppt;
+  using time_topology = typename temporal_space_traits<Topology>::time_topology;
+  topology_point_type_t<time_topology> t;
   double d;
   DistanceMetric dist;
 
-  BOOST_CONCEPT_USAGE( InterpolatorConcept ) {
-    interp.set_segment( &pt, &pt );
+  BOOST_CONCEPT_USAGE(InterpolatorConcept) {
+    interp.set_segment(&pt, &pt);
     ppt = interp.get_start_point();
     ppt = interp.get_end_point();
-    d = interp.travel_distance_to( pt, dist );
-    d = interp.travel_distance_from( pt, dist );
-    pt = interp.get_point_at_time( t );
-  };
+    d = interp.travel_distance_to(pt, dist);
+    d = interp.travel_distance_from(pt, dist);
+    pt = interp.get_point_at_time(t);
+  }
 };
-
 
 /**
  * This concept class defines the requirements for a class to model a limited interpolator
@@ -149,18 +144,22 @@ struct InterpolatorConcept {
  * \tparam Topology The temporal-topology type on which the trajectory should be able to exist.
  * \tparam DistanceMetric The distance metric type to be used on the topology and along the interpolated segments.
  */
-template < typename LimitedInterpolator, typename Topology, typename DistanceMetric >
-struct LimitedInterpolatorConcept : public InterpolatorConcept< LimitedInterpolator, Topology, DistanceMetric > {
+template <typename LimitedInterpolator, typename Topology,
+          typename DistanceMetric>
+struct LimitedInterpolatorConcept
+    : public InterpolatorConcept<LimitedInterpolator, Topology,
+                                 DistanceMetric> {
 
-  typename topology_traits< typename temporal_space_traits< Topology >::time_topology >::point_difference_type dt;
+  topology_point_difference_type_t<
+      typename temporal_space_traits<Topology>::time_topology>
+      dt;
 
-  BOOST_CONCEPT_USAGE( LimitedInterpolatorConcept ) {
+  BOOST_CONCEPT_USAGE(LimitedInterpolatorConcept) {
     dt = this->interp.get_minimum_travel_time();
     bool b = this->interp.is_segment_feasible();
-    RK_UNUSED( b );
-  };
+    RK_UNUSED(b);
+  }
 };
-
 
 /**
  * This concept class defines the requirements for a class to model an interpolator
@@ -191,24 +190,27 @@ struct LimitedInterpolatorConcept : public InterpolatorConcept< LimitedInterpola
  * \tparam Topology The temporal-topology type on which the interpolated segments should exist.
  * \tparam DistanceMetric The distance metric type to be used on the topology and along the interpolated segments.
  */
-template < typename InterpolatorFactory, typename Topology, typename DistanceMetric >
+template <typename InterpolatorFactory, typename Topology,
+          typename DistanceMetric>
 struct InterpolatorFactoryConcept {
-  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< Topology > ) );
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
   BOOST_CONCEPT_ASSERT(
-    ( InterpolatorConcept< typename interpolator_factory_traits< InterpolatorFactory >::interpolator_type, Topology,
-                           DistanceMetric > ) );
+      (InterpolatorConcept<typename interpolator_factory_traits<
+                               InterpolatorFactory>::interpolator_type,
+                           Topology, DistanceMetric>));
 
   InterpolatorFactory interp_fact;
-  typename interpolator_factory_traits< InterpolatorFactory >::interpolator_type interp;
-  typename interpolator_factory_traits< InterpolatorFactory >::point_type pt;
-  shared_ptr< Topology > pspace;
+  typename interpolator_factory_traits<InterpolatorFactory>::interpolator_type
+      interp;
+  typename interpolator_factory_traits<InterpolatorFactory>::point_type pt;
+  std::shared_ptr<Topology> pspace;
 
-  BOOST_CONCEPT_USAGE( InterpolatorFactoryConcept ) {
-    interp = interp_fact.create_interpolator( &pt, &pt );
-    interp_fact.set_temporal_space( pspace );
-  };
+  BOOST_CONCEPT_USAGE(InterpolatorFactoryConcept) {
+    interp = interp_fact.create_interpolator(&pt, &pt);
+    interp_fact.set_temporal_space(pspace);
+  }
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

@@ -36,98 +36,103 @@
 #include "data_record.hpp"
 
 #include <fstream>
+#include <utility>
 
-namespace ReaK {
-
-namespace recorder {
-
+namespace ReaK::recorder {
 
 /**
  * This class handles file IO operations for a space-separated-values data record.
  */
 class ascii_recorder : public data_recorder {
-protected:
-  virtual void writeRow();
-  virtual void writeNames();
-  virtual void setStreamImpl( const shared_ptr< std::ostream >& aStreamPtr );
+ protected:
+  void writeRow() override;
+  void writeNames() override;
+  void setStreamImpl(const std::shared_ptr<std::ostream>& aStreamPtr) override;
 
-public:
+ public:
   std::string delimiter;
 
   /**
    * Default constructor.
    */
-  ascii_recorder() : data_recorder(), delimiter( " " ){};
+  ascii_recorder() : delimiter(" ") {}
 
   /**
    * Constructor that opens a file with name aFileName.
    */
-  ascii_recorder( const std::string& aFileName, const std::string& aDelimiter = " " )
-      : data_recorder(), delimiter( aDelimiter ) {
-    setFileName( aFileName );
-  };
+  explicit ascii_recorder(const std::string& aFileName,
+                          std::string aDelimiter = " ")
+      : delimiter(std::move(aDelimiter)) {
+    setFileName(aFileName);
+  }
 
   /**
    * Destructor, closes the file.
    */
-  virtual ~ascii_recorder(){};
+  ~ascii_recorder() override = default;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    data_recorder::save( A, data_recorder::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( delimiter );
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    data_recorder::load( A, data_recorder::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( delimiter );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    data_recorder::save(A, data_recorder::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(delimiter);
+  }
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    data_recorder::load(A, data_recorder::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(delimiter);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( ascii_recorder, 0x81100006, 1, "ascii_recorder", data_recorder )
+  RK_RTTI_MAKE_CONCRETE_1BASE(ascii_recorder, 0x81100006, 1, "ascii_recorder",
+                              data_recorder)
 };
-
 
 /**
  * This class handles file IO operations for a space-separated-values data extractor.
  */
 class ascii_extractor : public data_extractor {
-protected:
-  virtual bool readRow();
-  virtual bool readNames();
-  virtual void setStreamImpl( const shared_ptr< std::istream >& aStreamPtr );
+ protected:
+  bool readRow() override;
+  bool readNames() override;
+  void setStreamImpl(const std::shared_ptr<std::istream>& aStreamPtr) override;
 
-public:
+ public:
   std::string delimiter;
 
   /**
    * Default constructor.
    */
-  ascii_extractor() : data_extractor(), delimiter( " " ){};
+  ascii_extractor() : delimiter(" ") {}
 
   /**
    * Constructor that opens a file with name aFileName.
    */
-  ascii_extractor( const std::string& aFileName, const std::string& aDelimiter = " " )
-      : data_extractor(), delimiter( aDelimiter ) {
-    setFileName( aFileName );
-  };
+  explicit ascii_extractor(const std::string& aFileName,
+                           std::string aDelimiter = " ")
+      : delimiter(std::move(aDelimiter)) {
+    setFileName(aFileName);
+  }
 
   /**
    * Destructor, closes the file.
    */
-  virtual ~ascii_extractor(){};
+  ~ascii_extractor() override = default;
+  ;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    data_extractor::save( A, data_extractor::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( delimiter );
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    data_extractor::load( A, data_extractor::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( delimiter );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    data_extractor::save(A,
+                         data_extractor::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(delimiter);
+  }
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    data_extractor::load(A,
+                         data_extractor::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(delimiter);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( ascii_extractor, 0x81200006, 1, "ascii_extractor", data_extractor )
-};
-};
+  RK_RTTI_MAKE_CONCRETE_1BASE(ascii_extractor, 0x81200006, 1, "ascii_extractor",
+                              data_extractor)
 };
 
+}  // namespace ReaK::recorder
 
 #endif

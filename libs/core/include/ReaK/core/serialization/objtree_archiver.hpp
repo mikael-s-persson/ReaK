@@ -35,14 +35,14 @@
 
 #include "archiver.hpp"
 
-#include <string>
-#include <vector>
-#include <utility>
-#include <sstream>
 #include <queue>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graph_selectors.hpp>
+#include <boost/graph/graph_traits.hpp>
 
 #include <boost/graph/adjacency_list_BC.hpp>
 
@@ -50,218 +50,233 @@ namespace ReaK {
 
 namespace rtti {
 class so_type;
-};
+}  // namespace rtti
 
 namespace serialization {
 
 class objtree_editor;
 class type_scheme;
 
-
 struct object_graph_node {
-  shared_ptr< serializable > p_obj;
+  std::shared_ptr<serializable> p_obj;
   std::string xml_src;
 
-  object_graph_node( const shared_ptr< serializable >& PObj = shared_ptr< serializable >(),
-                     const std::string& aXMLSrc = "" )
-      : p_obj( PObj ), xml_src( aXMLSrc ){};
+  explicit object_graph_node(
+      std::shared_ptr<serializable> PObj = std::shared_ptr<serializable>(),
+      std::string aXMLSrc = "")
+      : p_obj(std::move(PObj)), xml_src(std::move(aXMLSrc)){};
 };
 
-typedef boost::adjacency_list_BC< boost::vecBC, boost::vecBC, boost::bidirectionalS, object_graph_node > object_graph;
-typedef boost::graph_traits< object_graph >::vertex_descriptor object_node_desc;
-
+using object_graph =
+    boost::adjacency_list_BC<boost::vecBC, boost::vecBC, boost::bidirectionalS,
+                             object_graph_node>;
+using object_node_desc = boost::graph_traits<object_graph>::vertex_descriptor;
 
 class xml_field_editor {
-private:
+ private:
   objtree_editor* p_parent;
   object_node_desc node;
-  std::vector< std::size_t > src_markers;
-  std::vector< shared_ptr< type_scheme > > field_schemes;
-  std::vector< std::string > field_names;
+  std::vector<std::size_t> src_markers;
+  std::vector<std::shared_ptr<type_scheme>> field_schemes;
+  std::vector<std::string> field_names;
 
-  std::string::iterator mark_field( std::string::iterator it_prev, std::string::iterator it_end,
-                                    const std::string& fld_name,
-                                    const shared_ptr< ReaK::serialization::type_scheme >& scheme );
-  std::size_t get_field_index( const std::string& aName ) const;
-  std::string get_object_name( object_node_desc aNode ) const;
+  std::string::iterator mark_field(
+      std::string::iterator it_prev, std::string::iterator it_end,
+      const std::string& fld_name,
+      const std::shared_ptr<ReaK::serialization::type_scheme>& scheme);
+  std::size_t get_field_index(const std::string& aName) const;
+  std::string get_object_name(object_node_desc aNode) const;
 
-public:
+ public:
   friend class objtree_editor;
 
-  shared_ptr< type_scheme > get_type_scheme() const;
+  std::shared_ptr<type_scheme> get_type_scheme() const;
   const std::string& get_complete_src() const;
-  void set_complete_src( const std::string& aXMLSrc );
+  void set_complete_src(const std::string& aXMLSrc);
   std::string get_object_name() const;
 
-  xml_field_editor( objtree_editor* aParent, object_node_desc aNode );
+  xml_field_editor(objtree_editor* aParent, object_node_desc aNode);
 
   std::size_t get_total_field_count() const;
-  std::pair< std::string, shared_ptr< type_scheme > > get_field( std::size_t aIndex ) const;
+  std::pair<std::string, std::shared_ptr<type_scheme>> get_field(
+      std::size_t aIndex) const;
 
-  std::string get_field_src( std::size_t aIndex ) const;
-  std::string get_field_src( const std::string& aName ) const;
+  std::string get_field_src(std::size_t aIndex) const;
+  std::string get_field_src(const std::string& aName) const;
 
-  std::string get_field_value( std::size_t aIndex ) const;
-  std::string get_field_value( const std::string& aName ) const;
+  std::string get_field_value(std::size_t aIndex) const;
+  std::string get_field_value(const std::string& aName) const;
 
-  void set_field_value( std::size_t aIndex, const std::string& aValue );
-  void set_field_value( const std::string& aName, const std::string& aValue );
+  void set_field_value(std::size_t aIndex, const std::string& aValue);
+  void set_field_value(const std::string& aName, const std::string& aValue);
 
-  void set_field_newptr( std::size_t aIndex, const shared_ptr< serializable >& aNewPtr );
-  void set_field_newptr( const std::string& aName, const shared_ptr< serializable >& aNewPtr );
+  void set_field_newptr(std::size_t aIndex,
+                        const std::shared_ptr<serializable>& aNewPtr);
+  void set_field_newptr(const std::string& aName,
+                        const std::shared_ptr<serializable>& aNewPtr);
 };
-
 
 /**
  * An input archive used to generate an object tree.
  */
 class objtree_iarchive : public iarchive {
-private:
-  shared_ptr< object_graph > obj_graph;
-  shared_ptr< std::stringstream > current_ss;
+ private:
+  std::shared_ptr<object_graph> obj_graph;
+  std::shared_ptr<std::stringstream> current_ss;
   object_node_desc obj_graph_root;
 
   char getNextChar();
   std::string readToken();
-  void skipToEndToken( const std::string& name );
-  void trimStr( std::string& s );
-  bool readNamedValue( const std::string& value_name, std::string& value_str );
-  archive_object_header readHeader( const std::string& obj_name, std::vector< unsigned int >& outTypeID );
+  void skipToEndToken(const std::string& name);
+  static void trimStr(std::string& s);
+  bool readNamedValue(const std::string& value_name, std::string& value_str);
+  archive_object_header readHeader(const std::string& obj_name,
+                                   std::vector<unsigned int>& outTypeID);
 
-protected:
-  virtual iarchive& RK_CALL load_serializable_ptr( serializable_shared_pointer& Item );
+ protected:
+  iarchive& load_serializable_ptr(serializable_shared_pointer& Item) override;
 
-  virtual iarchive& RK_CALL load_serializable_ptr( const std::pair< std::string, serializable_shared_pointer& >& Item );
+  iarchive& load_serializable_ptr(
+      const std::pair<std::string, serializable_shared_pointer&>& Item)
+      override;
 
-  virtual iarchive& RK_CALL load_serializable( serializable& Item );
+  iarchive& load_serializable(serializable& Item) override;
 
-  virtual iarchive& RK_CALL load_serializable( const std::pair< std::string, serializable& >& Item );
+  iarchive& load_serializable(
+      const std::pair<std::string, serializable&>& Item) override;
 
-  virtual iarchive& RK_CALL load_char( char& i );
+  iarchive& load_char(char& i) override;
 
-  virtual iarchive& RK_CALL load_char( const std::pair< std::string, char& >& i );
+  iarchive& load_char(const std::pair<std::string, char&>& i) override;
 
-  virtual iarchive& RK_CALL load_unsigned_char( unsigned char& u );
+  iarchive& load_unsigned_char(unsigned char& u) override;
 
-  virtual iarchive& RK_CALL load_unsigned_char( const std::pair< std::string, unsigned char& >& u );
+  iarchive& load_unsigned_char(
+      const std::pair<std::string, unsigned char&>& u) override;
 
-  virtual iarchive& RK_CALL load_int( std::ptrdiff_t& i );
+  iarchive& load_int(std::ptrdiff_t& i) override;
 
-  virtual iarchive& RK_CALL load_int( const std::pair< std::string, std::ptrdiff_t& >& i );
+  iarchive& load_int(const std::pair<std::string, std::ptrdiff_t&>& i) override;
 
-  virtual iarchive& RK_CALL load_unsigned_int( std::size_t& u );
+  iarchive& load_unsigned_int(std::size_t& u) override;
 
-  virtual iarchive& RK_CALL load_unsigned_int( const std::pair< std::string, std::size_t& >& u );
+  iarchive& load_unsigned_int(
+      const std::pair<std::string, std::size_t&>& u) override;
 
-  virtual iarchive& RK_CALL load_float( float& f );
+  iarchive& load_float(float& f) override;
 
-  virtual iarchive& RK_CALL load_float( const std::pair< std::string, float& >& f );
+  iarchive& load_float(const std::pair<std::string, float&>& f) override;
 
-  virtual iarchive& RK_CALL load_double( double& d );
+  iarchive& load_double(double& d) override;
 
-  virtual iarchive& RK_CALL load_double( const std::pair< std::string, double& >& d );
+  iarchive& load_double(const std::pair<std::string, double&>& d) override;
 
-  virtual iarchive& RK_CALL load_bool( bool& b );
+  iarchive& load_bool(bool& b) override;
 
-  virtual iarchive& RK_CALL load_bool( const std::pair< std::string, bool& >& b );
+  iarchive& load_bool(const std::pair<std::string, bool&>& b) override;
 
-  virtual iarchive& RK_CALL load_string( std::string& s );
+  iarchive& load_string(std::string& s) override;
 
-  virtual iarchive& RK_CALL load_string( const std::pair< std::string, std::string& >& s );
+  iarchive& load_string(const std::pair<std::string, std::string&>& s) override;
 
-  void load_current_from_node( object_node_desc aNode );
+  void load_current_from_node(object_node_desc aNode);
 
-public:
+ public:
   friend class objtree_editor;
   friend class xml_field_editor;
 
-  shared_ptr< object_graph > get_object_graph() const { return obj_graph; };
-  object_node_desc get_root_node() const { return obj_graph_root; };
+  std::shared_ptr<object_graph> get_object_graph() const { return obj_graph; }
+  object_node_desc get_root_node() const { return obj_graph_root; }
 
-  objtree_iarchive( const shared_ptr< object_graph >& aObjGraph, object_node_desc aRoot = object_node_desc( 0 ) );
-  virtual ~objtree_iarchive();
+  explicit objtree_iarchive(std::shared_ptr<object_graph> aObjGraph,
+                            object_node_desc aRoot = object_node_desc(0));
+  ~objtree_iarchive() override;
 };
-
 
 /**
  * XML output archive.
  */
 class objtree_oarchive : public oarchive {
-private:
-  shared_ptr< object_graph > obj_graph;
+ private:
+  std::shared_ptr<object_graph> obj_graph;
   object_node_desc obj_graph_root;
-  shared_ptr< std::stringstream > current_ss;
+  std::shared_ptr<std::stringstream> current_ss;
   object_node_desc current_node;
 
-protected:
-  virtual oarchive& RK_CALL
-    saveToNewArchive_impl( const serializable_shared_pointer& Item, const std::string& FileName );
+ protected:
+  oarchive& saveToNewArchive_impl(const serializable_shared_pointer& Item,
+                                  const std::string& FileName) override;
 
-  virtual oarchive& RK_CALL
-    saveToNewArchiveNamed_impl( const std::pair< std::string, const serializable_shared_pointer& >& Item,
-                                const std::string& FileName );
+  oarchive& saveToNewArchiveNamed_impl(
+      const std::pair<std::string, const serializable_shared_pointer&>& Item,
+      const std::string& FileName) override;
 
-  virtual oarchive& RK_CALL save_serializable_ptr( const serializable_shared_pointer& Item );
+  oarchive& save_serializable_ptr(
+      const serializable_shared_pointer& Item) override;
 
-  virtual oarchive& RK_CALL
-    save_serializable_ptr( const std::pair< std::string, const serializable_shared_pointer& >& Item );
+  oarchive& save_serializable_ptr(
+      const std::pair<std::string, const serializable_shared_pointer&>& Item)
+      override;
 
-  virtual oarchive& RK_CALL save_serializable( const serializable& Item );
+  oarchive& save_serializable(const serializable& Item) override;
 
-  virtual oarchive& RK_CALL save_serializable( const std::pair< std::string, const serializable& >& Item );
+  oarchive& save_serializable(
+      const std::pair<std::string, const serializable&>& Item) override;
 
-  virtual oarchive& RK_CALL save_char( char i );
+  oarchive& save_char(char i) override;
 
-  virtual oarchive& RK_CALL save_char( const std::pair< std::string, char >& i );
+  oarchive& save_char(const std::pair<std::string, char>& i) override;
 
-  virtual oarchive& RK_CALL save_unsigned_char( unsigned char u );
+  oarchive& save_unsigned_char(unsigned char u) override;
 
-  virtual oarchive& RK_CALL save_unsigned_char( const std::pair< std::string, unsigned char >& u );
+  oarchive& save_unsigned_char(
+      const std::pair<std::string, unsigned char>& u) override;
 
-  virtual oarchive& RK_CALL save_int( std::ptrdiff_t i );
+  oarchive& save_int(std::ptrdiff_t i) override;
 
-  virtual oarchive& RK_CALL save_int( const std::pair< std::string, std::ptrdiff_t >& i );
+  oarchive& save_int(const std::pair<std::string, std::ptrdiff_t>& i) override;
 
-  virtual oarchive& RK_CALL save_unsigned_int( std::size_t u );
+  oarchive& save_unsigned_int(std::size_t u) override;
 
-  virtual oarchive& RK_CALL save_unsigned_int( const std::pair< std::string, std::size_t >& u );
+  oarchive& save_unsigned_int(
+      const std::pair<std::string, std::size_t>& u) override;
 
-  virtual oarchive& RK_CALL save_float( float f );
+  oarchive& save_float(float f) override;
 
-  virtual oarchive& RK_CALL save_float( const std::pair< std::string, float >& f );
+  oarchive& save_float(const std::pair<std::string, float>& f) override;
 
-  virtual oarchive& RK_CALL save_double( double d );
+  oarchive& save_double(double d) override;
 
-  virtual oarchive& RK_CALL save_double( const std::pair< std::string, double >& d );
+  oarchive& save_double(const std::pair<std::string, double>& d) override;
 
-  virtual oarchive& RK_CALL save_bool( bool b );
+  oarchive& save_bool(bool b) override;
 
-  virtual oarchive& RK_CALL save_bool( const std::pair< std::string, bool >& b );
+  oarchive& save_bool(const std::pair<std::string, bool>& b) override;
 
-  virtual oarchive& RK_CALL save_string( const std::string& s );
+  oarchive& save_string(const std::string& s) override;
 
-  virtual oarchive& RK_CALL save_string( const std::pair< std::string, const std::string& >& s );
+  oarchive& save_string(
+      const std::pair<std::string, const std::string&>& s) override;
 
-  void register_new_object( object_node_desc aNode );
-  void unregister_object( object_node_desc aNode );
+  void register_new_object(object_node_desc aNode);
+  void unregister_object(object_node_desc aNode);
   void save_current_stream();
-  void load_current_from_node( object_node_desc aNode );
-  void fresh_current_node( object_node_desc aNode );
+  void load_current_from_node(object_node_desc aNode);
+  void fresh_current_node(object_node_desc aNode);
 
-public:
+ public:
   friend class objtree_editor;
 
-  shared_ptr< object_graph > get_object_graph() const { return obj_graph; };
-  object_node_desc get_root_node() const { return obj_graph_root; };
+  std::shared_ptr<object_graph> get_object_graph() const { return obj_graph; }
+  object_node_desc get_root_node() const { return obj_graph_root; }
 
-  void set_current_node( object_node_desc aNode ) { current_node = aNode; };
-  object_node_desc get_current_node() const { return current_node; };
+  void set_current_node(object_node_desc aNode) { current_node = aNode; }
+  object_node_desc get_current_node() const { return current_node; }
 
-
-  objtree_oarchive( const shared_ptr< object_graph >& aObjGraph, object_node_desc aRoot = object_node_desc( 0 ) );
-  virtual ~objtree_oarchive();
+  explicit objtree_oarchive(std::shared_ptr<object_graph> aObjGraph,
+                            object_node_desc aRoot = object_node_desc(0));
+  ~objtree_oarchive() override;
 };
-
 
 /**
  * This class acts as a manager or container for an object graph that is constantly
@@ -271,24 +286,27 @@ public:
  * necessary for a generic editor for the objects.
  */
 class objtree_editor {
-private:
-  shared_ptr< object_graph > obj_graph;
+ private:
+  std::shared_ptr<object_graph> obj_graph;
   object_node_desc obj_graph_root;
   objtree_oarchive ot_output_arc;
   objtree_iarchive ot_input_arc;
-  std::priority_queue< object_node_desc > obj_graph_graveyard;
+  std::priority_queue<object_node_desc> obj_graph_graveyard;
 
-  objtree_editor( const objtree_editor& );            // non-copyable.
-  objtree_editor& operator=( const objtree_editor& ); // non-assignable.
-
-public:
+ public:
   friend class xml_field_editor;
 
-  const shared_ptr< object_graph >& get_object_graph() const { return obj_graph; };
-  object_node_desc get_root_node() const { return obj_graph_root; };
+  objtree_editor(const objtree_editor&) = delete;             // non-copyable.
+  objtree_editor& operator=(const objtree_editor&) = delete;  // non-assignable.
+
+  const std::shared_ptr<object_graph>& get_object_graph() const {
+    return obj_graph;
+  }
+  object_node_desc get_root_node() const { return obj_graph_root; }
 
   objtree_editor();
-  objtree_editor( const shared_ptr< object_graph >& aObjGraph, object_node_desc aRoot = object_node_desc( 0 ) );
+  explicit objtree_editor(std::shared_ptr<object_graph> aObjGraph,
+                          object_node_desc aRoot = object_node_desc(0));
 
   /**
    * This function adds a new object node to the object graph. In this version, the new object has a
@@ -298,8 +316,9 @@ public:
    * \param aNewObj The new object node to add to the object graph.
    * \return The vertex descriptor of the node within the object-graph.
    */
-  object_node_desc add_new_object( const shared_ptr< serializable >& aNewObj, object_node_desc aParent,
-                                   object_node_desc aOldChild = object_node_desc( 0 ) );
+  object_node_desc add_new_object(
+      const std::shared_ptr<serializable>& aNewObj, object_node_desc aParent,
+      object_node_desc aOldChild = object_node_desc(0));
 
   /**
    * This function adds a new object node to the object graph. In this version, the new object has no
@@ -307,9 +326,10 @@ public:
    * \param aNewObj The new object node to add to the object graph.
    * \return The vertex descriptor of the node within the object-graph.
    */
-  object_node_desc add_new_object( const shared_ptr< serializable >& aNewObj ) {
-    return add_new_object( aNewObj, obj_graph_root );
-  };
+  object_node_desc add_new_object(
+      const std::shared_ptr<serializable>& aNewObj) {
+    return add_new_object(aNewObj, obj_graph_root);
+  }
 
   /**
    * This function attempts to remove the given object from the object graph. Note that this operation
@@ -318,7 +338,7 @@ public:
    * of the object referred to by the node being deleted.
    * \param aNode The node to be removed from the graph.
    */
-  void remove_object( object_node_desc aNode );
+  void remove_object(object_node_desc aNode);
 
   /**
    * This function replaces (or reroutes) the object graph such that a new child node replaces the old child
@@ -330,34 +350,37 @@ public:
    * \param aOldChild The current (or old) child to be replaced. If the old child is null, then a new parent-child
    * connection is created.
    */
-  void replace_child( object_node_desc aParent, object_node_desc aNewChild, object_node_desc aOldChild );
+  void replace_child(object_node_desc aParent, object_node_desc aNewChild,
+                     object_node_desc aOldChild);
 
   /**
    * This function severs the parent-child connection (edge of the graph).
    * \param aParent The parent from which a child is severed.
    * \param aOldChild The current (or old) child to be severed.
    */
-  void sever_child( object_node_desc aParent, object_node_desc aOldChild ) {
-    replace_child( aParent, object_node_desc( 0 ), aOldChild );
-  };
+  void sever_child(object_node_desc aParent, object_node_desc aOldChild) {
+    replace_child(aParent, object_node_desc(0), aOldChild);
+  }
 
   /**
    * This function creates a parent-child connection (edge of the graph).
    * \param aParent The parent to which a child is added.
    * \param aNewChild The new child that will become a child of the parent node.
    */
-  void create_child( object_node_desc aParent, object_node_desc aNewChild ) {
-    replace_child( aParent, aNewChild, object_node_desc( 0 ) );
-  };
+  void create_child(object_node_desc aParent, object_node_desc aNewChild) {
+    replace_child(aParent, aNewChild, object_node_desc(0));
+  }
 
   /**
    * This function returns a field-editor linked to a given node in the object-tree.
    * \param aNode The node to which to link the newly created field-editor.
    * \return A field-editor linked to the given node.
    */
-  xml_field_editor create_field_editor( object_node_desc aNode ) { return xml_field_editor( this, aNode ); };
+  xml_field_editor create_field_editor(object_node_desc aNode) {
+    return {this, aNode};
+  }
 
-  std::string get_object_name( object_node_desc aNode ) const;
+  std::string get_object_name(object_node_desc aNode) const;
 
   /**
    * This function returns the list of objects in the object graph which are derived from
@@ -368,17 +391,16 @@ public:
    * \return The list of all objects in the object-graph which meet the criteria, with object names compatible with the
    * 'set_field_value' function in xml_field_editor.
    */
-  std::vector< std::string > get_objects_derived_from( rtti::so_type* aType ) const;
+  std::vector<std::string> get_objects_derived_from(rtti::so_type* aType) const;
 };
 
+std::string get_objtree_name(const object_graph& obj_graph,
+                             object_node_desc node_id);
 
-std::string get_objtree_name( const object_graph& obj_graph, object_node_desc node_id );
+object_node_desc get_objtree_node_id(const object_graph& obj_graph,
+                                     const std::string& obj_name);
 
-object_node_desc get_objtree_node_id( const object_graph& obj_graph, const std::string& obj_name );
-
-
-}; // serialization
-
-}; // ReaK
+}  // namespace serialization
+}  // namespace ReaK
 
 #endif

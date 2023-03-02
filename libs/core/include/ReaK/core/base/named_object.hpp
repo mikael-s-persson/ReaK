@@ -44,8 +44,8 @@ namespace ReaK {
  * This class declares an interface for an object that has a name.
  */
 class named_interface {
-public:
-  virtual ~named_interface(){};
+ public:
+  virtual ~named_interface() = default;
 
   /**
    * This method returns the name of the object.
@@ -61,23 +61,23 @@ public:
    * read-only.
    * \param aName The new name of the object.
    */
-  virtual void setName( const std::string& aName ) = 0;
+  virtual void setName(const std::string& aName) = 0;
 };
 
 /**
  * This class declares a base class for an object that stores a name string (read- and writable).
  */
 class named_object : public virtual shared_object, public named_interface {
-protected:
+ protected:
   std::string mName;
 
-public:
+ public:
   /**
    * Default Constructor. The name must be set by the derived class using the setName function.
    */
-  named_object(){};
+  named_object() = default;
 
-  virtual ~named_object(){};
+  ~named_object() override = default;
 
   /**
    * This method returns the name of the object.
@@ -85,14 +85,14 @@ public:
    * \post The name of the object is given to the caller as constant.
    * \return The name of the object.
    */
-  virtual const std::string& getName() const { return mName; };
+  const std::string& getName() const override { return mName; }
   /**
    * This method sets the name of the object.
    * \pre Any state, mName is empty or not.
    * \post The name of the object is written to the data member mName.
    * \param aName The new name of the object.
    */
-  virtual void setName( const std::string& aName ) { mName = aName; };
+  void setName(const std::string& aName) override { mName = aName; }
 
   /**
    * This method saves the content of the object to a serial archive of any type.
@@ -102,10 +102,11 @@ public:
    * \param A any type of output archive.
    * \param Version the version of this object that is to be saved (always the latest version).
    */
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& std::pair< std::string, const std::string& >( "name", mName );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& std::pair<std::string, const std::string&>("name", mName);
+  }
 
   /**
    * This method loads the content of the object from a serial archive of any type.
@@ -116,13 +117,15 @@ public:
    * \param Version the version of this object that was saved (it is the user's responsability to maintain backward
    *compatibility as much as desired).
    */
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& std::pair< std::string, std::string& >( "name", mName );
-  };
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& std::pair<std::string, std::string&>("name", mName);
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( named_object, 0xC0000000, 1, "named_object", shared_object )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(named_object, 0xC0000000, 1, "named_object",
+                              shared_object)
 };
-};
+
+}  // namespace ReaK
 
 #endif

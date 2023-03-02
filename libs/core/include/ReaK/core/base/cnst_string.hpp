@@ -34,119 +34,88 @@
 
 #include "defs.hpp"
 
-#if( !defined( BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX ) && !defined( BOOST_NO_CXX11_HDR_ARRAY ) \
-     && !defined( BOOST_NO_CXX11_AUTO_DECLARATIONS ) )
-
-#include <string>
 #include <array>
-
-#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
-#include "index_sequence.hpp"
-#endif
+#include <cstdint>
+#include <string>
+#include <string_view>
 
 /** Main namespace for ReaK */
 namespace ReaK {
 
+constexpr std::uint64_t fnv_prime = 1099511628211U;
+constexpr std::uint64_t fnv_offset = 14695981039346656037U;
 
-BOOST_CONSTEXPR_OR_CONST std::size_t fnv_prime = ( sizeof( std::size_t ) == 8 ? 1099511628211u : 16777619u );
-BOOST_CONSTEXPR_OR_CONST std::size_t fnv_offset = ( sizeof( std::size_t ) == 8 ? 14695981039346656037u : 2166136261u );
+constexpr std::uint64_t fnv_1a_hash_impl(const std::string_view& text,
+                                         unsigned int i) {
+  return (i == 0 ? 0
+                 : (i == 1 ? ((fnv_offset ^ text[0]) * fnv_prime)
+                           : ((fnv_1a_hash_impl(text, i - 1) ^ text[i - 1]) *
+                              fnv_prime)));
+}
 
-BOOST_CONSTEXPR std::size_t fnv_1a_hash_impl( const char* text_ptr, unsigned int i ) {
-  return ( i == 0 ? ( ( fnv_offset ^ text_ptr[0] ) * fnv_prime )
-                  : ( ( fnv_1a_hash_impl( text_ptr, i - 1 ) ^ text_ptr[i] ) * fnv_prime ) );
+constexpr std::size_t fnv_1a_hash(const std::string_view& text) {
+  return fnv_1a_hash_impl(text, text.size());
+}
+
+namespace detail {
+namespace {
+
+template <std::string_view const&... Strs>
+struct concat_constexpr_strings {
+  // Join all strings into a single std::array of chars
+  static constexpr auto impl() noexcept {
+    constexpr std::size_t len = (Strs.size() + ... + 0);
+    std::array<char, len> arr{};
+    auto append = [i = 0, &arr](auto const& s) mutable {
+      for (auto c : s) {
+        arr[i++] = c;
+      }
+    };
+    (append(Strs), ...);
+    return arr;
+  }
+  // Give the joined string static storage
+  static constexpr auto arr = impl();
+  static constexpr std::string_view value{arr.data(), arr.size()};
 };
 
-template < unsigned int N >
-BOOST_CONSTEXPR std::size_t fnv_1a_hash( const char ( &text_ptr )[N] ) {
-  return fnv_1a_hash_impl( text_ptr, N - 2 );
-};
+}  // namespace
+}  // namespace detail
 
+template <std::string_view const&... Strs>
+static constexpr auto ct_concat_v =
+    detail::concat_constexpr_strings<Strs...>::value;
 
-template < std::size_t N >
-struct cnst_string {
+namespace detail {
+namespace {
 
-  std::array< char, N > data;
-
-  BOOST_CONSTEXPR cnst_string( const std::array< char, N >& aStr ) : data( aStr ){};
-
-  BOOST_CONSTEXPR std::size_t size() const { return N - 1; };
-
-  BOOST_CONSTEXPR char operator[]( std::size_t i ) const { return ( i < N - 1 ? data[i] : '\0' ); };
-
-  BOOST_CONSTEXPR std::size_t fnv_1a_hash_impl( unsigned int i ) const {
-    return ( i == 0 ? ( ( fnv_offset ^ data[0] ) * fnv_prime )
-                    : ( ( fnv_1a_hash_impl( i - 1 ) ^ data[i] ) * fnv_prime ) );
-  };
-  BOOST_CONSTEXPR std::size_t hash() const { return fnv_1a_hash_impl( N - 2 ); };
-
-  std::string to_string() const { return std::string( data.data() ); };
-};
-
-#define RK_LSA( LITERAL_STR )                                 \
-  ::ReaK::cnst_string< sizeof( LITERAL_STR ) > {              \
-    std::array< char, sizeof( LITERAL_STR ) > { LITERAL_STR } \
+template <unsigned int N>
+struct ct_itoa_impl {
+  static constexpr auto impl() noexcept {
+    constexpr unsigned int len = []() {
+      unsigned int len = 0;
+      for (auto n = N; n != 0; len++, n /= 10) {}
+      return len;
+    }();
+    std::array<char, len> arr{};
+    auto ptr = arr.data() + arr.size();
+    for (auto n = N; n != 0; n /= 10) {
+      *--ptr = "0123456789"[n % 10];
+    }
+    return arr;
   }
 
-#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
-
-namespace detail {
-namespace {
-
-template < std::size_t N, std::size_t... NIds, std::size_t M, std::size_t... MIds >
-BOOST_CONSTEXPR cnst_string< N + M - 1 >
-  concat_char_arrays_impl( const std::array< char, N >& lhs, index_sequence< NIds... >,
-                           const std::array< char, M >& rhs, index_sequence< MIds... > ) {
-  return cnst_string< N + M - 1 >{std::array< char, N + M - 1 >{{lhs[NIds]..., rhs[MIds]..., '\0'}}};
-};
-};
+  // Give the joined string static storage
+  static constexpr auto arr = impl();
+  static constexpr std::string_view value{arr.data(), arr.size()};
 };
 
-template < std::size_t N, std::size_t M >
-BOOST_CONSTEXPR cnst_string< N + M - 1 > operator+( const cnst_string< N >& lhs, const cnst_string< M >& rhs ) {
-  typedef typename make_index_sequence< N - 1 >::type LIndices;
-  typedef typename make_index_sequence< M - 1 >::type RIndices;
-  return detail::concat_char_arrays_impl( lhs.data, LIndices(), rhs.data, RIndices() );
-};
+}  // namespace
+}  // namespace detail
 
+template <unsigned int N>
+static constexpr auto ct_itoa_v = detail::ct_itoa_impl<N>().value;
 
-namespace detail {
-namespace {
-
-BOOST_CONSTEXPR const char str_digits[] = "0123456789";
-
-template < std::size_t... >
-struct digit_seq {};
-
-template < std::size_t N, std::size_t... S >
-struct gen_digit_seq : gen_digit_seq< N / 10, N % 10, S... > {};
-
-template < std::size_t... S >
-struct gen_digit_seq< 0, S... > {
-  typedef digit_seq< S..., 10 > type;
-  BOOST_STATIC_CONSTEXPR std::size_t count = sizeof...(S)+1;
-};
-};
-};
-
-template < std::size_t N >
-struct ct_itoa {
-  template < std::size_t... S >
-  static BOOST_CONSTEXPR cnst_string< detail::gen_digit_seq< N >::count > text_impl( detail::digit_seq< S... > ) {
-    return cnst_string< detail::gen_digit_seq< N >::count >{
-      std::array< char, detail::gen_digit_seq< N >::count >{detail::str_digits[S]...}};
-  };
-  BOOST_STATIC_CONSTEXPR cnst_string< detail::gen_digit_seq< N >::count > text{
-    text_impl( typename detail::gen_digit_seq< N >::type() )};
-};
-
-#endif
-};
-
-#else
-
-#pragma message( \
-  "Warning: The 'cnst_string.hpp' header (from ReaK library) was included, but this compiler does not support all the necessary C++11 features: unified initialization, std::array, auto declarations, and constexpr. cnst_string will be disabled, which could cause errors!" )
-
-#endif
+}  // namespace ReaK
 
 #endif

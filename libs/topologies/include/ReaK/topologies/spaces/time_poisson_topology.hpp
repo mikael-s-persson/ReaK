@@ -39,16 +39,13 @@
 #include <ReaK/core/base/global_rng.hpp>
 
 #include <cmath>
+#include <random>
 
 #include "time_topology.hpp"
-#include <boost/random/variate_generator.hpp>
-#include <boost/random/lognormal_distribution.hpp>
 
 #include "default_random_sampler.hpp"
 
-namespace ReaK {
-
-namespace pp {
+namespace ReaK::pp {
 
 /**
  * This class implements a time-topology with a Poisson distribution. A time-topology is a
@@ -57,68 +54,78 @@ namespace pp {
  * generate random-points at discrete intervals. This class models the MetricSpaceConcept.
  */
 class time_poisson_topology : public time_topology {
-public:
-  typedef double point_type;
-  typedef double point_difference_type;
+ public:
+  using point_type = double;
+  using point_difference_type = double;
 
-  typedef default_distance_metric distance_metric_type;
-  typedef default_random_sampler random_sampler_type;
+  using distance_metric_type = default_distance_metric;
+  using random_sampler_type = default_random_sampler;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 1 );
+  static constexpr std::size_t dimensions = 1;
 
   double time_step;
   double mean_discrete_time;
   double time_delay;
 
-  explicit time_poisson_topology( const std::string& aName = "time_poisson_topology", double aTimeStep = 1.0,
-                                  double aMeanDiscreteTime = 10.0, double aTimeDelay = 0.0 )
-      : time_topology( aName ), time_step( aTimeStep ), mean_discrete_time( aMeanDiscreteTime ),
-        time_delay( aTimeDelay ){};
+  explicit time_poisson_topology(
+      const std::string& aName = "time_poisson_topology",
+      double aTimeStep = 1.0, double aMeanDiscreteTime = 10.0,
+      double aTimeDelay = 0.0)
+      : time_topology(aName),
+        time_step(aTimeStep),
+        mean_discrete_time(aMeanDiscreteTime),
+        time_delay(aTimeDelay) {}
 
   /**
    * Generates a random point in the space, uniformly distributed.
    * \note This function actually returns the origin of the space.
    */
   point_type random_point() const {
-    boost::variate_generator< global_rng_type&, boost::random::lognormal_distribution< double > > var_gen(
-      get_global_rng(), boost::random::lognormal_distribution< double >( 0.0, 1.0 ) );
-    // boost::variate_generator< global_rng_type&, boost::poisson_distribution< int, double > >
-    // var_gen(get_global_rng(),boost::poisson_distribution< int, double >(mean_discrete_time));
-    return time_step * int( 0.5 * mean_discrete_time / time_step * point_type( var_gen() ) + time_delay / time_step );
-  };
+    std::lognormal_distribution<double> rand_dist(0.0, 1.0);
+    return time_step * int(0.5 * mean_discrete_time / time_step *
+                               point_type(rand_dist(get_global_rng())) +
+                           time_delay / time_step);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int aVersion ) const {
-    ReaK::named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( time_step ) & RK_SERIAL_SAVE_WITH_NAME( mean_discrete_time );
-    if( aVersion > 1 )
-      A& RK_SERIAL_SAVE_WITH_NAME( time_delay );
-  };
+  void save(serialization::oarchive& A, unsigned int aVersion) const override {
+    ReaK::named_object::save(
+        A, named_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(time_step) &
+        RK_SERIAL_SAVE_WITH_NAME(mean_discrete_time);
+    if (aVersion > 1) {
+      A& RK_SERIAL_SAVE_WITH_NAME(time_delay);
+    }
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int aVersion ) {
-    ReaK::named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( time_step ) & RK_SERIAL_LOAD_WITH_NAME( mean_discrete_time );
-    if( aVersion > 1 )
-      A& RK_SERIAL_LOAD_WITH_NAME( time_delay );
-    else
+  void load(serialization::iarchive& A, unsigned int aVersion) override {
+    ReaK::named_object::load(
+        A, named_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(time_step) &
+        RK_SERIAL_LOAD_WITH_NAME(mean_discrete_time);
+    if (aVersion > 1) {
+      A& RK_SERIAL_LOAD_WITH_NAME(time_delay);
+    } else {
       time_delay = 0.0;
-  };
+    }
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( time_poisson_topology, 0xC240000B, 2, "time_poisson_topology", time_topology )
+  RK_RTTI_MAKE_CONCRETE_1BASE(time_poisson_topology, 0xC240000B, 2,
+                              "time_poisson_topology", time_topology)
 };
 
 template <>
-struct is_metric_space< time_poisson_topology > : boost::mpl::true_ {};
+struct is_metric_space<time_poisson_topology> : std::true_type {};
 
 template <>
-struct is_reversible_space< time_poisson_topology > : boost::mpl::true_ {};
+struct is_reversible_space<time_poisson_topology> : std::true_type {};
 
 template <>
-struct is_point_distribution< time_poisson_topology > : boost::mpl::true_ {};
-};
-};
+struct is_point_distribution<time_poisson_topology> : std::true_type {};
+
+}  // namespace ReaK::pp
 
 #endif

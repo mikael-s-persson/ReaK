@@ -37,43 +37,44 @@
 #include <ReaK/geometry/shapes/circle.hpp>
 #include <ReaK/geometry/shapes/rectangle.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
+proximity_record_2D compute_proximity(const circle& aCircle,
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const rectangle& aRectangle,
+                                      const shape_2D_precompute_pack& aPack2);
 
-
-proximity_record_2D compute_proximity( const circle& aCircle, const shape_2D_precompute_pack& aPack1,
-                                       const rectangle& aRectangle, const shape_2D_precompute_pack& aPack2 );
-
-proximity_record_2D compute_proximity( const rectangle& aRectangle, const shape_2D_precompute_pack& aPack1,
-                                       const circle& aCircle, const shape_2D_precompute_pack& aPack2 );
+proximity_record_2D compute_proximity(const rectangle& aRectangle,
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const circle& aCircle,
+                                      const shape_2D_precompute_pack& aPack2);
 
 /**
  * This class is for proximity queries between a circle and a rectangle.
  */
 class prox_circle_rectangle : public proximity_finder_2D {
-protected:
+ protected:
   const circle* mCircle;
   const rectangle* mRectangle;
 
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_2D computeProximity( const shape_2D_precompute_pack& aPack1,
-                                                const shape_2D_precompute_pack& aPack2 );
+  proximity_record_2D computeProximity(
+      const shape_2D_precompute_pack& aPack1,
+      const shape_2D_precompute_pack& aPack2) override;
 
   /**
    * Default constructor.
    * \param aCircle The circle involved in the proximity query.
    * \param aRectangle The rectangle involved in the proximity query.
    */
-  prox_circle_rectangle( const circle* aCircle = nullptr, const rectangle* aRectangle = nullptr );
+  explicit prox_circle_rectangle(const circle* aCircle = nullptr,
+                                 const rectangle* aRectangle = nullptr);
 
   /** Destructor. */
-  virtual ~prox_circle_rectangle(){};
+  ~prox_circle_rectangle() override = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

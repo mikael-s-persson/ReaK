@@ -40,12 +40,9 @@
 
 #include "belief_state_concept.hpp"
 
-#include <boost/utility.hpp>
+#include <type_traits>
 
-namespace ReaK {
-
-namespace ctrl {
-
+namespace ReaK::ctrl {
 
 /**
  * This class is a bijection mapping from a belief-space to a state-space (topology)
@@ -56,25 +53,9 @@ namespace ctrl {
  */
 struct maximum_likelihood_map : public named_object {
 
-  typedef maximum_likelihood_map self;
+  using self = maximum_likelihood_map;
 
-  maximum_likelihood_map() : named_object() { setName( "maximum_likelihood_map" ); };
-
-  /**
-   * This function extracts the most-likely-value from a belief-state.
-   * \tparam BeliefSpace A belief-state topoloogy whose state-space is compatible with the given state-space topology.
-   * \tparam StateSpaceOut A state-space topology whose point-types are compatible with the state type that the
-   * belief-state type would produce.
-   * \param b The belief-state from which the maximum likelihood value is sought.
-   * \return The maximum likelihood value of the belief-state.
-   */
-  template < typename BeliefSpace, typename StateSpaceOut >
-  typename boost::lazy_enable_if< pp::is_temporal_space< BeliefSpace >, pp::topology_point_type< StateSpaceOut > >::type
-    map_to_space( const typename pp::topology_traits< BeliefSpace >::point_type& b, const BeliefSpace&,
-                  const StateSpaceOut& ) const {
-    typedef typename pp::topology_traits< StateSpaceOut >::point_type OutPointType;
-    return OutPointType( b.time, b.pt.get_most_likely_state() );
-  };
+  maximum_likelihood_map() { setName("maximum_likelihood_map"); }
 
   /**
    * This function extracts the most-likely-value from a belief-state.
@@ -84,29 +65,34 @@ struct maximum_likelihood_map : public named_object {
    * \param b The belief-state from which the maximum likelihood value is sought.
    * \return The maximum likelihood value of the belief-state.
    */
-  template < typename BeliefSpace, typename StateSpaceOut >
-  typename boost::lazy_disable_if< pp::is_temporal_space< BeliefSpace >,
-                                   pp::topology_point_type< StateSpaceOut > >::type
-    map_to_space( const typename pp::topology_traits< BeliefSpace >::point_type& b, const BeliefSpace&,
-                  const StateSpaceOut& ) const {
-    typedef typename pp::topology_traits< StateSpaceOut >::point_type OutPointType;
-    return OutPointType( b.get_most_likely_state() );
-  };
+  template <typename BeliefSpace, typename StateSpaceOut>
+  pp::topology_point_type_t<StateSpaceOut> map_to_space(
+      const pp::topology_point_type_t<BeliefSpace>& b,
+      const BeliefSpace& /*unused*/, const StateSpaceOut& /*unused*/) const {
+    if constexpr (pp::is_temporal_space_v<BeliefSpace>) {
+      return {b.time, b.pt.get_most_likely_state()};
+    } else {
+      return {b.get_most_likely_state()};
+    }
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2300014, 1, "maximum_likelihood_map", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2300014, 1, "maximum_likelihood_map",
+                              named_object)
 };
-};
-};
+
+}  // namespace ReaK::ctrl
 
 #endif

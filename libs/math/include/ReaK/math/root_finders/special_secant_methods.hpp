@@ -33,40 +33,39 @@
 #ifndef REAK_SPECIAL_SECANT_METHODS_HPP
 #define REAK_SPECIAL_SECANT_METHODS_HPP
 
-#include <limits>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <limits>
 
 namespace ReaK {
 
+template <typename T, typename RootedFunction, typename OutputIter>
+OutputIter find_multiroot_intervals(T low_bound, T hi_bound, RootedFunction f,
+                                    OutputIter it_out,
+                                    std::size_t& remaining_roots) {
 
-template < typename T, typename RootedFunction, typename OutputIter >
-OutputIter find_multiroot_intervals( T low_bound, T hi_bound, RootedFunction f, OutputIter it_out,
-                                     std::size_t& remaining_roots ) {
+  using std::abs;
 
-  using std::fabs;
+  T x0_value = f(low_bound);
+  T x1_value = f(hi_bound);
+}
 
-  T x0_value = f( low_bound );
-  T x1_value = f( hi_bound );
-};
+template <typename T, typename RootedFunction, typename OutputIter>
+OutputIter ford3_multiroot(T low_bound, T hi_bound, RootedFunction f,
+                           OutputIter it_out,
+                           const T& tol = std::numeric_limits<T>::epsilon()) {
 
+  using std::abs;
 
-template < typename T, typename RootedFunction, typename OutputIter >
-OutputIter ford3_multiroot( T low_bound, T hi_bound, RootedFunction f, OutputIter it_out,
-                            const T& tol = std::numeric_limits< T >::epsilon() ) {
+  T x0_value = f(low_bound);
+  T x1_value = f(hi_bound);
 
-  using std::fabs;
-
-  T x0_value = f( low_bound );
-  T x1_value = f( hi_bound );
-
-  T abs_tol = tol * fabs( hi_bound - low_bound );
-  T abs_f_tol = tol * ( fabs( x0_value ) + fabs( x1_value ) );
+  T abs_tol = tol * abs(hi_bound - low_bound);
+  T abs_f_tol = tol * (abs(x0_value) + abs(x1_value));
 
   // while I have opposite signs on the bounds, try a secant pass to narrow down to the root.
   // if I have same signs on the bounds, then bisect the interval recursively to find
-};
-
+}
 
 /**
  * This function template performs the Ford-3 algorithm for the root of a function. This assumes
@@ -82,50 +81,54 @@ OutputIter ford3_multiroot( T low_bound, T hi_bound, RootedFunction f, OutputIte
  * \param f The functor of which the root is sought.
  * \param tol The tolerance on the size of the narrowed-down intervale in which the root exists.
  */
-template < typename T, typename RootedFunction >
-void ford3_method( T& low_bound, T& hi_bound, RootedFunction f, const T& tol = std::numeric_limits< T >::epsilon() ) {
-  using std::fabs;
+template <typename T, typename RootedFunction>
+void ford3_method(T& low_bound, T& hi_bound, RootedFunction f,
+                  const T& tol = std::numeric_limits<T>::epsilon()) {
+  using std::abs;
 
-  T x0_value = f( low_bound );
-  T x1_value = f( hi_bound );
+  T x0_value = f(low_bound);
+  T x1_value = f(hi_bound);
 
-  if( x0_value * x1_value > 0.0 )
+  if (x0_value * x1_value > 0.0) {
     return;
+  }
 
   int last_retained_bound = 0;
-  T abs_tol = tol * fabs( hi_bound - low_bound );
-  T abs_f_tol = tol * ( fabs( x0_value ) + fabs( x1_value ) );
+  T abs_tol = tol * abs(hi_bound - low_bound);
+  T abs_f_tol = tol * (abs(x0_value) + abs(x1_value));
 
-  while( fabs( low_bound - hi_bound ) > abs_tol ) {
+  while (abs(low_bound - hi_bound) > abs_tol) {
 
-    T x2 = low_bound / ( T( 1.0 ) - x0_value / x1_value ) + hi_bound / ( T( 1.0 ) - x1_value / x0_value );
-    T x2_value = f( x2 );
+    T x2 = low_bound / (T(1.0) - x0_value / x1_value) +
+           hi_bound / (T(1.0) - x1_value / x0_value);
+    T x2_value = f(x2);
 
-    if( x2_value * x1_value > 0.0 ) {
+    if (x2_value * x1_value > 0.0) {
       hi_bound = x2;
-      if( fabs( x2_value ) < abs_f_tol ) {
+      if (abs(x2_value) < abs_f_tol) {
         low_bound = hi_bound;
         return;
-      };
-      if( last_retained_bound == -1 ) {
-        x0_value *= 1.0 - x2_value / ( x1_value * ( 1.0 - x2_value / x0_value ) );
-      };
+      }
+      if (last_retained_bound == -1) {
+        x0_value *= 1.0 - x2_value / (x1_value * (1.0 - x2_value / x0_value));
+      }
       x1_value = x2_value;
       last_retained_bound = -1;
     } else {
       low_bound = x2;
-      if( fabs( x2_value ) < abs_f_tol ) {
+      if (abs(x2_value) < abs_f_tol) {
         hi_bound = low_bound;
         return;
-      };
-      if( last_retained_bound == 1 ) {
-        x1_value *= 1.0 - x2_value / ( x0_value * ( 1.0 - x2_value / x1_value ) );
-      };
+      }
+      if (last_retained_bound == 1) {
+        x1_value *= 1.0 - x2_value / (x0_value * (1.0 - x2_value / x1_value));
+      }
       x0_value = x2_value;
       last_retained_bound = 1;
-    };
-  };
-};
-};
+    }
+  }
+}
+
+}  // namespace ReaK
 
 #endif

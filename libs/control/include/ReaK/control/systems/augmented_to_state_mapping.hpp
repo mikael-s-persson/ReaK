@@ -40,12 +40,9 @@
 
 #include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
 
-#include <boost/utility.hpp>
+#include <type_traits>
 
-namespace ReaK {
-
-namespace ctrl {
-
+namespace ReaK::ctrl {
 
 /**
  * This class is a bijection mapping from a belief-space to a state-space (topology)
@@ -56,27 +53,11 @@ namespace ctrl {
  */
 struct augmented_to_state_map : public named_object {
 
-  typedef augmented_to_state_map self;
+  using self = augmented_to_state_map;
 
-  augmented_to_state_map() : named_object() { setName( "augmented_to_state_map" ); };
-
-  /**
-   * This function extracts the state from a augmented-state.
-   * \tparam AugStateSpace A augmented-state topoloogy whose state-space is compatible with the given state-space
-   * topology.
-   * \tparam StateSpaceOut A state-space topology whose point-types are compatible with the state type that the
-   * augmented-state type would produce.
-   * \param b The augmented-state from which the state is sought.
-   * \return The state of the augmented-state.
-   */
-  template < typename AugStateSpace, typename StateSpaceOut >
-  typename boost::lazy_enable_if< pp::is_temporal_space< AugStateSpace >,
-                                  pp::topology_point_type< StateSpaceOut > >::type
-    map_to_space( const typename pp::topology_traits< AugStateSpace >::point_type& b, const AugStateSpace&,
-                  const StateSpaceOut& ) const {
-    typedef typename pp::topology_traits< StateSpaceOut >::point_type OutPointType;
-    return OutPointType( b.time, get< 0 >( b.pt ) );
-  };
+  augmented_to_state_map() : named_object() {
+    setName("augmented_to_state_map");
+  }
 
   /**
    * This function extracts the state from a augmented-state.
@@ -87,29 +68,32 @@ struct augmented_to_state_map : public named_object {
    * \param b The augmented-state from which the state is sought.
    * \return The state of the augmented-state.
    */
-  template < typename AugStateSpace, typename StateSpaceOut >
-  typename boost::lazy_disable_if< pp::is_temporal_space< AugStateSpace >,
-                                   pp::topology_point_type< StateSpaceOut > >::type
-    map_to_space( const typename pp::topology_traits< AugStateSpace >::point_type& b, const AugStateSpace&,
-                  const StateSpaceOut& ) const {
-    typedef typename pp::topology_traits< StateSpaceOut >::point_type OutPointType;
-    return OutPointType( get< 0 >( b ) );
-  };
+  template <typename AugStateSpace, typename StateSpaceOut>
+  pp::topology_point_type_t<StateSpaceOut> map_to_space(
+      const pp::topology_point_type_t<AugStateSpace>& b,
+      const AugStateSpace& /*unused*/, const StateSpaceOut& /*unused*/) const {
+    if constexpr (pp::is_temporal_space_v<AugStateSpace>) {
+      return {b.time, get<0>(b.pt)};
+    } else {
+      return {get<0>(b)};
+    }
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  }
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2300017, 1, "augmented_to_state_map", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2300017, 1, "augmented_to_state_map",
+                              named_object)
 };
-};
-};
+
+}  // namespace ReaK::ctrl
 
 #endif

@@ -23,12 +23,12 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
+#if 0
 
-#include <ReaK/math/kinetostatics/rotations.hpp>
-#include <ReaK/math/kinetostatics/quat_alg.hpp>
 #include <ReaK/math/kinetostatics/kinetostatics.hpp>
 #include <ReaK/math/kinetostatics/motion_jacobians.hpp>
+#include <ReaK/math/kinetostatics/quat_alg.hpp>
+#include <ReaK/math/kinetostatics/rotations.hpp>
 
 namespace ReaK {
 
@@ -232,5 +232,11 @@ template class jacobian_3D_2D< float >;
 template class jacobian_3D_3D< float >;
 };
 
+#else
+
+namespace ReaK {
+
+void dummy_kinetostatics_externs_symbol(){};
+};
 
 #endif

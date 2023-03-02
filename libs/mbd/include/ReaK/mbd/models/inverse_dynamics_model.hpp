@@ -38,10 +38,7 @@
 #include <ReaK/math/kinetostatics/kinetostatics.hpp>
 #include <ReaK/mbd/kte/kte_map.hpp>
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This base-class represents a class that can be used to compute the inverse dynamics
@@ -52,22 +49,24 @@ namespace kte {
  * on the joint states of a kinematic chain.
  */
 class inverse_dynamics_model : public kte_map {
-public:
+ public:
   /**
    * Default constructor.
    */
-  inverse_dynamics_model( const std::string& aName = "" ) : kte_map( aName ){};
+  explicit inverse_dynamics_model(const std::string& aName = "")
+      : kte_map(aName) {}
 
   /**
    * Default destructor.
    */
-  virtual ~inverse_dynamics_model(){};
+  ~inverse_dynamics_model() override = default;
+  ;
 
   /**
    * Get the total number of position values for all the joint frames concatenated.
    * \return The total number of position values for all the joint frames concatenated.
    */
-  virtual std::size_t getJointStatesCount() const { return 0; };
+  virtual std::size_t getJointStatesCount() const { return 0; }
 
   /**
    * Obtain a vector that contains all the joint states concatenated into one vector.
@@ -79,7 +78,7 @@ public:
    * are the states (and angular states) of the 3D frame joints.
    * \return All the joint states concatenated into one vector.
    */
-  virtual vect_n< double > getJointStates() const { return vect_n< double >(); };
+  virtual vect_n<double> getJointStates() const { return {}; }
 
   /**
    * Set all the joint states of the manipulator to a vector of concatenated joint-states.
@@ -91,29 +90,32 @@ public:
    * are the states (and angular states) of the 3D frame joints.
    * \param aJointAccelerations All the joint states concatenated into one vector.
    */
-  virtual void setJointStates( const vect_n< double >& aJointStates ){};
+  virtual void setJointStates(const vect_n<double>& aJointStates) {}
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {}
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ){};
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {}
 
-  virtual void clearForce(){};
+  void clearForce() override {}
 
   /**
    * Get the mass matrix for the system.
    * \param M stores, as output, the calculated system's mass-matrix.
    */
-  virtual void getMassMatrix( mat< double, mat_structure::symmetric >& M ){};
+  virtual void getMassMatrix(mat<double, mat_structure::symmetric>& M) {}
 
   /**
    * Get the mass matrix for the system and its time-derivative.
    * \param M stores, as output, the calculated system's mass-matrix.
    * \param M_dot stores, as output, the calculated time-derivative of the system's mass matrix.
    */
-  virtual void getMassMatrixAndDerivative( mat< double, mat_structure::symmetric >& M,
-                                           mat< double, mat_structure::square >& M_dot ){};
+  virtual void getMassMatrixAndDerivative(
+      mat<double, mat_structure::symmetric>& M,
+      mat<double, mat_structure::square>& M_dot) {}
 
   /**
    * Get the twist-shaping matrix, the block-diagonal, link mass-matrix, and the time-derivative of the twist-shaping
@@ -122,22 +124,23 @@ public:
    * \param Mcm stores, as output, the calculated block-diagonal, link mass matrix.
    * \param Tcm_dot storse, as output, the calculated time-derivative of the system's twist-shaping matrix.
    */
-  virtual void get_TMT_TdMT( mat< double, mat_structure::rectangular >& Tcm,
-                             mat< double, mat_structure::symmetric >& Mcm,
-                             mat< double, mat_structure::rectangular >& Tcm_dot ){};
+  virtual void get_TMT_TdMT(mat<double, mat_structure::rectangular>& Tcm,
+                            mat<double, mat_structure::symmetric>& Mcm,
+                            mat<double, mat_structure::rectangular>& Tcm_dot) {}
 
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-  };
-
-  RK_RTTI_MAKE_CONCRETE_1BASE( inverse_dynamics_model, 0xC210004F, 1, "inverse_dynamics_model", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(inverse_dynamics_model, 0xC210004F, 1,
+                              "inverse_dynamics_model", kte_map)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

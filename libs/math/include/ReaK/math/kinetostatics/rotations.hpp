@@ -39,5 +39,4 @@
 #include "rotations_2D.hpp"
 #include "rotations_3D.hpp"
 
-
 #endif

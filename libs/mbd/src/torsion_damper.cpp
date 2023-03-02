@@ -23,96 +23,102 @@
 
 #include <ReaK/mbd/kte/torsion_damper.hpp>
 
-namespace ReaK {
+namespace ReaK::kte {
 
-namespace kte {
-
-
-void torsion_damper_2D::doMotion( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mAnchor1 ) || ( !mAnchor2 ) )
+void torsion_damper_2D::doMotion(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mAnchor1) || (!mAnchor2)) {
     return;
+  }
 
-  if( ( aFlag == store_kinematics ) && ( aStorage ) ) {
-    if( !( aStorage->frame_2D_mapping[mAnchor1] ) )
-      aStorage->frame_2D_mapping[mAnchor1]
-        = shared_ptr< frame_2D< double > >( new frame_2D< double >( ( *mAnchor1 ) ), scoped_deleter() );
-    else
-      ( *( aStorage->frame_2D_mapping[mAnchor1] ) ) = ( *mAnchor1 );
-    if( !( aStorage->frame_2D_mapping[mAnchor2] ) )
-      aStorage->frame_2D_mapping[mAnchor2]
-        = shared_ptr< frame_2D< double > >( new frame_2D< double >( ( *mAnchor2 ) ), scoped_deleter() );
-    else
-      ( *( aStorage->frame_2D_mapping[mAnchor2] ) ) = ( *mAnchor2 );
-  };
-};
+  if ((aFlag == store_kinematics) && (aStorage)) {
+    if (!(aStorage->frame_2D_mapping[mAnchor1])) {
+      aStorage->frame_2D_mapping[mAnchor1] =
+          std::make_shared<frame_2D<double>>(*mAnchor1);
+    } else {
+      (*(aStorage->frame_2D_mapping[mAnchor1])) = (*mAnchor1);
+    }
+    if (!(aStorage->frame_2D_mapping[mAnchor2])) {
+      aStorage->frame_2D_mapping[mAnchor2] =
+          std::make_shared<frame_2D<double>>(*mAnchor2);
+    } else {
+      (*(aStorage->frame_2D_mapping[mAnchor2])) = (*mAnchor2);
+    }
+  }
+}
 
-void torsion_damper_2D::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  RK_UNUSED( aFlag );
-  RK_UNUSED( aStorage );
-  if( ( !mAnchor1 ) || ( !mAnchor2 ) )
+void torsion_damper_2D::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  RK_UNUSED(aFlag);
+  RK_UNUSED(aStorage);
+  if ((!mAnchor1) || (!mAnchor2)) {
     return;
+  }
 
-
-  double torque_mag = ( mAnchor1->AngVelocity - mAnchor2->AngVelocity ) * mDamping;
+  double torque_mag =
+      (mAnchor1->AngVelocity - mAnchor2->AngVelocity) * mDamping;
   mAnchor1->Torque -= torque_mag;
   mAnchor2->Torque += torque_mag;
-};
-
+}
 
 void torsion_damper_2D::clearForce() {
-  if( mAnchor1 ) {
-    mAnchor1->Force = vect< double, 2 >();
+  if (mAnchor1) {
+    mAnchor1->Force = vect<double, 2>();
     mAnchor1->Torque = 0.0;
-  };
-  if( mAnchor2 ) {
-    mAnchor2->Force = vect< double, 2 >();
+  }
+  if (mAnchor2) {
+    mAnchor2->Force = vect<double, 2>();
     mAnchor2->Torque = 0.0;
-  };
-};
+  }
+}
 
-
-void torsion_damper_3D::doMotion( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mAnchor1 ) || ( !mAnchor2 ) )
+void torsion_damper_3D::doMotion(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mAnchor1) || (!mAnchor2)) {
     return;
+  }
 
-  if( ( aFlag == store_kinematics ) && ( aStorage ) ) {
-    if( !( aStorage->frame_3D_mapping[mAnchor1] ) )
-      aStorage->frame_3D_mapping[mAnchor1]
-        = shared_ptr< frame_3D< double > >( new frame_3D< double >( ( *mAnchor1 ) ), scoped_deleter() );
-    else
-      ( *( aStorage->frame_3D_mapping[mAnchor1] ) ) = ( *mAnchor1 );
-    if( !( aStorage->frame_3D_mapping[mAnchor2] ) )
-      aStorage->frame_3D_mapping[mAnchor2]
-        = shared_ptr< frame_3D< double > >( new frame_3D< double >( ( *mAnchor2 ) ), scoped_deleter() );
-    else
-      ( *( aStorage->frame_3D_mapping[mAnchor2] ) ) = ( *mAnchor2 );
-  };
-};
+  if ((aFlag == store_kinematics) && (aStorage)) {
+    if (!(aStorage->frame_3D_mapping[mAnchor1])) {
+      aStorage->frame_3D_mapping[mAnchor1] =
+          std::make_shared<frame_3D<double>>(*mAnchor1);
+    } else {
+      (*(aStorage->frame_3D_mapping[mAnchor1])) = (*mAnchor1);
+    }
+    if (!(aStorage->frame_3D_mapping[mAnchor2])) {
+      aStorage->frame_3D_mapping[mAnchor2] =
+          std::make_shared<frame_3D<double>>(*mAnchor2);
+    } else {
+      (*(aStorage->frame_3D_mapping[mAnchor2])) = (*mAnchor2);
+    }
+  }
+}
 
-void torsion_damper_3D::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  RK_UNUSED( aFlag );
-  RK_UNUSED( aStorage );
-  if( ( !mAnchor1 ) || ( !mAnchor2 ) )
+void torsion_damper_3D::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  RK_UNUSED(aFlag);
+  RK_UNUSED(aStorage);
+  if ((!mAnchor1) || (!mAnchor2)) {
     return;
+  }
 
-  rot_mat_3D< double > R1 = mAnchor1->Quat.getRotMat();
-  rot_mat_3D< double > R2 = mAnchor2->Quat.getRotMat();
-  vect< double, 3 > diff = ( R1 * mAnchor1->AngVelocity - R2 * mAnchor2->AngVelocity ) * mDamping;
+  rot_mat_3D<double> R1 = mAnchor1->Quat.getRotMat();
+  rot_mat_3D<double> R2 = mAnchor2->Quat.getRotMat();
+  vect<double, 3> diff =
+      (R1 * mAnchor1->AngVelocity - R2 * mAnchor2->AngVelocity) * mDamping;
 
   mAnchor1->Torque -= diff * R1;
   mAnchor2->Torque += diff * R2;
-};
-
+}
 
 void torsion_damper_3D::clearForce() {
-  if( mAnchor1 ) {
-    mAnchor1->Force = vect< double, 3 >();
-    mAnchor1->Torque = vect< double, 3 >();
-  };
-  if( mAnchor2 ) {
-    mAnchor2->Force = vect< double, 3 >();
-    mAnchor2->Torque = vect< double, 3 >();
-  };
-};
-};
-};
+  if (mAnchor1) {
+    mAnchor1->Force = vect<double, 3>();
+    mAnchor1->Torque = vect<double, 3>();
+  }
+  if (mAnchor2) {
+    mAnchor2->Force = vect<double, 3>();
+    mAnchor2->Torque = vect<double, 3>();
+  }
+}
+}  // namespace ReaK::kte

@@ -9,7 +9,7 @@ target_link_libraries(quadrotor_scene reak_control reak_topologies reak_mbd reak
 
 add_executable(estimate_airship "estimate_airship.cpp")
 ReaK_setup_target(estimate_airship)
-target_link_libraries(estimate_airship reak_control)
+target_link_libraries(estimate_airship reak_control ${Boost_LIBRARIES})
 
 add_executable(estimate_satellite3D "estimate_satellite3D.cpp")
 ReaK_setup_target(estimate_satellite3D)

@@ -35,132 +35,146 @@
 #include <ReaK/core/base/defs.hpp>
 
 #include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_norms.hpp>
 #include <ReaK/math/lin_alg/mat_cholesky.hpp>
 #include <ReaK/math/lin_alg/mat_damped_matrix.hpp>
+#include <ReaK/math/lin_alg/mat_norms.hpp>
 
-#include "optim_exceptions.hpp"
 #include "limit_functions.hpp"
+#include "optim_exceptions.hpp"
 
-namespace ReaK {
-
-
-namespace optim {
-
+namespace ReaK::optim {
 
 namespace detail {
 
-
-template < typename Function, typename JacobianFunction, typename InputVector, typename OutputVector,
-           typename LinearSolver, typename LimitFunction, typename T >
-int levenberg_marquardt_nllsq_impl( Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y,
-                                    LinearSolver lin_solve, LimitFunction impose_limits, unsigned int max_iter, T tau,
-                                    T epsj, T epsx, T epsy ) {
-  typedef typename vect_traits< InputVector >::value_type ValueType;
-  typedef typename vect_traits< InputVector >::size_type SizeType;
+template <typename Function, typename JacobianFunction, typename InputVector,
+          typename OutputVector, typename LinearSolver, typename LimitFunction,
+          typename T>
+int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac,
+                                   InputVector& x, const OutputVector& y,
+                                   LinearSolver lin_solve,
+                                   LimitFunction impose_limits,
+                                   unsigned int max_iter, T tau, T epsj, T epsx,
+                                   T epsy) {
+  using ValueType = vect_value_type_t<InputVector>;
 
   /* Check if the problem is defined properly */
-  if( y.size() < x.size() )
-    throw improper_problem( "Levenberg-Marquardt requires M > N!" );
+  if (y.size() < x.size()) {
+    throw improper_problem("Levenberg-Marquardt requires M > N!");
+  }
 
-  mat< ValueType, mat_structure::rectangular > J( y.size(), x.size() );
-  mat< ValueType, mat_structure::square > JtJ( x.size() );
-  mat< ValueType, mat_structure::diagonal > diag_JtJ( x.size() );
-  mat< ValueType, mat_structure::scalar > mu( x.size(), 0.0 );
+  mat<ValueType, mat_structure::rectangular> J(y.size(), x.size());
+  mat<ValueType, mat_structure::square> JtJ(x.size());
+  mat<ValueType, mat_structure::diagonal> diag_JtJ(x.size());
+  mat<ValueType, mat_structure::scalar> mu(x.size(), 0.0);
   InputVector Jte = x;
   InputVector Dp = x;
   Dp -= x;
-  mat_vect_adaptor< InputVector > Dp_mat( Dp );
+  mat_vect_adaptor<InputVector> Dp_mat(Dp);
   InputVector pDp = x;
-  impose_limits( x, Dp ); // make sure the initial solution is feasible.
+  impose_limits(x, Dp);  // make sure the initial solution is feasible.
   x += Dp;
 
-  if( tau <= 0.0 )
+  if (tau <= 0.0) {
     tau = 1E-03;
-  if( epsj <= 0.0 )
+  }
+  if (epsj <= 0.0) {
     epsj = 1E-17;
-  if( epsx <= 0.0 )
+  }
+  if (epsx <= 0.0) {
     epsx = 1E-17;
+  }
   ValueType epsx_sq = epsx * epsx;
-  if( epsy <= 0.0 )
+  if (epsy <= 0.0) {
     epsy = 1E-17;
-  if( max_iter <= 1 )
+  }
+  if (max_iter <= 1) {
     max_iter = 2;
+  }
 
   /* compute e=x - f(p) and its L2 norm */
-  OutputVector y_approx = f( x );
+  OutputVector y_approx = f(x);
   OutputVector e = y;
   e -= y_approx;
   OutputVector e_tmp = e;
   ValueType p_eL2 = e * e;
 
   unsigned int nu = 2;
-  for( unsigned int k = 0; k < max_iter; ++k ) {
+  for (unsigned int k = 0; k < max_iter; ++k) {
 
-    if( p_eL2 < epsy )
-      return 1; // residual is too small.
+    if (p_eL2 < epsy) {
+      return 1;  // residual is too small.
+    }
 
-    fill_jac( J, x, y_approx );
+    fill_jac(J, x, y_approx);
 
-    /* J^T J, J^T e */
-    for( SizeType i = 0; i < J.get_col_count(); ++i ) {
-      for( SizeType j = i; j < J.get_col_count(); ++j ) {
-        ValueType tmp( 0.0 );
-        for( SizeType l = 0; l < J.get_row_count(); ++l )
-          tmp += J( l, i ) * J( l, j );
-        JtJ( i, j ) = JtJ( j, i ) = tmp;
-      };
-    };
+    /// J^T J, J^T e
+    for (int i = 0; i < J.get_col_count(); ++i) {
+      for (int j = i; j < J.get_col_count(); ++j) {
+        ValueType tmp(0.0);
+        for (int l = 0; l < J.get_row_count(); ++l) {
+          tmp += J(l, i) * J(l, j);
+        }
+        JtJ(i, j) = JtJ(j, i) = tmp;
+      }
+    }
     Jte = e * J;
 
     ValueType p_L2 = x * x;
 
-    /* check for convergence */
-    if( norm_inf( mat_vect_adaptor< InputVector >( Jte ) ) < epsj )
-      return 2; // Jacobian is too small.
+    // check for convergence
+    if (norm_inf(mat_vect_adaptor<InputVector>(Jte)) < epsj) {
+      return 2;  // Jacobian is too small.
+    }
 
-    /* compute initial damping factor */
-    if( k == 0 ) {
-      ValueType tmp = std::numeric_limits< ValueType >::min();
-      for( SizeType i = 0; i < JtJ.get_row_count(); ++i )
-        if( JtJ( i, i ) > tmp )
-          tmp = JtJ( i, i ); /* find max diagonal element */
-      mu = mat< ValueType, mat_structure::scalar >( x.size(), tau * tmp );
-    };
+    // compute initial damping factor
+    if (k == 0) {
+      ValueType tmp = std::numeric_limits<ValueType>::min();
+      for (int i = 0; i < JtJ.get_row_count(); ++i) {
+        if (JtJ(i, i) > tmp) {
+          tmp = JtJ(i, i);  // find max diagonal element
+        }
+      }
+      mu = mat<ValueType, mat_structure::scalar>(x.size(), tau * tmp);
+    }
 
     /* determine increment using adaptive damping */
-    while( true ) {
+    while (true) {
 
       /* solve augmented equations */
       try {
-        lin_solve( make_damped_matrix( JtJ, mu ), Dp_mat, mat_vect_adaptor< InputVector >( Jte ), epsj );
+        lin_solve(make_damped_matrix(JtJ, mu), Dp_mat,
+                  mat_vect_adaptor<InputVector>(Jte), epsj);
 
-        impose_limits( x, Dp );
+        impose_limits(x, Dp);
         ValueType Dp_L2 = Dp * Dp;
         pDp = x;
         pDp += Dp;
 
-        if( Dp_L2 < epsx_sq * p_L2 ) /* relative change in p is small, stop */
-          return 3;                  // steps are too small.
+        if (Dp_L2 < epsx_sq * p_L2) {
+          return 3;  // steps are too small.
+        }
 
-        if( Dp_L2 >= ( p_L2 + epsx )
-                     / ( std::numeric_limits< ValueType >::epsilon() * std::numeric_limits< ValueType >::epsilon() ) )
-          throw 42; // signal to throw a singularity-error (see below).
+        if (Dp_L2 >=
+            (p_L2 + epsx) / (std::numeric_limits<ValueType>::epsilon() *
+                             std::numeric_limits<ValueType>::epsilon())) {
+          throw 42;  // signal to throw a singularity-error (see below).
+        }
 
         e_tmp = y;
-        e_tmp -= f( pDp );
+        e_tmp -= f(pDp);
         ValueType pDp_eL2 = e_tmp * e_tmp;
-        ValueType dL = mu( 0, 0 ) * Dp_L2 + Dp * Jte;
+        ValueType dL = mu(0, 0) * Dp_L2 + Dp * Jte;
 
         ValueType dF = p_eL2 - pDp_eL2;
 
-        if( ( dL < 0.0 ) || ( dF < 0.0 ) )
-          throw singularity_error( "reject inc." );
+        if ((dL < 0.0) || (dF < 0.0)) {
+          throw singularity_error("reject inc.");
+        }
 
         // reduction in error, increment is accepted
-        ValueType tmp = ( ValueType( 2.0 ) * dF / dL - ValueType( 1.0 ) );
+        ValueType tmp = (ValueType(2.0) * dF / dL - ValueType(1.0));
         tmp = 1.0 - tmp * tmp * tmp;
-        mu *= ( ( tmp >= ValueType( 1.0 / 3.0 ) ) ? tmp : ValueType( 1.0 / 3.0 ) );
+        mu *= ((tmp >= ValueType(1.0 / 3.0)) ? tmp : ValueType(1.0 / 3.0));
         nu = 2;
 
         x = pDp;
@@ -168,30 +182,33 @@ int levenberg_marquardt_nllsq_impl( Function f, JacobianFunction fill_jac, Input
         y_approx -= e_tmp;
         e = e_tmp;
         p_eL2 = pDp_eL2;
-        break; // the step is accepted and the loop is broken.
-      } catch( singularity_error& ) {
+        break;  // the step is accepted and the loop is broken.
+      } catch (singularity_error&) {
         // the increment must be rejected (either by singularity in damped matrix or no-redux by the step.
-        mu *= ValueType( nu );
-        nu <<= 1;     // 2*nu;
-        if( nu == 0 ) /* nu has overflown. */
+        mu *= ValueType(nu);
+        nu <<= 1;       // 2*nu;
+        if (nu == 0) {  // nu has overflown.
           throw infeasible_problem(
-            "Levenberg-Marquardt method cannot reduce the function further, matrix damping has overflown!" );
-      } catch( int i ) {
-        if( i == 42 )
+              "Levenberg-Marquardt method cannot reduce the function further, "
+              "matrix damping has overflown!");
+        }
+      } catch (int i) {
+        if (i == 42) {
           throw singularity_error(
-            "Levenberg-Marquardt method has detected a near-singularity in the Jacobian matrix!" );
-        else
-          throw i; // just in case there might be another integer thrown (very unlikely).
-      };
+              "Levenberg-Marquardt method has detected a near-singularity in "
+              "the Jacobian matrix!");
+        } else {
+          throw i;  // just in case there might be another integer thrown (very unlikely).
+        }
+      }
 
-    }; /* inner loop */
-  };
+    } /* inner loop */
+  }
 
   // if this point is reached, it means we have reached the maximum iterations.
-  throw maximum_iteration( max_iter );
-};
-};
-
+  throw maximum_iteration(max_iter);
+}
+}  // namespace detail
 
 /**
  * This functor is a factory class to construct a non-linear least-square optimizer for a vector
@@ -211,8 +228,9 @@ int levenberg_marquardt_nllsq_impl( Function f, JacobianFunction fill_jac, Input
  * examples).
  * \tparam T The value-type of the field on which the optimization is performed.
  */
-template < typename Function, typename JacobianFunction, typename OutputVector, typename T = double,
-           typename LimitFunction = no_limit_functor, typename LinearSolver = Cholesky_linsolver >
+template <typename Function, typename JacobianFunction, typename OutputVector,
+          typename T = double, typename LimitFunction = no_limit_functor,
+          typename LinearSolver = Cholesky_linsolver>
 struct levenberg_marquardt_nllsq_factory {
   Function f;
   JacobianFunction fill_jac;
@@ -225,8 +243,8 @@ struct levenberg_marquardt_nllsq_factory {
   LimitFunction impose_limits;
   LinearSolver lin_solve;
 
-  typedef levenberg_marquardt_nllsq_factory< Function, JacobianFunction, OutputVector, T, LimitFunction, LinearSolver >
-    self;
+  using self = levenberg_marquardt_nllsq_factory<
+      Function, JacobianFunction, OutputVector, T, LimitFunction, LinearSolver>;
 
   /**
    * Parametrized constructor of the factory object.
@@ -242,13 +260,22 @@ struct levenberg_marquardt_nllsq_factory {
    * a gradient projection method, for more complex constraints please use a constraint optimization method instead).
    * \param aLinSolver The functor that can solve a linear system.
    */
-  levenberg_marquardt_nllsq_factory( Function aF, JacobianFunction aFillJac, OutputVector aY,
-                                     unsigned int aMaxIter = 100, T aTau = T( 1e-3 ), T aEpsj = T( 1e-6 ),
-                                     T aEpsx = T( 1e-6 ), T aEpsy = T( 1e-6 ),
-                                     LimitFunction aImposeLimits = LimitFunction(),
-                                     LinearSolver aLinSolver = LinearSolver() )
-      : f( aF ), fill_jac( aFillJac ), y( aY ), max_iter( aMaxIter ), tau( aTau ), epsj( aEpsj ), epsx( aEpsx ),
-        epsy( aEpsy ), impose_limits( aImposeLimits ), lin_solve( aLinSolver ){};
+  levenberg_marquardt_nllsq_factory(
+      Function aF, JacobianFunction aFillJac, OutputVector aY,
+      unsigned int aMaxIter = 100, T aTau = T(1e-3), T aEpsj = T(1e-6),
+      T aEpsx = T(1e-6), T aEpsy = T(1e-6),
+      LimitFunction aImposeLimits = LimitFunction(),
+      LinearSolver aLinSolver = LinearSolver())
+      : f(aF),
+        fill_jac(aFillJac),
+        y(aY),
+        max_iter(aMaxIter),
+        tau(aTau),
+        epsj(aEpsj),
+        epsx(aEpsx),
+        epsy(aEpsy),
+        impose_limits(aImposeLimits),
+        lin_solve(aLinSolver) {}
   /**
    * This function finds the minimum of a function, given its derivative and Hessian,
    * using a newton search direction and using a trust-region approach.
@@ -262,47 +289,48 @@ struct levenberg_marquardt_nllsq_factory {
    * \throw maximum_iteration If the maximum number of iterations has been reached.
    * \throw other Exceptions can originate from the functors.
    */
-  template < typename Vector >
-  int operator()( Vector& x ) const {
-    return detail::levenberg_marquardt_nllsq_impl( f, fill_jac, x, y, lin_solve, impose_limits, max_iter, tau, epsj,
-                                                   epsx, epsy );
-  };
+  template <typename Vector>
+  int operator()(Vector& x) const {
+    return detail::levenberg_marquardt_nllsq_impl(f, fill_jac, x, y, lin_solve,
+                                                  impose_limits, max_iter, tau,
+                                                  epsj, epsx, epsy);
+  }
 
   /**
    * Sets the initial damping of the Hessian matrix.
    */
-  self& set_max_iteration( unsigned int aMaxIter ) {
+  self& set_max_iteration(unsigned int aMaxIter) {
     max_iter = aMaxIter;
     return *this;
-  };
+  }
   /**
    * Sets the initial damping of the Hessian matrix.
    */
-  self& set_initial_damping( T aTau ) {
+  self& set_initial_damping(T aTau) {
     tau = aTau;
     return *this;
-  };
+  }
   /**
    * Sets the relative tolerance on the norm of the step size.
    */
-  self& set_eps_j( T aEpsj ) {
+  self& set_eps_j(T aEpsj) {
     epsj = aEpsj;
     return *this;
-  };
+  }
   /**
    * Sets the relative tolerance on the norm of the step size.
    */
-  self& set_eps_x( T aEpsx ) {
+  self& set_eps_x(T aEpsx) {
     epsx = aEpsx;
     return *this;
-  };
+  }
   /**
    * Sets the relative tolerance on the norm of the residual.
    */
-  self& set_eps_y( T aEpsy ) {
+  self& set_eps_y(T aEpsy) {
     epsy = aEpsy;
     return *this;
-  };
+  }
 
   /**
    * This function remaps the factory to one which will use the given linear system solver.
@@ -310,13 +338,16 @@ struct levenberg_marquardt_nllsq_factory {
    * for examples).
    * \param new_lin_solver The functor that can solve a linear system.
    */
-  template < typename NewLinearSolver >
-  levenberg_marquardt_nllsq_factory< Function, JacobianFunction, OutputVector, T, LimitFunction, NewLinearSolver >
-    set_lin_solver( NewLinearSolver new_lin_solver ) const {
-    return levenberg_marquardt_nllsq_factory< Function, JacobianFunction, OutputVector, T, LimitFunction,
-                                              NewLinearSolver >( f, fill_jac, y, max_iter, tau, epsj, epsx, epsy,
-                                                                 impose_limits, new_lin_solver );
-  };
+  template <typename NewLinearSolver>
+  levenberg_marquardt_nllsq_factory<Function, JacobianFunction, OutputVector, T,
+                                    LimitFunction, NewLinearSolver>
+  set_lin_solver(NewLinearSolver new_lin_solver) const {
+    return levenberg_marquardt_nllsq_factory<Function, JacobianFunction,
+                                             OutputVector, T, LimitFunction,
+                                             NewLinearSolver>(
+        f, fill_jac, y, max_iter, tau, epsj, epsx, epsy, impose_limits,
+        new_lin_solver);
+  }
 
   /**
    * This function remaps the factory to one which will use the given limit-function for the search domain.
@@ -328,13 +359,15 @@ struct levenberg_marquardt_nllsq_factory {
    * \param new_limits The functor that can impose simple limits on the search domain (i.e. using this boils down to a
    * gradient projection method, for more complex constraints please use a constraint optimization method instead).
    */
-  template < typename NewLimitFunction >
-  levenberg_marquardt_nllsq_factory< Function, JacobianFunction, OutputVector, NewLimitFunction, LinearSolver, T >
-    set_limiter( NewLimitFunction new_limits ) const {
-    return levenberg_marquardt_nllsq_factory< Function, JacobianFunction, OutputVector, T, NewLimitFunction,
-                                              LinearSolver >( f, fill_jac, y, max_iter, tau, epsj, epsx, epsy,
-                                                              new_limits, lin_solve );
-  };
+  template <typename NewLimitFunction>
+  levenberg_marquardt_nllsq_factory<Function, JacobianFunction, OutputVector,
+                                    NewLimitFunction, LinearSolver, T>
+  set_limiter(NewLimitFunction new_limits) const {
+    return levenberg_marquardt_nllsq_factory<Function, JacobianFunction,
+                                             OutputVector, T, NewLimitFunction,
+                                             LinearSolver>(
+        f, fill_jac, y, max_iter, tau, epsj, epsx, epsy, new_limits, lin_solve);
+  }
 };
 
 /**
@@ -353,20 +386,24 @@ struct levenberg_marquardt_nllsq_factory {
  * \param epsx The tolerance on the norm of the estimation steps.
  * \param epsy The tolerance on the norm of the residual vector.
  */
-template < typename Function, typename JacobianFunction, typename OutputVector >
-levenberg_marquardt_nllsq_factory< Function, JacobianFunction, OutputVector,
-                                   typename vect_traits< OutputVector >::value_type >
-  make_levenberg_marquardt_nllsq(
-    Function f, JacobianFunction fill_jac, OutputVector y, unsigned int max_iter = 100,
-    typename vect_traits< OutputVector >::value_type tau = typename vect_traits< OutputVector >::value_type( 1E-03 ),
-    typename vect_traits< OutputVector >::value_type epsj = typename vect_traits< OutputVector >::value_type( 1e-6 ),
-    typename vect_traits< OutputVector >::value_type epsx = typename vect_traits< OutputVector >::value_type( 1e-6 ),
-    typename vect_traits< OutputVector >::value_type epsy = typename vect_traits< OutputVector >::value_type( 1e-6 ) ) {
-  return levenberg_marquardt_nllsq_factory< Function, JacobianFunction, OutputVector,
-                                            typename vect_traits< OutputVector >::value_type >(
-    f, fill_jac, y, max_iter, tau, epsj, epsx, epsy );
-};
-
+template <typename Function, typename JacobianFunction, typename OutputVector>
+levenberg_marquardt_nllsq_factory<Function, JacobianFunction, OutputVector,
+                                  vect_value_type_t<OutputVector>>
+make_levenberg_marquardt_nllsq(Function f, JacobianFunction fill_jac,
+                               OutputVector y, unsigned int max_iter = 100,
+                               vect_value_type_t<OutputVector> tau =
+                                   vect_value_type_t<OutputVector>(1E-03),
+                               vect_value_type_t<OutputVector> epsj =
+                                   vect_value_type_t<OutputVector>(1e-6),
+                               vect_value_type_t<OutputVector> epsx =
+                                   vect_value_type_t<OutputVector>(1e-6),
+                               vect_value_type_t<OutputVector> epsy =
+                                   vect_value_type_t<OutputVector>(1e-6)) {
+  return levenberg_marquardt_nllsq_factory<Function, JacobianFunction,
+                                           OutputVector,
+                                           vect_value_type_t<OutputVector>>(
+      f, fill_jac, y, max_iter, tau, epsj, epsx, epsy);
+}
 
 /**
  * This function finds the non-linear least-square solution to a vector function.
@@ -398,17 +435,23 @@ levenberg_marquardt_nllsq_factory< Function, JacobianFunction, OutputVector,
  * \throw singularity_error If a step is detected to cause a near-infinite jump.
  * \throw maximum_iteration If the maximum number of iterations has been reached.
  */
-template < typename Function, typename JacobianFunction, typename InputVector, typename OutputVector >
-int levenberg_marquardt_nllsq(
-  Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter = 100,
-  typename vect_traits< OutputVector >::value_type tau = typename vect_traits< OutputVector >::value_type( 1E-03 ),
-  typename vect_traits< OutputVector >::value_type epsj = typename vect_traits< OutputVector >::value_type( 1e-12 ),
-  typename vect_traits< OutputVector >::value_type epsx = typename vect_traits< OutputVector >::value_type( 1e-12 ),
-  typename vect_traits< OutputVector >::value_type epsy = typename vect_traits< OutputVector >::value_type( 1e-12 ) ) {
-  return detail::levenberg_marquardt_nllsq_impl( f, fill_jac, x, y, Cholesky_linsolver(), no_limit_functor(), max_iter,
-                                                 tau, epsj, epsx, epsy );
-};
-
+template <typename Function, typename JacobianFunction, typename InputVector,
+          typename OutputVector>
+int levenberg_marquardt_nllsq(Function f, JacobianFunction fill_jac,
+                              InputVector& x, const OutputVector& y,
+                              unsigned int max_iter = 100,
+                              vect_value_type_t<OutputVector> tau =
+                                  vect_value_type_t<OutputVector>(1E-03),
+                              vect_value_type_t<OutputVector> epsj =
+                                  vect_value_type_t<OutputVector>(1e-12),
+                              vect_value_type_t<OutputVector> epsx =
+                                  vect_value_type_t<OutputVector>(1e-12),
+                              vect_value_type_t<OutputVector> epsy =
+                                  vect_value_type_t<OutputVector>(1e-12)) {
+  return detail::levenberg_marquardt_nllsq_impl(
+      f, fill_jac, x, y, Cholesky_linsolver(), no_limit_functor(), max_iter,
+      tau, epsj, epsx, epsy);
+}
 
 /**
  * This function finds the non-linear least-square solution to a vector function with
@@ -444,19 +487,25 @@ int levenberg_marquardt_nllsq(
  * \throw singularity_error If a step is detected to cause a near-infinite jump.
  * \throw maximum_iteration If the maximum number of iterations has been reached.
  */
-template < typename Function, typename JacobianFunction, typename InputVector, typename OutputVector,
-           typename LimitFunction >
+template <typename Function, typename JacobianFunction, typename InputVector,
+          typename OutputVector, typename LimitFunction>
 int limited_levenberg_marquardt_nllsq(
-  Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, LimitFunction impose_limits,
-  unsigned int max_iter = 100,
-  typename vect_traits< OutputVector >::value_type tau = typename vect_traits< OutputVector >::value_type( 1E-03 ),
-  typename vect_traits< OutputVector >::value_type epsj = typename vect_traits< OutputVector >::value_type( 1e-12 ),
-  typename vect_traits< OutputVector >::value_type epsx = typename vect_traits< OutputVector >::value_type( 1e-12 ),
-  typename vect_traits< OutputVector >::value_type epsy = typename vect_traits< OutputVector >::value_type( 1e-12 ) ) {
-  return detail::levenberg_marquardt_nllsq_impl( f, fill_jac, x, y, Cholesky_linsolver(), impose_limits, max_iter, tau,
-                                                 epsj, epsx, epsy );
-};
-};
-};
+    Function f, JacobianFunction fill_jac, InputVector& x,
+    const OutputVector& y, LimitFunction impose_limits,
+    unsigned int max_iter = 100,
+    vect_value_type_t<OutputVector> tau =
+        vect_value_type_t<OutputVector>(1E-03),
+    vect_value_type_t<OutputVector> epsj =
+        vect_value_type_t<OutputVector>(1e-12),
+    vect_value_type_t<OutputVector> epsx =
+        vect_value_type_t<OutputVector>(1e-12),
+    vect_value_type_t<OutputVector> epsy =
+        vect_value_type_t<OutputVector>(1e-12)) {
+  return detail::levenberg_marquardt_nllsq_impl(
+      f, fill_jac, x, y, Cholesky_linsolver(), impose_limits, max_iter, tau,
+      epsj, epsx, epsy);
+}
+
+}  // namespace ReaK::optim
 
 #endif

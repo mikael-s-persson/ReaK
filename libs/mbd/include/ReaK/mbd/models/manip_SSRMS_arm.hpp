@@ -38,120 +38,142 @@
 
 #include "inverse_kinematics_model.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class to represent a kte-based model of a SSRMS manipulator in 3D, i.e.,
  * the Canadarm-2 manipulator.
  */
 class manip_SSRMS_kinematics : public inverse_kinematics_model {
-private:
-  shared_ptr< frame_3D< double > > m_base_frame;
-  std::vector< shared_ptr< gen_coord< double > > > m_joints;
-  shared_ptr< joint_dependent_frame_3D > m_EE;
-  vect_n< double > link_lengths;
-  vect_n< double > joint_offsets;
-  shared_ptr< kte_map_chain > m_chain;
+ private:
+  std::shared_ptr<frame_3D<double>> m_base_frame;
+  std::vector<std::shared_ptr<gen_coord<double>>> m_joints;
+  std::shared_ptr<joint_dependent_frame_3D> m_EE;
+  vect_n<double> link_lengths;
+  vect_n<double> joint_offsets;
+  std::shared_ptr<kte_map_chain> m_chain;
 
-public:
-  BOOST_STATIC_CONSTANT( std::size_t, degrees_of_freedom = 7 );
+ public:
+  static constexpr std::size_t degrees_of_freedom = 7;
 
-  vect_n< double > joint_lower_bounds;
-  vect_n< double > joint_upper_bounds;
+  vect_n<double> joint_lower_bounds;
+  vect_n<double> joint_upper_bounds;
 
-  shared_ptr< kte_map_chain > getKTEChain() const { return m_chain; };
+  std::shared_ptr<kte_map_chain> getKTEChain() const override {
+    return m_chain;
+  }
 
   /**
    * Default constructor.
    */
-  manip_SSRMS_kinematics(
-    const std::string& aName = "",
-    const shared_ptr< frame_3D< double > >& aBaseFrame = shared_ptr< frame_3D< double > >(),
-    const vect_n< double >& aLinkLengths = vect_n< double >( 0.0, 0.380, 6.850, 6.850, 0.380, 0.0 ),
-    const vect_n< double >& aJointOffsets = vect_n< double >( 0.0, 0.635, 0.504, 0.504, 0.504, 0.635, 0.0 ),
-    const vect_n< double >& aJointLowerBounds
-    = vect_n< double >( -1.5 * M_PI, -1.5 * M_PI, -1.5 * M_PI, -1.5 * M_PI, -1.5 * M_PI, -1.5 * M_PI, -1.5 * M_PI ),
-    const vect_n< double >& aJointUpperBounds
-    = vect_n< double >( 1.5 * M_PI, 1.5 * M_PI, 1.5 * M_PI, 1.5 * M_PI, 1.5 * M_PI, 1.5 * M_PI, 1.5 * M_PI ) );
+  explicit manip_SSRMS_kinematics(
+      const std::string& aName = "",
+      std::shared_ptr<frame_3D<double>> aBaseFrame =
+          std::shared_ptr<frame_3D<double>>(),
+      const vect_n<double>& aLinkLengths = vect_n<double>(0.0, 0.380, 6.850,
+                                                          6.850, 0.380, 0.0),
+      const vect_n<double>& aJointOffsets = vect_n<double>(0.0, 0.635, 0.504,
+                                                           0.504, 0.504, 0.635,
+                                                           0.0),
+      const vect_n<double>& aJointLowerBounds =
+          vect_n<double>(-1.5 * M_PI, -1.5 * M_PI, -1.5 * M_PI, -1.5 * M_PI,
+                         -1.5 * M_PI, -1.5 * M_PI, -1.5 * M_PI),
+      const vect_n<double>& aJointUpperBounds =
+          vect_n<double>(1.5 * M_PI, 1.5 * M_PI, 1.5 * M_PI, 1.5 * M_PI,
+                         1.5 * M_PI, 1.5 * M_PI, 1.5 * M_PI));
 
-  virtual ~manip_SSRMS_kinematics(){};
+  ~manip_SSRMS_kinematics() override = default;
+  ;
 
-  virtual std::size_t getJointPositionsCount() const { return 7; };
+  std::size_t getJointPositionsCount() const override { return 7; }
 
-  virtual std::size_t getJointVelocitiesCount() const { return 7; };
+  std::size_t getJointVelocitiesCount() const override { return 7; }
 
-  virtual std::size_t getJointAccelerationsCount() const { return 7; };
+  std::size_t getJointAccelerationsCount() const override { return 7; }
 
-  virtual std::size_t getDependentPositionsCount() const { return 7; };
+  std::size_t getDependentPositionsCount() const override { return 7; }
 
-  virtual std::size_t getDependentVelocitiesCount() const { return 6; };
+  std::size_t getDependentVelocitiesCount() const override { return 6; }
 
-  virtual std::size_t getDependentAccelerationsCount() const { return 6; };
+  std::size_t getDependentAccelerationsCount() const override { return 6; }
 
-  virtual std::size_t getCoordsCount() const { return 7; };
+  std::size_t getCoordsCount() const override { return 7; }
 
-  virtual shared_ptr< gen_coord< double > > getCoord( std::size_t i ) const { return m_joints[i]; };
+  std::shared_ptr<gen_coord<double>> getCoord(std::size_t i) const override {
+    return m_joints[i];
+  }
 
-  virtual std::size_t getDependentFrames3DCount() const { return 1; };
+  std::size_t getDependentFrames3DCount() const override { return 1; }
 
-  virtual shared_ptr< joint_dependent_frame_3D > getDependentFrame3D( std::size_t i ) const { return m_EE; };
+  std::shared_ptr<joint_dependent_frame_3D> getDependentFrame3D(
+      std::size_t i) const override {
+    return m_EE;
+  }
 
-  virtual void doDirectMotion();
+  void doDirectMotion() override;
 
-  virtual void doInverseMotion();
+  void doInverseMotion() override;
 
-  virtual void getJacobianMatrix( mat< double, mat_structure::rectangular >& Jac ) const;
+  void getJacobianMatrix(
+      mat<double, mat_structure::rectangular>& Jac) const override;
 
-  virtual void getJacobianMatrixAndDerivative( mat< double, mat_structure::rectangular >& Jac,
-                                               mat< double, mat_structure::rectangular >& JacDot ) const;
+  void getJacobianMatrixAndDerivative(
+      mat<double, mat_structure::rectangular>& Jac,
+      mat<double, mat_structure::rectangular>& JacDot) const override;
 
-  virtual vect_n< double > getJointPositionLowerBounds() const { return joint_lower_bounds; };
+  vect_n<double> getJointPositionLowerBounds() const override {
+    return joint_lower_bounds;
+  }
 
-  virtual void setJointPositionLowerBounds( const vect_n< double >& aJointLowerBounds ) {
+  void setJointPositionLowerBounds(
+      const vect_n<double>& aJointLowerBounds) override {
     joint_lower_bounds = aJointLowerBounds;
-  };
+  }
 
-  virtual vect_n< double > getJointPositionUpperBounds() const { return joint_upper_bounds; };
+  vect_n<double> getJointPositionUpperBounds() const override {
+    return joint_upper_bounds;
+  }
 
-  virtual void setJointPositionUpperBounds( const vect_n< double >& aJointUpperBounds ) {
+  void setJointPositionUpperBounds(
+      const vect_n<double>& aJointUpperBounds) override {
     joint_upper_bounds = aJointUpperBounds;
-  };
+  }
 
-  virtual vect_n< double > getJointPositions() const;
+  vect_n<double> getJointPositions() const override;
 
-  virtual void setJointPositions( const vect_n< double >& aJointPositions );
+  void setJointPositions(const vect_n<double>& aJointPositions) override;
 
-  virtual vect_n< double > getJointVelocities() const;
+  vect_n<double> getJointVelocities() const override;
 
-  virtual void setJointVelocities( const vect_n< double >& aJointVelocities );
+  void setJointVelocities(const vect_n<double>& aJointVelocities) override;
 
-  virtual vect_n< double > getJointAccelerations() const;
+  vect_n<double> getJointAccelerations() const override;
 
-  virtual void setJointAccelerations( const vect_n< double >& aJointAccelerations );
+  void setJointAccelerations(
+      const vect_n<double>& aJointAccelerations) override;
 
-  virtual vect_n< double > getDependentPositions() const;
+  vect_n<double> getDependentPositions() const override;
 
-  virtual vect_n< double > getDependentVelocities() const;
+  vect_n<double> getDependentVelocities() const override;
 
-  virtual vect_n< double > getDependentAccelerations() const;
+  vect_n<double> getDependentAccelerations() const override;
 
-  virtual void setDependentPositions( const vect_n< double >& aDepPositions );
+  void setDependentPositions(const vect_n<double>& aDepPositions) override;
 
-  virtual void setDependentVelocities( const vect_n< double >& aDepVelocities );
+  void setDependentVelocities(const vect_n<double>& aDepVelocities) override;
 
-  virtual void setDependentAccelerations( const vect_n< double >& aDepAccelerations );
+  void setDependentAccelerations(
+      const vect_n<double>& aDepAccelerations) override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const;
+  void save(serialization::oarchive& A, unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int );
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( manip_SSRMS_kinematics, 0xC2100056, 1, "manip_SSRMS_kinematics",
-                               inverse_kinematics_model )
+  RK_RTTI_MAKE_CONCRETE_1BASE(manip_SSRMS_kinematics, 0xC2100056, 1,
+                              "manip_SSRMS_kinematics",
+                              inverse_kinematics_model)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

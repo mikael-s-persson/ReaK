@@ -1,29 +1,39 @@
 
 
-complete model: models/CRS_airship_safer.rkx
+complete model : models /
+                 CRS_airship_safer.rkx
 
-space config: models/space_defs/sap_temporal.rspace.rkx
+                     space config
+    : models / space_defs /
+                 sap_temporal.rspace.rkx
 
-planner config: models/planners/sasba_1sol.raplan.rkx
+                     planner config
+    : models / planners /
+                 sasba_1sol.raplan.rkx
 
-position config: models/CRS_A465_chaser_target_s1.ctpos.rkx
+                     position config : models /
+                 CRS_A465_chaser_target_s1.ctpos.rkx
 
-target predictors:
-models/sat3D_airship_imkf_gyro.tpred.rkx
-models/sat3D_airship_imkf.tpred.rkx
-models/sat3D_airship_tsosaikf_emd_gyro.tpred.rkx
-models/sat3D_airship_tsosaikf_emdJ_gyro.tpred.rkx
+                     target predictors
+    : models / sat3D_airship_imkf_gyro.tpred.rkx models /
+                 sat3D_airship_imkf.tpred.rkx models /
+                 sat3D_airship_tsosaikf_emd_gyro.tpred.rkx models /
+                 sat3D_airship_tsosaikf_emdJ_gyro.tpred.rkx
 
+                     Example invocations :
 
-Example invocations:
+    --scene -
+    data arg file - name of a complete model file-- chaser - target -
+    pos arg file - name of a chaser - target positions file-- planning -
+    cfg arg file - name of a planning algorithm configuration file-- space -
+    cfg arg file - name of a robot state -
+    space configuration file-- predictor - cfg arg file -
+    name of a target predictor configuration file
 
-  --scene-data arg          file-name of a complete model file
-  --chaser-target-pos arg   file-name of a chaser-target positions file
-  --planning-cfg arg        file-name of a planning algorithm configuration 
-                            file
-  --space-cfg arg           file-name of a robot state-space configuration file
-  --predictor-cfg arg       file-name of a target predictor configuration file
-
-$ ./CRS_planner --scene-data models/CRS_airship_lab_safer.rkx --chaser-target-pos models/CRS_A465_chaser_target_s1.ctpos.rkx --planning-cfg models/planners/sasba_1sol.raplan.rkx --space-cfg models/space_defs/sap_temporal.rspace.rkx --predictor-cfg models/sat3D_airship_imkf_gyro.tpred.rkx
-
-
+            $./
+        CRS_planner-- scene -
+    data models / CRS_airship_lab_safer.rkx-- chaser - target -
+    pos models / CRS_A465_chaser_target_s1.ctpos.rkx-- planning -
+    cfg models / planners / sasba_1sol.raplan.rkx-- space -
+    cfg models / space_defs / sap_temporal.rspace.rkx-- predictor -
+    cfg models / sat3D_airship_imkf_gyro.tpred.rkx

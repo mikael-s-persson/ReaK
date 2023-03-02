@@ -39,34 +39,37 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include <cmath>
 #include <boost/concept_check.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <cmath>
+#include <tuple>
 
 #include "metric_space_concept.hpp"
 
 /** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::pp {
 
-/** Main namespace for ReaK.Path-Planning */
-namespace pp {
-
-/**
- * This traits class defines the types and constants associated to a steerable-space.
- * \tparam SteerableSpace The topology type for which the steerable-space traits are sought.
- */
-template < typename SteerableSpace >
-struct steerable_space_traits {
-  /** The type that describes the distance-metric type for the space. */
-  typedef typename SteerableSpace::steer_record_type steer_record_type;
-};
-
-template < typename SteerableSpace >
+template <typename SteerableSpace, typename = void>
 struct steerable_space_steer_record {
-  typedef typename steerable_space_traits< SteerableSpace >::steer_record_type type;
+  using type = void;
 };
 
+// Get steer_record_type.
+template <typename SteerableSpace>
+struct steerable_space_steer_record<
+    SteerableSpace,
+    std::void_t<decltype(std::get<1>(
+        std::declval<SteerableSpace>().steer_position_toward(
+            std::declval<topology_point_type_t<SteerableSpace>>(), 0.0,
+            std::declval<topology_point_type_t<SteerableSpace>>())))>> {
+  using type = std::decay_t<decltype(std::get<1>(
+      std::declval<std::add_const_t<SteerableSpace>>().steer_position_toward(
+          std::declval<topology_point_type_t<SteerableSpace>>(), 0.0,
+          std::declval<topology_point_type_t<SteerableSpace>>())))>;
+};
+
+template <typename SteerableSpace>
+using steerable_space_steer_record_t =
+    typename steerable_space_steer_record<SteerableSpace>::type;
 
 /**
  * This concept defines the requirements to fulfill in order to model a steerable-space
@@ -80,23 +83,27 @@ struct steerable_space_steer_record {
  *
  * \tparam SteerableSpace The topology type to be checked for this concept.
  */
-template < typename SteerableSpace >
+template <typename SteerableSpace>
 struct SteerableSpaceConcept {
-  typename topology_traits< SteerableSpace >::point_type p1, p2;
-  typename steerable_space_traits< SteerableSpace >::steer_record_type st_rec;
+  topology_point_type_t<SteerableSpace> p1, p2;
+  steerable_space_steer_record_t<SteerableSpace> st_rec;
   SteerableSpace space;
   double d;
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< SteerableSpace > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<SteerableSpace>));
 
-  BOOST_CONCEPT_USAGE( SteerableSpaceConcept ) { boost::tie( p1, st_rec ) = space.steer_position_toward( p1, d, p2 ); };
+  BOOST_CONCEPT_USAGE(SteerableSpaceConcept) {
+    std::tie(p1, st_rec) = space.steer_position_toward(p1, d, p2);
+  }
 };
 
+template <typename SteerableSpace>
+struct is_steerable_space : std::false_type {};
 
-template < typename SteerableSpace >
-struct is_steerable_space : boost::mpl::false_ {};
-};
-};
+template <typename SteerableSpace>
+static constexpr bool is_steerable_space_v =
+    is_steerable_space<SteerableSpace>::value;
 
+}  // namespace ReaK::pp
 
 #endif

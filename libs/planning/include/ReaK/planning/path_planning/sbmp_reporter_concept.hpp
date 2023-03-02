@@ -39,15 +39,10 @@
 
 #include <boost/concept_check.hpp>
 
-#include <ReaK/topologies/interpolation/seq_trajectory_base.hpp>
 #include <ReaK/topologies/interpolation/seq_path_base.hpp>
+#include <ReaK/topologies/interpolation/seq_trajectory_base.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Path-Planning */
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This concept defines the requirements to fulfill in order to model
@@ -65,8 +60,7 @@ namespace pp {
  *
  * PositionMap pos_map;
  *
- * shared_ptr< path_base< super_space_type > > path;
- *
+ * std::shared_ptr< path_base< super_space_type > > path;
  *
  * reporter.draw_motion_graph(free_space, g, pos_map);  The reporter can be asked to draw the current motion-graph.
  *
@@ -77,23 +71,25 @@ namespace pp {
  * \tparam MotionGraph The motion-graph type that represents the motion samples.
  * \tparam PositionMap The property-map type to fetch positions associated to vertices of the motion graph.
  */
-template < typename SBMPReporter, typename FreeSpaceType, typename MotionGraph, typename PositionMap >
+template <typename SBMPReporter, typename FreeSpaceType, typename MotionGraph,
+          typename PositionMap>
 struct SBPPReporterConcept {
   SBMPReporter reporter;
   FreeSpaceType free_space;
   MotionGraph g;
   PositionMap pos_map;
-  shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > > path;
+  std::shared_ptr<
+      seq_path_base<typename subspace_traits<FreeSpaceType>::super_space_type>>
+      path;
 
-  BOOST_CONCEPT_ASSERT( ( SubSpaceConcept< FreeSpaceType > ) );
+  BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
 
-  BOOST_CONCEPT_USAGE( SBPPReporterConcept ) {
+  BOOST_CONCEPT_USAGE(SBPPReporterConcept) {
     reporter.reset_internal_state();
-    reporter.draw_motion_graph( free_space, g, pos_map );
-    reporter.draw_solution( free_space, path );
-  };
+    reporter.draw_motion_graph(free_space, g, pos_map);
+    reporter.draw_solution(free_space, path);
+  }
 };
-
 
 /**
  * This concept defines the requirements to fulfill in order to model
@@ -111,8 +107,7 @@ struct SBPPReporterConcept {
  *
  * PositionMap pos_map;
  *
- * shared_ptr< trajectory_base< super_space_type > > traj;
- *
+ * std::shared_ptr< trajectory_base< super_space_type > > traj;
  *
  * reporter.draw_motion_graph(free_space, g, pos_map);  The reporter can be asked to draw the current motion-graph.
  *
@@ -123,24 +118,26 @@ struct SBPPReporterConcept {
  * \tparam MotionGraph The motion-graph type that represents the motion samples.
  * \tparam PositionMap The property-map type to fetch positions associated to vertices of the motion graph.
  */
-template < typename SBMPReporter, typename FreeSpaceType, typename MotionGraph, typename PositionMap >
+template <typename SBMPReporter, typename FreeSpaceType, typename MotionGraph,
+          typename PositionMap>
 struct SBMPReporterConcept {
   SBMPReporter reporter;
   FreeSpaceType free_space;
   MotionGraph g;
   PositionMap pos_map;
-  shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::super_space_type > > traj;
+  std::shared_ptr<seq_trajectory_base<
+      typename subspace_traits<FreeSpaceType>::super_space_type>>
+      traj;
 
-  BOOST_CONCEPT_ASSERT( ( SubSpaceConcept< FreeSpaceType > ) );
+  BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
 
-  BOOST_CONCEPT_USAGE( SBMPReporterConcept ) {
+  BOOST_CONCEPT_USAGE(SBMPReporterConcept) {
     reporter.reset_internal_state();
-    reporter.draw_motion_graph( free_space, g, pos_map );
-    reporter.draw_solution( free_space, traj );
-  };
-};
-};
+    reporter.draw_motion_graph(free_space, g, pos_map);
+    reporter.draw_solution(free_space, traj);
+  }
 };
 
+}  // namespace ReaK::pp
 
 #endif

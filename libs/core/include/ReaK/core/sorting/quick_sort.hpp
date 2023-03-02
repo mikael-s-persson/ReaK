@@ -35,27 +35,22 @@
 #include <ReaK/core/base/defs.hpp>
 
 #include <algorithm>
-#include <iterator>
-#include <functional>
 #include <cstdlib>
+#include <functional>
+#include <iterator>
 
-#if( ( defined( BOOST_NO_CXX11_LAMBDAS ) ) || ( defined( BOOST_NO_CXX11_DECLTYPE ) ) )
-#include <boost/bind.hpp>
-#endif
-
-namespace ReaK {
-
-/** This is the namespace for all ReaK sorting algorithms implementations. */
-namespace sorting {
+namespace ReaK::sorting {
 
 /**
  * This pivot chooser functor chooses a random pivot from the range.
  */
 struct random_pivot {
-  template < typename RandomAccessIter, typename Compare >
-  void operator()( RandomAccessIter first, RandomAccessIter last, Compare ) const {
-    std::iter_swap( std::prev( last ), std::next( first, rand() % std::distance( first, last ) ) );
-  };
+  template <typename RandomAccessIter, typename Compare>
+  void operator()(RandomAccessIter first, RandomAccessIter last,
+                  Compare) const {
+    std::iter_swap(std::prev(last),
+                   std::next(first, rand() % std::distance(first, last)));
+  }
 };
 
 /**
@@ -63,16 +58,18 @@ struct random_pivot {
  * median of three elements: the first, last and middle element.
  */
 struct median_of_3_pivots {
-  template < typename RandomAccessIter, typename Compare >
-  void operator()( RandomAccessIter first, RandomAccessIter last, Compare comp ) const {
-    RandomAccessIter before_last = std::prev( last );
-    RandomAccessIter middle = std::next( first, std::distance( first, last ) / 2 );
-    if( comp( *first, *before_last ) && comp( *before_last, *middle ) )
+  template <typename RandomAccessIter, typename Compare>
+  void operator()(RandomAccessIter first, RandomAccessIter last,
+                  Compare comp) const {
+    RandomAccessIter before_last = std::prev(last);
+    RandomAccessIter middle = std::next(first, std::distance(first, last) / 2);
+    if (comp(*first, *before_last) && comp(*before_last, *middle)) {
       return;
-    else if( comp( *before_last, *first ) && comp( *first, *middle ) )
-      return std::iter_swap( before_last, first );
-    std::iter_swap( before_last, middle );
-  };
+    } else if (comp(*before_last, *first) && comp(*first, *middle)) {
+      return std::iter_swap(before_last, first);
+    }
+    std::iter_swap(before_last, middle);
+  }
 };
 
 /**
@@ -80,107 +77,105 @@ struct median_of_3_pivots {
  * median of three random elements.
  */
 struct median_of_3_random_pivots {
-  template < typename RandomAccessIter, typename Compare >
-  void operator()( RandomAccessIter first, RandomAccessIter last, Compare comp ) const {
-    std::size_t dist = std::distance( first, last );
+  template <typename RandomAccessIter, typename Compare>
+  void operator()(RandomAccessIter first, RandomAccessIter last,
+                  Compare comp) const {
+    std::size_t dist = std::distance(first, last);
     RandomAccessIter piv1 = first + rand() % dist;
     RandomAccessIter piv2 = first + rand() % dist;
     RandomAccessIter piv3 = first + rand() % dist;
-    if( comp( *piv1, *piv2 ) && comp( *piv2, *piv3 ) )
-      return std::iter_swap( std::prev( last ), piv2 );
-    else if( comp( *piv2, *piv1 ) && comp( *piv1, *piv3 ) )
-      return std::iter_swap( std::prev( last ), piv1 );
-    std::iter_swap( std::prev( last ), piv3 );
-  };
+    if (comp(*piv1, *piv2) && comp(*piv2, *piv3))
+      return std::iter_swap(std::prev(last), piv2);
+    else if (comp(*piv2, *piv1) && comp(*piv1, *piv3))
+      return std::iter_swap(std::prev(last), piv1);
+    std::iter_swap(std::prev(last), piv3);
+  }
 };
 
 /**
  * This pivot chooser functor chooses the first element from the range as the pivot.
  */
 struct first_pivot {
-  template < typename RandomAccessIter, typename Compare >
-  void operator()( RandomAccessIter first, RandomAccessIter last, Compare ) const {
-    std::iter_swap( std::prev( last ), first );
-  };
+  template <typename RandomAccessIter, typename Compare>
+  void operator()(RandomAccessIter first, RandomAccessIter last,
+                  Compare) const {
+    std::iter_swap(std::prev(last), first);
+  }
 };
-
 
 namespace detail {
 
-template < typename RandomAccessIter, typename Compare, typename PivotChooser >
-void quick_sort_ra_impl( RandomAccessIter first, RandomAccessIter last, Compare comp, PivotChooser choose_pivot ) {
-  while( first != last ) {
-    if( last - first < 50 )
-      return insertion_sort( first, last, comp );
-    choose_pivot( first, last, comp );
+template <typename RandomAccessIter, typename Compare, typename PivotChooser>
+void quick_sort_ra_impl(RandomAccessIter first, RandomAccessIter last,
+                        Compare comp, PivotChooser choose_pivot) {
+  while (first != last) {
+    if (last - first < 50)
+      return insertion_sort(first, last, comp);
+    choose_pivot(first, last, comp);
     RandomAccessIter before_last = last - 1;
-#if( ( !defined( BOOST_NO_CXX11_LAMBDAS ) ) && ( !defined( BOOST_NO_CXX11_DECLTYPE ) ) )
-    RandomAccessIter pivot
-      = std::partition( first, before_last, [&]( decltype( *first ) x ) -> bool { return comp( x, *before_last ); } );
-#else
-    RandomAccessIter pivot = std::partition( first, before_last, boost::bind( comp, _1, *before_last ) );
-#endif
-    std::iter_swap( pivot, before_last );
-    if( pivot - first < last - pivot ) {
-      quick_sort_ra_impl( first, pivot, comp, choose_pivot );
+    RandomAccessIter pivot = std::partition(
+        first, before_last,
+        [&](const auto& x) -> bool { return comp(x, *before_last); });
+    std::iter_swap(pivot, before_last);
+    if (pivot - first < last - pivot) {
+      quick_sort_ra_impl(first, pivot, comp, choose_pivot);
       first = pivot + 1;
     } else {
-      quick_sort_ra_impl( pivot + 1, last, comp, choose_pivot );
+      quick_sort_ra_impl(pivot + 1, last, comp, choose_pivot);
       last = pivot;
-    };
-  };
-};
+    }
+  }
+}
 
-template < typename BidirIter, typename Compare, typename PivotChooser >
-void quick_sort_nonra_impl( BidirIter first, BidirIter last, Compare comp, PivotChooser choose_pivot ) {
-  while( first == last ) {
-    choose_pivot( first, last, comp );
-    BidirIter before_last = std::prev( last );
-#if( ( !defined( BOOST_NO_CXX11_LAMBDAS ) ) && ( !defined( BOOST_NO_CXX11_DECLTYPE ) ) )
-    BidirIter pivot
-      = std::partition( first, before_last, [&]( decltype( *first ) x ) -> bool { return comp( x, *before_last ); } );
-#else
-    BidirIter pivot = std::partition( first, before_last, boost::bind( comp, _1, *before_last ) );
-#endif
-    std::iter_swap( pivot, before_last );
-    std::size_t dist1 = std::distance( first, pivot );
-    std::size_t dist2 = std::distance( pivot, before_last );
-    if( dist1 < dist2 ) {
-      quick_sort_nonra_impl( first, pivot, comp, choose_pivot );
-      first = std::next( pivot );
+template <typename BidirIter, typename Compare, typename PivotChooser>
+void quick_sort_nonra_impl(BidirIter first, BidirIter last, Compare comp,
+                           PivotChooser choose_pivot) {
+  while (first == last) {
+    choose_pivot(first, last, comp);
+    BidirIter before_last = std::prev(last);
+    BidirIter pivot = std::partition(
+        first, before_last,
+        [&](const auto& x) -> bool { return comp(x, *before_last); });
+    std::iter_swap(pivot, before_last);
+    std::size_t dist1 = std::distance(first, pivot);
+    std::size_t dist2 = std::distance(pivot, before_last);
+    if (dist1 < dist2) {
+      quick_sort_nonra_impl(first, pivot, comp, choose_pivot);
+      first = std::next(pivot);
       dist1 = dist2;
     } else {
-      quick_sort_nonra_impl( std::next( pivot ), last, comp, choose_pivot );
+      quick_sort_nonra_impl(std::next(pivot), last, comp, choose_pivot);
       last = pivot;
-    };
-    if( dist1 < 2 )
+    }
+    if (dist1 < 2) {
       return;
-    if( dist1 < 50 )
-      return insertion_sort( first, last, comp );
-  };
-};
+    }
+    if (dist1 < 50) {
+      return insertion_sort(first, last, comp);
+    }
+  }
+}
 
+template <typename RandomAccessIter, typename Compare, typename PivotChooser>
+inline void quick_sort_tagged(RandomAccessIter first, RandomAccessIter last,
+                              Compare comp, std::random_access_iterator_tag t,
+                              PivotChooser pivot_chooser) {
+  quick_sort_ra_impl(first, last, comp, pivot_chooser);
+}
 
-template < typename RandomAccessIter, typename Compare, typename PivotChooser >
-inline void quick_sort_tagged( RandomAccessIter first, RandomAccessIter last, Compare comp,
-                               std::random_access_iterator_tag t, PivotChooser pivot_chooser ) {
-  quick_sort_ra_impl( first, last, comp, pivot_chooser );
-};
+template <typename RandomAccessIter, typename Compare>
+inline void quick_sort_tagged(RandomAccessIter first, RandomAccessIter last,
+                              Compare comp, std::random_access_iterator_tag t) {
+  quick_sort_ra_impl(first, last, comp, median_of_3_pivots());
+}
 
-template < typename RandomAccessIter, typename Compare >
-inline void quick_sort_tagged( RandomAccessIter first, RandomAccessIter last, Compare comp,
-                               std::random_access_iterator_tag t ) {
-  quick_sort_ra_impl( first, last, comp, median_of_3_pivots() );
-};
+template <typename BidirIter, typename Compare>
+inline void quick_sort_tagged(BidirIter first, BidirIter last, Compare comp,
+                              std::bidirectional_iterator_tag t) {
+  quick_sort_nonra_impl(first, last, comp, first_pivot());
+}
 
-template < typename BidirIter, typename Compare >
-inline void quick_sort_tagged( BidirIter first, BidirIter last, Compare comp, std::bidirectional_iterator_tag t ) {
-  quick_sort_nonra_impl( first, last, comp, first_pivot() );
-};
-
-
-}; // detail
-
+}  // namespace detail
 
 /**
  * This function performs a quick sort on a given range of elements, and with the
@@ -192,11 +187,13 @@ inline void quick_sort_tagged( BidirIter first, BidirIter last, Compare comp, st
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template < typename Iter, typename Compare, typename PivotChooser >
-inline void quick_sort( Iter first, Iter last, Compare comp, PivotChooser choose_pivot ) {
-  detail::quick_sort_tagged( first, last, comp, typename std::iterator_traits< Iter >::iterator_category(),
-                             choose_pivot );
-};
+template <typename Iter, typename Compare, typename PivotChooser>
+inline void quick_sort(Iter first, Iter last, Compare comp,
+                       PivotChooser choose_pivot) {
+  detail::quick_sort_tagged(
+      first, last, comp,
+      typename std::iterator_traits<Iter>::iterator_category(), choose_pivot);
+}
 
 /**
  * This function performs a quick sort on a given range of elements, and with the
@@ -207,10 +204,12 @@ inline void quick_sort( Iter first, Iter last, Compare comp, PivotChooser choose
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template < typename Iter, typename Compare >
-inline void quick_sort( Iter first, Iter last, Compare comp ) {
-  detail::quick_sort_tagged( first, last, comp, typename std::iterator_traits< Iter >::iterator_category() );
-};
+template <typename Iter, typename Compare>
+inline void quick_sort(Iter first, Iter last, Compare comp) {
+  detail::quick_sort_tagged(
+      first, last, comp,
+      typename std::iterator_traits<Iter>::iterator_category());
+}
 
 /**
  * This function performs a quick sort on a given range of elements, and by using the
@@ -219,11 +218,10 @@ inline void quick_sort( Iter first, Iter last, Compare comp ) {
  * \param first The start of the range to be sorted.
  * \param last One element past the end of the range to be sorted.
  */
-template < typename RandomAccessIter >
-inline void quick_sort( RandomAccessIter first, RandomAccessIter last ) {
-  quick_sort( first, last, std::less< typename std::iterator_traits< RandomAccessIter >::value_type >() );
-};
-
+template <typename RandomAccessIter>
+inline void quick_sort(RandomAccessIter first, RandomAccessIter last) {
+  quick_sort(first, last, std::less<>());
+}
 
 /**
  * This function performs a quick-select sort on a given range of elements, and with the
@@ -235,16 +233,18 @@ inline void quick_sort( RandomAccessIter first, RandomAccessIter last ) {
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template < typename RandomAccessIter, typename Compare >
-void quickselect_sort( RandomAccessIter first, RandomAccessIter last, Compare comp ) {
-  std::size_t dist = std::distance( first, last );
-  if( dist < 2 )
+template <typename RandomAccessIter, typename Compare>
+void quickselect_sort(RandomAccessIter first, RandomAccessIter last,
+                      Compare comp) {
+  std::size_t dist = std::distance(first, last);
+  if (dist < 2) {
     return;
-  RandomAccessIter pivot = std::next( first, dist / 2 );
-  std::nth_element( first, pivot, last, comp );
-  quickselect_sort( first, pivot, comp );
-  quickselect_sort( ++pivot, last, comp );
-};
+  }
+  RandomAccessIter pivot = std::next(first, dist / 2);
+  std::nth_element(first, pivot, last, comp);
+  quickselect_sort(first, pivot, comp);
+  quickselect_sort(++pivot, last, comp);
+}
 
 /**
  * This function performs a quick sort on a given range of elements, and by using the
@@ -254,11 +254,11 @@ void quickselect_sort( RandomAccessIter first, RandomAccessIter last, Compare co
  * \param first The start of the range to be sorted.
  * \param last One element past the end of the range to be sorted.
  */
-template < typename RandomAccessIter >
-inline void quickselect_sort( RandomAccessIter first, RandomAccessIter last ) {
-  quickselect_sort( first, last, std::less< typename std::iterator_traits< RandomAccessIter >::value_type >() );
-};
-};
-};
+template <typename RandomAccessIter>
+inline void quickselect_sort(RandomAccessIter first, RandomAccessIter last) {
+  quickselect_sort(first, last, std::less<>());
+}
 
-#endif
+}  // namespace ReaK::sorting
+
+#endif  // REAK_QUICK_SORT_HPP

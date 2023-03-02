@@ -24,44 +24,45 @@
 #include <ReaK/core/serialization/archiver_factory.hpp>
 
 #include <ReaK/core/serialization/bin_archiver.hpp>
-#include <ReaK/core/serialization/xml_archiver.hpp>
 #include <ReaK/core/serialization/protobuf_archiver.hpp>
+#include <ReaK/core/serialization/xml_archiver.hpp>
 
 #include <ios>
+#include <memory>
 
 /** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::serialization {
 
-/** Main namespace for ReaK's Serialization */
-namespace serialization {
+std::shared_ptr<iarchive> open_iarchive(const std::string& aFileName) {
 
+  std::string fileExt = aFileName.substr(aFileName.find_last_of('.') + 1);
 
-shared_ptr< iarchive > open_iarchive( const std::string& aFileName ) {
-
-  std::string fileExt = aFileName.substr( aFileName.find_last_of( '.' ) + 1 );
-
-  if( ( fileExt == "rkx" ) || ( fileExt == "xml" ) )
-    return shared_ptr< iarchive >( new xml_iarchive( aFileName ) );
-  else if( ( fileExt == "rkb" ) || ( fileExt == "bin" ) )
-    return shared_ptr< iarchive >( new bin_iarchive( aFileName ) );
-  else if( fileExt == "pbuf" )
-    return shared_ptr< iarchive >( new protobuf_iarchive( aFileName ) );
-  else
-    throw std::ios_base::failure( "Sorry, this file-type is not supported!" );
+  if ((fileExt == "rkx") || (fileExt == "xml")) {
+    return std::make_shared<xml_iarchive>(aFileName);
+  }
+  if ((fileExt == "rkb") || (fileExt == "bin")) {
+    return std::make_shared<bin_iarchive>(aFileName);
+  }
+  if (fileExt == "pbuf") {
+    return std::make_shared<protobuf_iarchive>(aFileName);
+  }
+  throw std::ios_base::failure("Sorry, this file-type is not supported!");
 };
 
-shared_ptr< oarchive > open_oarchive( const std::string& aFileName ) {
+std::shared_ptr<oarchive> open_oarchive(const std::string& aFileName) {
 
-  std::string fileExt = aFileName.substr( aFileName.find_last_of( '.' ) + 1 );
+  std::string fileExt = aFileName.substr(aFileName.find_last_of('.') + 1);
 
-  if( ( fileExt == "rkx" ) || ( fileExt == "xml" ) )
-    return shared_ptr< oarchive >( new xml_oarchive( aFileName ) );
-  else if( ( fileExt == "rkb" ) || ( fileExt == "bin" ) )
-    return shared_ptr< oarchive >( new bin_oarchive( aFileName ) );
-  else if( fileExt == "pbuf" )
-    return shared_ptr< oarchive >( new protobuf_oarchive( aFileName ) );
-  else
-    throw std::ios_base::failure( "Sorry, this file-type is not supported!" );
+  if ((fileExt == "rkx") || (fileExt == "xml")) {
+    return std::make_shared<xml_oarchive>(aFileName);
+  }
+  if ((fileExt == "rkb") || (fileExt == "bin")) {
+    return std::make_shared<bin_oarchive>(aFileName);
+  }
+  if (fileExt == "pbuf") {
+    return std::make_shared<protobuf_oarchive>(aFileName);
+  }
+  throw std::ios_base::failure("Sorry, this file-type is not supported!");
 };
-};
-};
+
+}  // namespace ReaK::serialization

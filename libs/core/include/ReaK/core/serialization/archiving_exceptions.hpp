@@ -36,15 +36,11 @@
 #include <ReaK/core/base/defs.hpp>
 
 #include <exception>
-#include <string>
 #include <sstream>
+#include <string>
 
 /** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK's Serialization */
-namespace serialization {
-
+namespace ReaK::serialization {
 
 /**
  * This exception class represents the case when an archiver is trying to deal with a
@@ -55,10 +51,10 @@ namespace serialization {
  * the error condition through this exception.
  */
 class unsupported_type : public std::exception {
-private:
+ private:
   std::string mMessage;
 
-public:
+ public:
   enum problem { not_found_in_repo, could_not_create };
 
   /**
@@ -66,10 +62,10 @@ public:
    * \param aIssue The type of issue encountered.
    * \param aTypeID The type-ID pointer of the type that is deemed "unsupported".
    */
-  unsupported_type( problem aIssue, unsigned int* aTypeID ) {
+  unsupported_type(problem aIssue, unsigned int* aTypeID) {
     std::stringstream ss;
     ss << "Unsupported type! ";
-    switch( aIssue ) {
+    switch (aIssue) {
       case not_found_in_repo:
         ss << "Could not find the required type in the rtti-repository! ";
         break;
@@ -78,18 +74,18 @@ public:
         break;
     };
     ss << "TypeID:" << std::hex;
-    while( ( *aTypeID ) != 0 ) {
+    while ((*aTypeID) != 0) {
       ss << " " << *aTypeID;
       ++aTypeID;
     };
     mMessage = ss.str();
-  };
+  }
 
-  virtual ~unsupported_type() BOOST_NOEXCEPT_OR_NOTHROW{};
+  ~unsupported_type() noexcept override = default;
 
-  virtual const char* what() const BOOST_NOEXCEPT_OR_NOTHROW { return mMessage.c_str(); };
+  const char* what() const noexcept override { return mMessage.c_str(); }
 };
-};
-};
+
+}  // namespace ReaK::serialization
 
 #endif

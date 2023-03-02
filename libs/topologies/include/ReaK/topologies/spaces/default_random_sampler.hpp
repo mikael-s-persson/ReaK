@@ -37,9 +37,9 @@
 
 #include "random_sampler_concept.hpp"
 
-namespace ReaK {
+#include <type_traits>
 
-namespace pp {
+namespace ReaK::pp {
 
 /**
  * This class is the default random-sampler functor which models the RandomSamplerConcept.
@@ -49,10 +49,10 @@ namespace pp {
  */
 struct default_random_sampler : public serializable {
 
-  default_random_sampler(){};
+  default_random_sampler() = default;
 
-  template < typename Topology >
-  default_random_sampler( const Topology& ){};
+  template <typename Topology>
+  explicit default_random_sampler(const Topology& /*unused*/) {}
 
   /**
    * This function returns a random sample point on a topology.
@@ -60,32 +60,31 @@ struct default_random_sampler : public serializable {
    * \param s The topology or space on which the points lie.
    * \return A random sample point on the given topology.
    */
-  template < typename Topology >
-  typename topology_traits< Topology >::point_type operator()( const Topology& s ) const {
+  template <typename Topology>
+  typename topology_traits<Topology>::point_type operator()(
+      const Topology& s) const {
     return s.random_point();
-  };
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( default_random_sampler, 0xC2450000, 1, "default_random_sampler", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(default_random_sampler, 0xC2450000, 1,
+                              "default_random_sampler", serializable)
 };
 
+template <typename PointDistribution>
+auto get(random_sampler_t /*unused*/, const PointDistribution& s) {
+  static_assert(is_point_distribution_v<PointDistribution>);
+  return point_distribution_random_sampler_t<PointDistribution>{s};
+}
 
-template < typename PointDistribution >
-typename boost::lazy_enable_if< is_point_distribution< PointDistribution >,
-                                point_distribution_random_sampler< PointDistribution > >::type
-  get( random_sampler_t, const PointDistribution& s ) {
-  typedef typename point_distribution_traits< PointDistribution >::random_sampler_type result_type;
-  return result_type( s );
-};
-};
-};
-
+}  // namespace ReaK::pp
 
 #endif

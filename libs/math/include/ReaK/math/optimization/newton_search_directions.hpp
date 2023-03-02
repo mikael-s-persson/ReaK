@@ -34,16 +34,12 @@
 
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
 #include <ReaK/math/lin_alg/mat_cholesky.hpp>
 #include <ReaK/math/lin_alg/mat_damped_matrix.hpp>
 #include <ReaK/math/lin_alg/mat_norms.hpp>
+#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
 
-namespace ReaK {
-
-
-namespace optim {
-
+namespace ReaK::optim {
 
 /**
  * This function finds the regularized newton search direction from a given Hessian matrix and gradient vector.
@@ -58,25 +54,25 @@ namespace optim {
  * \param nu The damping multiplication factor.
  * \param abs_tol The tolerance on the singularity-detection.
  */
-template < typename Matrix, typename Vector, typename ScalarMatrix >
-void regularized_newton_direction( const Matrix& H, const Vector& x_grad, Vector& p, ScalarMatrix& mu,
-                                   typename mat_traits< ScalarMatrix >::value_type& nu,
-                                   const typename mat_traits< Matrix >::value_type& abs_tol ) {
-  while( true ) {
+template <typename Matrix, typename Vector, typename ScalarMatrix>
+void regularized_newton_direction(const Matrix& H, const Vector& x_grad,
+                                  Vector& p, ScalarMatrix& mu,
+                                  mat_value_type_t<ScalarMatrix>& nu,
+                                  const mat_value_type_t<Matrix>& abs_tol) {
+  while (true) {
     try {
       p = -x_grad;
-      mat_vect_adaptor< Vector > p_mat( p );
-      linsolve_Cholesky( make_damped_matrix( H, mu ), p_mat, abs_tol );
-      mu *= typename mat_traits< ScalarMatrix >::value_type( 0.33333 );
+      mat_vect_adaptor<Vector> p_mat(p);
+      linsolve_Cholesky(make_damped_matrix(H, mu), p_mat, abs_tol);
+      mu *= mat_value_type_t<ScalarMatrix>(0.33333);
       nu = 2.0;
       break;
-    } catch( singularity_error& ) {
+    } catch (singularity_error&) {
       mu *= nu;
       nu *= 2.0;
-    };
-  };
-};
-
+    }
+  }
+}
 
 /**
  * This functor can be used to find the regularized newton search direction from a
@@ -84,16 +80,17 @@ void regularized_newton_direction( const Matrix& H, const Vector& x_grad, Vector
  * \test Must create a unit-test for this.
  * \tparam T The value-type.
  */
-template < typename T >
+template <typename T>
 struct regularized_newton_directioner {
-  mutable mat< T, mat_structure::scalar > mu;
+  mutable mat<T, mat_structure::scalar> mu;
   mutable T nu;
   /**
    * Parametrized Constructor.
    * \param aTau The initial relative damping factor for the damping the Hessian matrix (the actual damping factor is
    * relative to the trace of the Hessian).
    */
-  regularized_newton_directioner( T aTau = T( 1e-3 ) ) : mu( 1, ( aTau <= T( 0.0 ) ? T( 1e-3 ) : aTau ) ), nu( -1.0 ){};
+  explicit regularized_newton_directioner(T aTau = T(1e-3))
+      : mu(1, (aTau <= T(0.0) ? T(1e-3) : aTau)), nu(-1.0) {}
 
   /**
    * This function finds the search direction from a given Hessian matrix and gradient vector.
@@ -104,14 +101,16 @@ struct regularized_newton_directioner {
    * \param p The resulting search direction.
    * \param abs_tol The tolerance on the singularity-detection.
    */
-  template < typename Matrix, typename Vector >
-  void operator()( const Matrix& H, const Vector& x_grad, Vector& p, const T& abs_tol ) const {
-    if( nu < T( 0.0 ) ) {
-      mu = mat< T, mat_structure::scalar >( H.get_row_count(), mu( 0, 0 ) * frobenius_norm( H ) );
+  template <typename Matrix, typename Vector>
+  void operator()(const Matrix& H, const Vector& x_grad, Vector& p,
+                  const T& abs_tol) const {
+    if (nu < T(0.0)) {
+      mu = mat<T, mat_structure::scalar>(H.get_row_count(),
+                                         mu(0, 0) * frobenius_norm(H));
       nu = 2.0;
-    };
-    regularized_newton_direction( H, x_grad, p, mu, nu, abs_tol );
-  };
+    }
+    regularized_newton_direction(H, x_grad, p, mu, nu, abs_tol);
+  }
 };
 
 /**
@@ -124,13 +123,13 @@ struct regularized_newton_directioner {
  * \param p The resulting search direction.
  * \param abs_tol The tolerance on the singularity-detection.
  */
-template < typename Matrix, typename Vector >
-void newton_direction( const Matrix& H, const Vector& x_grad, Vector& p,
-                       const typename mat_traits< Matrix >::value_type& abs_tol ) {
+template <typename Matrix, typename Vector>
+void newton_direction(const Matrix& H, const Vector& x_grad, Vector& p,
+                      const mat_value_type_t<Matrix>& abs_tol) {
   p = -x_grad;
-  mat_vect_adaptor< Vector > p_mat( p );
-  linsolve_Cholesky( H, p_mat, abs_tol );
-};
+  mat_vect_adaptor<Vector> p_mat(p);
+  linsolve_Cholesky(H, p_mat, abs_tol);
+}
 
 /**
  * This functor can be used to find the newton search direction from a
@@ -147,14 +146,13 @@ struct newton_directioner {
    * \param p The resulting search direction.
    * \param abs_tol The tolerance on the singularity-detection.
    */
-  template < typename Matrix, typename Vector >
-  void operator()( const Matrix& H, const Vector& x_grad, Vector& p,
-                   const typename mat_traits< Matrix >::value_type& abs_tol ) const {
-    newton_direction( H, x_grad, p, abs_tol );
-  };
-};
-};
+  template <typename Matrix, typename Vector>
+  void operator()(const Matrix& H, const Vector& x_grad, Vector& p,
+                  const mat_value_type_t<Matrix>& abs_tol) const {
+    newton_direction(H, x_grad, p, abs_tol);
+  }
 };
 
+}  // namespace ReaK::optim
 
 #endif

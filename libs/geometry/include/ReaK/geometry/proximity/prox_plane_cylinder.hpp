@@ -37,43 +37,44 @@
 #include <ReaK/geometry/shapes/cylinder.hpp>
 #include <ReaK/geometry/shapes/plane.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
+proximity_record_3D compute_proximity(const plane& aPlane,
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const cylinder& aCylinder,
+                                      const shape_3D_precompute_pack& aPack2);
 
-
-proximity_record_3D compute_proximity( const plane& aPlane, const shape_3D_precompute_pack& aPack1,
-                                       const cylinder& aCylinder, const shape_3D_precompute_pack& aPack2 );
-
-proximity_record_3D compute_proximity( const cylinder& aCylinder, const shape_3D_precompute_pack& aPack1,
-                                       const plane& aPlane, const shape_3D_precompute_pack& aPack2 );
+proximity_record_3D compute_proximity(const cylinder& aCylinder,
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const plane& aPlane,
+                                      const shape_3D_precompute_pack& aPack2);
 
 /**
  * This class is for proximity queries between a plane and a cylinder.
  */
 class prox_plane_cylinder : public proximity_finder_3D {
-protected:
+ protected:
   const plane* mPlane;
   const cylinder* mCylinder;
 
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_3D computeProximity( const shape_3D_precompute_pack& aPack1,
-                                                const shape_3D_precompute_pack& aPack2 );
+  proximity_record_3D computeProximity(
+      const shape_3D_precompute_pack& aPack1,
+      const shape_3D_precompute_pack& aPack2) override;
 
   /**
    * Default constructor.
    * \param aPlane The plane involved in the proximity query.
    * \param aCylinder The cylinder involved in the proximity query.
    */
-  prox_plane_cylinder( const plane* aPlane = nullptr, const cylinder* aCylinder = nullptr );
+  explicit prox_plane_cylinder(const plane* aPlane = nullptr,
+                               const cylinder* aCylinder = nullptr);
 
   /** Destructor. */
-  virtual ~prox_plane_cylinder(){};
+  ~prox_plane_cylinder() override = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

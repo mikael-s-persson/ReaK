@@ -35,15 +35,13 @@
 
 #include <ReaK/core/base/named_object.hpp>
 #include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
 #include <ReaK/math/lin_alg/mat_are_solver.hpp>
+#include <ReaK/math/lin_alg/vect_alg.hpp>
 
-#include <ReaK/control/systems/linear_ss_system_concept.hpp>
 #include <ReaK/control/systems/discrete_linear_sss_concept.hpp>
+#include <ReaK/control/systems/linear_ss_system_concept.hpp>
 
-namespace ReaK {
-
-namespace ctrl {
+namespace ReaK::ctrl {
 
 /**
  * This class template can be used to create a simple discrete-time infinite-horizon LQR
@@ -54,46 +52,52 @@ namespace ctrl {
  * \tparam StateSpaceType The state-space type on which the state-vectors of the controlled system lie.
  * \tparam TrajectoryType The trajectory to be followed.
  */
-template < typename StateSpaceSystem, typename StateSpaceType, typename TrajectoryType >
+template <typename StateSpaceSystem, typename StateSpaceType,
+          typename TrajectoryType>
 class dt_ih_lqr_controller : public named_object {
-public:
+ public:
   BOOST_CONCEPT_ASSERT(
-    ( DiscreteLinearSSSConcept< StateSpaceSystem, StateSpaceType, DiscreteLinearizedSystemType > ) );
+      (DiscreteLinearSSSConcept<StateSpaceSystem, StateSpaceType,
+                                DiscreteLinearizedSystemType>));
   BOOST_CONCEPT_ASSERT(
-    ( pp::SpatialTrajectoryConcept< TrajectoryType, pp::temporal_space< StateSpaceType, pp::time_topology > > ) );
+      (pp::SpatialTrajectoryConcept<
+          TrajectoryType,
+          pp::temporal_space<StateSpaceType, pp::time_topology>>));
 
-  typedef double point_type;
-  typedef double point_difference_type;
-  typedef double point_derivative_type;
+  using point_type = double;
+  using point_difference_type = double;
+  using point_derivative_type = double;
 
-  typedef typename discrete_sss_traits< StateSpaceSystem >::point_type input_type;
-  typedef typename discrete_sss_traits< StateSpaceSystem >::input_type output_type;
+  using input_type = typename discrete_sss_traits<StateSpaceSystem>::point_type;
+  using output_type =
+      typename discrete_sss_traits<StateSpaceSystem>::input_type;
 
-  typedef typename mat_traits< typename discrete_linear_sss_traits< StateSpaceSystem >::matrixA_type >::value_type
-    value_type;
+  using value_type = mat_value_type_t<
+      typename discrete_linear_sss_traits<StateSpaceSystem>::matrixA_type>;
 
-  typedef mat< value_type, mat_structure::identity > matrixA_type;
-  typedef mat< value_type, mat_structure::nil > matrixB_type;
-  typedef mat< value_type, mat_structure::nil > matrixC_type;
-  typedef mat< value_type, mat_structure::rectangular > matrixD_type;
+  using matrixA_type = mat<value_type, mat_structure::identity>;
+  using matrixB_type = mat<value_type, mat_structure::nil>;
+  using matrixC_type = mat<value_type, mat_structure::nil>;
+  using matrixD_type = mat<value_type, mat_structure::rectangular>;
 
-  typedef double time_type;
-  typedef double time_difference_type;
+  using time_type = double;
+  using time_difference_type = double;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 0 );
-  BOOST_STATIC_CONSTANT( std::size_t, input_dimensions = discrete_sss_traits< StateSpaceSystem >::dimensions );
-  BOOST_STATIC_CONSTANT( std::size_t, output_dimensions = discrete_sss_traits< StateSpaceSystem >::input_dimensions );
+  static constexpr std::size_t dimensions = 0;
+  static constexpr std::size_t input_dimensions =
+      discrete_sss_traits<StateSpaceSystem>::dimensions;
+  static constexpr std::size_t output_dimensions =
+      discrete_sss_traits<StateSpaceSystem>::input_dimensions;
 
-private:
-  shared_ptr< StateSpaceSystem > m_sys;
-  shared_ptr< StateSpaceType > m_state_space;
-  shared_ptr< TrajectoryType > m_traj;
+ private:
+  std::shared_ptr<StateSpaceSystem> m_sys;
+  std::shared_ptr<StateSpaceType> m_state_space;
+  std::shared_ptr<TrajectoryType> m_traj;
 
+  mat<value_type, mat_structure::square> Q;
+  mat<value_type, mat_structure::square> R;
 
-  mat< value_type, mat_structure::square > Q;
-  mat< value_type, mat_structure::square > R;
-
-public:
+ public:
   /**
    * Parametrized and default constructor.
    * \param aName The name of the controller.
@@ -103,98 +107,123 @@ public:
    * \param aSpace The state-space topology.
    * \param aTraj The trajectory to be followed.
    */
-  dt_ih_lqr_controller(
-    const std::string& aName = "",
-    const mat< value_type, mat_structure::square >& aQ
-    = mat< value_type, mat_structure::square >( mat< value_type, mat_structure::identity >( input_dimensions ) ),
-    const mat< value_type, mat_structure::square >& aR
-    = mat< value_type, mat_structure::square >( mat< value_type, mat_structure::identity >( output_dimensions ) ),
-    const shared_ptr< StateSpaceSystem >& aSys = shared_ptr< StateSpaceSystem >(),
-    const shared_ptr< StateSpaceType >& aSpace = shared_ptr< StateSpaceType >(),
-    const shared_ptr< TrajectoryType >& aTraj = shared_ptr< TrajectoryType >() )
-      : m_sys( aSys ), m_state_space( aSpace ), m_traj( aTraj ), Q( aQ ), R( aR ) {
-    setName( aName );
-  };
+  explicit dt_ih_lqr_controller(
+      const std::string& aName,
+      const mat<value_type, mat_structure::square>& aQ =
+          mat<value_type, mat_structure::square>(
+              mat<value_type, mat_structure::identity>(input_dimensions)),
+      const mat<value_type, mat_structure::square>& aR =
+          mat<value_type, mat_structure::square>(
+              mat<value_type, mat_structure::identity>(output_dimensions)),
+      const std::shared_ptr<StateSpaceSystem>& aSys =
+          std::shared_ptr<StateSpaceSystem>(),
+      const std::shared_ptr<StateSpaceType>& aSpace =
+          std::shared_ptr<StateSpaceType>(),
+      const std::shared_ptr<TrajectoryType>& aTraj =
+          std::shared_ptr<TrajectoryType>())
+      : m_sys(aSys), m_state_space(aSpace), m_traj(aTraj), Q(aQ), R(aR) {
+    setName(aName);
+  }
+
+  dt_ih_lqr_controller() : dt_ih_lqr_controller("") {}
 
   /**
    * Sets the state-space system under control.
    * \param aSys The state-space system under control.
    */
-  void set_system( const shared_ptr< StateSpaceSystem >& aSys ) { m_sys = aSys; };
+  void set_system(const std::shared_ptr<StateSpaceSystem>& aSys) {
+    m_sys = aSys;
+  }
 
   /**
    * Sets the state-space topology.
    * \param aSpace The new state-space topology.
    */
-  void set_space( const shared_ptr< StateSpaceType >& aSpace ) { m_state_space = aSpace; };
+  void set_space(const std::shared_ptr<StateSpaceType>& aSpace) {
+    m_state_space = aSpace;
+  }
 
   /**
    * Sets the trajectory to be followed.
    * \param aTraj The trajectory to be followed.
    */
-  void set_trajectory( const shared_ptr< TrajectoryType >& aTraj ) { m_traj = aTraj; };
+  void set_trajectory(const std::shared_ptr<TrajectoryType>& aTraj) {
+    m_traj = aTraj;
+  }
 
   /**
    * Sets the cost matrix of state errors (Q).
    * \param m The new cost matrix of state errors (Q).
    */
-  template < typename Matrix >
-  void set_state_cost_matrix( const Matrix& m ) {
+  template <typename Matrix>
+  void set_state_cost_matrix(const Matrix& m) {
     Q = m;
-  };
+  }
 
   /**
    * Sets the cost matrix of inputs (actuation) (R).
    * \param m The new cost matrix of inputs (actuation) (R).
    */
-  template < typename Matrix >
-  void set_input_cost_matrix( const Matrix& m ) {
+  template <typename Matrix>
+  void set_input_cost_matrix(const Matrix& m) {
     R = m;
-  };
+  }
 
   /**
    * Returns the state-space system under control.
    * \return The state-space system under control.
    */
-  const shared_ptr< StateSpaceSystem >& get_system() const { return m_sys; };
+  const std::shared_ptr<StateSpaceSystem>& get_system() const { return m_sys; }
   /**
    * Returns the state-space topology.
    * \return The state-space topology.
    */
-  const shared_ptr< StateSpaceType >& get_space() const { return m_state_space; };
+  const std::shared_ptr<StateSpaceType>& get_space() const {
+    return m_state_space;
+  }
   /**
    * Returns the trajectory to be followed.
    * \return The trajectory to be followed.
    */
-  const shared_ptr< TrajectoryType >& get_trajectory() const { return m_traj; };
+  const std::shared_ptr<TrajectoryType>& get_trajectory() const {
+    return m_traj;
+  }
 
   /**
    * Returns the cost matrix of state errors (Q).
    * \return The cost matrix of state errors (Q).
    */
-  const mat< value_type, mat_structure::square >& get_state_cost_matrix() const { return Q; };
+  const mat<value_type, mat_structure::square>& get_state_cost_matrix() const {
+    return Q;
+  }
 
   /**
    * Returns the cost matrix of inputs (actuation) (R).
    * \return The cost matrix of inputs (actuation) (R).
    */
-  const mat< value_type, mat_structure::square >& get_input_cost_matrix() const { return R; };
+  const mat<value_type, mat_structure::square>& get_input_cost_matrix() const {
+    return R;
+  }
 
   /**
    * Returns the state-vector's dimension.
    * \return The state-vector's dimension.
    */
-  size_type get_state_dimensions() const { return 0; };
+  size_type get_state_dimensions() const { return 0; }
   /**
    * Returns the input-vector's dimension.
    * \return The input-vector's dimension.
    */
-  size_type get_input_dimensions() const { return m_sys->get_state_dimensions(); };
+  size_type get_input_dimensions() const {
+    return m_sys->get_state_dimensions();
+  }
   /**
    * Returns the output-vector's dimension.
    * \return The output-vector's dimension.
    */
-  size_type get_output_dimensions() const { return m_sys->get_input_dimensions(); };
+  size_type get_output_dimensions() const {
+    return m_sys->get_input_dimensions();
+  }
 
   /**
    * Returns output of the system given the current state, input and time.
@@ -202,39 +231,50 @@ public:
    * \param t The current time.
    * \return The current output.
    */
-  output_type get_output( const input_type& u, const double& t = 0 ) const {
-    typedef typename discrete_linear_sss_traits< StateSpaceSystem >::matrixA_type Atype;
-    typedef typename discrete_linear_sss_traits< StateSpaceSystem >::matrixB_type Btype;
+  output_type get_output(const input_type& u, const double& t = 0) const {
+    using Atype =
+        typename discrete_linear_sss_traits<StateSpaceSystem>::matrixA_type;
+    using Btype =
+        typename discrete_linear_sss_traits<StateSpaceSystem>::matrixB_type;
 
     Atype A;
     Btype B;
     m_sys->get_state_transition_blocks(
-      A, B, *m_state_space, t, t, u, u,
-      from_vect< output_type >( vect_n< value_type >( get_output_dimensions(), value_type( 0.0 ) ) ),
-      from_vect< output_type >( vect_n< value_type >( get_output_dimensions(), value_type( 0.0 ) ) ) );
+        A, B, *m_state_space, t, t, u, u,
+        from_vect<output_type>(
+            vect_n<value_type>(get_output_dimensions(), value_type(0.0))),
+        from_vect<output_type>(
+            vect_n<value_type>(get_output_dimensions(), value_type(0.0))));
 
-    mat< value_type, mat_structure::rectangular > K( get_output_dimensions(), get_input_dimensions() );
-    solve_IHDT_LQR( A, B, Q, R, K, value_type( 1e-4 ) );
+    mat<value_type, mat_structure::rectangular> K(get_output_dimensions(),
+                                                  get_input_dimensions());
+    solve_IHDT_LQR(A, B, Q, R, K, value_type(1e-4));
 
-    return from_vect< output_type >(
-      K * to_vect< value_type >( m_state_space->difference( m_traj->get_point_at_time( t ).pt, u ) ) );
-  };
+    return from_vect<output_type>(K *
+                                  to_vect<value_type>(m_state_space->difference(
+                                      m_traj->get_point_at_time(t).pt, u)));
+  }
 
+  void save(ReaK::serialization::oarchive& aA, unsigned int) const override {
+    ReaK::named_object::save(
+        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+    aA& RK_SERIAL_SAVE_WITH_NAME(m_sys) &
+        RK_SERIAL_SAVE_WITH_NAME(m_state_space) &
+        RK_SERIAL_SAVE_WITH_NAME(m_traj) & RK_SERIAL_SAVE_WITH_NAME(Q) &
+        RK_SERIAL_SAVE_WITH_NAME(R);
+  }
+  void load(ReaK::serialization::iarchive& aA, unsigned int) override {
+    ReaK::named_object::load(
+        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+    aA& RK_SERIAL_LOAD_WITH_NAME(m_sys) &
+        RK_SERIAL_LOAD_WITH_NAME(m_state_space) &
+        RK_SERIAL_LOAD_WITH_NAME(m_traj) & RK_SERIAL_LOAD_WITH_NAME(Q) &
+        RK_SERIAL_LOAD_WITH_NAME(R);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& aA, unsigned int ) const {
-    ReaK::named_object::save( aA, ReaK::named_object::getStaticObjectType()->TypeVersion() );
-    aA& RK_SERIAL_SAVE_WITH_NAME( m_sys ) & RK_SERIAL_SAVE_WITH_NAME( m_state_space )
-      & RK_SERIAL_SAVE_WITH_NAME( m_traj ) & RK_SERIAL_SAVE_WITH_NAME( Q ) & RK_SERIAL_SAVE_WITH_NAME( R );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& aA, unsigned int ) {
-    ReaK::named_object::load( aA, ReaK::named_object::getStaticObjectType()->TypeVersion() );
-    aA& RK_SERIAL_LOAD_WITH_NAME( m_sys ) & RK_SERIAL_LOAD_WITH_NAME( m_state_space )
-      & RK_SERIAL_LOAD_WITH_NAME( m_traj ) & RK_SERIAL_LOAD_WITH_NAME( Q ) & RK_SERIAL_LOAD_WITH_NAME( R );
-  };
-
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2300012, 1, "dt_ih_lqr_controller", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2300012, 1, "dt_ih_lqr_controller",
+                              named_object)
 };
-
 
 /**
  * This class template can be used to create a simple continuous-time infinite-horizon LQR
@@ -245,45 +285,50 @@ public:
  * \tparam StateSpaceType The state-space type on which the state-vectors of the controlled system lie.
  * \tparam TrajectoryType The trajectory to be followed.
  */
-template < typename StateSpaceSystem, typename StateSpaceType, typename TrajectoryType >
+template <typename StateSpaceSystem, typename StateSpaceType,
+          typename TrajectoryType>
 class ct_ih_lqr_controller : public named_object {
-public:
-  BOOST_CONCEPT_ASSERT( ( LinearSSSystemConcept< StateSpaceSystem, StateSpaceType, LinearizedSystemType > ) );
+ public:
+  BOOST_CONCEPT_ASSERT((LinearSSSystemConcept<StateSpaceSystem, StateSpaceType,
+                                              LinearizedSystemType>));
   BOOST_CONCEPT_ASSERT(
-    ( pp::SpatialTrajectoryConcept< TrajectoryType, pp::temporal_space< StateSpaceType, pp::time_topology > > ) );
+      (pp::SpatialTrajectoryConcept<
+          TrajectoryType,
+          pp::temporal_space<StateSpaceType, pp::time_topology>>));
 
-  typedef double point_type;
-  typedef double point_difference_type;
-  typedef double point_derivative_type;
+  using point_type = double;
+  using point_difference_type = double;
+  using point_derivative_type = double;
 
-  typedef typename ss_system_traits< StateSpaceSystem >::point_type input_type;
-  typedef typename ss_system_traits< StateSpaceSystem >::input_type output_type;
+  using input_type = typename ss_system_traits<StateSpaceSystem>::point_type;
+  using output_type = typename ss_system_traits<StateSpaceSystem>::input_type;
 
-  typedef typename mat_traits< typename linear_ss_system_traits< StateSpaceSystem >::matrixA_type >::value_type
-    value_type;
+  using value_type = mat_value_type_t<
+      typename linear_ss_system_traits<StateSpaceSystem>::matrixA_type>;
 
-  typedef mat< value_type, mat_structure::identity > matrixA_type;
-  typedef mat< value_type, mat_structure::nil > matrixB_type;
-  typedef mat< value_type, mat_structure::nil > matrixC_type;
-  typedef mat< value_type, mat_structure::rectangular > matrixD_type;
+  using matrixA_type = mat<value_type, mat_structure::identity>;
+  using matrixB_type = mat<value_type, mat_structure::nil>;
+  using matrixC_type = mat<value_type, mat_structure::nil>;
+  using matrixD_type = mat<value_type, mat_structure::rectangular>;
 
-  typedef double time_type;
-  typedef double time_difference_type;
+  using time_type = double;
+  using time_difference_type = double;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 0 );
-  BOOST_STATIC_CONSTANT( std::size_t, input_dimensions = ss_system_traits< StateSpaceSystem >::dimensions );
-  BOOST_STATIC_CONSTANT( std::size_t, output_dimensions = ss_system_traits< StateSpaceSystem >::input_dimensions );
+  static constexpr std::size_t dimensions = 0;
+  static constexpr std::size_t input_dimensions =
+      ss_system_traits<StateSpaceSystem>::dimensions;
+  static constexpr std::size_t output_dimensions =
+      ss_system_traits<StateSpaceSystem>::input_dimensions;
 
-private:
-  shared_ptr< StateSpaceSystem > m_sys;
-  shared_ptr< StateSpaceType > m_state_space;
-  shared_ptr< TrajectoryType > m_traj;
+ private:
+  std::shared_ptr<StateSpaceSystem> m_sys;
+  std::shared_ptr<StateSpaceType> m_state_space;
+  std::shared_ptr<TrajectoryType> m_traj;
 
+  mat<value_type, mat_structure::square> Q;
+  mat<value_type, mat_structure::square> R;
 
-  mat< value_type, mat_structure::square > Q;
-  mat< value_type, mat_structure::square > R;
-
-public:
+ public:
   /**
    * Parametrized and default constructor.
    * \param aName The name of the controller.
@@ -293,98 +338,123 @@ public:
    * \param aSpace The state-space topology.
    * \param aTraj The trajectory to be followed.
    */
-  ct_ih_lqr_controller(
-    const std::string& aName = "",
-    const mat< value_type, mat_structure::square >& aQ
-    = mat< value_type, mat_structure::square >( mat< value_type, mat_structure::identity >( input_dimensions ) ),
-    const mat< value_type, mat_structure::square >& aR
-    = mat< value_type, mat_structure::square >( mat< value_type, mat_structure::identity >( output_dimensions ) ),
-    const shared_ptr< StateSpaceSystem >& aSys = shared_ptr< StateSpaceSystem >(),
-    const shared_ptr< StateSpaceType >& aSpace = shared_ptr< StateSpaceType >(),
-    const shared_ptr< TrajectoryType >& aTraj = shared_ptr< TrajectoryType >() )
-      : m_sys( aSys ), m_state_space( aSpace ), m_traj( aTraj ), Q( aQ ), R( aR ) {
-    setName( aName );
+  explicit ct_ih_lqr_controller(
+      const std::string& aName,
+      const mat<value_type, mat_structure::square>& aQ =
+          mat<value_type, mat_structure::square>(
+              mat<value_type, mat_structure::identity>(input_dimensions)),
+      const mat<value_type, mat_structure::square>& aR =
+          mat<value_type, mat_structure::square>(
+              mat<value_type, mat_structure::identity>(output_dimensions)),
+      const std::shared_ptr<StateSpaceSystem>& aSys =
+          std::shared_ptr<StateSpaceSystem>(),
+      const std::shared_ptr<StateSpaceType>& aSpace =
+          std::shared_ptr<StateSpaceType>(),
+      const std::shared_ptr<TrajectoryType>& aTraj =
+          std::shared_ptr<TrajectoryType>())
+      : m_sys(aSys), m_state_space(aSpace), m_traj(aTraj), Q(aQ), R(aR) {
+    setName(aName);
   };
+
+  ct_ih_lqr_controller() : ct_ih_lqr_controller("") {}
 
   /**
    * Sets the state-space system under control.
    * \param aSys The state-space system under control.
    */
-  void set_system( const shared_ptr< StateSpaceSystem >& aSys ) { m_sys = aSys; };
+  void set_system(const std::shared_ptr<StateSpaceSystem>& aSys) {
+    m_sys = aSys;
+  }
 
   /**
    * Sets the state-space topology.
    * \param aSpace The new state-space topology.
    */
-  void set_space( const shared_ptr< StateSpaceType >& aSpace ) { m_state_space = aSpace; };
+  void set_space(const std::shared_ptr<StateSpaceType>& aSpace) {
+    m_state_space = aSpace;
+  }
 
   /**
    * Sets the trajectory to be followed.
    * \param aTraj The trajectory to be followed.
    */
-  void set_trajectory( const shared_ptr< TrajectoryType >& aTraj ) { m_traj = aTraj; };
+  void set_trajectory(const std::shared_ptr<TrajectoryType>& aTraj) {
+    m_traj = aTraj;
+  }
 
   /**
    * Sets the cost matrix of state errors (Q).
    * \param m The new cost matrix of state errors (Q).
    */
-  template < typename Matrix >
-  void set_state_cost_matrix( const Matrix& m ) {
+  template <typename Matrix>
+  void set_state_cost_matrix(const Matrix& m) {
     Q = m;
-  };
+  }
 
   /**
    * Sets the cost matrix of inputs (actuation) (R).
    * \param m The new cost matrix of inputs (actuation) (R).
    */
-  template < typename Matrix >
-  void set_input_cost_matrix( const Matrix& m ) {
+  template <typename Matrix>
+  void set_input_cost_matrix(const Matrix& m) {
     R = m;
-  };
+  }
 
   /**
    * Returns the state-space system under control.
    * \return The state-space system under control.
    */
-  const shared_ptr< StateSpaceSystem >& get_system() const { return m_sys; };
+  const std::shared_ptr<StateSpaceSystem>& get_system() const { return m_sys; }
   /**
    * Returns the state-space topology.
    * \return The state-space topology.
    */
-  const shared_ptr< StateSpaceType >& get_space() const { return m_state_space; };
+  const std::shared_ptr<StateSpaceType>& get_space() const {
+    return m_state_space;
+  }
   /**
    * Returns the trajectory to be followed.
    * \return The trajectory to be followed.
    */
-  const shared_ptr< TrajectoryType >& get_trajectory() const { return m_traj; };
+  const std::shared_ptr<TrajectoryType>& get_trajectory() const {
+    return m_traj;
+  }
 
   /**
    * Returns the cost matrix of state errors (Q).
    * \return The cost matrix of state errors (Q).
    */
-  const mat< value_type, mat_structure::square >& get_state_cost_matrix() const { return Q; };
+  const mat<value_type, mat_structure::square>& get_state_cost_matrix() const {
+    return Q;
+  }
 
   /**
    * Returns the cost matrix of inputs (actuation) (R).
    * \return The cost matrix of inputs (actuation) (R).
    */
-  const mat< value_type, mat_structure::square >& get_input_cost_matrix() const { return R; };
+  const mat<value_type, mat_structure::square>& get_input_cost_matrix() const {
+    return R;
+  }
 
   /**
    * Returns the state-vector's dimension.
    * \return The state-vector's dimension.
    */
-  size_type get_state_dimensions() const { return 0; };
+  size_type get_state_dimensions() const { return 0; }
   /**
    * Returns the input-vector's dimension.
    * \return The input-vector's dimension.
    */
-  size_type get_input_dimensions() const { return m_sys->get_state_dimensions(); };
+  size_type get_input_dimensions() const {
+    return m_sys->get_state_dimensions();
+  }
   /**
    * Returns the output-vector's dimension.
    * \return The output-vector's dimension.
    */
-  size_type get_output_dimensions() const { return m_sys->get_input_dimensions(); };
+  size_type get_output_dimensions() const {
+    return m_sys->get_input_dimensions();
+  }
 
   /**
    * Returns output of the system given the current state, input and time.
@@ -392,41 +462,54 @@ public:
    * \param t The current time.
    * \return The current output.
    */
-  output_type get_output( const input_type& u, const double& t = 0 ) const {
-    typedef typename linear_ss_system_traits< StateSpaceSystem >::matrixA_type Atype;
-    typedef typename linear_ss_system_traits< StateSpaceSystem >::matrixB_type Btype;
-    typedef typename linear_ss_system_traits< StateSpaceSystem >::matrixC_type Ctype;
-    typedef typename linear_ss_system_traits< StateSpaceSystem >::matrixD_type Dtype;
+  output_type get_output(const input_type& u, const double& t = 0) const {
+    using Atype =
+        typename linear_ss_system_traits<StateSpaceSystem>::matrixA_type;
+    using Btype =
+        typename linear_ss_system_traits<StateSpaceSystem>::matrixB_type;
+    using Ctype =
+        typename linear_ss_system_traits<StateSpaceSystem>::matrixC_type;
+    using Dtype =
+        typename linear_ss_system_traits<StateSpaceSystem>::matrixD_type;
 
     Atype A;
     Btype B;
     Ctype C;
     Dtype D;
-    m_sys->get_linear_blocks( A, B, C, D, *m_state_space, t, u, from_vect< output_type >( vect_n< value_type >(
-                                                                  get_output_dimensions(), value_type( 0.0 ) ) ) );
+    m_sys->get_linear_blocks(A, B, C, D, *m_state_space, t, u,
+                             from_vect<output_type>(vect_n<value_type>(
+                                 get_output_dimensions(), value_type(0.0))));
 
-    mat< value_type, mat_structure::rectangular > K( get_output_dimensions(), get_input_dimensions() );
-    solve_IHCT_LQR( A, B, Q, R, K, value_type( 1e-4 ) );
+    mat<value_type, mat_structure::rectangular> K(get_output_dimensions(),
+                                                  get_input_dimensions());
+    solve_IHCT_LQR(A, B, Q, R, K, value_type(1e-4));
 
-    return from_vect< output_type >(
-      K * to_vect< value_type >( m_state_space->difference( m_traj->get_point_at_time( t ).pt, u ) ) );
-  };
+    return from_vect<output_type>(K *
+                                  to_vect<value_type>(m_state_space->difference(
+                                      m_traj->get_point_at_time(t).pt, u)));
+  }
 
+  void save(ReaK::serialization::oarchive& aA, unsigned int) const override {
+    ReaK::named_object::save(
+        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+    aA& RK_SERIAL_SAVE_WITH_NAME(m_sys) &
+        RK_SERIAL_SAVE_WITH_NAME(m_state_space) &
+        RK_SERIAL_SAVE_WITH_NAME(m_traj) & RK_SERIAL_SAVE_WITH_NAME(Q) &
+        RK_SERIAL_SAVE_WITH_NAME(R);
+  }
+  void load(ReaK::serialization::iarchive& aA, unsigned int) override {
+    ReaK::named_object::load(
+        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+    aA& RK_SERIAL_LOAD_WITH_NAME(m_sys) &
+        RK_SERIAL_LOAD_WITH_NAME(m_state_space) &
+        RK_SERIAL_LOAD_WITH_NAME(m_traj) & RK_SERIAL_LOAD_WITH_NAME(Q) &
+        RK_SERIAL_LOAD_WITH_NAME(R);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& aA, unsigned int ) const {
-    ReaK::named_object::save( aA, ReaK::named_object::getStaticObjectType()->TypeVersion() );
-    aA& RK_SERIAL_SAVE_WITH_NAME( m_sys ) & RK_SERIAL_SAVE_WITH_NAME( m_state_space )
-      & RK_SERIAL_SAVE_WITH_NAME( m_traj ) & RK_SERIAL_SAVE_WITH_NAME( Q ) & RK_SERIAL_SAVE_WITH_NAME( R );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& aA, unsigned int ) {
-    ReaK::named_object::load( aA, ReaK::named_object::getStaticObjectType()->TypeVersion() );
-    aA& RK_SERIAL_LOAD_WITH_NAME( m_sys ) & RK_SERIAL_LOAD_WITH_NAME( m_state_space )
-      & RK_SERIAL_LOAD_WITH_NAME( m_traj ) & RK_SERIAL_LOAD_WITH_NAME( Q ) & RK_SERIAL_LOAD_WITH_NAME( R );
-  };
-
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2300013, 1, "ct_ih_lqr_controller", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2300013, 1, "ct_ih_lqr_controller",
+                              named_object)
 };
-};
-};
+
+}  // namespace ReaK::ctrl
 
 #endif

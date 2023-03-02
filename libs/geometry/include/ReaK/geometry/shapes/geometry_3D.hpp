@@ -36,42 +36,36 @@
 
 #include <ReaK/math/kinetostatics/pose_3D.hpp>
 
-
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
+namespace ReaK::geom {
 
 /** This class is the base-class for all 3D geometric objects (renderable). */
 class geometry_3D : public named_object {
-protected:
-  shared_ptr< pose_3D< double > > mAnchor;
-  pose_3D< double > mPose;
+ protected:
+  std::shared_ptr<pose_3D<double>> mAnchor;
+  pose_3D<double> mPose;
 
-public:
+ public:
   /**
    * This function returns the anchor of the geometry.
    * \return A shared-pointer to the anchor pose object.
    */
-  const shared_ptr< pose_3D< double > >& getAnchor() const { return mAnchor; };
+  const std::shared_ptr<pose_3D<double>>& getAnchor() const { return mAnchor; }
   /**
    * This function sets the anchor of the geometry.
    * \param aAnchor A shared-pointer to the new anchor pose object.
    */
-  void setAnchor( const shared_ptr< pose_3D< double > >& aAnchor );
+  void setAnchor(const std::shared_ptr<pose_3D<double>>& aAnchor);
 
   /**
    * This function returns the pose of the geometry.
    * \return The pose object.
    */
-  const pose_3D< double >& getPose() const { return mPose; };
+  const pose_3D<double>& getPose() const { return mPose; }
   /**
    * This function sets the pose of the geometry.
    * \param aPose The new pose object.
    */
-  void setPose( const pose_3D< double >& aPose );
+  void setPose(const pose_3D<double>& aPose);
 
   /**
    * Default constructor.
@@ -79,27 +73,29 @@ public:
    * \param aAnchor The anchor object for the geometry.
    * \param aPose The pose of the geometry (relative to the anchor).
    */
-  geometry_3D( const std::string& aName = "",
-               const shared_ptr< pose_3D< double > >& aAnchor = shared_ptr< pose_3D< double > >(),
-               const pose_3D< double >& aPose = pose_3D< double >() );
+  explicit geometry_3D(const std::string& aName = "",
+                       std::shared_ptr<pose_3D<double>> aAnchor =
+                           std::shared_ptr<pose_3D<double>>(),
+                       const pose_3D<double>& aPose = pose_3D<double>());
 
   /**
    * Default destructor.
    */
-  virtual ~geometry_3D(){};
-
+  ~geometry_3D() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( geometry_3D, 0xC3100001, 1, "geometry_3D", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(geometry_3D, 0xC3100001, 1, "geometry_3D",
+                              named_object)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

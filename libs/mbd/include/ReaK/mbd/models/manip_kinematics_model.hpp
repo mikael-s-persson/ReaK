@@ -43,10 +43,7 @@
 
 #include <vector>
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class stores the required information to represent the kinematic model of a manipulator.
@@ -58,209 +55,247 @@ namespace kte {
  * use of a manipulator model (like computing jacobians).
  */
 class manipulator_kinematics_model : public direct_kinematics_model {
-protected:
-  std::vector< shared_ptr< gen_coord< double > > >
-    mCoords; ///< Holds the list of generalized coordinates in the system.
-  std::vector< shared_ptr< frame_2D< double > > > mFrames2D; ///< Holds the list of 2D coordinates frame in the system.
-  std::vector< shared_ptr< frame_3D< double > > > mFrames3D; ///< Holds the list of 3D coordinates frame in the system.
+ protected:
+  std::vector<std::shared_ptr<gen_coord<double>>>
+      mCoords;  ///< Holds the list of generalized coordinates in the system.
+  std::vector<std::shared_ptr<frame_2D<double>>>
+      mFrames2D;  ///< Holds the list of 2D coordinates frame in the system.
+  std::vector<std::shared_ptr<frame_3D<double>>>
+      mFrames3D;  ///< Holds the list of 3D coordinates frame in the system.
 
-  std::vector< shared_ptr< joint_dependent_gen_coord > >
-    mDependentGenCoords; ///< Holds the list of dependent generalized coordinates.
-  std::vector< shared_ptr< joint_dependent_frame_2D > > mDependent2DFrames; ///< Holds the list of dependent 2D frames.
-  std::vector< shared_ptr< joint_dependent_frame_3D > > mDependent3DFrames; ///< Holds the list of dependent 3D frames.
+  std::vector<std::shared_ptr<joint_dependent_gen_coord>>
+      mDependentGenCoords;  ///< Holds the list of dependent generalized coordinates.
+  std::vector<std::shared_ptr<joint_dependent_frame_2D>>
+      mDependent2DFrames;  ///< Holds the list of dependent 2D frames.
+  std::vector<std::shared_ptr<joint_dependent_frame_3D>>
+      mDependent3DFrames;  ///< Holds the list of dependent 3D frames.
 
-  shared_ptr< kte_map_chain > mModel; ///< Holds the model of the manipulator as a kte-chain.
+  std::shared_ptr<kte_map_chain>
+      mModel;  ///< Holds the model of the manipulator as a kte-chain.
 
-public:
+ public:
   /**
    * Default constructor.
    */
-  manipulator_kinematics_model( const std::string& aName = "" )
-      : direct_kinematics_model( aName ), mCoords(), mFrames2D(), mFrames3D(), mDependentGenCoords(),
-        mDependent2DFrames(), mDependent3DFrames(), mModel(){};
+  explicit manipulator_kinematics_model(const std::string& aName = "")
+      : direct_kinematics_model(aName) {}
 
   /**
    * Default destructor.
    */
-  virtual ~manipulator_kinematics_model(){};
+  ~manipulator_kinematics_model() override = default;
+  ;
 
   /**
    * Sets the manipulator KTE model to use in this object.
    * \param aModel The manipulator KTE model to use in this object.
    */
-  virtual void setModel( const shared_ptr< kte_map_chain >& aModel ) { mModel = aModel; };
+  virtual void setModel(const std::shared_ptr<kte_map_chain>& aModel) {
+    mModel = aModel;
+  }
 
   /**
    * Gets the manipulator KTE model used by this object.
    * \return The manipulator KTE model used by this object.
    */
-  shared_ptr< kte_map_chain > getModel() const { return mModel; };
+  std::shared_ptr<kte_map_chain> getModel() const { return mModel; }
 
   /**
    * Add a dependent generalized coordinate to the jacobian calculation.
    * \param aDependentGenCoord a dependent generalized coordinate to add.
    * \return reference to this.
    */
-  virtual manipulator_kinematics_model& operator<<( const shared_ptr< joint_dependent_gen_coord >& aDependentGenCoord );
+  virtual manipulator_kinematics_model& operator<<(
+      const std::shared_ptr<joint_dependent_gen_coord>& aDependentGenCoord);
 
   /**
    * Add a dependent 2D frame to the jacobian calculation.
    * \param aDependent2DFrame a dependent 2D frame  to add.
    * \return reference to this.
    */
-  virtual manipulator_kinematics_model& operator<<( const shared_ptr< joint_dependent_frame_2D >& aDependent2DFrame );
+  virtual manipulator_kinematics_model& operator<<(
+      const std::shared_ptr<joint_dependent_frame_2D>& aDependent2DFrame);
 
   /**
    * Add a dependent 3D frame to the jacobian calculation.
    * \param aDependent3DFrame a dependent 3D frame to add.
    * \return reference to this.
    */
-  virtual manipulator_kinematics_model& operator<<( const shared_ptr< joint_dependent_frame_3D >& aDependent3DFrame );
+  virtual manipulator_kinematics_model& operator<<(
+      const std::shared_ptr<joint_dependent_frame_3D>& aDependent3DFrame);
 
   /**
    * Add a system generalized coordinate.
    * \param aCoord a system generalized coordinate to add.
    * \return reference to this.
    */
-  virtual manipulator_kinematics_model& operator<<( const shared_ptr< gen_coord< double > >& aCoord );
+  virtual manipulator_kinematics_model& operator<<(
+      const std::shared_ptr<gen_coord<double>>& aCoord);
 
   /**
    * Add a system 2D frame.
    * \param aFrame2D a system 2D frame to add.
    * \return reference to this.
    */
-  virtual manipulator_kinematics_model& operator<<( const shared_ptr< frame_2D< double > >& aFrame2D );
+  virtual manipulator_kinematics_model& operator<<(
+      const std::shared_ptr<frame_2D<double>>& aFrame2D);
 
   /**
    * Add a system 3D frame.
    * \param aFrame3D a system 3D frame to add.
    * \return reference to this.
    */
-  virtual manipulator_kinematics_model& operator<<( const shared_ptr< frame_3D< double > >& aFrame3D );
-
+  virtual manipulator_kinematics_model& operator<<(
+      const std::shared_ptr<frame_3D<double>>& aFrame3D);
 
   /******************************************************************************************
    *  direct_kinematics_model: joint and dependent positions, velocities and accelerations  *
    ******************************************************************************************/
 
-  virtual std::size_t getJointPositionsCount() const {
+  std::size_t getJointPositionsCount() const override {
     return mCoords.size() + 4 * mFrames2D.size() + 7 * mFrames3D.size();
-  };
+  }
 
-  virtual std::size_t getJointVelocitiesCount() const {
+  std::size_t getJointVelocitiesCount() const override {
     return mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
-  };
+  }
 
-  virtual std::size_t getJointAccelerationsCount() const {
+  std::size_t getJointAccelerationsCount() const override {
     return mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
-  };
+  }
 
-  virtual std::size_t getDependentPositionsCount() const {
-    return mDependentGenCoords.size() + 4 * mDependent2DFrames.size() + 7 * mDependent3DFrames.size();
-  };
+  std::size_t getDependentPositionsCount() const override {
+    return mDependentGenCoords.size() + 4 * mDependent2DFrames.size() +
+           7 * mDependent3DFrames.size();
+  }
 
-  virtual std::size_t getDependentVelocitiesCount() const {
-    return mDependentGenCoords.size() + 3 * mDependent2DFrames.size() + 6 * mDependent3DFrames.size();
-  };
+  std::size_t getDependentVelocitiesCount() const override {
+    return mDependentGenCoords.size() + 3 * mDependent2DFrames.size() +
+           6 * mDependent3DFrames.size();
+  }
 
-  virtual std::size_t getDependentAccelerationsCount() const {
-    return mDependentGenCoords.size() + 3 * mDependent2DFrames.size() + 6 * mDependent3DFrames.size();
-  };
-
+  std::size_t getDependentAccelerationsCount() const override {
+    return mDependentGenCoords.size() + 3 * mDependent2DFrames.size() +
+           6 * mDependent3DFrames.size();
+  }
 
   /*************************************************************************
    *  direct_kinematics_model: joint and dependent coordinates and frames  *
    *************************************************************************/
 
-  virtual std::size_t getCoordsCount() const { return mCoords.size(); };
+  std::size_t getCoordsCount() const override { return mCoords.size(); }
 
-  virtual shared_ptr< gen_coord< double > > getCoord( std::size_t i ) const { return mCoords[i]; };
+  std::shared_ptr<gen_coord<double>> getCoord(std::size_t i) const override {
+    return mCoords[i];
+  }
 
-  virtual std::size_t getFrames2DCount() const { return mFrames2D.size(); };
+  std::size_t getFrames2DCount() const override { return mFrames2D.size(); }
 
-  virtual shared_ptr< frame_2D< double > > getFrame2D( std::size_t i ) const { return mFrames2D[i]; };
+  std::shared_ptr<frame_2D<double>> getFrame2D(std::size_t i) const override {
+    return mFrames2D[i];
+  }
 
-  virtual std::size_t getFrames3DCount() const { return mFrames3D.size(); };
+  std::size_t getFrames3DCount() const override { return mFrames3D.size(); }
 
-  virtual shared_ptr< frame_3D< double > > getFrame3D( std::size_t i ) const { return mFrames3D[i]; };
+  std::shared_ptr<frame_3D<double>> getFrame3D(std::size_t i) const override {
+    return mFrames3D[i];
+  }
 
-  virtual std::size_t getDependentCoordsCount() const { return mDependentGenCoords.size(); };
+  std::size_t getDependentCoordsCount() const override {
+    return mDependentGenCoords.size();
+  }
 
-  virtual shared_ptr< joint_dependent_gen_coord > getDependentCoord( std::size_t i ) const {
+  std::shared_ptr<joint_dependent_gen_coord> getDependentCoord(
+      std::size_t i) const override {
     return mDependentGenCoords[i];
-  };
+  }
 
-  virtual std::size_t getDependentFrames2DCount() const { return mDependent2DFrames.size(); };
+  std::size_t getDependentFrames2DCount() const override {
+    return mDependent2DFrames.size();
+  }
 
-  virtual shared_ptr< joint_dependent_frame_2D > getDependentFrame2D( std::size_t i ) const {
+  std::shared_ptr<joint_dependent_frame_2D> getDependentFrame2D(
+      std::size_t i) const override {
     return mDependent2DFrames[i];
-  };
+  }
 
-  virtual std::size_t getDependentFrames3DCount() const { return mDependent3DFrames.size(); };
+  std::size_t getDependentFrames3DCount() const override {
+    return mDependent3DFrames.size();
+  }
 
-  virtual shared_ptr< joint_dependent_frame_3D > getDependentFrame3D( std::size_t i ) const {
+  std::shared_ptr<joint_dependent_frame_3D> getDependentFrame3D(
+      std::size_t i) const override {
     return mDependent3DFrames[i];
-  };
-
+  }
 
   /************************************************************************
    *  direct_kinematics_model: kinematic functions (motion and Jacobian)  *
    ************************************************************************/
 
-  virtual void doDirectMotion() {
-    if( mModel )
+  void doDirectMotion() override {
+    if (mModel) {
       mModel->doMotion();
-  };
+    }
+  }
 
-  virtual void getJacobianMatrix( mat< double, mat_structure::rectangular >& Jac ) const;
+  void getJacobianMatrix(
+      mat<double, mat_structure::rectangular>& Jac) const override;
 
-  virtual void getJacobianMatrixAndDerivative( mat< double, mat_structure::rectangular >& Jac,
-                                               mat< double, mat_structure::rectangular >& JacDot ) const;
-
+  void getJacobianMatrixAndDerivative(
+      mat<double, mat_structure::rectangular>& Jac,
+      mat<double, mat_structure::rectangular>& JacDot) const override;
 
   /***********************************************************************************
    *  direct_kinematics_model: contatenated positions, velocities and accelerations  *
    ***********************************************************************************/
 
-  virtual vect_n< double > getJointPositions() const;
+  vect_n<double> getJointPositions() const override;
 
-  virtual void setJointPositions( const vect_n< double >& aJointPositions );
+  void setJointPositions(const vect_n<double>& aJointPositions) override;
 
-  virtual vect_n< double > getJointVelocities() const;
+  vect_n<double> getJointVelocities() const override;
 
-  virtual void setJointVelocities( const vect_n< double >& aJointVelocities );
+  void setJointVelocities(const vect_n<double>& aJointVelocities) override;
 
-  virtual vect_n< double > getJointAccelerations() const;
+  vect_n<double> getJointAccelerations() const override;
 
-  virtual void setJointAccelerations( const vect_n< double >& aJointAccelerations );
+  void setJointAccelerations(
+      const vect_n<double>& aJointAccelerations) override;
 
-  virtual vect_n< double > getDependentPositions() const;
+  vect_n<double> getDependentPositions() const override;
 
-  virtual vect_n< double > getDependentVelocities() const;
+  vect_n<double> getDependentVelocities() const override;
 
-  virtual vect_n< double > getDependentAccelerations() const;
+  vect_n<double> getDependentAccelerations() const override;
 
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    direct_kinematics_model::save(
+        A, direct_kinematics_model::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mCoords) & RK_SERIAL_SAVE_WITH_NAME(mFrames2D) &
+        RK_SERIAL_SAVE_WITH_NAME(mFrames3D) &
+        RK_SERIAL_SAVE_WITH_NAME(mDependentGenCoords) &
+        RK_SERIAL_SAVE_WITH_NAME(mDependent2DFrames) &
+        RK_SERIAL_SAVE_WITH_NAME(mDependent3DFrames) &
+        RK_SERIAL_SAVE_WITH_NAME(mModel);
+  }
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    direct_kinematics_model::save( A, direct_kinematics_model::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mCoords ) & RK_SERIAL_SAVE_WITH_NAME( mFrames2D )
-      & RK_SERIAL_SAVE_WITH_NAME( mFrames3D ) & RK_SERIAL_SAVE_WITH_NAME( mDependentGenCoords )
-      & RK_SERIAL_SAVE_WITH_NAME( mDependent2DFrames ) & RK_SERIAL_SAVE_WITH_NAME( mDependent3DFrames )
-      & RK_SERIAL_SAVE_WITH_NAME( mModel );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    direct_kinematics_model::load(
+        A, direct_kinematics_model::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mCoords) & RK_SERIAL_LOAD_WITH_NAME(mFrames2D) &
+        RK_SERIAL_LOAD_WITH_NAME(mFrames3D) &
+        RK_SERIAL_LOAD_WITH_NAME(mDependentGenCoords) &
+        RK_SERIAL_LOAD_WITH_NAME(mDependent2DFrames) &
+        RK_SERIAL_LOAD_WITH_NAME(mDependent3DFrames) &
+        RK_SERIAL_LOAD_WITH_NAME(mModel);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    direct_kinematics_model::load( A, direct_kinematics_model::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mCoords ) & RK_SERIAL_LOAD_WITH_NAME( mFrames2D )
-      & RK_SERIAL_LOAD_WITH_NAME( mFrames3D ) & RK_SERIAL_LOAD_WITH_NAME( mDependentGenCoords )
-      & RK_SERIAL_LOAD_WITH_NAME( mDependent2DFrames ) & RK_SERIAL_LOAD_WITH_NAME( mDependent3DFrames )
-      & RK_SERIAL_LOAD_WITH_NAME( mModel );
-  };
-
-  RK_RTTI_MAKE_CONCRETE_1BASE( manipulator_kinematics_model, 0xC210004D, 1, "manipulator_kinematics_model",
-                               direct_kinematics_model )
+  RK_RTTI_MAKE_CONCRETE_1BASE(manipulator_kinematics_model, 0xC210004D, 1,
+                              "manipulator_kinematics_model",
+                              direct_kinematics_model)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

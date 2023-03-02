@@ -36,46 +36,45 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include "spatial_path_concept.hpp"
 #include <ReaK/topologies/spaces/temporal_space_concept.hpp>
+#include "spatial_path_concept.hpp"
 
-#include <cmath>
 #include <boost/concept_check.hpp>
+#include <cmath>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This traits class defines the traits that characterize a spatial trajectory
  * class.
  * \tparam SpatialTrajectory The trajectory for which the traits are sought.
  */
-template < typename SpatialTrajectory >
+template <typename SpatialTrajectory>
 struct spatial_trajectory_traits {
   /** This type describes a point in the space or topology. */
-  typedef typename SpatialTrajectory::point_type point_type;
+  using point_type = typename SpatialTrajectory::point_type;
   /** This type describes the difference between two points in the space or topology. */
-  typedef typename SpatialTrajectory::point_difference_type point_difference_type;
+  using point_difference_type =
+      typename SpatialTrajectory::point_difference_type;
 
   /** This type describes waypoints used by the trajectory to quickly access local parameters of the trajectory. */
-  typedef typename SpatialTrajectory::waypoint_descriptor waypoint_descriptor;
+  using waypoint_descriptor = typename SpatialTrajectory::waypoint_descriptor;
   /** This type describes const-waypoints used by the trajectory to quickly access local parameters of the trajectory.
    */
-  typedef typename SpatialTrajectory::const_waypoint_descriptor const_waypoint_descriptor;
+  using const_waypoint_descriptor =
+      typename SpatialTrajectory::const_waypoint_descriptor;
 
   /** This type is the temporal-topology type in which the trajectory exists. */
-  typedef typename SpatialTrajectory::topology topology;
+  using topology = typename SpatialTrajectory::topology;
   /** This type is the time-topology type in which the trajectory's time-stamps exist. */
-  typedef typename temporal_space_traits< topology >::time_topology time_topology;
+  using time_topology = typename temporal_space_traits<topology>::time_topology;
   /** This type is the space-topology type in which the trajectory's points exist. */
-  typedef typename temporal_space_traits< topology >::space_topology space_topology;
+  using space_topology =
+      typename temporal_space_traits<topology>::space_topology;
   /** This type is the distance metric type used on the temporal-topology and defining the travel distances along the
    * trajectory. */
-  typedef typename SpatialTrajectory::distance_metric distance_metric;
+  using distance_metric = typename SpatialTrajectory::distance_metric;
 };
-
 
 /**
  * This concept class defines the requirements for a class to model a spatial-trajectory
@@ -119,37 +118,42 @@ struct spatial_trajectory_traits {
  * \tparam SpatialTrajectory The trajectory type for which this concept is checked.
  * \tparam Topology The temporal-topology type on which the trajectory should be able to exist.
  */
-template < typename SpatialTrajectory, typename Topology >
+template <typename SpatialTrajectory, typename Topology>
 struct SpatialTrajectoryConcept {
-  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< Topology > ) );
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
   BOOST_CONCEPT_ASSERT(
-    ( DistanceMetricConcept< typename spatial_trajectory_traits< SpatialTrajectory >::distance_metric, Topology > ) );
+      (DistanceMetricConcept<typename spatial_trajectory_traits<
+                                 SpatialTrajectory>::distance_metric,
+                             Topology>));
 
   SpatialTrajectory* p;
-  typename temporal_space_traits< Topology >::point_type pt;
-  std::pair< typename spatial_trajectory_traits< SpatialTrajectory >::const_waypoint_descriptor,
-             typename temporal_space_traits< Topology >::point_type > w_p;
-  typedef typename temporal_space_traits< Topology >::time_topology time_topology;
+  typename temporal_space_traits<Topology>::point_type pt;
+  std::pair<typename spatial_trajectory_traits<
+                SpatialTrajectory>::const_waypoint_descriptor,
+            typename temporal_space_traits<Topology>::point_type>
+      w_p;
+  using time_topology = typename temporal_space_traits<Topology>::time_topology;
   typename time_topology::point_difference_type dt;
   typename time_topology::point_type t;
   double d;
 
-  BOOST_CONCEPT_USAGE( SpatialTrajectoryConcept ) {
-    pt = p->move_time_diff_from( pt, dt );
-    d = p->travel_distance( pt, pt );
-    pt = p->get_point_at_time( t );
-    w_p = p->move_time_diff_from( w_p, dt );
-    d = p->travel_distance( w_p, w_p );
-    w_p = p->get_waypoint_at_time( t );
+  BOOST_CONCEPT_USAGE(SpatialTrajectoryConcept) {
+    pt = p->move_time_diff_from(pt, dt);
+    d = p->travel_distance(pt, pt);
+    pt = p->get_point_at_time(t);
+    w_p = p->move_time_diff_from(w_p, dt);
+    d = p->travel_distance(w_p, w_p);
+    w_p = p->get_waypoint_at_time(t);
 
     t = p->get_start_time();
     t = p->get_end_time();
 
-    const typename spatial_trajectory_traits< SpatialTrajectory >::topology& space = p->get_temporal_space();
-    RK_UNUSED( space );
-  };
+    const typename spatial_trajectory_traits<SpatialTrajectory>::topology&
+        space = p->get_temporal_space();
+    RK_UNUSED(space);
+  }
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

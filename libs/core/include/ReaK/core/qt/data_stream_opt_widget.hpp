@@ -39,45 +39,43 @@ namespace Ui {
 class DataStreamOpt;
 };
 
-namespace ReaK {
-
-namespace qt {
-
+namespace ReaK::qt {
 
 class DataStreamOptWidget : public QDockWidget {
   Q_OBJECT
 
-public:
-  DataStreamOptWidget( recorder::data_stream_options aDataOpt = recorder::data_stream_options(),
-                       QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
+ public:
+  DataStreamOptWidget(
+      recorder::data_stream_options aDataOpt = recorder::data_stream_options(),
+      QWidget* parent = nullptr, Qt::WindowFlags flags = 0);
   virtual ~DataStreamOptWidget();
 
-private slots:
+ private slots:
 
   void onUpdateURIAndDataOpt();
   void onUpdateFieldsAndDataOpt();
   void onUpdateDataOptNames();
 
-private:
+ private:
   Ui::DataStreamOpt* ui;
 
-public:
+ public:
   recorder::data_stream_options data_opt;
 
-  void setEnabledNameEdits( bool aEnabled );
-  void setEnabledFreqSetting( bool aEnabled );
-  void setEnabledBufferSetting( bool aEnabled );
-  void setEnabledTimeSyncSetting( bool aEnabled );
+  void setEnabledNameEdits(bool aEnabled);
+  void setEnabledFreqSetting(bool aEnabled);
+  void setEnabledBufferSetting(bool aEnabled);
+  void setEnabledTimeSyncSetting(bool aEnabled);
 
   enum stream_types { allow_all, file_only, network_only } mode;
 
-  void setMode( stream_types aMode ) {
+  void setMode(stream_types aMode) {
     mode = aMode;
     onUpdateFieldsAndDataOpt();
     onUpdateDataOptNames();
-  };
+  }
 };
-};
-};
+
+}  // namespace ReaK::qt
 
 #endif

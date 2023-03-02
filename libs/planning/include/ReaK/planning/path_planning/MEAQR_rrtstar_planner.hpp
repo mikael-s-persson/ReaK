@@ -44,29 +44,24 @@
 
 #include "motion_graph_structures.hpp"
 
-
 // BGL-Extra includes:
-#include <boost/graph/tree_adaptor.hpp>
-#include <boost/graph/more_property_tags.hpp>
 #include <boost/graph/more_property_maps.hpp>
-
+#include <boost/graph/more_property_tags.hpp>
+#include <boost/graph/tree_adaptor.hpp>
 
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"
 
-#include "p2p_planning_query.hpp"
-#include "path_planner_options.hpp"
 #include <ReaK/planning/graph_alg/neighborhood_functors.hpp>
 #include "any_motion_graphs.hpp"
+#include "p2p_planning_query.hpp"
+#include "path_planner_options.hpp"
 #include "planning_visitors.hpp"
 
 #include <ReaK/control/controllers/MEAQR_topology.hpp>
 #include <ReaK/topologies/spaces/fixed_topology_random_sampler.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class is a RRT*-based path-planner over the a MEAQR-controlled system-topology.
@@ -74,23 +69,28 @@ namespace pp {
  * \tparam StateSpaceSystem The type of the dynamic system under MEAQR control.
  * \tparam SBPPReporter The reporter type to use to report the progress of the path-planning.
  */
-template < typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler >
+template <typename StateSpace, typename StateSpaceSystem,
+          typename StateSpaceSampler>
 class MEAQR_rrtstar_planner
-  : public sample_based_planner< MEAQR_topology_with_CD< StateSpace, StateSpaceSystem, StateSpaceSampler > > {
-public:
-  typedef MEAQR_topology_with_CD< StateSpace, StateSpaceSystem, StateSpaceSampler > space_type;
-  typedef typename subspace_traits< space_type >::super_space_type super_space_type;
+    : public sample_based_planner<MEAQR_topology_with_CD<
+          StateSpace, StateSpaceSystem, StateSpaceSampler>> {
+ public:
+  using space_type =
+      MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler>;
+  using super_space_type =
+      typename subspace_traits<space_type>::super_space_type;
 
-  typedef sample_based_planner< space_type > base_type;
-  typedef MEAQR_rrtstar_planner< StateSpace, StateSpaceSystem, StateSpaceSampler > self;
+  using base_type = sample_based_planner<space_type>;
+  using self =
+      MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>;
 
-  typedef typename topology_traits< super_space_type >::point_type point_type;
-  typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
+  using point_type = topology_point_type_t<super_space_type>;
+  using point_difference_type =
+      topology_point_difference_type_t<super_space_type>;
 
-  typedef typename steerable_space_traits< super_space_type >::steer_record_type steer_record_type;
+  using steer_record_type = steerable_space_steer_record_t<super_space_type>;
 
-protected:
-public:
+ public:
   /**
    * This function computes a valid path in the C-free. If it cannot
    * achieve a valid path, an exception will be thrown. This algorithmic
@@ -100,7 +100,7 @@ public:
    * \param aQuery The query object that defines as input the parameters of the query,
    *               and as output, the recorded solutions.
    */
-  virtual void solve_planning_query( planning_query< space_type >& aQuery );
+  void solve_planning_query(planning_query<space_type>& aQuery) override;
 
   /**
    * Parametrized constructor.
@@ -123,214 +123,241 @@ public:
    * \param aSpaceDimensionality The dimensionality of the space used by this planner.
    * \param aReporter The path-planning reporter to be used by this planner.
    */
-  MEAQR_rrtstar_planner( const shared_ptr< space_type >& aWorld = shared_ptr< space_type >(),
-                         std::size_t aMaxVertexCount = 5000, std::size_t aProgressInterval = 100,
-                         std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH | DVP_BF2_TREE_KNN,
-                         std::size_t aPlanningMethodFlags = BIDIRECTIONAL_PLANNING,
-                         double aSteerProgressTolerance = 0.1, double aConnectionTolerance = 0.1,
-                         std::size_t aSpaceDimensionality = 1, const any_sbmp_reporter_chain< space_type >& aReporter
-                                                               = any_sbmp_reporter_chain< space_type >() )
-      : base_type( "MEAQR_rrtstar_planner", aWorld, aMaxVertexCount, aProgressInterval, aDataStructureFlags,
-                   aPlanningMethodFlags, aSteerProgressTolerance, aConnectionTolerance, 1.0, aSpaceDimensionality,
-                   aReporter ){};
+  explicit MEAQR_rrtstar_planner(
+      const std::shared_ptr<space_type>& aWorld,
+      std::size_t aMaxVertexCount = 5000, std::size_t aProgressInterval = 100,
+      std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH |
+                                        DVP_BF2_TREE_KNN,
+      std::size_t aPlanningMethodFlags = BIDIRECTIONAL_PLANNING,
+      double aSteerProgressTolerance = 0.1, double aConnectionTolerance = 0.1,
+      std::size_t aSpaceDimensionality = 1,
+      const any_sbmp_reporter_chain<space_type>& aReporter =
+          any_sbmp_reporter_chain<space_type>())
+      : base_type("MEAQR_rrtstar_planner", aWorld, aMaxVertexCount,
+                  aProgressInterval, aDataStructureFlags, aPlanningMethodFlags,
+                  aSteerProgressTolerance, aConnectionTolerance, 1.0,
+                  aSpaceDimensionality, aReporter) {}
 
-  virtual ~MEAQR_rrtstar_planner(){};
+  MEAQR_rrtstar_planner()
+      : MEAQR_rrtstar_planner(std::shared_ptr<space_type>()) {}
+
+  ~MEAQR_rrtstar_planner() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    base_type::save( A, base_type::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    base_type::load( A, base_type::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC246000D, 1, "MEAQR_rrtstar_planner", base_type )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC246000D, 1, "MEAQR_rrtstar_planner",
+                              base_type)
 };
 
-
-template < typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler >
+template <typename StateSpace, typename StateSpaceSystem,
+          typename StateSpaceSampler>
 struct MEAQR_rrtstar_visitor
-  : planning_visitor< MEAQR_topology_with_CD< StateSpace, StateSpaceSystem, StateSpaceSampler > > {
-  typedef MEAQR_topology_with_CD< StateSpace, StateSpaceSystem, StateSpaceSampler > space_type;
-  typedef planning_visitor< space_type > base_type;
+    : planning_visitor<MEAQR_topology_with_CD<StateSpace, StateSpaceSystem,
+                                              StateSpaceSampler>> {
+  using space_type =
+      MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler>;
+  using base_type = planning_visitor<space_type>;
 
-  typedef typename base_type::planner_base_type planner_base_type;
-  typedef typename base_type::query_type query_type;
+  using planner_base_type = typename base_type::planner_base_type;
+  using query_type = typename base_type::query_type;
 
-  MEAQR_rrtstar_visitor( planner_base_type* aPlanner, query_type* aQuery = nullptr,
-                         any_knn_synchro* aNNSynchro = nullptr, boost::any aStartNode = boost::any(),
-                         boost::any aGoalNode = boost::any() )
-      : base_type( aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode ){};
+  MEAQR_rrtstar_visitor(planner_base_type* aPlanner,
+                        query_type* aQuery = nullptr,
+                        any_knn_synchro* aNNSynchro = nullptr,
+                        std::any aStartNode = std::any(),
+                        std::any aGoalNode = std::any())
+      : base_type(aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode){};
 
-  typedef typename topology_traits< space_type >::point_type point_type;
-  typedef optimal_mg_vertex< space_type > VertexProp;
-  typedef optimal_mg_edge< space_type > EdgeProp;
+  using point_type = topology_point_type_t<space_type>;
+  using EdgeProp = optimal_mg_edge<space_type>;
 
-  template < typename Vertex, typename Graph >
-  boost::tuple< point_type, bool, EdgeProp > steer_towards_position( const point_type& p, Vertex u, Graph& g ) const {
-    typedef typename EdgeProp::steer_record_type SteerRec;
-    typedef boost::tuple< point_type, bool, EdgeProp > ResultType;
-
+  template <typename Vertex, typename Graph>
+  std::tuple<point_type, bool, EdgeProp> steer_towards_position(
+      const point_type& p, Vertex u, Graph& g) const {
     // First, try to bring the state-space point within the time-horizon:
-    double total_dist = get( distance_metric, this->m_query->space->get_super_space() )(
-      g[u].position, p, this->m_query->space->get_super_space() );
-    double max_cost_to_go = 0.75 * this->m_query->space->get_max_time_horizon()
-                            * this->m_query->space->get_idle_power_cost( g[u].position );
+    double total_dist =
+        get(distance_metric, this->m_query->space->get_super_space())(
+            g[u].position, p, this->m_query->space->get_super_space());
+    double max_cost_to_go =
+        0.75 * this->m_query->space->get_max_time_horizon() *
+        this->m_query->space->get_idle_power_cost(g[u].position);
     point_type p_dest = p;
-    while( total_dist > max_cost_to_go ) {
-      p_dest
-        = point_type( this->m_query->space->get_state_space().move_position_toward( g[u].position.x, 0.5, p_dest.x ) );
-      total_dist = get( distance_metric, this->m_query->space->get_super_space() )(
-        g[u].position, p_dest, this->m_query->space->get_super_space() );
-    };
+    while (total_dist > max_cost_to_go) {
+      p_dest = point_type(
+          this->m_query->space->get_state_space().move_position_toward(
+              g[u].position.x, 0.5, p_dest.x));
+      total_dist =
+          get(distance_metric, this->m_query->space->get_super_space())(
+              g[u].position, p_dest, this->m_query->space->get_super_space());
+    }
 
     // Then, steer to that point, recording the path of the steering function.
-    std::pair< point_type, SteerRec > steer_result
-      = this->m_query->space->steer_position_toward( g[u].position, 0.8, p_dest );
+    auto [steer_pos, steer_record] =
+        this->m_query->space->steer_position_toward(g[u].position, 0.8, p_dest);
 
     // Check if the progress in the state-space was significant (at least 0.1 of the best-case).
-    double best_case_dist = get( distance_metric, this->m_query->space->get_state_space() )(
-      g[u].position.x, p_dest.x, this->m_query->space->get_state_space() );
-    double actual_dist = get( distance_metric, this->m_query->space->get_state_space() )(
-      g[u].position.x, steer_result.first.x, this->m_query->space->get_state_space() );
+    double best_case_dist =
+        get(distance_metric, this->m_query->space->get_state_space())(
+            g[u].position.x, p_dest.x, this->m_query->space->get_state_space());
+    double actual_dist = get(distance_metric,
+                             this->m_query->space->get_state_space())(
+        g[u].position.x, steer_pos.x, this->m_query->space->get_state_space());
 
-    if( actual_dist > this->m_planner->get_steer_progress_tolerance() * best_case_dist ) {
-      //       std::cout << "Steered successfully!" << std::endl;
-      return ResultType( steer_result.first, true, EdgeProp( 0.8 * total_dist, std::move( steer_result.second ) ) );
-    } else {
-      return ResultType( steer_result.first, false, EdgeProp() );
-    };
-  };
+    if (actual_dist >
+        this->m_planner->get_steer_progress_tolerance() * best_case_dist) {
+      return {steer_pos, true,
+              EdgeProp(0.8 * total_dist, std::move(steer_record))};
+    }
+    return {steer_pos, false, EdgeProp()};
+  }
 
-  template < typename Vertex, typename Graph >
-  std::pair< bool, EdgeProp > can_be_connected( Vertex u, Vertex v, const Graph& g ) const {
-    typedef typename EdgeProp::steer_record_type SteerRec;
-    typedef std::pair< bool, EdgeProp > ResultType;
-
-    std::pair< point_type, SteerRec > steer_result
-      = this->m_query->space->steer_position_toward( g[u].position, 1.0, g[v].position );
+  template <typename Vertex, typename Graph>
+  std::pair<bool, EdgeProp> can_be_connected(Vertex u, Vertex v,
+                                             const Graph& g) const {
+    auto [steer_pos, steer_record] =
+        this->m_query->space->steer_position_toward(g[u].position, 1.0,
+                                                    g[v].position);
 
     // NOTE Differs from rrtstar_path_planner HERE:
-    double best_case_dist = get( distance_metric, this->m_query->space->get_state_space() )(
-      g[u].position.x, g[v].position.x, this->m_query->space->get_state_space() );
-    double diff_dist = get( distance_metric, this->m_query->space->get_state_space() )(
-      steer_result.first.x, g[v].position.x, this->m_query->space->get_state_space() );
+    double best_case_dist =
+        get(distance_metric, this->m_query->space->get_state_space())(
+            g[u].position.x, g[v].position.x,
+            this->m_query->space->get_state_space());
+    double diff_dist = get(distance_metric,
+                           this->m_query->space->get_state_space())(
+        steer_pos.x, g[v].position.x, this->m_query->space->get_state_space());
 
-    if( diff_dist < this->m_planner->get_connection_tolerance() * best_case_dist ) {
-      //       std::cout << "Connected successfully!" << std::endl;
-      return ResultType( true, EdgeProp( get( distance_metric, this->m_query->space->get_super_space() )(
-                                           g[u].position, g[v].position, this->m_query->space->get_super_space() ),
-                                         std::move( steer_result.second ) ) );
-    } else {
-      return ResultType( false, EdgeProp() );
-    };
-  };
+    if (diff_dist <
+        this->m_planner->get_connection_tolerance() * best_case_dist) {
+      return {true, EdgeProp(get(distance_metric,
+                                 this->m_query->space->get_super_space())(
+                                 g[u].position, g[v].position,
+                                 this->m_query->space->get_super_space()),
+                             std::move(steer_record))};
+    }
+    return {false, EdgeProp()};
+  }
 };
 
-
-template < typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler >
-void MEAQR_rrtstar_planner< StateSpace, StateSpaceSystem, StateSpaceSampler >::solve_planning_query(
-  planning_query< typename MEAQR_rrtstar_planner< StateSpace, StateSpaceSystem, StateSpaceSampler >::space_type >&
-    aQuery ) {
+template <typename StateSpace, typename StateSpaceSystem,
+          typename StateSpaceSampler>
+void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
+    solve_planning_query(
+        planning_query<typename MEAQR_rrtstar_planner<
+            StateSpace, StateSpaceSystem, StateSpaceSampler>::space_type>&
+            aQuery) {
 
   this->reset_internal_state();
 
-  typedef typename MEAQR_rrtstar_planner< StateSpace, StateSpaceSystem, StateSpaceSampler >::space_type FreeSpaceType;
-  typedef typename subspace_traits< FreeSpaceType >::super_space_type SuperSpace;
-  typedef typename topology_traits< SuperSpace >::point_type PointType;
+  using FreeSpaceType =
+      typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem,
+                                     StateSpaceSampler>::space_type;
+  using SuperSpace = typename subspace_traits<FreeSpaceType>::super_space_type;
+  using PointType = topology_point_type_t<SuperSpace>;
 
-  typedef optimal_mg_vertex< FreeSpaceType > VertexProp;
-  typedef optimal_mg_edge< FreeSpaceType > EdgeProp;
+  using VertexProp = optimal_mg_vertex<FreeSpaceType>;
+  using EdgeProp = optimal_mg_edge<FreeSpaceType>;
 
-  typedef mg_vertex_data< FreeSpaceType > BasicVertexProp;
+  using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
+  using PositionMap = boost::data_member_property_map<PointType, VertexProp>;
+  PositionMap pos_map = PositionMap(&VertexProp::position);
 
-  typedef boost::data_member_property_map< PointType, VertexProp > PositionMap;
-  PositionMap pos_map = PositionMap( &VertexProp::position );
+  using CostMap = boost::data_member_property_map<double, VertexProp>;
+  CostMap cost_map = CostMap(&VertexProp::distance_accum);
 
-  typedef boost::data_member_property_map< double, VertexProp > CostMap;
-  CostMap cost_map = CostMap( &VertexProp::distance_accum );
+  using PredMap = boost::data_member_property_map<std::size_t, VertexProp>;
+  PredMap pred_map = PredMap(&VertexProp::predecessor);
 
-  typedef boost::data_member_property_map< std::size_t, VertexProp > PredMap;
-  PredMap pred_map = PredMap( &VertexProp::predecessor );
+  using WeightMap = boost::data_member_property_map<double, EdgeProp>;
+  WeightMap weight_map = WeightMap(&EdgeProp::weight);
 
-  typedef boost::data_member_property_map< double, EdgeProp > WeightMap;
-  WeightMap weight_map = WeightMap( &EdgeProp::weight );
+  double space_dim = static_cast<double>(this->get_space_dimensionality());
+  double space_Lc = aQuery.get_heuristic_to_goal(aQuery.get_start_position());
 
+  std::shared_ptr<const SuperSpace> sup_space_ptr(
+      &(this->m_space->get_super_space()), null_deleter());
 
-  double space_dim = double( this->get_space_dimensionality() );
-  double space_Lc = aQuery.get_heuristic_to_goal( aQuery.get_start_position() );
+  using SamplerType = fixed_topology_random_sampler<SuperSpace>;
+  SamplerType get_sample = SamplerType(sup_space_ptr.get());
 
-  shared_ptr< const SuperSpace > sup_space_ptr( &( this->m_space->get_super_space() ), null_deleter() );
+  MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler> vis(
+      this, &aQuery);
 
+  path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr =
+      reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
+          path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
 
-  typedef fixed_topology_random_sampler< SuperSpace > SamplerType;
-  SamplerType get_sample = SamplerType( sup_space_ptr.get() );
-
-
-  MEAQR_rrtstar_visitor< StateSpace, StateSpaceSystem, StateSpaceSampler > vis( this, &aQuery );
-
-  path_planning_p2p_query< FreeSpaceType >* p2p_query_ptr
-    = reinterpret_cast< path_planning_p2p_query< FreeSpaceType >* >(
-      aQuery.castTo( path_planning_p2p_query< FreeSpaceType >::getStaticObjectType() ) );
-
-  typedef boost::adjacency_list_BC< boost::vecBC, boost::vecBC, boost::bidirectionalS, VertexProp, EdgeProp >
-    MotionGraphType;
-  typedef typename boost::graph_traits< MotionGraphType >::vertex_descriptor Vertex;
+  using MotionGraphType =
+      boost::adjacency_list_BC<boost::vecBC, boost::vecBC,
+                               boost::bidirectionalS, VertexProp, EdgeProp>;
+  using Vertex = graph::graph_vertex_t<MotionGraphType>;
 
   MotionGraphType motion_graph;
 
+#define RK_MEAQR_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE                      \
+  VertexProp vp_start;                                                         \
+  vp_start.position = aQuery.get_start_position();                             \
+  Vertex vs = add_vertex(vp_start, motion_graph);                              \
+  motion_graph[vs].distance_accum = 0.0;                                       \
+  motion_graph[vs].predecessor = vs;                                           \
+  vis.m_start_node = std::any(vs);                                             \
+  if (p2p_query_ptr) {                                                         \
+    VertexProp vp_goal;                                                        \
+    vp_goal.position = p2p_query_ptr->goal_pos;                                \
+    Vertex vg = add_vertex(vp_goal, motion_graph);                             \
+    motion_graph[vg].distance_accum = std::numeric_limits<double>::infinity(); \
+    motion_graph[vg].predecessor = vg;                                         \
+    vis.m_goal_node = std::any(vg);                                            \
+  }
 
-#define RK_MEAQR_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE                        \
-  VertexProp vp_start;                                                           \
-  vp_start.position = aQuery.get_start_position();                               \
-  Vertex vs = add_vertex( vp_start, motion_graph );                              \
-  motion_graph[vs].distance_accum = 0.0;                                         \
-  motion_graph[vs].predecessor = vs;                                             \
-  vis.m_start_node = boost::any( vs );                                           \
-  if( p2p_query_ptr ) {                                                          \
-    VertexProp vp_goal;                                                          \
-    vp_goal.position = p2p_query_ptr->goal_pos;                                  \
-    Vertex vg = add_vertex( vp_goal, motion_graph );                             \
-    motion_graph[vg].distance_accum = std::numeric_limits< double >::infinity(); \
-    motion_graph[vg].predecessor = vg;                                           \
-    vis.m_goal_node = boost::any( vg );                                          \
-  };
-
-
-#define RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO( ARITY, TREE_STORAGE )                                  \
-  typedef typename boost::property_map< MotionGraphType, PointType BasicVertexProp::* >::type GraphPositionMap; \
-  typedef dvp_tree< Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE,               \
-                    no_position_caching_policy > SpacePartType;                                                 \
-  SpacePartType space_part( motion_graph, sup_space_ptr, get( &BasicVertexProp::position, motion_graph ) );     \
-                                                                                                                \
-  typedef multi_dvp_tree_pred_succ_search< MotionGraphType, SpacePartType > NNFinderType;                       \
-  NNFinderType nn_finder;                                                                                       \
-  nn_finder.graph_tree_map[&motion_graph] = &space_part;                                                        \
-                                                                                                                \
-  type_erased_knn_synchro< MotionGraphType, NNFinderType > NN_synchro( nn_finder );                             \
+#define RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)   \
+  using GraphPositionMap =                                                     \
+      typename boost::property_map<MotionGraphType,                            \
+                                   PointType BasicVertexProp::*>::type;        \
+  using SpacePartType =                                                        \
+      dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, \
+               TREE_STORAGE, no_position_caching_policy>;                      \
+  SpacePartType space_part(motion_graph, sup_space_ptr,                        \
+                           get(&BasicVertexProp::position, motion_graph));     \
+                                                                               \
+  using NNFinderType =                                                         \
+      multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>;         \
+  NNFinderType nn_finder;                                                      \
+  nn_finder.graph_tree_map[&motion_graph] = &space_part;                       \
+                                                                               \
+  type_erased_knn_synchro<MotionGraphType, NNFinderType> NN_synchro(           \
+      nn_finder);                                                              \
   vis.m_nn_synchro = &NN_synchro;
 
-
-#define RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION                                                        \
-  graph::detail::generate_rrt_star_loop(                                                                      \
-    motion_graph, *sup_space_ptr, vis, pos_map, cost_map, pred_map, weight_map,                               \
-    graph::rrg_node_generator< SuperSpace, SamplerType, ReaK::graph::fixed_neighborhood< NNFinderType > >(    \
-      sup_space_ptr.get(), get_sample,                                                                        \
-      graph::fixed_neighborhood< NNFinderType >( nn_finder, 5, std::numeric_limits< double >::infinity() ) ), \
-    graph::star_neighborhood< NNFinderType >( nn_finder, space_dim, 3.0 * space_Lc ) );
-  //       graph::fixed_neighborhood< NNFinderType >(nn_finder, 10, std::numeric_limits<double>::infinity()));
-
+#define RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION                 \
+  graph::detail::generate_rrt_star_loop(                               \
+      motion_graph, *sup_space_ptr, vis, pos_map, cost_map, pred_map,  \
+      weight_map,                                                      \
+      graph::rrg_node_generator<                                       \
+          SuperSpace, SamplerType,                                     \
+          ReaK::graph::fixed_neighborhood<NNFinderType>>(              \
+          sup_space_ptr.get(), get_sample,                             \
+          graph::fixed_neighborhood<NNFinderType>(                     \
+              nn_finder, 5, std::numeric_limits<double>::infinity())), \
+      graph::star_neighborhood<NNFinderType>(nn_finder, space_dim,     \
+                                             3.0 * space_Lc));
 
   RK_MEAQR_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE
 
-  if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == LINEAR_SEARCH_KNN ) {
+  if ((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
 
-    typedef linear_pred_succ_search< MotionGraphType > NNFinderType;
+    using NNFinderType = linear_pred_succ_search<MotionGraphType>;
     NNFinderType nn_finder;
 
     any_knn_synchro NN_synchro;
@@ -338,40 +365,48 @@ void MEAQR_rrtstar_planner< StateSpace, StateSpaceSystem, StateSpaceSampler >::s
 
     RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
 
-  } else if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_BF2_TREE_KNN ) {
+  } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
+             DVP_BF2_TREE_KNN) {
 
-    RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage< 2 >)
+    RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
+        2, boost::bfl_d_ary_tree_storage<2>)
 
     RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
 
-  } else if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_BF4_TREE_KNN ) {
+  } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
+             DVP_BF4_TREE_KNN) {
 
-    RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage< 4 >)
+    RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
+        4, boost::bfl_d_ary_tree_storage<4>)
 
     RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
 
 #ifdef RK_PLANNERS_ENABLE_VEBL_TREE
 
-  } else if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_COB2_TREE_KNN ) {
+  } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
+             DVP_COB2_TREE_KNN) {
 
-    RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage< 2 >)
+    RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
+        2, boost::vebl_d_ary_tree_storage<2>)
 
     RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
 
-  } else if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_COB4_TREE_KNN ) {
+  } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
+             DVP_COB4_TREE_KNN) {
 
-    RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage< 4 >)
+    RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
+        4, boost::vebl_d_ary_tree_storage<4>)
 
     RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
 
 #endif
-  };
+  }
 
 #undef RK_MEAQR_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE
 #undef RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO
 #undef RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
-};
-};
-};
+}
+
+}  // namespace ReaK::pp
 
 #endif

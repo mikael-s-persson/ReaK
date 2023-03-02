@@ -23,148 +23,159 @@
 
 #include <ReaK/mbd/kte/virtual_kte_interface.hpp>
 
-namespace ReaK {
+namespace ReaK::kte {
 
-namespace kte {
-
-
-void virtual_kte_interface_gen::doMotion( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mEnd ) || ( !mBase ) )
+void virtual_kte_interface_gen::doMotion(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mEnd) || (!mBase)) {
     return;
+  }
 
-  ( *mEnd ) = ( *mBase );
+  (*mEnd) = (*mBase);
 
-  if( ( aFlag == store_kinematics ) && ( aStorage ) ) {
-    if( !( aStorage->gen_coord_mapping[mBase] ) )
-      aStorage->gen_coord_mapping[mBase]
-        = shared_ptr< gen_coord< double > >( new gen_coord< double >( ( *mBase ) ), scoped_deleter() );
-    else
-      ( *( aStorage->gen_coord_mapping[mBase] ) ) = ( *mBase );
-    if( !( aStorage->gen_coord_mapping[mEnd] ) )
-      aStorage->gen_coord_mapping[mEnd]
-        = shared_ptr< gen_coord< double > >( new gen_coord< double >( ( *mEnd ) ), scoped_deleter() );
-    else
-      ( *( aStorage->gen_coord_mapping[mEnd] ) ) = ( *mEnd );
-  };
-};
+  if ((aFlag == store_kinematics) && (aStorage)) {
+    if (!(aStorage->gen_coord_mapping[mBase])) {
+      aStorage->gen_coord_mapping[mBase] =
+          std::make_shared<gen_coord<double>>(*mBase);
+    } else {
+      (*(aStorage->gen_coord_mapping[mBase])) = (*mBase);
+    }
+    if (!(aStorage->gen_coord_mapping[mEnd])) {
+      aStorage->gen_coord_mapping[mEnd] =
+          std::make_shared<gen_coord<double>>(*mEnd);
+    } else {
+      (*(aStorage->gen_coord_mapping[mEnd])) = (*mEnd);
+    }
+  }
+}
 
-void virtual_kte_interface_gen::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mEnd ) || ( !mBase ) )
+void virtual_kte_interface_gen::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mEnd) || (!mBase)) {
     return;
+  }
 
   mBase->f -= mEnd->f;
 
-  if( ( aFlag == store_dynamics ) && ( aStorage ) ) {
-    if( aStorage->gen_coord_mapping[mEnd] ) {
+  if ((aFlag == store_dynamics) && (aStorage)) {
+    if (aStorage->gen_coord_mapping[mEnd]) {
       aStorage->gen_coord_mapping[mEnd]->f = mEnd->f;
-    };
-  };
-};
+    }
+  }
+}
 
 void virtual_kte_interface_gen::clearForce() {
-  if( mEnd ) {
+  if (mEnd) {
     mEnd->f = 0.0;
-  };
-  if( mBase ) {
+  }
+  if (mBase) {
     mBase->f = 0.0;
-  };
-};
+  }
+}
 
-
-void virtual_kte_interface_2D::doMotion( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mEnd ) || ( !mBase ) )
+void virtual_kte_interface_2D::doMotion(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mEnd) || (!mBase)) {
     return;
+  }
 
-  ( *mEnd ) = ( *mBase );
+  (*mEnd) = (*mBase);
 
-  if( ( aFlag == store_kinematics ) && ( aStorage ) ) {
-    if( !( aStorage->frame_2D_mapping[mBase] ) )
-      aStorage->frame_2D_mapping[mBase]
-        = shared_ptr< frame_2D< double > >( new frame_2D< double >( ( *mBase ) ), scoped_deleter() );
-    else
-      ( *( aStorage->frame_2D_mapping[mBase] ) ) = ( *mBase );
-    if( !( aStorage->frame_2D_mapping[mEnd] ) )
-      aStorage->frame_2D_mapping[mEnd]
-        = shared_ptr< frame_2D< double > >( new frame_2D< double >( ( *mEnd ) ), scoped_deleter() );
-    else
-      ( *( aStorage->frame_2D_mapping[mEnd] ) ) = ( *mEnd );
-  };
-};
+  if ((aFlag == store_kinematics) && (aStorage)) {
+    if (!(aStorage->frame_2D_mapping[mBase])) {
+      aStorage->frame_2D_mapping[mBase] =
+          std::make_shared<frame_2D<double>>(*mBase);
+    } else {
+      (*(aStorage->frame_2D_mapping[mBase])) = (*mBase);
+    }
+    if (!(aStorage->frame_2D_mapping[mEnd])) {
+      aStorage->frame_2D_mapping[mEnd] =
+          std::make_shared<frame_2D<double>>(*mEnd);
+    } else {
+      (*(aStorage->frame_2D_mapping[mEnd])) = (*mEnd);
+    }
+  }
+}
 
-void virtual_kte_interface_2D::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mEnd ) || ( !mBase ) )
+void virtual_kte_interface_2D::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mEnd) || (!mBase)) {
     return;
+  }
 
   mBase->Force -= mEnd->Force;
   mBase->Torque -= mEnd->Torque;
 
-  if( ( aFlag == store_dynamics ) && ( aStorage ) ) {
-    if( aStorage->frame_2D_mapping[mEnd] ) {
+  if ((aFlag == store_dynamics) && (aStorage)) {
+    if (aStorage->frame_2D_mapping[mEnd]) {
       aStorage->frame_2D_mapping[mEnd]->Force = mEnd->Force;
       aStorage->frame_2D_mapping[mEnd]->Torque = mEnd->Torque;
-    };
-  };
-};
+    }
+  }
+}
 
 void virtual_kte_interface_2D::clearForce() {
-  if( mEnd ) {
-    mEnd->Force = vect< double, 2 >();
+  if (mEnd) {
+    mEnd->Force = vect<double, 2>();
     mEnd->Torque = 0.0;
-  };
-  if( mBase ) {
-    mBase->Force = vect< double, 2 >();
+  }
+  if (mBase) {
+    mBase->Force = vect<double, 2>();
     mBase->Torque = 0.0;
-  };
-};
+  }
+}
 
-
-void virtual_kte_interface_3D::doMotion( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mEnd ) || ( !mBase ) )
+void virtual_kte_interface_3D::doMotion(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mEnd) || (!mBase)) {
     return;
+  }
 
-  ( *mEnd ) = ( *mBase );
+  (*mEnd) = (*mBase);
 
   mEnd->UpdateQuatDot();
 
-  if( ( aFlag == store_kinematics ) && ( aStorage ) ) {
-    if( !( aStorage->frame_3D_mapping[mBase] ) )
-      aStorage->frame_3D_mapping[mBase]
-        = shared_ptr< frame_3D< double > >( new frame_3D< double >( ( *mBase ) ), scoped_deleter() );
-    else
-      ( *( aStorage->frame_3D_mapping[mBase] ) ) = ( *mBase );
-    if( !( aStorage->frame_3D_mapping[mEnd] ) )
-      aStorage->frame_3D_mapping[mEnd]
-        = shared_ptr< frame_3D< double > >( new frame_3D< double >( ( *mEnd ) ), scoped_deleter() );
-    else
-      ( *( aStorage->frame_3D_mapping[mEnd] ) ) = ( *mEnd );
-  };
-};
+  if ((aFlag == store_kinematics) && (aStorage)) {
+    if (!(aStorage->frame_3D_mapping[mBase])) {
+      aStorage->frame_3D_mapping[mBase] =
+          std::make_shared<frame_3D<double>>(*mBase);
+    } else {
+      (*(aStorage->frame_3D_mapping[mBase])) = (*mBase);
+    }
+    if (!(aStorage->frame_3D_mapping[mEnd])) {
+      aStorage->frame_3D_mapping[mEnd] =
+          std::make_shared<frame_3D<double>>(*mEnd);
+    } else {
+      (*(aStorage->frame_3D_mapping[mEnd])) = (*mEnd);
+    }
+  }
+}
 
-void virtual_kte_interface_3D::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mEnd ) || ( !mBase ) )
+void virtual_kte_interface_3D::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mEnd) || (!mBase)) {
     return;
+  }
 
   mBase->Force -= mEnd->Force;
   mBase->Torque -= mEnd->Torque;
 
-  if( ( aFlag == store_dynamics ) && ( aStorage ) ) {
-    if( aStorage->frame_3D_mapping[mEnd] ) {
+  if ((aFlag == store_dynamics) && (aStorage)) {
+    if (aStorage->frame_3D_mapping[mEnd]) {
       aStorage->frame_3D_mapping[mEnd]->Force = mEnd->Force;
       aStorage->frame_3D_mapping[mEnd]->Torque = mEnd->Torque;
-    };
-  };
-};
-
+    }
+  }
+}
 
 void virtual_kte_interface_3D::clearForce() {
-  if( mEnd ) {
-    mEnd->Force = vect< double, 3 >();
-    mEnd->Torque = vect< double, 3 >();
-  };
-  if( mBase ) {
-    mBase->Force = vect< double, 3 >();
-    mBase->Torque = vect< double, 3 >();
-  };
-};
-};
-};
+  if (mEnd) {
+    mEnd->Force = vect<double, 3>();
+    mEnd->Torque = vect<double, 3>();
+  }
+  if (mBase) {
+    mBase->Force = vect<double, 3>();
+    mBase->Torque = vect<double, 3>();
+  }
+}
+}  // namespace ReaK::kte

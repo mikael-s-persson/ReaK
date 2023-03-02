@@ -1,4 +1,4 @@
-# Keep it Hot! The secret to high-performance code
+#Keep it Hot !The secret to high - performance code
 
 This tutorial is the first time I write about coding techniques for improving the performance of software. This is going to be a step-by-step journey through a real example, with real benchmark results at every step so that you can see the effect of the different optimization techniques.
 
@@ -27,15 +27,15 @@ Each primitive shape is derived from a base class called `shape_3D`. The shape c
 To construct a complete model, many shapes have to be assembled together. The class responsible for this is called `proxy_query_model_3D` (I used the term *proximity query* instead of collision detection, because my code also produces minimum distance calculations, not just collisions), and here are the relevant parts of it:
 
     class proxy_query_model_3D {
-      private:
-        std::vector< shared_ptr< shape_3D > > mShapeList;
-      public:
-        
-        friend class proxy_query_pair_3D;
-        
-        proxy_query_model_3D& addShape(const shared_ptr< shape_3D >& aShape);
-        
-        // ...
+ private:
+  std::vector<std::shared_ptr<shape_3D>> mShapeList;
+
+ public:
+  friend class proxy_query_pair_3D;
+
+  proxy_query_model_3D& addShape(const std::shared_ptr<shape_3D>& aShape);
+
+  // ...
     };
 
 Easy enough so far, right?
@@ -43,19 +43,19 @@ Easy enough so far, right?
 The friend declaration in the above is for a second class that is used when two of these models are involved in a proximity query, and its relevant parts are as follows:
 
     class proxy_query_pair_3D {
-      private:
-        shared_ptr< proxy_query_model_3D > mModel1;
-        shared_ptr< proxy_query_model_3D > mModel2;
-      public:
-        
-        void setModelPair(const shared_ptr< proxy_query_model_3D >& aModel1, 
-                          const shared_ptr< proxy_query_model_3D >& aModel2);
-        
-        proximity_record_3D findMinimumDistance() const;
-        
-        bool gatherCollisionPoints(std::vector< proximity_record_3D >& aOutput) const;
-        
-        // ..
+ private:
+  std::shared_ptr<proxy_query_model_3D> mModel1;
+  std::shared_ptr<proxy_query_model_3D> mModel2;
+
+ public:
+  void setModelPair(const std::shared_ptr<proxy_query_model_3D>& aModel1,
+                    const std::shared_ptr<proxy_query_model_3D>& aModel2);
+
+  proximity_record_3D findMinimumDistance() const;
+
+  bool gatherCollisionPoints(std::vector<proximity_record_3D> & aOutput) const;
+
+  // ..
     };
 
 The `findMinimumDistance` and `gatherCollisionPoints` are the two functions that do all the interesting stuff, that is, compute the minimum distance between the two models or gather all the collision points between them, respectively. The `proximity_record_3D` class simply contains result information.
@@ -63,20 +63,22 @@ The `findMinimumDistance` and `gatherCollisionPoints` are the two functions that
 The `gatherCollisionPoints` function implementation basically looks like this:
 
     bool proxy_query_pair_3D::gatherCollisionPoints(std::vector< proximity_record_3D >& aOutput) const {
-      for(auto& pshape1 : mModel1->mShapeList) {
-        vect<double,3> p1 = pshape1->getPose().getGlobalPose().Position;
-        for(auto& pshape2 : mModel2->mShapeList) {
-          vect<double,3> p2 = pshape2->getPose().getGlobalPose().Position;
-          
-          if( norm_2(p2 - p1) - pshape1->getBoundingRadius() - pshape2->getBoundingRadius() > 0.0 )
-            continue;
-          
-          proximity_record_3D tmp = compute_proximity(*pshape1, *pshape2);
-          if( tmp.mDistance < 0.0 )
-            aOutput.push_back(tmp);
-        };
-      };
-      return !aOutput.empty();
+  for (auto& pshape1 : mModel1->mShapeList) {
+    vect<double, 3> p1 = pshape1->getPose().getGlobalPose().Position;
+    for (auto& pshape2 : mModel2->mShapeList) {
+      vect<double, 3> p2 = pshape2->getPose().getGlobalPose().Position;
+
+      if (norm_2(p2 - p1) - pshape1->getBoundingRadius() -
+              pshape2->getBoundingRadius() >
+          0.0)
+        continue;
+
+      proximity_record_3D tmp = compute_proximity(*pshape1, *pshape2);
+      if (tmp.mDistance < 0.0)
+        aOutput.push_back(tmp);
+    };
+  };
+  return !aOutput.empty();
     };
 
 The idea there is that the nested loops traverse through all the possible pairs of shapes between the two models. Then, an early check based on their bounding radius and relative distance is made to avoid computing the proximity between them if they cannot possibly collide. And then, the `compute_proximity` function is called, which is the function that performs the double dispatch. And finally, if a collision occurred, signaled by a negative minimum distance between them, then the proximity record is appended to the output vector.
@@ -84,22 +86,25 @@ The idea there is that the nested loops traverse through all the possible pairs 
 The double-dispatch problem is notorious because there isn't really a nice solution to it. There are a few nifty tricks to clean the syntax (one of which I will almost accidentally fall into later in this tutorial), but the basic pattern to do it is like this:
 
     proximity_record_3D compute_proximity(const shape_3D& shape1, const shape_3D& shape2) {
-      if( typeid(shape1) == typeid(box) ) {
-        const box& b1 = static_cast<const box&>(shape1);
-        if( typeid(shape2) == typeid(box) ) {
-          const box& b2 = static_cast<const box&>(shape2);
-          return compute_proximity(b1, b2);  // call the box-to-box overload of 'compute_proximity'
-        } else if( typeid(shape2) == typeid(sphere) ) {
-          const sphere& s2 = static_cast<const sphere&>(shape2);
-          return compute_proximity(b1, s2);  // call the box-to-sphere overload of 'compute_proximity'
-        } // .. so on..
-      } else if( typeid(shape1) == typeid(sphere) ) {
-        const sphere& s1 = static_cast<const sphere&>(shape1);
-        if( typeid(shape2) == typeid(box) ) {
-          const box& b2 = static_cast<const box&>(shape2);
-          return compute_proximity(s1, b2);  // call the sphere-to-box overload of 'compute_proximity'
-        } // ... so on...
-      } // .... so on, so forth... I know, this is tedious and ugly!!
+  if (typeid(shape1) == typeid(box)) {
+    const box& b1 = static_cast<const box&>(shape1);
+    if (typeid(shape2) == typeid(box)) {
+      const box& b2 = static_cast<const box&>(shape2);
+      return compute_proximity(
+          b1, b2);  // call the box-to-box overload of 'compute_proximity'
+    } else if (typeid(shape2) == typeid(sphere)) {
+      const sphere& s2 = static_cast<const sphere&>(shape2);
+      return compute_proximity(
+          b1, s2);  // call the box-to-sphere overload of 'compute_proximity'
+    }               // .. so on..
+  } else if (typeid(shape1) == typeid(sphere)) {
+    const sphere& s1 = static_cast<const sphere&>(shape1);
+    if (typeid(shape2) == typeid(box)) {
+      const box& b2 = static_cast<const box&>(shape2);
+      return compute_proximity(
+          s1, b2);  // call the sphere-to-box overload of 'compute_proximity'
+    }               // ... so on...
+  }  // .... so on, so forth... I know, this is tedious and ugly!!
     };
 
 There are overloads of the `compute_proximity` function for each possible combination of shapes. Those are the functions that actually compute the proximity / collision points.
@@ -124,29 +129,35 @@ The first low hanging fruit for optimization is the pre-computation of values th
 Pre-computing those poses can be done quite simply as so:
 
     bool proxy_query_pair_3D::gatherCollisionPoints(std::vector< proximity_record_3D >& aOutput) const {
-      std::vector< pose_3D<double> > mdl1_poses, mdl2_poses;
-      for(auto& pshape1 : mModel1->mShapeList)
-        mdl1_poses[&pshape1 - mModel1->mShapeList.data()] = pshape1->getPose().getGlobalPose();
-      for(auto& pshape2 : mModel2->mShapeList)
-        mdl2_poses[&pshape2 - mModel2->mShapeList.data()] = pshape2->getPose().getGlobalPose();
-      
-      for(auto& pshape1 : mModel1->mShapeList) {
-        const vect<double,3>& p1 = mdl1_poses[&pshape1 - mModel1->mShapeList.data()].Position;
-        for(auto& pshape2 : mModel2->mShapeList) {
-          const vect<double,3>& p2 = mdl2_poses[&pshape2 - mModel2->mShapeList.data()].Position;
-          
-          if( norm_2(p2 - p1) - pshape1->getBoundingRadius() - pshape2->getBoundingRadius() > 0.0 )
-            continue;
-          
-          proximity_record_3D tmp = compute_proximity(
-            *pshape1, mdl1_poses[&pshape1 - mModel1->mShapeList.data()], 
-            *pshape2, mdl2_poses[&pshape2 - mModel2->mShapeList.data()]);
-          
-          if( tmp.mDistance < 0.0 )
-            aOutput.push_back(tmp);
-        };
-      };
-      return !aOutput.empty();
+  std::vector<pose_3D<double>> mdl1_poses, mdl2_poses;
+  for (auto& pshape1 : mModel1->mShapeList)
+    mdl1_poses[&pshape1 - mModel1->mShapeList.data()] =
+        pshape1->getPose().getGlobalPose();
+  for (auto& pshape2 : mModel2->mShapeList)
+    mdl2_poses[&pshape2 - mModel2->mShapeList.data()] =
+        pshape2->getPose().getGlobalPose();
+
+  for (auto& pshape1 : mModel1->mShapeList) {
+    const vect<double, 3>& p1 =
+        mdl1_poses[&pshape1 - mModel1->mShapeList.data()].Position;
+    for (auto& pshape2 : mModel2->mShapeList) {
+      const vect<double, 3>& p2 =
+          mdl2_poses[&pshape2 - mModel2->mShapeList.data()].Position;
+
+      if (norm_2(p2 - p1) - pshape1->getBoundingRadius() -
+              pshape2->getBoundingRadius() >
+          0.0)
+        continue;
+
+      proximity_record_3D tmp = compute_proximity(
+          *pshape1, mdl1_poses[&pshape1 - mModel1->mShapeList.data()], *pshape2,
+          mdl2_poses[&pshape2 - mModel2->mShapeList.data()]);
+
+      if (tmp.mDistance < 0.0)
+        aOutput.push_back(tmp);
+    };
+  };
+  return !aOutput.empty();
     };
 
 Where you can notice that the pre-computed poses are handed to the `compute_proximity` function call so that they can be used within them, eliminating the need to recompute them inside those functions.
@@ -164,32 +175,34 @@ What a great start! We just went from 620ms to 140ms, and from 2,550ms to 540ms.
 
 Now, we'll get into an issue that might not be obvious to a lot of people. There is a function that I didn't put up yet because it was pretty obvious what it did, this is the `addShape` function from the `proxy_query_model_3D` class. Here is the original definition of it:
 
-    proxy_query_model_3D& proxy_query_model_3D::addShape(const shared_ptr< shape_3D >& aShape) {
-      mShapeList->push_back(aShape);
-      return *this;
+    proxy_query_model_3D& proxy_query_model_3D::addShape(const std::shared_ptr< shape_3D >& aShape) {
+  mShapeList->push_back(aShape);
+  return *this;
     };
 
 Pretty obvious, isn't it? But there is one important optimization we can make here, and the beauty of it is that it will only take one additional line of code:
 
-    proxy_query_model_3D& proxy_query_model_3D::addShape(const shared_ptr< shape_3D >& aShape) {
-      mShapeList.push_back(aShape);
-      std::inplace_merge(mShapeList.begin(), mShapeList.end()-1, mShapeList.end(), 
-        [](const shared_ptr< shape_3D >& lhs, const shared_ptr< shape_3D >& rhs) {
-          return typeid(*lhs).before(typeid(*rhs));
-        });
-      return *this;
+    proxy_query_model_3D& proxy_query_model_3D::addShape(const std::shared_ptr< shape_3D >& aShape) {
+  mShapeList.push_back(aShape);
+  std::inplace_merge(mShapeList.begin(), mShapeList.end() - 1, mShapeList.end(),
+                     [](const std::shared_ptr<shape_3D>& lhs,
+                        const std::shared_ptr<shape_3D>& rhs) {
+                       return typeid(*lhs).before(typeid(*rhs));
+                     });
+  return *this;
     };
 
 Ok... so, I had to spread that line over 4 lines... but hey, it's still one expression. What is happening here is that I sort (incrementally, using the standard `inplace_merge` algorithm) the shapes in the list by their derived type (from `typeid` and the `before` function from the standard `type_info` class). If you are unfamiliar with the `[]() { }` construct that you see above, that is a lambda expression, which is a feature that was introduced in C++11 to create a simple function object on site. Note that this could also be done with a separate function (to be compatible with C++98/03) as so:
 
-    static bool compare_shape_types(const shared_ptr< shape_3D >& lhs, const shared_ptr< shape_3D >& rhs) {
-      return typeid(*lhs).before(typeid(*rhs));
+    static bool compare_shape_types(const std::shared_ptr< shape_3D >& lhs, const std::shared_ptr< shape_3D >& rhs) {
+  return typeid(*lhs).before(typeid(*rhs));
     };
     
-    proxy_query_model_3D& proxy_query_model_3D::addShape(const shared_ptr< shape_3D >& aShape) {
-      mShapeList.push_back(aShape);
-      std::inplace_merge(mShapeList.begin(), mShapeList.end()-1, mShapeList.end(), compare_shape_types);
-      return *this;
+    proxy_query_model_3D& proxy_query_model_3D::addShape(const std::shared_ptr< shape_3D >& aShape) {
+  mShapeList.push_back(aShape);
+  std::inplace_merge(mShapeList.begin(), mShapeList.end() - 1, mShapeList.end(),
+                     compare_shape_types);
+  return *this;
     };
 
 Running the benchmark program again produces the following results:
@@ -213,88 +226,124 @@ The impact of this was not that great in this case, but believe me, this can bri
 
 ## Keep memory hot!
 
-What is good for the goose is good for the gander. All these CPU cache issues that I just talked about apply to memory (data) just as well as they apply to instructions. So, your data should also be kept hot to try to streamline the use of the CPU cache.
+What is good for the goose is good for the gander. All these CPU cache issues that I just talked about apply to memory (data)
+just as well as they apply to instructions.So,
+    your data should also be kept hot to try to streamline the use of the CPU
+        cache.
 
-The main problem here is with the `mShapeList` vector:
+    The main problem here is with the `mShapeList` vector :
 
-    std::vector< shared_ptr< shape_3D > > mShapeList;
+    std::vector<std::shared_ptr<shape_3D>>
+        mShapeList;
 
-This is a vector of pointers to shapes. The problem with this is that whenever we iterate over this vector (as we do a lot), what we really want to do is iterate over the shapes, but we are doing so *indirectly*. Moreover, those shapes are each dynamically allocated individually, meaning that they are likely to be scattered all over RAM memory. So, every time we go to fetch a shape, it is likely to reside in some random piece of "cold" memory somewhere in RAM, and it will need to be brought, at a snail's pace, to the CPU cache where it can be used.
+This is a vector of pointers to shapes.The problem with this is that whenever we
+    iterate over this vector(as we do a lot),
+    what we really want to do is iterate over the shapes,
+    but we are doing so *indirectly *.Moreover,
+    those shapes are each dynamically allocated individually,
+    meaning that they are likely to be scattered all over RAM memory.So,
+    every time we go to fetch a shape,
+    it is likely to reside in some random piece of
+    "cold" memory somewhere in RAM,
+    and it will need to be brought,
+    at a snail's pace, to the CPU cache where it can be used.
 
-So, what we really should have is a vector like this:
+    So,
+    what we really should have is a vector like this :
 
-    std::vector< shape_3D > mShapeList;
+    std::vector<shape_3D> mShapeList;
 
 But there's a problem here. The `shape_3D` is a base-class, and our original `shared_ptr<shape_3D>` pointers are actually pointing to different kinds of shapes. Here is how we can get out of this conundrum, with a nice little class template called `boost::variant` (from the [Boost.Variant](http://www.boost.org/doc/libs/1_57_0/doc/html/variant.html) library):
 
-    typedef boost::variant<box, sphere, plane, cylinder, capped_cylinder> any_shape;
-    
-    std::vector< any_shape > mShapeList;
+    typedef boost::variant<box, sphere, plane, cylinder, capped_cylinder>
+        any_shape;
 
-What the `boost::variant` class does is create a `union` of all the types given to it, and additionally, it also identifies which type of object it currently holds, and is thus called a *discriminating union*. The consequence of this is that all the shapes are now stored by value inside the `mShapeList` vector. This will make the traversals more efficient in terms of the locality of memory access patterns.
+std::vector<any_shape> mShapeList;
 
-The `boost::variant` class template is used in a somewhat peculiar way. It uses a kind of generic visitation pattern, which is actually pretty nice, but it's not something I want to delve into too much here. Suffice to say, here is how the final `gatherCollisionPoints` function looks:
+What the `boost::variant` class does is create a `union` of all the types given
+    to it,
+    and additionally,
+    it also identifies which type of object it currently holds,
+    and is thus called a *discriminating union
+            *.The consequence of this is that all the shapes are now stored by
+                value inside the `mShapeList` vector
+                    .This will make the traversals more efficient in terms of
+                        the locality of memory access patterns
+                    .
+
+        The `boost::variant` class template is used in a somewhat peculiar
+            way.It uses a kind of generic visitation pattern,
+    which is actually pretty nice,
+    but it's not something I want to delve into too much here. Suffice to say, here is how the final `gatherCollisionPoints` function looks:
 
     namespace {  // anonymous namespace to hide things from the linker.
-      
-      struct convert_to_shape_3D_visitor {
-        shape_3D& operator()(shape_3D& s) const { return s; };
-        typedef shape_3D& result_type;
-      };
-      
-      struct compute_proximity_3D_visitor {
-        const pose_3D<double>* p1;
-        const pose_3D<double>* p2;
-        compute_proximity_3D_visitor(const pose_3D<double>& aP1,
-                                     const pose_3D<double>& aP2) : 
-                                     p1(&aP1), p2(&aP2) { };
-        template <typename T, typename U>
-        proximity_record_3D operator()(const T& s1, const U& s2) const {
-          return compute_proximity(s1, *p1, s2, *p2); // double-dispatch by overloading here.
-        };
-        typedef proximity_record_3D result_type;
-      };
-      
-      struct get_bounding_radius_3D_visitor {
-        double operator()(const shape_3D& s) const {
-          return s.getBoundingRadius();
-        };
-        typedef double result_type;
-      };
-      
+
+  struct convert_to_shape_3D_visitor {
+    shape_3D& operator()(shape_3D& s) const { return s; };
+    typedef shape_3D& result_type;
+  };
+
+  struct compute_proximity_3D_visitor {
+    const pose_3D<double>* p1;
+    const pose_3D<double>* p2;
+    compute_proximity_3D_visitor(const pose_3D<double>& aP1,
+                                 const pose_3D<double>& aP2)
+        : p1(&aP1), p2(&aP2){};
+    template <typename T, typename U>
+    proximity_record_3D operator()(const T& s1, const U& s2) const {
+      return compute_proximity(s1, *p1, s2,
+                               *p2);  // double-dispatch by overloading here.
     };
-    
-    bool proxy_query_pair_3D::gatherCollisionPoints(std::vector< proximity_record_3D >& aOutput) const {
-      std::vector< pose_3D<double> > mdl1_poses, mdl2_poses;
-      for(auto& vshape1 : mModel1->mShapeList)
-        mdl1_poses[&vshape1 - mModel1->mShapeList.data()] =
-          boost::apply_visitor(convert_to_shape_3D_visitor(), vshape1).getPose().getGlobalPose();
-      for(auto& vshape2 : mModel2->mShapeList)
-        mdl2_poses[&vshape2 - mModel2->mShapeList.data()] = 
-          boost::apply_visitor(convert_to_shape_3D_visitor(), vshape2).getPose().getGlobalPose();
-      
-      for(auto& vshape1 : mModel1->mShapeList) {
-        const vect<double,3>& p1 = mdl1_poses[&vshape1 - mModel1->mShapeList.data()].Position;
-        for(auto& vshape2 : mModel2->mShapeList) {
-          const vect<double,3>& p2 = mdl2_poses[&vshape2 - mModel2->mShapeList.data()].Position;
-          
-          if( norm_2(p2 - p1) 
-              - boost::apply_visitor(get_bounding_radius_3D_visitor(), vshape1) 
-              - boost::apply_visitor(get_bounding_radius_3D_visitor(), vshape2) > 0.0 )
-            continue;
-          
-          proximity_record_3D tmp = boost::apply_visitor(
-            compute_proximity_3D_visitor(
-              mdl1_poses[&vshape1 - mModel1->mShapeList.data()], 
-              mdl2_poses[&vshape2 - mModel2->mShapeList.data()]), 
-            vshape1, vshape2);
-          
-          if( tmp.mDistance < 0.0 )
-            aOutput.push_back(tmp);
-        };
-      };
-      return !aOutput.empty();
+    typedef proximity_record_3D result_type;
+  };
+
+  struct get_bounding_radius_3D_visitor {
+    double operator()(const shape_3D& s) const {
+      return s.getBoundingRadius();
     };
+    typedef double result_type;
+  };
+};
+
+bool proxy_query_pair_3D::gatherCollisionPoints(
+    std::vector<proximity_record_3D>& aOutput) const {
+  std::vector<pose_3D<double>> mdl1_poses, mdl2_poses;
+  for (auto& vshape1 : mModel1->mShapeList)
+    mdl1_poses[&vshape1 - mModel1->mShapeList.data()] =
+        boost::apply_visitor(convert_to_shape_3D_visitor(), vshape1)
+            .getPose()
+            .getGlobalPose();
+  for (auto& vshape2 : mModel2->mShapeList)
+    mdl2_poses[&vshape2 - mModel2->mShapeList.data()] =
+        boost::apply_visitor(convert_to_shape_3D_visitor(), vshape2)
+            .getPose()
+            .getGlobalPose();
+
+  for (auto& vshape1 : mModel1->mShapeList) {
+    const vect<double, 3>& p1 =
+        mdl1_poses[&vshape1 - mModel1->mShapeList.data()].Position;
+    for (auto& vshape2 : mModel2->mShapeList) {
+      const vect<double, 3>& p2 =
+          mdl2_poses[&vshape2 - mModel2->mShapeList.data()].Position;
+
+      if (norm_2(p2 - p1) -
+              boost::apply_visitor(get_bounding_radius_3D_visitor(), vshape1) -
+              boost::apply_visitor(get_bounding_radius_3D_visitor(), vshape2) >
+          0.0)
+        continue;
+
+      proximity_record_3D tmp = boost::apply_visitor(
+          compute_proximity_3D_visitor(
+              mdl1_poses[&vshape1 - mModel1->mShapeList.data()],
+              mdl2_poses[&vshape2 - mModel2->mShapeList.data()]),
+          vshape1, vshape2);
+
+      if (tmp.mDistance < 0.0)
+        aOutput.push_back(tmp);
+    };
+  };
+  return !aOutput.empty();
+};
 
 I agree that this is not pretty, but optimized code is rarely pretty. But I should note that this way of doing things removes the need for the long and tedious double-dispatching `compute_proximity` function (the one with all the nested if-else-if blocks). This is because the multi-visitor version of the `boost::apply_visitor` function of the Boost.Variant library will extract the type of both variant objects and call the visitor with both objects resolved to their actual types, which means that the call to `compute_proximity` that is done inside the `compute_proximity_3D_visitor` will actually get dispatched to the correct proximity computation algorithm for the particular pair of types involved, through overloading. This is pretty much the best way to solve the double-dispatch problem, as far as I know.
 
@@ -324,6 +373,3 @@ The principles discussed here generalize far beyond the scope of the case study 
 Optimizing for instruction cache misses is a much harder problem in general, and the compiler can do some of this work with profile-guided optimization, although this is very tricky to use and get good results with. At the very least, doing something like what I have demonstrated here, that is, sorting your objects or tasks such that the same code is repeatedly invoked, is a very easy way to get some significant improvements in performance without having to dig too deep into the assembly code or the specifics of your target platform. Also, if you are thinking about using parallelism in your code, these types of techniques will become very important.
 
 And finally, optimizing memory layouts is one of the most important optimizations you can make. In this particular case study, it wasn't as significant as I had hoped, in part because it wasn't a very data-intensive task. In tasks that are more data-intensive, optimizing your memory access patterns is extremely important. In those types of situation, it is not uncommon to get between 10x and 100x performance improvements from this issue alone. Moreover, cache misses get *exponentially worse* as the amount of data grows. This is because as the overall memory used by your program increases, the likelihood that any arbitrary memory address is cold increases, which means that performance degrades very rapidly. For example, it is not uncommon for large binary search trees to exhibit a linear performance curve, instead of the theoretical logarithmic performance curve, purely because of cache misses. Very often, memory access patterns are easy to optimize when you know what to look for, as was the case here, but sometimes it is not as easy, especially with dynamic programming problems and graph algorithms, in which case, you might want to look into *cache-oblivious* algorithms and data-structures which are designed to produce a near-optimal average-case cache performance on *any* CPU architecture.
-
-
-

@@ -43,25 +43,26 @@ namespace ReaK {
  * in the operation that threw this exception.
  */
 class singularity_error : public std::exception {
-public:
-  std::string message; ///< Message string that identifies the singular matrix.
+ public:
+  std::string message;  ///< Message string that identifies the singular matrix.
 
   /**
    * Default constructor.
    * \param aMatrixName the name of the matrix which is singular.
    */
-  singularity_error( const std::string& aMatrixName )
-      : message( std::string( "Singularity detected! For matrix " ) + aMatrixName ){};
+  explicit singularity_error(const std::string& aMatrixName)
+      : message(std::string("Singularity detected! For matrix ") +
+                aMatrixName) {}
   /**
    * Destructor.
    */
-  ~singularity_error() throw(){};
+  ~singularity_error() noexcept override = default;
 
   /**
    * Gets the error message.
    * \return c_string of the error message.
    */
-  const char* what() const throw() { return message.c_str(); };
+  const char* what() const noexcept override { return message.c_str(); }
 };
 
 /**
@@ -69,30 +70,30 @@ public:
  * iteration before having reached any "successful" terminal condition.
  */
 class maximum_iteration : public std::exception {
-public:
-  std::string message; ///< Error message string.
+ public:
+  std::string message;  ///< Error message string.
 
   /**
    * Default constructor.
    * \param aMaxIter the iteration limit reached.
    */
-  maximum_iteration( unsigned int aMaxIter ) {
+  explicit maximum_iteration(unsigned int aMaxIter) {
     std::stringstream ss;
     ss << "Maximum iteration reached at " << aMaxIter;
     message = ss.str();
-  };
+  }
   /**
    * Destructor.
    */
-  ~maximum_iteration() throw(){};
+  ~maximum_iteration() noexcept override = default;
 
   /**
    * Gets the error message.
    * \return c_string of the error message.
    */
-  const char* what() const throw() { return message.c_str(); };
-};
+  const char* what() const noexcept override { return message.c_str(); }
 };
 
+}  // namespace ReaK
 
 #endif

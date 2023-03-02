@@ -34,22 +34,20 @@
 
 namespace Ui {
 class ManipSpaceConfig;
-};
+}
 
-namespace ReaK {
-
-namespace qt {
+namespace ReaK::qt {
 
 class ManipSpaceConfigWidget : public QDockWidget {
   Q_OBJECT
-private:
+ private:
   Ui::ManipSpaceConfig* ui;
 
-public:
-  ManipSpaceConfigWidget( QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
+ public:
+  ManipSpaceConfigWidget(QWidget* parent = nullptr, Qt::WindowFlags flags = 0);
   virtual ~ManipSpaceConfigWidget();
 
-private slots:
+ private slots:
 
   void updateInternalValues();
   void updateExternalValues();
@@ -57,7 +55,7 @@ private slots:
   void saveSpaceConfig();
   void loadSpaceConfig();
 
-public:
+ public:
   int space_order;
   int interp_id;
   double min_travel;
@@ -67,10 +65,10 @@ public:
 
   int output_space_order;
 
-  void saveSpaceConfiguration( const std::string& aFilename );
-  void loadSpaceConfiguration( const std::string& aFilename );
+  void saveSpaceConfiguration(const std::string& aFilename);
+  void loadSpaceConfiguration(const std::string& aFilename);
 };
-};
-};
+
+}  // namespace ReaK::qt
 
 #endif

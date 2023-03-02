@@ -1,54 +1,57 @@
-perf_proximity results:
+perf_proximity results :
 
-starting revision: bf22803
+    starting revision
+    : bf22803
 
-(classic OOP, shared-ptr, no pre-compute, no ordering)
-N=50     620,000 ns
-N=100  2,550,000 ns
+      (classic OOP, shared - ptr, no pre - compute,
+       no ordering) N = 50 620,
+                    000 ns N = 100 2, 550,
+                    000 ns
 
-committed revision: 4748830
+                    committed revision : 4748830
 
-(classic OOP, shared-ptr, with pre-compute only on bounding sphere tests, no ordering)
-N=50     155,000 ns
-N=100    580,000 ns
+                    (classic OOP, shared - ptr,
+                     with pre - compute only on bounding sphere tests,
+                     no ordering) N = 50 155,
+                    000 ns N = 100 580,
+                    000 ns
 
-(classic OOP, shared-ptr, with pre-computed global-poses, no ordering)
-N=50     140,000 ns
-N=100    540,000 ns
+                    (classic OOP, shared - ptr,
+                     with pre - computed global - poses,
+                     no ordering) N = 50 140,
+                    000 ns N = 100 540,
+                    000 ns
 
-committed revision: 8dea53d
+                    committed revision : 8dea53d
 
-(classic OOP, with pre-computed global-poses, no ordering)
-N=50     140,000 ns
-N=100    540,000 ns
+                    (classic OOP, with pre - computed global - poses,
+                     no ordering) N = 50 140,
+                    000 ns N = 100 540,
+                    000 ns
 
-committed revision: 0da2170
+                    committed revision : 0da2170
 
-(classic OOP, with pre-computed global-poses, ordering of shapes held by shared-ptr)
-N=50     124,000 ns
-N=100    500,000 ns
+                    (classic OOP, with pre - computed global - poses,
+                     ordering of shapes held by shared - ptr) N = 50 124,
+                    000 ns N = 100 500,
+                    000 ns
 
-committed revision: dea1b5f
+                    committed revision
+    : dea1b5f
 
-(classic OOP, with pre-computed global-poses, ordering of shapes held by raw-ptr)
-N=50     122,000 ns
-N=100    480,000 ns
+      (classic OOP, with pre - computed global - poses,
+       ordering of shapes held by raw - ptr) N = 50 122,
+                    000 ns N = 100 480,
+                    000 ns
 
-committed revision: ecf09b5
+                    committed revision
+    : ecf09b5
 
-committed revision: 856ceaa
+      committed revision : 856ceaa
 
-(variant-based double-dispatch, with pre-computed global-poses, ordering of shapes cached by value)
-N=50     106,000 ns
-N=100    405,000 ns
+      (variant - based double - dispatch, with pre - computed global - poses,
+       ordering of shapes cached by value) N = 50 106,
+                    000 ns N = 100 405,
+                    000 ns
 
-committed revision: 2f743d8
-
-
-
-
-
-
-
-
-
+    committed revision : 2f743d8

@@ -36,8 +36,8 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/named_object.hpp>
 
-#include "joint_space_limits.hpp"
 #include "inverse_kinematics_model.hpp"
+#include "joint_space_limits.hpp"
 
 namespace ReaK {
 
@@ -46,11 +46,9 @@ namespace geom {
 class proxy_query_model_3D;
 class colored_model_3D;
 class proxy_query_pair_3D;
-};
-
+}  // namespace geom
 
 namespace kte {
-
 
 /**
  * This class is a meant to hold a collection of modeling data related to an
@@ -63,45 +61,45 @@ namespace kte {
  * the convenience of loading / saving the data.
  */
 class chaser_target_data : public named_object {
-public:
+ public:
   /** Holds a pointer to the base-frame (reference frame) of the chaser's coordinate system. */
-  shared_ptr< frame_3D< double > > chaser_base_frame;
+  std::shared_ptr<frame_3D<double>> chaser_base_frame;
   /** Holds the chaser's inverse-kinematics model (polymorphic). */
-  shared_ptr< inverse_kinematics_model > chaser_kin_model;
+  std::shared_ptr<inverse_kinematics_model> chaser_kin_model;
   /** Holds the chaser's joint limits, for velocity, acceleration and jerk. */
-  shared_ptr< joint_limits_collection< double > > chaser_jt_limits;
+  std::shared_ptr<joint_limits_collection<double>> chaser_jt_limits;
   /** Holds the chaser's proximity-query model, i.e., for checking collisions involving the chaser. */
-  shared_ptr< geom::proxy_query_model_3D > chaser_proxy;
+  std::shared_ptr<geom::proxy_query_model_3D> chaser_proxy;
   /** Holds the chaser's geometric model, i.e., for displaying the chaser's 3D representation. */
-  shared_ptr< geom::colored_model_3D > chaser_geom_model;
+  std::shared_ptr<geom::colored_model_3D> chaser_geom_model;
 
   /** Holds the target's direct-kinematics model (polymorphic). */
-  shared_ptr< direct_kinematics_model > target_kin_model;
+  std::shared_ptr<direct_kinematics_model> target_kin_model;
   /** Holds the target's frame, i.e., the goal of the interception is that the chaser's end-effector frame meets this
    * target frame. */
-  shared_ptr< frame_3D< double > > target_frame;
+  std::shared_ptr<frame_3D<double>> target_frame;
   /** Holds the target's proximity-query model, i.e., for checking collisions involving the target. */
-  shared_ptr< geom::proxy_query_model_3D > target_proxy;
+  std::shared_ptr<geom::proxy_query_model_3D> target_proxy;
   /** Holds the target's geometric model, i.e., for displaying the target's 3D representation. */
-  shared_ptr< geom::colored_model_3D > target_geom_model;
+  std::shared_ptr<geom::colored_model_3D> target_geom_model;
 
   /** Holds the chaser vs. target proximity-query pair, i.e., for checking collisions between the chaser and the target.
    */
-  shared_ptr< geom::proxy_query_pair_3D > chaser_target_proxy;
+  std::shared_ptr<geom::proxy_query_pair_3D> chaser_target_proxy;
 
   /** Holds the environment's geometric models, i.e., for displaying, in 3D, objects of the environment (static in the
    * chaser's base-frame). */
-  std::vector< shared_ptr< geom::colored_model_3D > > env_geom_models;
+  std::vector<std::shared_ptr<geom::colored_model_3D>> env_geom_models;
   /** Holds the environment's proximity-query models, i.e., for checking collisions involving objects of the environment
    * (static in the chaser's base-frame). */
-  std::vector< shared_ptr< geom::proxy_query_model_3D > > env_proxy_models;
+  std::vector<std::shared_ptr<geom::proxy_query_model_3D>> env_proxy_models;
 
   /** Holds the chaser vs. environment proximity-query pairs, i.e., for checking collisions between the chaser and the
    * environment. */
-  std::vector< shared_ptr< geom::proxy_query_pair_3D > > chaser_env_proxies;
+  std::vector<std::shared_ptr<geom::proxy_query_pair_3D>> chaser_env_proxies;
   /** Holds the target vs. environment proximity-query pairs, i.e., for checking collisions between the target and the
    * environment. */
-  std::vector< shared_ptr< geom::proxy_query_pair_3D > > target_env_proxies;
+  std::vector<std::shared_ptr<geom::proxy_query_pair_3D>> target_env_proxies;
 
   /**
    * Default constructor. Leaves all data members empty.
@@ -114,7 +112,7 @@ public:
    * chaser_jt_limits, chaser_geom_model, and chaser_proxy.
    * \param fileName The filename of the file from which to load the chaser models.
    */
-  void load_chaser( const std::string& fileName );
+  void load_chaser(const std::string& fileName);
 
   /**
    * This function saves the chaser models to a given filename. The file will have
@@ -122,7 +120,7 @@ public:
    * chaser_jt_limits, chaser_geom_model, and chaser_proxy.
    * \param fileName The filename of the file to which to save the chaser models.
    */
-  void save_chaser( const std::string& fileName ) const;
+  void save_chaser(const std::string& fileName) const;
 
   /**
    * This function loads the target models from a given filename. The file is expected to have
@@ -130,7 +128,7 @@ public:
    * target_geom_model, and target_proxy.
    * \param fileName The filename of the file from which to load the target models.
    */
-  void load_target( const std::string& fileName );
+  void load_target(const std::string& fileName);
 
   /**
    * This function saves the target models to a given filename. The file will have
@@ -138,14 +136,14 @@ public:
    * target_geom_model, and target_proxy.
    * \param fileName The filename of the file to which to save the target models.
    */
-  void save_target( const std::string& fileName ) const;
+  void save_target(const std::string& fileName) const;
 
   /**
    * This function loads (and adds) an environment object from a given filename. The file is
    * expected to have the models laid out in the following order: env_geom_model and env_proxy.
    * \param fileName The filename of the file from which to load the environment object.
    */
-  void load_environment( const std::string& fileName );
+  void load_environment(const std::string& fileName);
 
   /**
    * This function saves an environment object to a given filename. The file will
@@ -153,29 +151,30 @@ public:
    * \param id The index of the environment object in the array of environment geometries.
    * \param fileName The filename of the file to which to save the environment object.
    */
-  void save_environment( std::size_t id, const std::string& fileName ) const;
+  void save_environment(std::size_t id, const std::string& fileName) const;
 
   /**
    * This function clears the list of environment objects (and the related proximity models).
    */
   void clear_environment();
 
-private:
+ private:
   void create_chaser_target_proxy();
   void create_chaser_env_proxies();
   void create_target_env_proxies();
 
-public:
+ public:
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const;
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int );
+  void save(serialization::oarchive& A, unsigned int /*unused*/) const override;
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( chaser_target_data, 0xC210005A, 1, "chaser_target_data", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(chaser_target_data, 0xC210005A, 1,
+                              "chaser_target_data", named_object)
 };
-};
-};
+}  // namespace kte
+}  // namespace ReaK
 
 #endif

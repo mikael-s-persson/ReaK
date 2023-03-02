@@ -35,38 +35,35 @@
 #include <ReaK/core/base/defs.hpp>
 
 #include <exception>
+#include <utility>
 
-namespace ReaK {
-
-
-/** This namespace contains optimization methods (linear, quadratic and non-linear, mostly dense-matrix
- * implementations). */
-namespace optim {
-
+namespace ReaK::optim {
 
 /**
  * This exception signifies that the constraints imposed on the search domain render
  * the optimization infeasible (i.e. the search domain is empty).
  */
 class infeasible_problem : public std::exception {
-public:
-  std::string message; ///< Message string.
+ public:
+  std::string message;  ///< Message string.
 
   /**
    * Default constructor.
    * \param aMessage The error message.
    */
-  infeasible_problem( const std::string& aMessage ) : message( aMessage ){};
+  explicit infeasible_problem(std::string aMessage)
+      : message(std::move(aMessage)) {}
   /**
    * Destructor.
    */
-  ~infeasible_problem() throw(){};
+  ~infeasible_problem() noexcept override = default;
+  ;
 
   /**
    * Gets the error message.
    * \return c_string of the error message.
    */
-  const char* what() const throw() { return message.c_str(); };
+  const char* what() const noexcept override { return message.c_str(); }
 };
 
 /**
@@ -74,24 +71,26 @@ public:
  * not sufficient to make it a bounded domain (may be thrown by methods that expect a closed domain).
  */
 class unbounded_problem : public std::exception {
-public:
-  std::string message; ///< Message string.
+ public:
+  std::string message;  ///< Message string.
 
   /**
    * Default constructor.
    * \param aMessage The error message.
    */
-  unbounded_problem( const std::string& aMessage ) : message( aMessage ){};
+  explicit unbounded_problem(std::string aMessage)
+      : message(std::move(aMessage)) {}
   /**
    * Destructor.
    */
-  ~unbounded_problem() throw(){};
+  ~unbounded_problem() noexcept override = default;
+  ;
 
   /**
    * Gets the error message.
    * \return c_string of the error message.
    */
-  const char* what() const throw() { return message.c_str(); };
+  const char* what() const noexcept override { return message.c_str(); }
 };
 
 /**
@@ -99,26 +98,28 @@ public:
  * predicate of the problem definition is violated).
  */
 class improper_problem : public std::exception {
-public:
-  std::string message; ///< Message string.
+ public:
+  std::string message;  ///< Message string.
 
   /**
    * Default constructor.
    * \param aMessage The error message.
    */
-  improper_problem( const std::string& aMessage ) : message( aMessage ){};
+  explicit improper_problem(std::string aMessage)
+      : message(std::move(aMessage)) {}
   /**
    * Destructor.
    */
-  ~improper_problem() throw(){};
+  ~improper_problem() noexcept override = default;
+  ;
 
   /**
    * Gets the error message.
    * \return c_string of the error message.
    */
-  const char* what() const throw() { return message.c_str(); };
+  const char* what() const noexcept override { return message.c_str(); }
 };
-};
-};
+
+}  // namespace ReaK::optim
 
 #endif

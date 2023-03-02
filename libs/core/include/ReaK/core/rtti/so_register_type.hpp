@@ -37,17 +37,17 @@
 #include "so_type.hpp"
 #include "so_type_repo.hpp"
 
-namespace ReaK {
-
-namespace rtti {
+namespace ReaK::rtti {
 
 namespace {
 
-template < typename T >
+template <typename T>
 struct register_type {
 
   struct register_type_impl {
-    register_type_impl( int ) { so_type_repo::getInstance().addType( T::getStaticObjectType() ); };
+    explicit register_type_impl(int /*unused*/) {
+      so_type_repo::getInstance().addType(T::getStaticObjectType());
+    }
   };
   static const register_type_impl impl;
 
@@ -70,10 +70,10 @@ struct register_type {
    */
 };
 
-template < typename T >
-const typename register_type< T >::register_type_impl register_type< T >::impl( 0 );
-};
-};
-};
+template <typename T>
+const typename register_type<T>::register_type_impl register_type<T>::impl(0);
+}  // namespace
 
-#endif
+}  // namespace ReaK::rtti
+
+#endif  // REAK_SO_REGISTER_TYPE_HPP

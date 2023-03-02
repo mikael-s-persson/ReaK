@@ -39,32 +39,31 @@
 #ifndef REAK_MAT_ALG_HPP
 #define REAK_MAT_ALG_HPP
 
-#include "mat_alg_general.hpp"
-#include "mat_comparisons.hpp"
-#include "mat_alg_rectangular.hpp"
-#include "mat_alg_square.hpp"
-#include "mat_alg_nil.hpp"
-#include "mat_alg_identity.hpp"
-#include "mat_alg_scalar.hpp"
-#include "mat_alg_symmetric.hpp"
-#include "mat_alg_skew_symmetric.hpp"
 #include "mat_alg_diagonal.hpp"
-#include "mat_alg_orthogonal.hpp"
+#include "mat_alg_general.hpp"
+#include "mat_alg_identity.hpp"
 #include "mat_alg_lower_triangular.hpp"
-#include "mat_alg_upper_triangular.hpp"
+#include "mat_alg_nil.hpp"
+#include "mat_alg_orthogonal.hpp"
 #include "mat_alg_permutation.hpp"
+#include "mat_alg_rectangular.hpp"
+#include "mat_alg_scalar.hpp"
+#include "mat_alg_skew_symmetric.hpp"
+#include "mat_alg_square.hpp"
+#include "mat_alg_symmetric.hpp"
+#include "mat_alg_upper_triangular.hpp"
+#include "mat_comparisons.hpp"
 
 #include "mat_operators.hpp"
 
+#include "mat_composite_adaptor.hpp"
+#include "mat_slices.hpp"
+#include "mat_transpose_view.hpp"
 #include "mat_vector_adaptor.hpp"
 #include "mat_views.hpp"
-#include "mat_transpose_view.hpp"
-#include "mat_slices.hpp"
-#include "mat_composite_adaptor.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
-
 
 /****************************************************************************
                          Matrix Factory Functions
@@ -76,13 +75,13 @@ namespace ReaK {
  * \param M2 second matrix (lower-right diagonal block).
  * \return General block diagonal matrix.
  */
-template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_readable_matrix< Matrix2 > >,
-                           Matrix1 >::type
-  block_diag_mat( Matrix1 M1, const Matrix2& M2 ) {
-  append_block_diag( M1, M2 );
+template <typename Matrix1, typename Matrix2>
+std::enable_if_t<is_writable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2>,
+                 Matrix1>
+block_diag_mat(Matrix1 M1, const Matrix2& M2) {
+  append_block_diag(M1, M2);
   return M1;
-};
+}
 
 /**
  * Builds a block diagonal matrix with two matrices of any dimension.
@@ -90,15 +89,16 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_r
  * \param M2 second matrix (lower-right diagonal block).
  * \return General block diagonal matrix.
  */
-template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                                             is_readable_matrix< Matrix3 > >,
-                           Matrix1 >::type
-  block_diag_mat( Matrix1 M1, const Matrix2& M2, const Matrix3& M3 ) {
-  append_block_diag( M1, M2 );
-  append_block_diag( M1, M3 );
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+std::enable_if_t<is_writable_matrix_v<Matrix1> &&
+                     is_readable_matrix_v<Matrix2> &&
+                     is_readable_matrix_v<Matrix3>,
+                 Matrix1>
+block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3) {
+  append_block_diag(M1, M2);
+  append_block_diag(M1, M3);
   return M1;
-};
+}
 
 /**
  * Builds a block diagonal matrix with two matrices of any dimension.
@@ -106,16 +106,19 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_r
  * \param M2 second matrix (lower-right diagonal block).
  * \return General block diagonal matrix.
  */
-template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 > >,
-                           Matrix1 >::type
-  block_diag_mat( Matrix1 M1, const Matrix2& M2, const Matrix3& M3, const Matrix4& M4 ) {
-  append_block_diag( M1, M2 );
-  append_block_diag( M1, M3 );
-  append_block_diag( M1, M4 );
+template <typename Matrix1, typename Matrix2, typename Matrix3,
+          typename Matrix4>
+std::enable_if_t<
+    is_writable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2> &&
+        is_readable_matrix_v<Matrix3> && is_readable_matrix_v<Matrix4>,
+    Matrix1>
+block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
+               const Matrix4& M4) {
+  append_block_diag(M1, M2);
+  append_block_diag(M1, M3);
+  append_block_diag(M1, M4);
   return M1;
-};
+}
 
 /**
  * Builds a block diagonal matrix with two matrices of any dimension.
@@ -123,19 +126,21 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_r
  * \param M2 second matrix (lower-right diagonal block).
  * \return General block diagonal matrix.
  */
-template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5 >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
-                                             is_readable_matrix< Matrix5 > >,
-                           Matrix1 >::type
-  block_diag_mat( Matrix1 M1, const Matrix2& M2, const Matrix3& M3, const Matrix3& M4, const Matrix3& M5 ) {
-  append_block_diag( M1, M2 );
-  append_block_diag( M1, M3 );
-  append_block_diag( M1, M4 );
-  append_block_diag( M1, M5 );
+template <typename Matrix1, typename Matrix2, typename Matrix3,
+          typename Matrix4, typename Matrix5>
+std::enable_if_t<
+    is_writable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2> &&
+        is_readable_matrix_v<Matrix3> && is_readable_matrix_v<Matrix4> &&
+        is_readable_matrix_v<Matrix5>,
+    Matrix1>
+block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
+               const Matrix3& M4, const Matrix3& M5) {
+  append_block_diag(M1, M2);
+  append_block_diag(M1, M3);
+  append_block_diag(M1, M4);
+  append_block_diag(M1, M5);
   return M1;
-};
-
+}
 
 /**
  * Builds a four-block matrix with four matrices of paired dimensions.
@@ -146,27 +151,36 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_r
  * \return Compound four-block matrix.
  * \throw std::range_error if the dimensions of the four blocks don't allow proper juxtaposition.
  */
-template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
-typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 > >,
-                           Matrix1 >::type
-  block_mat( Matrix1 MUL, const Matrix2& MUR, const Matrix3& MLL, const Matrix4& MLR ) {
-  if( ( MUL.get_row_count() != MUR.get_row_count() ) || ( MUL.get_col_count() != MLL.get_col_count() )
-      || ( MLL.get_row_count() != MLR.get_row_count() ) || ( MUR.get_col_count() != MLR.get_col_count() ) )
-    throw std::range_error( "Matrix dimension mismatch." );
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
-  SizeType oldColCount = MUL.get_col_count();
-  SizeType oldRowCount = MUL.get_row_count();
-  append_block_diag( MUL, MLR );
-  for( SizeType i = 0; i < MUR.get_row_count(); ++i )
-    for( SizeType j = 0; j < MUR.get_col_count(); ++j )
-      MUL( i, j + oldColCount ) = MUR( i, j );
-  for( SizeType i = 0; i < MLL.get_row_count(); ++i )
-    for( SizeType j = 0; j < MLL.get_col_count(); ++j )
-      MUL( i + oldRowCount, j ) = MLL( i, j );
+template <typename Matrix1, typename Matrix2, typename Matrix3,
+          typename Matrix4>
+std::enable_if_t<
+    is_fully_writable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2> &&
+        is_readable_matrix_v<Matrix3> && is_readable_matrix_v<Matrix4>,
+    Matrix1>
+block_mat(Matrix1 MUL, const Matrix2& MUR, const Matrix3& MLL,
+          const Matrix4& MLR) {
+  if ((MUL.get_row_count() != MUR.get_row_count()) ||
+      (MUL.get_col_count() != MLL.get_col_count()) ||
+      (MLL.get_row_count() != MLR.get_row_count()) ||
+      (MUR.get_col_count() != MLR.get_col_count())) {
+    throw std::range_error("Matrix dimension mismatch.");
+  }
+  int oldColCount = MUL.get_col_count();
+  int oldRowCount = MUL.get_row_count();
+  append_block_diag(MUL, MLR);
+  for (int i = 0; i < MUR.get_row_count(); ++i) {
+    for (int j = 0; j < MUR.get_col_count(); ++j) {
+      MUL(i, j + oldColCount) = MUR(i, j);
+    }
+  }
+  for (int i = 0; i < MLL.get_row_count(); ++i) {
+    for (int j = 0; j < MLL.get_col_count(); ++j) {
+      MUL(i + oldRowCount, j) = MLL(i, j);
+    }
+  }
   return MUL;
-};
-};
+}
 
+}  // namespace ReaK
 
 #endif

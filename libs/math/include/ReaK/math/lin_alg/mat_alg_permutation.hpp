@@ -35,12 +35,9 @@
 #include "mat_alg_general.hpp"
 #include "mat_alg_identity.hpp"
 
-#include <boost/mpl/less.hpp>
-#include <boost/mpl/and.hpp>
-
+#include <type_traits>
 
 namespace ReaK {
-
 
 /**
  * This class implements a place-holder or interface-implementation to represent
@@ -54,56 +51,59 @@ namespace ReaK {
  *mat_alignment::column_major (default).
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template < typename T, mat_alignment::tag Alignment, typename Allocator >
-class mat< T, mat_structure::permutation, Alignment, Allocator > : public serializable {
-public:
-  typedef mat< T, mat_structure::permutation, Alignment, Allocator > self;
-  typedef Allocator allocator_type;
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+class mat<T, mat_structure::permutation, Alignment, Allocator>
+    : public serializable {
+ public:
+  using self = mat<T, mat_structure::permutation, Alignment, Allocator>;
+  using allocator_type = Allocator;
 
-  typedef T value_type;
-  typedef std::size_t size_type;
-  typedef std::ptrdiff_t difference_type;
-  typedef std::vector< size_type > container_type;
+  using value_type = T;
+  using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
+  using container_type = std::vector<size_type>;
 
-  typedef void reference;
-  typedef T const_reference;
-  typedef void pointer;
-  typedef void const_pointer;
+  using reference = void;
+  using const_reference = T;
+  using pointer = void;
+  using const_pointer = void;
 
-  typedef void row_iterator;
-  typedef void const_row_iterator;
-  typedef void col_iterator;
-  typedef void const_col_iterator;
+  using row_iterator = void;
+  using const_row_iterator = void;
+  using col_iterator = void;
+  using const_col_iterator = void;
 
-  BOOST_STATIC_CONSTANT( std::size_t, static_row_count = 0 );
-  BOOST_STATIC_CONSTANT( std::size_t, static_col_count = 0 );
-  BOOST_STATIC_CONSTANT( mat_alignment::tag, alignment = Alignment );
-  BOOST_STATIC_CONSTANT( mat_structure::tag, structure = mat_structure::permutation );
+  static constexpr std::size_t static_row_count = 0;
+  static constexpr std::size_t static_col_count = 0;
+  static constexpr mat_alignment::tag alignment = Alignment;
+  static constexpr mat_structure::tag structure = mat_structure::permutation;
 
-private:
+ private:
   container_type idx;
-  size_type rowCount; ///< Row Count.
-public:
+  size_type rowCount;
+
+ public:
   /**
    * Default constructor. Sets dimensions to zero.
    */
-  mat() : idx(), rowCount( 0 ){};
+  mat() : rowCount(0) {}
   /**
    * Constructs an identity matrix to the given dimensions.
    */
-  mat( size_type aRowCount ) : idx( aRowCount ), rowCount( aRowCount ) {
-    for( size_type i = 0; i < rowCount; ++i )
+  explicit mat(size_type aRowCount) : idx(aRowCount), rowCount(aRowCount) {
+    for (size_type i = 0; i < rowCount; ++i) {
       idx[i] = i;
-  };
+    }
+  }
 
   /**
    * Standard swap function (works with ADL).
    */
-  friend void swap( self& lhs, self& rhs ) throw() {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
-    lhs.idx.swap( rhs.idx );
-    swap( lhs.rowCount, rhs.rowCount );
-  };
+    lhs.idx.swap(rhs.idx);
+    swap(lhs.rowCount, rhs.rowCount);
+  }
 
   /*******************************************************************************
                            Accessors and Methods
@@ -116,44 +116,46 @@ public:
    * \return the element at the given position.
    * \test PASSED
    */
-  const_reference operator()( size_type i, size_type j ) const {
-    if( idx[i] == j )
-      return value_type( 1 );
-    else
-      return value_type( 0 );
-  };
+  const_reference operator()(int i, int j) const {
+    if (idx[i] == j) {
+      return value_type(1);
+    }
+    return value_type(0);
+  }
 
   /**
    * Sub-matrix operator, accessor for read only.
    * \test PASSED
    */
-  mat_const_sub_block< self > operator()( const std::pair< size_type, size_type >& r,
-                                          const std::pair< size_type, size_type >& c ) const {
-    return sub ( *this )( r, c );
-  };
+  mat_const_sub_block<self> operator()(const std::pair<int, int>& r,
+                                       const std::pair<int, int>& c) const {
+    return sub(*this)(r, c);
+  }
 
   /**
    * Sub-matrix operator, accessor for read only.
    * \test PASSED
    */
-  mat_const_col_slice< self > operator()( size_type r, const std::pair< size_type, size_type >& c ) const {
-    return slice ( *this )( r, c );
-  };
+  mat_const_col_slice<self> operator()(int r,
+                                       const std::pair<int, int>& c) const {
+    return slice(*this)(r, c);
+  }
 
   /**
    * Sub-matrix operator, accessor for read only.
    * \test PASSED
    */
-  mat_const_row_slice< self > operator()( const std::pair< size_type, size_type >& r, size_type c ) const {
-    return slice ( *this )( r, c );
-  };
+  mat_const_row_slice<self> operator()(const std::pair<int, int>& r,
+                                       int c) const {
+    return slice(*this)(r, c);
+  }
 
   /**
    * Gets the row-count (number of rows) of the matrix.
    * \return number of rows of the matrix.
    * \test PASSED
    */
-  size_type get_row_count() const { return rowCount; };
+  size_type get_row_count() const { return rowCount; }
 
   /**
    * Sets the row-count (number of rows) of the matrix.
@@ -161,18 +163,18 @@ public:
    * \param aPreserveData If true, the resizing will preserve all the data it can.
    * \test PASSED
    */
-  void set_row_count( size_type aRowCount, bool aPreserveData = false ) {
-    RK_UNUSED( aPreserveData );
+  void set_row_count(size_type aRowCount, bool aPreserveData = false) {
+    RK_UNUSED(aPreserveData);
     rowCount = aRowCount;
-    idx.resize( rowCount );
-  };
+    idx.resize(rowCount);
+  }
 
   /**
    * Gets the column-count (number of columns) of the matrix.
    * \return number of columns of the matrix.
    * \test PASSED
    */
-  size_type get_col_count() const { return rowCount; };
+  size_type get_col_count() const { return rowCount; }
 
   /**
    * Sets the column-count (number of columns) of the matrix.
@@ -180,17 +182,17 @@ public:
    * \param aPreserveData If true, the resizing will preserve all the data it can.
    * \test PASSED
    */
-  void set_col_count( size_type aColCount, bool aPreserveData = false ) {
-    RK_UNUSED( aPreserveData );
+  void set_col_count(size_type aColCount, bool aPreserveData = false) {
+    RK_UNUSED(aPreserveData);
     rowCount = aColCount;
-    idx.resize( rowCount );
-  };
+    idx.resize(rowCount);
+  }
 
   /**
    * Get the allocator object of the underlying container.
    * \return The allocator object of the underlying container.
    */
-  allocator_type get_allocator() const { return idx.get_allocator(); };
+  allocator_type get_allocator() const { return idx.get_allocator(); }
 
   /**
    * Get the index of the row that should be in-place of the given row index.
@@ -200,7 +202,7 @@ public:
    * \param i The index of the original row (or destination column).
    * \return the index of the destination row (or original column).
    */
-  size_type operator[]( size_type i ) const { return idx[i]; };
+  int operator[](int i) const { return idx[i]; }
 
   /**
    * Append a row swap to this permutation matrix.
@@ -208,12 +210,13 @@ public:
    * \param i The first row involved in the swap.
    * \param j The second row involved in the swap.
    */
-  void add_row_swap( size_type i, size_type j ) {
-    if( i == j )
+  void add_row_swap(int i, int j) {
+    if (i == j) {
       return;
+    }
     using std::swap;
-    swap( idx[i], idx[j] );
-  };
+    swap(idx[i], idx[j]);
+  }
 
   /**
    * Append a column swap to this permutation matrix.
@@ -224,38 +227,43 @@ public:
    * \param i The first column involved in the swap.
    * \param j The second column involved in the swap.
    */
-  void add_column_swap( size_type i, size_type j ) {
-    if( i == j )
+  void add_column_swap(int i, int j) {
+    if (i == j) {
       return;
+    }
     using std::swap;
-    size_type p_i = 0;
-    size_type p_j = 0;
-    for( size_type k = 0; k < rowCount; ++k ) {
-      if( idx[k] == i )
+    int p_i = 0;
+    int p_j = 0;
+    for (int k = 0; k < rowCount; ++k) {
+      if (idx[k] == i) {
         p_i = k;
-      if( idx[k] == j )
+      }
+      if (idx[k] == j) {
         p_j = k;
-    };
-    swap( idx[p_i], idx[p_j] );
-  };
+      }
+    }
+    swap(idx[p_i], idx[p_j]);
+  }
 
   /**
    * Negate the matrix.
    * \return This matrix, by constant reference.
    * \test PASSED
    */
-  mat< value_type, mat_structure::scalar > operator-() const {
-    return mat< value_type, mat_structure::scalar >( rowCount, value_type( -1 ) );
-  };
+  mat<value_type, mat_structure::scalar> operator-() const {
+    return mat<value_type, mat_structure::scalar>(rowCount, value_type(-1));
+  }
 
-  friend self operator*( const self& M1, const self& M2 ) {
-    if( M1.get_row_count() != M2.get_row_count() )
-      throw std::range_error( "Matrix dimensions mismatch!" );
-    self result( M1.get_row_count() );
-    for( size_type i = 0; i < M1.get_row_count(); ++i )
+  friend self operator*(const self& M1, const self& M2) {
+    if (M1.get_row_count() != M2.get_row_count()) {
+      throw std::range_error("Matrix dimensions mismatch!");
+    }
+    self result(M1.get_row_count());
+    for (int i = 0; i < M1.get_row_count(); ++i) {
       result.idx[i] = M2.idx[M1.idx[i]];
+    }
     return result;
-  };
+  }
 
   /**
    * Transpose the matrix.
@@ -263,12 +271,13 @@ public:
    * \return The transpose matrix, by value.
    * \test PASSED
    */
-  friend self transpose( const self& rhs ) {
-    self result( rhs.rowCount );
-    for( size_type i = 0; i < rhs.rowCount; ++i )
+  friend self transpose(const self& rhs) {
+    self result(rhs.rowCount);
+    for (int i = 0; i < rhs.rowCount; ++i) {
       result.idx[rhs.idx[i]] = i;
+    }
     return result;
-  };
+  }
 
   /**
    * Transpose and move the matrix.
@@ -276,7 +285,7 @@ public:
    * \return The transpose matrix, by value.
    * \test PASSED
    */
-  friend self transpose_move( const self& rhs ) { return transpose( rhs ); };
+  friend self transpose_move(const self& rhs) { return transpose(rhs); }
 
   /**
    * Invert the matrix.
@@ -284,7 +293,7 @@ public:
    * \return The inverse matrix, by value.
    * \test PASSED
    */
-  friend self invert( const self& rhs ) { return transpose( rhs ); };
+  friend self invert(const self& rhs) { return transpose(rhs); }
 
   /**
    * Returns the trace of a matrix.
@@ -292,155 +301,169 @@ public:
    * \return the trace of matrix M.
    * \test PASSED
    */
-  friend value_type trace( const self& M ) {
-    value_type result( 0 );
-    for( size_type i = 0; i < M.rowCount; ++i )
-      if( M.idx[i] == i )
-        result += value_type( 1 );
+  friend value_type trace(const self& M) {
+    value_type result(0);
+    for (int i = 0; i < M.rowCount; ++i) {
+      if (M.idx[i] == i) {
+        result += value_type(1);
+      }
+    }
     return result;
-  };
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    A& RK_SERIAL_SAVE_WITH_NAME( idx ) & std::pair< std::string, size_type >( "rowCount", rowCount );
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    A& RK_SERIAL_LOAD_WITH_NAME( idx ) & std::pair< std::string, size_type& >( "rowCount", rowCount );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    A& RK_SERIAL_SAVE_WITH_NAME(idx) &
+        std::pair<std::string, size_type>("rowCount", rowCount);
+  }
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
+    A& RK_SERIAL_LOAD_WITH_NAME(idx) &
+        std::pair<std::string, size_type&>("rowCount", rowCount);
+  }
 
-  RK_RTTI_REGISTER_CLASS_1BASE( self, 1, serializable )
+  RK_RTTI_REGISTER_CLASS_1BASE(self, 1, serializable)
 };
 
-
-template < typename T >
+template <typename T>
 struct mat_permutation {
-  typedef mat< T, mat_structure::permutation > type;
+  using type = mat<T, mat_structure::permutation>;
 };
 
+template <typename T>
+using mat_permutation_t = typename mat_permutation<T>::type;
 
-template < typename T, mat_alignment::tag Alignment, typename Allocator >
-struct is_readable_matrix< mat< T, mat_structure::permutation, Alignment, Allocator > > {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_readable_matrix< mat< T, mat_structure::permutation, Alignment, Allocator > > type;
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+struct is_readable_matrix<
+    mat<T, mat_structure::permutation, Alignment, Allocator>> {
+  using value_type = bool;
+  static constexpr bool value = true;
+  using type = is_readable_matrix<
+      mat<T, mat_structure::permutation, Alignment, Allocator>>;
 };
 
-template < typename T, mat_alignment::tag Alignment, typename Allocator >
-struct is_writable_matrix< mat< T, mat_structure::permutation, Alignment, Allocator > > {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_writable_matrix< mat< T, mat_structure::permutation, Alignment, Allocator > > type;
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+struct is_writable_matrix<
+    mat<T, mat_structure::permutation, Alignment, Allocator>> {
+  using value_type = bool;
+  static constexpr bool value = false;
+  using type = is_writable_matrix<
+      mat<T, mat_structure::permutation, Alignment, Allocator>>;
 };
 
-template < typename T, mat_alignment::tag Alignment, typename Allocator >
-struct is_resizable_matrix< mat< T, mat_structure::permutation, Alignment, Allocator > > {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_resizable_matrix< mat< T, mat_structure::permutation, Alignment, Allocator > > type;
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+struct is_resizable_matrix<
+    mat<T, mat_structure::permutation, Alignment, Allocator>> {
+  using value_type = bool;
+  static constexpr bool value = true;
+  using type = is_resizable_matrix<
+      mat<T, mat_structure::permutation, Alignment, Allocator>>;
 };
 
-template < typename T, mat_alignment::tag Alignment, typename Allocator >
-struct has_allocator_matrix< mat< T, mat_structure::permutation, Alignment, Allocator > > {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef has_allocator_matrix< mat< T, mat_structure::permutation, Alignment, Allocator > > type;
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+struct has_allocator_matrix<
+    mat<T, mat_structure::permutation, Alignment, Allocator>> {
+  using value_type = bool;
+  static constexpr bool value = true;
+  using type = has_allocator_matrix<
+      mat<T, mat_structure::permutation, Alignment, Allocator>>;
 };
 
-template < typename T, mat_alignment::tag Alignment, typename Allocator >
-struct is_square_matrix< mat< T, mat_structure::permutation, Alignment, Allocator > > {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_square_matrix< mat< T, mat_structure::permutation, Alignment, Allocator > > type;
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+struct is_square_matrix<
+    mat<T, mat_structure::permutation, Alignment, Allocator>> {
+  using value_type = bool;
+  static constexpr bool value = true;
+  using type = is_square_matrix<
+      mat<T, mat_structure::permutation, Alignment, Allocator>>;
 };
-
 
 /**
- * Column-vector multiplication, always results in a null vector.
- * \param M some matrix.
+ * Column-vector multiplication, returns a permutated vector.
+ * \param M some permutation matrix.
  * \param V some vector.
- * \return A null vector, by value.
+ * \return A permutated vector.
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
-template < typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator >
-typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_copy< Vector > >::type
-  operator*( const mat< T, mat_structure::permutation, Alignment, Allocator >& M, const Vector& V ) {
-  if( V.size() != M.get_col_count() )
-    throw std::range_error( "Matrix dimension mismatch." );
-  typedef typename vect_copy< Vector >::type result_type;
-  typedef typename vect_traits< Vector >::size_type size_type;
+template <typename T, typename Vector, mat_alignment::tag Alignment,
+          typename Allocator>
+std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
+    const mat<T, mat_structure::permutation, Alignment, Allocator>& M,
+    const Vector& V) {
+  if (V.size() != M.get_col_count()) {
+    throw std::range_error("Matrix dimension mismatch.");
+  }
 
-  result_type result( V );
-  for( size_type i = 0; i < result.size(); ++i )
+  vect_copy_t<Vector> result(V);
+  for (int i = 0; i < result.size(); ++i) {
     result[i] = V[M[i]];
+  }
   return result;
-};
+}
 
 /**
- * Row-vector multiplication with null matrix, always results in a null vector.
+ * Row-vector multiplication with permutation matrix, returns a permutated vector.
  * \param V some row-vector.
- * \param M a null-matrix.
- * \return A null vector, by value.
+ * \param M some permutation matrix.
+ * \return A permutated vector.
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
-template < typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator >
-typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_copy< Vector > >::type
-  operator*( const Vector& V, const mat< T, mat_structure::permutation, Alignment, Allocator >& M ) {
-  if( V.size() != M.get_row_count() )
-    throw std::range_error( "Matrix dimension mismatch." );
-  typedef typename vect_copy< Vector >::type result_type;
-  typedef typename vect_traits< Vector >::size_type size_type;
+template <typename T, typename Vector, mat_alignment::tag Alignment,
+          typename Allocator>
+std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
+    const Vector& V,
+    const mat<T, mat_structure::permutation, Alignment, Allocator>& M) {
+  if (V.size() != M.get_row_count()) {
+    throw std::range_error("Matrix dimension mismatch.");
+  }
 
-  result_type result( V );
-  for( size_type i = 0; i < result.size(); ++i )
+  vect_copy_t<Vector> result(V);
+  for (int i = 0; i < result.size(); ++i) {
     result[M[i]] = V[i];
+  }
   return result;
-};
+}
 
 /**
- * Column-vector multiplication, always results in a null vector.
- * \param M some matrix.
+ * Scalar multiplication of a permutation matrix.
+ * \param M some permutation matrix.
  * \param S some scalar.
- * \return A null vector, by value.
+ * \return A square matrix.
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
-template < typename T, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vector< T > >,
-                                             boost::mpl::not_< is_readable_matrix< T > > >,
-                           mat< T, mat_structure::square, Alignment, Allocator > >::type
-  operator*( const mat< T, mat_structure::permutation, Alignment, Allocator >& M, const T& S ) {
-  typedef typename mat_traits< mat< T, mat_structure::square, Alignment, Allocator > >::size_type size_type;
-  mat< T, mat_structure::square, Alignment, Allocator > result( M.get_row_count() );
-  for( size_type i = 0; i < M.get_row_count(); ++i )
-    result( i, M[i] ) = S;
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
+                 mat<T, mat_structure::square, Alignment, Allocator>>
+operator*(const mat<T, mat_structure::permutation, Alignment, Allocator>& M,
+          const T& S) {
+  mat<T, mat_structure::square, Alignment, Allocator> result(M.get_row_count());
+  for (int i = 0; i < M.get_row_count(); ++i) {
+    result(i, M[i]) = S;
+  }
   return result;
-};
+}
 
 /**
- * Row-vector multiplication with null matrix, always results in a null vector.
- * \param V some row-vector.
- * \param M a null-matrix.
- * \return A null vector, by value.
+ * Scalar multiplication of a permutation matrix.
+ * \param S some scalar.
+ * \param M some permutation matrix.
+ * \return A square matrix.
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
-template < typename T, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vector< T > >,
-                                             boost::mpl::not_< is_readable_matrix< T > > >,
-                           mat< T, mat_structure::square, Alignment, Allocator > >::type
-  operator*( const T& S, const mat< T, mat_structure::permutation, Alignment, Allocator >& M ) {
-  typedef typename mat_traits< mat< T, mat_structure::square, Alignment, Allocator > >::size_type size_type;
-  mat< T, mat_structure::square, Alignment, Allocator > result( M.get_row_count() );
-  for( size_type i = 0; i < M.get_row_count(); ++i )
-    result( i, M[i] ) = S;
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
+                 mat<T, mat_structure::square, Alignment, Allocator>>
+operator*(const T& S,
+          const mat<T, mat_structure::permutation, Alignment, Allocator>& M) {
+  mat<T, mat_structure::square, Alignment, Allocator> result(M.get_row_count());
+  for (int i = 0; i < M.get_row_count(); ++i) {
+    result(i, M[i]) = S;
+  }
   return result;
-};
+}
 
 /**
  * Matrix multiplication with permutation matrix (column permutation).
@@ -449,22 +472,27 @@ typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vecto
  * \return A permuted matrix.
  * \throw std::range_error if matrices' dimensions are not proper for multiplication.
  */
-template < typename T, mat_alignment::tag Alignment, typename Allocator, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
-                                             boost::mpl::less< mat_product_priority< Matrix >,
-                                                               mat_product_priority< mat< T, mat_structure::permutation,
-                                                                                          Alignment, Allocator > > > >,
-                           mat< T, mat_structure::rectangular, Alignment, Allocator > >::type
-  operator*( const Matrix& M1, const mat< T, mat_structure::permutation, Alignment, Allocator >& M2 ) {
-  if( M1.get_col_count() != M2.get_row_count() )
-    throw std::range_error( "Matrix dimension mismatch." );
-  typedef typename mat_traits< mat< T, mat_structure::rectangular, Alignment, Allocator > >::size_type SizeType;
-  mat< T, mat_structure::rectangular, Alignment, Allocator > result( M1.get_row_count(), M1.get_col_count() );
-  for( SizeType i = 0; i < result.get_col_count(); ++i )
-    for( SizeType j = 0; j < result.get_row_count(); ++j )
-      result( j, M2[i] ) = M1( j, i );
+template <typename T, mat_alignment::tag Alignment, typename Allocator,
+          typename Matrix>
+std::enable_if_t<!is_readable_matrix_v<Matrix> &&
+                     (mat_product_priority_v<Matrix> <
+                      mat_product_priority_v<mat<T, mat_structure::permutation,
+                                                 Alignment, Allocator>>),
+                 mat<T, mat_structure::rectangular, Alignment, Allocator>>
+operator*(const Matrix& M1,
+          const mat<T, mat_structure::permutation, Alignment, Allocator>& M2) {
+  if (M1.get_col_count() != M2.get_row_count()) {
+    throw std::range_error("Matrix dimension mismatch.");
+  }
+  mat<T, mat_structure::rectangular, Alignment, Allocator> result(
+      M1.get_row_count(), M1.get_col_count());
+  for (int i = 0; i < result.get_col_count(); ++i) {
+    for (int j = 0; j < result.get_row_count(); ++j) {
+      result(j, M2[i]) = M1(j, i);
+    }
+  }
   return result;
-};
+}
 
 /**
  * Matrix multiplication with permutation matrix (row permutation).
@@ -473,108 +501,28 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
  * \return A permuted matrix.
  * \throw std::range_error if matrices' dimensions are not proper for multiplication.
  */
-template < typename T, mat_alignment::tag Alignment, typename Allocator, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
-                                             boost::mpl::less< mat_product_priority< Matrix >,
-                                                               mat_product_priority< mat< T, mat_structure::permutation,
-                                                                                          Alignment, Allocator > > > >,
-                           mat< T, mat_structure::rectangular, Alignment, Allocator > >::type
-  operator*( const mat< T, mat_structure::permutation, Alignment, Allocator >& M1, const Matrix& M2 ) {
-  if( M1.get_col_count() != M2.get_row_count() )
-    throw std::range_error( "Matrix dimension mismatch." );
-  typedef typename mat_traits< mat< T, mat_structure::rectangular, Alignment, Allocator > >::size_type SizeType;
-  mat< T, mat_structure::rectangular, Alignment, Allocator > result( M2.get_row_count(), M2.get_col_count() );
-  for( SizeType j = 0; j < result.get_row_count(); ++j )
-    for( SizeType i = 0; i < result.get_col_count(); ++i )
-      result( j, i ) = M2( M1[j], i );
+template <typename T, mat_alignment::tag Alignment, typename Allocator,
+          typename Matrix>
+std::enable_if_t<is_readable_matrix_v<Matrix> &&
+                     (mat_product_priority_v<Matrix> <
+                      mat_product_priority_v<mat<T, mat_structure::permutation,
+                                                 Alignment, Allocator>>),
+                 mat<T, mat_structure::rectangular, Alignment, Allocator>>
+operator*(const mat<T, mat_structure::permutation, Alignment, Allocator>& M1,
+          const Matrix& M2) {
+  if (M1.get_col_count() != M2.get_row_count()) {
+    throw std::range_error("Matrix dimension mismatch.");
+  }
+  mat<T, mat_structure::rectangular, Alignment, Allocator> result(
+      M2.get_row_count(), M2.get_col_count());
+  for (int j = 0; j < result.get_row_count(); ++j) {
+    for (int i = 0; i < result.get_col_count(); ++i) {
+      result(j, i) = M2(M1[j], i);
+    }
+  }
   return result;
-};
+}
 
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
-extern template class mat< double, mat_structure::permutation >;
-extern template class mat< float, mat_structure::permutation >;
-
-
-extern template vect< double, 2 > operator*( const mat< double, mat_structure::permutation >& M,
-                                             const vect< double, 2 >& V );
-extern template vect< double, 3 > operator*( const mat< double, mat_structure::permutation >& M,
-                                             const vect< double, 3 >& V );
-extern template vect< double, 4 > operator*( const mat< double, mat_structure::permutation >& M,
-                                             const vect< double, 4 >& V );
-extern template vect< double, 6 > operator*( const mat< double, mat_structure::permutation >& M,
-                                             const vect< double, 6 >& V );
-extern template vect_n< double > operator*( const mat< double, mat_structure::permutation >& M,
-                                            const vect_n< double >& V );
-
-extern template vect< double, 2 > operator*( const vect< double, 2 >& V,
-                                             const mat< double, mat_structure::permutation >& M );
-extern template vect< double, 3 > operator*( const vect< double, 3 >& V,
-                                             const mat< double, mat_structure::permutation >& M );
-extern template vect< double, 4 > operator*( const vect< double, 4 >& V,
-                                             const mat< double, mat_structure::permutation >& M );
-extern template vect< double, 6 > operator*( const vect< double, 6 >& V,
-                                             const mat< double, mat_structure::permutation >& M );
-extern template vect_n< double > operator*( const vect_n< double >& V,
-                                            const mat< double, mat_structure::permutation >& M );
-
-extern template mat< double, mat_structure::square > operator*( const mat< double, mat_structure::permutation >& M,
-                                                                const double& S );
-extern template mat< double, mat_structure::square > operator*( const double& S,
-                                                                const mat< double, mat_structure::permutation >& M );
-
-extern template mat< double, mat_structure::rectangular >
-  operator*( const mat< double, mat_structure::rectangular >& M1, const mat< double, mat_structure::permutation >& M2 );
-extern template mat< double, mat_structure::rectangular >
-  operator*( const mat< double, mat_structure::square >& M1, const mat< double, mat_structure::permutation >& M2 );
-
-extern template mat< double, mat_structure::rectangular >
-  operator*( const mat< double, mat_structure::permutation >& M1, const mat< double, mat_structure::rectangular >& M2 );
-extern template mat< double, mat_structure::rectangular >
-  operator*( const mat< double, mat_structure::permutation >& M1, const mat< double, mat_structure::square >& M2 );
-
-
-extern template vect< float, 2 > operator*( const mat< float, mat_structure::permutation >& M,
-                                            const vect< float, 2 >& V );
-extern template vect< float, 3 > operator*( const mat< float, mat_structure::permutation >& M,
-                                            const vect< float, 3 >& V );
-extern template vect< float, 4 > operator*( const mat< float, mat_structure::permutation >& M,
-                                            const vect< float, 4 >& V );
-extern template vect< float, 6 > operator*( const mat< float, mat_structure::permutation >& M,
-                                            const vect< float, 6 >& V );
-extern template vect_n< float > operator*( const mat< float, mat_structure::permutation >& M,
-                                           const vect_n< float >& V );
-
-extern template vect< float, 2 > operator*( const vect< float, 2 >& V,
-                                            const mat< float, mat_structure::permutation >& M );
-extern template vect< float, 3 > operator*( const vect< float, 3 >& V,
-                                            const mat< float, mat_structure::permutation >& M );
-extern template vect< float, 4 > operator*( const vect< float, 4 >& V,
-                                            const mat< float, mat_structure::permutation >& M );
-extern template vect< float, 6 > operator*( const vect< float, 6 >& V,
-                                            const mat< float, mat_structure::permutation >& M );
-extern template vect_n< float > operator*( const vect_n< float >& V,
-                                           const mat< float, mat_structure::permutation >& M );
-
-extern template mat< float, mat_structure::square > operator*( const mat< float, mat_structure::permutation >& M,
-                                                               const float& S );
-extern template mat< float, mat_structure::square > operator*( const float& S,
-                                                               const mat< float, mat_structure::permutation >& M );
-
-extern template mat< float, mat_structure::rectangular >
-  operator*( const mat< float, mat_structure::rectangular >& M1, const mat< float, mat_structure::permutation >& M2 );
-extern template mat< float, mat_structure::rectangular >
-  operator*( const mat< float, mat_structure::square >& M1, const mat< float, mat_structure::permutation >& M2 );
-
-extern template mat< float, mat_structure::rectangular >
-  operator*( const mat< float, mat_structure::permutation >& M1, const mat< float, mat_structure::rectangular >& M2 );
-extern template mat< float, mat_structure::rectangular > operator*( const mat< float, mat_structure::permutation >& M1,
-                                                                    const mat< float, mat_structure::square >& M2 );
-
-
-#endif
-};
-
+}  // namespace ReaK
 
 #endif

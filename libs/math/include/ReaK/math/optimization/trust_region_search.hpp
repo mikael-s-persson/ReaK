@@ -42,76 +42,74 @@
 
 #include "newton_search_directions.hpp"
 
-#include <boost/bind.hpp>
+#include <type_traits>
 
-namespace ReaK {
-
-
-namespace optim {
-
+namespace ReaK::optim {
 
 namespace detail {
 
-
-template < typename Vector, typename Matrix, typename T >
-void compute_cauchy_point_impl( const Vector& g, const Matrix& B, Vector& p, T& norm_p, T radius, T abs_tol ) {
-  T norm_g = norm_2( g );
-  p = ( -radius / norm_g ) * g;
+template <typename Vector, typename Matrix, typename T>
+void compute_cauchy_point_impl(const Vector& g, const Matrix& B, Vector& p,
+                               T& norm_p, T radius, T abs_tol) {
+  T norm_g = norm_2(g);
+  p = (-radius / norm_g) * g;
   norm_p = radius;
-  T gBg = g * ( B * g );
-  if( gBg > abs_tol ) {
-    T tau = norm_g * norm_g * norm_g / ( radius * gBg );
-    if( tau < T( 1.0 ) ) {
+  T gBg = g * (B * g);
+  if (gBg > abs_tol) {
+    T tau = norm_g * norm_g * norm_g / (radius * gBg);
+    if (tau < T(1.0)) {
       p *= tau;
       norm_p *= tau;
-    };
-  };
-};
+    }
+  }
+}
 
-
-template < typename Vector, typename Matrix, typename T, typename NewtonDirectioner >
-void compute_dogleg_point_impl( const Vector& g, const Matrix& B, Vector& p, T& norm_p, T radius,
-                                NewtonDirectioner get_direction, T abs_tol ) {
+template <typename Vector, typename Matrix, typename T,
+          typename NewtonDirectioner>
+void compute_dogleg_point_impl(const Vector& g, const Matrix& B, Vector& p,
+                               T& norm_p, T radius,
+                               NewtonDirectioner get_direction, T abs_tol) {
   using std::sqrt;
   T gg = g * g;
-  T gBg = g * ( B * g );
-  Vector pu = ( -gg / gBg ) * g;
-  T norm_sqr_pu = ( gg * gg * gg ) / ( gBg * gBg );
-  if( norm_sqr_pu > radius * radius ) {
+  T gBg = g * (B * g);
+  Vector pu = (-gg / gBg) * g;
+  T norm_sqr_pu = (gg * gg * gg) / (gBg * gBg);
+  if (norm_sqr_pu > radius * radius) {
     p = pu;
-    p *= radius / sqrt( norm_sqr_pu );
+    p *= radius / sqrt(norm_sqr_pu);
     norm_p = radius;
     return;
-  };
+  }
 
   Vector pb = g;
   try {
-    get_direction( B, g, pb, abs_tol );
-  } catch( singularity_error& ) {
+    get_direction(B, g, pb, abs_tol);
+  } catch (singularity_error&) {
     p = pu;
-    norm_p = sqrt( norm_sqr_pu );
+    norm_p = sqrt(norm_sqr_pu);
     return;
-  };
-  if( pb * ( B * pb ) < 0.0 ) {
+  }
+  if (pb * (B * pb) < 0.0) {
     p = pu;
-    norm_p = norm_2( p );
+    norm_p = norm_2(p);
     return;
-  };
-  norm_p = norm_2( pb );
-  if( norm_p < radius ) {
+  }
+  norm_p = norm_2(pb);
+  if (norm_p < radius) {
     p = pb;
     return;
-  };
+  }
 
   Vector dp = pb;
   dp -= pu;
   T norm_sqr_dp = dp * dp;
-  T cross_term = T( 2.0 ) * ( pu * dp );
+  T cross_term = T(2.0) * (pu * dp);
 
-  T temp = sqrt( cross_term * cross_term - T( 4.0 ) * norm_sqr_dp * ( norm_sqr_pu - radius * radius ) );
-  T alpha1 = ( -cross_term + temp ) / ( T( 2.0 ) * norm_sqr_dp );
-  T alpha2 = ( -cross_term - temp ) / ( T( 2.0 ) * norm_sqr_dp );
-  if( ( alpha1 > T( 0.0 ) ) && ( alpha1 <= T( 1.0 ) ) ) {
+  T temp = sqrt(cross_term * cross_term -
+                T(4.0) * norm_sqr_dp * (norm_sqr_pu - radius * radius));
+  T alpha1 = (-cross_term + temp) / (T(2.0) * norm_sqr_dp);
+  T alpha2 = (-cross_term - temp) / (T(2.0) * norm_sqr_dp);
+  if ((alpha1 > T(0.0)) && (alpha1 <= T(1.0))) {
     norm_p = radius;
     p = dp;
     p *= alpha1;
@@ -121,58 +119,61 @@ void compute_dogleg_point_impl( const Vector& g, const Matrix& B, Vector& p, T& 
     p = dp;
     p *= alpha2;
     p += pu;
-  };
-};
+  }
+}
 
-
-template < typename Vector1, typename Matrix, typename Vector2, typename T, typename NewtonDirectioner >
-void compute_right_pinv_dogleg_impl( const Vector1& c, const Matrix& A, Vector2& p, T& norm_p, T radius,
-                                     NewtonDirectioner get_direction, T abs_tol ) {
+template <typename Vector1, typename Matrix, typename Vector2, typename T,
+          typename NewtonDirectioner>
+void compute_right_pinv_dogleg_impl(const Vector1& c, const Matrix& A,
+                                    Vector2& p, T& norm_p, T radius,
+                                    NewtonDirectioner get_direction,
+                                    T abs_tol) {
   using std::sqrt;
 
   Vector2 Atc = c * A;
   Vector1 AAtc = A * Atc;
   T cAAc = Atc * Atc;
   T cAAAAc = AAtc * AAtc;
-  Vector2 pu = ( -cAAc / cAAAAc ) * Atc;
-  T norm_sqr_pu = ( cAAc * cAAc * cAAc ) / ( cAAAAc * cAAAAc );
-  if( norm_sqr_pu > radius * radius ) {
+  Vector2 pu = (-cAAc / cAAAAc) * Atc;
+  T norm_sqr_pu = (cAAc * cAAc * cAAc) / (cAAAAc * cAAAAc);
+  if (norm_sqr_pu > radius * radius) {
     p = pu;
-    p *= radius / sqrt( norm_sqr_pu );
+    p *= radius / sqrt(norm_sqr_pu);
     norm_p = radius;
     return;
-  };
+  }
 
   Vector1 cb = c;
-  mat< T, mat_structure::symmetric > AAt( A * transpose_view( A ) );
+  mat<T, mat_structure::symmetric> AAt(A * transpose_view(A));
   try {
-    get_direction( AAt, c, cb, abs_tol );
-  } catch( singularity_error& ) {
+    get_direction(AAt, c, cb, abs_tol);
+  } catch (singularity_error&) {
     p = pu;
-    norm_p = sqrt( norm_sqr_pu );
+    norm_p = sqrt(norm_sqr_pu);
     return;
-  };
-  if( cb * ( AAt * cb ) < 0.0 ) {
+  }
+  if (cb * (AAt * cb) < 0.0) {
     p = pu;
-    norm_p = norm_2( p );
+    norm_p = norm_2(p);
     return;
-  };
+  }
   Vector2 pb = cb * A;
-  norm_p = norm_2( pb );
-  if( norm_p < radius ) {
+  norm_p = norm_2(pb);
+  if (norm_p < radius) {
     p = pb;
     return;
-  };
+  }
 
   Vector2 dp = pb;
   dp -= pu;
   T norm_sqr_dp = dp * dp;
-  T cross_term = T( 2.0 ) * ( pu * dp );
+  T cross_term = T(2.0) * (pu * dp);
 
-  T temp = sqrt( cross_term * cross_term - T( 4.0 ) * norm_sqr_dp * ( norm_sqr_pu - radius * radius ) );
-  T alpha1 = ( -cross_term + temp ) / ( T( 2.0 ) * norm_sqr_dp );
-  T alpha2 = ( -cross_term - temp ) / ( T( 2.0 ) * norm_sqr_dp );
-  if( ( alpha1 > T( 0.0 ) ) && ( alpha1 <= T( 1.0 ) ) ) {
+  T temp = sqrt(cross_term * cross_term -
+                T(4.0) * norm_sqr_dp * (norm_sqr_pu - radius * radius));
+  T alpha1 = (-cross_term + temp) / (T(2.0) * norm_sqr_dp);
+  T alpha2 = (-cross_term - temp) / (T(2.0) * norm_sqr_dp);
+  if ((alpha1 > T(0.0)) && (alpha1 <= T(1.0))) {
     norm_p = radius;
     p = dp;
     p *= alpha1;
@@ -182,10 +183,9 @@ void compute_right_pinv_dogleg_impl( const Vector1& c, const Matrix& A, Vector2&
     p = dp;
     p *= alpha2;
     p += pu;
-  };
-};
-};
-
+  }
+}
+}  // namespace detail
 
 /**
  * This function computes the Cauchy point which is a steepest descent point that minimizes a
@@ -200,14 +200,15 @@ void compute_right_pinv_dogleg_impl( const Vector1& c, const Matrix& A, Vector2&
  * \param radius The radius of the trust-region.
  * \param abs_tol The tolerance at which to consider values to be zero.
  */
-template < typename Vector, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >, is_readable_matrix< Matrix > >, void >::type
-  compute_cauchy_point( const Vector& g, const Matrix& B, Vector& p, typename vect_traits< Vector >::value_type& norm_p,
-                        typename vect_traits< Vector >::value_type radius,
-                        typename vect_traits< Vector >::value_type abs_tol
-                        = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
-  detail::compute_cauchy_point_impl( g, B, p, norm_p, radius, abs_tol );
-};
+template <typename Vector, typename Matrix>
+void compute_cauchy_point(
+    const Vector& g, const Matrix& B, Vector& p,
+    vect_value_type_t<Vector>& norm_p, vect_value_type_t<Vector> radius,
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6)) {
+  static_assert(is_writable_vector_v<Vector>);
+  static_assert(is_readable_matrix_v<Matrix>);
+  detail::compute_cauchy_point_impl(g, B, p, norm_p, radius, abs_tol);
+}
 
 /**
  * This functor class computes the Cauchy point which is a steepest descent point that minimizes a
@@ -227,15 +228,15 @@ struct trust_region_solver_cauchy {
    * \param radius The radius of the trust-region.
    * \param abs_tol The tolerance at which to consider values to be zero.
    */
-  template < typename Vector, typename Matrix >
-  void operator()( const Vector& g, const Matrix& B, Vector& p, typename vect_traits< Vector >::value_type& norm_p,
-                   typename vect_traits< Vector >::value_type radius,
-                   typename vect_traits< Vector >::value_type abs_tol
-                   = typename vect_traits< Vector >::value_type( 1e-6 ) ) const {
-    compute_cauchy_point( g, B, p, norm_p, radius, abs_tol );
-  };
+  template <typename Vector, typename Matrix>
+  void operator()(const Vector& g, const Matrix& B, Vector& p,
+                  vect_value_type_t<Vector>& norm_p,
+                  vect_value_type_t<Vector> radius,
+                  vect_value_type_t<Vector> abs_tol =
+                      vect_value_type_t<Vector>(1e-6)) const {
+    compute_cauchy_point(g, B, p, norm_p, radius, abs_tol);
+  }
 };
-
 
 /**
  * This function computes the dogleg point which follows the steepest descent and then the Newton
@@ -250,14 +251,16 @@ struct trust_region_solver_cauchy {
  * \param radius The radius of the trust-region.
  * \param abs_tol The tolerance at which to consider values to be zero.
  */
-template < typename Vector, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >, is_readable_matrix< Matrix > >, void >::type
-  compute_dogleg_point( const Vector& g, const Matrix& B, Vector& p, typename vect_traits< Vector >::value_type& norm_p,
-                        typename vect_traits< Vector >::value_type radius,
-                        typename vect_traits< Vector >::value_type abs_tol
-                        = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
-  detail::compute_dogleg_point_impl( g, B, p, norm_p, radius, newton_direction< Matrix, Vector >, abs_tol );
-};
+template <typename Vector, typename Matrix>
+void compute_dogleg_point(
+    const Vector& g, const Matrix& B, Vector& p,
+    vect_value_type_t<Vector>& norm_p, vect_value_type_t<Vector> radius,
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6)) {
+  static_assert(is_writable_vector_v<Vector>);
+  static_assert(is_readable_matrix_v<Matrix>);
+  detail::compute_dogleg_point_impl(g, B, p, norm_p, radius,
+                                    newton_direction<Matrix, Vector>, abs_tol);
+}
 
 /**
  * This functor class computes the dogleg point which follows the steepest descent and then the Newton
@@ -277,13 +280,14 @@ struct trust_region_solver_dogleg {
    * \param radius The radius of the trust-region.
    * \param abs_tol The tolerance at which to consider values to be zero.
    */
-  template < typename Vector, typename Matrix >
-  void operator()( const Vector& g, const Matrix& B, Vector& p, typename vect_traits< Vector >::value_type& norm_p,
-                   typename vect_traits< Vector >::value_type radius,
-                   typename vect_traits< Vector >::value_type abs_tol
-                   = typename vect_traits< Vector >::value_type( 1e-6 ) ) const {
-    compute_dogleg_point( g, B, p, norm_p, radius, abs_tol );
-  };
+  template <typename Vector, typename Matrix>
+  void operator()(const Vector& g, const Matrix& B, Vector& p,
+                  vect_value_type_t<Vector>& norm_p,
+                  vect_value_type_t<Vector> radius,
+                  vect_value_type_t<Vector> abs_tol =
+                      vect_value_type_t<Vector>(1e-6)) const {
+    compute_dogleg_point(g, B, p, norm_p, radius, abs_tol);
+  }
 };
 
 /**
@@ -292,16 +296,17 @@ struct trust_region_solver_dogleg {
  * trust-region of a given radius.
  * \test Must create a unit-test for this.
  */
-template < typename T >
+template <typename T>
 struct trust_region_solver_dogleg_reg {
-  regularized_newton_directioner< T > get_reg_direction;
+  regularized_newton_directioner<T> get_reg_direction;
 
   /**
    * Parametrized Constructor.
    * \param aTau The initial relative damping factor for the damping the Hessian matrix (the actual damping factor is
    * relative to the trace of the Hessian).
    */
-  trust_region_solver_dogleg_reg( T aTau = T( 1e-3 ) ) : get_reg_direction( aTau ){};
+  explicit trust_region_solver_dogleg_reg(T aTau = T(1e-3))
+      : get_reg_direction(aTau) {}
   /**
    * This function computes the dogleg point which follows the steepest descent and then the
    * regularized Newton direction in order to minimizes a quadratic function within a
@@ -315,18 +320,21 @@ struct trust_region_solver_dogleg_reg {
    * \param radius The radius of the trust-region.
    * \param abs_tol The tolerance at which to consider values to be zero.
    */
-  template < typename Vector, typename Matrix >
-  void operator()( const Vector& g, const Matrix& B, Vector& p, typename vect_traits< Vector >::value_type& norm_p,
-                   typename vect_traits< Vector >::value_type radius,
-                   typename vect_traits< Vector >::value_type abs_tol
-                   = typename vect_traits< Vector >::value_type( 1e-6 ) ) const {
-    detail::compute_dogleg_point_impl( g, B, p, norm_p, radius,
-                                       [this]( const Matrix& H, const Vector& x_grad, Vector& p, const T& abs_tol )
-                                         -> void { this->get_reg_direction( H, x_grad, p, abs_tol ); },
-                                       abs_tol );
-  };
+  template <typename Vector, typename Matrix>
+  void operator()(const Vector& g, const Matrix& B, Vector& p,
+                  vect_value_type_t<Vector>& norm_p,
+                  vect_value_type_t<Vector> radius,
+                  vect_value_type_t<Vector> abs_tol =
+                      vect_value_type_t<Vector>(1e-6)) const {
+    detail::compute_dogleg_point_impl(
+        g, B, p, norm_p, radius,
+        [this](const Matrix& H, const Vector& x_grad, Vector& p,
+               const T& abs_tol) -> void {
+          this->get_reg_direction(H, x_grad, p, abs_tol);
+        },
+        abs_tol);
+  }
 };
-
 
 /**
  * This function computes the dogleg point which follows the steepest descent and then the minimum
@@ -343,20 +351,20 @@ struct trust_region_solver_dogleg_reg {
  * \param radius The radius of the trust-region.
  * \param abs_tol The tolerance at which to consider values to be zero.
  */
-template < typename Vector1, typename Matrix, typename Vector2 >
-typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector1 >, is_readable_matrix< Matrix >,
-                                             is_writable_vector< Vector2 > >,
-                           void >::type
-  compute_right_pinv_dogleg( const Vector1& g, const Matrix& B, Vector2& p,
-                             typename vect_traits< Vector2 >::value_type& norm_p,
-                             typename vect_traits< Vector2 >::value_type radius,
-                             typename vect_traits< Vector2 >::value_type abs_tol
-                             = typename vect_traits< Vector2 >::value_type( 1e-6 ) ) {
+template <typename Vector1, typename Matrix, typename Vector2>
+void compute_right_pinv_dogleg(
+    const Vector1& g, const Matrix& B, Vector2& p,
+    vect_value_type_t<Vector2>& norm_p, vect_value_type_t<Vector2> radius,
+    vect_value_type_t<Vector2> abs_tol = vect_value_type_t<Vector2>(1e-6)) {
+  static_assert(is_writable_vector_v<Vector1>);
+  static_assert(is_readable_matrix_v<Matrix>);
+  static_assert(is_writable_vector_v<Vector2>);
   detail::compute_right_pinv_dogleg_impl(
-    g, B, p, norm_p, radius,
-    newton_direction< mat< typename vect_traits< Vector2 >::value_type, mat_structure::symmetric >, Vector1 >,
-    abs_tol );
-};
+      g, B, p, norm_p, radius,
+      newton_direction<
+          mat<vect_value_type_t<Vector2>, mat_structure::symmetric>, Vector1>,
+      abs_tol);
+}
 
 /**
  * This functor class computes the dogleg point which follows the steepest descent and then the minimum
@@ -379,13 +387,14 @@ struct tr_solver_right_pinv_dogleg {
    * \param radius The radius of the trust-region.
    * \param abs_tol The tolerance at which to consider values to be zero.
    */
-  template < typename Vector1, typename Matrix, typename Vector2 >
-  void operator()( const Vector1& g, const Matrix& B, Vector2& p, typename vect_traits< Vector2 >::value_type& norm_p,
-                   typename vect_traits< Vector2 >::value_type radius,
-                   typename vect_traits< Vector2 >::value_type abs_tol
-                   = typename vect_traits< Vector2 >::value_type( 1e-6 ) ) const {
-    compute_right_pinv_dogleg( g, B, p, norm_p, radius, abs_tol );
-  };
+  template <typename Vector1, typename Matrix, typename Vector2>
+  void operator()(const Vector1& g, const Matrix& B, Vector2& p,
+                  vect_value_type_t<Vector2>& norm_p,
+                  vect_value_type_t<Vector2> radius,
+                  vect_value_type_t<Vector2> abs_tol =
+                      vect_value_type_t<Vector2>(1e-6)) const {
+    compute_right_pinv_dogleg(g, B, p, norm_p, radius, abs_tol);
+  }
 };
 
 /**
@@ -394,16 +403,17 @@ struct tr_solver_right_pinv_dogleg {
  * within a trust-region of a given radius.
  * \test Must create a unit-test for this.
  */
-template < typename T >
+template <typename T>
 struct tr_solver_right_pinv_dogleg_reg {
-  regularized_newton_directioner< T > get_reg_direction;
+  regularized_newton_directioner<T> get_reg_direction;
 
   /**
    * Parametrized Constructor.
    * \param aTau The initial relative damping factor for the damping the Hessian matrix (the actual damping factor is
    * relative to the trace of the Hessian).
    */
-  tr_solver_right_pinv_dogleg_reg( T aTau = T( 1e-3 ) ) : get_reg_direction( aTau ){};
+  explicit tr_solver_right_pinv_dogleg_reg(T aTau = T(1e-3))
+      : get_reg_direction(aTau) {}
   /**
    * This function computes the dogleg point which follows the steepest descent and then the
    * regularized minimum norm pseudo-inverse direction in order to minimizes a quadratic function
@@ -418,21 +428,23 @@ struct tr_solver_right_pinv_dogleg_reg {
    * \param radius The radius of the trust-region.
    * \param abs_tol The tolerance at which to consider values to be zero.
    */
-  template < typename Vector1, typename Matrix, typename Vector2 >
-  void operator()( const Vector1& g, const Matrix& B, Vector2& p, typename vect_traits< Vector2 >::value_type& norm_p,
-                   typename vect_traits< Vector2 >::value_type radius,
-                   typename vect_traits< Vector2 >::value_type abs_tol
-                   = typename vect_traits< Vector2 >::value_type( 1e-6 ) ) const {
+  template <typename Vector1, typename Matrix, typename Vector2>
+  void operator()(const Vector1& g, const Matrix& B, Vector2& p,
+                  vect_value_type_t<Vector2>& norm_p,
+                  vect_value_type_t<Vector2> radius,
+                  vect_value_type_t<Vector2> abs_tol =
+                      vect_value_type_t<Vector2>(1e-6)) const {
     detail::compute_right_pinv_dogleg_impl(
-      g, B, p, norm_p, radius,
-      [this]( const mat< typename vect_traits< Vector2 >::value_type, mat_structure::symmetric >& H,
-              const Vector1& x_grad, Vector1& p,
-              const T& abs_tol ) -> void { this->get_reg_direction( H, x_grad, p, abs_tol ); },
-      abs_tol );
-  };
-};
-};
+        g, B, p, norm_p, radius,
+        [this](
+            const mat<vect_value_type_t<Vector2>, mat_structure::symmetric>& H,
+            const Vector1& x_grad, Vector1& p, const T& abs_tol) -> void {
+          this->get_reg_direction(H, x_grad, p, abs_tol);
+        },
+        abs_tol);
+  }
 };
 
+}  // namespace ReaK::optim
 
 #endif

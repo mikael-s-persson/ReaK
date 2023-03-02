@@ -46,25 +46,21 @@
 
 #include <boost/concept_check.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This traits class defines the traits that characterize an extrapolator factory
  * class.
  * \tparam ExtrapolatorFactory The trajectory for which the traits are sought.
  */
-template < typename ExtrapolatorFactory >
+template <typename ExtrapolatorFactory>
 struct extrapolator_factory_traits {
   /** This type describes a point in the temporal space or topology. */
-  typedef typename ExtrapolatorFactory::point_type point_type;
+  using point_type = typename ExtrapolatorFactory::point_type;
 
   /** This type is the extrapolator type that is generated from the factory. */
-  typedef typename ExtrapolatorFactory::extrapolator_type extrapolator_type;
+  using extrapolator_type = typename ExtrapolatorFactory::extrapolator_type;
 };
-
 
 /**
  * This concept class defines the requirements for a class to model an extrapolator
@@ -89,23 +85,22 @@ struct extrapolator_factory_traits {
  * \tparam Extrapolator The trajectory type for which this concept is checked.
  * \tparam Topology The temporal-topology type on which the trajectory should be able to exist.
  */
-template < typename Extrapolator, typename Topology >
+template <typename Extrapolator, typename Topology>
 struct ExtrapolatorConcept {
-  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< Topology > ) );
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
 
   Extrapolator extrap;
-  typename topology_traits< Topology >::point_type pt;
-  const typename topology_traits< Topology >::point_type* ppt;
-  typedef typename temporal_space_traits< Topology >::time_topology time_topology;
-  typename topology_traits< time_topology >::point_type t;
+  topology_point_type_t<Topology> pt;
+  const topology_point_type_t<Topology>* ppt;
+  using time_topology = typename temporal_space_traits<Topology>::time_topology;
+  topology_point_type_t<time_topology> t;
 
-  BOOST_CONCEPT_USAGE( ExtrapolatorConcept ) {
-    extrap.set_start_point( &pt );
+  BOOST_CONCEPT_USAGE(ExtrapolatorConcept) {
+    extrap.set_start_point(&pt);
     ppt = extrap.get_start_point();
-    pt = extrap.get_point_at_time( t );
-  };
+    pt = extrap.get_point_at_time(t);
+  }
 };
-
 
 /**
  * This concept class defines the requirements for a class to model an extrapolator factory
@@ -135,23 +130,26 @@ struct ExtrapolatorConcept {
  * \tparam ExtrapolatorFactory The extrapolator factory type for which this concept is checked.
  * \tparam Topology The temporal-topology type on which the extrapolated segments should exist.
  */
-template < typename ExtrapolatorFactory, typename Topology >
+template <typename ExtrapolatorFactory, typename Topology>
 struct ExtrapolatorFactoryConcept {
-  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< Topology > ) );
-  BOOST_CONCEPT_ASSERT( (
-    ExtrapolatorConcept< typename extrapolator_factory_traits< ExtrapolatorFactory >::extrapolator_type, Topology > ) );
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT(
+      (ExtrapolatorConcept<typename extrapolator_factory_traits<
+                               ExtrapolatorFactory>::extrapolator_type,
+                           Topology>));
 
   ExtrapolatorFactory extrap_fact;
-  typename extrapolator_factory_traits< ExtrapolatorFactory >::extrapolator_type extrap;
-  typename extrapolator_factory_traits< ExtrapolatorFactory >::point_type pt;
-  shared_ptr< Topology > pspace;
+  typename extrapolator_factory_traits<ExtrapolatorFactory>::extrapolator_type
+      extrap;
+  typename extrapolator_factory_traits<ExtrapolatorFactory>::point_type pt;
+  std::shared_ptr<Topology> pspace;
 
-  BOOST_CONCEPT_USAGE( ExtrapolatorFactoryConcept ) {
-    extrap = extrap_fact.create_extrapolator( &pt );
-    extrap_fact.set_temporal_space( pspace );
-  };
+  BOOST_CONCEPT_USAGE(ExtrapolatorFactoryConcept) {
+    extrap = extrap_fact.create_extrapolator(&pt);
+    extrap_fact.set_temporal_space(pspace);
+  }
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

@@ -37,47 +37,50 @@
 #include <ReaK/geometry/shapes/capped_rectangle.hpp>
 #include <ReaK/geometry/shapes/rectangle.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
+proximity_record_2D compute_proximity_of_line(const rectangle& aRectangle,
+                                              const pose_2D<double>& aGblPose,
+                                              const vect<double, 2>& ln_c,
+                                              const vect<double, 2>& ln_t,
+                                              double half_length);
 
+proximity_record_2D compute_proximity(const capped_rectangle& aCRect,
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const rectangle& aRectangle,
+                                      const shape_2D_precompute_pack& aPack2);
 
-proximity_record_2D compute_proximity_of_line( const rectangle& aRectangle, const pose_2D< double >& aGblPose,
-                                               const vect< double, 2 >& ln_c, const vect< double, 2 >& ln_t,
-                                               double half_length );
-
-proximity_record_2D compute_proximity( const capped_rectangle& aCRect, const shape_2D_precompute_pack& aPack1,
-                                       const rectangle& aRectangle, const shape_2D_precompute_pack& aPack2 );
-
-proximity_record_2D compute_proximity( const rectangle& aRectangle, const shape_2D_precompute_pack& aPack1,
-                                       const capped_rectangle& aCRect, const shape_2D_precompute_pack& aPack2 );
+proximity_record_2D compute_proximity(const rectangle& aRectangle,
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const capped_rectangle& aCRect,
+                                      const shape_2D_precompute_pack& aPack2);
 
 /**
  * This class is for proximity queries between a capped rectangle and a rectangle.
  */
 class prox_crect_rectangle : public proximity_finder_2D {
-protected:
+ protected:
   const capped_rectangle* mCRect;
   const rectangle* mRectangle;
 
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_2D computeProximity( const shape_2D_precompute_pack& aPack1,
-                                                const shape_2D_precompute_pack& aPack2 );
+  proximity_record_2D computeProximity(
+      const shape_2D_precompute_pack& aPack1,
+      const shape_2D_precompute_pack& aPack2) override;
 
   /**
    * Default constructor.
    * \param aCRect The first capped rectangle involved in the proximity query.
    * \param aRectangle The second capped rectangle involved in the proximity query.
    */
-  prox_crect_rectangle( const capped_rectangle* aCRect = nullptr, const rectangle* aRectangle = nullptr );
+  explicit prox_crect_rectangle(const capped_rectangle* aCRect = nullptr,
+                                const rectangle* aRectangle = nullptr);
 
   /** Destructor. */
-  virtual ~prox_crect_rectangle(){};
+  ~prox_crect_rectangle() override = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

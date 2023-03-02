@@ -37,82 +37,88 @@
 
 #include <fstream>
 
-namespace ReaK {
-
-namespace recorder {
+namespace ReaK::recorder {
 
 /**
  * This class handles file IO operations for a binary data record.
  */
 class bin_recorder : public data_recorder {
-protected:
-  virtual void writeRow();
-  virtual void writeNames();
-  virtual void setStreamImpl( const shared_ptr< std::ostream >& aStreamPtr );
+ protected:
+  void writeRow() override;
+  void writeNames() override;
+  void setStreamImpl(const std::shared_ptr<std::ostream>& aStreamPtr) override;
 
-public:
+ public:
   /**
    * Default constructor.
    */
-  bin_recorder() : data_recorder(){};
+  bin_recorder() = default;
 
   /**
    * Constructor that opens a file with name aFileName.
    */
-  bin_recorder( const std::string& aFileName ) : data_recorder() { setFileName( aFileName ); };
+  explicit bin_recorder(const std::string& aFileName) {
+    setFileName(aFileName);
+  }
 
   /**
    * Destructor, closes the file.
    */
-  virtual ~bin_recorder(){};
+  ~bin_recorder() override = default;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    data_recorder::save( A, data_recorder::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    data_recorder::load( A, data_recorder::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    data_recorder::save(A, data_recorder::getStaticObjectType()->TypeVersion());
+  }
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    data_recorder::load(A, data_recorder::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( bin_recorder, 0x81100004, 1, "bin_recorder", data_recorder )
+  RK_RTTI_MAKE_CONCRETE_1BASE(bin_recorder, 0x81100004, 1, "bin_recorder",
+                              data_recorder)
 };
-
 
 /**
  * This class handles file IO operations for a binary data extractor.
  */
 class bin_extractor : public data_extractor {
-protected:
-  virtual bool readRow();
-  virtual bool readNames();
-  virtual void setStreamImpl( const shared_ptr< std::istream >& aStreamPtr );
+ protected:
+  bool readRow() override;
+  bool readNames() override;
+  void setStreamImpl(const std::shared_ptr<std::istream>& aStreamPtr) override;
 
-public:
+ public:
   /**
    * Default constructor.
    */
-  bin_extractor() : data_extractor(){};
+  bin_extractor() = default;
 
   /**
    * Constructor that opens a file with name aFileName.
    */
-  bin_extractor( const std::string& aFileName ) : data_extractor() { setFileName( aFileName ); };
+  explicit bin_extractor(const std::string& aFileName) {
+    setFileName(aFileName);
+  }
 
   /**
    * Destructor, closes the file.
    */
-  virtual ~bin_extractor(){};
+  ~bin_extractor() override = default;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    data_extractor::save( A, data_extractor::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    data_extractor::load( A, data_extractor::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    data_extractor::save(A,
+                         data_extractor::getStaticObjectType()->TypeVersion());
+  }
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    data_extractor::load(A,
+                         data_extractor::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( bin_extractor, 0x81200004, 1, "bin_extractor", data_extractor )
-};
-};
+  RK_RTTI_MAKE_CONCRETE_1BASE(bin_extractor, 0x81200004, 1, "bin_extractor",
+                              data_extractor)
 };
 
+}  // namespace ReaK::recorder
 
 #endif

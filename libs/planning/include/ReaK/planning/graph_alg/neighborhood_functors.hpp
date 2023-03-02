@@ -35,13 +35,11 @@
 #ifndef REAK_NEIGHBORHOOD_FUNCTORS_HPP
 #define REAK_NEIGHBORHOOD_FUNCTORS_HPP
 
-
 #include <ReaK/core/base/misc_math.hpp>
 
-namespace ReaK {
+#include "simple_graph_traits.hpp"
 
-namespace graph {
-
+namespace ReaK::graph {
 
 /**
  * This functor template applied the "star" neighborhood function to the nearest neighbor queries.
@@ -52,7 +50,7 @@ namespace graph {
  * algorithm as well.
  * \tparam NNFinder The functor type of the underlying K-nearest neighbor finder (or predecessor / successor finder).
  */
-template < typename NNFinder >
+template <typename NNFinder>
 struct star_neighborhood {
 
   NNFinder find_neighbors;
@@ -69,8 +67,11 @@ struct star_neighborhood {
    * configuration
    *                    space (with respect to the metric used for distances in the NN search, of course).
    */
-  star_neighborhood( NNFinder aFindNeighbors, double aCSpaceDimensions, double aGammaValue )
-      : find_neighbors( aFindNeighbors ), c_space_dimensions( aCSpaceDimensions ), gamma_value( aGammaValue ){};
+  star_neighborhood(NNFinder aFindNeighbors, double aCSpaceDimensions,
+                    double aGammaValue)
+      : find_neighbors(aFindNeighbors),
+        c_space_dimensions(aCSpaceDimensions),
+        gamma_value(aGammaValue) {}
 
   /**
    * This function fills the output iterator (like a back-inserter) with the neighborhood of the given
@@ -87,15 +88,18 @@ struct star_neighborhood {
    * \param free_space The topology representing the free-space of the positions.
    * \param position The position-map object which can retrieve the positions associated to each vertex of the graph.
    */
-  template < typename OutputIterator, typename Graph, typename Topology, typename PositionMap >
-  void operator()( const typename boost::property_traits< PositionMap >::value_type& p, OutputIterator output_first,
-                   Graph& g, const Topology& free_space, PositionMap position ) const {
+  template <typename OutputIterator, typename Graph, typename Topology,
+            typename PositionMap>
+  void operator()(const property_value_t<PositionMap>& p,
+                  OutputIterator output_first, Graph& g,
+                  const Topology& free_space, PositionMap position) const {
     using std::pow;
-    std::size_t N = num_vertices( g );
-    std::size_t log_N = math::highest_set_bit( N ) + 1;
-    find_neighbors( p, output_first, g, free_space, position, 4 * log_N,
-                    gamma_value * pow( log_N / double( N ), 1.0 / c_space_dimensions ) );
-  };
+    std::size_t N = num_vertices(g);
+    std::size_t log_N = math::highest_set_bit(N) + 1;
+    find_neighbors(
+        p, output_first, g, free_space, position, 4 * log_N,
+        gamma_value * pow(log_N / double(N), 1.0 / c_space_dimensions));
+  }
 
   /**
    * This function fills the output iterators (like a back-inserters) with the neighborhood of the given
@@ -117,25 +121,27 @@ struct star_neighborhood {
    * \param free_space The topology representing the free-space of the positions.
    * \param position The position-map object which can retrieve the positions associated to each vertex of the graph.
    */
-  template < typename PredIterator, typename SuccIterator, typename Graph, typename Topology, typename PositionMap >
-  void operator()( const typename boost::property_traits< PositionMap >::value_type& p, PredIterator pred_first,
-                   SuccIterator succ_first, Graph& g, const Topology& free_space, PositionMap position ) const {
-    using std::pow;
+  template <typename PredIterator, typename SuccIterator, typename Graph,
+            typename Topology, typename PositionMap>
+  void operator()(const property_value_t<PositionMap>& p,
+                  PredIterator pred_first, SuccIterator succ_first, Graph& g,
+                  const Topology& free_space, PositionMap position) const {
     using std::log2;
-    std::size_t N = num_vertices( g );
-    std::size_t log_N = math::highest_set_bit( N ) + 1;
-    find_neighbors( p, pred_first, succ_first, g, free_space, position, 4 * log_N,
-                    gamma_value * pow( log_N / double( N ), 1.0 / c_space_dimensions ) );
-  };
+    using std::pow;
+    std::size_t N = num_vertices(g);
+    std::size_t log_N = math::highest_set_bit(N) + 1;
+    find_neighbors(
+        p, pred_first, succ_first, g, free_space, position, 4 * log_N,
+        gamma_value * pow(log_N / double(N), 1.0 / c_space_dimensions));
+  }
 };
-
 
 /**
  * This functor template applies the single-neighbor neighborhood function to the nearest neighbor queries.
  * This is sort of a trivial functor, but can be used to wrap a k-nn finder.
  * \tparam NNFinder The functor type of the underlying K-nearest neighbor finder (or predecessor / successor finder).
  */
-template < typename NNFinder >
+template <typename NNFinder>
 struct single_neighbor {
 
   NNFinder find_neighbors;
@@ -144,7 +150,8 @@ struct single_neighbor {
    * Parametrized constructor.
    * \param aFindNeighbors The functor to perform the underlying K-nearest neighbor search (or pred / succ search).
    */
-  single_neighbor( NNFinder aFindNeighbors ) : find_neighbors( aFindNeighbors ){};
+  explicit single_neighbor(NNFinder aFindNeighbors)
+      : find_neighbors(aFindNeighbors) {}
 
   /**
    * This function fills the output iterator (like a back-inserter) with the neighborhood of the given
@@ -161,11 +168,14 @@ struct single_neighbor {
    * \param free_space The topology representing the free-space of the positions.
    * \param position The position-map object which can retrieve the positions associated to each vertex of the graph.
    */
-  template < typename OutputIterator, typename Graph, typename Topology, typename PositionMap >
-  void operator()( const typename boost::property_traits< PositionMap >::value_type& p, OutputIterator output_first,
-                   Graph& g, const Topology& free_space, PositionMap position ) const {
-    find_neighbors( p, output_first, g, free_space, position, 1, std::numeric_limits< double >::infinity() );
-  };
+  template <typename OutputIterator, typename Graph, typename Topology,
+            typename PositionMap>
+  void operator()(const property_value_t<PositionMap>& p,
+                  OutputIterator output_first, Graph& g,
+                  const Topology& free_space, PositionMap position) const {
+    find_neighbors(p, output_first, g, free_space, position, 1,
+                   std::numeric_limits<double>::infinity());
+  }
 
   /**
    * This function fills the output iterators (like a back-inserters) with the neighborhood of the given
@@ -187,20 +197,22 @@ struct single_neighbor {
    * \param free_space The topology representing the free-space of the positions.
    * \param position The position-map object which can retrieve the positions associated to each vertex of the graph.
    */
-  template < typename PredIterator, typename SuccIterator, typename Graph, typename Topology, typename PositionMap >
-  void operator()( const typename boost::property_traits< PositionMap >::value_type& p, PredIterator pred_first,
-                   SuccIterator succ_first, Graph& g, const Topology& free_space, PositionMap position ) const {
-    find_neighbors( p, pred_first, succ_first, g, free_space, position, 1, std::numeric_limits< double >::infinity() );
-  };
+  template <typename PredIterator, typename SuccIterator, typename Graph,
+            typename Topology, typename PositionMap>
+  void operator()(const property_value_t<PositionMap>& p,
+                  PredIterator pred_first, SuccIterator succ_first, Graph& g,
+                  const Topology& free_space, PositionMap position) const {
+    find_neighbors(p, pred_first, succ_first, g, free_space, position, 1,
+                   std::numeric_limits<double>::infinity());
+  }
 };
-
 
 /**
  * This functor template applies the single-neighbor neighborhood function to the nearest neighbor queries.
  * This is sort of a trivial functor, but can be used to wrap a k-nn finder.
  * \tparam NNFinder The functor type of the underlying K-nearest neighbor finder (or predecessor / successor finder).
  */
-template < typename NNFinder >
+template <typename NNFinder>
 struct fixed_neighborhood {
 
   NNFinder find_neighbors;
@@ -211,9 +223,12 @@ struct fixed_neighborhood {
    * Parametrized constructor.
    * \param aFindNeighbors The functor to perform the underlying K-nearest neighbor search (or pred / succ search).
    */
-  fixed_neighborhood( NNFinder aFindNeighbors, std::size_t aMaxNeighborCount = 1,
-                      double aMaxRadius = std::numeric_limits< double >::infinity() )
-      : find_neighbors( aFindNeighbors ), max_neighbor_count( aMaxNeighborCount ), max_radius( aMaxRadius ){};
+  explicit fixed_neighborhood(
+      NNFinder aFindNeighbors, std::size_t aMaxNeighborCount = 1,
+      double aMaxRadius = std::numeric_limits<double>::infinity())
+      : find_neighbors(aFindNeighbors),
+        max_neighbor_count(aMaxNeighborCount),
+        max_radius(aMaxRadius) {}
 
   /**
    * This function fills the output iterator (like a back-inserter) with the neighborhood of the given
@@ -230,11 +245,14 @@ struct fixed_neighborhood {
    * \param free_space The topology representing the free-space of the positions.
    * \param position The position-map object which can retrieve the positions associated to each vertex of the graph.
    */
-  template < typename OutputIterator, typename Graph, typename Topology, typename PositionMap >
-  void operator()( const typename boost::property_traits< PositionMap >::value_type& p, OutputIterator output_first,
-                   Graph& g, const Topology& free_space, PositionMap position ) const {
-    find_neighbors( p, output_first, g, free_space, position, max_neighbor_count, max_radius );
-  };
+  template <typename OutputIterator, typename Graph, typename Topology,
+            typename PositionMap>
+  void operator()(const property_value_t<PositionMap>& p,
+                  OutputIterator output_first, Graph& g,
+                  const Topology& free_space, PositionMap position) const {
+    find_neighbors(p, output_first, g, free_space, position, max_neighbor_count,
+                   max_radius);
+  }
 
   /**
    * This function fills the output iterators (like a back-inserters) with the neighborhood of the given
@@ -256,13 +274,16 @@ struct fixed_neighborhood {
    * \param free_space The topology representing the free-space of the positions.
    * \param position The position-map object which can retrieve the positions associated to each vertex of the graph.
    */
-  template < typename PredIterator, typename SuccIterator, typename Graph, typename Topology, typename PositionMap >
-  void operator()( const typename boost::property_traits< PositionMap >::value_type& p, PredIterator pred_first,
-                   SuccIterator succ_first, Graph& g, const Topology& free_space, PositionMap position ) const {
-    find_neighbors( p, pred_first, succ_first, g, free_space, position, max_neighbor_count, max_radius );
-  };
+  template <typename PredIterator, typename SuccIterator, typename Graph,
+            typename Topology, typename PositionMap>
+  void operator()(const property_value_t<PositionMap>& p,
+                  PredIterator pred_first, SuccIterator succ_first, Graph& g,
+                  const Topology& free_space, PositionMap position) const {
+    find_neighbors(p, pred_first, succ_first, g, free_space, position,
+                   max_neighbor_count, max_radius);
+  }
 };
-};
-};
+
+}  // namespace ReaK::graph
 
 #endif

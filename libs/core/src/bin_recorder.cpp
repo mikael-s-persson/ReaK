@@ -23,91 +23,97 @@
 
 #include <ReaK/core/recorders/bin_recorder.hpp>
 
-namespace ReaK {
-
-namespace recorder {
-
+namespace ReaK::recorder {
 
 void bin_recorder::writeRow() {
-  ReaKaux::unique_lock< ReaKaux::mutex > lock_here( access_mutex );
-  if( ( out_stream ) && ( *out_stream ) && ( rowCount > 0 ) && ( colCount > 0 ) ) {
-    for( unsigned int i = 0; i < colCount; ++i ) {
-      double tmp( values_rm.front() );
-      out_stream->write( reinterpret_cast< char* >( &tmp ), sizeof( double ) );
+  std::unique_lock<std::mutex> lock_here(access_mutex);
+  if ((out_stream) && (*out_stream) && (rowCount > 0) && (colCount > 0)) {
+    for (unsigned int i = 0; i < colCount; ++i) {
+      double tmp(values_rm.front());
+      out_stream->write(reinterpret_cast<char*>(&tmp), sizeof(double));
       values_rm.pop();
-    };
+    }
     --rowCount;
-  };
-};
+  }
+}
 
 void bin_recorder::writeNames() {
-  if( ( !out_stream ) || ( !( *out_stream ) ) )
+  if ((!out_stream) || (!(*out_stream))) {
     return;
+  }
   unsigned int aColCount = colCount;
-  out_stream->write( reinterpret_cast< char* >( &aColCount ), sizeof( unsigned int ) );
-  std::vector< std::string >::iterator it = names.begin();
-  for( ; it != names.end(); ++it )
-    out_stream->write( it->c_str(), it->size() + 1 );
-};
+  out_stream->write(reinterpret_cast<char*>(&aColCount), sizeof(unsigned int));
+  auto it = names.begin();
+  for (; it != names.end(); ++it) {
+    out_stream->write(it->c_str(), it->size() + 1);
+  }
+}
 
-void bin_recorder::setStreamImpl( const shared_ptr< std::ostream >& aStreamPtr ) {
-  if( colCount != 0 ) {
+void bin_recorder::setStreamImpl(
+    const std::shared_ptr<std::ostream>& aStreamPtr) {
+  if (colCount != 0) {
     *this << close;
-    if( ( aStreamPtr ) && ( *aStreamPtr ) ) {
-      ReaKaux::unique_lock< ReaKaux::mutex > lock_here( access_mutex );
+    if ((aStreamPtr) && (*aStreamPtr)) {
+      std::unique_lock<std::mutex> lock_here(access_mutex);
       out_stream = aStreamPtr;
-      colCount = static_cast< unsigned int >( names.size() );
+      colCount = static_cast<unsigned int>(names.size());
       writeNames();
-    };
+    }
   } else {
-    if( ( aStreamPtr ) && ( *aStreamPtr ) ) {
-      ReaKaux::unique_lock< ReaKaux::mutex > lock_here( access_mutex );
+    if ((aStreamPtr) && (*aStreamPtr)) {
+      std::unique_lock<std::mutex> lock_here(access_mutex);
       out_stream = aStreamPtr;
-    };
-  };
-};
-
+    }
+  }
+}
 
 bool bin_extractor::readRow() {
-  ReaKaux::unique_lock< ReaKaux::mutex > lock_here( access_mutex );
-  if( ( in_stream ) && ( *in_stream ) && ( colCount > 0 ) ) {
-    for( unsigned int i = 0; i < colCount; ++i ) {
+  std::unique_lock<std::mutex> lock_here(access_mutex);
+  if ((in_stream) && (*in_stream) && (colCount > 0)) {
+    for (unsigned int i = 0; i < colCount; ++i) {
       double tmp = 0;
-      in_stream->read( reinterpret_cast< char* >( &tmp ), sizeof( double ) );
-      if( !( *in_stream ) )
+      in_stream->read(reinterpret_cast<char*>(&tmp), sizeof(double));
+      if (!(*in_stream)) {
         return false;
-      values_rm.push( tmp );
-    };
-  };
+      }
+      values_rm.push(tmp);
+    }
+  }
   return true;
-};
+}
 
 bool bin_extractor::readNames() {
-  if( ( !in_stream ) || ( !( *in_stream ) ) )
+  if ((!in_stream) || (!(*in_stream))) {
     return false;
-  unsigned int aColCount;
-  in_stream->read( reinterpret_cast< char* >( &aColCount ), sizeof( unsigned int ) );
+  }
+  unsigned int aColCount = 0;
+  in_stream->read(reinterpret_cast<char*>(&aColCount), sizeof(unsigned int));
   colCount = aColCount;
-  char temp[128];
-  for( unsigned int i = 0; i < colCount; ++i ) {
-    char* temp_ptr = temp;
-    while( ( temp_ptr < temp + 128 ) && ( in_stream->read( temp_ptr, 1 ) ) && ( *temp_ptr != '\0' ) )
+  std::array<char, 128> temp = {};
+  for (unsigned int i = 0; i < colCount; ++i) {
+    char* temp_ptr = temp.data();
+    while ((temp_ptr < temp.data() + 128) && (in_stream->read(temp_ptr, 1)) &&
+           (*temp_ptr != '\0')) {
       ++temp_ptr;
-    if( ( temp_ptr >= temp + 128 ) || ( !( *in_stream ) ) )
+    }
+    if ((temp_ptr >= temp.data() + 128) || (!(*in_stream))) {
       return false;
-    names.push_back( std::string( temp ) );
-  };
+    }
+    names.emplace_back(temp.data());
+  }
   return true;
-};
+}
 
-void bin_extractor::setStreamImpl( const shared_ptr< std::istream >& aStreamPtr ) {
-  if( colCount != 0 )
+void bin_extractor::setStreamImpl(
+    const std::shared_ptr<std::istream>& aStreamPtr) {
+  if (colCount != 0) {
     *this >> close;
-  if( ( aStreamPtr ) && ( *aStreamPtr ) ) {
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here( access_mutex );
+  }
+  if ((aStreamPtr) && (*aStreamPtr)) {
+    std::unique_lock<std::mutex> lock_here(access_mutex);
     in_stream = aStreamPtr;
     readNames();
-  };
-};
-};
-};
+  }
+}
+
+}  // namespace ReaK::recorder

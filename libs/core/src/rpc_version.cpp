@@ -21,15 +21,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <ReaK/core/rpc/version.hpp>
 
-namespace ReaK {
-
-namespace rpc {
+namespace ReaK::rpc {
 
 const double rpc_protocol_version = 0.10;
 
-const char* msg_format_to_str[] = {"rkb", "rkx", "pbuf"};
-};
-};
+const std::array<const char*, msg_format_count> msg_format_to_str = {
+    "rkb", "rkx", "pbuf"};
+
+}  // namespace ReaK::rpc

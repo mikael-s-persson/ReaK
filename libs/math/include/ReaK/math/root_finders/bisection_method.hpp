@@ -32,16 +32,14 @@
 #ifndef REAK_BISECTION_METHOD_HPP
 #define REAK_BISECTION_METHOD_HPP
 
-#include <limits>
 #include <cmath>
+#include <limits>
 
 namespace ReaK {
-
 
 /*************************************************************************
                         Bisection Method Root Finding
 *************************************************************************/
-
 
 /**
  * This function template performs a bisection method search for the root of a function. This assumes
@@ -56,30 +54,33 @@ namespace ReaK {
  * \param f The functor of which the root is sought.
  * \param tol The tolerance, i.e., the size of the resulting interval containing the root.
  */
-template < typename T, typename RootedFunction >
-void bisection_method( T& low, T& hi, RootedFunction f, const T& tol = std::numeric_limits< T >::epsilon() ) {
-  using std::fabs;
+template <typename T, typename RootedFunction>
+void bisection_method(T& low, T& hi, RootedFunction f,
+                      const T& tol = std::numeric_limits<T>::epsilon()) {
+  using std::abs;
 
-  T low_value = f( low );
-  T hi_value = f( hi );
+  T low_value = f(low);
+  T hi_value = f(hi);
 
-  if( low_value * hi_value > 0.0 )
+  if (low_value * hi_value > 0.0) {
     return;
+  }
 
-  while( fabs( hi - low ) > tol ) {
+  while (abs(hi - low) > tol) {
 
-    T mid = 0.5 * ( hi + low );
-    T mid_value = f( mid );
+    T mid = 0.5 * (hi + low);
+    T mid_value = f(mid);
 
-    if( mid_value * hi_value > 0.0 ) {
+    if (mid_value * hi_value > 0.0) {
       hi = mid;
       hi_value = mid_value;
     } else {
       low = mid;
       low_value = mid_value;
-    };
-  };
-};
-};
+    }
+  }
+}
+
+}  // namespace ReaK
 
 #endif

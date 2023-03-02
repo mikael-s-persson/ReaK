@@ -276,11 +276,10 @@ C
       IF (IFAIL.EQ.-1.OR.IFAIL.EQ.0) THEN
          NF = NF + 1
          CALL NLFUNC(M, ME,  N, F, G, X)
-      ENDIF   
-      IF (IFAIL.EQ.-2.OR.IFAIL.EQ.0) THEN
-         NDF = NDF + 1
-         CALL NLGRAD(M, ME, MMAX, N, F, G, DF, DG, X, GEPS)
-      ENDIF   
+ENDIF
+IF(IFAIL.EQ.- 2.OR.IFAIL.EQ.0)
+THEN NDF = NDF + 1 CALL NLGRAD(M, ME, MMAX, N, F, G, DF, DG, X, GEPS)
+ENDIF
       CALL NLPQLP(     L,     M,     ME,   MMAX,      N,  
      /              NMAX,   MNN2,      X,      F,      G,
      /                DF,     DG,      U,     XL,     XU,
@@ -481,4 +480,4 @@ C   End of gradient evaluation
 C                                                                               
       RETURN         
       END             
-C      
+C

@@ -39,131 +39,107 @@
 #include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
 
 #include <cmath>
+#include <type_traits>
 
-namespace ReaK {
+namespace ReaK::pp::detail {
 
-namespace pp {
+double svp_Ndof_compute_min_delta_time(
+    double start_position, double end_position, double start_velocity,
+    double end_velocity, double& peak_velocity, double max_velocity);
 
-namespace detail {
+void svp_Ndof_compute_peak_velocity(double start_position, double end_position,
+                                    double start_velocity, double end_velocity,
+                                    double& peak_velocity, double max_velocity,
+                                    double delta_time);
 
+void svp_Ndof_compute_interpolated_values(
+    double start_position, double end_position, double start_velocity,
+    double end_velocity, double peak_velocity, double max_velocity, double dt,
+    double dt_total, double& result_pos, double& result_vel,
+    double& result_acc);
 
-double svp_Ndof_compute_min_delta_time( double start_position, double end_position, double start_velocity,
-                                        double end_velocity, double& peak_velocity, double max_velocity );
+template <int Order, int MaxOrder, typename PointType>
+inline void svp_Ndof_zero_out_HOT_impl(PointType& result, std::size_t i) {
+  if constexpr (Order <= MaxOrder) {
+    get<Order>(result)[i] = 0.0;
+    svp_Ndof_zero_out_HOT_impl<Order + 1, MaxOrder>(result, i);
+  }
+}
 
-void svp_Ndof_compute_peak_velocity( double start_position, double end_position, double start_velocity,
-                                     double end_velocity, double& peak_velocity, double max_velocity,
-                                     double delta_time );
+template <int Order, typename PointType, typename PointType1,
+          typename DiffSpace, typename TimeSpace>
+inline void svp_Ndof_interpolate_impl(
+    PointType& result, const PointType& start_point, const PointType& end_point,
+    const PointType1& peak_velocity, const DiffSpace& space,
+    const TimeSpace& t_space, double dt, double dt_total) {
+  static_assert(Order >= 1);
 
-void svp_Ndof_compute_interpolated_values( double start_position, double end_position, double start_velocity,
-                                           double end_velocity, double peak_velocity, double max_velocity, double dt,
-                                           double dt_total, double& result_pos, double& result_vel,
-                                           double& result_desc_acc );
+  PointType1 max_velocity = get_space<1>(space, t_space).get_upper_corner();
 
+  for (std::size_t i = 0; i < peak_velocity.size(); ++i) {
+    double result_pos = 0.0;
+    double result_vel = 0.0;
+    double result_acc = 0.0;
 
-template < typename Idx, typename PointType, typename DiffSpace, typename TimeSpace >
-inline typename boost::enable_if< boost::mpl::less< Idx, boost::mpl::size_t< 2 > >, void >::type
-  svp_Ndof_constant_accel_motion_HOT_impl( PointType&, double, std::size_t, const DiffSpace&,
-                                           const TimeSpace& t_space ){/* Nothing to do. */
-  };
+    svp_Ndof_compute_interpolated_values(
+        get<0>(start_point)[i], get<0>(end_point)[i], get<1>(start_point)[i],
+        get<1>(end_point)[i], peak_velocity[i], max_velocity[i], dt, dt_total,
+        result_pos, result_vel, result_acc);
 
-template < typename Idx, typename PointType, typename DiffSpace, typename TimeSpace >
-inline typename boost::enable_if< boost::mpl::greater< Idx, boost::mpl::size_t< 1 > >, void >::type
-  svp_Ndof_constant_accel_motion_HOT_impl( PointType& result, double descended_accel, std::size_t i,
-                                           const DiffSpace& space, const TimeSpace& t_space ) {
-  typedef typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 1 >::type >::point_type
-    PointType2;
-  const PointType2& max_acceleration = get_space< 2 >( space, t_space ).get_upper_corner();
-  get< 2 >( result )[i] = descended_accel * max_acceleration[i];
-};
+    get<0>(result)[i] = result_pos;
+    get<1>(result)[i] = result_vel;
+    if constexpr (Order > 1) {
+      const auto& max_acceleration =
+          get_space<2>(space, t_space).get_upper_corner();
+      get<2>(result)[i] = result_acc * max_acceleration[i];
+    }
+    svp_Ndof_zero_out_HOT_impl<3, Order>(result, i);
+  }
+}
 
-
-template < typename Idx, typename PointType >
-inline typename boost::enable_if< boost::mpl::less< Idx, boost::mpl::size_t< 2 > >, void >::type
-  svp_Ndof_constant_vel_motion_HOT_impl( PointType&, std::size_t ){/* Nothing to do. */
-  };
-
-template < typename Idx, typename PointType >
-inline typename boost::enable_if< boost::mpl::greater< Idx, boost::mpl::size_t< 1 > >, void >::type
-  svp_Ndof_constant_vel_motion_HOT_impl( PointType& result, std::size_t i ) {
-  get< 2 >( result )[i] = 0.0;
-};
-
-
-template < typename Idx, typename PointType, typename PointType1, typename DiffSpace, typename TimeSpace >
-inline typename boost::enable_if< boost::mpl::less< Idx, boost::mpl::size_t< 3 > >, void >::type
-  svp_Ndof_interpolate_impl( PointType& result, const PointType& start_point, const PointType& end_point,
-                             const PointType1& peak_velocity, const DiffSpace& space, const TimeSpace& t_space,
-                             double dt, double dt_total ) {
-
-  PointType1 max_velocity = get_space< 1 >( space, t_space ).get_upper_corner();
-
-  for( std::size_t i = 0; i < peak_velocity.size(); ++i ) {
-    double result_pos, result_vel, result_desc_acc;
-
-    svp_Ndof_compute_interpolated_values( get< 0 >( start_point )[i], get< 0 >( end_point )[i],
-                                          get< 1 >( start_point )[i], get< 1 >( end_point )[i], peak_velocity[i],
-                                          max_velocity[i], dt, dt_total, result_pos, result_vel, result_desc_acc );
-
-    get< 0 >( result )[i] = result_pos;
-    get< 1 >( result )[i] = result_vel;
-    if( Idx::type::value > 1 )
-      svp_Ndof_constant_accel_motion_HOT_impl< Idx >( result, result_desc_acc, i, space, t_space );
-  };
-};
-
-template < typename Idx, typename PointType, typename PointType1, typename DiffSpace, typename TimeSpace >
-inline typename boost::enable_if< boost::mpl::greater< Idx, boost::mpl::size_t< 2 > >, void >::type
-  svp_Ndof_interpolate_impl( PointType& result, const PointType& start_point, const PointType& end_point,
-                             const PointType1& peak_velocity, const DiffSpace& space, const TimeSpace& t_space,
-                             double dt, double dt_total ) {
-  svp_Ndof_interpolate_impl< typename boost::mpl::prior< Idx >::type >( result, start_point, end_point, peak_velocity,
-                                                                        space, t_space, dt, dt_total );
-
-  get< Idx::type::value >( result ) = get_space< Idx::type::value >( space, t_space ).origin();
-};
-
-
-template < typename PointType, typename DiffSpace, typename TimeSpace >
+template <typename PointType, typename DiffSpace, typename TimeSpace>
 double svp_compute_Ndof_interpolation_data_impl(
-  const PointType& start_point, const PointType& end_point,
-  typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 1 >::type >::point_type&
-    peak_velocity,
-  const DiffSpace& space, const TimeSpace& t_space, double delta_time = 0.0,
-  typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 1 >::type >::point_type
-  * best_peak_velocity = nullptr ) {
-  typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 1 >::type >::point_type max_velocity
-    = get_space< 1 >( space, t_space ).get_upper_corner();
+    const PointType& start_point, const PointType& end_point,
+    topology_point_type_t<derived_N_order_space_t<DiffSpace, TimeSpace, 1>>&
+        peak_velocity,
+    const DiffSpace& space, const TimeSpace& t_space, double delta_time = 0.0,
+    topology_point_type_t<derived_N_order_space_t<DiffSpace, TimeSpace, 1>>*
+        best_peak_velocity = nullptr) {
+  auto max_velocity = get_space<1>(space, t_space).get_upper_corner();
   peak_velocity = max_velocity;
   double min_dt_final = 0.0;
 
-  for( std::size_t i = 0; i < peak_velocity.size(); ++i ) {
+  for (std::size_t i = 0; i < peak_velocity.size(); ++i) {
     double vp = 0.0;
-    double min_delta_time
-      = svp_Ndof_compute_min_delta_time( get< 0 >( start_point )[i], get< 0 >( end_point )[i],
-                                         get< 1 >( start_point )[i], get< 1 >( end_point )[i], vp, max_velocity[i] );
+    double min_delta_time = svp_Ndof_compute_min_delta_time(
+        get<0>(start_point)[i], get<0>(end_point)[i], get<1>(start_point)[i],
+        get<1>(end_point)[i], vp, max_velocity[i]);
     peak_velocity[i] = vp;
 
-    if( min_dt_final < min_delta_time )
+    if (min_dt_final < min_delta_time) {
       min_dt_final = min_delta_time;
-  };
+    }
+  }
 
-  if( best_peak_velocity )
+  if (best_peak_velocity) {
     *best_peak_velocity = peak_velocity;
+  }
 
-  if( min_dt_final > delta_time )
+  if (min_dt_final > delta_time) {
     delta_time = min_dt_final;
+  }
 
-  for( std::size_t i = 0; i < peak_velocity.size(); ++i ) {
+  for (std::size_t i = 0; i < peak_velocity.size(); ++i) {
     double vp = 0.0;
-    svp_Ndof_compute_peak_velocity( get< 0 >( start_point )[i], get< 0 >( end_point )[i], get< 1 >( start_point )[i],
-                                    get< 1 >( end_point )[i], vp, max_velocity[i], delta_time );
+    svp_Ndof_compute_peak_velocity(get<0>(start_point)[i], get<0>(end_point)[i],
+                                   get<1>(start_point)[i], get<1>(end_point)[i],
+                                   vp, max_velocity[i], delta_time);
     peak_velocity[i] = vp;
-  };
+  }
 
   return min_dt_final;
-};
-};
-};
-};
+}
+
+}  // namespace ReaK::pp::detail
 
 #endif

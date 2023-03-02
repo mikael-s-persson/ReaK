@@ -34,89 +34,89 @@
 #ifndef REAK_REACTING_KTE_HPP
 #define REAK_REACTING_KTE_HPP
 
-#include "kte_map.hpp"
 #include <ReaK/math/kinetostatics/kinetostatics.hpp>
+#include "kte_map.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class declares the interface for a KTE model which receives a reaction force along a generalized coordinate.
  */
 class reacting_kte_gen : public kte_map {
-public:
+ public:
   /**
    * Default constructor.
    */
-  reacting_kte_gen( const std::string& aName = "" ) { setName( aName ); };
+  explicit reacting_kte_gen(const std::string& aName = "") { setName(aName); }
 
   /**
    * Default destructor.
    */
-  virtual ~reacting_kte_gen(){};
+  ~reacting_kte_gen() override = default;
 
   /**
    * Applies to the reaction force along the relevant generalized coordinate.
    * \param aForce the reaction force to add to the sum of forces (could be a torque as well).
    */
-  virtual void applyReactionForce( double aForce ) = 0;
+  virtual void applyReactionForce(double aForce) = 0;
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( reacting_kte_gen, 0xC2100016, 1, "reacting_kte_gen", kte_map )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(reacting_kte_gen, 0xC2100016, 1,
+                              "reacting_kte_gen", kte_map)
 };
 
 /**
  * This class declares the interface for a KTE model which receives a reaction force along a 2D frame.
  */
 class reacting_kte_2D : public kte_map {
-public:
+ public:
   /**
    * Default constructor.
    */
-  reacting_kte_2D( const std::string& aName = "" ) { setName( aName ); };
+  explicit reacting_kte_2D(const std::string& aName = "") { setName(aName); }
 
   /**
    * Default destructor.
    */
-  virtual ~reacting_kte_2D(){};
+  ~reacting_kte_2D() override = default;
 
   /**
    * Applies to the reaction force along the relevant 2D frame.
    * \param aForce the reaction force vector to add to the sum of forces.
    * \param aTorque the reaction torque to add to the sum of torques.
    */
-  virtual void applyReactionForce( vect< double, 2 > aForce, double aTorque ) = 0;
+  virtual void applyReactionForce(vect<double, 2> aForce, double aTorque) = 0;
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( reacting_kte_2D, 0xC2100017, 1, "reacting_kte_2D", kte_map )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(reacting_kte_2D, 0xC2100017, 1, "reacting_kte_2D",
+                              kte_map)
 };
 
 /**
  * This class declares the interface for a KTE model which receives a reaction force along a 3D frame.
  */
 class reacting_kte_3D : public kte_map {
-public:
+ public:
   /**
    * Default constructor.
    */
-  reacting_kte_3D( const std::string& aName = "" ) { setName( aName ); };
+  explicit reacting_kte_3D(const std::string& aName = "") { setName(aName); }
 
   /**
    * Default destructor.
    */
-  virtual ~reacting_kte_3D(){};
+  ~reacting_kte_3D() override = default;
 
   /**
    * Applies to the reaction force along the relevant 3D frame.
    * \param aForce the reaction force vector to add to the sum of forces.
    * \param aTorque the reaction torque vector to add to the sum of torques.
    */
-  virtual void applyReactionForce( vect< double, 3 > aForce, vect< double, 3 > aTorque ) = 0;
+  virtual void applyReactionForce(vect<double, 3> aForce,
+                                  vect<double, 3> aTorque) = 0;
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( reacting_kte_3D, 0xC2100018, 1, "reacting_kte_3D", kte_map )
-};
-};
+  RK_RTTI_MAKE_ABSTRACT_1BASE(reacting_kte_3D, 0xC2100018, 1, "reacting_kte_3D",
+                              kte_map)
 };
 
+}  // namespace ReaK::kte
 
 #endif

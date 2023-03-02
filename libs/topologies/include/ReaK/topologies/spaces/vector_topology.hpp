@@ -41,26 +41,27 @@
 #include "metric_space_concept.hpp"
 #include "reversible_space_concept.hpp"
 
-namespace ReaK {
-
-namespace pp {
+namespace ReaK::pp {
 
 /**
  * This class implements an infinite vector topology. This class
  * models the TopologyConcept and the LieGroupConcept.
  * \tparam Vector The vector-type for the topology, should model an Arithmetic concept and possess a norm() function.
  */
-template < typename Vector >
+template <typename Vector>
 class vector_topology : public named_object {
-public:
-  typedef vector_topology< Vector > self;
+ public:
+  using self = vector_topology<Vector>;
 
-  typedef Vector point_type;
-  typedef Vector point_difference_type;
+  using point_type = Vector;
+  using point_difference_type = Vector;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 0 );
+  static constexpr std::size_t dimensions = 0;
 
-  vector_topology( const std::string& aName = "vector_topology" ) : named_object() { setName( aName ); };
+  explicit vector_topology(const std::string& aName = "vector_topology")
+      : named_object() {
+    setName(aName);
+  }
 
   /*************************************************************************
    *                             TopologyConcept
@@ -69,22 +70,28 @@ public:
   /**
    * Returns the difference between two points (a - b).
    */
-  point_difference_type difference( const point_type& a, const point_type& b ) const { return a - b; }
+  point_difference_type difference(const point_type& a,
+                                   const point_type& b) const {
+    return a - b;
+  }
 
   /**
    * Returns the addition of a point-difference to a point.
    */
-  point_type adjust( const point_type& a, const point_difference_type& delta ) const { return a + delta; }
+  point_type adjust(const point_type& a,
+                    const point_difference_type& delta) const {
+    return a + delta;
+  }
 
   /**
    * Returns the addition of a point-difference to a point.
    */
-  virtual point_type origin() const { return point_type(); };
+  virtual point_type origin() const { return point_type(); }
 
   /**
    * Tests if a given point is within the boundary of this space.
    */
-  virtual bool is_in_bounds( const point_type& a ) const { return true; };
+  virtual bool is_in_bounds(const point_type& a) const { return true; }
 
   /*************************************************************************
   *                             LieGroupConcept
@@ -93,58 +100,56 @@ public:
   /**
    * Returns a point which is at a fraction between two points a to b.
    */
-  point_type move_position_toward( const point_type& a, double fraction, const point_type& b ) const {
-    return a + ( b - a ) * fraction;
-  };
+  point_type move_position_toward(const point_type& a, double fraction,
+                                  const point_type& b) const {
+    return a + (b - a) * fraction;
+  }
 
   /**
    * Returns a point which is at a backward fraction between two points a to b.
    */
-  point_type move_position_back_to( const point_type& a, double fraction, const point_type& b ) const {
-    return b + ( a - b ) * fraction;
-  };
+  point_type move_position_back_to(const point_type& a, double fraction,
+                                   const point_type& b) const {
+    return b + (a - b) * fraction;
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    ReaK::named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    ReaK::named_object::save(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    ReaK::named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    ReaK::named_object::load(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2400007, 1, "vector_topology", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400007, 1, "vector_topology",
+                              named_object)
 };
 
-template < typename Vector >
-struct is_metric_space< vector_topology< Vector > > : boost::mpl::true_ {};
+template <typename Vector>
+struct is_metric_space<vector_topology<Vector>> : std::true_type {};
 
-template < typename Vector >
-struct is_reversible_space< vector_topology< Vector > > : boost::mpl::true_ {};
-};
-};
+template <typename Vector>
+struct is_reversible_space<vector_topology<Vector>> : std::true_type {};
 
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
+}  // namespace ReaK::pp
 
 #include <ReaK/math/lin_alg/vect_alg.hpp>
 
-namespace ReaK {
+namespace ReaK::pp {
 
-namespace pp {
+extern template class vector_topology<vect<double, 2>>;
+extern template class vector_topology<vect<double, 3>>;
+extern template class vector_topology<vect<double, 4>>;
+extern template class vector_topology<vect<double, 6>>;
+extern template class vector_topology<vect_n<double>>;
 
-extern template class vector_topology< vect< double, 2 > >;
-extern template class vector_topology< vect< double, 3 > >;
-extern template class vector_topology< vect< double, 4 > >;
-extern template class vector_topology< vect< double, 6 > >;
-extern template class vector_topology< vect_n< double > >;
-};
-};
-
-#endif
-
+}  // namespace ReaK::pp
 
 #endif

@@ -42,10 +42,7 @@
 #include "inverse_kinematics_model.hpp"
 #include "manip_3R3R_arm.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class that models a 3D manipulator with 6 revolute joints in a decoupled architecture
@@ -58,119 +55,154 @@ namespace kte {
  * positive x-axis of the base-frame.
  */
 class manip_P3R3R_kinematics : public inverse_kinematics_model {
-private:
-  shared_ptr< frame_3D< double > > m_base_frame;
-  shared_ptr< gen_coord< double > > m_track_coord;
-  shared_ptr< frame_3D< double > > m_output_frame;
-  shared_ptr< prismatic_joint_3D > m_track_joint;
+ private:
+  std::shared_ptr<frame_3D<double>> m_base_frame;
+  std::shared_ptr<gen_coord<double>> m_track_coord;
+  std::shared_ptr<frame_3D<double>> m_output_frame;
+  std::shared_ptr<prismatic_joint_3D> m_track_joint;
   double m_track_lower_bound;
   double m_track_upper_bound;
 
   manip_3R3R_kinematics m_arm_model;
-  shared_ptr< kte_map_chain > m_chain;
+  std::shared_ptr<kte_map_chain> m_chain;
 
-public:
-  BOOST_STATIC_CONSTANT( std::size_t, degrees_of_freedom = 7 );
+ public:
+  static constexpr std::size_t degrees_of_freedom = 7;
 
-  shared_ptr< kte_map_chain > getKTEChain() const { return m_chain; };
+  std::shared_ptr<kte_map_chain> getKTEChain() const override {
+    return m_chain;
+  }
 
   /**
    * Default constructor.
    */
-  manip_P3R3R_kinematics( const std::string& aName = "",
-                          const shared_ptr< frame_3D< double > >& aBaseFrame = shared_ptr< frame_3D< double > >(),
-                          double aBaseToShoulder = 0.0, double aShoulderToElbow = 1.0, double aElbowToJoint4 = 0.5,
-                          double aJoint4ToWrist = 0.5, double aWristToFlange = 0.2,
-                          const vect_n< double >& aJointLowerBounds
-                          = vect_n< double >( 0.0, -M_PI, -M_PI, -M_PI, -M_PI, -M_PI, -M_PI ),
-                          const vect_n< double >& aJointUpperBounds
-                          = vect_n< double >( 1.0, M_PI, M_PI, M_PI, M_PI, M_PI, M_PI ) );
+  explicit manip_P3R3R_kinematics(
+      const std::string& aName = "",
+      std::shared_ptr<frame_3D<double>> aBaseFrame =
+          std::shared_ptr<frame_3D<double>>(),
+      double aBaseToShoulder = 0.0, double aShoulderToElbow = 1.0,
+      double aElbowToJoint4 = 0.5, double aJoint4ToWrist = 0.5,
+      double aWristToFlange = 0.2,
+      const vect_n<double>& aJointLowerBounds =
+          vect_n<double>(0.0, -M_PI, -M_PI, -M_PI, -M_PI, -M_PI, -M_PI),
+      const vect_n<double>& aJointUpperBounds = vect_n<double>(1.0, M_PI, M_PI,
+                                                               M_PI, M_PI, M_PI,
+                                                               M_PI));
 
-  virtual ~manip_P3R3R_kinematics(){};
+  ~manip_P3R3R_kinematics() override = default;
 
-  virtual std::size_t getJointPositionsCount() const { return 1 + m_arm_model.getJointPositionsCount(); };
+  std::size_t getJointPositionsCount() const override {
+    return 1 + m_arm_model.getJointPositionsCount();
+  }
 
-  virtual std::size_t getJointVelocitiesCount() const { return 1 + m_arm_model.getJointVelocitiesCount(); };
+  std::size_t getJointVelocitiesCount() const override {
+    return 1 + m_arm_model.getJointVelocitiesCount();
+  }
 
-  virtual std::size_t getJointAccelerationsCount() const { return 1 + m_arm_model.getJointAccelerationsCount(); };
+  std::size_t getJointAccelerationsCount() const override {
+    return 1 + m_arm_model.getJointAccelerationsCount();
+  }
 
-  virtual std::size_t getDependentPositionsCount() const { return m_arm_model.getDependentPositionsCount(); };
+  std::size_t getDependentPositionsCount() const override {
+    return m_arm_model.getDependentPositionsCount();
+  }
 
-  virtual std::size_t getDependentVelocitiesCount() const { return m_arm_model.getDependentVelocitiesCount(); };
+  std::size_t getDependentVelocitiesCount() const override {
+    return m_arm_model.getDependentVelocitiesCount();
+  }
 
-  virtual std::size_t getDependentAccelerationsCount() const { return m_arm_model.getDependentAccelerationsCount(); };
+  std::size_t getDependentAccelerationsCount() const override {
+    return m_arm_model.getDependentAccelerationsCount();
+  }
 
-  virtual std::size_t getCoordsCount() const { return 1 + m_arm_model.getCoordsCount(); };
+  std::size_t getCoordsCount() const override {
+    return 1 + m_arm_model.getCoordsCount();
+  }
 
-  virtual shared_ptr< gen_coord< double > > getCoord( std::size_t i ) const {
-    if( i == 0 )
+  std::shared_ptr<gen_coord<double>> getCoord(std::size_t i) const override {
+    if (i == 0) {
       return m_track_coord;
-    else
-      return m_arm_model.getCoord( i - 1 );
-  };
+    }
+    return m_arm_model.getCoord(i - 1);
+  }
 
-  virtual std::size_t getDependentFrames3DCount() const { return m_arm_model.getDependentFrames3DCount(); };
+  std::size_t getDependentFrames3DCount() const override {
+    return m_arm_model.getDependentFrames3DCount();
+  }
 
-  virtual shared_ptr< joint_dependent_frame_3D > getDependentFrame3D( std::size_t i ) const {
-    return m_arm_model.getDependentFrame3D( i );
-  };
+  std::shared_ptr<joint_dependent_frame_3D> getDependentFrame3D(
+      std::size_t i) const override {
+    return m_arm_model.getDependentFrame3D(i);
+  }
 
-  virtual void doDirectMotion();
+  void doDirectMotion() override;
 
-  virtual void doInverseMotion();
+  void doInverseMotion() override;
 
-  virtual void getJacobianMatrix( mat< double, mat_structure::rectangular >& Jac ) const;
+  void getJacobianMatrix(
+      mat<double, mat_structure::rectangular>& Jac) const override;
 
-  virtual void getJacobianMatrixAndDerivative( mat< double, mat_structure::rectangular >& Jac,
-                                               mat< double, mat_structure::rectangular >& JacDot ) const;
+  void getJacobianMatrixAndDerivative(
+      mat<double, mat_structure::rectangular>& Jac,
+      mat<double, mat_structure::rectangular>& JacDot) const override;
 
-  virtual vect_n< double > getJointPositionLowerBounds() const;
+  vect_n<double> getJointPositionLowerBounds() const override;
 
-  virtual void setJointPositionLowerBounds( const vect_n< double >& aJointLowerBounds );
+  void setJointPositionLowerBounds(
+      const vect_n<double>& aJointLowerBounds) override;
 
-  virtual vect_n< double > getJointPositionUpperBounds() const;
+  vect_n<double> getJointPositionUpperBounds() const override;
 
-  virtual void setJointPositionUpperBounds( const vect_n< double >& aJointUpperBounds );
+  void setJointPositionUpperBounds(
+      const vect_n<double>& aJointUpperBounds) override;
 
-  virtual vect_n< double > getJointPositions() const;
+  vect_n<double> getJointPositions() const override;
 
-  virtual void setJointPositions( const vect_n< double >& aJointPositions );
+  void setJointPositions(const vect_n<double>& aJointPositions) override;
 
-  virtual vect_n< double > getJointVelocities() const;
+  vect_n<double> getJointVelocities() const override;
 
-  virtual void setJointVelocities( const vect_n< double >& aJointVelocities );
+  void setJointVelocities(const vect_n<double>& aJointVelocities) override;
 
-  virtual vect_n< double > getJointAccelerations() const;
+  vect_n<double> getJointAccelerations() const override;
 
-  virtual void setJointAccelerations( const vect_n< double >& aJointAccelerations );
+  void setJointAccelerations(
+      const vect_n<double>& aJointAccelerations) override;
 
-  virtual vect_n< double > getDependentPositions() const { return m_arm_model.getDependentPositions(); };
+  vect_n<double> getDependentPositions() const override {
+    return m_arm_model.getDependentPositions();
+  }
 
-  virtual vect_n< double > getDependentVelocities() const { return m_arm_model.getDependentVelocities(); };
+  vect_n<double> getDependentVelocities() const override {
+    return m_arm_model.getDependentVelocities();
+  }
 
-  virtual vect_n< double > getDependentAccelerations() const { return m_arm_model.getDependentAccelerations(); };
+  vect_n<double> getDependentAccelerations() const override {
+    return m_arm_model.getDependentAccelerations();
+  }
 
-  virtual void setDependentPositions( const vect_n< double >& aDepPositions ) {
-    m_arm_model.setDependentPositions( aDepPositions );
-  };
+  void setDependentPositions(const vect_n<double>& aDepPositions) override {
+    m_arm_model.setDependentPositions(aDepPositions);
+  }
 
-  virtual void setDependentVelocities( const vect_n< double >& aDepVelocities ) {
-    m_arm_model.setDependentVelocities( aDepVelocities );
-  };
+  void setDependentVelocities(const vect_n<double>& aDepVelocities) override {
+    m_arm_model.setDependentVelocities(aDepVelocities);
+  }
 
-  virtual void setDependentAccelerations( const vect_n< double >& aDepAccelerations ) {
-    m_arm_model.setDependentAccelerations( aDepAccelerations );
-  };
+  void setDependentAccelerations(
+      const vect_n<double>& aDepAccelerations) override {
+    m_arm_model.setDependentAccelerations(aDepAccelerations);
+  }
 
+  void save(serialization::oarchive& A, unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const;
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int );
-
-  RK_RTTI_MAKE_CONCRETE_1BASE( manip_P3R3R_kinematics, 0xC2100059, 1, "manip_P3R3R_kinematics",
-                               inverse_kinematics_model )
+  RK_RTTI_MAKE_CONCRETE_1BASE(manip_P3R3R_kinematics, 0xC2100059, 1,
+                              "manip_P3R3R_kinematics",
+                              inverse_kinematics_model)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

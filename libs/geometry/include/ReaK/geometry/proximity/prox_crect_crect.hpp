@@ -36,40 +36,39 @@
 
 #include <ReaK/geometry/shapes/capped_rectangle.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
-
-proximity_record_2D compute_proximity( const capped_rectangle& aCRect1, const shape_2D_precompute_pack& aPack1,
-                                       const capped_rectangle& aCRect2, const shape_2D_precompute_pack& aPack2 );
+proximity_record_2D compute_proximity(const capped_rectangle& aCRect1,
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const capped_rectangle& aCRect2,
+                                      const shape_2D_precompute_pack& aPack2);
 
 /**
  * This class is for proximity queries between two capped rectangles.
  */
 class prox_crect_crect : public proximity_finder_2D {
-protected:
+ protected:
   const capped_rectangle* mCRect1;
   const capped_rectangle* mCRect2;
 
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_2D computeProximity( const shape_2D_precompute_pack& aPack1,
-                                                const shape_2D_precompute_pack& aPack2 );
+  proximity_record_2D computeProximity(
+      const shape_2D_precompute_pack& aPack1,
+      const shape_2D_precompute_pack& aPack2) override;
 
   /**
    * Default constructor.
    * \param aCRect1 The first capped rectangle involved in the proximity query.
    * \param aCRect2 The second capped rectangle involved in the proximity query.
    */
-  prox_crect_crect( const capped_rectangle* aCRect1 = nullptr, const capped_rectangle* aCRect2 = nullptr );
+  explicit prox_crect_crect(const capped_rectangle* aCRect1 = nullptr,
+                            const capped_rectangle* aCRect2 = nullptr);
 
   /** Destructor. */
-  virtual ~prox_crect_crect(){};
+  ~prox_crect_crect() override = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

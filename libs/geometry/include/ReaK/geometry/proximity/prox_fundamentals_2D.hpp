@@ -36,11 +36,6 @@
 
 #include <ReaK/geometry/shapes/rectangle.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {};
-};
+namespace ReaK::geom {}  // namespace ReaK::geom
 
 #endif

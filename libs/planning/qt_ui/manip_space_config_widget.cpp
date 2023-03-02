@@ -38,29 +38,29 @@ namespace qt {
 
 static QString last_used_path;
 
+ManipSpaceConfigWidget::ManipSpaceConfigWidget(QWidget* parent,
+                                               Qt::WindowFlags flags)
+    : QDockWidget(tr("Space"), parent, flags), ui(new Ui::ManipSpaceConfig()) {
+  QScrollArea* dock_scroll = new QScrollArea(this);
+  dock_scroll->setWidgetResizable(true);
+  QWidget* dock_wid = new QWidget(this);
+  dock_scroll->setWidget(dock_wid);
+  this->QDockWidget::setWidget(dock_scroll);
+  ui->setupUi(dock_wid);
 
-ManipSpaceConfigWidget::ManipSpaceConfigWidget( QWidget* parent, Qt::WindowFlags flags )
-    : QDockWidget( tr( "Space" ), parent, flags ), ui( new Ui::ManipSpaceConfig() ) {
-  QScrollArea* dock_scroll = new QScrollArea( this );
-  dock_scroll->setWidgetResizable( true );
-  QWidget* dock_wid = new QWidget( this );
-  dock_scroll->setWidget( dock_wid );
-  this->QDockWidget::setWidget( dock_scroll );
-  ui->setupUi( dock_wid );
-
-  connect( ui->actionValuesChanged, SIGNAL( triggered() ), this, SLOT( updateInternalValues() ) );
-  connect( ui->load_button, SIGNAL( clicked() ), this, SLOT( loadSpaceConfig() ) );
-  connect( ui->save_button, SIGNAL( clicked() ), this, SLOT( saveSpaceConfig() ) );
+  connect(ui->actionValuesChanged, SIGNAL(triggered()), this,
+          SLOT(updateInternalValues()));
+  connect(ui->load_button, SIGNAL(clicked()), this, SLOT(loadSpaceConfig()));
+  connect(ui->save_button, SIGNAL(clicked()), this, SLOT(saveSpaceConfig()));
 
   updateInternalValues();
 };
 
 ManipSpaceConfigWidget::~ManipSpaceConfigWidget() {
-  delete static_cast< QScrollArea* >( this->QDockWidget::widget() )->widget();
+  delete static_cast<QScrollArea*>(this->QDockWidget::widget())->widget();
   delete this->QDockWidget::widget();
   delete ui;
 };
-
 
 void ManipSpaceConfigWidget::updateInternalValues() {
 
@@ -77,79 +77,94 @@ void ManipSpaceConfigWidget::updateInternalValues() {
 
 void ManipSpaceConfigWidget::updateExternalValues() {
 
-  ui->actionValuesChanged->disconnect( this, SLOT( updateInternalValues() ) );
+  ui->actionValuesChanged->disconnect(this, SLOT(updateInternalValues()));
 
-  ui->order_selection->setCurrentIndex( space_order );
-  ui->interp_selection->setCurrentIndex( interp_id );
-  ui->min_interval_spinbox->setValue( min_travel );
-  ui->max_interval_spinbox->setValue( max_travel );
+  ui->order_selection->setCurrentIndex(space_order);
+  ui->interp_selection->setCurrentIndex(interp_id);
+  ui->min_interval_spinbox->setValue(min_travel);
+  ui->max_interval_spinbox->setValue(max_travel);
 
-  ui->temporal_space_check->setChecked( is_temporal );
-  ui->rate_limited_check->setChecked( is_rate_limited );
+  ui->temporal_space_check->setChecked(is_temporal);
+  ui->rate_limited_check->setChecked(is_rate_limited);
 
-  ui->output_space_selection->setCurrentIndex( output_space_order );
+  ui->output_space_selection->setCurrentIndex(output_space_order);
 
-  connect( ui->actionValuesChanged, SIGNAL( triggered() ), this, SLOT( updateInternalValues() ) );
+  connect(ui->actionValuesChanged, SIGNAL(triggered()), this,
+          SLOT(updateInternalValues()));
 };
 
 void ManipSpaceConfigWidget::saveSpaceConfig() {
-  QString fileName
-    = QFileDialog::getSaveFileName( this, tr( "Save Space Configurations..." ), last_used_path,
-                                    tr( "Robot Space Configurations (*.rspace.rkx *.rspace.rkb *.rspace.pbuf)" ) );
+  QString fileName = QFileDialog::getSaveFileName(
+      this, tr("Save Space Configurations..."), last_used_path,
+      tr("Robot Space Configurations (*.rspace.rkx *.rspace.rkb "
+         "*.rspace.pbuf)"));
 
-  if( fileName == tr( "" ) )
+  if (fileName == tr(""))
     return;
 
-  last_used_path = QFileInfo( fileName ).absolutePath();
+  last_used_path = QFileInfo(fileName).absolutePath();
 
-  saveSpaceConfiguration( fileName.toStdString() );
+  saveSpaceConfiguration(fileName.toStdString());
 };
 
 void ManipSpaceConfigWidget::loadSpaceConfig() {
-  QString fileName
-    = QFileDialog::getOpenFileName( this, tr( "Open Space Configurations..." ), last_used_path,
-                                    tr( "Robot Space Configurations (*.rspace.rkx *.rspace.rkb *.rspace.pbuf)" ) );
+  QString fileName = QFileDialog::getOpenFileName(
+      this, tr("Open Space Configurations..."), last_used_path,
+      tr("Robot Space Configurations (*.rspace.rkx *.rspace.rkb "
+         "*.rspace.pbuf)"));
 
-  if( fileName == tr( "" ) )
+  if (fileName == tr(""))
     return;
 
-  last_used_path = QFileInfo( fileName ).absolutePath();
+  last_used_path = QFileInfo(fileName).absolutePath();
 
-  loadSpaceConfiguration( fileName.toStdString() );
+  loadSpaceConfiguration(fileName.toStdString());
 };
 
-void ManipSpaceConfigWidget::saveSpaceConfiguration( const std::string& aFilename ) {
+void ManipSpaceConfigWidget::saveSpaceConfiguration(
+    const std::string& aFilename) {
 
   updateInternalValues();
 
   try {
-    shared_ptr< serialization::oarchive > p_ao = serialization::open_oarchive( aFilename );
-    ( *p_ao ) & RK_SERIAL_SAVE_WITH_NAME( space_order ) & RK_SERIAL_SAVE_WITH_NAME( interp_id )
-      & RK_SERIAL_SAVE_WITH_NAME( min_travel ) & RK_SERIAL_SAVE_WITH_NAME( max_travel )
-      & RK_SERIAL_SAVE_WITH_NAME( is_temporal ) & RK_SERIAL_SAVE_WITH_NAME( is_rate_limited )
-      & RK_SERIAL_SAVE_WITH_NAME( output_space_order );
-  } catch( ... ) {
-    QMessageBox::information( this, "File Type Not Supported!", "Sorry, this file-type is not supported!",
-                              QMessageBox::Ok );
+    std::shared_ptr<serialization::oarchive> p_ao =
+        serialization::open_oarchive(aFilename);
+    (*p_ao) & RK_SERIAL_SAVE_WITH_NAME(space_order) &
+        RK_SERIAL_SAVE_WITH_NAME(interp_id) &
+        RK_SERIAL_SAVE_WITH_NAME(min_travel) &
+        RK_SERIAL_SAVE_WITH_NAME(max_travel) &
+        RK_SERIAL_SAVE_WITH_NAME(is_temporal) &
+        RK_SERIAL_SAVE_WITH_NAME(is_rate_limited) &
+        RK_SERIAL_SAVE_WITH_NAME(output_space_order);
+  } catch (...) {
+    QMessageBox::information(this, "File Type Not Supported!",
+                             "Sorry, this file-type is not supported!",
+                             QMessageBox::Ok);
     return;
   };
 };
 
-void ManipSpaceConfigWidget::loadSpaceConfiguration( const std::string& aFilename ) {
+void ManipSpaceConfigWidget::loadSpaceConfiguration(
+    const std::string& aFilename) {
 
   try {
-    shared_ptr< serialization::iarchive > p_ai = serialization::open_iarchive( aFilename );
-    ( *p_ai ) & RK_SERIAL_LOAD_WITH_NAME( space_order ) & RK_SERIAL_LOAD_WITH_NAME( interp_id )
-      & RK_SERIAL_LOAD_WITH_NAME( min_travel ) & RK_SERIAL_LOAD_WITH_NAME( max_travel )
-      & RK_SERIAL_LOAD_WITH_NAME( is_temporal ) & RK_SERIAL_LOAD_WITH_NAME( is_rate_limited )
-      & RK_SERIAL_LOAD_WITH_NAME( output_space_order );
-  } catch( ... ) {
-    QMessageBox::information( this, "File Type Not Supported!", "Sorry, this file-type is not supported!",
-                              QMessageBox::Ok );
+    std::shared_ptr<serialization::iarchive> p_ai =
+        serialization::open_iarchive(aFilename);
+    (*p_ai) & RK_SERIAL_LOAD_WITH_NAME(space_order) &
+        RK_SERIAL_LOAD_WITH_NAME(interp_id) &
+        RK_SERIAL_LOAD_WITH_NAME(min_travel) &
+        RK_SERIAL_LOAD_WITH_NAME(max_travel) &
+        RK_SERIAL_LOAD_WITH_NAME(is_temporal) &
+        RK_SERIAL_LOAD_WITH_NAME(is_rate_limited) &
+        RK_SERIAL_LOAD_WITH_NAME(output_space_order);
+  } catch (...) {
+    QMessageBox::information(this, "File Type Not Supported!",
+                             "Sorry, this file-type is not supported!",
+                             QMessageBox::Ok);
     return;
   };
 
   updateExternalValues();
 };
-};
-};
+};  // namespace qt
+};  // namespace ReaK

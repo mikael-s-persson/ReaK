@@ -35,13 +35,10 @@
 #include <ReaK/core/base/defs.hpp>
 
 #include <algorithm>
-#include <iterator>
 #include <functional>
+#include <iterator>
 
-namespace ReaK {
-
-/** This is the namespace for all ReaK sorting algorithms implementations. */
-namespace sorting {
+namespace ReaK::sorting {
 
 /**
  * This function performs an insertion sort on a given range of elements, and with the
@@ -52,17 +49,18 @@ namespace sorting {
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template < typename BidirIter, typename Compare >
-void insertion_sort( BidirIter first, BidirIter last, Compare comp ) {
-  typedef typename std::iterator_traits< BidirIter >::value_type ValueType;
-  for( BidirIter current = std::next( first ); current != last; ++current ) {
-    ValueType tmp = std::move( *current );
+template <typename BidirIter, typename Compare>
+void insertion_sort(BidirIter first, BidirIter last, Compare comp) {
+  for (BidirIter current = std::next(first); current != last; ++current) {
+    auto tmp = std::move(*current);
     BidirIter it = current;
-    for( BidirIter it_prev; ( ( it != first ) && ( comp( tmp, *( it_prev = std::prev( it ) ) ) ) ); --it )
-      *it = std::move( *it_prev );
-    *it = std::move( tmp );
-  };
-};
+    for (BidirIter it_prev;
+         ((it != first) && (comp(tmp, *(it_prev = std::prev(it))))); --it) {
+      *it = std::move(*it_prev);
+    }
+    *it = std::move(tmp);
+  }
+}
 
 /**
  * This function performs an insertion sort on a given range of elements, and by using the
@@ -71,11 +69,11 @@ void insertion_sort( BidirIter first, BidirIter last, Compare comp ) {
  * \param first The start of the range to be sorted.
  * \param last One element past the end of the range to be sorted.
  */
-template < typename BidirIter >
-inline void insertion_sort( BidirIter first, BidirIter last ) {
-  insertion_sort( first, last, std::less< typename std::iterator_traits< BidirIter >::value_type >() );
-};
-};
-};
+template <typename BidirIter>
+inline void insertion_sort(BidirIter first, BidirIter last) {
+  insertion_sort(first, last, std::less<>());
+}
 
-#endif
+}  // namespace ReaK::sorting
+
+#endif  // REAK_INSERTION_SORT_HPP

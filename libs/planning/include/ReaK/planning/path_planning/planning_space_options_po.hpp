@@ -38,100 +38,118 @@
 
 #include <boost/program_options.hpp>
 
+namespace ReaK::pp {
 
-namespace ReaK {
-
-namespace pp {
-
-
-boost::program_options::options_description get_planning_space_options_po_desc() {
+boost::program_options::options_description
+get_planning_space_options_po_desc() {
   namespace po = boost::program_options;
-  po::options_description planning_space_options( "Planning-space options" );
-  planning_space_options.add_options()( "space-definition", po::value< std::string >(),
-                                        "specify the file containing the space settings (order, interp, etc.)." )
+  po::options_description planning_space_options("Planning-space options");
+  planning_space_options.add_options()(
+      "space-definition", po::value<std::string>(),
+      "specify the file containing the space settings (order, interp, etc.).")
 
-    ( "space-order", po::value< std::size_t >(), "differential order of the planning space (0,1,2,...)." )(
-      "interpolation-method", po::value< std::string >(),
-      "the interpolation method to use in the planning (can be: linear, cubic, quintic, svp, sap)." )
+      ("space-order", po::value<std::size_t>(),
+       "differential order of the planning space (0,1,2,...).")(
+          "interpolation-method", po::value<std::string>(),
+          "the interpolation method to use in the planning (can be: linear, "
+          "cubic, quintic, svp, sap).")
 
-    ( "use-temporal-space", "specify that the planning space is temporal (space-time)." )(
-      "use-rate-limited-space", "specify that the planning space is rate-limited (reach-time normalization)." )
+          ("use-temporal-space",
+           "specify that the planning space is temporal (space-time).")(
+              "use-rate-limited-space",
+              "specify that the planning space is rate-limited (reach-time "
+              "normalization).")
 
-    ( "min-travel-dist", po::value< double >(),
-      "minimum distance to travel between 'distinct' points in the planning-space." )(
-      "max-travel-dist", po::value< double >(),
-      "maximum distance to travel between points in the planning-space (max reachable)." )
+              ("min-travel-dist", po::value<double>(),
+               "minimum distance to travel between 'distinct' points in the "
+               "planning-space.")("max-travel-dist", po::value<double>(),
+                                  "maximum distance to travel between points "
+                                  "in the planning-space (max reachable).")
 
-    ( "output-space-order", po::value< std::size_t >(), "differential order of the output-space (0,1,2,...)." )(
-      "output-interp-method", po::value< std::string >(),
-      "the interpolation method to use in the output (can be: linear, cubic, quintic, svp, sap)." )(
-      "use-rate-limited-output-space", "specify that the output-space is rate-limited (reach-time normalization)." );
+                  ("output-space-order", po::value<std::size_t>(),
+                   "differential order of the output-space (0,1,2,...).")(
+                      "output-interp-method", po::value<std::string>(),
+                      "the interpolation method to use in the output (can be: "
+                      "linear, cubic, quintic, svp, sap).")(
+                      "use-rate-limited-output-space",
+                      "specify that the output-space is rate-limited "
+                      "(reach-time normalization).");
   return planning_space_options;
-};
+}
 
-
-planning_space_options get_planning_space_options_from_po( boost::program_options::variables_map& vm ) {
+planning_space_options get_planning_space_options_from_po(
+    boost::program_options::variables_map& vm) {
   planning_space_options space_options;
 
-  if( vm.count( "space-definition" ) ) {
+  if (vm.count("space-definition")) {
     try {
-      ( *serialization::open_iarchive( vm["space-definition"].as< std::string >() ) ) >> space_options;
-    } catch( std::exception& e ) {
-      RK_UNUSED( e );
-    };
-  };
+      (*serialization::open_iarchive(
+          vm["space-definition"].as<std::string>())) >>
+          space_options;
+    } catch (std::exception& e) {
+      RK_UNUSED(e);
+    }
+  }
 
-  if( vm.count( "space-order" ) )
-    space_options.set_space_order( vm["space-order"].as< std::size_t >() );
+  if (vm.count("space-order")) {
+    space_options.set_space_order(vm["space-order"].as<std::size_t>());
+  }
 
-  if( vm.count( "interpolation-method" ) ) {
-    if( vm["interpolation-method"].as< std::string >() == "linear" )
-      space_options.set_interp_id( 0 );
-    else if( vm["interpolation-method"].as< std::string >() == "cubic" )
-      space_options.set_interp_id( 1 );
-    else if( vm["interpolation-method"].as< std::string >() == "quintic" )
-      space_options.set_interp_id( 2 );
-    else if( vm["interpolation-method"].as< std::string >() == "svp" )
-      space_options.set_interp_id( 3 );
-    else if( vm["interpolation-method"].as< std::string >() == "sap" )
-      space_options.set_interp_id( 4 );
-  };
+  if (vm.count("interpolation-method")) {
+    if (vm["interpolation-method"].as<std::string>() == "linear") {
+      space_options.set_interp_id(0);
+    } else if (vm["interpolation-method"].as<std::string>() == "cubic") {
+      space_options.set_interp_id(1);
+    } else if (vm["interpolation-method"].as<std::string>() == "quintic") {
+      space_options.set_interp_id(2);
+    } else if (vm["interpolation-method"].as<std::string>() == "p") {
+      space_options.set_interp_id(3);
+    } else if (vm["interpolation-method"].as<std::string>() == "sap") {
+      space_options.set_interp_id(4);
+    }
+  }
 
-  if( vm.count( "use-temporal-space" ) ) {
-    space_options.set_temporal_space( true );
-    space_options.set_temporal_output_space( true );
-  };
-  if( vm.count( "use-rate-limited-space" ) )
-    space_options.set_rate_limited( true );
+  if (vm.count("use-temporal-space")) {
+    space_options.set_temporal_space(true);
+    space_options.set_temporal_output_space(true);
+  }
+  if (vm.count("use-rate-limited-space")) {
+    space_options.set_rate_limited(true);
+  }
 
-  if( vm.count( "min-travel-dist" ) )
-    space_options.min_travel = vm["min-travel-dist"].as< double >();
-  if( vm.count( "max-travel-dist" ) )
-    space_options.max_travel = vm["max-travel-dist"].as< double >();
+  if (vm.count("min-travel-dist")) {
+    space_options.min_travel = vm["min-travel-dist"].as<double>();
+  }
+  if (vm.count("max-travel-dist")) {
+    space_options.max_travel = vm["max-travel-dist"].as<double>();
+  }
 
+  if (vm.count("output-space-order")) {
+    space_options.set_output_space_order(
+        vm["output-space-order"].as<std::size_t>());
+  }
 
-  if( vm.count( "output-space-order" ) )
-    space_options.set_output_space_order( vm["output-space-order"].as< std::size_t >() );
+  if (vm.count("output-interp-method")) {
+    if (vm["output-interp-method"].as<std::string>() == "linear") {
+      space_options.set_output_interp_id(0);
+    } else if (vm["output-interp-method"].as<std::string>() == "cubic") {
+      space_options.set_output_interp_id(1);
+    } else if (vm["output-interp-method"].as<std::string>() == "quintic") {
+      space_options.set_output_interp_id(2);
+    } else if (vm["output-interp-method"].as<std::string>() == "p") {
+      space_options.set_output_interp_id(3);
+    } else if (vm["output-interp-method"].as<std::string>() == "sap") {
+      space_options.set_output_interp_id(4);
+    }
+  }
 
-  if( vm.count( "output-interp-method" ) ) {
-    if( vm["output-interp-method"].as< std::string >() == "linear" )
-      space_options.set_output_interp_id( 0 );
-    else if( vm["output-interp-method"].as< std::string >() == "cubic" )
-      space_options.set_output_interp_id( 1 );
-    else if( vm["output-interp-method"].as< std::string >() == "quintic" )
-      space_options.set_output_interp_id( 2 );
-    else if( vm["output-interp-method"].as< std::string >() == "svp" )
-      space_options.set_output_interp_id( 3 );
-    else if( vm["output-interp-method"].as< std::string >() == "sap" )
-      space_options.set_output_interp_id( 4 );
-  };
-
-  if( vm.count( "use-rate-limited-output-space" ) )
-    space_options.set_output_rate_limited( true );
+  if (vm.count("use-rate-limited-output-space")) {
+    space_options.set_output_rate_limited(true);
+  }
 
   return space_options;
-};
-};
-};
+}
+
+}  // namespace ReaK::pp
 
 #endif

@@ -36,54 +36,52 @@
 #include "joint_space_limits.hpp"
 #include "joint_space_limits_detail.hpp"
 
+namespace ReaK::pp {
 
-namespace ReaK {
-
-namespace pp {
-
-
-template < typename T >
-template < typename NormalSpaceType >
-typename get_rate_limited_space< NormalSpaceType >::type
-  joint_limits_mapping< T >::make_rl_joint_space( const NormalSpaceType& j_space ) const {
-  typename get_rate_limited_space< NormalSpaceType >::type result;
-  detail::create_rl_joint_spaces_impl( result, j_space, *this->limits );
+template <typename T>
+template <typename NormalSpaceType>
+get_rate_limited_space_t<NormalSpaceType>
+joint_limits_mapping<T>::make_rl_joint_space(
+    const NormalSpaceType& j_space) const {
+  get_rate_limited_space_t<NormalSpaceType> result;
+  detail::create_rl_joint_spaces_impl(result, j_space, *this->limits);
   return result;
-};
+}
 
-template < typename T >
-template < typename RateLimitedSpaceType >
-typename get_rate_illimited_space< RateLimitedSpaceType >::type
-  joint_limits_mapping< T >::make_normal_joint_space( const RateLimitedSpaceType& j_space ) const {
-  typename get_rate_illimited_space< RateLimitedSpaceType >::type result;
-  detail::create_normal_joint_spaces_impl( result, j_space, *this->limits );
+template <typename T>
+template <typename RateLimitedSpaceType>
+get_rate_illimited_space_t<RateLimitedSpaceType>
+joint_limits_mapping<T>::make_normal_joint_space(
+    const RateLimitedSpaceType& j_space) const {
+  get_rate_illimited_space_t<RateLimitedSpaceType> result;
+  detail::create_normal_joint_spaces_impl(result, j_space, *this->limits);
   return result;
-};
+}
 
-template < typename T >
-template < typename NormalSpaceType >
-typename topology_traits< typename get_rate_limited_space< NormalSpaceType >::type >::point_type
-  joint_limits_mapping< T >::map_to_space( const typename topology_traits< NormalSpaceType >::point_type& pt,
-                                           const NormalSpaceType&,
-                                           const typename get_rate_limited_space< NormalSpaceType >::type& ) const {
-  typename topology_traits< typename get_rate_limited_space< NormalSpaceType >::type >::point_type result;
-  detail::create_rl_joint_vectors_impl( result, pt, *this->limits );
+template <typename T>
+template <typename NormalSpaceType>
+topology_point_type_t<get_rate_limited_space_t<NormalSpaceType>>
+joint_limits_mapping<T>::map_to_space(
+    const topology_point_type_t<NormalSpaceType>& pt, const NormalSpaceType& /*unused*/,
+    const get_rate_limited_space_t<NormalSpaceType>& /*unused*/) const {
+  topology_point_type_t<get_rate_limited_space_t<NormalSpaceType>> result;
+  detail::create_rl_joint_vectors_impl(result, pt, *this->limits);
   return result;
-};
+}
 
-
-template < typename T >
-template < typename RateLimitedSpaceType >
-typename topology_traits< typename get_rate_illimited_space< RateLimitedSpaceType >::type >::point_type
-  joint_limits_mapping< T >::map_to_space(
-    const typename topology_traits< RateLimitedSpaceType >::point_type& pt, const RateLimitedSpaceType&,
-    const typename get_rate_illimited_space< RateLimitedSpaceType >::type& ) const {
-  typename topology_traits< typename get_rate_illimited_space< RateLimitedSpaceType >::type >::point_type result;
-  detail::create_normal_joint_vectors_impl( result, pt, *this->limits );
+template <typename T>
+template <typename RateLimitedSpaceType>
+topology_point_type_t<get_rate_illimited_space_t<RateLimitedSpaceType>>
+joint_limits_mapping<T>::map_to_space(
+    const topology_point_type_t<RateLimitedSpaceType>& pt,
+    const RateLimitedSpaceType& /*unused*/,
+    const get_rate_illimited_space_t<RateLimitedSpaceType>& /*unused*/) const {
+  topology_point_type_t<get_rate_illimited_space_t<RateLimitedSpaceType>>
+      result;
+  detail::create_normal_joint_vectors_impl(result, pt, *this->limits);
   return result;
-};
-};
-};
+}
 
+}  // namespace ReaK::pp
 
 #endif

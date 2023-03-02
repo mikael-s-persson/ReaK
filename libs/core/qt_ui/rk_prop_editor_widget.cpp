@@ -32,61 +32,71 @@ namespace ReaK {
 
 namespace qt {
 
+PropEditorWidget::PropEditorWidget(ObjTreeQtModel* aObjTreeMdl, QWidget* parent,
+                                   Qt::WindowFlags flags)
+    : QDockWidget(parent, flags),
+      ui(new Ui::RKPropEditorWidget()),
+      mdl(aObjTreeMdl->get_object_graph(), aObjTreeMdl->get_root_node()),
+      delegate(&mdl) {
+  ui->setupUi(this);
+  ui->tableView->setModel(&mdl);
+  ui->tableView->setRootIndex(QModelIndex());
+  ui->tableView->setItemDelegate(&delegate);
+  ui->tableTab->setAttribute(Qt::WA_AlwaysShowToolTips, true);
+  ui->sourceTab->setAttribute(Qt::WA_AlwaysShowToolTips, true);
 
-PropEditorWidget::PropEditorWidget( ObjTreeQtModel* aObjTreeMdl, QWidget* parent, Qt::WindowFlags flags )
-    : QDockWidget( parent, flags ), ui( new Ui::RKPropEditorWidget() ),
-      mdl( aObjTreeMdl->get_object_graph(), aObjTreeMdl->get_root_node() ), delegate( &mdl ) {
-  ui->setupUi( this );
-  ui->tableView->setModel( &mdl );
-  ui->tableView->setRootIndex( QModelIndex() );
-  ui->tableView->setItemDelegate( &delegate );
-  ui->tableTab->setAttribute( Qt::WA_AlwaysShowToolTips, true );
-  ui->sourceTab->setAttribute( Qt::WA_AlwaysShowToolTips, true );
+  connect(aObjTreeMdl,
+          SIGNAL(objectNodeSelected(serialization::object_node_desc)), &mdl,
+          SLOT(selectObject(serialization::object_node_desc)));
+  connect(&mdl, SIGNAL(objectTreeChanged()), aObjTreeMdl, SLOT(treeChanged()));
 
-  connect( aObjTreeMdl, SIGNAL( objectNodeSelected( serialization::object_node_desc ) ), &mdl,
-           SLOT( selectObject( serialization::object_node_desc ) ) );
-  connect( &mdl, SIGNAL( objectTreeChanged() ), aObjTreeMdl, SLOT( treeChanged() ) );
+  connect(&mdl, SIGNAL(objectNameChanged(std::string)), this,
+          SLOT(objNameChanged(std::string)));
+  connect(&mdl, SIGNAL(sourceDataChanged()), this, SLOT(xmlSrcChanged()));
+  connect(this, SIGNAL(editedXMLSrc(std::string)), &mdl,
+          SLOT(sourceDataEdited(std::string)));
 
-  connect( &mdl, SIGNAL( objectNameChanged( std::string ) ), this, SLOT( objNameChanged( std::string ) ) );
-  connect( &mdl, SIGNAL( sourceDataChanged() ), this, SLOT( xmlSrcChanged() ) );
-  connect( this, SIGNAL( editedXMLSrc( std::string ) ), &mdl, SLOT( sourceDataEdited( std::string ) ) );
+  connect(ui->applyButton, SIGNAL(clicked()), this, SLOT(applyButtonClick()));
+  connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(cancelButtonClick()));
 
-  connect( ui->applyButton, SIGNAL( clicked() ), this, SLOT( applyButtonClick() ) );
-  connect( ui->cancelButton, SIGNAL( clicked() ), this, SLOT( cancelButtonClick() ) );
-
-  connect( ui->textEdit, SIGNAL( textChanged() ), this, SLOT( onTextChanged() ) );
+  connect(ui->textEdit, SIGNAL(textChanged()), this, SLOT(onTextChanged()));
 };
 
-PropEditorWidget::~PropEditorWidget() { delete ui; };
+PropEditorWidget::~PropEditorWidget() {
+  delete ui;
+};
 
 void PropEditorWidget::xmlSrcChanged() {
-  ui->textEdit->setText( QString::fromStdString( mdl.get_current_fields().get_complete_src() ) );
-  ui->applyButton->setEnabled( false );
-  ui->cancelButton->setEnabled( false );
+  ui->textEdit->setText(
+      QString::fromStdString(mdl.get_current_fields().get_complete_src()));
+  ui->applyButton->setEnabled(false);
+  ui->cancelButton->setEnabled(false);
 };
 
 void PropEditorWidget::onTextChanged() {
-  ui->applyButton->setEnabled( true );
-  ui->cancelButton->setEnabled( true );
+  ui->applyButton->setEnabled(true);
+  ui->cancelButton->setEnabled(true);
 };
 
 void PropEditorWidget::applyButtonClick() {
-  emit editedXMLSrc( ui->textEdit->toPlainText().toStdString() );
-  ui->applyButton->setEnabled( false );
-  ui->cancelButton->setEnabled( false );
+  emit editedXMLSrc(ui->textEdit->toPlainText().toStdString());
+  ui->applyButton->setEnabled(false);
+  ui->cancelButton->setEnabled(false);
 };
 
 void PropEditorWidget::cancelButtonClick() {
-  ui->textEdit->setText( QString::fromStdString( mdl.get_current_fields().get_complete_src() ) );
-  ui->applyButton->setEnabled( false );
-  ui->cancelButton->setEnabled( false );
+  ui->textEdit->setText(
+      QString::fromStdString(mdl.get_current_fields().get_complete_src()));
+  ui->applyButton->setEnabled(false);
+  ui->cancelButton->setEnabled(false);
 };
 
-void PropEditorWidget::objNameChanged( const std::string& newName ) {
-  if( newName != "" )
-    this->setWindowTitle( QString( "Property Editor - " ) + QString::fromStdString( newName ) );
+void PropEditorWidget::objNameChanged(const std::string& newName) {
+  if (newName != "")
+    this->setWindowTitle(QString("Property Editor - ") +
+                         QString::fromStdString(newName));
   else
-    this->setWindowTitle( QString( "Property Editor" ) );
+    this->setWindowTitle(QString("Property Editor"));
 };
-};
-};
+};  // namespace qt
+};  // namespace ReaK

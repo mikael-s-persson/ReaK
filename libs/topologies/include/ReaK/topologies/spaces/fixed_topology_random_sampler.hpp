@@ -37,9 +37,7 @@
 
 #include "random_sampler_concept.hpp"
 
-namespace ReaK {
-
-namespace pp {
+namespace ReaK::pp {
 
 /**
  * This class is the default random-sampler functor which models the RandomSamplerConcept.
@@ -47,35 +45,36 @@ namespace pp {
  * given topology.
  * \note Do not use this random-sampler to define a topology, because it will be cyclic (infinite recursion).
  */
-template < typename Topology >
+template <typename Topology>
 struct fixed_topology_random_sampler : public serializable {
-  typedef typename topology_traits< Topology >::point_type PointType;
+  using point_type = typename topology_traits<Topology>::point_type;
 
   const Topology* m_space;
 
-  fixed_topology_random_sampler( const Topology* pSpace = nullptr ) : m_space( pSpace ){};
+  fixed_topology_random_sampler(const Topology* pSpace = nullptr)
+      : m_space(pSpace) {}
 
-  template < typename Topology2 >
-  PointType operator()( const Topology2& s ) const {
-    if( m_space )
+  template <typename Topology2>
+  point_type operator()(const Topology2& s) const {
+    if (m_space) {
       return m_space->random_point();
-    else
+    } else {
       return s.random_point();
-  };
+    }
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A, unsigned int) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( fixed_topology_random_sampler, 0xC2450005, 1, "fixed_topology_random_sampler",
-                               serializable )
-};
-};
+  RK_RTTI_MAKE_ABSTRACT_1BASE(fixed_topology_random_sampler, 0xC2450005, 1,
+                              "fixed_topology_random_sampler", serializable)
 };
 
+}  // namespace ReaK::pp
 
 #endif

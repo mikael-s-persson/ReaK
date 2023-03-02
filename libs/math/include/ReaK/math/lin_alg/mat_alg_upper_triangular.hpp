@@ -38,7 +38,6 @@
 
 namespace ReaK {
 
-
 #if 0
 
 
@@ -529,9 +528,7 @@ class mat_up_tri : public mat<T> {
 
 };
 
-
 #endif
-};
-
+};  // namespace ReaK
 
 #endif

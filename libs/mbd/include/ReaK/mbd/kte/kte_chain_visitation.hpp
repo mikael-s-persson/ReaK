@@ -35,54 +35,48 @@
 
 #include "kte_map_chain.hpp"
 
-#include <boost/tuple/tuple.hpp>
-#include <boost/mpl/prior.hpp>
+#include <tuple>
+#include <type_traits>
 
-namespace ReaK {
-
-namespace kte {
+namespace ReaK::kte {
 
 namespace detail {
 
-template < typename Tuple, typename Idx, typename Visitor >
-typename boost::disable_if< boost::mpl::greater< Idx, boost::mpl::size_t< 0 > >, void >::type
-  try_visit_kte( Visitor&, kte_map& ){};
+template <typename Tuple, int Idx, typename Visitor>
+void try_visit_kte(Visitor& vis, kte_map& aModel) {
+  if constexpr (Idx > 0) {
+    try_visit_kte<Tuple, Idx - 1, Visitor>(vis, aModel);
 
-template < typename Tuple, typename Idx, typename Visitor >
-typename boost::enable_if< boost::mpl::greater< Idx, boost::mpl::size_t< 0 > >, void >::type
-  try_visit_kte( Visitor& vis, kte_map& aModel ) {
-  typedef typename boost::mpl::prior< Idx >::type IdxPrior;
+    using TestType = std::tuple_element_t<Idx - 1, Tuple>;
+    if (aModel.castTo(TestType::getStaticObjectType())) {
+      vis(static_cast<TestType&>(aModel));
+    }
+  }
+}
+}  // namespace detail
 
-  try_visit_kte< Tuple, IdxPrior, Visitor >( vis, aModel );
+template <typename Tuple, typename Visitor>
+void visit_kte_chain(Visitor& vis, const kte_map_chain& aChain);
 
-  typedef typename boost::tuples::element< IdxPrior::value, Tuple >::type TestType;
-  if( aModel.castTo( TestType::getStaticObjectType() ) )
-    vis( static_cast< TestType& >( aModel ) );
-};
-};
+template <typename Tuple, typename Visitor>
+void visit_kte(Visitor& vis, kte_map& aModel) {
 
-template < typename Tuple, typename Visitor >
-void visit_kte_chain( Visitor& vis, const kte_map_chain& aChain );
+  detail::try_visit_kte<Tuple, std::tuple_size_v<Tuple>, Visitor>(vis, aModel);
 
-template < typename Tuple, typename Visitor >
-void visit_kte( Visitor& vis, kte_map& aModel ) {
+  if (aModel.castTo(kte_map_chain::getStaticObjectType())) {
+    visit_kte_chain<Tuple, Visitor>(vis, static_cast<kte_map_chain&>(aModel));
+  }
+}
 
-  detail::try_visit_kte< Tuple, boost::mpl::size_t< boost::tuples::length< Tuple >::value >, Visitor >( vis, aModel );
+template <typename Tuple, typename Visitor>
+void visit_kte_chain(Visitor& vis, const kte_map_chain& aChain) {
 
-  if( aModel.castTo( kte_map_chain::getStaticObjectType() ) ) {
-    visit_kte_chain< Tuple, Visitor >( vis, static_cast< kte_map_chain& >( aModel ) );
-  };
-};
+  const std::vector<std::shared_ptr<kte_map>>& mdl_list = aChain.getKTEs();
+  for (const auto& i : mdl_list) {
+    visit_kte<Tuple, Visitor>(vis, *i);
+  }
+}
 
-
-template < typename Tuple, typename Visitor >
-void visit_kte_chain( Visitor& vis, const kte_map_chain& aChain ) {
-
-  const std::vector< shared_ptr< kte_map > >& mdl_list = aChain.getKTEs();
-  for( std::size_t i = 0; i < mdl_list.size(); ++i )
-    visit_kte< Tuple, Visitor >( vis, *( mdl_list[i] ) );
-};
-};
-};
+}  // namespace ReaK::kte
 
 #endif

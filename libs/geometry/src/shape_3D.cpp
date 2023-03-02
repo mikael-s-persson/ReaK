@@ -23,29 +23,27 @@
 
 #include <ReaK/geometry/shapes/shape_3D.hpp>
 
-namespace ReaK {
+namespace ReaK::geom {
 
-namespace geom {
+shape_3D::shape_3D(const std::string& aName,
+                   const std::shared_ptr<pose_3D<double>>& aAnchor,
+                   const pose_3D<double>& aPose)
+    : geometry_3D(aName, aAnchor, aPose) {}
 
+void shape_3D::save(ReaK::serialization::oarchive& A,
+                    unsigned int /*unused*/) const {
+  geometry_3D::save(A, geometry_3D::getStaticObjectType()->TypeVersion());
+}
 
-shape_3D::shape_3D( const std::string& aName, const shared_ptr< pose_3D< double > >& aAnchor,
-                    const pose_3D< double >& aPose )
-    : geometry_3D( aName, aAnchor, aPose ){};
-
-
-void RK_CALL shape_3D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
-  geometry_3D::save( A, geometry_3D::getStaticObjectType()->TypeVersion() );
-};
-
-void RK_CALL shape_3D::load( ReaK::serialization::iarchive& A, unsigned int ) {
-  geometry_3D::load( A, geometry_3D::getStaticObjectType()->TypeVersion() );
-};
+void shape_3D::load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) {
+  geometry_3D::load(A, geometry_3D::getStaticObjectType()->TypeVersion());
+}
 
 shape_3D_precompute_pack shape_3D::createPrecomputePack() const {
   shape_3D_precompute_pack result;
   result.parent = this;
   result.global_pose = mPose.getGlobalPose();
   return result;
-};
-};
-};
+}
+
+}  // namespace ReaK::geom

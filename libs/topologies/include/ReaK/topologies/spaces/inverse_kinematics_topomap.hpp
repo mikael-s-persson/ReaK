@@ -34,30 +34,24 @@
 #define REAK_INVERSE_KINEMATICS_TOPOMAP_HPP
 
 #include <ReaK/core/base/defs.hpp>
+#include <ReaK/math/kinetostatics/gen_coord.hpp>
 #include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
 #include <ReaK/math/lin_alg/vect_alg.hpp>
-#include <ReaK/math/kinetostatics/gen_coord.hpp>
 
 #include <ReaK/mbd/models/inverse_kinematics_model.hpp>
 #include <ReaK/mbd/models/manip_clik_calculator.hpp>
 #include <ReaK/planning/path_planning/metric_space_search.hpp>
 
-#include "joint_space_topologies.hpp"
-#include "joint_space_limits.hpp"
-#include "se3_topologies.hpp"
-#include "se2_topologies.hpp"
 #include "Ndof_spaces.hpp"
-
-// needed for the KNN IK mapping. NOTE: the KNN-IK should be detached from this header file.
-#include <boost/property_map/vector_property_map.hpp>
+#include "joint_space_limits.hpp"
+#include "joint_space_topologies.hpp"
+#include "se2_topologies.hpp"
+#include "se3_topologies.hpp"
 
 #include "direct_kinematics_topomap.hpp"
 #include "inverse_kinematics_topomap_detail.hpp"
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class implements the inverse kinematics mappings associated to a given manipulator kinematics
@@ -65,19 +59,20 @@ namespace pp {
  * it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  */
 class manip_inverse_kin_map : public shared_object {
-public:
+ public:
   typedef manip_inverse_kin_map self;
 
   /** This data member points to a manipulator kinematics model to use for the mappings performed. */
-  shared_ptr< kte::inverse_kinematics_model > model;
+  std::shared_ptr<kte::inverse_kinematics_model> model;
 
   /**
    * Parametrized Constructor.
    * \param aModel A pointer to the manipulator model which can do the inverse kinematics calculation.
    */
-  manip_inverse_kin_map( const shared_ptr< kte::inverse_kinematics_model >& aModel
-                         = shared_ptr< kte::inverse_kinematics_model >() )
-      : model( aModel ){};
+  manip_inverse_kin_map(
+      const std::shared_ptr<kte::inverse_kinematics_model>& aModel =
+          std::shared_ptr<kte::inverse_kinematics_model>())
+      : model(aModel) {}
 
   /**
    * This function template performs a inverse kinematics calculation on the
@@ -86,15 +81,16 @@ public:
    * \param space_out The output space, i.e. the joint-space.
    * \return A point in the output space, i.e. the joint coordinates.
    */
-  template < typename OutSpace >
-  typename topology_traits< OutSpace >::point_type extract_from_model( const OutSpace& space_out ) const {
+  template <typename OutSpace>
+  topology_point_type_t<OutSpace> extract_from_model(
+      const OutSpace& space_out) const {
 
     model->doInverseMotion();
 
-    typename topology_traits< OutSpace >::point_type result;
-    detail::read_joint_coordinates_impl( result, space_out, model );
+    topology_point_type_t<OutSpace> result;
+    detail::read_joint_coordinates_impl(result, space_out, model);
     return result;
-  };
+  }
 
   /**
    * This function template performs a inverse kinematics calculation on the
@@ -107,58 +103,58 @@ public:
    * \param space_out The output space, i.e. the joint-space.
    * \return A point in the output space, i.e. the joint coordinates.
    */
-  template < typename PointType, typename InSpace, typename OutSpace >
-  typename topology_traits< OutSpace >::point_type map_to_space( const PointType& pt, const InSpace& space_in,
-                                                                 const OutSpace& space_out ) const {
+  template <typename PointType, typename InSpace, typename OutSpace>
+  topology_point_type_t<OutSpace> map_to_space(
+      const PointType& pt, const InSpace& space_in,
+      const OutSpace& space_out) const {
 
-    detail::write_dependent_coordinates_impl( pt, space_in, model );
+    detail::write_dependent_coordinates_impl(pt, space_in, model);
 
-    return extract_from_model( space_out );
-  };
-
+    return extract_from_model(space_out);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( model );
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(model);
   };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( model );
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(model);
   };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2400014, 1, "manip_inverse_kin_map", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400014, 1, "manip_inverse_kin_map",
+                              shared_object)
 };
-
 
 /**
  * This class implements the inverse kinematics mappings associated to a given manipulator kinematics
  * model. This class assumes that the manipulator model has a number of rate-limited joint coordinates,
  * and that it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  */
-template < typename RateLimitMap = joint_limits_mapping< double > >
+template <typename RateLimitMap = joint_limits_mapping<double>>
 class manip_rl_inverse_kin_map : public shared_object {
-public:
-  typedef manip_rl_inverse_kin_map< RateLimitMap > self;
+ public:
+  typedef manip_rl_inverse_kin_map<RateLimitMap> self;
 
   /** This data member points to a manipulator kinematics model to use for the mappings performed. */
-  shared_ptr< kte::inverse_kinematics_model > model;
+  std::shared_ptr<kte::inverse_kinematics_model> model;
   /** This data member holds a mapping between the rate-limited joint space and the normal joint-space. */
   RateLimitMap joint_limits_map;
-
 
   /**
    * Parametrized Constructor.
    * \param aModel A pointer to the manipulator model on which the inverse kinematics search is applied.
    * \param aJointLimitMap A pointer to the mapping used to map rate-limited points to the normal joint-space.
    */
-  manip_rl_inverse_kin_map( const shared_ptr< kte::inverse_kinematics_model >& aModel
-                            = shared_ptr< kte::inverse_kinematics_model >(),
-                            const RateLimitMap& aJointLimitMap = RateLimitMap() )
-      : model( aModel ), joint_limits_map( aJointLimitMap ){};
+  manip_rl_inverse_kin_map(
+      const std::shared_ptr<kte::inverse_kinematics_model>& aModel =
+          std::shared_ptr<kte::inverse_kinematics_model>(),
+      const RateLimitMap& aJointLimitMap = RateLimitMap())
+      : model(aModel), joint_limits_map(aJointLimitMap) {}
 
   /**
    * This function template performs a inverse kinematics calculation on the
@@ -167,17 +163,20 @@ public:
    * \param space_out The output space, i.e. the rate-limited joint-space.
    * \return A point in the output space, i.e. the rate-limited joint coordinates.
    */
-  template < typename OutSpace >
-  typename topology_traits< OutSpace >::point_type extract_from_model( const OutSpace& space_out ) const {
+  template <typename OutSpace>
+  topology_point_type_t<OutSpace> extract_from_model(
+      const OutSpace& space_out) const {
 
     model->doInverseMotion();
 
-    typedef typename get_rate_illimited_space< OutSpace >::type NormalJointSpace;
-    typename topology_traits< NormalJointSpace >::point_type result_inter;
-    detail::read_joint_coordinates_impl( result_inter, NormalJointSpace(), model );
+    using NormalJointSpace = typename get_rate_illimited_space<OutSpace>::type;
+    topology_point_type_t<NormalJointSpace> result_inter;
+    detail::read_joint_coordinates_impl(result_inter, NormalJointSpace(),
+                                        model);
 
-    return joint_limits_map.map_to_space( result_inter, NormalJointSpace(), space_out );
-  };
+    return joint_limits_map.map_to_space(result_inter, NormalJointSpace(),
+                                         space_out);
+  }
 
   /**
    * This function template performs a inverse kinematics calculation on the
@@ -190,32 +189,34 @@ public:
    * \param space_out The output space, i.e. the rate-limited joint-space.
    * \return A point in the output space, i.e. the rate-limited joint coordinates.
    */
-  template < typename PointType, typename InSpace, typename OutSpace >
-  typename topology_traits< OutSpace >::point_type map_to_space( const PointType& pt, const InSpace& space_in,
-                                                                 const OutSpace& space_out ) const {
+  template <typename PointType, typename InSpace, typename OutSpace>
+  topology_point_type_t<OutSpace> map_to_space(
+      const PointType& pt, const InSpace& space_in,
+      const OutSpace& space_out) const {
 
-    detail::write_dependent_coordinates_impl( pt, space_in, model );
+    detail::write_dependent_coordinates_impl(pt, space_in, model);
 
-    return extract_from_model( space_out );
-  };
-
+    return extract_from_model(space_out);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( model ) & RK_SERIAL_SAVE_WITH_NAME( joint_limits_map );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( model ) & RK_SERIAL_LOAD_WITH_NAME( joint_limits_map );
-  };
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(model) &
+        RK_SERIAL_SAVE_WITH_NAME(joint_limits_map);
+  }
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(model) &
+        RK_SERIAL_LOAD_WITH_NAME(joint_limits_map);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2400015, 1, "manip_rl_inverse_kin_map", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400015, 1, "manip_rl_inverse_kin_map",
+                              shared_object)
 };
-
 
 /**
  * This class implements the inverse kinematics mappings associated to a given manipulator kinematics
@@ -223,11 +224,11 @@ public:
  * it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  */
 class manip_clik_kin_map : public shared_object {
-public:
-  typedef manip_clik_kin_map self;
+ public:
+  using self = manip_clik_kin_map;
 
   /** This data member points to a manipulator kinematics model to use for the mappings performed. */
-  shared_ptr< kte::direct_kinematics_model > model;
+  std::shared_ptr<kte::direct_kinematics_model> model;
   /** This holds the inverse kinematics calculator factory. */
   mutable kte::manip_clik_calculator clik_calc;
 
@@ -245,12 +246,16 @@ public:
    * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint
    * (barrier).
    */
-  manip_clik_kin_map( const shared_ptr< kte::direct_kinematics_model >& aModel
-                      = shared_ptr< kte::direct_kinematics_model >(),
-                      const shared_ptr< optim::cost_evaluator >& aCostEvaluator = shared_ptr< optim::cost_evaluator >(),
-                      double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300, double aTol = 1e-6,
-                      double aEta = 1e-3, double aTau = 0.99 )
-      : model( aModel ), clik_calc( aModel, aCostEvaluator, aMaxRadius, aMu, aMaxIter, aTol, aEta, aTau ){};
+  manip_clik_kin_map(
+      const std::shared_ptr<kte::direct_kinematics_model>& aModel =
+          std::shared_ptr<kte::direct_kinematics_model>(),
+      const std::shared_ptr<optim::cost_evaluator>& aCostEvaluator =
+          std::shared_ptr<optim::cost_evaluator>(),
+      double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300,
+      double aTol = 1e-6, double aEta = 1e-3, double aTau = 0.99)
+      : model(aModel),
+        clik_calc(aModel, aCostEvaluator, aMaxRadius, aMu, aMaxIter, aTol, aEta,
+                  aTau) {}
 
   /**
    * This function template performs a inverse kinematics calculation on the
@@ -263,55 +268,54 @@ public:
    * \param space_out The output space, i.e. the joint-space.
    * \return A point in the output space, i.e. the joint coordinates.
    */
-  template < typename PointType, typename InSpace, typename OutSpace >
-  typename topology_traits< OutSpace >::point_type map_to_space( const PointType& pt, const InSpace& space_in,
-                                                                 const OutSpace& space_out ) const {
-    typename topology_traits< OutSpace >::point_type result;
+  template <typename PointType, typename InSpace, typename OutSpace>
+  topology_point_type_t<OutSpace> map_to_space(
+      const PointType& pt, const InSpace& space_in,
+      const OutSpace& space_out) const {
+    topology_point_type_t<OutSpace> result;
 
-    detail::write_dependent_coordinates_impl( pt, space_in, model );
+    detail::write_dependent_coordinates_impl(pt, space_in, model);
 
     clik_calc.solveInverseKinematics();
 
-    detail::read_joint_coordinates_impl( result, space_out, model );
+    detail::read_joint_coordinates_impl(result, space_out, model);
 
     return result;
-  };
-
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( model ) & RK_SERIAL_SAVE_WITH_NAME( clik_calc );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( model ) & RK_SERIAL_LOAD_WITH_NAME( clik_calc );
-  };
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(model) & RK_SERIAL_SAVE_WITH_NAME(clik_calc);
+  }
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(model) & RK_SERIAL_LOAD_WITH_NAME(clik_calc);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2400016, 1, "manip_clik_kin_map", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400016, 1, "manip_clik_kin_map",
+                              shared_object)
 };
-
 
 /**
  * This class implements the inverse kinematics mappings associated to a given manipulator kinematics
  * model. This class assumes that the manipulator model has a number of rate-limited joint coordinates,
  * and that it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  */
-template < typename RateLimitMap = joint_limits_mapping< double > >
+template <typename RateLimitMap = joint_limits_mapping<double>>
 class manip_rl_clik_kin_map : public shared_object {
-public:
-  typedef manip_rl_clik_kin_map< RateLimitMap > self;
+ public:
+  using self = manip_rl_clik_kin_map<RateLimitMap>;
 
   /** This data member points to a manipulator kinematics model to use for the mappings performed. */
-  shared_ptr< kte::direct_kinematics_model > model;
+  std::shared_ptr<kte::direct_kinematics_model> model;
   /** This holds the inverse kinematics calculator factory. */
   mutable kte::manip_clik_calculator clik_calc;
   /** This data member holds a mapping between the rate-limited joint space and the normal joint-space. */
   RateLimitMap joint_limits_map;
-
 
   /**
    * Parametrized Constructor.
@@ -328,15 +332,18 @@ public:
    * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint
    * (barrier).
    */
-  manip_rl_clik_kin_map( const shared_ptr< kte::direct_kinematics_model >& aModel
-                         = shared_ptr< kte::direct_kinematics_model >(),
-                         const RateLimitMap& aJointLimitMap = RateLimitMap(),
-                         const shared_ptr< optim::cost_evaluator >& aCostEvaluator
-                         = shared_ptr< optim::cost_evaluator >(),
-                         double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300, double aTol = 1e-6,
-                         double aEta = 1e-3, double aTau = 0.99 )
-      : model( aModel ), clik_calc( aModel, aCostEvaluator, aMaxRadius, aMu, aMaxIter, aTol, aEta, aTau ),
-        joint_limits_map( aJointLimitMap ){};
+  manip_rl_clik_kin_map(
+      const std::shared_ptr<kte::direct_kinematics_model>& aModel =
+          std::shared_ptr<kte::direct_kinematics_model>(),
+      const RateLimitMap& aJointLimitMap = RateLimitMap(),
+      const std::shared_ptr<optim::cost_evaluator>& aCostEvaluator =
+          std::shared_ptr<optim::cost_evaluator>(),
+      double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300,
+      double aTol = 1e-6, double aEta = 1e-3, double aTau = 0.99)
+      : model(aModel),
+        clik_calc(aModel, aCostEvaluator, aMaxRadius, aMu, aMaxIter, aTol, aEta,
+                  aTau),
+        joint_limits_map(aJointLimitMap) {}
 
   /**
    * This function template performs a inverse kinematics calculation on the
@@ -349,52 +356,54 @@ public:
    * \param space_out The output space, i.e. the rate-limited joint-space.
    * \return A point in the output space, i.e. the rate-limited joint coordinates.
    */
-  template < typename PointType, typename InSpace, typename OutSpace >
-  typename topology_traits< OutSpace >::point_type map_to_space( const PointType& pt, const InSpace& space_in,
-                                                                 const OutSpace& space_out ) const {
-    typename topology_traits< OutSpace >::point_type result;
+  template <typename PointType, typename InSpace, typename OutSpace>
+  topology_point_type_t<OutSpace> map_to_space(
+      const PointType& pt, const InSpace& space_in,
+      const OutSpace& space_out) const {
+    topology_point_type_t<OutSpace> result;
 
-    detail::write_dependent_coordinates_impl( pt, space_in, model );
+    detail::write_dependent_coordinates_impl(pt, space_in, model);
 
     clik_calc.solveInverseKinematics();
 
-    typedef typename get_rate_illimited_space< OutSpace >::type NormalJointSpace;
-    typename topology_traits< NormalJointSpace >::point_type result_inter;
-    detail::read_joint_coordinates_impl( result_inter, NormalJointSpace(), model );
-    result = joint_limits_map.map_to_space( result_inter, NormalJointSpace(), space_out );
+    typedef typename get_rate_illimited_space<OutSpace>::type NormalJointSpace;
+    topology_point_type_t<NormalJointSpace> result_inter;
+    detail::read_joint_coordinates_impl(result_inter, NormalJointSpace(),
+                                        model);
+    result = joint_limits_map.map_to_space(result_inter, NormalJointSpace(),
+                                           space_out);
 
     return result;
-  };
-
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( model ) & RK_SERIAL_SAVE_WITH_NAME( clik_calc )
-      & RK_SERIAL_SAVE_WITH_NAME( joint_limits_map );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( model ) & RK_SERIAL_LOAD_WITH_NAME( clik_calc )
-      & RK_SERIAL_LOAD_WITH_NAME( joint_limits_map );
-  };
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(model) & RK_SERIAL_SAVE_WITH_NAME(clik_calc) &
+        RK_SERIAL_SAVE_WITH_NAME(joint_limits_map);
+  }
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(model) & RK_SERIAL_LOAD_WITH_NAME(clik_calc) &
+        RK_SERIAL_LOAD_WITH_NAME(joint_limits_map);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2400017, 1, "manip_rl_clik_kin_map", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400017, 1, "manip_rl_clik_kin_map",
+                              shared_object)
 };
-
 
 /**
  * This class implements the inverse kinematics mappings associated to a given manipulator kinematics
  * model. This class assumes that the manipulator model has a number of joint coordinates, and that
  * it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  */
-template < typename JointStateType >
+template <typename JointStateType>
 class manip_clik_fig_kin_map : public manip_clik_kin_map {
-public:
-  typedef manip_clik_fig_kin_map< JointStateType > self;
+ public:
+  using self = manip_clik_fig_kin_map<JointStateType>;
 
   JointStateType initial_guess;
 
@@ -413,15 +422,17 @@ public:
    * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint
    * (barrier).
    */
-  manip_clik_fig_kin_map( const JointStateType& aInitGuess = JointStateType(),
-                          const shared_ptr< kte::direct_kinematics_model >& aModel
-                          = shared_ptr< kte::direct_kinematics_model >(),
-                          const shared_ptr< optim::cost_evaluator >& aCostEvaluator
-                          = shared_ptr< optim::cost_evaluator >(),
-                          double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300, double aTol = 1e-6,
-                          double aEta = 1e-3, double aTau = 0.99 )
-      : manip_clik_kin_map( aModel, aCostEvaluator, aMaxRadius, aMu, aMaxIter, aTol, aEta, aTau ),
-        initial_guess( aInitGuess ){};
+  manip_clik_fig_kin_map(
+      const JointStateType& aInitGuess = JointStateType(),
+      const std::shared_ptr<kte::direct_kinematics_model>& aModel =
+          std::shared_ptr<kte::direct_kinematics_model>(),
+      const std::shared_ptr<optim::cost_evaluator>& aCostEvaluator =
+          std::shared_ptr<optim::cost_evaluator>(),
+      double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300,
+      double aTol = 1e-6, double aEta = 1e-3, double aTau = 0.99)
+      : manip_clik_kin_map(aModel, aCostEvaluator, aMaxRadius, aMu, aMaxIter,
+                           aTol, aEta, aTau),
+        initial_guess(aInitGuess) {}
 
   /**
    * This function template performs a inverse kinematics calculation on the
@@ -434,50 +445,53 @@ public:
    * \param space_out The output space, i.e. the joint-space.
    * \return A point in the output space, i.e. the joint coordinates.
    */
-  template < typename PointType, typename InSpace, typename OutSpace >
-  typename topology_traits< OutSpace >::point_type map_to_space( const PointType& pt, const InSpace& space_in,
-                                                                 const OutSpace& space_out ) const {
-    typename topology_traits< OutSpace >::point_type result;
+  template <typename PointType, typename InSpace, typename OutSpace>
+  topology_point_type_t<OutSpace> map_to_space(
+      const PointType& pt, const InSpace& space_in,
+      const OutSpace& space_out) const {
+    topology_point_type_t<OutSpace> result;
 
-    detail::write_joint_coordinates_impl( initial_guess, space_out, model );
+    detail::write_joint_coordinates_impl(initial_guess, space_out, model);
 
-    detail::write_dependent_coordinates_impl( pt, space_in, model );
+    detail::write_dependent_coordinates_impl(pt, space_in, model);
 
     clik_calc.solveInverseKinematics();
 
-    detail::read_joint_coordinates_impl( result, space_out, model );
+    detail::read_joint_coordinates_impl(result, space_out, model);
 
     return result;
-  };
-
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    manip_clik_kin_map::save( A, manip_clik_kin_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( initial_guess );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    manip_clik_kin_map::load( A, manip_clik_kin_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( initial_guess );
-  };
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    manip_clik_kin_map::save(
+        A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(initial_guess);
+  }
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    manip_clik_kin_map::load(
+        A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(initial_guess);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC240001A, 1, "manip_clik_fig_kin_map", manip_clik_kin_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240001A, 1, "manip_clik_fig_kin_map",
+                              manip_clik_kin_map)
 };
-
 
 /**
  * This class implements the inverse kinematics mappings associated to a given manipulator kinematics
  * model. This class assumes that the manipulator model has a number of rate-limited joint coordinates,
  * and that it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  */
-template < typename JointStateType, typename RateLimitMap = joint_limits_mapping< double > >
-class manip_rl_clik_fig_kin_map : public manip_rl_clik_kin_map< RateLimitMap > {
-public:
-  typedef manip_rl_clik_kin_map< RateLimitMap > base_type;
-  typedef manip_rl_clik_fig_kin_map< JointStateType, RateLimitMap > self;
+template <typename JointStateType,
+          typename RateLimitMap = joint_limits_mapping<double>>
+class manip_rl_clik_fig_kin_map : public manip_rl_clik_kin_map<RateLimitMap> {
+ public:
+  using base_type = manip_rl_clik_kin_map<RateLimitMap>;
+  using self = manip_rl_clik_fig_kin_map<JointStateType, RateLimitMap>;
 
   JointStateType initial_guess;
 
@@ -497,16 +511,16 @@ public:
    * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint
    * (barrier).
    */
-  manip_rl_clik_fig_kin_map( const JointStateType& aInitGuess = JointStateType(),
-                             const shared_ptr< kte::direct_kinematics_model >& aModel
-                             = shared_ptr< kte::direct_kinematics_model >(),
-                             const RateLimitMap& aJointLimitMap = RateLimitMap(),
-                             const shared_ptr< optim::cost_evaluator >& aCostEvaluator
-                             = shared_ptr< optim::cost_evaluator >(),
-                             double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300, double aTol = 1e-6,
-                             double aEta = 1e-3, double aTau = 0.99 )
-      : base_type( aModel, aJointLimitMap, aCostEvaluator, aMaxRadius, aMu, aMaxIter, aTol, aEta, aTau ),
-        initial_guess( aInitGuess ){};
+  manip_rl_clik_fig_kin_map(
+      const JointStateType& aInitGuess = {},
+      const std::shared_ptr<kte::direct_kinematics_model>& aModel = {},
+      const RateLimitMap& aJointLimitMap = {},
+      const std::shared_ptr<optim::cost_evaluator>& aCostEvaluator = {},
+      double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300,
+      double aTol = 1e-6, double aEta = 1e-3, double aTau = 0.99)
+      : base_type(aModel, aJointLimitMap, aCostEvaluator, aMaxRadius, aMu,
+                  aMaxIter, aTol, aEta, aTau),
+        initial_guess(aInitGuess) {}
 
   /**
    * This function template performs a inverse kinematics calculation on the
@@ -519,44 +533,47 @@ public:
    * \param space_out The output space, i.e. the rate-limited joint-space.
    * \return A point in the output space, i.e. the rate-limited joint coordinates.
    */
-  template < typename PointType, typename InSpace, typename OutSpace >
-  typename topology_traits< OutSpace >::point_type map_to_space( const PointType& pt, const InSpace& space_in,
-                                                                 const OutSpace& space_out ) const {
-    typename topology_traits< OutSpace >::point_type result;
-    typedef typename get_rate_illimited_space< OutSpace >::type NormalJointSpace;
+  template <typename PointType, typename InSpace, typename OutSpace>
+  topology_point_type_t<OutSpace> map_to_space(
+      const PointType& pt, const InSpace& space_in,
+      const OutSpace& space_out) const {
+    topology_point_type_t<OutSpace> result;
+    using NormalJointSpace = typename get_rate_illimited_space<OutSpace>::type;
 
-    typename topology_traits< NormalJointSpace >::point_type ip_inter
-      = this->joint_limits_map.map_to_space( initial_guess, space_out, NormalJointSpace() );
-    detail::write_joint_coordinates_impl( ip_inter, NormalJointSpace(), this->model );
+    auto ip_inter = this->joint_limits_map.map_to_space(
+        initial_guess, space_out, NormalJointSpace());
+    detail::write_joint_coordinates_impl(ip_inter, NormalJointSpace(),
+                                         this->model);
 
-    detail::write_dependent_coordinates_impl( pt, space_in, this->model );
+    detail::write_dependent_coordinates_impl(pt, space_in, this->model);
 
     this->clik_calc.solveInverseKinematics();
 
-    typename topology_traits< NormalJointSpace >::point_type result_inter;
-    detail::read_joint_coordinates_impl( result_inter, NormalJointSpace(), this->model );
-    result = this->joint_limits_map.map_to_space( result_inter, NormalJointSpace(), space_out );
+    topology_point_type_t<NormalJointSpace> result_inter;
+    detail::read_joint_coordinates_impl(result_inter, NormalJointSpace(),
+                                        this->model);
+    result = this->joint_limits_map.map_to_space(result_inter,
+                                                 NormalJointSpace(), space_out);
 
     return result;
-  };
-
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    base_type::save( A, base_type::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( initial_guess );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    base_type::load( A, base_type::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( initial_guess );
-  };
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(initial_guess);
+  }
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(initial_guess);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC240001B, 1, "manip_rl_clik_fig_kin_map", base_type )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240001B, 1, "manip_rl_clik_fig_kin_map",
+                              base_type)
 };
-
 
 /**
  * This class implements the inverse kinematics mappings associated to a given manipulator kinematics
@@ -564,8 +581,8 @@ public:
  * it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  */
 class manip_clik_rnd_restart_map : public manip_clik_kin_map {
-public:
-  typedef manip_clik_rnd_restart_map self;
+ public:
+  using self = manip_clik_rnd_restart_map;
 
   std::size_t restart_count;
 
@@ -585,12 +602,14 @@ public:
    * \param aRestartCount The number of restarts to try before giving up on the inverse kinematics search.
    */
   manip_clik_rnd_restart_map(
-    const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
-    const shared_ptr< optim::cost_evaluator >& aCostEvaluator = shared_ptr< optim::cost_evaluator >(),
-    double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300, double aTol = 1e-6, double aEta = 1e-3,
-    double aTau = 0.99, std::size_t aRestartCount = 10 )
-      : manip_clik_kin_map( aModel, aCostEvaluator, aMaxRadius, aMu, aMaxIter, aTol, aEta, aTau ),
-        restart_count( aRestartCount ){};
+      const std::shared_ptr<kte::direct_kinematics_model>& aModel = {},
+      const std::shared_ptr<optim::cost_evaluator>& aCostEvaluator = {},
+      double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300,
+      double aTol = 1e-6, double aEta = 1e-3, double aTau = 0.99,
+      std::size_t aRestartCount = 10)
+      : manip_clik_kin_map(aModel, aCostEvaluator, aMaxRadius, aMu, aMaxIter,
+                           aTol, aEta, aTau),
+        restart_count(aRestartCount) {}
 
   /**
    * This function template performs a inverse kinematics calculation on the
@@ -603,68 +622,73 @@ public:
    * \param space_out The output space, i.e. the joint-space.
    * \return A point in the output space, i.e. the joint coordinates.
    */
-  template < typename PointType, typename InSpace, typename OutSpace >
-  typename topology_traits< OutSpace >::point_type map_to_space( const PointType& pt, const InSpace& space_in,
-                                                                 const OutSpace& space_out ) const {
-    typename topology_traits< OutSpace >::point_type result;
+  template <typename PointType, typename InSpace, typename OutSpace>
+  topology_point_type_t<OutSpace> map_to_space(
+      const PointType& pt, const InSpace& space_in,
+      const OutSpace& space_out) const {
+    topology_point_type_t<OutSpace> result;
 
-    detail::write_dependent_coordinates_impl( pt, space_in, model );
+    detail::write_dependent_coordinates_impl(pt, space_in, model);
 
     clik_calc.readDesiredFromModel();
 
-    for( std::size_t i = 0; i < restart_count; ++i ) {
+    for (std::size_t i = 0; i < restart_count; ++i) {
 
-      detail::write_joint_coordinates_impl( get( random_sampler, space_out )( space_out ), space_out, model );
+      detail::write_joint_coordinates_impl(
+          get(random_sampler, space_out)(space_out), space_out, model);
 
-      vect_n< double > x = clik_calc.readJointStatesFromModel();
+      vect_n<double> x = clik_calc.readJointStatesFromModel();
 
       try {
-        clik_calc.runOptimizer( x );
-      } catch( singularity_error& e ) {
-      } catch( maximum_iteration& e ) {
-      } catch( optim::infeasible_problem& e ) {
-      };
+        clik_calc.runOptimizer(x);
+      } catch (singularity_error& e) {
+      } catch (maximum_iteration& e) {
+      } catch (optim::infeasible_problem& e) {};
 
-      if( norm_2( clik_calc.computeStatesError( x ) ) < clik_calc.tol * 10.0 ) {
-        clik_calc.writeJointStatesToModel( x );
+      if (norm_2(clik_calc.computeStatesError(x)) < clik_calc.tol * 10.0) {
+        clik_calc.writeJointStatesToModel(x);
         break;
-      } else if( i == restart_count - 1 )
-        throw optim::infeasible_problem( "The inverse kinematics problem cannot be solved!" );
-    };
+      } else if (i == restart_count - 1) {
+        throw optim::infeasible_problem(
+            "The inverse kinematics problem cannot be solved!");
+      }
+    }
 
-    detail::read_joint_coordinates_impl( result, space_out, model );
+    detail::read_joint_coordinates_impl(result, space_out, model);
 
     return result;
-  };
-
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    manip_clik_kin_map::save( A, manip_clik_kin_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( restart_count );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    manip_clik_kin_map::load( A, manip_clik_kin_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( restart_count );
-  };
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    manip_clik_kin_map::save(
+        A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(restart_count);
+  }
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    manip_clik_kin_map::load(
+        A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(restart_count);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC240001C, 1, "manip_clik_rnd_restart_map", manip_clik_kin_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240001C, 1, "manip_clik_rnd_restart_map",
+                              manip_clik_kin_map)
 };
-
 
 /**
  * This class implements the inverse kinematics mappings associated to a given manipulator kinematics
  * model. This class assumes that the manipulator model has a number of rate-limited joint coordinates,
  * and that it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  */
-template < typename RateLimitMap = joint_limits_mapping< double > >
-class manip_rl_clik_rnd_restart_map : public manip_rl_clik_kin_map< RateLimitMap > {
-public:
-  typedef manip_rl_clik_kin_map< RateLimitMap > base_type;
-  typedef manip_rl_clik_rnd_restart_map< RateLimitMap > self;
+template <typename RateLimitMap = joint_limits_mapping<double>>
+class manip_rl_clik_rnd_restart_map
+    : public manip_rl_clik_kin_map<RateLimitMap> {
+ public:
+  using base_type = manip_rl_clik_kin_map<RateLimitMap>;
+  using self = manip_rl_clik_rnd_restart_map<RateLimitMap>;
 
   std::size_t restart_count;
 
@@ -685,13 +709,15 @@ public:
    * \param aRestartCount The number of restarts to try before giving up on the inverse kinematics search.
    */
   manip_rl_clik_rnd_restart_map(
-    const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
-    const RateLimitMap& aJointLimitMap = RateLimitMap(),
-    const shared_ptr< optim::cost_evaluator >& aCostEvaluator = shared_ptr< optim::cost_evaluator >(),
-    double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300, double aTol = 1e-6, double aEta = 1e-3,
-    double aTau = 0.99, std::size_t aRestartCount = 10 )
-      : base_type( aModel, aJointLimitMap, aCostEvaluator, aMaxRadius, aMu, aMaxIter, aTol, aEta, aTau ),
-        restart_count( aRestartCount ){};
+      const std::shared_ptr<kte::direct_kinematics_model>& aModel = {},
+      const RateLimitMap& aJointLimitMap = {},
+      const std::shared_ptr<optim::cost_evaluator>& aCostEvaluator = {},
+      double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300,
+      double aTol = 1e-6, double aEta = 1e-3, double aTau = 0.99,
+      std::size_t aRestartCount = 10)
+      : base_type(aModel, aJointLimitMap, aCostEvaluator, aMaxRadius, aMu,
+                  aMaxIter, aTol, aEta, aTau),
+        restart_count(aRestartCount){};
 
   /**
    * This function template performs a inverse kinematics calculation on the
@@ -704,426 +730,69 @@ public:
    * \param space_out The output space, i.e. the rate-limited joint-space.
    * \return A point in the output space, i.e. the rate-limited joint coordinates.
    */
-  template < typename PointType, typename InSpace, typename OutSpace >
-  typename topology_traits< OutSpace >::point_type map_to_space( const PointType& pt, const InSpace& space_in,
-                                                                 const OutSpace& space_out ) const {
-    typename topology_traits< OutSpace >::point_type result;
-    typedef typename get_rate_illimited_space< OutSpace >::type NormalJointSpace;
+  template <typename PointType, typename InSpace, typename OutSpace>
+  topology_point_type_t<OutSpace> map_to_space(
+      const PointType& pt, const InSpace& space_in,
+      const OutSpace& space_out) const {
+    topology_point_type_t<OutSpace> result;
+    using NormalJointSpace = typename get_rate_illimited_space<OutSpace>::type;
 
-    detail::write_dependent_coordinates_impl( pt, space_in, this->model );
+    detail::write_dependent_coordinates_impl(pt, space_in, this->model);
 
     this->clik_calc.readDesiredFromModel();
 
-    for( std::size_t i = 0; i < restart_count; ++i ) {
+    for (std::size_t i = 0; i < restart_count; ++i) {
 
-      typename topology_traits< NormalJointSpace >::point_type ip_inter = this->joint_limits_map.map_to_space(
-        get( random_sampler, space_out )( space_out ), space_out, NormalJointSpace() );
-      detail::write_joint_coordinates_impl( ip_inter, NormalJointSpace(), this->model );
+      auto ip_inter = this->joint_limits_map.map_to_space(
+          get(random_sampler, space_out)(space_out), space_out,
+          NormalJointSpace());
+      detail::write_joint_coordinates_impl(ip_inter, NormalJointSpace(),
+                                           this->model);
 
-      vect_n< double > x = this->clik_calc.readJointStatesFromModel();
+      vect_n<double> x = this->clik_calc.readJointStatesFromModel();
 
       try {
-        this->clik_calc.runOptimizer( x );
-      } catch( singularity_error& e ) {
-      } catch( maximum_iteration& e ) {
-      } catch( optim::infeasible_problem& e ) {
-      };
+        this->clik_calc.runOptimizer(x);
+      } catch (singularity_error& e) {
+      } catch (maximum_iteration& e) {
+      } catch (optim::infeasible_problem& e) {};
 
-      if( norm_2( this->clik_calc.computeStatesError( x ) ) < this->clik_calc.tol * 10.0 ) {
-        this->clik_calc.writeJointStatesToModel( x );
+      if (norm_2(this->clik_calc.computeStatesError(x)) <
+          this->clik_calc.tol * 10.0) {
+        this->clik_calc.writeJointStatesToModel(x);
         break;
-      } else if( i == restart_count - 1 )
-        throw optim::infeasible_problem( "The inverse kinematics problem cannot be solved!" );
-    };
+      } else if (i == restart_count - 1) {
+        throw optim::infeasible_problem(
+            "The inverse kinematics problem cannot be solved!");
+      }
+    }
 
-    typename topology_traits< NormalJointSpace >::point_type result_inter;
-    detail::read_joint_coordinates_impl( result_inter, NormalJointSpace(), this->model );
-    result = this->joint_limits_map.map_to_space( result_inter, NormalJointSpace(), space_out );
+    topology_point_type_t<NormalJointSpace> result_inter;
+    detail::read_joint_coordinates_impl(result_inter, NormalJointSpace(),
+                                        this->model);
+    result = this->joint_limits_map.map_to_space(result_inter,
+                                                 NormalJointSpace(), space_out);
 
     return result;
-  };
-
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    base_type::save( A, base_type::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( restart_count );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    base_type::load( A, base_type::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( restart_count );
-  };
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(restart_count);
+  }
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(restart_count);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC240001D, 1, "manip_rl_clik_rnd_restart_map", base_type )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240001D, 1,
+                              "manip_rl_clik_rnd_restart_map", base_type)
 };
 
-
-#if 0
-
-
-#if 1   
-// NOTE: TODO: this is all wrong.
-
-/**
- * This class implements the inverse kinematics mappings associated to a given manipulator kinematics 
- * model. This class assumes that the manipulator model has a number of joint coordinates, and that 
- * it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
- * \tparam CLIKCalcFactory The factory type for creating a CLIK calculator.
- */
-template <typename CLIKCalcFactory, typename JointSpaceType, typename EESpaceType>
-class manip_ik_knn_starts_map : public shared_object {
-  public:
-    
-    typedef manip_ik_knn_starts_map<CLIKCalcFactory,JointSpaceType,EESpaceType> self;
-    
-    /** This data member points to a manipulator kinematics model to use for the mappings performed. */
-    shared_ptr< kte::manipulator_kinematics_model > model; 
-    /** This holds the inverse kinematics calculator factory. */
-    CLIKCalcFactory clik_calc_factory;
-    
-    mutable shared_ptr< kte::manip_clik_calculator > ik_calc;
-    
-    shared_ptr< JointSpaceType > joint_space;
-    shared_ptr< EESpaceType > ee_space;
-    
-    std::size_t sample_count;
-    std::size_t neighbor_count;
-    
-    typedef typename topology_traits< EESpaceType >::point_type ee_state_type;
-    typedef typename topology_traits< JointSpaceType >::point_type joint_state_type;
-    
-    mutable boost::vector_property_map< ee_state_type > sample_points;
-    mutable std::vector< joint_state_type > sample_jt_points;
-    
-    typedef dvp_tree< std::size_t, 
-                      EESpaceType,
-                      boost::vector_property_map< ee_state_type > > ee_bsp_tree_type;
-    
-    mutable shared_ptr< ee_bsp_tree_type > sample_tree;
-    
-    void initialize_ik_data(bool force_init = false) const {
-      if((force_init) || (model))
-        ik_calc = clik_calc_factory.create_calculator(model);
-      else
-        ik_calc = shared_ptr< kte::manip_clik_calculator >();
-      
-      if((joint_space) && (ee_space)) {
-        std::vector< std::size_t > indices(sample_count);
-        manip_direct_kin_map dk_map = manip_direct_kin_map(model);
-        for(std::size_t i = 0; i < sample_count; ++i) {
-          indices[i] = i;
-          sample_jt_points[i] = get(random_sampler,*joint_space)(*joint_space);
-          put(sample_points, i, dk_map.map_to_space(sample_jt_points[i],*joint_space,*ee_space));
-        };
-        sample_tree = shared_ptr< ee_bsp_tree_type >(new ee_bsp_tree_type(
-          indices.begin(),
-          indices.end(),
-          ee_space, 
-          sample_points));
-      } else
-        sample_tree = shared_ptr< ee_bsp_tree_type >();
-    };
-    
-    manip_ik_knn_starts_map(const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
-                            const CLIKCalcFactory& aCLIKCalcFactory = CLIKCalcFactory(),
-                            const shared_ptr< JointSpaceType >& aJointSpace = shared_ptr< JointSpaceType >(),
-                            const shared_ptr< EESpaceType >& aEESpace = shared_ptr< EESpaceType >(),
-                            const std::size_t& aSampleCount = 1000,
-                            const std::size_t& aNeighborCount = 10) :
-                            model(aModel),
-                            clik_calc_factory(aCLIKCalcFactory), 
-                            ik_calc(),
-                            joint_space(aJointSpace),
-                            ee_space(aEESpace),
-                            sample_count(aSampleCount),
-                            neighbor_count(aNeighborCount),
-                            sample_points(aSampleCount),
-                            sample_jt_points(aSampleCount) {
-      initialize_ik_data();
-    };
-    
-    /**
-     * This function template performs a inverse kinematics calculation on the 
-     * manipulator model.
-     * \tparam PointType The point-type of the input space.
-     * \tparam InSpace The type of the input space (end-effector space).
-     * \tparam OutSpace The type of the output space (joint-space).
-     * \param pt The point in the input space, i.e. the end-effector coordinates.
-     * \param space_in The input space, i.e. the end-effector space.
-     * \param space_out The output space, i.e. the joint-space.
-     * \return A point in the output space, i.e. the joint coordinates.
-     */
-    template <typename PointType, typename InSpace, typename OutSpace>
-    typename topology_traits< OutSpace >::point_type
-    map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
-      typename topology_traits< OutSpace >::point_type result;
-      
-      if(!ik_calc)
-        initialize_ik_data(true);
-            
-      detail::write_dependent_coordinates_impl(pt,space_in,model);
-      
-      ik_calc->readDesiredFromModel();
-      
-      std::vector< joint_state_type > neighbors; neighbors.reserve(neighbor_count);
-      
-      if(sample_tree) {
-        std::vector< std::size_t > neighbors_ids(neighbor_count);
-        std::vector< std::size_t >::iterator it_end = sample_tree->find_nearest(pt, neighbors_ids.begin(), neighbor_count);
-        neighbors_ids.erase(it_end,neighbors_ids.end());
-        for(std::size_t i = 0; i < neighbors_ids.size(); ++i)
-          neighbors.push_back(sample_jt_points[neighbors_ids[i]]);
-      } else {
-        for(std::size_t i = 0; i < neighbor_count; ++i)
-          neighbors.push_back(get(random_sampler,space_out)(space_out));
-      };
-      
-      for(std::size_t i = 0; i < neighbors.size(); ++i) {
-      
-        detail::write_joint_coordinates_impl(neighbors[i], space_out, model);
-      
-        vect_n<double> x = ik_calc->readJointStatesFromModel();
-        
-        try {
-          ik_calc->runOptimizer(x);
-        } catch(singularity_error& e) { RK_UNUSED(e);
-        } catch(maximum_iteration& e) { RK_UNUSED(e);
-        } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
-        };
-        
-        if( norm_2( kte::manip_clik_calculator::eq_function(ik_calc.get())(x) ) < ik_calc->optimizer.tol * 10.0 ) {
-          ik_calc->writeJointStatesToModel(x);
-          break;
-        } else if( i == neighbors.size() - 1 )
-          throw optim::infeasible_problem("The inverse kinematics problem cannot be solved!");
-      };
-      
-      detail::read_joint_coordinates_impl(result,space_out,model);
-      
-      return result;
-    };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(model)
-        & RK_SERIAL_SAVE_WITH_NAME(clik_calc_factory)
-        & RK_SERIAL_SAVE_WITH_NAME(joint_space)
-        & RK_SERIAL_SAVE_WITH_NAME(ee_space)
-        & RK_SERIAL_SAVE_WITH_NAME(sample_count)
-        & RK_SERIAL_SAVE_WITH_NAME(neighbor_count);
-    };
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(model)
-        & RK_SERIAL_LOAD_WITH_NAME(clik_calc_factory)
-        & RK_SERIAL_LOAD_WITH_NAME(joint_space)
-        & RK_SERIAL_LOAD_WITH_NAME(ee_space)
-        & RK_SERIAL_LOAD_WITH_NAME(sample_count)
-        & RK_SERIAL_LOAD_WITH_NAME(neighbor_count);
-      
-      sample_points = boost::vector_property_map< ee_state_type >(sample_count);
-      sample_jt_points = std::vector< joint_state_type >(sample_count);
-      
-      initialize_ik_data();
-    };
-
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240001E,1,"manip_ik_knn_starts_map",shared_object)
-    
-};
-
-#if 0
-/**
- * This class implements the inverse kinematics mappings associated to a given manipulator kinematics 
- * model. This class assumes that the manipulator model has a number of rate-limited joint coordinates, 
- * and that it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
- * \tparam CLIKCalcFactory The factory type for creating a CLIK calculator.
- * \tparam RateLimitMap The type of the mapping between rate-limited joint-spaces and normal joint-spaces.
- */
-template <typename CLIKCalcFactory, typename RateLimitMap, typename JointSpaceType, typename EESpaceType>
-class manip_rl_ik_knn_starts_map : public shared_object {
-  public:
-    
-    typedef manip_rl_ik_knn_starts_map<CLIKCalcFactory,RateLimitMap,JointSpaceType,EESpaceType> self;
-    
-    /** This data member points to a manipulator kinematics model to use for the mappings performed. */
-    shared_ptr< kte::manipulator_kinematics_model > model;
-    /** This holds the inverse kinematics calculator factory. */
-    CLIKCalcFactory clik_calc_factory;
-    mutable shared_ptr< kte::manip_clik_calculator > ik_calc;
-    /** This data member holds a mapping between the rate-limited joint space and the normal joint-space. */
-    RateLimitMap joint_limits_map;
-    
-    shared_ptr< JointSpaceType > joint_space;
-    shared_ptr< EESpaceType > ee_space;
-    
-    std::size_t sample_count;
-    std::size_t neighbor_count;
-    
-    typedef typename topology_traits< EESpaceType >::point_type ee_state_type;
-    typedef typename topology_traits< JointSpaceType >::point_type joint_state_type;
-    
-    mutable boost::vector_property_map< ee_state_type > sample_points;
-    mutable std::vector< joint_state_type > sample_jt_points;
-    
-    typedef dvp_tree< std::size_t, 
-                      EESpaceType,
-                      boost::vector_property_map< ee_state_type > > ee_bsp_tree_type;
-    
-    mutable shared_ptr< ee_bsp_tree_type > sample_tree;
-    
-    void initialize_ik_data(bool force_init = false) const {
-      if((force_init) || ((joint_limits_map.limits) && (model)))
-        ik_calc = clik_calc_factory.create_calculator(joint_limits_map,model);
-      else
-        ik_calc = shared_ptr< kte::manip_clik_calculator >();
-      
-      if((joint_space) && (ee_space)) {
-        std::vector< std::size_t > indices(sample_count);
-        manip_rl_direct_kin_map<RateLimitMap> dk_map = manip_rl_direct_kin_map<RateLimitMap>(joint_limits_map,model);
-        for(std::size_t i = 0; i < sample_count; ++i) {
-          indices[i] = i;
-          sample_jt_points[i] = get(random_sampler,*joint_space)(*joint_space);
-          put(sample_points, i, dk_map.map_to_space(sample_jt_points[i],*joint_space,*ee_space));
-        };
-      
-        sample_tree = shared_ptr< ee_bsp_tree_type >(new ee_bsp_tree_type(
-          indices.begin(),
-          indices.end(),
-          *ee_space, 
-          sample_points));
-      } else
-        sample_tree = shared_ptr< ee_bsp_tree_type >();
-    };
-    
-    manip_rl_ik_knn_starts_map(const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
-                               const RateLimitMap& aJointLimitMap = RateLimitMap(),
-                               const CLIKCalcFactory& aCLIKCalcFactory = CLIKCalcFactory(),
-                               const shared_ptr< JointSpaceType >& aJointSpace = shared_ptr< JointSpaceType >(),
-                               const shared_ptr< EESpaceType >& aEESpace = shared_ptr< EESpaceType >(),
-                               const std::size_t& aSampleCount = 1000,
-                               const std::size_t& aNeighborCount = 10) :
-                               model(aModel),
-                               clik_calc_factory(aCLIKCalcFactory), ik_calc(),
-                               joint_limits_map(aJointLimitMap),
-                               joint_space(aJointSpace),
-                               ee_space(aEESpace),
-                               sample_count(aSampleCount),
-                               neighbor_count(aNeighborCount),
-                               sample_points(aSampleCount),
-                               sample_jt_points(aSampleCount) {
-      initialize_ik_data();
-    };
-    
-    /**
-     * This function template performs a inverse kinematics calculation on the 
-     * manipulator model.
-     * \tparam PointType The point-type of the input space.
-     * \tparam InSpace The type of the input space (end-effector space).
-     * \tparam OutSpace The type of the output space (rate-limited joint-space).
-     * \param pt The point in the input space, i.e. the end-effector coordinates.
-     * \param space_in The input space, i.e. the end-effector space.
-     * \param space_out The output space, i.e. the rate-limited joint-space.
-     * \return A point in the output space, i.e. the rate-limited joint coordinates.
-     */
-    template <typename PointType, typename InSpace, typename OutSpace>
-    typename topology_traits< OutSpace >::point_type
-    map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
-      typename topology_traits< OutSpace >::point_type result;
-      typedef typename RateLimitMap::normal_space_type NormalJointSpace;
-      
-      if(!ik_calc)
-        initialize_ik_data(true);
-      
-      detail::write_dependent_coordinates_impl(pt,space_in,model);
-      
-      ik_calc->readDesiredFromModel();
-      
-      std::vector< joint_state_type > neighbors; neighbors.reserve(neighbor_count);
-      
-      if(sample_tree) {
-        std::vector< std::size_t > neighbors_ids(neighbor_count);
-        std::vector< std::size_t >::iterator it_end = sample_tree->find_nearest(pt, neighbors_ids.begin(), neighbor_count);
-        neighbors_ids.erase(it_end,neighbors_ids.end());
-        for(std::size_t i = 0; i < neighbors_ids.size(); ++i)
-          neighbors.push_back(sample_jt_points[neighbors_ids[i]]);
-      } else {
-        for(std::size_t i = 0; i < neighbor_count; ++i)
-          neighbors.push_back(get(random_sampler,space_out)(space_out));
-      };
-      
-      for(std::size_t i = 0; i < neighbors.size(); ++i) {
-        
-        typename topology_traits<NormalJointSpace>::point_type ip_inter = 
-          joint_limits_map.map_to_space(neighbors[i], space_out, NormalJointSpace());
-        detail::write_joint_coordinates_impl(ip_inter, NormalJointSpace(), model);
-        
-        vect_n<double> x = ik_calc->readJointStatesFromModel();
-        
-        try {
-          ik_calc->runOptimizer(x);
-        } catch(singularity_error& e) { 
-        } catch(maximum_iteration& e) {
-        } catch(optim::infeasible_problem& e) {
-        };
-        
-        if( norm_2( kte::manip_clik_calculator::eq_function(ik_calc.get())(x) ) < ik_calc->optimizer.tol * 10.0 ) {
-          ik_calc->writeJointStatesToModel(x);
-          break;
-        } else if( i == neighbors.size() - 1 )
-          throw optim::infeasible_problem("The inverse kinematics problem cannot be solved!");
-      };
-      
-      typename topology_traits<NormalJointSpace>::point_type result_inter;
-      detail::read_joint_coordinates_impl(result_inter, NormalJointSpace(), model);
-      result = joint_limits_map.map_to_space(result_inter, NormalJointSpace(), space_out);
-      
-      return result;
-    };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(model)
-        & RK_SERIAL_SAVE_WITH_NAME(clik_calc_factory)
-        & RK_SERIAL_SAVE_WITH_NAME(joint_limits_map)
-        & RK_SERIAL_SAVE_WITH_NAME(joint_space)
-        & RK_SERIAL_SAVE_WITH_NAME(ee_space)
-        & RK_SERIAL_SAVE_WITH_NAME(sample_count)
-        & RK_SERIAL_SAVE_WITH_NAME(neighbor_count);
-    };
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(model)
-        & RK_SERIAL_LOAD_WITH_NAME(clik_calc_factory)
-        & RK_SERIAL_LOAD_WITH_NAME(joint_limits_map)
-        & RK_SERIAL_LOAD_WITH_NAME(joint_space)
-        & RK_SERIAL_LOAD_WITH_NAME(ee_space)
-        & RK_SERIAL_LOAD_WITH_NAME(sample_count)
-        & RK_SERIAL_LOAD_WITH_NAME(neighbor_count);
-      initialize_ik_data();
-    };
-
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240001F,1,"manip_rl_ik_knn_starts_map",shared_object)
-    
-    
-};
-#endif
-#endif
-
-#endif
-};
-};
+}  // namespace ReaK::pp
 
 #endif

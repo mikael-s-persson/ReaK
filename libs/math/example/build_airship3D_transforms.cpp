@@ -21,11 +21,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <ReaK/core/serialization/xml_archiver.hpp>
 
-#include <ReaK/math/kinetostatics/rotations_3D.hpp>
 #include <ReaK/math/kinetostatics/quat_alg.hpp>
+#include <ReaK/math/kinetostatics/rotations_3D.hpp>
 
 int main() {
 
@@ -35,33 +34,36 @@ int main() {
 
   // Airship2IMU  gives matrix such that  v_Airship = Airship2IMU * v_IMU
 
-  double Airship2IMU_raw[]
-    = {0.280265845357, 0.0, 0.959922421827, 0.0, -1.0, 0.0, 0.959922421827, 0.0, -0.280265845357};
+  std::array<double, 9> Airship2IMU_raw = {
+      0.280265845357, 0.0, 0.959922421827, 0.0, -1.0, 0.0,
+      0.959922421827, 0.0, -0.280265845357};
 
-  rot_mat_3D< double > Airship2IMU( Airship2IMU_raw );
+  rot_mat_3D<double> Airship2IMU(Airship2IMU_raw.data());
 
-  quaternion< double > Airship2IMU_quat = quaternion< double >( Airship2IMU );
+  quaternion<double> Airship2IMU_quat = quaternion<double>(Airship2IMU);
 
-  quaternion< double > IMU_orientation = Airship2IMU_quat;
+  quaternion<double> IMU_orientation = Airship2IMU_quat;
 
-  vect< double, 3 > IMU_location( -0.896665, 0.0, 0.25711 );
+  vect<double, 3> IMU_location(-0.896665, 0.0, 0.25711);
 
   // Room2Global  gives matrix such that  v_room = Room2Global * v_gbl
 
-  double Room2Global_raw[] = {0.75298919442, -0.65759795928, 0.02392064034, -0.6577626482, -0.7532241836,
-                              -0.0012758604, 0.018856608,    -0.0147733946, -0.9997130464};
+  std::array<double, 9> Room2Global_raw = {
+      0.75298919442, -0.65759795928, 0.02392064034,
+      -0.6577626482, -0.7532241836,  -0.0012758604,
+      0.018856608,   -0.0147733946,  -0.9997130464};
 
-  rot_mat_3D< double > Room2Global( Room2Global_raw );
+  rot_mat_3D<double> Room2Global(Room2Global_raw.data());
 
-  quaternion< double > Room2Global_quat = quaternion< double >( Room2Global );
+  quaternion<double> Room2Global_quat = quaternion<double>(Room2Global);
 
-  quaternion< double > room_orientation = invert( Room2Global_quat );
+  quaternion<double> room_orientation = invert(Room2Global_quat);
 
-  serialization::xml_oarchive out_file( "models/airship3D_transforms.xml" );
+  serialization::xml_oarchive out_file("models/airship3D_transforms.xml");
 
-  out_file& RK_SERIAL_SAVE_WITH_NAME( IMU_orientation ) & RK_SERIAL_SAVE_WITH_NAME( IMU_location )
-    & RK_SERIAL_SAVE_WITH_NAME( room_orientation );
-
+  out_file& RK_SERIAL_SAVE_WITH_NAME(IMU_orientation) &
+      RK_SERIAL_SAVE_WITH_NAME(IMU_location) &
+      RK_SERIAL_SAVE_WITH_NAME(room_orientation);
 
   return 0;
 };

@@ -23,35 +23,19 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
 #include <ReaK/topologies/spaces/hyperball_topology.hpp>
 
-namespace ReaK {
+namespace ReaK::pp {
 
-namespace pp {
+template class hyperball_topology<vect<double, 1>>;
+template class hyperball_topology<vect<double, 2>>;
+template class hyperball_topology<vect<double, 3>>;
+template class hyperball_topology<vect<double, 4>>;
+template class hyperball_topology<vect<double, 5>>;
+template class hyperball_topology<vect<double, 6>>;
+template class hyperball_topology<vect<double, 7>>;
+template class hyperball_topology<vect<double, 8>>;
+template class hyperball_topology<vect<double, 9>>;
+template class hyperball_topology<vect_n<double>>;
 
-template class hyperball_topology< vect< double, 1 > >;
-template class hyperball_topology< vect< double, 2 > >;
-template class hyperball_topology< vect< double, 3 > >;
-template class hyperball_topology< vect< double, 4 > >;
-template class hyperball_topology< vect< double, 5 > >;
-template class hyperball_topology< vect< double, 6 > >;
-template class hyperball_topology< vect< double, 7 > >;
-template class hyperball_topology< vect< double, 8 > >;
-template class hyperball_topology< vect< double, 9 > >;
-template class hyperball_topology< vect_n< double > >;
-};
-};
-
-#else
-
-namespace ReaK {
-
-namespace pp {
-
-void dummy_hyperball_topology_externs_1_symbol(){};
-};
-};
-
-#endif
+}  // namespace ReaK::pp

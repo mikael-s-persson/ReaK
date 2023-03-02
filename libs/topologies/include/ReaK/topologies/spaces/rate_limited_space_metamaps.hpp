@@ -34,22 +34,26 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-namespace ReaK {
+namespace ReaK::pp {
 
-namespace pp {
-
-
-template < typename RateLimitedSpace >
+template <typename RateLimitedSpace>
 struct get_rate_illimited_space {
-  typedef RateLimitedSpace type;
+  using type = RateLimitedSpace;
 };
 
-template < typename NormalSpace >
+template <typename RateLimitedSpace>
+using get_rate_illimited_space_t =
+    typename get_rate_illimited_space<RateLimitedSpace>::type;
+
+template <typename NormalSpace>
 struct get_rate_limited_space {
-  typedef NormalSpace type;
-};
-};
+  using type = NormalSpace;
 };
 
+template <typename NormalSpace>
+using get_rate_limited_space_t =
+    typename get_rate_limited_space<NormalSpace>::type;
+
+}  // namespace ReaK::pp
 
 #endif

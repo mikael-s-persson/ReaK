@@ -37,50 +37,47 @@
 
 #include "so_type.hpp"
 
-namespace ReaK {
-
-namespace rtti {
-
+namespace ReaK::rtti {
 
 /**
  * This class declares the interface for the repository of shared object types.
  */
 class so_type_repo {
-private:
-  so_type_repo( const so_type_repo& );
-  so_type_repo& operator=( const so_type_repo& );
-
+ private:
   so_type* mTypeMap;
 
-  so_type_repo( so_type* aTypeMap );
+  explicit so_type_repo(so_type* aTypeMap);
 
   so_type_repo* next;
   so_type_repo* prev;
 
-protected:
-  bool isInRing( so_type_repo* aRepo );
+ protected:
+  bool isInRing(so_type_repo* aRepo);
 
-public:
+ public:
+  so_type_repo(const so_type_repo&) = delete;
+  so_type_repo& operator=(const so_type_repo&) = delete;
+
   ~so_type_repo();
 
   /// This function merges a repo with this.
-  void merge( so_type_repo* aRepo );
+  void merge(so_type_repo* aRepo);
 
   /// This function finds a TypeID in the descendants (recusively) of this.
-  so_type* findType( const unsigned int* aTypeID ) const;
+  so_type* findType(const unsigned int* aTypeID) const;
 
   /// This function finds a TypeID in the descendants (recusively) of this.
-  so_type* findType( so_type* aTypeID ) const;
+  so_type* findType(so_type* aTypeID) const;
 
   /// This function adds a type to the repo.
-  so_type* addType( so_type* aTypeID );
+  so_type* addType(so_type* aTypeID);
 
   static so_type_repo& getInstance();
 };
 
 /// Global function to access the shared-object repository.
 so_type_repo& getRKSharedObjTypeRepo();
-};
-};
+
+}  // namespace ReaK::rtti
 
 #endif

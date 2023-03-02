@@ -45,25 +45,23 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef REAK_ADSTAR_SEARCH_HPP
 #define REAK_ADSTAR_SEARCH_HPP
 
-#include <functional>
-#include <vector>
-#include <boost/limits.hpp>
+#include <boost/graph/detail/d_ary_heap.hpp>
 #include <boost/graph/exception.hpp>
 #include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/detail/d_ary_heap.hpp>
+#include <boost/limits.hpp>
 #include <boost/property_map/property_map.hpp>
+#include <functional>
+#include <vector>
+
+#include "simple_graph_traits.hpp"
 
 // BGL-Extra includes:
 #include <boost/graph/more_property_tags.hpp>
 
-
-namespace ReaK {
-
-namespace graph {
+namespace ReaK::graph {
 
 /**
   * This concept class defines the valid expressions required of a class to be used as a visitor
@@ -122,41 +120,53 @@ namespace graph {
   * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
   * \tparam Graph The graph type on which the visitor should be able to act.
   */
-template < typename Visitor, typename Graph >
+template <typename Visitor, typename Graph>
 struct ADStarVisitorConcept {
-  BOOST_CONCEPT_USAGE( ADStarVisitorConcept ) {
-    BOOST_CONCEPT_ASSERT( (boost::CopyConstructibleConcept< Visitor >));
-    vis.initialize_vertex( u, g ); // whenever the vertex is first initialized.
-    vis.finish_vertex( u, g ); // whenever a vertex is added to the CLOSED set.
-    vis.recycle_vertex( u, g ); // whenever a vertex is taken out of the CLOSED set.
-    vis.discover_vertex( u, g ); // whenever a vertex is added to the OPEN set (or updated in OPEN).
-    vis.examine_vertex( u, g ); // whenever a vertex is taken out of OPEN, before it gets "expanded".
-    vis.examine_edge( e, g ); // whenever an edge is being looked at (an out_edge of the vertex under examination).
-    vis.edge_relaxed(
-      e, g ); // whenever it is newly decided that an edge is relaxed (has improved the distance for its target)
-    vis.forget_vertex( u,
-                       g ); // whenever a vertex is deemed uninteresting and is taken out of OPEN, but not yet expanded.
-    vis.inconsistent_vertex( u, g ); // whenever a closed vertex becomes INCONS.
-    vis.publish_path( g ); // notify the visitor that at least one A* round has completed and its resulting path
-                           // (partial or complete) can be published (the path is encoded in the predecessor
-                           // property-map).
+  BOOST_CONCEPT_USAGE(ADStarVisitorConcept) {
+    BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
+    // whenever the vertex is first initialized.
+    vis.initialize_vertex(u, g);
+    // whenever a vertex is added to the CLOSED set.
+    vis.finish_vertex(u, g);
+    // whenever a vertex is taken out of the CLOSED set.
+    vis.recycle_vertex(u, g);
+    // whenever a vertex is added to the OPEN set (or updated in OPEN).
+    vis.discover_vertex(u, g);
+    // whenever a vertex is taken out of OPEN, before it gets "expanded".
+    vis.examine_vertex(u, g);
+    // whenever an edge is being looked at (an out_edge of the vertex under examination).
+    vis.examine_edge(e, g);
+    // whenever it is newly decided that an edge is relaxed (has improved the distance for its target)
+    vis.edge_relaxed(e, g);
+    // whenever a vertex is deemed uninteresting and is taken out of OPEN, but not yet expanded.
+    vis.forget_vertex(u, g);
+    // whenever a closed vertex becomes INCONS.
+    vis.inconsistent_vertex(u, g);
+    // notify the visitor that at least one A* round has completed and its resulting path
+    // (partial or complete) can be published (the path is encoded in the predecessor
+    // property-map).
+    vis.publish_path(g);
     bool b = vis.keep_going();
-    RK_UNUSED( b ); // check to see whether the task is finished (return false) or needs to keep going (true).
-    typedef std::back_insert_iterator< std::vector< typename boost::graph_traits< Graph >::edge_descriptor > > EdgeIter;
-    std::vector< typename boost::graph_traits< Graph >::edge_descriptor > vect;
-    std::pair< double, EdgeIter > w_change
-      = vis.detect_edge_change( std::back_inserter( vect ), g ); // ei: back-inserter / forward-iterator for an
-                                                                 // edge-list. Return the cummulative weight-change and
-                                                                 // the edge-iterator at the end of the edge list
-                                                                 // populated by this function.
+    // check to see whether the task is finished (return false) or needs to keep going (true).
+    RK_UNUSED(b);
+    // ei: back-inserter / forward-iterator for an
+    // edge-list. Return the cummulative weight-change and
+    // the edge-iterator at the end of the edge list
+    // populated by this function.
+    using EdgeIter =
+        std::back_insert_iterator<std::vector<graph_edge_t<Graph>>>;
+    std::vector<graph_edge_t<Graph>> vect;
+    std::pair<double, EdgeIter> w_change =
+        vis.detect_edge_change(std::back_inserter(vect), g);
+    // adjust the value of epsilon for a given old-value and last cummulative weight-change
     double old_eps = 0.0;
-    double new_eps = vis.adjust_epsilon( old_eps, w_change.first, g );
-    RK_UNUSED( new_eps ); // adjust the value of epsilon for a given old-value and last cummulative weight-change.
+    double new_eps = vis.adjust_epsilon(old_eps, w_change.first, g);
+    RK_UNUSED(new_eps);
   }
   Visitor vis;
   Graph g;
-  typename boost::graph_traits< Graph >::vertex_descriptor u;
-  typename boost::graph_traits< Graph >::edge_descriptor e;
+  graph_vertex_t<Graph> u;
+  graph_edge_t<Graph> e;
 };
 
 /**
@@ -165,76 +175,76 @@ struct ADStarVisitorConcept {
   * (all functions are empty).
   */
 class default_adstar_visitor {
-public:
+ public:
   default_adstar_visitor() {}
 
-  template < typename Vertex, typename Graph >
-  void initialize_vertex( Vertex u, const Graph& g ) const {
-    RK_UNUSED( u );
-    RK_UNUSED( g );
-  };
-  template < typename Vertex, typename Graph >
-  void discover_vertex( Vertex u, const Graph& g ) const {
-    RK_UNUSED( u );
-    RK_UNUSED( g );
-  };
-  template < typename Vertex, typename Graph >
-  void inconsistent_vertex( Vertex u, const Graph& g ) const {
-    RK_UNUSED( u );
-    RK_UNUSED( g );
-  };
-  template < typename Vertex, typename Graph >
-  void examine_vertex( Vertex u, const Graph& g ) const {
-    RK_UNUSED( u );
-    RK_UNUSED( g );
-  };
-  template < typename Edge, typename Graph >
-  void examine_edge( Edge e, const Graph& g ) const {
-    RK_UNUSED( e );
-    RK_UNUSED( g );
-  };
-  template < typename Edge, typename Graph >
-  void edge_relaxed( Edge e, const Graph& g ) const {
-    RK_UNUSED( e );
-    RK_UNUSED( g );
-  };
-  template < typename Vertex, typename Graph >
-  void forget_vertex( Vertex u, const Graph& g ) const {
-    RK_UNUSED( u );
-    RK_UNUSED( g );
-  };
-  template < typename Vertex, typename Graph >
-  void finish_vertex( Vertex u, const Graph& g ) const {
-    RK_UNUSED( u );
-    RK_UNUSED( g );
-  };
-  template < typename Vertex, typename Graph >
-  void recycle_vertex( Vertex u, const Graph& g ) const {
-    RK_UNUSED( u );
-    RK_UNUSED( g );
-  };
+  template <typename Vertex, typename Graph>
+  void initialize_vertex(Vertex u, const Graph& g) const {
+    RK_UNUSED(u);
+    RK_UNUSED(g);
+  }
+  template <typename Vertex, typename Graph>
+  void discover_vertex(Vertex u, const Graph& g) const {
+    RK_UNUSED(u);
+    RK_UNUSED(g);
+  }
+  template <typename Vertex, typename Graph>
+  void inconsistent_vertex(Vertex u, const Graph& g) const {
+    RK_UNUSED(u);
+    RK_UNUSED(g);
+  }
+  template <typename Vertex, typename Graph>
+  void examine_vertex(Vertex u, const Graph& g) const {
+    RK_UNUSED(u);
+    RK_UNUSED(g);
+  }
+  template <typename Edge, typename Graph>
+  void examine_edge(Edge e, const Graph& g) const {
+    RK_UNUSED(e);
+    RK_UNUSED(g);
+  }
+  template <typename Edge, typename Graph>
+  void edge_relaxed(Edge e, const Graph& g) const {
+    RK_UNUSED(e);
+    RK_UNUSED(g);
+  }
+  template <typename Vertex, typename Graph>
+  void forget_vertex(Vertex u, const Graph& g) const {
+    RK_UNUSED(u);
+    RK_UNUSED(g);
+  }
+  template <typename Vertex, typename Graph>
+  void finish_vertex(Vertex u, const Graph& g) const {
+    RK_UNUSED(u);
+    RK_UNUSED(g);
+  }
+  template <typename Vertex, typename Graph>
+  void recycle_vertex(Vertex u, const Graph& g) const {
+    RK_UNUSED(u);
+    RK_UNUSED(g);
+  }
 
-  template < typename Graph >
-  void publish_path( const Graph& g ) const {
-    RK_UNUSED( g );
-  };
+  template <typename Graph>
+  void publish_path(const Graph& g) const {
+    RK_UNUSED(g);
+  }
 
-  bool keep_going() const { return true; };
+  bool keep_going() const { return true; }
 
-  template < typename EdgeIter, typename Graph >
-  std::pair< double, EdgeIter > detect_edge_change( EdgeIter ei, const Graph& g ) const {
-    RK_UNUSED( g );
-    return std::pair< double, EdgeIter >( 0.0, ei );
-  };
+  template <typename EdgeIter, typename Graph>
+  std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei,
+                                                 const Graph& g) const {
+    RK_UNUSED(g);
+    return std::pair<double, EdgeIter>(0.0, ei);
+  }
 
-  template < typename Graph >
-  double adjust_epsilon( double old_eps, double w_change, const Graph& g ) const {
-    RK_UNUSED( w_change );
-    RK_UNUSED( g );
+  template <typename Graph>
+  double adjust_epsilon(double old_eps, double w_change, const Graph& g) const {
+    RK_UNUSED(w_change);
+    RK_UNUSED(g);
     return old_eps;
-  };
+  }
 };
-
 
 /**
   * This class template is used by the AD* algorithm to constitute the key-values which
@@ -245,13 +255,13 @@ public:
   * \tparam CompareFunction The strict weak-ordering function that can sort the distance values.
   * \tparam EqualCompareFunction The equal-comparison function that can compare two distance values to be equal.
   */
-template < typename DistanceValueType, typename CompareFunction = std::less< DistanceValueType >,
-           typename EqualCompareFunction = std::equal_to< DistanceValueType > >
+template <typename DistanceValueType, typename CompareFunction = std::less<>,
+          typename EqualCompareFunction = std::equal_to<>>
 struct adstar_key_value {
   /**
     * Default constructor.
     */
-  adstar_key_value() : m_k1( 0 ), m_k2( 0 ), m_compare(), m_equal(){};
+  adstar_key_value() : m_k1(0), m_k2(0), m_compare(), m_equal() {}
   /**
     * Parametrized constructor.
     * \param k1 The first value of the key-value.
@@ -259,16 +269,19 @@ struct adstar_key_value {
     * \param compare The functor of type CompareFunction.
     * \param equalCompare The functor of type EqualCompareFunction.
     */
-  adstar_key_value( DistanceValueType k1, DistanceValueType k2, CompareFunction compare = CompareFunction(),
-                    EqualCompareFunction equalCompare = EqualCompareFunction() )
-      : m_k1( k1 ), m_k2( k2 ), m_compare( compare ), m_equal( equalCompare ){};
+  adstar_key_value(DistanceValueType k1, DistanceValueType k2,
+                   CompareFunction compare = CompareFunction(),
+                   EqualCompareFunction equalCompare = EqualCompareFunction())
+      : m_k1(k1), m_k2(k2), m_compare(compare), m_equal(equalCompare) {}
 
   /**
     * The less-than operator for strict weak-ordering.
     */
-  bool operator<( const adstar_key_value< DistanceValueType, CompareFunction, EqualCompareFunction >& aKey ) const {
-    return m_compare( m_k1, aKey.m_k1 ) || ( m_equal( m_k1, aKey.m_k1 ) && m_compare( m_k2, aKey.m_k2 ) );
-  };
+  bool operator<(const adstar_key_value<DistanceValueType, CompareFunction,
+                                        EqualCompareFunction>& aKey) const {
+    return m_compare(m_k1, aKey.m_k1) ||
+           (m_equal(m_k1, aKey.m_k1) && m_compare(m_k2, aKey.m_k2));
+  }
 
   DistanceValueType m_k1, m_k2;
   CompareFunction m_compare;
@@ -279,154 +292,176 @@ struct adstar_key_value {
   * This traits class defines that traits that an AD* key-value should have.
   * \tparam ADStarKeyType The key-value type of which the traits are sought.
   */
-template < typename ADStarKeyType >
+template <typename ADStarKeyType>
 struct adstar_key_traits {
   /** The type of comparison to use for strict weak-ordering of the key-values. */
-  typedef std::less< ADStarKeyType > compare_type;
+  using compare_type = std::less<ADStarKeyType>;
 };
-
 
 namespace detail {
 namespace {
 
-template < typename AStarHeuristicMap, typename UniformCostVisitor, typename UpdatableQueue, typename List,
-           typename PredecessorMap, typename KeyMap, typename DistanceMap, typename RHSMap, typename WeightMap,
-           typename ColorMap, typename CompareFunction, typename EqualCompareFunction, typename CombineFunction,
-           typename ComposeFunction >
+template <typename AStarHeuristicMap, typename UniformCostVisitor,
+          typename UpdatableQueue, typename List, typename PredecessorMap,
+          typename KeyMap, typename DistanceMap, typename RHSMap,
+          typename WeightMap, typename ColorMap, typename CompareFunction,
+          typename EqualCompareFunction, typename CombineFunction,
+          typename ComposeFunction>
 struct adstar_bfs_visitor {
 
-  typedef typename boost::property_traits< KeyMap >::value_type KeyValue;
-  typedef typename boost::property_traits< ColorMap >::value_type ColorValue;
-  typedef boost::color_traits< ColorValue > Color;
-  typedef typename boost::property_traits< DistanceMap >::value_type distance_type;
-  typedef typename boost::property_traits< WeightMap >::value_type weight_type;
+  using KeyValue = property_value_t<KeyMap>;
+  using ColorValue = property_value_t<ColorMap>;
+  using Color = boost::color_traits<ColorValue>;
+  using distance_type = property_value_t<DistanceMap>;
+  using weight_type = property_value_t<WeightMap>;
 
-  adstar_bfs_visitor( AStarHeuristicMap h, UniformCostVisitor vis, UpdatableQueue& Q, List& I, PredecessorMap p,
-                      KeyMap k, DistanceMap d, RHSMap rhs, WeightMap w, ColorMap col, distance_type& epsilon,
-                      CompareFunction compare, EqualCompareFunction equal_compare, CombineFunction combine,
-                      ComposeFunction compose, distance_type inf, distance_type zero )
-      : m_h( h ), m_vis( vis ), m_Q( Q ), m_I( I ), m_predecessor( p ), m_key( k ), m_distance( d ), m_rhs( rhs ),
-        m_weight( w ), m_color( col ), m_epsilon( epsilon ), m_compare( compare ), m_equal_compare( equal_compare ),
-        m_combine( combine ), m_compose( compose ), m_inf( inf ), m_zero( zero ){};
+  adstar_bfs_visitor(AStarHeuristicMap h, UniformCostVisitor vis,
+                     UpdatableQueue& Q, List& I, PredecessorMap p, KeyMap k,
+                     DistanceMap d, RHSMap rhs, WeightMap w, ColorMap col,
+                     distance_type& epsilon, CompareFunction compare,
+                     EqualCompareFunction equal_compare,
+                     CombineFunction combine, ComposeFunction compose,
+                     distance_type inf, distance_type zero)
+      : m_h(h),
+        m_vis(vis),
+        m_Q(Q),
+        m_I(I),
+        m_predecessor(p),
+        m_key(k),
+        m_distance(d),
+        m_rhs(rhs),
+        m_weight(w),
+        m_color(col),
+        m_epsilon(epsilon),
+        m_compare(compare),
+        m_equal_compare(equal_compare),
+        m_combine(combine),
+        m_compose(compose),
+        m_inf(inf),
+        m_zero(zero) {}
 
-  template < typename Vertex, typename Graph >
-  void initialize_vertex( Vertex u, Graph& g ) const {
-    m_vis.initialize_vertex( u, g );
-  };
-  template < typename Vertex, typename Graph >
-  void discover_vertex( Vertex u, Graph& g ) const {
-    m_vis.discover_vertex( u, g );
-  };
-  template < typename Vertex, typename Graph >
-  void inconsistent_vertex( Vertex u, Graph& g ) const {
-    m_vis.inconsistent_vertex( u, g );
-  };
-  template < typename Vertex, typename Graph >
-  void examine_vertex( Vertex u, Graph& g ) const {
-    m_vis.examine_vertex( u, g );
-  };
-  template < typename Edge, typename Graph >
-  void examine_edge( Edge e, Graph& g ) const {
-    if( m_compare( get( m_weight, e ), m_zero ) )
+  template <typename Vertex, typename Graph>
+  void initialize_vertex(Vertex u, Graph& g) const {
+    m_vis.initialize_vertex(u, g);
+  }
+  template <typename Vertex, typename Graph>
+  void discover_vertex(Vertex u, Graph& g) const {
+    m_vis.discover_vertex(u, g);
+  }
+  template <typename Vertex, typename Graph>
+  void inconsistent_vertex(Vertex u, Graph& g) const {
+    m_vis.inconsistent_vertex(u, g);
+  }
+  template <typename Vertex, typename Graph>
+  void examine_vertex(Vertex u, Graph& g) const {
+    m_vis.examine_vertex(u, g);
+  }
+  template <typename Edge, typename Graph>
+  void examine_edge(Edge e, Graph& g) const {
+    if (m_compare(get(m_weight, e), m_zero)) {
       throw boost::negative_edge();
-    m_vis.examine_edge( e, g );
-  };
-  template < typename Vertex, typename Graph >
-  void forget_vertex( Vertex u, Graph& g ) const {
-    m_vis.forget_vertex( u, g );
-  };
-  template < typename Vertex, typename Graph >
-  void finish_vertex( Vertex u, Graph& g ) const {
-    m_vis.finish_vertex( u, g );
-  };
-  template < typename Vertex, typename Graph >
-  void recycle_vertex( Vertex u, Graph& g ) const {
-    m_vis.recycle_vertex( u, g );
-  };
+    }
+    m_vis.examine_edge(e, g);
+  }
+  template <typename Vertex, typename Graph>
+  void forget_vertex(Vertex u, Graph& g) const {
+    m_vis.forget_vertex(u, g);
+  }
+  template <typename Vertex, typename Graph>
+  void finish_vertex(Vertex u, Graph& g) const {
+    m_vis.finish_vertex(u, g);
+  }
+  template <typename Vertex, typename Graph>
+  void recycle_vertex(Vertex u, Graph& g) const {
+    m_vis.recycle_vertex(u, g);
+  }
 
-  template < typename Graph >
-  void publish_path( const Graph& g ) const {
-    m_vis.publish_path( g );
-  };
+  template <typename Graph>
+  void publish_path(const Graph& g) const {
+    m_vis.publish_path(g);
+  }
 
-  bool keep_going() const { return m_vis.keep_going(); };
+  bool keep_going() const { return m_vis.keep_going(); }
 
-  template < typename EdgeIter, typename Graph >
-  std::pair< double, EdgeIter > detect_edge_change( EdgeIter ei, const Graph& g ) const {
-    return m_vis.detect_edge_change( ei, g );
-  };
+  template <typename EdgeIter, typename Graph>
+  std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei,
+                                                 const Graph& g) const {
+    return m_vis.detect_edge_change(ei, g);
+  }
 
-  template < typename Graph >
-  double adjust_epsilon( double old_eps, double w_change, const Graph& g ) const {
-    return m_vis.adjust_epsilon( old_eps, w_change, g );
-  };
+  template <typename Graph>
+  double adjust_epsilon(double old_eps, double w_change, const Graph& g) const {
+    return m_vis.adjust_epsilon(old_eps, w_change, g);
+  }
 
-  template < typename Vertex, typename Graph >
-  void update_key( Vertex u, Graph& ) {
-    distance_type g_u = get( m_distance, u );
-    distance_type rhs_u = get( m_rhs, u );
-    if( m_compare( rhs_u, g_u ) )
-      put( m_key, u,
-           KeyValue( m_combine( rhs_u, m_compose( m_epsilon, get( m_h, u ) ) ), rhs_u, m_compare, m_equal_compare ) );
-    else
-      put( m_key, u, KeyValue( m_combine( g_u, get( m_h, u ) ), g_u, m_compare, m_equal_compare ) );
-  };
+  template <typename Vertex, typename Graph>
+  void update_key(Vertex u, Graph&) {
+    distance_type g_u = get(m_distance, u);
+    distance_type rhs_u = get(m_rhs, u);
+    if (m_compare(rhs_u, g_u)) {
+      put(m_key, u,
+          KeyValue(m_combine(rhs_u, m_compose(m_epsilon, get(m_h, u))), rhs_u,
+                   m_compare, m_equal_compare));
+    } else {
+      put(m_key, u,
+          KeyValue(m_combine(g_u, get(m_h, u)), g_u, m_compare,
+                   m_equal_compare));
+    }
+  }
 
-  template < typename Vertex, typename BidirectionalGraph >
-  void update_vertex( Vertex u, BidirectionalGraph& g ) {
-    BOOST_CONCEPT_ASSERT( (boost::BidirectionalGraphConcept< BidirectionalGraph >));
-    typedef boost::graph_traits< BidirectionalGraph > GTraits;
-    typename GTraits::in_edge_iterator ei, ei_end;
+  template <typename Vertex, typename BidirectionalGraph>
+  void update_vertex(Vertex u, BidirectionalGraph& g) {
+    BOOST_CONCEPT_ASSERT(
+        (boost::BidirectionalGraphConcept<BidirectionalGraph>));
 
-    ColorValue col_u = get( m_color, u );
+    ColorValue col_u = get(m_color, u);
 
-    if( col_u == Color::white() ) {
-      put( m_distance, u, m_inf );
+    if (col_u == Color::white()) {
+      put(m_distance, u, m_inf);
       col_u = Color::green();
-      put( m_color, u, col_u );
-    };
+      put(m_color, u, col_u);
+    }
 
-    distance_type g_u = get( m_distance, u );
-    distance_type rhs_u = get( m_rhs, u );
+    distance_type g_u = get(m_distance, u);
+    distance_type rhs_u = get(m_rhs, u);
 
-    if( !m_equal_compare( rhs_u, m_zero ) ) { // if u is not the start node.
-      rhs_u = m_inf; // This was in the original code!
-      typename GTraits::edge_descriptor pred_e;
-      for( tie( ei, ei_end ) = in_edges( u, g ); ei != ei_end; ++ei ) {
-        distance_type rhs_tmp = m_combine( get( m_weight, *ei ), get( m_distance, source( *ei, g ) ) );
-        if( m_compare( rhs_tmp, rhs_u ) ) {
+    if (!m_equal_compare(rhs_u, m_zero)) {  // if u is not the start node.
+      rhs_u = m_inf;                        // This was in the original code!
+      for (auto [ei, ei_end] = in_edges(u, g); ei != ei_end; ++ei) {
+        distance_type rhs_tmp =
+            m_combine(get(m_weight, *ei), get(m_distance, source(*ei, g)));
+        if (m_compare(rhs_tmp, rhs_u)) {
           rhs_u = rhs_tmp;
-          put( m_rhs, u, rhs_u ); // this was the original code!
-          put( m_predecessor, u, source( *ei, g ) );
-          pred_e = *ei;
-        };
-      };
-      rhs_u = get( m_rhs, u );
-    };
+          put(m_rhs, u, rhs_u);  // this was the original code!
+          put(m_predecessor, u, source(*ei, g));
+        }
+      }
+      rhs_u = get(m_rhs, u);
+    }
 
-    if( !m_equal_compare( rhs_u, g_u ) ) {
-      if( ( col_u != Color::black() )
-          && ( col_u
-               != Color::red() ) ) { // if not in CLOSED set (i.e. either just closed (black) or inconsistent (red)).
-        update_key( u, g );
-        m_Q.push_or_update( u );
-        put( m_color, u, Color::gray() );
-        m_vis.discover_vertex( u, g );
-      } else if( col_u == Color::black() ) {
-        m_I.push_back( u );
-        put( m_color, u, Color::red() );
-        m_vis.inconsistent_vertex( u, g );
-      };
-    } else if( m_Q.contains( u ) ) { // if u is in the OPEN set, then remove it.
-      put( m_key, u, KeyValue( -m_inf, -m_inf, m_compare, m_equal_compare ) );
-      m_Q.update( u );
-      m_Q.pop(); // remove from OPEN set
-      update_key( u, g ); // this was the original code!
-      put( m_color, u, Color::green() );
-      m_vis.forget_vertex( u, g );
-    };
-  };
-
+    if (!m_equal_compare(rhs_u, g_u)) {
+      if ((col_u != Color::black()) &&
+          (col_u !=
+           Color::
+               red())) {  // if not in CLOSED set (i.e. either just closed (black) or inconsistent (red)).
+        update_key(u, g);
+        m_Q.push_or_update(u);
+        put(m_color, u, Color::gray());
+        m_vis.discover_vertex(u, g);
+      } else if (col_u == Color::black()) {
+        m_I.push_back(u);
+        put(m_color, u, Color::red());
+        m_vis.inconsistent_vertex(u, g);
+      }
+    } else if (m_Q.contains(u)) {  // if u is in the OPEN set, then remove it.
+      put(m_key, u, KeyValue(-m_inf, -m_inf, m_compare, m_equal_compare));
+      m_Q.update(u);
+      m_Q.pop();         // remove from OPEN set
+      update_key(u, g);  // this was the original code!
+      put(m_color, u, Color::green());
+      m_vis.forget_vertex(u, g);
+    }
+  }
 
   AStarHeuristicMap m_h;
   UniformCostVisitor m_vis;
@@ -450,180 +485,141 @@ struct adstar_bfs_visitor {
   distance_type m_zero;
 };
 
-
-template < typename VertexListGraph, // this is the actual graph, should comply to BidirectionalGraphConcept.
-           typename Vertex, // this is the type to describe a vertex in the graph.
-           typename AStarHeuristicMap, // this the map of heuristic function value for each vertex.
-           typename ADStarBFSVisitor, // this is a visitor class that can perform special operations at event points.
-           typename PredecessorMap, // this is the map that stores the preceeding edge for each vertex.
-           typename DistanceMap, // this is the map of distance values associated with each vertex.
-           typename RHSMap,
-           typename KeyMap, // this is the map of key values associated to each vertex.
-           typename WeightMap, // this is the map of edge weight (or cost) associated to each edge of the graph.
-           typename ColorMap, // this is a color map for each vertex, i.e. white=not visited, gray=discovered,
-                              // black=expanded.
-           typename IndexInHeapMap, typename MutableQueue, typename InconsList,
-           typename CompareFunction /*= std::less<typename property_traits<DistanceMap>::value_type>*/, // a binary
-                                                                                                        // comparison
-                                                                                                        // function
-                                                                                                        // object that
-                                                                                                        // returns true
-                                                                                                        // if the first
-                                                                                                        // operand is
-                                                                                                        // strictly
-                                                                                                        // better
-                                                                                                        // (less-than)
-                                                                                                        // than the
-                                                                                                        // second
-                                                                                                        // operand.
-           typename EqualCompareFunction /*= std::equal_to<typename property_traits<DistanceMap>::value_type >*/, // a
-                                                                                                                  // binary
-                                                                                                                  // comparison
-                                                                                                                  // function
-                                                                                                                  // object
-                                                                                                                  // that
-                                                                                                                  // returns
-                                                                                                                  // true
-                                                                                                                  // if
-                                                                                                                  // both
-                                                                                                                  // operands
-                                                                                                                  // are
-                                                                                                                  // equal
-                                                                                                                  // to
-                                                                                                                  // each
-                                                                                                                  // other.
-           typename CombineFunction /*= std::plus<typename property_traits<DistanceMap>::value_type>*/, // a binary
-                                                                                                        // combination
-                                                                                                        // function
-                                                                                                        // object that
-                                                                                                        // returns the
-                                                                                                        // sum of its
-                                                                                                        // operands (sum
-                                                                                                        // in the broad
-                                                                                                        // sense).
-           typename ComposeFunction /*= std::multiplies<typename property_traits<DistanceMap>::value_type>*/ > // a
-                                                                                                               // binary
-                                                                                                               // composition
-                                                                                                               // function
-                                                                                                               // object
-                                                                                                               // that
-                                                                                                               // amplifies
-                                                                                                               // a
-                                                                                                               // heuristic
-                                                                                                               // distance
-                                                                                                               // metric
-                                                                                                               // by a
-                                                                                                               // scalar
-                                                                                                               // value
-                                                                                                               // (i.e.
-                                                                                                               // epsilon
-                                                                                                               // x h(u)
-                                                                                                               // ).
-                                                                                                               inline void
-  adstar_search_loop( VertexListGraph& g, Vertex start_vertex, AStarHeuristicMap hval, ADStarBFSVisitor& bfs_vis,
-                      PredecessorMap predecessor, DistanceMap distance, RHSMap rhs, KeyMap key, WeightMap weight,
-                      ColorMap color, IndexInHeapMap index_in_heap, MutableQueue& Q, InconsList& I,
-                      typename boost::property_traits< DistanceMap >::value_type& epsilon,
-                      typename boost::property_traits< DistanceMap >::value_type inf,
-                      typename boost::property_traits< DistanceMap >::value_type zero
-                      = typename boost::property_traits< DistanceMap >::value_type( 0 ),
-                      CompareFunction compare = CompareFunction(),
-                      EqualCompareFunction equal_compare = EqualCompareFunction(),
-                      CombineFunction combine = CombineFunction(), ComposeFunction compose = ComposeFunction() ) {
+template <
+    // this is the actual graph, should comply to BidirectionalGraphConcept.
+    typename VertexListGraph,
+    // this is the type to describe a vertex in the graph.
+    typename Vertex,
+    // this the map of heuristic function value for each vertex.
+    typename AStarHeuristicMap,
+    // this is a visitor class that can perform special operations at event points.
+    typename ADStarBFSVisitor,
+    // this is the map that stores the preceeding edge for each vertex.
+    typename PredecessorMap,
+    // this is the map of distance values associated with each vertex.
+    typename DistanceMap, typename RHSMap,
+    // this is the map of key values associated to each vertex.
+    typename KeyMap,
+    // this is the map of edge weight (or cost) associated to each edge of the graph.
+    typename WeightMap,
+    // this is a color map for each vertex, i.e. white=not visited, gray=discovered, black=expanded.
+    typename ColorMap, typename IndexInHeapMap, typename MutableQueue,
+    typename InconsList,
+    // a binary comparison function object that returns true if the first operand is
+    // strictly better (less-than) than the second operand.
+    typename CompareFunction /*= std::less<>*/,
+    // a binary comparison function object that returns true if both operands are
+    // equal to each other.
+    typename EqualCompareFunction /*= std::equal_to<>*/,
+    // a binary combination function object that returns the sum of its
+    // operands (sum in the broad sense).
+    typename CombineFunction /*= std::plus<>*/,
+    // a binary composition function object that amplifies a heuristic distance
+    // metric by a scalar value (i.e. epsilon x h(u)).
+    typename ComposeFunction /*= std::multiplies<>*/>
+inline void adstar_search_loop(
+    VertexListGraph& g, Vertex start_vertex, AStarHeuristicMap hval,
+    ADStarBFSVisitor& bfs_vis, PredecessorMap predecessor, DistanceMap distance,
+    RHSMap rhs, KeyMap key, WeightMap weight, ColorMap color,
+    IndexInHeapMap index_in_heap, MutableQueue& Q, InconsList& I,
+    property_value_t<DistanceMap>& epsilon, property_value_t<DistanceMap> inf,
+    property_value_t<DistanceMap> zero = property_value_t<DistanceMap>(0),
+    CompareFunction compare = CompareFunction(),
+    EqualCompareFunction equal_compare = EqualCompareFunction(),
+    CombineFunction combine = CombineFunction(),
+    ComposeFunction compose = ComposeFunction()) {
   using namespace boost;
-  typedef typename graph_traits< VertexListGraph >::edge_descriptor Edge;
-  typedef typename property_traits< ColorMap >::value_type ColorValue;
-  typedef color_traits< ColorValue > Color;
-  typedef typename property_traits< DistanceMap >::value_type DistanceValue;
-  typedef typename property_traits< WeightMap >::value_type WeightValue;
+  using Edge = graph_edge_t<VertexListGraph>;
+  using ColorValue = property_value_t<ColorMap>;
+  using Color = color_traits<ColorValue>;
+  using DistanceValue = property_value_t<DistanceMap>;
+  using WeightValue = property_value_t<WeightMap>;
 
   Vertex s = start_vertex;
-  put( distance, s, inf );
-  put( rhs, s, zero );
-  put( predecessor, s, s );
-  bfs_vis.update_key( s, g );
-  put( color, s, Color::gray() );
-  bfs_vis.discover_vertex( s, g );
-  Q.push( s );
+  put(distance, s, inf);
+  put(rhs, s, zero);
+  put(predecessor, s, s);
+  bfs_vis.update_key(s, g);
+  put(color, s, Color::gray());
+  bfs_vis.discover_vertex(s, g);
+  Q.push(s);
 
-  std::vector< Edge > affected_edges;
+  std::vector<Edge> affected_edges;
 
-  while( bfs_vis.keep_going() ) {
+  while (bfs_vis.keep_going()) {
 
-    typename graph_traits< VertexListGraph >::out_edge_iterator eig, eig_end;
-    typename graph_traits< VertexListGraph >::in_edge_iterator eii, eii_end;
-
-    while( !Q.empty() ) {
+    while (!Q.empty()) {
       Vertex u = Q.top();
       Q.pop();
-      bfs_vis.examine_vertex( u, g );
-      DistanceValue g_u = get( distance, u ); // RK_NOTICE(1," reached!");
-      DistanceValue rhs_u = get( rhs, u );
-      if( equal_compare( get( hval, u ), zero )
-          && equal_compare( g_u, rhs_u ) ) { // if we have a consistent node at the goal
+      bfs_vis.examine_vertex(u, g);
+      DistanceValue g_u = get(distance, u);
+      DistanceValue rhs_u = get(rhs, u);
+      // if we have a consistent node at the goal
+      if (equal_compare(get(hval, u), zero) && equal_compare(g_u, rhs_u)) {
         break;
-      };
-      if( compare( rhs_u, g_u ) ) { // if g_u is greater than rhs_u, then make u consistent and close it.
-        put( distance, u, rhs_u );
+      }
+      // if g_u is greater than rhs_u, then make u consistent and close it.
+      if (compare(rhs_u, g_u)) {
+        put(distance, u, rhs_u);
         g_u = rhs_u;
-        put( color, u, Color::black() );
-        bfs_vis.finish_vertex( u, g );
+        put(color, u, Color::black());
+        bfs_vis.finish_vertex(u, g);
       } else {
-        put( distance, u, inf );
-        bfs_vis.update_vertex( u, g );
-      };
-      for( tie( eig, eig_end ) = out_edges( u, g ); eig != eig_end; ++eig ) {
-        bfs_vis.examine_edge( *eig, g );
-        bfs_vis.update_vertex( target( *eig, g ), g );
-      };
-    }; // end while
+        put(distance, u, inf);
+        bfs_vis.update_vertex(u, g);
+      }
+      for (auto [eig, eig_end] = out_edges(u, g); eig != eig_end; ++eig) {
+        bfs_vis.examine_edge(*eig, g);
+        bfs_vis.update_vertex(target(*eig, g), g);
+      }
+    }
 
-    bfs_vis.publish_path( g );
+    bfs_vis.publish_path(g);
 
     affected_edges.clear();
-    WeightValue max_w_change = bfs_vis.detect_edge_change( std::back_inserter( affected_edges ), g ).first;
+    WeightValue max_w_change =
+        bfs_vis.detect_edge_change(std::back_inserter(affected_edges), g).first;
 
     // update all nodes that were affected.
-    for( typename std::vector< Edge >::iterator ei = affected_edges.begin(); ei != affected_edges.end(); ++ei ) {
-      if( get( color, source( *ei, g ) ) == Color::black() )
-        put( color, source( *ei, g ), Color::green() );
-      bfs_vis.update_vertex( source( *ei, g ), g );
-      if( get( color, target( *ei, g ) ) == Color::black() )
-        put( color, target( *ei, g ), Color::green() );
-      bfs_vis.update_vertex( target( *ei, g ), g );
-    };
+    for (auto e : affected_edges) {
+      if (get(color, source(e, g)) == Color::black()) {
+        put(color, source(e, g), Color::green());
+      }
+      bfs_vis.update_vertex(source(e, g), g);
+      if (get(color, target(e, g)) == Color::black()) {
+        put(color, target(e, g), Color::green());
+      }
+      bfs_vis.update_vertex(target(e, g), g);
+    }
 
-    epsilon = bfs_vis.adjust_epsilon( epsilon, max_w_change, g );
+    epsilon = bfs_vis.adjust_epsilon(epsilon, max_w_change, g);
 
     // merge the OPEN and INCONS sets
-    for( typename InconsList::iterator ui = I.begin(); ui != I.end(); ++ui ) {
-      bfs_vis.update_key( *ui, g );
-      Q.push_or_update( *ui );
-      put( color, *ui, Color::gray() );
-    };
+    for (auto v : I) {
+      bfs_vis.update_key(v, g);
+      Q.push_or_update(v);
+      put(color, v, Color::gray());
+    }
     I.clear();
 
     // update keys for all OPEN nodes, and change all black nodes to green (empty the CLOSED set).
-    {
-      typename graph_traits< VertexListGraph >::vertex_iterator ui, ui_end;
-      for( tie( ui, ui_end ) = vertices( g ); ui != ui_end; ++ui ) {
-        ColorValue u_color = get( color, *ui );
-        if( Q.contains( *ui ) ) {
-          bfs_vis.update_key( *ui, g );
-          Q.update( *ui );
-          put( color, *ui, Color::gray() );
-          bfs_vis.discover_vertex( *ui, g );
-        } else if( u_color == Color::black() ) {
-          put( color, *ui, Color::green() );
-          bfs_vis.recycle_vertex( *ui, g );
-        };
-      };
-    };
-  };
-};
-};
-}; // namespace detail
+    for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
+      ColorValue u_color = get(color, *ui);
+      if (Q.contains(*ui)) {
+        bfs_vis.update_key(*ui, g);
+        Q.update(*ui);
+        put(color, *ui, Color::gray());
+        bfs_vis.discover_vertex(*ui, g);
+      } else if (u_color == Color::black()) {
+        put(color, *ui, Color::green());
+        bfs_vis.recycle_vertex(*ui, g);
+      }
+    }
+  }
+}
 
+}  // namespace
+}  // namespace detail
 
 /**
   * This function template performs an AD* search over a graph, without initialization. The AD* search
@@ -690,48 +686,50 @@ template < typename VertexListGraph, // this is the actual graph, should comply 
   * \param compose A binary composition functor that amplifies a heuristic distance metric by a
   *        scalar value (i.e. epsilon x h(u) ).
   */
-template < typename VertexListGraph, typename Vertex, typename AStarHeuristicMap, typename ADStarVisitor,
-           typename PredecessorMap, typename DistanceMap, typename RHSMap, typename KeyMap, typename WeightMap,
-           typename ColorMap, typename CompareFunction, typename EqualCompareFunction, typename CombineFunction,
-           typename ComposeFunction >
-inline void
-  adstar_search_no_init( VertexListGraph& g, Vertex start_vertex, AStarHeuristicMap hval, ADStarVisitor vis,
-                         PredecessorMap predecessor, DistanceMap distance, RHSMap rhs, KeyMap key, WeightMap weight,
-                         ColorMap color, typename boost::property_traits< DistanceMap >::value_type epsilon,
-                         typename boost::property_traits< DistanceMap >::value_type inf,
-                         typename boost::property_traits< DistanceMap >::value_type zero
-                         = typename boost::property_traits< DistanceMap >::value_type( 0 ),
-                         CompareFunction compare = CompareFunction(),
-                         EqualCompareFunction equal_compare = EqualCompareFunction(),
-                         CombineFunction combine = CombineFunction(), ComposeFunction compose = ComposeFunction() ) {
-  typedef typename boost::property_traits< KeyMap >::value_type KeyValue;
-  typedef typename adstar_key_traits< KeyValue >::compare_type KeyCompareType;
-  typedef boost::vector_property_map< std::size_t > IndexInHeapMap;
+template <typename VertexListGraph, typename Vertex, typename AStarHeuristicMap,
+          typename ADStarVisitor, typename PredecessorMap, typename DistanceMap,
+          typename RHSMap, typename KeyMap, typename WeightMap,
+          typename ColorMap, typename CompareFunction,
+          typename EqualCompareFunction, typename CombineFunction,
+          typename ComposeFunction>
+inline void adstar_search_no_init(
+    VertexListGraph& g, Vertex start_vertex, AStarHeuristicMap hval,
+    ADStarVisitor vis, PredecessorMap predecessor, DistanceMap distance,
+    RHSMap rhs, KeyMap key, WeightMap weight, ColorMap color,
+    property_value_t<DistanceMap> epsilon, property_value_t<DistanceMap> inf,
+    property_value_t<DistanceMap> zero = property_value_t<DistanceMap>(0),
+    CompareFunction compare = CompareFunction(),
+    EqualCompareFunction equal_compare = EqualCompareFunction(),
+    CombineFunction combine = CombineFunction(),
+    ComposeFunction compose = ComposeFunction()) {
+  using KeyValue = property_value_t<KeyMap>;
+  using KeyCompareType = typename adstar_key_traits<KeyValue>::compare_type;
+  using IndexInHeapMap = boost::vector_property_map<std::size_t>;
   IndexInHeapMap index_in_heap;
-  {
-    typename boost::graph_traits< VertexListGraph >::vertex_iterator ui, ui_end;
-    for( boost::tie( ui, ui_end ) = vertices( g ); ui != ui_end; ++ui ) {
-      put( index_in_heap, *ui,
-           static_cast< std::size_t >(
-             -1 ) ); // this ugly C-style cast is required to match the boost::d_ary_heap_indirect implementation.
-    };
-  };
+  for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
+    put(index_in_heap, *ui,
+        static_cast<std::size_t>(
+            -1));  // this ugly C-style cast is required to match the boost::d_ary_heap_indirect implementation.
+  }
 
-  typedef boost::d_ary_heap_indirect< Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType > MutableQueue;
-  MutableQueue Q( key, index_in_heap, KeyCompareType() ); // priority queue holding the OPEN set.
-  std::vector< Vertex > I; // list holding the INCONS set (inconsistent nodes).
+  using MutableQueue = boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap,
+                                                  KeyMap, KeyCompareType>;
+  MutableQueue Q(key, index_in_heap,
+                 KeyCompareType());  // priority queue holding the OPEN set.
+  std::vector<Vertex> I;  // list holding the INCONS set (inconsistent nodes).
 
+  detail::adstar_bfs_visitor<
+      AStarHeuristicMap, ADStarVisitor, MutableQueue, std::vector<Vertex>,
+      PredecessorMap, KeyMap, DistanceMap, RHSMap, WeightMap, ColorMap,
+      CompareFunction, EqualCompareFunction, CombineFunction, ComposeFunction>
+      bfs_vis(hval, vis, Q, I, predecessor, key, distance, rhs, weight, color,
+              epsilon, compare, equal_compare, combine, compose, inf, zero);
 
-  detail::adstar_bfs_visitor< AStarHeuristicMap, ADStarVisitor, MutableQueue, std::vector< Vertex >, PredecessorMap,
-                              KeyMap, DistanceMap, RHSMap, WeightMap, ColorMap, CompareFunction, EqualCompareFunction,
-                              CombineFunction, ComposeFunction > bfs_vis( hval, vis, Q, I, predecessor, key, distance,
-                                                                          rhs, weight, color, epsilon, compare,
-                                                                          equal_compare, combine, compose, inf, zero );
-
-  detail::adstar_search_loop( g, start_vertex, hval, bfs_vis, predecessor, distance, rhs, key, weight, color,
-                              index_in_heap, Q, I, epsilon, inf, zero, compare, equal_compare, combine, compose );
-};
-
+  detail::adstar_search_loop(g, start_vertex, hval, bfs_vis, predecessor,
+                             distance, rhs, key, weight, color, index_in_heap,
+                             Q, I, epsilon, inf, zero, compare, equal_compare,
+                             combine, compose);
+}
 
 /**
   * This function template performs an AD* search over a graph, without initialization. The AD* search
@@ -779,17 +777,22 @@ inline void
   * \param epsilon The initial epsilon value that relaxes the A* search to give the AD* its anytime
   *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
   */
-template < typename VertexListGraph, typename Vertex, typename AStarHeuristicMap, typename ADStarVisitor,
-           typename PredecessorMap, typename DistanceMap, typename RHSMap, typename KeyMap, typename WeightMap,
-           typename ColorMap >
-inline void adstar_search_no_init( VertexListGraph& g, Vertex start_vertex, AStarHeuristicMap hval, ADStarVisitor vis,
-                                   PredecessorMap predecessor, DistanceMap distance, RHSMap rhs, KeyMap key,
-                                   WeightMap weight, ColorMap color, double epsilon ) {
-  adstar_search_no_init( g, start_vertex, hval, vis, predecessor, distance, rhs, key, weight, color, epsilon,
-                         std::numeric_limits< double >::infinity(), 0.0, std::less< double >(),
-                         std::equal_to< double >(), std::plus< double >(), std::multiplies< double >() );
-};
-
+template <typename VertexListGraph, typename Vertex, typename AStarHeuristicMap,
+          typename ADStarVisitor, typename PredecessorMap, typename DistanceMap,
+          typename RHSMap, typename KeyMap, typename WeightMap,
+          typename ColorMap>
+inline void adstar_search_no_init(VertexListGraph& g, Vertex start_vertex,
+                                  AStarHeuristicMap hval, ADStarVisitor vis,
+                                  PredecessorMap predecessor,
+                                  DistanceMap distance, RHSMap rhs, KeyMap key,
+                                  WeightMap weight, ColorMap color,
+                                  double epsilon) {
+  adstar_search_no_init(g, start_vertex, hval, vis, predecessor, distance, rhs,
+                        key, weight, color, epsilon,
+                        std::numeric_limits<double>::infinity(), 0.0,
+                        std::less<double>(), std::equal_to<double>(),
+                        std::plus<double>(), std::multiplies<double>());
+}
 
 /**
   * This function template performs an AD* search over a graph. The AD* search
@@ -852,37 +855,39 @@ inline void adstar_search_no_init( VertexListGraph& g, Vertex start_vertex, ASta
   * \param compose A binary composition functor that amplifies a heuristic distance metric by a scalar value (i.e.
   *epsilon x h(u) ).
   */
-template < typename VertexListGraph, typename Vertex, typename AStarHeuristicMap, typename ADStarVisitor,
-           typename PredecessorMap, typename DistanceMap, typename RHSMap, typename KeyMap, typename WeightMap,
-           typename ColorMap, typename CompareFunction, typename EqualCompareFunction, typename CombineFunction,
-           typename ComposeFunction >
-inline void adstar_search( VertexListGraph& g, Vertex start_vertex, AStarHeuristicMap hval, ADStarVisitor vis,
-                           PredecessorMap predecessor, DistanceMap distance, RHSMap rhs, KeyMap key, WeightMap weight,
-                           ColorMap color, typename boost::property_traits< DistanceMap >::value_type epsilon,
-                           typename boost::property_traits< DistanceMap >::value_type inf,
-                           typename boost::property_traits< DistanceMap >::value_type zero
-                           = typename boost::property_traits< DistanceMap >::value_type( 0 ),
-                           CompareFunction compare = CompareFunction(),
-                           EqualCompareFunction equal_compare = EqualCompareFunction(),
-                           CombineFunction combine = CombineFunction(), ComposeFunction compose = ComposeFunction() ) {
+template <typename VertexListGraph, typename Vertex, typename AStarHeuristicMap,
+          typename ADStarVisitor, typename PredecessorMap, typename DistanceMap,
+          typename RHSMap, typename KeyMap, typename WeightMap,
+          typename ColorMap, typename CompareFunction,
+          typename EqualCompareFunction, typename CombineFunction,
+          typename ComposeFunction>
+inline void adstar_search(
+    VertexListGraph& g, Vertex start_vertex, AStarHeuristicMap hval,
+    ADStarVisitor vis, PredecessorMap predecessor, DistanceMap distance,
+    RHSMap rhs, KeyMap key, WeightMap weight, ColorMap color,
+    property_value_t<DistanceMap> epsilon, property_value_t<DistanceMap> inf,
+    property_value_t<DistanceMap> zero = property_value_t<DistanceMap>(0),
+    CompareFunction compare = CompareFunction(),
+    EqualCompareFunction equal_compare = EqualCompareFunction(),
+    CombineFunction combine = CombineFunction(),
+    ComposeFunction compose = ComposeFunction()) {
 
-  typedef typename boost::property_traits< ColorMap >::value_type ColorValue;
-  typedef boost::color_traits< ColorValue > Color;
-  typedef typename boost::property_traits< KeyMap >::value_type KeyValue;
-  typename boost::graph_traits< VertexListGraph >::vertex_iterator ui, ui_end;
-  for( boost::tie( ui, ui_end ) = vertices( g ); ui != ui_end; ++ui ) {
-    put( color, *ui, Color::white() );
-    put( distance, *ui, inf );
-    put( rhs, *ui, inf );
-    put( key, *ui, KeyValue( inf, inf, compare, equal_compare ) );
-    put( predecessor, *ui, *ui );
-    vis.initialize_vertex( *ui, g );
-  };
+  using ColorValue = property_value_t<ColorMap>;
+  using Color = boost::color_traits<ColorValue>;
+  using KeyValue = property_value_t<KeyMap>;
+  for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
+    put(color, *ui, Color::white());
+    put(distance, *ui, inf);
+    put(rhs, *ui, inf);
+    put(key, *ui, KeyValue(inf, inf, compare, equal_compare));
+    put(predecessor, *ui, *ui);
+    vis.initialize_vertex(*ui, g);
+  }
 
-  adstar_search_no_init( g, start_vertex, hval, vis, predecessor, distance, rhs, key, weight, color, epsilon, inf, zero,
-                         compare, equal_compare, combine, compose );
-};
-
+  adstar_search_no_init(g, start_vertex, hval, vis, predecessor, distance, rhs,
+                        key, weight, color, epsilon, inf, zero, compare,
+                        equal_compare, combine, compose);
+}
 
 /**
   * This function template performs an AD* search over a graph. The AD* search
@@ -928,21 +933,21 @@ inline void adstar_search( VertexListGraph& g, Vertex start_vertex, AStarHeurist
   * \param epsilon The initial epsilon value that relaxes the A* search to give the AD* its anytime
   *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
   */
-template < typename VertexListGraph, typename Vertex, typename AStarHeuristicMap, typename ADStarVisitor,
-           typename PredecessorMap, typename DistanceMap, typename RHSMap, typename KeyMap, typename WeightMap,
-           typename ColorMap >
-inline void adstar_search( VertexListGraph& g, Vertex start_vertex, AStarHeuristicMap hval, ADStarVisitor vis,
-                           PredecessorMap predecessor, DistanceMap distance, RHSMap rhs, KeyMap key, WeightMap weight,
-                           ColorMap color, double epsilon ) {
-  adstar_search( g, start_vertex, hval, vis, predecessor, distance, rhs, key, weight, color, epsilon,
-                 std::numeric_limits< double >::infinity(), 0.0, std::less< double >(), std::equal_to< double >(),
-                 std::plus< double >(), std::multiplies< double >() );
-};
+template <typename VertexListGraph, typename Vertex, typename AStarHeuristicMap,
+          typename ADStarVisitor, typename PredecessorMap, typename DistanceMap,
+          typename RHSMap, typename KeyMap, typename WeightMap,
+          typename ColorMap>
+inline void adstar_search(VertexListGraph& g, Vertex start_vertex,
+                          AStarHeuristicMap hval, ADStarVisitor vis,
+                          PredecessorMap predecessor, DistanceMap distance,
+                          RHSMap rhs, KeyMap key, WeightMap weight,
+                          ColorMap color, double epsilon) {
+  adstar_search(g, start_vertex, hval, vis, predecessor, distance, rhs, key,
+                weight, color, epsilon, std::numeric_limits<double>::infinity(),
+                0.0, std::less<double>(), std::equal_to<double>(),
+                std::plus<double>(), std::multiplies<double>());
+}
 
-
-}; // graph
-
-}; // ReaK
-
+}  // namespace ReaK::graph
 
 #endif

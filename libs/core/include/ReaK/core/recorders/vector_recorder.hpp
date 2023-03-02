@@ -38,10 +38,7 @@
 
 #include <vector>
 
-namespace ReaK {
-
-namespace recorder {
-
+namespace ReaK::recorder {
 
 /**
  * This class handles file IO operations for a raw binary udp-ip stream.
@@ -50,14 +47,15 @@ namespace recorder {
  * recorder just spits out the rows of values.
  */
 class vector_recorder : public data_recorder {
-protected:
-  std::vector< std::vector< double > >* vec_data;
+ protected:
+  std::vector<std::vector<double>>* vec_data;
 
-  virtual void writeRow();
-  virtual void writeNames();
-  virtual void setStreamImpl( const shared_ptr< std::ostream >& aStreamPtr ){};
+  void writeRow() override;
+  void writeNames() override;
+  void setStreamImpl(const std::shared_ptr<std::ostream>& aStreamPtr) override {
+  }
 
-public:
+ public:
   /**
    * Default constructor.
    */
@@ -66,29 +64,30 @@ public:
   /**
    * Constructor that opens a file with name aFileName.
    */
-  explicit vector_recorder( std::vector< std::vector< double > >* aVecData );
+  explicit vector_recorder(std::vector<std::vector<double>>* aVecData);
 
   /**
    * Destructor, closes the file.
    */
-  virtual ~vector_recorder();
+  ~vector_recorder() override;
 
-  void setVecData( std::vector< std::vector< double > >* aVecData );
+  void setVecData(std::vector<std::vector<double>>* aVecData);
 
-  std::vector< std::vector< double > >* getVecData() const { return vec_data; };
+  std::vector<std::vector<double>>* getVecData() const { return vec_data; }
 
-  virtual void setFileName( const std::string& aFileName );
+  void setFileName(const std::string& aFileName) override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    data_recorder::save( A, data_recorder::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    data_recorder::load( A, data_recorder::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    data_recorder::save(A, data_recorder::getStaticObjectType()->TypeVersion());
+  }
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    data_recorder::load(A, data_recorder::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( vector_recorder, 0x81100008, 1, "vector_recorder", data_recorder )
+  RK_RTTI_MAKE_CONCRETE_1BASE(vector_recorder, 0x81100008, 1, "vector_recorder",
+                              data_recorder)
 };
-
 
 /**
  * This class handles file IO operations for a raw binary udp-ip stream.
@@ -98,16 +97,17 @@ public:
  * the user before doing any read operations.
  */
 class vector_extractor : public data_extractor {
-protected:
-  const std::vector< std::vector< double > >* vec_data;
+ protected:
+  const std::vector<std::vector<double>>* vec_data;
   std::size_t cur_vec_index;
 
-  virtual bool readRow();
-  virtual bool readNames();
-  virtual void setStreamImpl( const shared_ptr< std::istream >& aStreamPtr ){};
+  bool readRow() override;
+  bool readNames() override;
+  void setStreamImpl(const std::shared_ptr<std::istream>& aStreamPtr) override {
+  }
 
-public:
-  void addName( const std::string& s );
+ public:
+  void addName(const std::string& s);
 
   /**
    * Default constructor.
@@ -117,30 +117,35 @@ public:
   /**
    * Constructor that opens a file with name aFileName.
    */
-  explicit vector_extractor( const std::vector< std::vector< double > >* aVecData );
+  explicit vector_extractor(const std::vector<std::vector<double>>* aVecData);
 
   /**
    * Destructor, closes the file.
    */
-  virtual ~vector_extractor();
+  ~vector_extractor() override;
 
-  void setVecData( const std::vector< std::vector< double > >* aVecData );
+  void setVecData(const std::vector<std::vector<double>>* aVecData);
 
-  const std::vector< std::vector< double > >& getVecData() const { return *vec_data; };
+  const std::vector<std::vector<double>>& getVecData() const {
+    return *vec_data;
+  }
 
-  virtual void setFileName( const std::string& aFilename );
+  void setFileName(const std::string& aFilename) override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    data_extractor::save( A, data_extractor::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    data_extractor::load( A, data_extractor::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    data_extractor::save(A,
+                         data_extractor::getStaticObjectType()->TypeVersion());
+  }
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    data_extractor::load(A,
+                         data_extractor::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( vector_extractor, 0x81200008, 1, "vector_extractor", data_extractor )
+  RK_RTTI_MAKE_CONCRETE_1BASE(vector_extractor, 0x81200008, 1,
+                              "vector_extractor", data_extractor)
 };
-};
-};
 
+}  // namespace ReaK::recorder
 
-#endif
+#endif  // REAK_VECTOR_RECORDER_HPP

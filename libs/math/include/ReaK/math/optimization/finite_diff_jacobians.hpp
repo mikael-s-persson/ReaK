@@ -38,361 +38,231 @@
 
 #include "optim_exceptions.hpp"
 
-#include <boost/mpl/and.hpp>
-#include <boost/mpl/or.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/bind.hpp>
+#include <type_traits>
 
-
-namespace ReaK {
-
-
-namespace optim {
-
+namespace ReaK::optim {
 
 namespace detail {
 
+template <typename Function, typename Vector1, typename Vector2,
+          typename Matrix>
+void compute_jacobian_2pts_forward_impl(Function f, Vector1& x,
+                                        const Vector2& y, Matrix& jac,
+                                        vect_value_type_t<Vector1> delta) {
+  using ValueType = vect_value_type_t<Vector1>;
+  using std::abs;
 
-template < typename Function, typename Vector1, typename Vector2, typename Matrix >
-void compute_jacobian_2pts_forward_impl( Function f, Vector1& x, const Vector2& y, Matrix& jac,
-                                         typename vect_traits< Vector1 >::value_type delta ) {
-  typedef typename vect_traits< Vector1 >::value_type ValueType;
-  typedef typename vect_traits< Vector1 >::size_type SizeType;
-  using std::fabs;
-
-  SizeType N = x.size();
-  SizeType M = y.size();
-  if( jac.get_row_count() != M )
-    jac.set_row_count( M );
-  if( jac.get_col_count() != N )
-    jac.set_col_count( N );
+  int N = x.size();
+  int M = y.size();
+  if (jac.get_row_count() != M) {
+    jac.set_row_count(M);
+  }
+  if (jac.get_col_count() != N) {
+    jac.set_col_count(N);
+  }
 
   Vector2 y1 = y;
 
-  for( SizeType j = 0; j < N; ++j ) {
+  for (int j = 0; j < N; ++j) {
     /* determine d=max(1E-04*|p[j]|, delta), see HZ */
-    ValueType d = ValueType( 1E-04 ) * fabs( x[j] );
-    if( d < delta )
+    ValueType d = ValueType(1E-04) * abs(x[j]);
+    if (d < delta) {
       d = delta;
+    }
 
     ValueType tmp = x[j];
     x[j] += d;
 
-    y1 = f( x );
+    y1 = f(x);
 
     x[j] = tmp; /* restore */
 
-    slice( jac )( range( SizeType( 0 ), M ), j ) = ( y1 - y ) * ( 1.0 / d );
-  };
-};
+    slice(jac)(range(0, M), j) = (y1 - y) * (1.0 / d);
+  }
+}
 
-template < typename Function, typename Vector1, typename Vector2, typename Matrix >
-void compute_jacobian_2pts_central_impl( Function f, Vector1& x, const Vector2& y, Matrix& jac,
-                                         typename vect_traits< Vector1 >::value_type delta ) {
-  typedef typename vect_traits< Vector1 >::value_type ValueType;
-  typedef typename vect_traits< Vector1 >::size_type SizeType;
-  using std::fabs;
+template <typename Function, typename Vector1, typename Vector2,
+          typename Matrix>
+void compute_jacobian_2pts_central_impl(Function f, Vector1& x,
+                                        const Vector2& y, Matrix& jac,
+                                        vect_value_type_t<Vector1> delta) {
+  using ValueType = vect_value_type_t<Vector1>;
+  using std::abs;
 
-  SizeType N = x.size();
-  SizeType M = y.size();
-  if( jac.get_row_count() != M )
-    jac.set_row_count( M );
-  if( jac.get_col_count() != N )
-    jac.set_col_count( N );
+  int N = x.size();
+  int M = y.size();
+  if (jac.get_row_count() != M) {
+    jac.set_row_count(M);
+  }
+  if (jac.get_col_count() != N) {
+    jac.set_col_count(N);
+  }
 
   Vector2 y_prev = y;
   Vector2 y_next = y;
 
-  for( SizeType j = 0; j < N; ++j ) {
+  for (int j = 0; j < N; ++j) {
     /* determine d=max(1E-04*|p[j]|, delta), see HZ */
-    ValueType d = ValueType( 1E-04 ) * fabs( x[j] );
-    if( d < delta )
+    ValueType d = ValueType(1E-04) * abs(x[j]);
+    if (d < delta) {
       d = delta;
+    }
 
     ValueType tmp = x[j];
     x[j] -= d;
-    y_prev = f( x );
+    y_prev = f(x);
 
     x[j] = tmp + d;
-    y_next = f( x );
+    y_next = f(x);
     x[j] = tmp; /* restore */
 
-    slice( jac )( range( SizeType( 0 ), M ), j ) = ( y_next - y_prev ) * ( 0.5 / d );
-  };
-};
+    slice(jac)(range(0, M), j) = (y_next - y_prev) * (0.5 / d);
+  }
+}
 
-template < typename Function, typename Vector1, typename Vector2, typename Matrix >
-void compute_jacobian_5pts_central_impl( Function f, Vector1& x, const Vector2& y, Matrix& jac,
-                                         typename vect_traits< Vector1 >::value_type delta ) {
-  typedef typename vect_traits< Vector1 >::value_type ValueType;
-  typedef typename vect_traits< Vector1 >::size_type SizeType;
-  using std::fabs;
+template <typename Function, typename Vector1, typename Vector2,
+          typename Matrix>
+void compute_jacobian_5pts_central_impl(Function f, Vector1& x,
+                                        const Vector2& y, Matrix& jac,
+                                        vect_value_type_t<Vector1> delta) {
+  using ValueType = vect_value_type_t<Vector1>;
+  using std::abs;
 
-  SizeType N = x.size();
-  SizeType M = y.size();
-  if( jac.get_row_count() != M )
-    jac.set_row_count( M );
-  if( jac.get_col_count() != N )
-    jac.set_col_count( N );
+  int N = x.size();
+  int M = y.size();
+  if (jac.get_row_count() != M) {
+    jac.set_row_count(M);
+  }
+  if (jac.get_col_count() != N) {
+    jac.set_col_count(N);
+  }
 
   Vector2 y0 = y;
   Vector2 y1 = y;
   Vector2 y2 = y;
   Vector2 y3 = y;
 
-  for( SizeType i = 0; i < N; ++i ) {
+  for (int i = 0; i < N; ++i) {
     /* determine d=max(1E-04*|p[j]|, delta), see HZ */
-    ValueType d = ValueType( 1E-04 ) * fabs( x[i] );
-    if( d < delta )
+    ValueType d = ValueType(1E-04) * abs(x[i]);
+    if (d < delta) {
       d = delta;
+    }
 
     ValueType tmp = x[i];
     x[i] -= 2.0 * d;
-    y0 = f( x );
+    y0 = f(x);
     x[i] += d;
-    y1 = f( x );
+    y1 = f(x);
     x[i] += 2.0 * d;
-    y2 = f( x );
+    y2 = f(x);
     x[i] += d;
-    y3 = f( x );
+    y3 = f(x);
 
-    x[i] = tmp; // restore
+    x[i] = tmp;  // restore
 
-    slice( jac )( range( SizeType( 0 ), M ), i ) = ( y0 - 8.0 * ( y1 - y2 ) - y3 ) * ( 1.0 / ( 12.0 * d ) );
-  };
-};
-};
+    slice(jac)(range(0, M), i) =
+        (y0 - 8.0 * (y1 - y2) - y3) * (1.0 / (12.0 * d));
+  }
+}
+}  // namespace detail
 
+template <typename Function, typename Vector1, typename Vector2,
+          typename Matrix, typename Scalar = mat_value_type_t<Matrix>>
+void compute_jacobian_2pts_forward(Function f, Vector1& x, const Vector2& y,
+                                   Matrix& jac, Scalar delta = Scalar(1e-6)) {
+  static_assert(is_writable_matrix_v<Matrix>);
+  if constexpr (!is_readable_vector_v<Vector1>) {
+    vect<Scalar, 1> x_tmp;
+    x_tmp[0] = x;
+    compute_jacobian_2pts_forward(
+        [&f](const vect<Scalar, 1>& x) { return f(x[0]); }, x_tmp, y, jac,
+        delta);
+    x = x_tmp[0];
+  } else if constexpr (!is_readable_vector_v<Vector2>) {
+    vect<Scalar, 1> y_tmp;
+    y_tmp[0] = y;
+    compute_jacobian_2pts_forward(
+        [&f](const Vector1& x) -> vect<Scalar, 1> {
+          vect<Scalar, 1> result;
+          result[0] = f(x);
+          return result;
+        },
+        x, y_tmp, jac, delta);
+  } else if constexpr (is_fully_writable_matrix_v<Matrix>) {
+    detail::compute_jacobian_2pts_forward_impl(f, x, y, jac, delta);
+  } else {
+    mat<vect_value_type_t<Vector1>, mat_structure::rectangular> jac_tmp(
+        y.size(), x.size());
+    detail::compute_jacobian_2pts_forward_impl(f, x, y, jac_tmp, delta);
+    jac = jac_tmp;
+  }
+}
 
-template < typename Function, typename Vector1, typename Vector2, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_readable_vector< Vector2 >,
-                                             is_fully_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_2pts_forward( Function f, Vector1& x, const Vector2& y, Matrix& jac,
-                                 typename vect_traits< Vector1 >::value_type delta
-                                 = typename vect_traits< Vector1 >::value_type( 1e-6 ) ) {
-  detail::compute_jacobian_2pts_forward_impl( f, x, y, jac, delta );
-};
+template <typename Function, typename Vector1, typename Vector2,
+          typename Matrix, typename Scalar = mat_value_type_t<Matrix>>
+void compute_jacobian_2pts_central(Function f, Vector1& x, const Vector2& y,
+                                   Matrix& jac, Scalar delta = Scalar(1e-6)) {
+  static_assert(is_writable_matrix_v<Matrix>);
+  if constexpr (!is_readable_vector_v<Vector1>) {
+    vect<Scalar, 1> x_tmp;
+    x_tmp[0] = x;
+    compute_jacobian_2pts_central(
+        [&f](const vect<Scalar, 1>& x) { return f(x[0]); }, x_tmp, y, jac,
+        delta);
+    x = x_tmp[0];
+  } else if constexpr (!is_readable_vector_v<Vector2>) {
+    vect<Scalar, 1> y_tmp;
+    y_tmp[0] = y;
+    compute_jacobian_2pts_central(
+        [&f](const Vector1& x) -> vect<Scalar, 1> {
+          vect<Scalar, 1> result;
+          result[0] = f(x);
+          return result;
+        },
+        x, y_tmp, jac, delta);
+  } else if constexpr (is_fully_writable_matrix_v<Matrix>) {
+    detail::compute_jacobian_2pts_central_impl(f, x, y, jac, delta);
+  } else {
+    mat<vect_value_type_t<Vector1>, mat_structure::rectangular> jac_tmp(
+        y.size(), x.size());
+    detail::compute_jacobian_2pts_central_impl(f, x, y, jac_tmp, delta);
+    jac = jac_tmp;
+  }
+}
 
-template < typename Function, typename Vector1, typename Vector2, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_readable_vector< Vector2 >,
-                                             boost::mpl::not_< is_fully_writable_matrix< Matrix > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_2pts_forward( Function f, Vector1& x, const Vector2& y, Matrix& jac,
-                                 typename vect_traits< Vector1 >::value_type delta
-                                 = typename vect_traits< Vector1 >::value_type( 1e-6 ) ) {
-  mat< typename vect_traits< Vector1 >::value_type, mat_structure::rectangular > jac_tmp( y.size(), x.size() );
-  detail::compute_jacobian_2pts_forward_impl( f, x, y, jac_tmp, delta );
-  jac = jac_tmp;
-};
+template <typename Function, typename Vector1, typename Vector2,
+          typename Matrix, typename Scalar = mat_value_type_t<Matrix>>
+void compute_jacobian_5pts_central(Function f, Vector1& x, const Vector2& y,
+                                   Matrix& jac, Scalar delta = Scalar(1e-6)) {
+  static_assert(is_writable_matrix_v<Matrix>);
+  if constexpr (!is_readable_vector_v<Vector1>) {
+    vect<Scalar, 1> x_tmp;
+    x_tmp[0] = x;
+    compute_jacobian_5pts_central(
+        [&f](const vect<Scalar, 1>& x) { return f(x[0]); }, x_tmp, y, jac,
+        delta);
+    x = x_tmp[0];
+  } else if constexpr (!is_readable_vector_v<Vector2>) {
+    vect<Scalar, 1> y_tmp;
+    y_tmp[0] = y;
+    compute_jacobian_5pts_central(
+        [&f](const Vector1& x) -> vect<Scalar, 1> {
+          vect<Scalar, 1> result;
+          result[0] = f(x);
+          return result;
+        },
+        x, y_tmp, jac, delta);
+  } else if constexpr (is_fully_writable_matrix_v<Matrix>) {
+    detail::compute_jacobian_5pts_central_impl(f, x, y, jac, delta);
+  } else {
+    mat<vect_value_type_t<Vector1>, mat_structure::rectangular> jac_tmp(
+        y.size(), x.size());
+    detail::compute_jacobian_5pts_central_impl(f, x, y, jac_tmp, delta);
+    jac = jac_tmp;
+  }
+}
 
-template < typename Function, typename Vector, typename Scalar, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
-                                             boost::mpl::not_< is_readable_vector< Scalar > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_2pts_forward( Function f, Vector& x, const Scalar& y, Matrix& jac,
-                                 typename vect_traits< Vector >::value_type delta
-                                 = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
-  vect< Scalar, 1 > y_tmp;
-  y_tmp[0] = y;
-
-  compute_jacobian_2pts_forward( [&f]( const Vector& x ) -> vect< Scalar, 1 > {
-                                   vect< Scalar, 1 > result;
-                                   result[0] = f( x );
-                                   return result;
-                                 },
-                                 x, y_tmp, jac, delta );
-};
-
-template < typename Function, typename Vector, typename Scalar, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
-                                             boost::mpl::not_< is_readable_vector< Scalar > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_2pts_forward( Function f, Scalar& x, const Vector& y, Matrix& jac, Scalar delta = Scalar( 1e-6 ) ) {
-  vect< Scalar, 1 > x_tmp;
-  x_tmp[0] = x;
-  compute_jacobian_2pts_forward( [&f]( const vect< Scalar, 1 >& x ) -> Vector { return f( x[0] ); }, x_tmp, y, jac,
-                                 delta );
-  x = x_tmp[0];
-};
-
-
-template < typename Function, typename Scalar1, typename Scalar2, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vector< Scalar1 > >,
-                                             boost::mpl::not_< is_readable_vector< Scalar2 > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_2pts_forward( Function f, Scalar1& x, const Scalar2& y, Matrix& jac,
-                                 Scalar1 delta = Scalar1( 1e-6 ) ) {
-  vect< Scalar1, 1 > x_tmp;
-  x_tmp[0] = x;
-  vect< Scalar2, 1 > y_tmp;
-  y_tmp[0] = y;
-
-  compute_jacobian_2pts_forward( [&f]( const vect< Scalar1, 1 >& x ) -> vect< Scalar2, 1 > {
-                                   vect< Scalar2, 1 > result;
-                                   result[0] = f( x[0] );
-                                   return result;
-                                 },
-                                 x_tmp, y_tmp, jac, delta );
-  x = x_tmp[0];
-};
-
-
-template < typename Function, typename Vector1, typename Vector2, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_readable_vector< Vector2 >,
-                                             is_fully_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_2pts_central( Function f, Vector1& x, const Vector2& y, Matrix& jac,
-                                 typename vect_traits< Vector1 >::value_type delta
-                                 = typename vect_traits< Vector1 >::value_type( 1e-6 ) ) {
-  detail::compute_jacobian_2pts_central_impl( f, x, y, jac, delta );
-};
-
-template < typename Function, typename Vector1, typename Vector2, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_readable_vector< Vector2 >,
-                                             boost::mpl::not_< is_fully_writable_matrix< Matrix > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_2pts_central( Function f, Vector1& x, const Vector2& y, Matrix& jac,
-                                 typename vect_traits< Vector1 >::value_type delta
-                                 = typename vect_traits< Vector1 >::value_type( 1e-6 ) ) {
-  mat< typename vect_traits< Vector1 >::value_type, mat_structure::rectangular > jac_tmp( y.size(), x.size() );
-  detail::compute_jacobian_2pts_central_impl( f, x, y, jac_tmp, delta );
-  jac = jac_tmp;
-};
-
-template < typename Function, typename Vector, typename Scalar, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
-                                             boost::mpl::not_< is_readable_vector< Scalar > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_2pts_central( Function f, Vector& x, const Scalar& y, Matrix& jac,
-                                 typename vect_traits< Vector >::value_type delta
-                                 = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
-  vect< Scalar, 1 > y_tmp;
-  y_tmp[0] = y;
-  compute_jacobian_2pts_central( [&f]( const Vector& x ) -> vect< Scalar, 1 > {
-                                   vect< Scalar, 1 > result;
-                                   result[0] = f( x );
-                                   return result;
-                                 },
-                                 x, y_tmp, jac, delta );
-};
-
-template < typename Function, typename Vector, typename Scalar, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
-                                             boost::mpl::not_< is_readable_vector< Scalar > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_2pts_central( Function f, Scalar& x, const Vector& y, Matrix& jac, Scalar delta = Scalar( 1e-6 ) ) {
-  vect< Scalar, 1 > x_tmp;
-  x_tmp[0] = x;
-  compute_jacobian_2pts_central( [&f]( const vect< Scalar, 1 >& x ) -> Vector { return f( x[0] ); }, x_tmp, y, jac,
-                                 delta );
-  x = x_tmp[0];
-};
-
-
-template < typename Function, typename Scalar1, typename Scalar2, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vector< Scalar1 > >,
-                                             boost::mpl::not_< is_readable_vector< Scalar2 > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_2pts_central( Function f, Scalar1& x, const Scalar2& y, Matrix& jac,
-                                 Scalar1 delta = Scalar1( 1e-6 ) ) {
-  vect< Scalar1, 1 > x_tmp;
-  x_tmp[0] = x;
-  vect< Scalar2, 1 > y_tmp;
-  y_tmp[0] = y;
-  compute_jacobian_2pts_central( [&f]( const vect< Scalar1, 1 >& x ) -> vect< Scalar2, 1 > {
-                                   vect< Scalar2, 1 > result;
-                                   result[0] = f( x[0] );
-                                   return result;
-                                 },
-                                 x_tmp, y_tmp, jac, delta );
-  x = x_tmp[0];
-};
-
-
-template < typename Function, typename Vector1, typename Vector2, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_readable_vector< Vector2 >,
-                                             is_fully_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_5pts_central( Function f, Vector1& x, const Vector2& y, Matrix& jac,
-                                 typename vect_traits< Vector1 >::value_type delta
-                                 = typename vect_traits< Vector1 >::value_type( 1e-6 ) ) {
-  detail::compute_jacobian_5pts_central_impl( f, x, y, jac, delta );
-};
-
-template < typename Function, typename Vector1, typename Vector2, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_readable_vector< Vector2 >,
-                                             boost::mpl::not_< is_fully_writable_matrix< Matrix > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_5pts_central( Function f, Vector1& x, const Vector2& y, Matrix& jac,
-                                 typename vect_traits< Vector1 >::value_type delta
-                                 = typename vect_traits< Vector1 >::value_type( 1e-6 ) ) {
-  mat< typename vect_traits< Vector1 >::value_type, mat_structure::rectangular > jac_tmp( y.size(), x.size() );
-  detail::compute_jacobian_5pts_central_impl( f, x, y, jac_tmp, delta );
-  jac = jac_tmp;
-};
-
-template < typename Function, typename Vector, typename Scalar, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
-                                             boost::mpl::not_< is_readable_vector< Scalar > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_5pts_central( Function f, Vector& x, const Scalar& y, Matrix& jac,
-                                 typename vect_traits< Vector >::value_type delta
-                                 = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
-  vect< Scalar, 1 > y_tmp;
-  y_tmp[0] = y;
-  compute_jacobian_5pts_central( [&f]( const Vector& x ) -> vect< Scalar, 1 > {
-                                   vect< Scalar, 1 > result;
-                                   result[0] = f( x );
-                                   return result;
-                                 },
-                                 x, y_tmp, jac, delta );
-};
-
-template < typename Function, typename Vector, typename Scalar, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
-                                             boost::mpl::not_< is_readable_vector< Scalar > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_5pts_central( Function f, Scalar& x, const Vector& y, Matrix& jac, Scalar delta = Scalar( 1e-6 ) ) {
-  vect< Scalar, 1 > x_tmp;
-  x_tmp[0] = x;
-  compute_jacobian_5pts_central( [&f]( const vect< Scalar, 1 >& x ) -> Vector { return f( x[0] ); }, x_tmp, y, jac,
-                                 delta );
-  x = x_tmp[0];
-};
-
-
-template < typename Function, typename Scalar1, typename Scalar2, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vector< Scalar1 > >,
-                                             boost::mpl::not_< is_readable_vector< Scalar2 > >,
-                                             is_writable_matrix< Matrix > >,
-                           void >::type
-  compute_jacobian_5pts_central( Function f, Scalar1& x, const Scalar2& y, Matrix& jac,
-                                 Scalar1 delta = Scalar1( 1e-6 ) ) {
-  vect< Scalar1, 1 > x_tmp;
-  x_tmp[0] = x;
-  vect< Scalar2, 1 > y_tmp;
-  y_tmp[0] = y;
-  compute_jacobian_5pts_central( [&f]( const vect< Scalar1, 1 >& x ) -> vect< Scalar2, 1 > {
-                                   vect< Scalar2, 1 > result;
-                                   result[0] = f( x[0] );
-                                   return result;
-                                 },
-                                 x_tmp, y_tmp, jac, delta );
-  x = x_tmp[0];
-};
-};
-};
+}  // namespace ReaK::optim
 
 #endif

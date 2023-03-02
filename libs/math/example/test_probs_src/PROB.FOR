@@ -27,5356 +27,3992 @@ C
 C
 C***********************************************************************
 C
-      SUBROUTINE TP1(MODE)      
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      GOTO (1,2,3,4,4),MODE     
-1     N=2       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      X(1)=-2.D0
-      X(2)=1.D0 
-      LXL(1)=.FALSE.    
-      LXL(2)=.TRUE.     
-      LXU(1)=.FALSE.    
-      LXU(2)=.FALSE.    
-      XL(2)=-1.5D0      
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=1.D0       
-      XEX(2)=1.D0       
-      FEX=0.D0  
-      RETURN    
-2     FX=100.D0*(X(2)-X(1)**2)**2+(1.D0-X(1))**2
-      RETURN    
-3     GF(2)=200.D0*(X(2)-X(1)**2)       
-      GF(1)=-2.D0*(X(1)*(GF(2)-1.D0)+1.D0)      
-4     RETURN    
-      END       
-C
-      SUBROUTINE TP2(MODE)      
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION     X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      DOUBLEPRECISION W1
-      GOTO (1,2,3,4,4),MODE     
-1     N=2       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      X(1)=-2.D0
-      X(2)=1.0D0 
-      LXL(1)=.FALSE.    
-      LXU(1)=.FALSE.    
-      LXL(2)=.TRUE.     
-      XL(2)=1.5D0       
-      LXU(2)=.FALSE.    
-      LEX=.TRUE.
-      NEX=1     
-      W1=DSQRT(598.D0/1200.D0)  
-      XEX(1)=2.D0*W1*DCOS(DACOS(2.5D-3/W1**3)/3.D0)    
-      XEX(2)=1.5D0      
-      FEX=100.D0*(XEX(2)-XEX(1)**2)**2+(1.D0-XEX(1))**2 
-      RETURN    
-2     FX=100.D0*(X(2)-X(1)**2)**2+(1.D0-X(1))**2
-      RETURN    
-3     GF(2)=200.D0*(X(2)-X(1)**2)       
-      GF(1)=-2.D0*(X(1)*(GF(2)-1.D0)+1.D0)      
-4     RETURN    
-      END       
-C
-      SUBROUTINE TP3(MODE)      
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      GOTO (1,2,3,4,4),MODE     
-1     N=2       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      X(1)=10.D0
-      X(2)=1.D0 
-      LXL(1)=.FALSE.    
-      LXL(2)=.TRUE.     
-      LXU(1)=.FALSE.    
-      LXU(2)=.FALSE.    
-      XL(2)=0.D0
-      LEX=.TRUE.
-      XEX(1)=0.D0       
-      XEX(2)=0.D0       
-      FEX=0.D0  
-      NEX=1     
-      RETURN    
-2     FX=X(2)+(X(2)-X(1))**2*1.D-5      
-      RETURN    
-3     GF(1)=-2.D0*(X(2)-X(1))*1.D-5     
-      GF(2)=1.D0-GF(1)  
-4     RETURN    
-      END       
-C
-      SUBROUTINE TP4(MODE)      
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,4),MODE     
-1     N=2       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      X(1)=1.125D0      
-      X(2)=0.125D0      
-      DO 6 I=1,2
-      LXU(I)=.FALSE.    
-6     LXL(I)=.TRUE.     
-      XL(1)=1.D0
-      XL(2)=0.D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=1.D0       
-      XEX(2)=0.D0       
-      FEX=8.D0/3.D0     
-      GF(2)=1.D0
-      RETURN    
-2     FX=(X(1)+1.D0)**3/3.D0+X(2)       
-      RETURN    
-3     GF(1)=(X(1)+1.D0)**2      
-4     RETURN    
-      END       
-C
-      SUBROUTINE TP5(MODE)      
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION A,V1,V2      
-      GOTO (1,2,3,4,4),MODE     
-1     N=2       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      X(1)=0.D0 
-      X(2)=0.D0 
-      DO 6 I=1,2
-      LXL(I)=.TRUE.     
-6     LXU(I)=.TRUE.     
-      XL(1)=-1.5D0      
-      XL(2)=-3.D0       
-      XU(1)=4.D0
-      XU(2)=3.D0
-      A=4.D0*DATAN(1.D0)
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=0.5D0-A/3.D0       
-      XEX(2)=XEX(1)-1.D0
-      FEX=-DSQRT(3.D0)/2.D0-A/3.D0      
-      RETURN    
-2     FX=DSIN(X(1)+X(2))+(X(1)-X(2))**2-1.5D0*X(1)+2.5D0*X(2)+1.D0      
-      RETURN    
-3     V1=DCOS(X(1)+X(2))
-      V2=2.D0*(X(1)-X(2))       
-      GF(1)=V1+V2-1.5D0 
-      GF(2)=V1-V2+2.5D0 
-4     RETURN    
-      END       
-C
-      SUBROUTINE TP6(MODE)      
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=1    
-      X(1)=-1.2D0       
-      X(2)=1.0D0 
-      DO 6 I=1,2
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=1.D0       
-      XEX(2)=1.D0       
-      FEX=0.D0  
-      GG(1,2)=10.D0     
-      GF(2)=0.D0
-      RETURN    
-2     FX=(1.D0-X(1))**2 
-      RETURN    
-3     GF(1)=2.D0*X(1)-2.D0      
-      RETURN    
-4     IF (INDEX1(1)) G(1)=10.D0*(X(2)-X(1)**2)  
-      RETURN    
-5     IF (INDEX2(1)) GG(1,1)=-20.D0*X(1)
-      RETURN    
-      END       
-C
-      SUBROUTINE TP7(MODE)      
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=1    
-      X(1)=2.D0 
-      X(2)=2.D0 
-      DO 6 I=1,2
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      FEX=-DSQRT(3.D0)  
-      XEX(1)=0.D0       
-      XEX(2)=-FEX       
-      NEX=1     
-      GF(2)=-1.D0       
-      RETURN    
-2     FX=DLOG(1.D0+X(1)**2)-X(2)
-      RETURN    
-3     GF(1)=2.D0*X(1)/(1.D0+X(1)**2)    
-      RETURN    
-4     IF (INDEX1(1)) G(1)=(1.D0+X(1)**2)**2+X(2)**2-4.D0
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=4.D0*X(1)*(1.D0+X(1)**2)  
-      GG(1,2)=2.D0*X(2) 
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP8(MODE)      
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I,J
-      DOUBLEPRECISION A,B
-      GOTO (1,3,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=2    
-      X(1)=2.D0 
-      X(2)=1.D0 
-      A=DSQRT((25.D0+DSQRT(301.D0))/2.D0)       
-      B=DSQRT((25.D0-DSQRT(301.D0))/2.D0)       
-      DO 6 I=1,2
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=4     
-      XEX(1)=A  
-      XEX(2)=9.D0/A     
-      XEX(5)=B  
-      XEX(6)=9.D0/B     
-      DO 30 I=3,7,4     
-      DO 30 J=1,2       
-30    XEX(I+J-1)=-XEX(I+J-3)    
-      FEX=-1.D0 
-      GF(1)=0.D0
-      GF(2)=0.D0
-      FX=-1.D0  
-3     RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)**2+X(2)**2-25.D0 
-      IF (INDEX1(2)) G(2)=X(1)*X(2)-9.D0
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=2.D0*X(1) 
-      GG(1,2)=2.D0*X(2) 
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,1)=X(2)      
-      GG(2,2)=X(1)      
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP9(MODE)      
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION V,V1,V2,V3,V4
-      V=4.D0*DATAN(1.D0)
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=0    
-      NELI=1    
-      NENL=0    
-      X(1)=0.D0 
-      X(2)=0.D0 
-      DO 6 I=1,2
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=1    
-      FEX=-0.5D0
-      XEX(1)=-3.D0      
-      XEX(2)=-4.D0      
-      GG(1,1)=4.D0      
-      GG(1,2)=-3.D0     
-      RETURN    
-2     FX=DSIN(V*X(1)/12.D0)*DCOS(V*X(2)/16.D0)  
-      RETURN    
-3     V3=V/12.D0
-      V4=V/16.D0
-      V1=V3*X(1)
-      V2=V4*X(2)
-      GF(1)=V3*DCOS(V1)*DCOS(V2)
-      GF(2)=-V4*DSIN(V1)*DSIN(V2)       
-      RETURN    
-4     IF(INDEX1(1)) G(1)=4.D0*X(1)-3.D0*X(2)    
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP10(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      X(1)=-10.D0       
-      X(2)=10.D0
-      DO 6 I=1,2
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=0.D0       
-      XEX(2)=1.D0       
-      FEX=-1.D0 
-      GF(1)=1.D0
-      GF(2)=-1.D0       
-      RETURN    
-2     FX=X(1)-X(2)      
-3     RETURN    
-4     IF (INDEX1(1)) G(1)=-3.D0*X(1)**2+2.D0*X(1)*X(2)-X(2)**2+1.D0     
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=-6.D0*X(1)+2.D0*X(2)      
-      GG(1,2)=2.D0*(X(1)-X(2))  
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP11(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION AEX,AW,QAW     
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,2
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      X(1)=4.9D0
-      X(2)=0.1D0
-      LEX=.TRUE.
-      NEX=1     
-      AEX=7.5D0*DSQRT(6.D0)     
-      AW=(DSQRT(AEX**2+1.D0)+AEX)**(1.D0/3.D0)  
-      QAW=AW**2 
-      XEX(1)=(AW-1.D0/AW)/DSQRT(6.D0)   
-      XEX(2)=(QAW-2.D0+1.D0/QAW)/6.D0   
-      FEX=(XEX(1)-5.D0)**2+XEX(2)**2-25.D0      
-      GG(1,2)=1.D0      
-      RETURN    
-2     FX=(X(1)-5.D0)**2+X(2)**2-25.D0   
-      RETURN    
-3     GF(1)=2.D0*(X(1)-5.D0)    
-      GF(2)=2.D0*X(2)   
-      RETURN    
-4     IF (INDEX1(1)) G(1)=-X(1)**2+X(2) 
-      RETURN    
-5     IF (INDEX2(1)) GG(1,1)=-2.D0*X(1) 
-      RETURN    
-      END       
-C
-      SUBROUTINE TP12(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      X(1)=0.D0 
-      X(2)=0.D0 
-      DO 6 I=1,2
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=2.D0       
-      XEX(2)=3.D0       
-      FEX=-30.D0
-      RETURN    
-2     FX=0.5D0*X(1)**2+X(2)**2-X(1)*X(2)-7.D0*X(1)-7.D0*X(2)    
-      RETURN    
-3     GF(1)=X(1)-X(2)-7.D0      
-      GF(2)=2.D0*X(2)-X(1)-7.D0 
-      RETURN    
-4     IF (INDEX1(1)) G(1)=25.D0-4.D0*X(1)**2-X(2)**2    
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=-8.D0*X(1)
-      GG(1,2)=-2.D0*X(2)
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP13(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      X(1)=0.D0
-      X(2)=0.D0
-      DO 6 I=1,2
-      LXU(I)=.FALSE.    
-      LXL(I)=.TRUE.     
-6     XL(I)=0.D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=1.D0       
-      XEX(2)=0.D0       
-      FEX=1.D0  
-      GG(1,2)=-1.D0     
-      RETURN    
-2     FX=(X(1)-2.D0)**2+X(2)**2 
-      RETURN    
-3     GF(1)=2.D0*(X(1)-2.D0)    
-      GF(2)=2.D0*X(2)   
-      RETURN    
-4     IF (INDEX1(1)) G(1)=(1.D0-X(1))**3-X(2)   
-      RETURN    
-5     IF (INDEX2(1)) GG(1,1)=-3.D0*(1.D0-X(1))**2       
-      RETURN    
-      END       
-C
-      SUBROUTINE TP14(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION W7   
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=1    
-      NELI=1    
-      NENL=0    
-      X(1)=2.D0 
-      X(2)=2.D0 
-      DO 6 I=1,2
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=1     
-      W7=DSQRT(7.D0)    
-      XEX(1)=(W7-1.D0)*0.5D0    
-      XEX(2)=(W7+1.D0)*0.25D0   
-      FEX=9.D0-23.D0*W7/8.D0    
-      GG(2,1)=1.D0      
-      GG(2,2)=-2.D0     
-      RETURN    
-2     FX=(X(1)-2.D0)**2+(X(2)-1.D0)**2  
-      RETURN    
-3     GF(1)=2.D0*(X(1)-2.D0)    
-      GF(2)=2.D0*(X(2)-1.D0)    
-      RETURN    
-4     IF (INDEX1(1)) G(1)=1.D0-(X(1)**2)*0.25D0-X(2)**2 
-      IF (INDEX1(2)) G(2)=X(1)-2.D0*X(2)+1.D0   
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=-X(1)*0.5D0       
-      GG(1,2)=-2.D0*X(2)
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP15(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=2    
-      NELI=0    
-      NENL=0    
-      X(1)=-2.D0
-      X(2)=1.D0 
-      LXL(1)=.FALSE.    
-      LXL(2)=.FALSE.    
-      LXU(1)=.TRUE.     
-      LXU(2)=.FALSE.    
-      XU(1)=0.5D0       
-      LEX=.TRUE.
-      XEX(1)=0.5D0      
-      XEX(2)=2.0       
-      FEX=3.065D0      
-      NEX=1     
-      GG(2,1)=1.D0      
-      RETURN    
-2     FX=(X(2)-X(1)**2)**2+0.01*(1.D0-X(1))**2
-      RETURN    
-3     GF(2)=2.0*(X(2)-X(1)**2)       
-      GF(1)=-2.D-2*(X(1)*(GF(2)-1.D0)+1.D0)      
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)*X(2)-1.D0
-      IF (INDEX1(2)) G(2)=X(2)**2+X(1)  
-      RETURN    
-5     IF(.NOT.INDEX2(1)) GOTO 7 
-      GG(1,1)=X(2)      
-      GG(1,2)=X(1)      
-7     IF (INDEX2(2)) GG(2,2)=2.D0*X(2)  
-      RETURN    
-      END       
-C
-      SUBROUTINE TP16(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=2    
-      NELI=0    
-      NENL=0    
-      X(1)=-2.D0
-      X(2)=1.D0 
-      LXL(1)=.TRUE.     
-      LXL(2)=.FALSE.    
-      LXU(1)=.TRUE.     
-      LXU(2)=.TRUE.     
-      XL(1)=-0.5D0      
-      XU(1)=0.5D0       
-      XU(2)=1.D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=0.5D0      
-      XEX(2)=0.25D0     
-      FEX=0.25D0
-      GG(1,1)=1.D0      
-      GG(2,2)=1.D0      
-      RETURN    
-2     FX=100.D0*(X(2)-X(1)**2)**2+(1.D0-X(1))**2
-      RETURN    
-3     GF(2)=200.D0*(X(2)-X(1)**2)       
-      GF(1)=-2.D0*(X(1)*(GF(2)-1.D0)+1.D0)      
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(2)**2+X(1)  
-      IF (INDEX1(2)) G(2)=X(1)**2+X(2)  
-      RETURN    
-5     IF (INDEX2(1)) GG(1,2)=2.D0*X(2)  
-      IF (INDEX2(2)) GG(2,1)=2.D0*X(1)  
-      RETURN    
-      END       
-C
-      SUBROUTINE TP17(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=2    
-      NELI=0    
-      NENL=0    
-      X(1)=-2.0
-      X(2)=1.D0 
-      LXL(1)=.TRUE.     
-      LXL(2)=.FALSE.    
-      LXU(1)=.TRUE.     
-      LXU(2)=.TRUE.     
-      XL(1)=-2.0      
-      XU(1)=0.5D0       
-      XU(2)=1.D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=0.D0       
-      XEX(2)=0.D0       
-      FEX=1.D0  
-      GG(1,1)=-1.D0     
-      GG(2,2)=-1.D0     
-      RETURN    
-2     FX=(100.D0*(X(2)-X(1)**2)**2+(1.D0-X(1))**2)
-      RETURN    
-3     GF(2)=200.D0*(X(2)-X(1)**2)      
-      GF(1)=-2.D0*(X(1)*(GF(2)-1.D0)+1.D0)   
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(2)**2-X(1)  
-      IF(INDEX1(2)) G(2)=X(1)**2-X(2)   
-      RETURN    
-5     IF (INDEX2(1)) GG(1,2)=2.D0*X(2)  
-      IF (INDEX2(2)) GG(2,1)=2.D0*X(1)  
-      RETURN    
-      END       
-C
-      SUBROUTINE TP18(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=2    
-      NELI=0    
-      NENL=0    
-      X(1)=2.D0 
-      X(2)=2.D0 
-      DO 6 I=1,2
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-6     XU(I)=50.D0       
-      XL(1)=2.D0
-      XL(2)=0.D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=DSQRT(250.D0)      
-      XEX(2)=0.1D0*XEX(1)       
-      FEX=5.D0  
-      RETURN    
-2     FX=0.01D0*X(1)**2+X(2)**2 
-      RETURN    
-3     GF(1)=0.02D0*X(1) 
-      GF(2)=2.D0*X(2)   
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)*X(2)-25.D0       
-      IF(INDEX1(2)) G(2)=X(1)**2+X(2)**2-25.D0  
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=X(2)      
-      GG(1,2)=X(1)      
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,1)=2.D0*X(1) 
-      GG(2,2)=2.D0*X(2) 
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP19(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      COMMON     /L19/ AEX,SAEX 
-      DOUBLEPRECISION AEX,SAEX
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=2    
-      NELI=0    
-      NENL=0    
-      X(1)=20.1D0       
-      X(2)=5.84D0       
-      DO 6 I=1,2
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-6     XU(I)=100.D0      
-      XL(1)=13.D0       
-      XL(2)=0.D0
-      LEX=.TRUE.
-      NEX=1     
-      SAEX=1.7280975D+1 
-      AEX=DSQRT(SAEX)   
-      XEX(1)=14.095D0   
-      XEX(2)=5.D0-AEX   
-      FEX=(4.095D0**3-(15.D0+AEX)**3)
-      RETURN    
-2     FX=((X(1)-10.D0)**3+(X(2)-20.D0)**3)
-      RETURN    
-3     GF(1)=(3.D0*(X(1)-10.D0)**2)
-      GF(2)=(3.D0*(X(2)-20.D0)**2)
-      RETURN    
-4     IF (INDEX1(1)) G(1)=(X(1)-5.D0)**2+(X(2)-5.D0)**2-100.D0  
-      IF (INDEX1(2)) G(2)=82.81D0-(X(1)-6.D0)**2-(X(2)-5.D0)**2 
-      RETURN    
-5     IF(.NOT.INDEX2(1)) GOTO 7 
-      GG(1,1)=2.D0*(X(1)-5.D0)  
-      GG(1,2)=2.D0*(X(2)-5.D0)  
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,1)=-2.D0*(X(1)-6.D0) 
-      GG(2,2)=-2.D0*(X(2)-5.D0) 
-8     RETURN    
-      END      
-C       
-      SUBROUTINE TP20(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=3    
-      NELI=0    
-      NENL=0    
-      X(1)=1.D-1
-      X(2)=1.D0 
-      LXL(1)=.TRUE.     
-      LXL(2)=.FALSE.    
-      LXU(1)=.TRUE.     
-      LXU(2)=.FALSE.    
-      XL(1)=-0.5D0      
-      XU(1)=0.5D0       
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=0.5D0      
-      XEX(2)=DSQRT(3.D0)*0.5D0  
-      FEX=(81.5D0-25.D0*DSQRT(3.D0))
-      GG(1,1)=1.D0      
-      GG(2,2)=1.D0      
-      RETURN    
-2     FX=(100.D0*(X(2)-X(1)**2)**2+(1.D0-X(1))**2)
-      RETURN    
-3     GF(2)=200.D0*(X(2)-X(1)**2)
-      GF(1)=-2.D0*(X(1)*(GF(2)-1.D0)+1.D0)
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(2)**2+X(1)  
-      IF (INDEX1(2)) G(2)=X(1)**2+X(2)  
-      IF  (INDEX1(3)) G(3)=X(1)**2+X(2)**2-1.D0 
-      RETURN    
-5     IF (INDEX2(1)) GG(1,2)=2.D0*X(2)  
-      IF(INDEX2(2)) GG(2,1)=2.D0*X(1)   
-      IF (.NOT.INDEX2(3)) GOTO 9
-      GG(3,1)=2.D0*X(1) 
-      GG(3,2)=2.D0*X(2) 
-9     RETURN    
-      END       
-C
-      SUBROUTINE TP21(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=1    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      X(1)=2.D0
-      X(2)=-1.D0
-      DO 6 I=1,2
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-6     XU(I)=50.D0       
-      XL(1)=2.D0
-      XL(2)=-50.D0      
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=2.D0       
-      XEX(2)=0.D0       
-      FEX=-99.96D0      
-      GG(1,1)=10.D0     
-      GG(1,2)=-1.D0     
-      RETURN    
-2     FX=(0.01*X(1)**2 + X(2)**2 - 100.D0)
-      RETURN    
-3     GF(1)=0.02*X(1)
-      GF(2)=2.0*X(2)
-      RETURN    
-4     IF (INDEX1(1)) G(1)=10.D0*X(1)-X(2)-10.D0 
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP22(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=1    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      X(1)=2.D0 
-      X(2)=2.D0 
-      DO 6 I=1,2
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=1.D0       
-      XEX(2)=1.D0       
-      FEX=1.D0  
-      GG(1,1)=-1.D0     
-      GG(1,2)=-1.D0     
-      GG(2,2)=1.D0      
-      RETURN    
-2     FX=(X(1)-2.D0)**2+(X(2)-1.D0)**2  
-      RETURN    
-3     GF(1)=2.D0*(X(1)-2.D0)    
-      GF(2)=2.D0*(X(2)-1.D0)    
-      RETURN    
-4     IF (INDEX1(1)) G(1)=2.D0-X(1)-X(2)
-      IF (INDEX1(2)) G(2)=X(2)-X(1)**2  
-      RETURN    
-5     IF (INDEX2(2)) GG(2,1)=-2.D0*X(1) 
-      RETURN    
-      END       
-C
-      SUBROUTINE TP23(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=1    
-      NINL=4    
-      NELI=0    
-      NENL=0    
-      X(1)=3.D0 
-      X(2)=1.D0 
-      DO 6 I=1,2
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-      XL(I)=-50.D0      
-6     XU(I)=50.D0       
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=1.D0       
-      XEX(2)=1.D0       
-      FEX=2.D0  
-      GG(1,1)=1.D0      
-      GG(1,2)=1.D0      
-      GG(4,2)=-1.D0     
-      GG(5,1)=-1.D0     
-      RETURN    
-2     FX=X(1)**2+X(2)**2
-      RETURN    
-3     GF(1)=2.D0*X(1)   
-      GF(2)=2.D0*X(2)   
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+X(2)-1.D0
-      IF (INDEX1(2)) G(2)=X(1)**2+X(2)**2-1.D0  
-      IF (INDEX1(3)) G(3)=9.D0*X(1)**2+X(2)**2-9.D0     
-      IF (INDEX1(4)) G(4)=X(1)**2-X(2)  
-      IF (INDEX1(5)) G(5)=X(2)**2-X(1)  
-      RETURN    
-5     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,1)=2.D0*X(1) 
-      GG(2,2)=2.D0*X(2) 
-8     IF (.NOT.INDEX2(3)) GOTO 9
-      GG(3,1)=18.D0*X(1)
-      GG(3,2)=2.D0*X(2) 
-9     IF (INDEX2(4)) GG(4,1)=2.D0*X(1)  
-      IF (INDEX2(5)) GG(5,2)=2.D0*X(2)  
-      RETURN    
-      END       
-C
-      SUBROUTINE TP24(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      COMMON     /L24/ A
-      DOUBLEPRECISION A    
-      INTEGER I
-      A=DSQRT(3.0D0)     
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=3    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      X(1)=1.D0 
-      X(2)=0.5D0
-      DO 6 I=1,2
-      LXL(I)=.TRUE.     
-      LXU(I)=.FALSE.    
-6     XL(I)=0.D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=3.D0       
-      XEX(2)=A  
-      FEX=-1.D0 
-      GG(1,1)=1.D0/A    
-      GG(1,2)=-1.D0     
-      GG(2,1)=1.D0      
-      GG(2,2)=A 
-      GG(3,1)=-1.D0     
-      GG(3,2)=-A
-      RETURN    
-2     FX=((X(1)-3.D0)**2-9.D0)*X(2)**3/(27.D0*A)
-      RETURN    
-3     GF(1)=2.D0*(X(1)-3.D0)*X(2)**3/(27.D0*A)  
-      GF(2)=((X(1)-3.D0)**2-9.D0)*X(2)**2/(9.D0*A)      
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)/A-X(2)   
-      IF (INDEX1(2)) G(2)=X(1)+X(2)*A   
-      IF (INDEX1(3)) G(3)=6.D0-X(2)*A-X(1)      
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP25(MODE)
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      COMMON     /D25/ A(99),B(99),U(99),DA(99,3),V1,T,S,V2,V11,V22,X13
-      DOUBLEPRECISION A,B,U,DA,V1,T,S,V2,V11,V22,X13    
-      INTEGER I,J
-      GOTO (1,2,3,4,4),MODE     
-1     N=3       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      X(1)=100.D0       
-      X(2)=12.5D0       
-      X(3)=3.D0 
-      DO 6 I=1,3
-      LXL(I)=.TRUE.     
-6     LXU(I)=.TRUE.     
-      XL(1)=0.1D0       
-      XL(2)=1.D-5       
-      XL(3)=1.D-5       
-      XU(1)=100.D0      
-      XU(2)=25.6D0      
-      XU(3)=5.0D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=50.D0      
-      XEX(2)=25.D0      
-      XEX(3)=1.5D0      
-      FEX=0.D0  
-      RETURN    
-  2   CONTINUE  
-      DO 30 I=1,99      
-      V1=2.D0/3.D0      
-      U(I)=25.D0+(-50.D0*DLOG(0.01D0*DBLE(I)))**V1    
-      V1=U(I)-X(2) 
-      IF (V1.LT.0) GOTO 7       
-      V11=-(V1**X(3))/X(1)
-      B(I)=DEXP(V11)    
-30    A(I)=B(I)-0.01D0*DBLE(I)
-      T=0.D0    
-      DO 31 I=1,99      
-31    T=T+A(I)**2       
-      FX=T
-      RETURN    
-7     S=0.D0    
-      DO 8 I=1,3
-8     S=S+(X(I)-5.D0)**2
-      FX=S
-      RETURN    
- 3    CONTINUE  
-      DO 36 I=1,99      
-      V1=2.D0/3.D0      
-      U(I)=25.D0-(50.D0*DLOG(0.01D0*DBLE(I)))**V1    
-      V2=U(I)-X(2)      
-      IF (V2.LE.0) GOTO 9       
-      V22=-V2**X(3)/X(1)
-      IF(V22.GT. -150.D0) GOTO42
-      B(I)=0.D0 
-      GOTO43    
-   42 B(I)=DEXP(V22)    
-   43 CONTINUE  
-      A(I)=B(I)-0.01D0*DBLE(I)
-      DA(I,1)=V2**X(3)/X(1)**2*B(I)     
-      DA(I,2)=X(3)*V2**(X(3)-1.D0)/X(1)*B(I)    
-36    DA(I,3)=-V2**X(3)/X(1)*DLOG(V2)*B(I)      
-      DO 34 I=1,3       
-      T=0.D0    
-      DO 33 J=1,99      
-33    T=T+2.D0*A(J)*DA(J,I)     
-34    GF(I)=T   
-      RETURN    
-9     DO 10 I=1,3       
-10    GF(I)=2.D0*(X(I)-5.D0)    
-4     RETURN    
-      END       
-C
-      SUBROUTINE TP26(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION A    
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=1    
-      X(1)=-2.6D0       
-      X(2)=2.D0 
-      X(3)=2.D0 
-      DO 6 I=1,3
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=1.D0       
-      XEX(2)=1.D0       
-      XEX(3)=1.D0       
-      A=DSQRT(139.D0/108.D0)    
-      XEX(4)=(A-61.D0/54.D0)**(1.D0/3.D0)-(61.D0/54.D0+A)**(1.D0/3.D0)  
-     /     -2.D0/3.D0   
-      XEX(5)=XEX(4)     
-      XEX(6)=XEX(4)     
-      FEX=0.D0  
-      RETURN    
-2     FX=(X(1)-X(2))**2+(X(2)-X(3))**4  
-      RETURN    
-3     GF(1)=2.D0*(X(1)-X(2))    
-      GF(3)=-4.D0*(X(2)-X(3))**3
-      GF(2)=-GF(1)-GF(3)
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)*(1.D0+X(2)**2)+X(3)**4-3.D0      
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=1.D0+X(2)**2      
-      GG(1,2)=2.D0*X(1)*X(2)    
-      GG(1,3)=4.D0*X(3)**3      
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP27(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=1    
-      DO 6 I=1,3
-      X(I)=2.D0 
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=-1.D0      
-      XEX(2)=1.D0       
-      XEX(3)=0.D0       
-      FEX=4.0
-      GF(3)=0.D0
-      GG(1,1)=1.D0      
-      GG(1,2)=0.D0      
-      RETURN    
-2     FX=(X(1)-1.0D0)**2 + 100.0D0*(X(2)-X(1)**2)**2
-      RETURN    
-3     GF(1)=(X(1)-1.0D0)*2.0D0 - 400.0D0*(X(2)-X(1)**2)*X(1)
-      GF(2)=2.0D2*(X(2)-X(1)**2) 
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+X(3)**2+1.D0     
-      RETURN    
-5     IF (INDEX2(1)) GG(1,3)=2.D0*X(3)  
-      RETURN    
-      END       
-C      
-      SUBROUTINE TP28(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=0    
-      NELI=1    
-      NENL=0    
-      X(1)=-4.D0
-      X(2)=1.D0 
-      X(3)=1.D0 
-      DO 6 I=1,3
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=0.5D0      
-      XEX(2)=-0.5D0     
-      XEX(3)=0.5D0      
-      FEX=0.D0  
-      GG(1,1)=1.D0      
-      GG(1,2)=2.D0      
-      GG(1,3)=3.D0      
-      RETURN    
-2     FX=(X(1)+X(2))**2+(X(2)+X(3))**2  
-      RETURN    
-3     GF(1)=2.D0*(X(1)+X(2))    
-      GF(3)=2.D0*(X(2)+X(3))    
-      GF(2)=GF(1)+GF(3) 
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+2.D0*X(2)+3.D0*X(3)-1.D0 
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP29(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,3
-      X(I)=1.D0 
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=4     
-      XEX(1)=4.D0       
-      XEX(2)=2.D0*DSQRT(2.D0)   
-      XEX(3)=2.D0       
-      XEX(4)=XEX(1)     
-      XEX(5)=-XEX(2)    
-      XEX(6)=-XEX(3)    
-      XEX(7)=-XEX(1)    
-      XEX(8)=XEX(2)     
-      XEX(9)=-XEX(3)    
-      XEX(10)=-XEX(1)   
-      XEX(11)=-XEX(2)   
-      XEX(12)=XEX(3)    
-      FEX=-16.D0*DSQRT(2.D0)    
-      RETURN    
-2     FX=-X(1)*X(2)*X(3)
-      RETURN    
-3     GF(1)=-X(2)*X(3)  
-      GF(2)=-X(1)*X(3)  
-      GF(3)=-X(1)*X(2)  
-      RETURN    
-4     IF (INDEX1(1)) G(1)=48.D0-X(1)**2-2.D0*X(2)**2-4.D0*X(3)**2       
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=-2.D0*X(1)
-      GG(1,2)=-4.D0*X(2)
-      GG(1,3)=-8.D0*X(3)
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP30(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,3
-      X(I)=1.D0 
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-6     XU(I)=10.D0       
-      XL(1)=1.D0
-      XL(2)=-10.D0      
-      XL(3)=-10.D0      
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=1.D0       
-      XEX(2)=0.D0       
-      XEX(3)=0.D0       
-      FEX=1.D0  
-      GG(1,3)=0.D0      
-      RETURN    
-2     FX=X(1)**2+X(2)**2+X(3)**2
-      RETURN    
-3     GF(1)=2.D0*X(1)   
-      GF(2)=2.D0*X(2)   
-      GF(3)=2.D0*X(3)   
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)**2+X(2)**2-1.D0  
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=2.D0*X(1) 
-      GG(1,2)=2.D0*X(2) 
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP31(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,3
-      X(I)=1.D0 
-      LXL(I)=.TRUE.     
-6     LXU(I)=.TRUE.     
-      XL(1)=-10.D0      
-      XL(2)=1.D0
-      XL(3)=-10.D0      
-      XU(1)=10.D0       
-      XU(2)=10.D0       
-      XU(3)=1.D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=1.D0/DSQRT(3.D0)   
-      XEX(2)=DSQRT(3.D0)
-      XEX(3)=0.D0       
-      FEX=6.D0  
-      GG(1,3)=0.D0      
-      RETURN    
-2     FX=9.D0*X(1)**2+X(2)**2+9.D0*X(3)**2      
-      RETURN    
-3     GF(1)=18.D0*X(1)  
-      GF(2)=2.D0*X(2)   
-      GF(3)=18.D0*X(3)  
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)*X(2)-1.D0
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=X(2)      
-      GG(1,2)=X(1)      
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP32(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=1    
-      NELI=1    
-      NENL=0    
-      X(1)=0.1D0
-      X(2)=0.7D0
-      X(3)=0.2D0
-      DO 6 I=1,3
-      LXL(I)=.TRUE.     
-      LXU(I)=.FALSE.    
-6     XL(I)=0.D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=0.D0       
-      XEX(2)=0.D0       
-      XEX(3)=1.D0       
-      FEX=1.D0  
-      GG(1,2)=6.D0      
-      GG(1,3)=4.D0      
-      GG(2,1)=-1.D0     
-      GG(2,2)=-1.D0     
-      GG(2,3)=-1.D0     
-      RETURN    
-2     FX=(X(1)+3.D0*X(2)+X(3))**2+4.D0*(X(1)-X(2))**2   
-      RETURN    
-3     GF(1)=10.D0*X(1)-2.D0*X(2)+2.D0*X(3)      
-      GF(2)=-2.D0*X(1)+26.D0*X(2)+6.D0*X(3)     
-      GF(3)=2.D0*(X(1)+3.D0*X(2)+X(3))  
-      RETURN    
-4     IF (INDEX1(1)) G(1)=-X(1)**3+6.D0*X(2)+4.D0*X(3)-3.D0     
-      IF (INDEX1(2)) G(2)=1.D0-X(1)-X(2)-X(3)   
-      RETURN    
-5     IF (INDEX2(1)) GG(1,1)=-3.D0*X(1)**2      
-      RETURN    
-      END       
-C
-      SUBROUTINE TP33(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=2    
-      NELI=0    
-      NENL=0    
-      X(1)=0.D0 
-      X(2)=0.D0 
-      X(3)=3.D0 
-      DO 6 I=1,3
-      LXL(I)=.TRUE.     
-6     XL(I)=0.D0
-      LXU(1)=.FALSE.    
-      LXU(2)=.FALSE.    
-      LXU(3)=.TRUE.     
-      XU(3)=5.D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=0.D0       
-      XEX(2)=DSQRT(2.D0)
-      XEX(3)=DSQRT(2.D0)
-      FEX=DSQRT(2.D0)-6.0      
-      GF(2)=0.D0
-      GF(3)=1.D0
-      RETURN    
-2     FX=(X(1)-1.D0)*(X(1)-2.D0)*(X(1)-3.D0)+X(3)       
-      RETURN    
-3     GF(1)=3.D0*X(1)**2-12.D0*X(1)+11.D0       
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(3)**2-X(1)**2-X(2)**2       
-      IF (INDEX1(2)) G(2)=X(1)**2+X(2)**2+X(3)**2-4.D0  
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=-2.D0*X(1)
-      GG(1,2)=-2.D0*X(2)
-      GG(1,3)=2.D0*X(3) 
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,1)=2.D0*X(1) 
-      GG(2,2)=2.D0*X(2) 
-      GG(2,3)=2.D0*X(3) 
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP34(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=2    
-      NELI=0    
-      NENL=0    
-      X(1)=0.D0 
-      X(2)=1.05D0       
-      X(3)=2.9D0
-      DO 6 I=1,3
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-6     XL(I)=0.D0
-      XU(1)=100.D0      
-      XU(2)=100.D0      
-      XU(3)=10.D0       
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=DLOG(DLOG(10.D0))  
-      XEX(2)=DLOG(10.D0)
-      XEX(3)=10.D0      
-      FEX=-XEX(1)       
-      GF(1)=-1.D0       
-      GF(2)=0.D0
-      GF(3)=0.D0
-      GG(1,2)=1.D0      
-      GG(1,3)=0.D0      
-      GG(2,1)=0.D0      
-      GG(2,3)=1.D0      
-      RETURN    
-2     FX=-X(1)  
-3     RETURN    
-4     IF (INDEX1(1)) G(1)=X(2)-DEXP(X(1))       
-      IF(INDEX1(2)) G(2)=X(3)-DEXP(X(2))
-      RETURN    
-5     IF (INDEX2(1)) GG(1,1)=-DEXP(X(1))
-      IF (INDEX2(2)) GG(2,2)=-DEXP(X(2))
-      RETURN    
-      END       
-C
-      SUBROUTINE TP35(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=1    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,3
-      X(I)=0.5D0
-      LXL(I)=.TRUE.     
-      LXU(I)=.FALSE.    
-6     XL(I)=0.D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=4.D0/3.D0  
-      XEX(2)=7.D0/9.D0  
-      XEX(3)=4.D0/9.D0  
-      FEX=1.D0/9.D0     
-      GG(1,1)=-1.D0     
-      GG(1,2)=-1.D0     
-      GG(1,3)=-2.D0     
-      RETURN    
-2     FX=9.D0-8.D0*X(1)-6.D0*X(2)-4.D0*X(3)+2.D0*X(1)**2+2.D0*X(2)**2   
-     /     +X(3)**2+2.D0*X(1)*X(2)+2.D0*X(1)*X(3)    
-      RETURN    
-3     GF(1)=-8.D0+4.D0*X(1)+2.D0*X(2)+2.D0*X(3) 
-      GF(2)=-6.D0+4.D0*X(2)+2.D0*X(1)   
-      GF(3)=-4.D0+2.D0*X(3)+2.D0*X(1)   
-      RETURN    
-4     IF (INDEX1(1)) G(1)=-X(1)-X(2)-2.D0*X(3)+3.D0     
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP36(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=1    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,3
-      X(I)=10.D0
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-6     XL(I)=0.D0
-      XU(1)=20.D0       
-      XU(2)=11.D0       
-      XU(3)=42.D0       
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=20.D0      
-      XEX(2)=11.D0      
-      XEX(3)=15.D0      
-      FEX=-3.3D+3       
-      GG(1,1)=-1.D0     
-      GG(1,2)=-2.D0     
-      GG(1,3)=-2.D0     
-      RETURN    
-2     FX=-X(1)*X(2)*X(3)
-      RETURN    
-3     GF(1)=-X(2)*X(3)  
-      GF(2)=-X(1)*X(3)  
-      GF(3)=-X(1)*X(2)  
-      RETURN    
-4     IF (INDEX1(1)) G(1)=72.D0-X(1)-2.D0*X(2)-2.D0*X(3)
-      RETURN    
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP37(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=2    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,3
-      X(I)=10.D0
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-      XU(I)=42.D0       
-6     XL(I)=0.D0
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=24.D0      
-      XEX(2)=12.D0      
-      XEX(3)=12.D0      
-      FEX=-3.456D+3     
-      GG(1,1)=-1.D0     
-      GG(1,2)=-2.D0     
-      GG(1,3)=-2.D0     
-      GG(2,1)=1.D0      
-      GG(2,2)=2.D0      
-      GG(2,3)=2.D0      
-      RETURN    
-2     FX=-X(1)*X(2)*X(3)
-      RETURN    
-3     GF(1)=-X(2)*X(3)  
-      GF(2)=-X(1)*X(3)  
-      GF(3)=-X(1)*X(2)  
-      RETURN    
-4     IF (INDEX1(1)) G(1)=72.D0-X(1)-2.D0*X(2)-2.D0*X(3)
-      IF (INDEX1(2)) G(2)=X(1)+2.D0*X(2)+2.D0*X(3)      
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP38(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,4),MODE     
-1     N=4       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      X(1)=-3.D0
-      X(2)=-1.D0
-      X(3)=-3.D0
-      X(4)=-1.D0
-      DO 6 I=1,4
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-      XL(I)=-10.D0      
-6     XU(I)=10.D0       
-      LEX=.TRUE.
-      NEX=1     
-      DO 30 I=1,4       
-30    XEX(I)=1.D0       
-      FEX=0.D0  
-      RETURN    
-2     FX=(100.D0*(X(2)-X(1)**2)**2+(1.D0-X(1))**2
-     /   + 90.D0*(X(4)-X(3)**2)**2
-     /   + (1.D0-X(3))**2+10.1D0*((X(2)-1.D0)**2+(X(4)-1.D0)**2)
-     /   + 19.8D0*(X(2)-1.D0)*(X(4)-1.D0))
-      RETURN    
-3     GF(1)=(-400.D0*X(1)*(X(2)-X(1)**2)-2.D0*(1.D0-X(1)))
-      GF(2)=(200.D0*(X(2)-X(1)**2)+20.2D0*(X(2)-1.D0)+19.8D0
-     /                 *(X(4)-1.D0))
-      GF(3)=(-360.D0*X(3)*(X(4)-X(3)**2)-2.D0*(1.D0-X(3)))
-      GF(4)=(180.D0*(X(4)-X(3)**2)+20.2D0*(X(4)-1.D0)+19.8D0
-     /                 *(X(2)-1.D0))
-4     RETURN    
-      END       
-C
-      SUBROUTINE TP39(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=4       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=2    
-      DO 6 I=1,4
-      X(I)=2.D0 
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      NEX=1     
-      LEX=.TRUE.
-      XEX(1)=1.D0       
-      XEX(2)=1.D0       
-      XEX(3)=0.D0       
-      XEX(4)=0.D0       
-      FEX=-1.D0 
-      GF(1)=-1.D0       
-      GF(2)=0.D0
-      GF(3)=0.D0
-      GF(4)=0.D0
-      GG(1,2)=1.D0      
-      GG(1,4)=0.D0      
-      GG(2,2)=-1.D0     
-      GG(2,3)=0.D0      
-      RETURN    
-2     FX=-X(1)  
-3     RETURN    
-4     IF (INDEX1(1)) G(1)=X(2)-X(1)**3-X(3)**2  
-      IF (INDEX1(2)) G(2)=X(1)**2-X(2)-X(4)**2  
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=-3.D0*X(1)**2     
-      GG(1,3)=-2.D0*X(3)
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,1)=2.D0*X(1) 
-      GG(2,4)=-2.D0*X(4)
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP40(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I,J
-      GOTO (1,2,3,4,5),MODE     
-1     N=4       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=3    
-      DO 6 I=1,4
-      X(I)=0.8D0
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      DO 15 I=1,3       
-      DO 15 J=1,4       
-15    GG(I,J)=0.D0      
-      GG(2,3)=-1.D0     
-      GG(3,2)=-1.D0     
-      LEX=.TRUE.
-      XEX(1)=2.D0**(-1.D0/3.D0) 
-      XEX(2)=2.D0**(-0.5D0)     
-      XEX(3)=2.D0**(-11.D0/12.D0)       
-      XEX(4)=2.D0**(-0.25D0)    
-      XEX(5)=XEX(1)     
-      XEX(6)=XEX(2)     
-      XEX(7)=-XEX(3)    
-      XEX(8)=-XEX(4)    
-      FEX=-0.25D0       
-      NEX=2     
-      RETURN    
-2     FX=-X(1)*X(2)*X(3)*X(4)   
-      RETURN    
-3     GF(1)=-X(2)*X(3)*X(4)     
-      GF(2)=-X(1)*X(3)*X(4)     
-      GF(3)=-X(1)*X(2)*X(4)     
-      GF(4)=-X(1)*X(2)*X(3)     
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)**3+X(2)**2-1.D0  
-      IF (INDEX1(2)) G(2)=X(1)**2*X(4)-X(3)     
-      IF (INDEX1(3)) G(3)=X(4)**2-X(2)  
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=3.D0*X(1)**2      
-      GG(1,2)=2.D0*X(2) 
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,1)=2.D0*X(1)*X(4)    
-      GG(2,4)=X(1)**2   
-8     IF (.NOT.INDEX2(3)) GOTO 9
-      GG(3,4)=2.D0*X(4) 
-9     RETURN    
-      END       
-C
-      SUBROUTINE TP41(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=4       
-      NILI=0    
-      NINL=0    
-      NELI=1    
-      NENL=0    
-      DO 6 I=1,4
-      X(I)=1.D0 
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-6     XL(I)=0.D0
-      XU(1)=1.D0
-      XU(2)=1.D0
-      XU(3)=1.D0
-      XU(4)=2.D0
-      GF(4)=0.D0
-      GG(1,1)=1.D0      
-      GG(1,2)=2.D0      
-      GG(1,3)=2.D0      
-      GG(1,4)=-1.D0     
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=2.D0/3.D0  
-      XEX(2)=1.D0/3.D0  
-      XEX(3)=XEX(2)     
-      XEX(4)=2.D0       
-      FEX=52.D0/27.D0   
-      RETURN    
-2     FX=2.D0-X(1)*X(2)*X(3)    
-      RETURN    
-3     GF(1)=-X(2)*X(3)  
-      GF(2)=-X(1)*X(3)  
-      GF(3)=-X(1)*X(2)  
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+2.D0*X(2)+2.D0*X(3)-X(4) 
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP42(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=4       
-      NILI=0    
-      NINL=0    
-      NELI=1    
-      NENL=1    
-      DO 6 I=1,4
-      X(I)=1.D0 
-      LXU(I)=.FALSE.    
-6     LXL(I)=.FALSE.    
-      GG(1,1)=1.D0      
-      GG(1,2)=0.D0      
-      GG(1,3)=0.D0      
-      GG(1,4)=0.D0      
-      GG(2,1)=0.D0      
-      GG(2,2)=0.D0      
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=2.D0       
-      XEX(2)=2.D0       
-      XEX(3)=DSQRT(0.72D0)      
-      XEX(4)=DSQRT(1.28D0)      
-      FEX=28.D0-10.D0*DSQRT(2.D0)       
-      RETURN    
-2     FX=(X(1)-1.D0)**2+(X(2)-2.D0)**2+(X(3)-3.D0)**2+(X(4)-4.D0)**2    
-      RETURN    
-3     DO 21 I=1,4       
-21    GF(I)=2.D0*(X(I)-DBLE(I))       
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)-2.D0     
-      IF (INDEX1(2)) G(2)=X(3)**2+X(4)**2-2.D0  
-      RETURN    
-5     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,3)=2.D0*X(3) 
-      GG(2,4)=2.D0*X(4) 
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP43(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=4       
-      NILI=0    
-      NINL=3    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,4
-      X(I)=0.D0 
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=0.D0       
-      XEX(2)=1.D0       
-      XEX(3)=2.D0       
-      XEX(4)=-1.D0      
-      FEX=-44.D0
-      GG(3,4)=1.D0      
-      RETURN    
-2     FX=X(1)**2+X(2)**2+2.D0*X(3)**2+X(4)**2-5.D0*X(1)-5.D0*X(2)-21.D0 
-     /               *X(3)+7.D0*X(4)   
-      RETURN    
-3     GF(1)=2.D0*X(1)-5.D0      
-      GF(2)=2.D0*X(2)-5.D0      
-      GF(3)=4.D0*X(3)-21.D0     
-      GF(4)=2.D0*X(4)+7.D0      
-      RETURN    
-4     IF (INDEX1(1)) G(1)=-X(1)**2-X(2)**2-X(3)**2-X(4)**2-X(1)+X(2)
-     /          -X(3)+X(4)+8.D0    
-      IF (INDEX1(2)) G(2)=-X(1)**2-2.D0*X(2)**2-X(3)**2-2.D0*X(4)**2    
-     /          +X(1)+X(4)+10.D0  
-      IF (INDEX1(3)) G(3)=-2.D0*X(1)**2-X(2)**2-X(3)**2-2.D0*X(1)+X(2)  
-     /          +X(4)+5.D0
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=-2.D0*X(1)-1.D0   
-      GG(1,2)=-2.D0*X(2)+1.D0   
-      GG(1,3)=-2.D0*X(3)-1.D0   
-      GG(1,4)=-2.D0*X(4)+1.D0   
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,1)=-2.D0*X(1)+1.D0   
-      GG(2,2)=-4.D0*X(2)
-      GG(2,3)=-2.D0*X(3)
-      GG(2,4)=-4.D0*X(4)+1.D0   
-8     IF (.NOT.INDEX2(3)) GOTO 9
-      GG(3,1)=-4.D0*X(1)-2.D0   
-      GG(3,2)=-2.D0*X(2)+1.D0   
-      GG(3,3)=-2.D0*X(3)
-9     RETURN    
-      END       
-C
-      SUBROUTINE TP44(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I,J
-      GOTO (1,2,3,4,5),MODE     
-1     N=4       
-      NILI=6    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,4
-      X(I)=0.D0 
-      XL(I)=0.D0
-      LXL(I)=.TRUE.     
-6     LXU(I)=.FALSE.    
-      DO 15 I=1,6       
-      DO 15 J=1,4       
-15    GG(I,J)=0.D0      
-      GG(1,1)=-1.D0     
-      GG(1,2)=-2.D0     
-      GG(2,1)=-4.D0     
-      GG(2,2)=-1.D0     
-      GG(3,1)=-3.D0     
-      GG(3,2)=-4.D0     
-      GG(4,3)=-2.D0     
-      GG(4,4)=-1.D0     
-      GG(5,3)=-1.D0     
-      GG(5,4)=-2.D0     
-      GG(6,3)=-1.D0     
-      GG(6,4)=-1.D0     
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=0.D0       
-      XEX(2)=3.D0       
-      XEX(3)=0.D0       
-      XEX(4)=4.D0       
-      FEX=-15.D0
-      RETURN    
-2     FX=X(1)-X(2)-X(3)-X(1)*X(3)+X(1)*X(4)+X(2)*X(3)-X(2)*X(4) 
-      RETURN    
-3     GF(1)=1.D0-X(3)+X(4)      
-      GF(2)=-1.D0+X(3)-X(4)     
-      GF(3)=-1.D0-X(1)+X(2)     
-      GF(4)=X(1)-X(2)   
-      RETURN    
-4     IF (INDEX1(1)) G(1)=8.D0-X(1)-2.D0*X(2)   
-      IF (INDEX1(2)) G(2)=12.D0-4.D0*X(1)-X(2)  
-      IF (INDEX1(3)) G(3)=12.D0-3.D0*X(1)-4.D0*X(2)     
-      IF (INDEX1(4)) G(4)=8.D0-2.D0*X(3)-X(4)   
-      IF (INDEX1(5)) G(5)=8.D0-X(3)-2.D0*X(4)   
-      IF (INDEX1(6)) G(6)=5.D0-X(3)-X(4)
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP45(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,4),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,5
-      X(I)=2.D0 
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-      XL(I)=0.D0
-6     XU(I)=DBLE(I)   
-      LEX=.TRUE.
-      NEX=1     
-      DO 30 I=1,5       
-30    XEX(I)=DBLE(I)  
-      FEX=1.D0  
-      RETURN    
-2     FX=2.D0-X(1)*X(2)*X(3)*X(4)*X(5)/120.D0   
-      RETURN    
-3     GF(1)=-X(2)*X(3)*X(4)*X(5)/120.D0 
-      GF(2)=-X(1)*X(3)*X(4)*X(5)/120.D0 
-      GF(3)=-X(1)*X(2)*X(4)*X(5)/120.D0 
-      GF(4)=-X(1)*X(2)*X(3)*X(5)/120.D0 
-      GF(5)=-X(1)*X(2)*X(3)*X(4)/120.D0 
-4     RETURN    
-      END       
-C
-      SUBROUTINE TP46(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=2    
-      X(1)=0.5D0*DSQRT(2.D0)    
-      X(2)=1.75D0       
-      X(3)=0.5D0
-      X(4)=2.D0 
-      X(5)=2.D0 
-      DO 6 I=1,5
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      GG(1,2)=0.D0      
-      GG(1,3)=0.D0      
-      GG(2,1)=0.D0      
-      GG(2,2)=1.D0      
-      GG(2,5)=0.D0      
-      LEX=.TRUE.
-      NEX=1     
-      DO 30 I=1,5       
-30    XEX(I)=1.D0       
-      FEX=0.D0  
-      RETURN    
-2     FX=(X(1)-X(2))**2+(X(3)-1.D0)**2+(X(4)-1.D0)**4+(X(5)-1.D0)**6    
-      RETURN    
-3     GF(1)=2.D0*(X(1)-X(2))    
-      GF(2)=-GF(1)      
-      GF(3)=2.D0*(X(3)-1.D0)    
-      GF(4)=4.D0*(X(4)-1.D0)**3 
-      GF(5)=6.D0*(X(5)-1.D0)**5 
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)**2*X(4)+DSIN(X(4)-X(5))-1.D0     
-      IF (INDEX1(2)) G(2)=X(2)+X(3)**4*X(4)**2-2.D0     
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=2.D0*X(1)*X(4)    
-      GG(1,5)=-DCOS(X(4)-X(5))  
-      GG(1,4)=X(1)**2-GG(1,5)   
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,3)=4.D0*X(3)**3*X(4)**2      
-      GG(2,4)=2.D0*X(3)**4*X(4) 
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP47(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX)
-      DOUBLEPRECISION V1,V2,V3,V4  
-      INTEGER I,J
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=3    
-      X(1)=2.D0 
-      X(2)=DSQRT(2.D0)  
-      X(3)=-1.D0
-      X(4)=2.D0-X(2)    
-      X(5)=0.5D0
-      DO 6 I=1,5
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      DO 15 I=1,3       
-      DO 15 J=1,5       
-15    GG(I,J)=0.D0      
-      GG(1,1)=1.D0      
-      GG(2,2)=1.D0      
-      GG(2,4)=1.D0      
-      LEX=.TRUE.
-      NEX=1     
-      DO 30 I=1,5       
-30    XEX(I)=1.D0       
-      FEX=0.D0  
-      RETURN    
-2     FX=(X(1)-X(2))**2+(X(2)-X(3))**2+(X(3)-X(4))**4+(X(4)-X(5))**4    
-      RETURN    
-3     V1=2.D0*(X(1)-X(2))       
-      V2=2.D0*(X(2)-X(3))       
-      V3=4.D0*(X(3)-X(4))**3    
-      V4=4.D0*(X(4)-X(5))**3    
-      GF(1)=V1  
-      GF(2)=-V1+V2      
-      GF(3)=-V2+V3      
-      GF(4)=-V3+V4      
-      GF(5)=-V4 
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+X(2)**2+X(3)**3-3.D0     
-      IF (INDEX1(2)) G(2)=X(2)-X(3)**2+X(4)-1.D0
-      IF (INDEX1(3)) G(3)=X(1)*X(5)-1.D0
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,2)=2.D0*X(2) 
-      GG(1,3)=3.D0*X(3)**2      
-7     IF (INDEX2(2)) GG(2,3)=-2.D0*X(3) 
-8     IF (.NOT.INDEX2(3)) GOTO 9
-      GG(3,1)=X(5)      
-      GG(3,5)=X(1)      
-9     RETURN    
-      END       
-C
-      SUBROUTINE TP48(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=2    
-      NENL=0    
-      X(1)=3.D0 
-      X(2)=5.D0 
-      X(3)=-3.D0
-      X(4)=2.D0 
-      X(5)=-2.D0
-      DO 6 I=1,5
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      GG(2,1)=0.D0      
-      GG(2,2)=0.D0      
-      DO 20 I=1,5       
-20    GG(1,I)=1.D0      
-      GG(2,3)=1.D0      
-      GG(2,4)=-2.D0     
-      GG(2,5)=-2.D0     
-      LEX=.TRUE.
-      NEX=1     
-      DO 30 I=1,5       
-30    XEX(I)=1.D0       
-      FEX=0.D0  
-      RETURN    
-2     FX=(X(1)-1.D0)**2+(X(2)-X(3))**2+(X(4)-X(5))**2   
-      RETURN    
-3     GF(1)=2.D0*(X(1)-1.D0)    
-      GF(2)=2.D0*(X(2)-X(3))    
-      GF(3)=-GF(2)      
-      GF(4)=2.D0*(X(4)-X(5))    
-      GF(5)=-GF(4)      
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+X(2)+X(3)+X(4)+X(5)-5.D0 
-      IF (INDEX1(2)) G(2)=X(3)-2.D0*(X(4)+X(5))+3.D0    
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP49(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=2    
-      NENL=0    
-      X(1)=10.D0
-      X(2)=7.D0 
-      X(3)=2.D0 
-      X(4)=-3.D0
-      X(5)=0.8D0
-      DO 6 I=1,5
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      GG(1,5)=0.D0      
-      GG(2,1)=0.D0      
-      GG(2,2)=0.D0      
-      GG(2,4)=0.D0      
-      GG(1,1)=1.D0      
-      GG(1,2)=1.D0      
-      GG(1,3)=1.D0      
-      GG(1,4)=4.D0      
-      GG(2,3)=1.D0      
-      GG(2,5)=5.D0      
-      LEX=.TRUE.
-      NEX=1     
-      DO 30 I=1,5       
-30    XEX(I)=1.D0       
-      FEX=0.D0  
-      RETURN    
-2     FX=((X(1)-X(2))**2+(X(3)-1.D0)**2+(X(4)-1.D0)**4
-     /                                  +(X(5)-1.D0)**6)
-      RETURN    
-3     GF(1)=2.D0*(X(1)-X(2))
-      GF(2)=-GF(1)      
-      GF(3)=2.D0*(X(3)-1.D0)
-      GF(4)=4.D0*(X(4)-1.D0)**3
-      GF(5)=6.D0*(X(5)-1.D0)**5
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+X(2)+X(3)+4.D0*X(4)-7.D0 
-      IF (INDEX1(2)) G(2)=X(3)+5.D0*X(5)-6.D0   
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP50(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I,J
-      DOUBLEPRECISION  V1,V2,V3,V4
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=3    
-      NENL=0    
-      X(1)=35.D0
-      X(2)=-31.D0       
-      X(3)=11.D0
-      X(4)=5.D0 
-      X(5)=-5.D0
-      DO 6 I=1,5
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      DO 15 I=1,3       
-      DO 15 J=1,5       
-15    GG(I,J)=0.D0      
-      GG(1,1)=1.D0      
-      GG(1,2)=2.D0      
-      GG(1,3)=3.D0      
-      GG(2,2)=1.D0      
-      GG(2,3)=2.D0      
-      GG(2,4)=3.D0      
-      GG(3,3)=1.D0      
-      GG(3,4)=2.D0      
-      GG(3,5)=3.D0      
-      LEX=.TRUE.
-      NEX=1     
-      DO 30 I=1,5       
-30    XEX(I)=1.D0       
-      FEX=0.D0  
-      RETURN    
-2     FX=(X(1)-X(2))**2+(X(2)-X(3))**2+(X(3)-X(4))**4+(X(4)-X(5))**4    
-      RETURN    
-3     V1=2.D0*(X(1)-X(2))       
-      V2=2.D0*(X(2)-X(3))       
-      V3=4.D0*(X(3)-X(4))**3    
-      V4=4.D0*(X(4)-X(5))**3    
-      GF(1)=V1  
-      GF(2)=-V1+V2      
-      GF(3)=-V2+V3      
-      GF(4)=-V3+V4      
-      GF(5)=-V4 
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+2.D0*X(2)+3.D0*X(3)-6.D0 
-      IF (INDEX1(2)) G(2)=X(2)+2.D0*X(3)+3.D0*X(4)-6.D0 
-      IF (INDEX1(3)) G(3)=X(3)+2.D0*X(4)+3.D0*X(5)-6.D0 
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP51(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I,J
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=3    
-      NENL=0    
-      X(1)=2.5D0
-      X(2)=0.5D0
-      X(3)=2.D0 
-      X(4)=-1.D0
-      X(5)=0.5D0
-      DO 6 I=1,5
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      DO 15 I=1,3       
-      DO 15 J=1,5       
-15    GG(I,J)=0.D0      
-      GG(1,1)=1.D0      
-      GG(1,2)=3.D0      
-      GG(2,3)=1.D0      
-      GG(2,4)=1.D0      
-      GG(2,5)=-2.D0     
-      GG(3,2)=1.D0      
-      GG(3,5)=-1.D0     
-      LEX=.TRUE.
-      NEX=1     
-      DO 30 I=1,5       
-30    XEX(I)=1.D0       
-      FEX=0.D0  
-      RETURN    
-2     FX=(X(1)-X(2))**2+(X(2)+X(3)-2.D0)**2+(X(4)-1.D0)**2      
-     1     +(X(5)-1.D0)**2      
-      RETURN    
-3     GF(1)=2.D0*(X(1)-X(2))    
-      GF(3)=2.D0*(X(2)+X(3)-2.D0)       
-      GF(2)=GF(3)-GF(1) 
-      GF(4)=2.D0*(X(4)-1.D0)    
-      GF(5)=2.D0*(X(5)-1.D0)    
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+3.D0*X(2)-4.D0   
-      IF (INDEX1(2)) G(2)=X(3)+X(4)-2.D0*X(5)   
-      IF (INDEX1(3)) G(3)=X(2)-X(5)     
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP52(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I,J
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=3    
-      NENL=0    
-      DO 6 I=1,5
-      X(I)=2.D0 
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      DO 15 I=1,3       
-      DO 15 J=1,5       
-15    GG(I,J)=0.D0      
-      GG(1,1)=1.D0      
-      GG(1,2)=3.D0      
-      GG(2,3)=1.D0      
-      GG(2,4)=1.D0      
-      GG(2,5)=-2.D0     
-      GG(3,2)=1.D0      
-      GG(3,5)=-1.D0     
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=-33.D0/349.D0      
-      XEX(2)=11.D0/349.D0       
-      XEX(3)=180.D0/349.D0      
-      XEX(4)=-158.D0/349.D0     
-      XEX(5)=XEX(2)     
-      FEX=1859.D0/349.D0
-      RETURN    
-2     FX=(4.D0*X(1)-X(2))**2+(X(2)+X(3)-2.D0)**2+(X(4)-1.D0)**2+(X(5)   
-     /      -1.D0)**2    
-      RETURN    
-3     GF(1)=8.D0*(X(1)*4.D0-X(2))       
-      GF(3)=2.D0*(X(2)+X(3)-2.D0)       
-      GF(2)=-0.25D0*GF(1)+GF(3) 
-      GF(4)=2.D0*(X(4)-1.D0)    
-      GF(5)=2.D0*(X(5)-1.D0)    
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+3.D0*X(2)
-      IF (INDEX1(2)) G(2)=X(3)+X(4)-2.D0*X(5)   
-      IF (INDEX1(3)) G(3)=X(2)-X(5)     
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP53(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I,J
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=3    
-      NENL=0    
-      DO 6 I=1,5
-      X(I)=2.D0 
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-      XL(I)=-10.D0      
-6     XU(I)=10.D0       
-      DO 15 I=1,3       
-      DO 15 J=1,5       
-15    GG(I,J)=0.D0      
-      GG(1,1)=1.D0      
-      GG(1,2)=3.D0      
-      GG(2,3)=1.D0      
-      GG(2,4)=1.D0      
-      GG(2,5)=-2.D0     
-      GG(3,2)=1.D0      
-      GG(3,5)=-1.D0     
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=-33.D0/43.D0       
-      XEX(2)=11.D0/43.D0
-      XEX(3)=27.D0/43.D0
-      XEX(4)=-5.D0/43.D0
-      XEX(5)=11.D0/43.D0
-      FEX=176.D0/43.D0  
-      RETURN    
-2     FX=(X(1)-X(2))**2+(X(2)+X(3)-2.D0)**2+(X(4)-1.D0)**2+(X(5)
-     /     -1.D0)**2    
-      RETURN    
-3     GF(1)=2.D0*(X(1)-X(2))    
-      GF(3)=2.D0*(X(2)+X(3)-2.D0)       
-      GF(2)=GF(3)-GF(1) 
-      GF(4)=2.D0*(X(4)-1.D0)    
-      GF(5)=2.D0*(X(5)-1.D0)    
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+3.D0*X(2)
-      IF (INDEX1(2)) G(2)=X(3)+X(4)-2.D0*X(5)   
-      IF (INDEX1(3)) G(3)=X(2)-X(5)     
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP54(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      COMMON     /D54/DQ,V1,V2,V3,V4,V5,V6,V7,V8,V9,Q  
-      DOUBLEPRECISION DQ,V1,V2,V3,V4,V5,V6,V7,V8,V9,Q       
-      DIMENSION DQ(6)   
-      GOTO (1,2,3,4,5),MODE     
-1     N=6       
-      NILI=0    
-      NINL=0    
-      NELI=1    
-      NENL=0    
-      X(1)=6.D+3
-      X(2)=1.5D0
-      X(3)=4.D+6
-      X(4)=2.D0 
-      X(5)=3.D-3
-      X(6)=5.D+7
-      DO 6 I=1,6
-      LXL(I)=.TRUE.     
-6     LXU(I)=.TRUE.     
-      XL(1)=0.D0
-      XL(2)=-10.D0      
-      XL(3)=0.D0
-      XL(4)=0.D0
-      XL(5)=0.D0       
-      XL(6)=0.D0
-      XU(1)=2.D+4       
-      XU(2)=10.D0       
-      XU(3)=1.D+7       
-      XU(4)=20.D0       
-      XU(5)=1.D0
-      XU(6)=2.D+8       
-      GG(1,1)=1.D0    
-      GG(1,2)=4.D+3
-      DO 30 I=3,6       
-30    GG(1,I)=0.0      
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=9.16D+4/7.D0       
-      XEX(2)=79.D0/70.D0
-      XEX(3)=2.D+6      
-      XEX(4)=10.D0      
-      XEX(5)=1.D-3      
-      XEX(6)=1.D+8      
-      FEX=-DEXP(-27.D0/280.D0)  
-c      FEX=-0.90807476D0 
-      RETURN    
-2     V1=X(1)-1.D+4     
-      V2=X(2)-1.D0      
-      V3=X(3)-2.D+6     
-      V4=X(4)-10.D0     
-      V5=X(5)-1.D-3     
-      V6=X(6)-1.D+8     
-      V7=1.D0/0.96D0    
-      V8=1.D0/4.9D+13   
-      V9=1.D0/2.45D+13  
-      Q = (1.5625D-8*V1**2 + 5.D-5*V1*V2 + V2**2)*V7 + V3**2*V8
-     /   + 4.D-4*V4**2 + 4.D+2*V5**2 + 4.D-18*V6**2       
-      FX = -DEXP(-0.5D0*Q)
-      RETURN    
-3     V1=X(1)-1.D+4     
-      V2=X(2)-1.D0      
-      V3=X(3)-2.D+6     
-      V4=X(4)-10.D0     
-      V5=X(5)-1.D-3     
-      V6=X(6)-1.D+8     
-      V7=1.D0/0.96D0    
-      V8=1.D0/4.9D+13   
-      V9=1.D0/2.45D+13  
-      DQ(1)=(3.125D-8*V1+5.D-5*V2)*V7   
-      DQ(2)=(5.D-5*V1+2.D0*V2)*V7       
-      DQ(3)=V3*V9       
-      DQ(4)=8.D-4*V4    
-      DQ(5)=800.D0*V5   
-      DQ(6)=8.D-18*V6   
-      DO 31 I=1,6       
-31    GF(I)=0.5D0*DEXP(-0.5D0*Q)*DQ(I)  
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+4.D+3*X(2)-1.76D+4
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP55(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I,J
-      DOUBLEPRECISION V1    
-      GOTO (1,2,3,4,5),MODE     
-1     N=6       
-      NILI=0    
-      NINL=0    
-      NELI=6    
-      NENL=0    
-      X(1)=1.D0 
-      X(2)=2.D0 
-      X(3)=0.D0 
-      X(4)=0.D0 
-      X(5)=0.D0 
-      X(6)=2.D0 
-      DO 6 I=1,6
-      LXL(I)=.TRUE.     
-      LXU(I)=.FALSE.    
-6     XL(I)=0.D0
-      LXU(1)=.TRUE.     
-      LXU(4)=.TRUE.     
-      XU(1)=1.D+0
-      XU(4)=1.D+0
-      DO 15 I=1,6       
-      DO 15 J=1,6       
-15    GG(I,J)=0.D0      
-      GF(2)=2.D0
-      GF(3)=0.D0
-      GF(5)=4.D0
-      GF(6)=0.D0
-      GG(1,1)=1.D0      
-      GG(1,2)=2.D0      
-      GG(1,5)=5.D0      
-      GG(2,1)=1.D0      
-      GG(2,2)=1.D0      
-      GG(2,3)=1.D0      
-      GG(3,4)=1.D0      
-      GG(3,5)=1.D0      
-      GG(3,6)=1.D0      
-      GG(4,1)=1.D0      
-      GG(4,4)=1.D0      
-      GG(5,2)=1.D0      
-      GG(5,5)=1.D0      
-      GG(6,3)=1.D0      
-      GG(6,6)=1.D0      
-      LEX=.TRUE.
-      NEX=1     
-      XEX(1)=0.D0       
-      XEX(2)=4.D0/3.D0  
-      XEX(3)=5.D0/3.D0  
-      XEX(4)=1.D0       
-      XEX(5)=2.D0/3.D0  
-      XEX(6)=1.D0/3.D0  
-      FEX=19.D0/3.D0    
-      RETURN    
-2     FX=X(1)+2.D0*X(2)+4.D0*X(5)+DEXP(X(1)*X(4))       
-      RETURN    
-3     V1=DEXP(X(1)*X(4))
-      GF(1)=1.D0+X(4)*V1
-      GF(4)=X(1)*V1     
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+2.D0*X(2)+5.D0*X(5)-6.D0 
-      IF (INDEX1(2)) G(2)=X(1)+X(2)+X(3)-3.D0   
-      IF (INDEX1(3)) G(3)=X(4)+X(5)+X(6)-2.D0   
-      IF (INDEX1(4)) G(4)=X(1)+X(4)-1.D0
-      IF (INDEX1(5)) G(5)=X(2)+X(5)-2.D0
-      IF (INDEX1(6)) G(6)=X(3)+X(6)-2.D0
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP56(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I,J
-      GOTO (1,2,3,4,5),MODE     
-1     N=7       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=4    
-      X(1)=1.D0 
-      X(2)=1.D0 
-      X(3)=1.D0 
-      DO 6 I=1,7
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      X(4)=DASIN(DSQRT(1.D0/4.2D0))    
-      X(5)=X(4) 
-      X(6)=X(4) 
-      X(7)=DASIN(DSQRT(5.D0/7.2D0))    
-      DO 30 I=4,7       
-30    GF(I)=0.D0
-      DO 15 I=1,4       
-      DO 15 J=1,7       
-15    GG(I,J)=0.D0      
-      GG(1,1)=1.D0      
-      GG(2,2)=1.D0      
-      GG(3,3)=1.D0      
-      GG(4,1)=1.D0      
-      GG(4,2)=2.D0      
-      GG(4,3)=2.D0      
-      LEX=.TRUE.
-      NEX=1    
-      XEX(1)=2.4D0      
-      XEX(2)=1.2D0      
-      XEX(3)=1.2D0      
-      XEX(4)=DASIN(DSQRT(4.D0/7.D0))   
-      XEX(5)=DASIN(DSQRT(2.D0/7.D0))   
-      XEX(6)=XEX(5)     
-      XEX(7)=2.D0*DATAN(1.D0)   
-      FEX=-3.456D0      
-      RETURN    
-2     FX=-X(1)*X(2)*X(3)
-      RETURN    
-3     GF(1)=-X(2)*X(3)  
-      GF(2)=-X(1)*X(3)  
-      GF(3)=-X(1)*X(2)  
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)-4.2D0*DSIN(X(4))**2      
-      IF (INDEX1(2)) G(2)=X(2)-4.2D0*DSIN(X(5))**2      
-      IF (INDEX1(3)) G(3)=X(3)-4.2D0*DSIN(X(6))**2      
-      IF (INDEX1(4)) G(4)=X(1)+2.D0*X(2)+2.D0*X(3)-7.2D0*DSIN(X(7))**2  
-      RETURN    
-5     IF (INDEX2(1)) GG(1,4)=-8.4D0*DSIN(X(4))*DCOS(X(4))       
-      IF (INDEX2(2)) GG(2,5)=-8.4D0*DSIN(X(5))*DCOS(X(5))       
-      IF (INDEX2(3)) GG(3,6)=-8.4D0*DSIN(X(6))*DCOS(X(6))       
-      IF (INDEX2(4)) GG(4,7)=-14.4D0*DSIN(X(7))*DCOS(X(7))      
-      RETURN    
-      END       
-C
-      SUBROUTINE TP57(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)       
-     /           /L15/ F(200)    
-     /           /L16/ DF(200,200)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I,J
-      COMMON     /D57/ S,A,B
-      DIMENSION S(2),A(44),B(44) 
-      DOUBLEPRECISION F,DF,S,A,B,T,V1       
-      IF (MODE - 2) 1,18,18     
-1     N=2       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      X(1)=0.42D0       
-      X(2)=5.D0 
-      DO 6 I=1,2
-      LXL(I)=.TRUE.     
-6     LXU(I)=.FALSE.    
-      XL(1)=0.4D0       
-      XL(2)=-4.D0       
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.419952674511D+00     
-      XEX(2)=0.128484562930D+01     
-      FEX=0.284596697213D-01
-      RETURN    
-   18 CONTINUE
-      DO 20 I=1,2       
-      A(I)=8.D0 
-      A(16+I)=18.D0     
-      A(30+I)=28.D0     
-      A(35+I)=32.D0     
-      A(38+I)=36.D0     
-      A(40+I)=38.D0     
-      B(I)=0.49D0       
-      B(6+I)=0.46D0     
-      B(11+I)=0.43D0    
-      B(14+I)=0.43D0    
-      B(18+I)=0.42D0    
-      B(21+I)=0.41D0    
-      B(25+I)=0.4D0     
-      B(29+I)=0.41D0    
-      B(36+I)=0.4D0     
-      B(40+I)=0.4D0     
-  20  B(42+I)=0.39D0    
-      DO 21 I=1,3       
-      A(10+I)=14.D0     
-      A(13+I)=16.D0     
-      A(18+I)=20.D0     
-      A(21+I)=22.D0     
-      A(24+I)=24.D0     
-      A(27+I)=26.D0     
-      A(32+I)=30.D0     
-21    B(31+I)=0.4D0     
-      DO  22 I=1,4      
-      A(2+I)=10.D0      
-22    A(6+I)=12.D0      
-      A(38)=34.D0       
-      A(43)=40.D0       
-      A(44)=42.D0       
-      B(3)=0.48D0       
-      B(4)=0.47D0       
-      B(5)=0.48D0       
-      B(6)=0.47D0       
-      B(9)=0.45D0       
-      B(10)=0.43D0      
-      B(11)=0.45D0      
-      B(14)=0.44D0      
-      B(17)=0.46D0      
-      B(18)=0.45D0      
-      B(21)=0.43D0      
-      B(24)=0.4D0       
-      B(25)=0.42D0      
-      B(28)=0.41D0      
-      B(29)=0.4D0       
-      B(35)=0.38D0      
-      B(36)=0.41D0      
-      B(39)=0.41D0      
-      B(40)=0.38D0      
-      IF (MODE - 4) 17,4,5      
-17    DO 30 I=1,44      
-30    F(I)=B(I)-X(1)-(0.49D0-X(1))*DEXP(-X(2)*(A(I)-8.D0))      
-      GOTO (1,2,3),MODE 
-2     T=0.D0    
-      DO 19 I=1,44      
-19    T=T+F(I)**2       
-      FX=T
-      RETURN    
-3     S(1)=0.D0 
-      S(2)=0.D0 
-      DO 31 I=1,44      
-      V1=DEXP(-X(2)*(A(I)-8.D0))
-      DF(I,1)=-1.D0+V1  
-      DF(I,2)=(A(I)-8.D0)*(0.49D0-X(1))*V1      
-      DO 32 J=1,2       
-32    S(J)=S(J)+2.D0*F(I)*DF(I,J)       
-31    CONTINUE  
-      GF(1)=S(1)
-      GF(2)=S(2)
-      RETURN    
-4     IF (INDEX1(1)) G(1)=-X(1)*X(2)+0.49D0*X(2)-0.09D0 
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=-X(2)     
-      GG(1,2)=-X(1)+0.49D0      
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP58(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=3    
-      NELI=0    
-      NENL=0    
-      X(1)=-2.D0
-      X(2)=1.D0 
-      LXL(1)=.TRUE.     
-      LXU(1)=.TRUE.     
-      LXL(2)=.FALSE.    
-      LXU(2)=.FALSE.    
-C      XL(1)=-0.5D0      
-      XL(1)=-2.0D0      
-      XU(1)=0.5D0       
-      GG(1,1)=-1.D0     
-      GG(2,2)=-1.D0     
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=-0.786150483331
-      XEX(2)=0.618034533851
-      FEX=3.19033354957
-      RETURN    
-2     FX=100.0D0*(X(2)-X(1)**2)**2+(1.0D0-X(1))**2
-      RETURN    
-3     GF(2)=200.0D0*(X(2)-X(1)**2)       
-      GF(1)=-2.0D0*(X(1)*(GF(2)-1.0D0)+1.0D0)      
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(2)**2-X(1)  
-      IF (INDEX1(2)) G(2)=X(1)**2-X(2)  
-      IF (INDEX1(3)) G(3)=X(1)**2+X(2)**2-1.0D0  
-      RETURN    
-5     IF (INDEX2(1)) GG(1,2)=2.0D0*X(2)  
-      IF (INDEX2(2)) GG(2,1)=2.0D0*X(1)  
-      IF (.NOT.INDEX2(3)) GOTO 9
-      GG(3,1)=2.0D0*X(1) 
-      GG(3,2)=2.0D0*X(2) 
-9     RETURN    
-      END       
-C
-      SUBROUTINE TP59(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      COMMON     /D59/ X11,X12,X13,X14,X21,X22,X23,X24,XX11,XX12,XX13,  
-     /     XX21,XX31   
-      DOUBLEPRECISION X11,X12,X13,X14,X21,X22,X23,X24,XX11,XX12,XX13, 
-     /     XX21,XX31    
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=2       
-      NILI=0    
-      NINL=3    
-      NELI=0    
-      NENL=0    
-      X(1)=90.D0
-      X(2)=10.D0
-      DO 6 I=1,2
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-6     XL(I)=0.D0
-      XU(1)=75.D0       
-      XU(2)=65.D0       
-      GG(2,2)=1.D0      
-      GG(3,1)=-5.D0     
-      NEX=2
-      LEX=.FALSE.       
-      XEX(1)=13.5501042366D0  
-      XEX(2)=51.6601812877D0  
-      FEX=-7.80422632408D0    
-c      XEX(3)=0.463995762710D+2
-c      XEX(4)=0.522196899513D+2
-C     FEX=-0.675456604292D+1  
-      RETURN    
-2     X11=X(1)  
-      X12=X11*X11       
-      X13=X12*X11       
-      X14=X13*X11       
-      X21=X(2)  
-      X22=X21*X21       
-      X23=X22*X21       
-      X24=X23*X21       
-      FX=-75.196D0+3.8112D0*X11-0.12694D0*X12+2.0567D-3*X13
-     /    -1.0345D-5*X14      
-     /    +6.8306D0*X21-3.0234D-2*X11*X21+1.28134D-3*X12*X21
-     /    -3.5256D-5*X13*X21      
-     /    +2.266D-7*X14*X21-0.25645D0*X22+3.4604D-3*X23
-     /    -1.3514D-5*X24+28.106D0 
-     /         /(X21+1.D0)+5.2375D-6*X12*X22
-     /    +6.3D-8*X13*X22-7.D-10*X13*X23       
-     /    -3.4054D-4*X11*X22+1.6638D-6*X11*X23
-     /    +2.8673D0*DEXP(5.D-4*X11*X21) 
-      RETURN    
-3     X11=X(1)  
-      X12=X11*X11       
-      X13=X12*X11       
-      X14=X13*X11       
-      X21=X(2)  
-      X22=X21*X21       
-      X23=X22*X21       
-      XX11=X11*X21      
-      XX12=X11*X22      
-      XX21=X12*X21      
-      XX31=X13*X21      
-      GF(1)=3.8112D0-0.25388D0*X11+6.1701D-3*X12-4.138D-5*X13-3.0234D-2 
-     -*X21      
-     -+2.56268D-3*XX11-1.05768D-4*XX21+9.064D-7*XX31+1.0475D-5*XX12     
-     -+1.89D-7*X12*X22-2.1D-9*X12*X23-3.4054D-4*X22+1.6638D-6*X23       
-     -+1.43365D-3*X21*DEXP(5.D-4*XX11)  
-      GF(2)=6.8306D0-3.0234D-2*X11+1.28134D-3*X12-3.5256D-5*X13+2.266D-7
-     -*X14-0.5129D0*X21+1.03812D-2*X22-5.4056D-5*X23-28.106D0/(X21      
-     -+1.D0)**2 
-     -+1.0475D-5*XX21+1.26D-7*XX31-2.1D-9*X13*X22-6.8108D-4*XX11
-     -+4.9914D-6*XX12+1.43365D-3*X11*DEXP(5.D-4*XX11)   
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)*X(2)-700.D0      
-      IF (INDEX1(2)) G(2)=X(2)-8.D-3*X(1)**2    
-      IF (INDEX1(3)) G(3)=(X(2)-50.D0)**2-5.D0*(X(1)-55.D0)     
-      RETURN    
-5     IF(.NOT.INDEX2(1)) GOTO 7 
-      GG(1,1)=X(2)      
-      GG(1,2)=X(1)      
-7     IF (INDEX2(2)) GG(2,1)=-1.6D-2*X(1)       
-      IF (INDEX2(3)) GG(3,2)=2.D0*(X(2)-50.D0)  
-      RETURN    
-      END       
-C
-      SUBROUTINE TP60(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION V1 
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=1    
-      DO 6 I=1,3
-      X(I)=2.D0 
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-      XL(I)=-10.D0      
-6     XU(I)=10.D0       
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.110485902423D+01     
-      XEX(2)=0.119667419413D+01     
-      XEX(3)=0.153526225739D+01     
-      FEX= 0.325682002513D-01 
-      RETURN    
-2     FX=(X(1)-1.D0)**2+(X(1)-X(2))**2+(X(2)-X(3))**4   
-      RETURN    
-3     V1=2.D0*(X(1)-X(2))       
-      GF(1)=2.D0*(X(1)-1.D0)+V1 
-      GF(3)=-4.D0*(X(2)-X(3))**3
-      GF(2)=-GF(3)-V1   
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)*(1.D0+X(2)**2)+X(3)**4-4.D0-3.D0 
-     1     *DSQRT(2.D0) 
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=1.D0+X(2)**2      
-      GG(1,2)=2.D0*X(1)*X(2)    
-      GG(1,3)=4.D0*X(3)**3      
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP61(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=2    
-      DO 6 I=1,3
-      X(I)=0.0D0 
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.532677015744D+01     
-      XEX(2)=-0.211899863998D+01     
-      XEX(3)=0.321046423906D+01     
-      FEX=-0.143646142201D+03 
-      RETURN    
-2     FX=4.D0*X(1)**2+2.D0*X(2)**2+2.D0*X(3)**2-33.D0*X(1)+16.D0*X(2)   
-     1     -24.D0*X(3)  
-      RETURN    
-3     GF(1)=8.D0*X(1)-33.D0     
-      GF(2)=4.D0*X(2)+16.D0     
-      GF(3)=4.D0*X(3)-24.D0     
-      RETURN    
-4     IF (INDEX1(1)) G(1)=3.D0*X(1)-2.D0*X(2)**2-7.D0   
-      IF (INDEX1(2)) G(2)=4.D0*X(1)-X(3)**2-11.D0       
-      RETURN    
-5     IF (INDEX2(1)) GG(1,2)=-4.D0*X(2) 
-      IF (INDEX2(2)) GG(2,3)=-2.D0*X(3) 
-      GG(1,1)=3.D0      
-      GG(1,3)=0.D0      
-      GG(2,1)=4.D0      
-      GG(2,2)=0.D0      
-      RETURN    
-      END       
-C
-      SUBROUTINE TP62(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION B1,B2,B3,C1,C2,C3,V1,V2,V3,V4,V5,V6,V7,S,RB1,
-     /     RB2,RB3,RC1,RC2,RC3  
-      IF (MODE - 2) 1,17,17     
-1     N=3       
-      NILI=0    
-      NINL=0    
-      NELI=1    
-      NENL=0    
-      X(1)=0.7D0
-      X(2)=0.2D0
-      X(3)=0.1D0
-      DO 6 I=1,3
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-      XL(I)=0.D0
-      XU(I)=1.D0
-6     GG(1,I)=1.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.617813298210D+00     
-      XEX(2)=0.328202155786D+00     
-      XEX(3)=0.539845460119D-01     
-      FEX=-0.262725144873D+05 
-      RETURN    
-17    IF (MODE - 4) 18,4,5      
-18    B3=X(3)+0.03D0    
-      C3=0.13D0*X(3)+0.03D0     
-      B2=B3+X(2)
-      C2=B3+0.07D0*X(2) 
-      B1=B2+X(1)
-      C1=B2+0.09D0*X(1) 
-      GOTO (1,2,3),MODE 
-2     V5=B1/C1  
-      V6=B2/C2  
-      V7=B3/C3  
-      IF (V5.LE.0.D0.OR.V6.LE.0.D0.OR.V7.LE.0.D0) GOTO 7
-      FX=-32.174D0*(255.D0*DLOG(V5)+280.D0*DLOG(V6)+290.D0*DLOG(V7))    
-      RETURN    
-7     S=0.D0    
-      DO 8 I=1,3
-8     S=S+(X(I)-5.D0)**2
-      FX=S+1.D+3-2.67D+4
-      RETURN    
-3     RB1=1.D0/B1       
-      RB2=1.D0/B2       
-      RB3=1.D0/B3       
-      RC1=1.D0/C1       
-      RC2=1.D0/C2       
-      RC3=1.D0/C3       
-      V1=-32.174D0*255.D0       
-      V2=-32.174D0*280.D0       
-      V3=-32.174D0*290.D0       
-      V4=V1*(RB1-RC1)   
-      GF(1)=V1*(RB1-0.09D0*RC1) 
-      GF(2)=V4+V2*(RB2-0.07D0*RC2)      
-      GF(3)=V4+V2*(RB2-RC2)+V3*(RB3-0.13D0*RC3) 
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+X(2)+X(3)-1.D0   
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP63(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=0    
-      NELI=1    
-      NENL=1    
-      DO 6 I=1,3
-      X(I)=2.D0 
-      LXL(I)=.TRUE.     
-      LXU(I)=.FALSE.    
-6     XL(I)=0.D0
-      GG(1,1)=8.D0      
-      GG(1,2)=14.D0     
-      GG(1,3)=7.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.351211841492D+01     
-      XEX(2)=0.216988174172D+00     
-      XEX(3)=0.355217403459D+01     
-      FEX=0.961715172127D+03 
-      RETURN    
-2     FX=1.D+3-X(1)**2-2.D0*X(2)**2-X(3)**2-X(1)*X(2)-X(1)*X(3) 
-      RETURN    
-3     GF(1)=-2.D0*X(1)-X(2)-X(3)
-      GF(2)=-4.D0*X(2)-X(1)     
-      GF(3)=-2.D0*X(3)-X(1)     
-      RETURN    
-4     IF (INDEX1(1)) G(1)=8.D0*X(1)+14.D0*X(2)+7.D0*X(3)-56.D0  
-      IF (INDEX1(2)) G(2)=X(1)**2+X(2)**2+X(3)**2-25.D0 
-      RETURN    
-5     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,1)=2.D0*X(1) 
-      GG(2,2)=2.D0*X(2) 
-      GG(2,3)=2.D0*X(3) 
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP64(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,3
-      X(I)=1.D0 
-      LXL(I)=.TRUE.     
-      LXU(I)=.FALSE.    
-6     XL(I)=1.D-5       
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.108734717597D+03     
-      XEX(2)=0.851261394257D+02     
-      XEX(3)=0.204324707858D+03     
-      FEX=0.629984242821D+04 
-      RETURN    
-2     FX=5.D0*X(1)+5.D+4/X(1)+20.D0*X(2)+7.2D+4/X(2)+10.D0*X(3) 
-     1     +1.44D+5/X(3)
-      RETURN    
-3     GF(1)=5.D0-5.D+4/X(1)**2  
-      GF(2)=20.D0-7.2D+4/X(2)**2
-      GF(3)=10.D0-1.44D+5/X(3)**2       
-      RETURN    
-4     IF (INDEX1(1)) G(1)=1.D0-4.D0/X(1)-32.D0/X(2)-120.D0/X(3) 
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=4.D0/X(1)**2      
-      GG(1,2)=32.D0/X(2)**2     
-      GG(1,3)=120.D0/X(3)**2    
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP65(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION V1,V2      
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      X(1)=-5.D0
-      X(2)=5.D0 
-      X(3)=0.D0 
-      DO 6 I=1,3
-      LXL(I)=.TRUE.     
-6     LXU(I)=.TRUE.     
-      XL(1)=-4.5D0      
-      XL(2)=-4.5D0      
-      XL(3)=-5.D0       
-      XU(1)=4.5D0       
-      XU(2)=4.5D0       
-      XU(3)=5.D0
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.365046182158D+01     
-      XEX(2)=0.365046168940D+01     
-      XEX(3)=0.462041750754D+01     
-      FEX=0.953528856757D+00 
-      RETURN    
-2     FX=(X(1)-X(2))**2+((X(1)+X(2)-10.D0)/3.D0)**2+(X(3)-5.D0)**2      
-      RETURN    
-3     V1=2.D0*(X(1)-X(2))       
-      V2=2.D0*(X(1)+X(2)-10.D0)/9.D0    
-      GF(1)=V1+V2       
-      GF(2)=-V1+V2      
-      GF(3)=2.D0*(X(3)-5.D0)    
-      RETURN    
-4     IF (INDEX1(1)) G(1)=48.D0-X(1)**2-X(2)**2-X(3)**2 
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=-2.D0*X(1)
-      GG(1,2)=-2.D0*X(2)
-      GG(1,3)=-2.D0*X(3)
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP66(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=3       
-      NILI=0    
-      NINL=2    
-      NELI=0    
-      NENL=0    
-      X(1)=0.D0 
-      X(2)=1.05D0       
-      X(3)=2.9D0
-      DO 6 I=1,3
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-      XL(I)=0.D0
-6     XU(I)=100.D0      
-      XU(3)=10.D0       
-      GF(1)=-0.8D0      
-      GF(2)=0.D0
-      GF(3)=0.2D0       
-      GG(1,2)=1.D0      
-      GG(1,3)=0.D0      
-      GG(2,1)=0.D0      
-      GG(2,3)=1.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.184126487951D+00     
-      XEX(2)=0.120216787321D+01     
-      XEX(3)=0.332732232258D+01     
-      FEX=0.518163274159D+00 
-      RETURN    
-2     FX=0.2D0*X(3)-0.8D0*X(1)  
-3     RETURN    
-4     IF (INDEX1(1)) G(1)=X(2)-DEXP(X(1))       
-      IF (INDEX1(2)) G(2)=X(3)-DEXP(X(2))       
-      RETURN    
-5     IF (INDEX2(1)) GG(1,1)=-DEXP(X(1))
-      IF (INDEX2(2)) GG(2,2)=-DEXP(X(2))
-      RETURN    
-      END       
-C
-      SUBROUTINE TP67(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      COMMON     /D67/ A(3),Y(8),DY2C(3),DY4C(3),DY(8,3),
-     /                 RX,V1,V2,Y2C,V3,Y4C  
-      DOUBLEPRECISION A,Y,DY2C,DY4C,DY,RX,V1,V2,Y2C,V3,Y4C  
-      INTEGER I,J,IREP
-      IF (MODE - 2) 1,17,17     
-1     N=3       
-      NILI=0    
-      NINL=14   
-      NELI=0    
-      NENL=0    
-      X(1)=1.745D+3     
-      X(2)=1.2D+4       
-      X(3)=110.D0       
-      DO 6 I=1,3
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-6     XL(I)=1.D-5       
-      XU(1)=2.D+3       
-      XU(2)=1.6D+4      
-      XU(3)=120.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.172837128614D+04     
-      XEX(2)=0.160000000000D+05     
-      XEX(3)=0.981415140238D+02     
-      FEX=-0.116203650728D+04 
-      RETURN    
-17    RX=1.D0/X(1)      
-      Y(2)=1.6D0*X(1)   
-      DY(2,1)=1.6D0     
-      DY(2,2)=0.D0      
-      DY(2,3)=0.D0  
-      IREP=0    
-100   Y(3)=1.22D0*Y(2)-X(1)     
-      DY(3,1)=1.22D0*DY(2,1)-1.D0       
-      DY(3,2)=1.22D0*DY(2,2)    
-      DY(3,3)=1.22D0*DY(2,3)    
-      Y(6)=(X(2)+Y(3))*RX       
-      DY(6,1)=(X(1)*DY(3,1)-X(2)-Y(3))*RX**2    
-      DY(6,2)=(1.D0+DY(3,2))*RX 
-      DY(6,3)=DY(3,1)*RX
-      V1=0.01D0*X(1)*(13.167D0-2.D0*0.6667D0*Y(6))      
-      V2=(112.D0+(13.167D0-0.6667D0*Y(6))*Y(6))*0.01D0  
-      Y2C=X(1)*V2       
-      DY2C(1)=V2+V1*DY(6,1)     
-      DY2C(2)=V1*DY(6,2)
-      DY2C(3)=V1*DY(6,3)
-      IF (DABS(Y2C-Y(2))-1.D-3) 102,102,101     
-101   DO 103 I=1,3      
-103   DY(2,I)=DY2C(I)   
-      Y(2)=Y2C
-      IREP=IREP+1
-      IF (IREP.GT.100) GOTO 102  
-      GOTO 100  
-102   Y(4)=93.D0
-      DO 104 I=1,3      
-104   DY(4,I)=0.D0  
-      IREP=0    
-105   Y(5)=86.35D0+1.098D0*Y(6)-0.038D0*Y(6)**2+0.325D0*(Y(4)-89.D0)    
-      Y(8)=-133.D0+3.D0*Y(5)    
-      Y(7)=35.82D0-0.222D0*Y(8) 
-      DO 106 I=1,3      
-      DY(5,I)=1.098D0*DY(6,I)-0.076D0*Y(6)*DY(6,I)+0.325D0*DY(4,I)      
-      DY(8,I)=3.D0*DY(5,I)      
-106   DY(7,I)=-0.222D0*DY(8,I)  
-      V3=1.D0/(Y(2)*Y(7)+1.D+3*X(3))    
-      Y4C=9.8D+4*X(3)*V3
-      DO 107 I=1,2      
-107   DY4C(I)=-9.8D+4*X(3)*(Y(2)*DY(7,I)+Y(7)*DY(2,I))/(Y(2)*Y(7)+1.D+3*
-     -X(3))**2  
-      DY4C(3)=9.8D+4*(Y(2)*Y(7)-X(3)*(Y(2)*DY(7,3)+Y(7)*DY(2,3)))*V3**2 
-      IF (DABS(Y4C-Y(4))-1.D-4) 109,109,108     
-108   Y(4)=Y4C  
-      DO 110 I=1,3      
-110   DY(4,I)=DY4C(I)
-      IREP=IREP+1
-      IF (IREP.GT.100) GOTO 109   
-      GOTO 105  
-109   GOTO (1,2,3,4,5),MODE     
-2     FX=-(0.063D0*Y(2)*Y(5)-5.04D0*X(1)-3.36D0*Y(3)-0.035D0*X(2)-10.D0 
-     1     *X(3))       
-      RETURN    
-3     DO 120 I=1,3      
-120   A(I)=-0.063D0*(DY(2,I)*Y(5)+DY(5,I)*Y(2))+3.36D0*DY(3,I)  
-      GF(1)=A(1)+5.04D0 
-      GF(2)=A(2)+0.035D0
-      GF(3)=A(3)+10.D0  
-      RETURN    
-4     IF (INDEX1(1)) G(1)=Y(2)  
-      IF (INDEX1(2)) G(2)=Y(3)  
-      IF (INDEX1(3)) G(3)=Y(4)-85.D0    
-      IF (INDEX1(4)) G(4)=Y(5)-90.D0    
-      IF (INDEX1(5)) G(5)=Y(6)-3.D0     
-      IF (INDEX1(6)) G(6)=Y(7)-0.01D0   
-      IF (INDEX1(7)) G(7)=Y(8)-145.D0   
-      IF (INDEX1(8)) G(8)=5.D+3-Y(2)    
-      IF (INDEX1(9)) G(9)=2.D+3-Y(3)    
-      IF (INDEX1(10)) G(10)=93.D0-Y(4)  
-      IF (INDEX1(11)) G(11)=95.D0-Y(5)  
-      IF (INDEX1(12)) G(12)=12.D0-Y(6)  
-      IF (INDEX1(13)) G(13)=4.D0-Y(7)   
-      IF (INDEX1(14)) G(14)=162.D0-Y(8) 
-      RETURN    
-5     DO 133 J=1,7      
-      IF (.NOT.INDEX2(J)) GOTO 131      
-      DO 130 I=1,3      
-130   GG(J,I)=DY(J+1,I) 
-131   IF (.NOT.INDEX2(J+7)) GOTO 133    
-      DO 132 I=1,3      
-132   GG(J+7,I)=-DY(J+1,I)      
-133   CONTINUE  
-      RETURN    
-      END       
-C
-      SUBROUTINE TP68(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      COMMON     /D68/ A(2),B(2),Z(2),D(2)     
-      DOUBLEPRECISION A,B,Z,D,V1,V2,V3,V4,V5,H1,H2,H3
-      INTEGER I,KN1
-      NEX=1
-      LEX=.FALSE.
-      KN1=1     
-      XEX(1)=0.678587452312D-01     
-      XEX(2)=0.364617174165D+01     
-      XEX(3)=0.266175189694D-03     
-      XEX(4)=0.894862212037D+00     
-      FEX=-0.920425020704D+00 
-      GOTO 9    
-      ENTRY TP69(MODE)  
-      KN1=2     
-      XEX(1)=0.293714180830D-01     
-      XEX(2)=0.119025343488D+01     
-      XEX(3)=0.233946796758D+00     
-      XEX(4)=0.791667815694D+00     
-      FEX=-0.956712887064D+03 
-9     GOTO (1,2,3,4,5),MODE     
-1     N=4       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=2    
-      DO 6 I=1,2
-      X(I)=1.D0 
-      X(I+2)=1.D0       
-      LXL(I)=.TRUE.     
-      LXL(I+2)=.TRUE.   
-      LXU(I)=.TRUE.     
-      LXU(I+2)=.TRUE.   
-      XL(I+2)=0.D0      
-      XU(I)=100.D0      
-6     XU(I+2)=2.D0      
-      XL(1)=1.D-4       
-      XL(2)=0.D0
-      A(1)=1.D-4
-      A(2)=0.1D0
-      B(1)=1.D0 
-      B(2)=1.D+3
-      D(1)=1.D0 
-      D(2)=1.D0 
-      Z(1)=24.D0
-      Z(2)=4.D0 
-      GG(1,1)=0.D0      
-      GG(1,4)=0.D0      
-      GG(1,3)=1.D0      
-      GG(2,1)=0.D0      
-      GG(2,3)=0.D0      
-      GG(2,4)=1.D0      
-      GF(2)=0.D0
-      LEX=.FALSE.       
-      NEX=0
-      RETURN    
-2     V1=DEXP(X(1))-1.D0
-      FX=(A(KN1)*Z(KN1)-X(4)*(B(KN1)*V1-X(3))/(V1+X(4)))/X(1)   
-      RETURN    
-3     V1=DEXP(X(1))     
-      V2=V1-1.D0
-      V3=1.D0/(V2+X(4)) 
-      V4=1.D0/X(1)      
-      V5=(B(KN1)*V2-X(3))*V4    
-      GF(1)=-((V1*(X(4)*B(KN1)+X(3))*V3-V5)*X(4)*V3+A(KN1)*Z(KN1)*V4)*V4
-      GF(3)=X(4)*V4*V3  
-      GF(4)=-V5*V2*V3**2
-      RETURN          
-4     IF (.NOT.INDEX1(1)) GOTO 30       
-      CALL MDNORD(-X(2),H1)
-      G(1)=X(3)-2.D0*H1 
-  30  IF (.NOT.INDEX1(2)) RETURN
-      CALL MDNORD(-X(2)+DSQRT(Z(KN1)),H1)
-      CALL MDNORD(-X(2)-DSQRT(Z(KN1)),H2)
-      G(2)=X(4)-H1-H2
-      RETURN
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,2)=2.D0*DEXP(-0.5D0*X(2)**2)/DSQRT(8.D0*DATAN(1.D0)) 
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      H1=-X(2)-D(KN1)*DSQRT(Z(KN1))     
-      H2=-X(2)+D(KN1)*DSQRT(Z(KN1))     
-      H3=1.D0/DSQRT(8.D0*DATAN(1.D0))   
-      GG(2,2)=(DEXP(-0.5D0*H1**2)+DEXP(-0.5D0*H2**2))*H3
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP70(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      COMMON     /D70/ DF(19,4),V4(19),U1(19),U2(19),YC(19),C(19),
-     /                 V3(19),V8(19),V9(19),F(19),YO(19)       
-      DOUBLEPRECISION DF,V4,U1,U2,YC,C,V3,V8,V9,F,YO,B,H1,H2,H3,  
-     /     H4,H5,H6,H7,H30,H40,V10,V11,V12,Z1,Z2,Z5,Z6,Z7,
-     /     T,H8,H9,H10,H11,H12,H13,H14,H15,H16,H17,H18,H19,
-     /     H20,H21,H22,H23,S,SUM   
-      INTEGER I,J
-      LOGICAL LOG
-      LOG=.FALSE.       
-      IF (MODE - 2) 1,17,17     
-1     N=4       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=0    
-      X(1)=2.D0 
-      X(2)=4.D0 
-      X(3)=0.04D0       
-      X(4)=2.D0 
-      DO 6 I=1,4
-      LXU(I)=.TRUE.     
-      LXL(I)=.TRUE.     
-      XL(I)=1.D-5       
-6     XU(I)=100.D0      
-      XU(3)=1.D0
-      GG(1,1)=0.D0      
-      GG(1,2)=0.D0      
-      XEX(1)=0.122769537557D+02     
-      XEX(2)=0.463178796886D+01     
-      XEX(3)=0.312862470961D+00     
-      XEX(4)=0.202929031570D+01     
-      FEX=0.749846356143D-02 
-      LEX=.FALSE.       
-      NEX=1
-      RETURN    
-   17 CONTINUE
-      C(1)=0.1D0
-      DO 20 I=2,19      
-20    C(I)=DBLE(I-1)  
-      YO(1)=1.89D-3     
-      YO(2)=0.1038D0    
-      YO(3)=0.268D0     
-      YO(4)=0.506D0     
-      YO(5)=0.577D0     
-      YO(6)=0.604D0     
-      YO(7)=0.725D0     
-      YO(8)=0.898D0     
-      YO(9)=0.947D0     
-      YO(10)=0.845D0    
-      YO(11)=0.702D0    
-      YO(12)=0.528D0    
-      YO(13)=0.385D0    
-      YO(14)=0.257D0    
-      YO(15)=0.159D0    
-      YO(16)=0.0869D0   
-      YO(17)=0.0453D0   
-      YO(18)=0.01509D0  
-      YO(19)=1.89D-3    
-      IF (MODE - 4) 18,4,5      
-18    B=X(3)+(1.D0-X(3))*X(4)   
-      H1=X(1)-1.D0      
-      H2=X(2)-1.D0      
-      H3=1.D0/7.658D0   
-      H5=B*H3   
-      H4=H5/X(4)
-      H6=12.D0*X(1)/(12.D0*X(1)+1.D0)   
-      H7=12.D0*X(2)/(12.D0*X(2)+1.D0)   
-      H30=0.D0  
-      H40=0.D0  
-      V10=X(2)/6.2832D0 
-      V11=B/X(4)
-      V12=X(1)/6.2832D0 
-      IF(B.LT.0.D0.OR.V10.LT.0.D0.OR.V11.LT.0.D0.OR.V12.LT.0.D0)
-     1     LOG=.TRUE.   
-      IF(LOG .AND. MODE.EQ.2) GOTO 8    
-      IF (LOG .AND. MODE.EQ.3) GOTO 9   
-      Z1=X(3)*B**X(2)   
-      Z2=V10**0.5D0     
-      Z5=1.D0-X(3)      
-      Z6=V11**X(1)      
-      Z7=V12**0.5D0     
-      DO 30 I=1,19      
-      V3(I)=(C(I)*H3)**H2       
-      V4(I)=DEXP(X(2)*(1.D0-C(I)*H5))   
-      V8(I)=(C(I)*H3)**H1       
-      V9(I)=DEXP(X(1)*(1.D0-C(I)*H4))   
-      U1(I)=Z1*Z2*V3(I)*V4(I)*H7
-      U2(I)=Z5*Z6*Z7*V8(I)*V9(I)*H6     
-      YC(I)=U1(I)+U2(I) 
-30    F(I)=YC(I)-YO(I)  
-      GOTO (1,2,3),MODE 
-2     T=0.D0    
-      DO 31 I=1,19      
-31    T=T+(F(I))**2     
-      FX=T      
-      RETURN    
-3     H8=X(4)-1.D0      
-      H9=X(3)-1.D0      
-      H10=1.D0/B
-      H11=1.D0/X(4)     
-      H12=(0.5D0+1.D0/(12.D0*X(1)+1.D0))/X(1)+1.D0      
-      H13=(0.5D0+1.D0/(12.D0*X(2)+1.D0))/X(2)+1.D0      
-      H16=X(2)*H8       
-      H17=X(1)*H8       
-      H18=1.D0/X(3)-H16*H10     
-      H19=1.D0/H9-H17*H10       
-      H16=H16*H3
-      H17=H17*H11*H3    
-      H20=X(2)*H9       
-      H21=X(1)*X(3)*H11**2      
-      H22=H20*H3
-      H23=H21*H3
-      H20=H20*H10       
-      H21=H21*H10*X(4)  
-      DO 33 J=1,19      
-      H14=H4*C(J)       
-      H15=H5*C(J)       
-      IF (H14.GT.0.D0) GOTO 10  
-      GF(1)=2.D0*(X(1)-5.D0)    
-      H30=1.D0  
-      GOTO 11   
-10    DF(J,1)=U2(J)*(H12-H14+DLOG(H14)) 
-11    IF (H15.GT.0.D0) GOTO 12  
-      GF(2)=2.D0*(X(2)-5.D0)    
-      H40=1.D0  
-      GOTO 13   
-12    DF(J,2)=U1(J)*(H13-H15+DLOG(H15)) 
-13    DF(J,3)=U1(J)*(H18+C(J)*H16)+U2(J)*(H19+C(J)*H17) 
-33    DF(J,4)=U1(J)*(H22*C(J)-H20)+U2(J)*(H23*C(J)-H21) 
-      IF (H30.EQ.1.D0.OR.H40.EQ.1.D0) GOTO 14   
-      DO 37 I=1,4       
-      S=0.D0    
-      DO 36 J=1,19      
-      S=S+2.D0*F(J)*DF(J,I)     
-36    CONTINUE  
-      GF(I)=S   
-37    CONTINUE  
-      RETURN    
-14    DO 38 I=1,4       
-      IF (I.EQ.1.AND.H30.EQ.1.D0) GOTO 38       
-      IF (I.EQ.2.AND.H40.EQ..1) GOTO 38 
-      S=0.D0    
-      DO 39 J=1,19      
-39    S=S+2.D0*F(J)*DF(J,I)     
-      GF(I)=S   
-38    CONTINUE  
-      H30=0.D0  
-      H40=0.D0  
-      RETURN    
-8     LOG=.FALSE.       
-      SUM=0.D0  
-      DO 40 I=1,4       
-40    SUM=SUM+(X(I)-5.D0)**2    
-      FX=SUM
-      RETURN    
-9     LOG=.FALSE.       
-      DO 41 I=1,4       
-41    GF(I)=2.D0*(X(I)-5.D0)
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(3)+(1.D0-X(3))*X(4) 
-      RETURN    
-5     IF(.NOT.INDEX2(1)) GOTO 7 
-      GG(1,3)=1.D0-X(4) 
-      GG(1,4)=-X(3)+1.D0
-7     RETURN    
-      END       
-C
-      SUBROUTINE TP71(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=4       
-      NILI=0    
-      NINL=1    
-      NELI=0    
-      NENL=1    
-      DO 6 I=1,4
-      LXL(I)=.TRUE.     
-      LXU(I)=.TRUE.     
-      XL(I)=1.D0
-6     XU(I)=5.D0
-      X(1)=1.D0 
-      X(2)=5.D0 
-      X(3)=5.D0 
-      X(4)=1.D0 
-      XEX(1)=0.100000000000D+01     
-      XEX(2)=0.474299937545D+01     
-      XEX(3)=0.382115032617D+01     
-      XEX(4)=0.137940824585D+01     
-      FEX=0.170140172895D+02 
-      LEX=.FALSE.       
-      NEX=0
-      RETURN    
-2     FX=X(1)*X(4)*(X(1)+X(2)+X(3))+X(3)
-      RETURN    
-3     GF(1)=X(4)*(2.D0*X(1)+X(2)+X(3))  
-      GF(2)=X(1)*X(4)   
-      GF(3)=GF(2)+1.D0  
-      GF(4)=X(1)*(X(1)+X(2)+X(3))       
-      RETURN    
-4     IF (INDEX1(1)) G(1)=(X(1)*X(2)*X(3)*X(4)-25.D0)/25.0D0
-      IF (INDEX1(2)) G(2)=(X(1)**2+X(2)**2+X(3)**2+X(4)**2-40.D0)/40.0D0
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=X(2)*X(3)*X(4)/25.0D0    
-      GG(1,2)=X(1)*X(3)*X(4)/25.0D0    
-      GG(1,3)=X(1)*X(2)*X(4)/25.0D0    
-      GG(1,4)=X(1)*X(2)*X(3)/25.0D0    
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      DO 20 I=1,4       
-20    GG(2,I)=2.D0*X(I)/40.0D0  
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP72(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=4       
-      NILI=0    
-      NINL=2    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,4
-      X(I)=1.D0 
-      XL(I)=1.D-3       
-      XU(I)=1.D+5*(5.D0-DBLE(I))      
-      LXL(I)=.TRUE.     
-6     LXU(I)=.TRUE.     
-      DO 30 I=1,4       
-30    GF(I)=1.D0
-      LEX=.FALSE.
-      NEX=1       
-      XEX(1)=0.193407050141D+03     
-      XEX(2)=0.179547504555D+03     
-      XEX(3)=0.185018587841D+03     
-      XEX(4)=0.168706233485D+03     
-C      FEX=0.727679376021D+03 
-      FEX=0.72767936D+3
-      RETURN    
-2     FX=1.D0+X(1)+X(2)+X(3)+X(4)       
-3     RETURN    
-4     IF (INDEX1(1)) G(1)=-4.D0/X(1)-2.25D0/X(2)-1.D0/X(3)-0.25D0/X(4)  
-     1     +0.0401D0    
-      IF (INDEX1(2)) G(2)=-0.16D0/X(1)-0.36D0/X(2)-0.64D0*(1.D0/X(3)    
-     1     +1.D0/X(4))+0.010085D0       
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=4.D0/X(1)**2      
-      GG(1,2)=2.25D0/X(2)**2    
-      GG(1,3)=1.D0/X(3)**2      
-      GG(1,4)=0.25D0/X(4)**2    
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,1)=0.16D0/X(1)**2    
-      GG(2,2)=0.36D0/X(2)**2    
-      GG(2,3)=0.64D0/X(3)**2    
-      GG(2,4)=0.64D0/X(4)**2    
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP73(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DIMENSION A(4)    
-      DOUBLEPRECISION A  
-      GOTO (1,2,3,4,5),MODE     
-1     N=4       
-      NILI=1    
-      NINL=1    
-      NELI=1    
-      NENL=0    
-      DO 6 I=1,4
-      X(I)=1.D0 
-      XL(I)=0.D0
-      LXL(I)=.TRUE.     
-6     LXU(I)=.FALSE.    
-      GF(1)=24.55D0     
-      GF(2)=26.75D0     
-      GF(3)=39.D0       
-      GF(4)=40.5D0      
-      GG(1,1)=2.3D0     
-      GG(1,2)=5.6D0     
-      GG(1,3)=11.1D0    
-      GG(1,4)=1.3D0     
-      DO 31 I=1,4       
-31    GG(3,I)=1.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.635521568605D+00     
-      XEX(2)=-0.117862273760D-11     
-      XEX(3)=0.312701880754D+00     
-      XEX(4)=0.517765506011D-01     
-      FEX=0.298943781573D+02 
-      RETURN    
-2     FX=24.55D0*X(1)+26.75D0*X(2)+39.D0*X(3)+40.50D0*X(4)      
-3     RETURN    
-4     IF (INDEX1(1)) G(1)=2.3D0*X(1)+5.6D0*X(2)+11.1D0*X(3)+1.3D0*X(4)  
-     1     -5.D0
-      IF (INDEX1(2)) G(2)=12.0D0*X(1)+11.9D0*X(2)+41.8D0*X(3)+52.1D0    
-     /   *X(4)-1.645D0*    
-     /   (0.28D0*X(1)**2+0.19D0*X(2)**2+20.5D0*X(3)**2+0.62D0*X(4)**2) 
-     /   **.5D0-21.D0      
-      IF (INDEX1(3)) G(3)=X(1)+X(2)+X(3)+X(4)-1.D0      
-      RETURN    
-5     IF (.NOT.INDEX2(2)) GOTO 8
-      DO 30 I=1,4       
-30    A(I)=1.645D0*X(I)*(0.28D0*X(1)**2+0.19D0*X(2)**2+20.5D0*X(3)**2   
-     /     +0.62D0*X(4)**2)**(-0.5D0)
-      GG(2,1)=12.D0-0.28D0*A(1) 
-      GG(2,2)=11.9D0-0.19D0*A(2)
-      GG(2,3)=41.8D0-20.5D0*A(3)
-      GG(2,4)=52.1D0-0.62D0*A(4)
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP74(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      COMMON     /L74/ A(2)    
-      DOUBLEPRECISION A,V1,V2  
-      INTEGER I,KN1
-      XEX(1)=0.679945319802D+03     
-      XEX(2)=0.102606713256D+04     
-      XEX(3)=0.118876364490D+00     
-      XEX(4)=-0.396233553180D+00     
-      FEX=0.512649810934D+04 
-      KN1=1     
-      GOTO 7    
-      ENTRY TP75(MODE)  
-      KN1=2     
-      XEX(1)=0.776159220293D+03     
-      XEX(2)=0.925194939196D+03     
-      XEX(3)=0.511087936804D-01     
-      XEX(4)=-0.428891137432D+00     
-      FEX=0.517441288686D+04 
-7     GOTO (1,2,3,4,5),MODE    
-1     N=4       
-      NILI=2    
-      NINL=0    
-      NELI=0    
-      NENL=3    
-      A(1)=0.55D0       
-      A(2)=0.48D0       
-      DO 6 I=1,4
-      X(I)=0.D0 
-      LXL(I)=.TRUE.     
-6     LXU(I)=.TRUE.     
-      XL(1)=0.D0
-      XL(2)=0.D0
-      XL(3)=-A(KN1)     
-      XL(4)=-A(KN1)     
-      XU(1)=1.2D+3      
-      XU(2)=1.2D+3      
-      XU(3)=A(KN1)      
-      XU(4)=A(KN1)      
-      GF(3)=0.D0
-      GF(4)=0.D0
-      GG(1,1)=0.D0      
-      GG(1,2)=0.D0      
-      GG(1,3)=-1.D0     
-      GG(1,4)=1.D0      
-      GG(2,1)=0.D0      
-      GG(2,2)=0.D0      
-      GG(2,3)=1.D0      
-      GG(2,4)=-1.D0     
-      GG(3,1)=-1.D0     
-      GG(3,2)=0.D0      
-      GG(4,1)=0.D0      
-      GG(4,2)=-1.D0     
-      GG(5,1)=0.D0      
-      GG(5,2)=0.D0      
-      LEX=.FALSE.
-      NEX=0       
-      RETURN    
-2     FX=3.D0*X(1)+X(1)**3*1.D-6+2.D0*X(2)+2.D0*1.D-6/3.D0*X(2)**3      
-      RETURN    
-3     GF(1)=3.D0+3.D-6*X(1)**2  
-      GF(2)=2.D0+2.D-6*X(2)**2  
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(4)-X(3)+A(KN1)      
-      IF (INDEX1(2)) G(2)=X(3)-X(4)+A(KN1)      
-      IF (INDEX1(3)) G(3)=1.D+3*(DSIN(-X(3)-0.25D0)+DSIN(-X(4)-0.25D0))+
-     -894.8D0-X(1)      
-      IF (INDEX1(4)) G(4)=1.D+3*(DSIN(X(3)-0.25D0)+DSIN(X(3)-X(4)       
-     --0.25D0))+
-     -894.8D0-X(2)      
-      IF(INDEX1(5)) G(5)=1.D+3*(DSIN(X(4)-0.25D0)+DSIN(X(4)-X(3)
-     --0.25D0))+
-     -1.2948D+3 
-      RETURN    
-5     IF (.NOT.INDEX2(3)) GOTO 9
-      GG(3,3)=-1.D+3*DCOS(-X(3)-0.25D0) 
-      GG(3,4)=-1.D+3*DCOS(-X(4)-0.25D0) 
-9     IF (.NOT.INDEX2(4)) GOTO 10       
-      V1=DCOS(X(3)-X(4)-0.25D0) 
-      GG(4,3)=1.D+3*(DCOS(X(3)-0.25D0)+V1)      
-      GG(4,4)=-1.D+3*V1 
-10    IF (.NOT.INDEX2(5)) GOTO 11       
-      V2=DCOS(X(4)-X(3)-0.25D0) 
-      GG(5,3)=-1.D+3*V2 
-      GG(5,4)=1.D+3*(DCOS(X(4)-0.25D0)+V2)      
-11    RETURN    
-      END       
-C
-      SUBROUTINE TP76(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=4       
-      NILI=3    
-      NINL=0    
-      NELI=0    
-      NENL=0    
-      DO 6 I=1,4
-      LXL(I)=.TRUE.     
-      LXU(I)=.FALSE.    
-      X(I)=0.5D0
-6     XL(I)=0.D0
-      GG(1,1)=-1.D0     
-      GG(1,2)=-2.D0     
-      GG(1,3)=-1.D0     
-      GG(1,4)=-1.D0     
-      GG(2,1)=-3.D0     
-      GG(2,2)=-1.D0     
-      GG(2,3)=-2.D0     
-      GG(2,4)=1.D0      
-      GG(3,1)=0.D0      
-      GG(3,2)=1.D0      
-      GG(3,3)=4.D0      
-      GG(3,4)=0.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.272727272717D+00     
-      XEX(2)=0.209090909094D+01     
-      XEX(3)=-0.263371889808D-10     
-      XEX(4)=0.545454545496D+00     
-      FEX=-0.468181818182D+01 
-      RETURN    
-2     FX=X(1)**2+X(3)**2+0.5D0*(X(2)**2+X(4)**2)-X(1)*X(3)+X(3)*X(4)-   
-     -X(1)-3.D0*X(2)+X(3)-X(4)  
-      RETURN    
-3     GF(1)=2.D0*X(1)-X(3)-1.D0 
-      GF(2)=X(2)-3.D0   
-      GF(3)=2.D0*X(3)-X(1)+X(4)+1.D0    
-      GF(4)=X(4)+X(3)-1.D0      
-      RETURN    
-4     IF (INDEX1(1)) G(1)=-X(1)-2.D0*X(2)-X(3)-X(4)+5.D0
-      IF (INDEX1(2)) G(2)=-3.D0*X(1)-X(2)-2.D0*X(3)+X(4)+4.D0   
-      IF (INDEX1(3)) G(3)=X(2)+4.D0*X(3)-1.5D0  
-5     RETURN    
-      END       
-C
-      SUBROUTINE TP77(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION V1 
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=2    
-      DO 6 I=1,5
-      X(I)=2.D0 
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      GG(1,2)=0.D0      
-      GG(1,3)=0.D0      
-      GG(2,1)=0.D0      
-      GG(2,2)=1.D0      
-      GG(2,5)=0.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.116617219726D+01     
-      XEX(2)=0.118211138813D+01     
-      XEX(3)=0.138025704044D+01     
-      XEX(4)=0.150603627961D+01     
-      XEX(5)=0.610920257517D+00     
-      FEX=0.241505128786D+00 
-      RETURN    
-2     FX=(X(1)-1.D0)**2+(X(1)-X(2))**2+(X(3)-1.D0)**2+(X(4)-1.D0)**4    
-     -+(X(5)-1.D0)**6   
-      RETURN    
-3     GF(1)=2.D0*(2.D0*X(1)-X(2)-1.D0)  
-      GF(2)=-2.D0*(X(1)-X(2))   
-      GF(3)=2.D0*(X(3)-1.D0)    
-      GF(4)=4.D0*(X(4)-1.D0)**3 
-      GF(5)=6.D0*(X(5)-1.D0)**5 
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)**2*X(4)+DSIN(X(4)-X(5))-2.D0*DSQRT(2.D0) 
-      IF (INDEX1(2)) G(2)=X(2)+X(3)**4*X(4)**2-8.D0-DSQRT(2.D0) 
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      V1=DCOS(X(4)-X(5))
-      GG(1,1)=2.D0*X(1)*X(4)    
-      GG(1,4)=X(1)**2+V1
-      GG(1,5)=-V1       
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,3)=4.D0*X(3)**3*X(4)**2      
-      GG(2,4)=2.D0*X(3)**4*X(4) 
-8     RETURN    
-      END       
-C
-      SUBROUTINE TP78(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=3    
-      DO 6 I=1,5
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      X(1)=-2.D0
-      X(2)=1.5D0
-      X(3)=2.D0 
-      X(4)=-1.D0
-      X(5)=-1.D0
-      GG(2,1)=0.D0      
-      GG(3,3)=0.D0      
-      GG(3,4)=0.D0      
-      GG(3,5)=0.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=-0.171714234230D+01     
-      XEX(2)=0.159570826805D+01     
-      XEX(3)=0.182724803488D+01     
-      XEX(4)=-0.763642946600D+00     
-      XEX(5)=-0.763643482853D+00     
-      FEX=-0.291970040911D+01 
-      RETURN    
-2     FX=X(1)*X(2)*X(3)*X(4)*X(5)       
-      RETURN    
-3     GF(1)=X(2)*X(3)*X(4)*X(5) 
-      GF(2)=X(1)*X(3)*X(4)*X(5) 
-      GF(3)=X(1)*X(2)*X(4)*X(5) 
-      GF(4)=X(1)*X(2)*X(3)*X(5) 
-      GF(5)=X(1)*X(2)*X(3)*X(4) 
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)**2+X(2)**2+X(3)**2+X(4)**2+X(5)**2-10.D0 
-      IF (INDEX1(2)) G(2)=X(2)*X(3)-5.D0*X(4)*X(5)      
-      IF (INDEX1(3)) G(3)=X(1)**3+X(2)**3+1.D0  
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      DO 30 I=1,5       
-30    GG(1,I)=2.D0*X(I) 
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,2)=X(3)      
-      GG(2,3)=X(2)      
-      GG(2,4)=-5.D0*X(5)
-      GG(2,5)=-5.D0*X(4)
-8     IF (.NOT.INDEX2(3)) GOTO 9
-      GG(3,1)=3.D0*X(1)**2      
-      GG(3,2)=3.D0*X(2)**2      
-9     RETURN    
-      END       
-C
-      SUBROUTINE TP79(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION V1,V2,V3,V4
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=3    
-      DO 6 I=1,5
-      X(I)=2.D0 
-      LXL(I)=.FALSE.    
-6     LXU(I)=.FALSE.    
-      GG(1,1)=1.D0      
-      GG(1,4)=0.D0      
-      GG(1,5)=0.D0      
-      GG(2,1)=0.D0      
-      GG(2,2)=1.D0      
-      GG(2,4)=1.D0      
-      GG(2,5)=0.D0      
-      GG(3,2)=0.D0      
-      GG(3,3)=0.D0      
-      GG(3,4)=0.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.119112745626D+01     
-      XEX(2)=0.136260316492D+01     
-      XEX(3)=0.147281793150D+01     
-      XEX(4)=0.163501661894D+01     
-      XEX(5)=0.167908143619D+01     
-      FEX=0.787768208538D-01 
-      RETURN    
-2     FX=(X(1)-1.D0)**2+(X(1)-X(2))**2+(X(2)-X(3))**2+(X(3)-X(4))**4    
-     1     +(X(4)-X(5))**4      
-      RETURN    
-3     V1=X(1)-X(2)      
-      V2=X(2)-X(3)      
-      V3=X(3)-X(4)      
-      V4=X(4)-X(5)      
-      GF(1)=2.D0*(X(1)-1.D0+V1) 
-      GF(2)=2.D0*(V2-V1)
-      GF(3)=-2.D0*V2+4.D0*V3**3 
-      GF(4)=4.D0*(V4**3-V3**3)  
-      GF(5)=-4.D0*V4**3 
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)+X(2)**2+X(3)**3-2.D0-3.D0*DSQRT(2.D0)    
-      IF (INDEX1(2)) G(2)=X(2)-X(3)**2+X(4)+2.D0-2.D0*DSQRT(2.D0)       
-      IF (INDEX1(3)) G(3)=X(1)*X(5)-2.D0
-      RETURN    
-5     IF(.NOT.INDEX2(1)) GOTO 7 
-      GG(1,2)=2.D0*X(2) 
-      GG(1,3)=3.D0*X(3)**2      
-7     IF (INDEX2(2)) GG(2,3)=-2.D0*X(3) 
-      IF (.NOT.INDEX2(3)) GOTO 9
-      GG(3,1)=X(5)      
-      GG(3,5)=X(1)      
-9     RETURN    
-      END       
-C
-      SUBROUTINE TP80(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION V1,V2,T
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=3    
-      DO 6 I=1,5
-      LXL(I)=.TRUE.     
-6     LXU(I)=.TRUE.     
-      X(1)=-2.D0
-      X(2)=2.D0 
-      X(3)=2.D0 
-      X(4)=-1.D0
-      X(5)=-1.D0
-      DO 20 I=1,2       
-      XL(I)=-2.3D0      
-20    XU(I)=2.3D0       
-      DO 21 I=3,5       
-      XL(I)=-3.2D0      
-21    XU(I)=3.2D0       
-      GG(2,1)=0.D0      
-      GG(3,3)=0.D0      
-      GG(3,4)=0.D0      
-      GG(3,5)=0.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=-0.171714294417D+01     
-      XEX(2)=0.159570896503D+01     
-      XEX(3)=0.182724691654D+01     
-      XEX(4)=-0.763641279311D+00     
-      XEX(5)=-0.763645016315D+00     
-      FEX=0.539498477624D-01 
-      RETURN    
-2     FX=DEXP(X(1)*X(2)*X(3)*X(4)*X(5)) 
-      RETURN    
-3     V1=X(4)*X(5)      
-      V2=X(1)*X(2)      
-      T=DEXP(V2*X(3)*V1)
-      GF(1)=X(2)*X(3)*V1*T      
-      GF(2)=X(1)*X(3)*V1*T      
-      GF(3)=V1*V2*T     
-      GF(4)=V2*X(3)*X(5)*T      
-      GF(5)=V2*X(3)*X(4)*T      
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)**2+X(2)**2+X(3)**2+X(4)**2+X(5)**2-10.D0 
-      IF (INDEX1(2)) G(2)=X(2)*X(3)-5.D0*X(4)*X(5)      
-      IF (INDEX1(3)) G(3)=X(1)**3+X(2)**3+1.D0  
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      DO 30 I=1,5       
-30    GG(1,I)=2.D0*X(I) 
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,2)=X(3)      
-      GG(2,3)=X(2)      
-      GG(2,4)=-5.D0*X(5)
-      GG(2,5)=-5.D0*X(4)
-8     IF (.NOT.INDEX2(3)) GOTO 9
-      GG(3,1)=3.D0*X(1)**2      
-      GG(3,2)=3.D0*X(2)**2      
-9     RETURN    
-      END       
-C
-      SUBROUTINE TP81(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      DOUBLEPRECISION V1,V2,V3,T    
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=0    
-      NELI=0    
-      NENL=3    
-      DO 6 I=1,5
-      LXL(I)=.TRUE.     
-6     LXU(I)=.TRUE.     
-      DO 10 I=1,2       
-      XL(I)=-2.3D0      
-10    XU(I)=2.3D0       
-      DO 20 I=3,5       
-      XL(I)=-3.2D0      
-20    XU(I)=3.2D0       
-      X(1)=-2.D0
-      X(2)=2.D0 
-      X(3)=2.D0 
-      X(4)=-1.D0
-      X(5)=-1.D0
-      GG(2,1)=0.D0      
-      GG(3,3)=0.D0      
-      GG(3,4)=0.D0      
-      GG(3,5)=0.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=-0.171714240091D+01     
-      XEX(2)=0.159570833592D+01     
-      XEX(3)=0.182724792592D+01     
-      XEX(4)=-0.763647440817D+00     
-      XEX(5)=-0.763638975604D+00     
-      FEX=0.539498477749D-01 
-      RETURN    
-2     FX=DEXP(X(1)*X(2)*X(3)*X(4)*X(5))-0.5D0*(X(1)**3+X(2)**3+1.D0)**2 
-      RETURN    
-3     V1=X(1)**3+X(2)**3+1.D0   
-      V2=X(1)*X(2)      
-      V3=X(4)*X(5)      
-      T=DEXP(V2*V3*X(3))
-      GF(1)=X(2)*X(3)*V3*T-3.D0*X(1)**2*V1      
-      GF(2)=X(1)*X(3)*V3*T-3.D0*X(2)**2*V1      
-      GF(3)=V2*V3*T     
-      GF(4)=V2*X(3)*X(5)*T      
-      GF(5)=V2*X(3)*X(4)*T      
-      RETURN    
-4     IF (INDEX1(1)) G(1)=X(1)**2+X(2)**2+X(3)**2+X(4)**2+X(5)**2-10.D0 
-      IF (INDEX1(2)) G(2)=X(2)*X(3)-5.D0*X(4)*X(5)      
-      IF (INDEX1(3)) G(3)=X(1)**3+X(2)**3+1.D0  
-      RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      DO 30 I=1,5       
-30    GG(1,I)=2.D0*X(I) 
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,2)=X(3)      
-      GG(2,3)=X(2)      
-      GG(2,4)=-5.D0*X(5)
-      GG(2,5)=-5.D0*X(4)
-8     IF(.NOT.INDEX2(3)) GOTO 9 
-      GG(3,1)=3.D0*X(1)**2      
-      GG(3,2)=3.D0*X(2)**2      
-9     RETURN    
-      END       
-C
-      SUBROUTINE TP83(MODE)     
-      IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
-      INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
-      DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 
-      LOGICAL    INDEX1,INDEX2,LXL,LXU,LEX    
-      PARAMETER (NMAX=101, MMAX=50)
-      COMMON     /L1/  N,NILI,NINL,NELI,NENL 
-     /           /L2/  X(NMAX)                              
-     /           /L3/  G(MMAX)           
-     /           /L4/  GF(NMAX)          
-     /           /L5/  GG(MMAX,NMAX)        
-     /           /L6/  FX
-     /           /L9/  INDEX1(MMAX)     
-     /           /L10/ INDEX2(MMAX)
-     /           /L11/ LXL(NMAX)       
-     /           /L12/ LXU(NMAX)    
-     /           /L13/ XL(NMAX)     
-     /           /L14/ XU(NMAX)    
-     /           /L20/ LEX,NEX,FEX,XEX(NMAX) 
-      INTEGER I
-      COMMON/DATA83/A,B,C,D,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,
-     /              V1,V2,V3
-      DOUBLEPRECISION A,B,C,D,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,
-     /              V1,V2,V3    
-      GOTO (1,2,3,4,5),MODE     
-1     N=5       
-      NILI=0    
-      NINL=6    
-      NELI=0    
-      NENL=0    
-      X(1)=78.0D0
-      X(2)=33.0D0
-      X(3)=27.0D0
-      X(4)=27.0D0
-      X(5)=27.0D0
-      DO 6 I=1,5
-      LXL(I)=.TRUE.     
-6     LXU(I)=.TRUE.     
-      XL(1)=78.0D0       
-      XL(2)=33.0D0       
-      XU(1)=102.0D0      
-      XU(2)=45.D0       
-      DO 31 I=3,5       
-      XL(I)=27.0D0       
-31    XU(I)=45.0D0       
-      A=5.3578547D0     
-      B=0.8356891D0     
-      C=37.293239D0     
-      D=4.0792141D+4    
-      A1=85.334407D0    
-      A2=5.6858D-3      
-      A3=6.262D-4       
-      A4=2.2053D-3      
-      A5=80.51249D0     
-      A6=7.1317D-3      
-      A7=2.9955D-3      
-      A8=2.1813D-3      
-      A9=9.300961D0     
-      A10=4.7026D-3     
-      A11=1.2547D-3     
-      A12=1.9085D-3     
-      GF(2)=0.D0
-      GF(4)=0.D0
-      GG(2,4)=0.D0      
-      GG(3,2)=0.D0      
-      GG(5,4)=0.D0      
-      GG(6,2)=0.D0      
-      LEX=.FALSE.       
-      NEX=1
-      XEX(1)=0.780000000000D+02     
-      XEX(2)=0.330000000000D+02     
-      XEX(3)=0.299952560253D+02     
-      XEX(4)=0.450000000000D+02     
-      XEX(5)=0.367758129081D+02     
-      FEX=-0.306655386717D+05
-      RETURN    
-2     FX=A*X(3)**2+B*X(1)*X(5)+C*X(1)-D 
-      RETURN    
-3     GF(1)=B*X(5)+C    
-      GF(3)=2.D0*A*X(3) 
-      GF(5)=B*X(1) 
-      RETURN    
-4     IF (.NOT.(INDEX1(1).OR.INDEX1(4))) GOTO 41
-      V1=A1+A2*X(2)*X(5)+A3*X(1)*X(4)-A4*X(3)*X(5)      
-      IF (INDEX1(1)) G(1)=V1    
-      IF (INDEX1(4)) G(4)=92.D0-V1      
-41    IF (.NOT.(INDEX1(2).OR.INDEX1(5))) GOTO 42
-      V2=A5+A6*X(2)*X(5)+A7*X(1)*X(2)+A8*X(3)**2-90.D0  
-      IF (INDEX1(2)) G(2)=V2    
-      IF (INDEX1(5)) G(5)=20.D0-V2      
-42    IF (.NOT.(INDEX1(3).OR.INDEX1(6))) GOTO 43
-      V3=A9+A10*X(3)*X(5)+A11*X(1)*X(3)+A12*X(3)*X(4)-20.D0      
-      IF (INDEX1(3)) G(3)=V3    
-      IF (INDEX1(6)) G(6)=5.0D0-V3       
-43    RETURN    
-5     IF (.NOT.INDEX2(1)) GOTO 7
-      GG(1,1)=A3*X(4)   
-      GG(1,2)=A2*X(5)   
-      GG(1,3)=-A4*X(5)  
-      GG(1,4)=A3*X(1)   
-      GG(1,5)=A2*X(2)-A4*X(3)   
-7     IF (.NOT.INDEX2(2)) GOTO 8
-      GG(2,1)=A7*X(2)   
-      GG(2,2)=A6*X(5)+A7*X(1)   
-      GG(2,3)=2.D0*A8*X(3)      
-      GG(2,5)=A6*X(2)   
-8     IF(.NOT.INDEX2(3)) GOTO 9 
-      GG(3,1)=A11*X(3)  
-      GG(3,3)=A10*X(5)+A11*X(1)+A12*X(4)
-      GG(3,4)=A12*X(3)  
-      GG(3,5)=A10*X(3)  
-9     IF (.NOT.INDEX2(4)) GOTO 10       
-      GG(4,1)=-A3*X(4)  
-      GG(4,2)=-A2*X(5)  
-      GG(4,3)=A4*X(5)   
-      GG(4,4)=-A3*X(1)  
-      GG(4,5)=-A2*X(2)+A4*X(3)  
-10    IF (.NOT.INDEX2(5)) GOTO 11       
-      GG(5,1)=-A7*X(2)  
-      GG(5,2)=-A6*X(5)-A7*X(1)  
-      GG(5,3)=-2.D0*A8*X(3)     
-      GG(5,5)=-A6*X(2)  
-11    IF (.NOT.INDEX2(6)) GOTO 12       
-      GG(6,1)=-A11*X(3) 
-      GG(6,3)=-A10*X(5)-A11*X(1)-A12*X(4)       
-      GG(6,4)=-A12*X(3) 
-      GG(6,5)=-A10*X(3) 
-12    RETURN    
-      END       
-C
-      SUBROUTINE TP84(MODE)     
+      SUBROUTINE TP1(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) GOTO(1, 2, 3, 4, 4),
+    MODE
+    1 N = 2 NILI = 0 NINL = 0 NELI = 0 NENL = 0 X(1) = -2.D0 X(2) = 1.D0 LXL(
+        1) =.FALSE.LXL(2) =.TRUE.LXU(1) =.FALSE.LXU(2) =.FALSE.XL(2) =
+        -1.5D0 LEX =.TRUE.NEX = 1 XEX(1) = 1.D0 XEX(2) = 1.D0 FEX = 0.D0 RETURN
+    2 FX = 100.D0 * (X(2) - X(1) * *2) * *2 +
+           (1.D0 - X(1)) * *2 RETURN
+                           3 GF(2) = 200.D0 *
+                                     (X(2) - X(1) * *2)
+                                         GF(1) = -2.D0 *
+                                                 (X(1) * (GF(2) - 1.D0) +
+                                                  1.D0)4 RETURN END C SUBROUTINE
+                                                 TP2(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) DOUBLEPRECISION W1 GOTO(1, 2, 3, 4, 4),
+    MODE 1 N = 2 NILI = 0 NINL = 0 NELI = 0 NENL = 0 X(1) = -2.D0 X(
+        2) = 1.0D0 LXL(1) =.FALSE.LXU(1) =.FALSE.LXL(2) =.TRUE.XL(2) =
+        1.5D0 LXU(2) =.FALSE.LEX =.TRUE.NEX = 1 W1 = DSQRT(598.D0 / 1200.D0)
+            XEX(1) = 2.D0 * W1 *
+                     DCOS(DACOS(2.5D - 3 / W1 * *3) / 3.D0) XEX(2) = 1.5D0 FEX =
+                         100.D0 * (XEX(2) - XEX(1) * *2) * *2 +
+                         (1.D0 - XEX(1)) ** 2 RETURN
+                         2 FX = 100.D0 * (X(2) - X(1) * *2) * *2 +
+                                (1.D0 - X(1)) *
+                                    *2 RETURN 3 GF(2) =
+                                    200.D0 *
+                                    (X(2) - X(1) * *2)
+                                        GF(1) = -2.D0 *
+                                                (X(1) * (GF(2) - 1.D0) +
+                                                 1.D0)4 RETURN END C SUBROUTINE
+                                                TP3(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) GOTO(1, 2, 3, 4, 4),
+    MODE
+    1 N = 2 NILI = 0 NINL = 0 NELI = 0 NENL = 0 X(1) = 10.D0 X(2) = 1.D0 LXL(
+        1) =.FALSE.LXL(2) =.TRUE.LXU(1) =.FALSE.LXU(2) =.FALSE.XL(2) =
+        0.D0 LEX =.TRUE.XEX(1) = 0.D0 XEX(2) = 0.D0 FEX = 0.D0 NEX = 1 RETURN
+    2 FX = X(2) + (X(2) - X(1)) * *2 * 1.D -
+           5 RETURN
+           3 GF(1) = -2.D0 * (X(2) - X(1)) * 1.D -
+                     5 GF(2) = 1.D0 - GF(1) 4 RETURN END C SUBROUTINE TP4(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 4),
+    MODE
+    1 N = 2 NILI = 0 NINL = 0 NELI = 0 NENL = 0 X(1) = 1.125D0 X(2) = 0.125D0 DO
+    6 I = 1,
+      2 LXU(I) =.FALSE.6 LXL(I) =.TRUE.XL(1) = 1.D0 XL(2) =
+          0.D0 LEX =.TRUE.NEX = 1 XEX(1) = 1.D0 XEX(2) = 0.D0 FEX =
+              8.D0 / 3.D0 GF(2) = 1.D0 RETURN
+      2 FX = (X(1) + 1.D0) * *3 / 3.D0 + X(2) RETURN
+             3 GF(1) = (X(1) + 1.D0) * *2 4 RETURN END C SUBROUTINE TP5(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I DOUBLEPRECISION A, V1, V2 GOTO(1, 2, 3, 4, 4),
+    MODE 1 N = 2 NILI = 0 NINL = 0 NELI = 0 NENL = 0 X(1) = 0.D0 X(2) = 0.D0 DO
+    6 I = 1,
+           2 LXL(I) =.TRUE.6 LXU(I) =.TRUE.XL(1) = -1.5D0 XL(2) = -3.D0 XU(
+                                         1) = 4.D0 XU(2) = 3.D0 A =
+               4.D0 * DATAN(1.D0) LEX =.TRUE.NEX = 1 XEX(1) =
+                   0.5D0 - A / 3.D0 XEX(2) =
+                       XEX(1) -
+                       1.D0 FEX = -DSQRT(3.D0) / 2.D0 - A / 3.D0 RETURN 2 FX =
+                                      DSIN(X(1) + X(2)) + (X(1) - X(2)) * *2 -
+                                      1.5D0 * X(1) + 2.5D0 * X(2) +
+                                      1.D0 RETURN 3 V1 = DCOS(X(1) + X(2)) V2 =
+                                          2.D0 *
+                                          (X(1) - X(2))
+                                              GF(1) = V1 + V2 - 1.5D0 GF(2) =
+                                                          V1 - V2 +
+                                                          2.5D0 4 RETURN END C
+                                                          SUBROUTINE TP6(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 0 NINL = 0 NELI = 0 NENL = 1 X(1) = -1.2D0 X(2) = 1.0D0 DO
+    6 I = 1,
+      2 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX = 1 XEX(1) =
+          1.D0 XEX(2) = 1.D0 FEX = 0.D0 GG(1, 2) = 10.D0 GF(2) = 0.D0 RETURN
+      2 FX = (1.D0 - X(1)) *
+             *2 RETURN
+             3 GF(1) = 2.D0 * X(1) - 2.D0 RETURN
+                       4 IF(INDEX1(1))
+                           G(1) = 10.D0 * (X(2) - X(1) * *2) RETURN
+                                  5 IF(INDEX2(1))
+                                      GG(1, 1) = -20.D0 *
+                                                 X(1) RETURN END C SUBROUTINE
+                                                 TP7(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 0 NINL = 0 NELI = 0 NENL = 1 X(1) = 2.D0 X(2) = 2.D0 DO
+    6 I = 1,
+      2 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.FEX = -DSQRT(3.D0) XEX(1) =
+          0.D0 XEX(2) = -FEX NEX = 1 GF(2) = -1.D0 RETURN 2 FX =
+              DLOG(1.D0 + X(1) * *2) - X(2) RETURN
+              3 GF(1) = 2.D0 * X(1) /
+                        (1.D0 + X(1) * *2) RETURN 4 IF(INDEX1(1))
+                            G(1) = (1.D0 + X(1) * *2) * *2 + X(2) * *2 -
+                                   4.D0 RETURN 5 IF(.NOT.INDEX2(1)) GOTO
+                                   7 GG(1,
+                                        1) = 4.D0 * X(1) *
+                                             (1.D0 + X(1) * *2) GG(1, 2) =
+                                                 2.D0 *
+                                                 X(2) 7 RETURN END C SUBROUTINE
+                                                 TP8(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I, J DOUBLEPRECISION A, B GOTO(1, 3, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 0 NINL = 0 NELI = 0 NENL = 2 X(1) = 2.D0 X(2) = 1.D0 A =
+        DSQRT((25.D0 + DSQRT(301.D0)) /
+              2.D0) B = DSQRT((25.D0 - DSQRT(301.D0)) / 2.D0) DO 6 I = 1,
+      2 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX = 4 XEX(1) = A XEX(2) =
+          9.D0 / A XEX(5) = B XEX(6) = 9.D0 / B DO 30 I = 3,
+      7, 4 DO 30 J = 1,
+      2 30 XEX(I + J - 1) = -XEX(I + J - 3) FEX = -1.D0 GF(1) = 0.D0 GF(
+          2) = 0.D0 FX = -1.D0 3 RETURN 4 IF(INDEX1(1)) G(1) =
+          X(1) * *2 + X(2) * *2 -
+          25.D0 IF(INDEX1(2))
+              G(2) = X(1) * X(2) - 9.D0 RETURN
+                     5 IF(.NOT.INDEX2(1)) GOTO
+                     7 GG(1, 1) = 2.D0 * X(1) GG(1, 2) =
+                                      2.D0 * X(2) 7 IF(.NOT.INDEX2(2)) GOTO
+                                      8 GG(2, 1) = X(2)
+                                          GG(2,
+                                             2) = X(1) 8 RETURN END C SUBROUTINE
+      TP9(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I DOUBLEPRECISION V, V1, V2, V3,
+    V4
+    V = 4.D0 * DATAN(1.D0) GOTO(1, 2, 3, 4, 5),
+    MODE 1 N = 2 NILI = 0 NINL = 0 NELI = 1 NENL = 0 X(1) = 0.D0 X(2) = 0.D0 DO
+    6 I = 1,
+    2 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX = 1 FEX = -0.5D0 XEX(1) =
+        -3.D0 XEX(2) = -4.D0 GG(1, 1) = 4.D0 GG(1, 2) = -3.D0 RETURN 2 FX =
+            DSIN(V * X(1) / 12.D0) * DCOS(V * X(2) / 16.D0) RETURN
+            3 V3 = V / 12.D0 V4 =
+                       V / 16.D0 V1 =
+                           V3 * X(1) V2 =
+                               V4 * X(2)
+                                        GF(1) =
+                                   V3 * DCOS(V1) *
+                                   DCOS(V2)
+                                       GF(2) = -V4 * DSIN(V1) *
+                                               DSIN(V2) RETURN
+                                               4 IF(INDEX1(1))
+                                                   G(1) = 4.D0 * X(1) -
+                                                          3.D0 * X(2) 5 RETURN
+                                                              END C SUBROUTINE
+                                                              TP10(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 0 NINL = 1 NELI = 0 NENL = 0 X(1) = -10.D0 X(2) = 10.D0 DO
+    6 I = 1,
+      2 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX = 1 XEX(1) =
+          0.D0 XEX(2) = 1.D0 FEX = -1.D0 GF(1) = 1.D0 GF(2) = -1.D0 RETURN
+                                                              2 FX =
+              X(1) - X(2) 3 RETURN
+              4 IF(INDEX1(1))
+                  G(1) = -3.D0 * X(1) * *2 + 2.D0 * X(1) * X(2) - X(2) * *2 +
+                         1.D0 RETURN 5 IF(.NOT.INDEX2(1)) GOTO
+                         7 GG(1, 1) = -6.D0 * X(1) + 2.D0 * X(2) GG(1, 2) =
+                                          2.D0 *
+                                          (X(1) - X(2))7 RETURN END C SUBROUTINE
+                                          TP11(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX,
+    XEX(NMAX) INTEGER I DOUBLEPRECISION AEX, AW, QAW GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 0 NINL = 1 NELI = 0 NENL = 0 DO 6 I = 1,
+      2 LXL(I) =.FALSE.6 LXU(I) =.FALSE.X(1) = 4.9D0 X(2) =
+          0.1D0 LEX =.TRUE.NEX = 1 AEX =
+              7.5D0 * DSQRT(6.D0) AW =
+                  (DSQRT(AEX * *2 + 1.D0) + AEX) * *(1.D0 / 3.D0) QAW =
+                      AW * *2 XEX(1) = (AW - 1.D0 / AW) / DSQRT(6.D0) XEX(2) =
+                                           (QAW - 2.D0 + 1.D0 / QAW) /
+                                           6.D0 FEX = (XEX(1) - 5.D0) * *2 +
+                                                      XEX(2) * *2 -
+                                                      25.D0 GG(1,
+                                                               2) = 1.D0 RETURN
+      2 FX = (X(1) - 5.D0) * *2 + X(2) * *2 -
+             25.D0 RETURN
+             3 GF(1) = 2.D0 *
+                       (X(1) - 5.D0)
+                           GF(2) = 2.D0 * X(2) RETURN
+                                   4 IF(INDEX1(1))
+                                       G(1) = -X(1) * *2 + X(2) RETURN
+                                              5 IF(INDEX2(1)) GG(1, 1) =
+                                                  -2.D0 *
+                                                  X(1) RETURN END C SUBROUTINE
+                                                  TP12(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 0 NINL = 1 NELI = 0 NENL = 0 X(1) = 0.D0 X(2) = 0.D0 DO
+    6 I = 1,
+      2 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX = 1 XEX(1) =
+          2.D0 XEX(2) = 3.D0 FEX = -30.D0 RETURN 2 FX =
+              0.5D0 * X(1) * *2 + X(2) * *2 - X(1) * X(2) - 7.D0 * X(1) -
+              7.D0 * X(2) RETURN 3 GF(1) =
+                  X(1) - X(2) -
+                  7.D0 GF(2) = 2.D0 * X(2) - X(1) -
+                               7.D0 RETURN
+                               4 IF(INDEX1(1))
+                                   G(1) = 25.D0 - 4.D0 * X(1) * *2 -
+                                          X(2) * *2 RETURN
+                                                 5 IF(.NOT.INDEX2(1)) GOTO
+                                                 7 GG(1, 1) =
+                                              -8.D0 * X(1) GG(1, 2) =
+                                                  -2.D0 *
+                                                  X(2) 7 RETURN END C SUBROUTINE
+                                                  TP13(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 0 NINL = 1 NELI = 0 NENL = 0 X(1) = 0.D0 X(2) = 0.D0 DO
+    6 I = 1,
+      2 LXU(I) =.FALSE.LXL(I) =.TRUE.6 XL(I) = 0.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+          1.D0 XEX(2) = 0.D0 FEX = 1.D0 GG(1, 2) = -1.D0 RETURN 2 FX =
+              (X(1) - 2.D0) * *2 + X(2) * *2 RETURN 3 GF(1) =
+                  2.D0 *
+                  (X(1) - 2.D0)
+                      GF(2) = 2.D0 * X(2) RETURN
+                              4 IF(INDEX1(1))
+                                  G(1) = (1.D0 - X(1)) * *3 - X(2) RETURN
+                                         5 IF(INDEX2(1))
+                                             GG(1,
+                                                1) = -3.D0 * (1.D0 - X(1)) *
+                                                     *2 RETURN END C SUBROUTINE
+                                                     TP14(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I DOUBLEPRECISION W7 GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 0 NINL = 1 NELI = 1 NENL = 0 X(1) = 2.D0 X(2) = 2.D0 DO
+    6 I = 1,
+      2 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX = 1 W7 = DSQRT(7.D0)
+          XEX(1) = (W7 - 1.D0) * 0.5D0 XEX(2) = (W7 + 1.D0) * 0.25D0 FEX =
+                       9.D0 -
+                       23.D0 * W7 / 8.D0 GG(2, 1) = 1.D0 GG(2, 2) = -2.D0 RETURN
+                                                                    2 FX =
+                           (X(1) - 2.D0) * *2 + (X(2) - 1.D0) * *2 RETURN
+                                                                3 GF(1) =
+                               2.D0 * (X(1) - 2.D0) GF(2) =
+                                   2.D0 * (X(2) - 1.D0) RETURN
+                                   4 IF(INDEX1(1))
+                                       G(1) = 1.D0 -
+                                              (X(1) * *2) * 0.25D0 -
+                                              X(2) * *2 IF(INDEX1(2)) G(2) =
+                                                  X(1) - 2.D0 * X(2) +
+                                                  1.D0 RETURN
+                                                  5 IF(.NOT.INDEX2(1)) GOTO
+                                                  7 GG(1, 1) =
+                                                      -X(1) * 0.5D0 GG(1, 2) =
+                                                          -2.D0 *
+                                                          X(2) 7 RETURN END C
+                                                          SUBROUTINE TP15(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) GOTO(1, 2, 3, 4, 5),
+    MODE 1 N = 2 NILI = 0 NINL = 2 NELI = 0 NENL = 0 X(1) = -2.D0 X(2) =
+        1.D0 LXL(1) =.FALSE.LXL(2) =.FALSE.LXU(1) =.TRUE.LXU(2) =.FALSE.XU(1) =
+            0.5D0 LEX =.TRUE.XEX(1) = 0.5D0 XEX(2) = 2.0 FEX = 3.065D0 NEX =
+                1 GG(2, 1) = 1.D0 RETURN
+    2 FX = (X(2) - X(1) * *2) * *2 + 0.01 * (1.D0 - X(1)) * *2 RETURN 3 GF(2) =
+               2.0 * (X(2) - X(1) * *2) GF(1) =
+                   -2.D - 2 * (X(1) * (GF(2) - 1.D0) + 1.D0) RETURN
+                              4 IF(INDEX1(1)) G(1) =
+                       X(1) * X(2) -
+                       1.D0 IF(INDEX1(2))
+                           G(2) = X(2) * *2 + X(1) RETURN
+                                  5 IF(.NOT.INDEX2(1)) GOTO 7 GG(1, 1) = X(2)
+                                      GG(1, 2) = X(1) 7 IF(INDEX2(2))
+                                          GG(2,
+                                             2) = 2.D0 *
+                                                  X(2) RETURN END C SUBROUTINE
+                                                  TP16(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) GOTO(1, 2, 3, 4, 5),
+    MODE 1 N = 2 NILI = 0 NINL = 2 NELI = 0 NENL = 0 X(1) = -2.D0 X(2) =
+        1.D0 LXL(1) =.TRUE.LXL(2) =.FALSE.LXU(1) =.TRUE.LXU(2) =.TRUE.XL(1) =
+            -0.5D0 XU(1) = 0.5D0 XU(2) = 1.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+                0.5D0 XEX(2) = 0.25D0 FEX = 0.25D0 GG(1, 1) = 1.D0 GG(2, 2) =
+                    1.D0 RETURN
+    2 FX = 100.D0 * (X(2) - X(1) * *2) * *2 + (1.D0 - X(1)) * *2 RETURN
+                                                              3 GF(2) =
+               200.D0 * (X(2) - X(1) * *2) GF(1) =
+                   -2.D0 *
+                   (X(1) * (GF(2) - 1.D0) + 1.D0) RETURN 4 IF(INDEX1(1))
+                       G(1) = X(2) * *2 + X(1) IF(INDEX1(2)) G(2) =
+                                  X(1) * *2 + X(2) RETURN
+                                  5 IF(INDEX2(1)) GG(1, 2) =
+                                      2.D0 *
+                                      X(2) IF(INDEX2(2))
+                                          GG(2,
+                                             1) = 2.D0 *
+                                                  X(1) RETURN END C SUBROUTINE
+                                                  TP17(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) GOTO(1, 2, 3, 4, 5),
+    MODE 1 N = 2 NILI = 0 NINL = 2 NELI = 0 NENL = 0 X(1) = -2.0 X(2) =
+        1.D0 LXL(1) =.TRUE.LXL(2) =.FALSE.LXU(1) =.TRUE.LXU(2) =.TRUE.XL(1) =
+            -2.0 XU(1) = 0.5D0 XU(2) = 1.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+                0.D0 XEX(2) = 0.D0 FEX = 1.D0 GG(1, 1) = -1.D0 GG(2, 2) =
+                    -1.D0 RETURN 2 FX = (100.D0 * (X(2) - X(1) * *2) * *2 +
+                                         (1.D0 - X(1)) * *2) RETURN
+    3 GF(2) = 200.D0 * (X(2) - X(1) * *2) GF(1) =
+                  -2.D0 *
+                  (X(1) * (GF(2) - 1.D0) + 1.D0) RETURN 4 IF(INDEX1(1))
+                      G(1) = X(2) * *2 - X(1) IF(INDEX1(2)) G(2) =
+                                 X(1) * *2 - X(2) RETURN
+                                 5 IF(INDEX2(1)) GG(1, 2) =
+                                     2.D0 *
+                                     X(2) IF(INDEX2(2))
+                                         GG(2, 1) = 2.D0 *
+                                                    X(1) RETURN END C SUBROUTINE
+                                                    TP18(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 0 NINL = 2 NELI = 0 NENL = 0 X(1) = 2.D0 X(2) = 2.D0 DO
+    6 I = 1,
+      2 LXL(I) =.TRUE.LXU(I) =.TRUE.6 XU(I) = 50.D0 XL(1) = 2.D0 XL(2) =
+          0.D0 LEX =.TRUE.NEX = 1 XEX(1) = DSQRT(250.D0)
+              XEX(2) = 0.1D0 * XEX(1) FEX = 5.D0 RETURN
+      2 FX = 0.01D0 * X(1) * *2 + X(2) * *2 RETURN 3 GF(1) =
+                 0.02D0 * X(1) GF(2) =
+                     2.D0 * X(2) RETURN
+                     4 IF(INDEX1(1))
+                         G(1) = X(1) * X(2) -
+                                25.D0 IF(INDEX1(2))
+                                    G(2) = X(1) * *2 + X(2) * *2 -
+                                           25.D0 RETURN
+                                           5 IF(.NOT.INDEX2(1)) GOTO
+                                           7 GG(1, 1) = X(2) GG(1, 2) =
+                                               X(1) 7 IF(.NOT.INDEX2(2)) GOTO
+      8 GG(2, 1) = 2.D0 * X(1) GG(2, 2) = 2.D0 * X(2) 8 RETURN END C SUBROUTINE
+                                          TP19(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) COMMON / L19 / AEX, SAEX DOUBLEPRECISION AEX,
+    SAEX INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 0 NINL = 2 NELI = 0 NENL = 0 X(1) = 20.1D0 X(2) = 5.84D0 DO
+    6 I = 1,
+      2 LXL(I) =.TRUE.LXU(I) =.TRUE.6 XU(I) = 100.D0 XL(1) = 13.D0 XL(2) =
+          0.D0 LEX =.TRUE.NEX = 1 SAEX =
+              1.7280975D + 1 AEX = DSQRT(SAEX) XEX(1) = 14.095D0 XEX(2) =
+                  5.D0 - AEX FEX = (4.095D0 * *3 - (15.D0 + AEX) * *3) RETURN
+      2 FX = ((X(1) - 10.D0) * *3 + (X(2) - 20.D0) * *3) RETURN
+      3 GF(1) = (3.D0 * (X(1) - 10.D0) * *2)
+          GF(2) = (3.D0 * (X(2) - 20.D0) * *2) RETURN
+      4 IF(INDEX1(1)) G(1) =
+          (X(1) - 5.D0) * *2 + (X(2) - 5.D0) * *2 - 100.D0 IF(INDEX1(2)) G(2) =
+              82.81D0 - (X(1) - 6.D0) * *2 -
+              (X(2) - 5.D0) * *2 RETURN 5 IF(.NOT.INDEX2(1)) GOTO 7 GG(1, 1) =
+                  2.D0 * (X(1) - 5.D0) GG(1, 2) =
+                      2.D0 * (X(2) - 5.D0)7 IF(.NOT.INDEX2(2)) GOTO
+                      8 GG(2, 1) = -2.D0 * (X(1) - 6.D0) GG(2, 2) =
+                                       -2.D0 *
+                                       (X(2) - 5.D0)8 RETURN END C SUBROUTINE
+                                       TP20(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) GOTO(1, 2, 3, 4, 5),
+    MODE 1 N = 2 NILI = 0 NINL = 3 NELI = 0 NENL = 0 X(1) =
+        1.D - 1 X(2) = 1.D0 LXL(1) =.TRUE.LXL(2) =.FALSE.LXU(1) =.TRUE.LXU(
+            2) =.FALSE.XL(1) = -0.5D0 XU(1) = 0.5D0 LEX =.TRUE.NEX = 1 XEX(1) =
+            0.5D0 XEX(2) = DSQRT(3.D0) * 0.5D0 FEX = (81.5D0 -
+                                                      25.D0 * DSQRT(3.D0))
+                GG(1, 1) = 1.D0 GG(2, 2) = 1.D0 RETURN
+    2 FX = (100.D0 * (X(2) - X(1) * *2) * *2 + (1.D0 - X(1)) * *2) RETURN
+    3 GF(2) = 200.D0 *
+              (X(2) - X(1) * *2)
+                  GF(1) = -2.D0 * (X(1) * (GF(2) - 1.D0) + 1.D0) RETURN
+                          4 IF(INDEX1(1))
+                              G(1) = X(2) * *2 + X(1) IF(INDEX1(2)) G(2) =
+                                         X(1) * *2 + X(2) IF(INDEX1(3)) G(3) =
+                                             X(1) * *2 + X(2) * *2 -
+                                             1.D0 RETURN 5 IF(INDEX2(1))
+                                                 GG(1, 2) =
+                                                 2.D0 *
+                                                 X(2) IF(INDEX2(2))
+                                                     GG(2, 1) =
+                                                     2.D0 *
+                                                     X(1)
+                                                         IF(.NOT.INDEX2(3)) GOTO
+                                                     9 GG(3, 1) =
+                                                         2.D0 *
+                                                         X(1) GG(3, 2) =
+                                                             2.D0 *
+                                                             X(2) 9 RETURN END C
+                                                             SUBROUTINE
+                                                             TP21(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 1 NINL = 0 NELI = 0 NENL = 0 X(1) = 2.D0 X(2) = -1.D0 DO
+                                                                   6 I = 1,
+      2 LXL(I) =.TRUE.LXU(I) =.TRUE.6 XU(I) = 50.D0 XL(1) = 2.D0 XL(2) =
+          -50.D0 LEX =.TRUE.NEX = 1 XEX(1) = 2.D0 XEX(2) = 0.D0 FEX =
+              -99.96D0 GG(1, 1) = 10.D0 GG(1, 2) = -1.D0 RETURN 2 FX =
+                  (0.01 * X(1) * *2 + X(2) * *2 - 100.D0) RETURN
+      3 GF(1) = 0.02 * X(1) GF(2) = 2.0 * X(2) RETURN
+                                    4 IF(INDEX1(1))
+                                        G(1) = 10.D0 * X(1) - X(2) -
+                                               10.D0 5 RETURN END C SUBROUTINE
+                                               TP22(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE 1 N = 2 NILI = 1 NINL = 1 NELI = 0 NENL = 0 X(1) = 2.D0 X(2) = 2.D0 DO
+    6 I = 1,
+           2 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX = 1 XEX(1) =
+               1.D0 XEX(2) = 1.D0 FEX = 1.D0 GG(1, 1) = -1.D0 GG(1, 2) =
+                   -1.D0 GG(2, 2) = 1.D0 RETURN
+           2 FX = (X(1) - 2.D0) * *2 + (X(2) - 1.D0) * *2 RETURN 3 GF(1) =
+                      2.D0 * (X(1) - 2.D0) GF(2) =
+                          2.D0 * (X(2) - 1.D0) RETURN
+                          4 IF(INDEX1(1))
+                              G(1) = 2.D0 - X(1) -
+                                     X(2) IF(INDEX1(2))
+                                         G(2) = X(2) - X(1) * *2 RETURN
+                                                              5 IF(INDEX2(2))
+                                                                  GG(2, 1) =
+                                                    -2.D0 *
+                                                    X(1) RETURN END C SUBROUTINE
+                                                    TP23(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 1 NINL = 4 NELI = 0 NENL = 0 X(1) = 3.D0 X(2) = 1.D0 DO
+    6 I = 1,
+      2 LXL(I) =.TRUE.LXU(I) =.TRUE.XL(I) = -50.D0 6 XU(I) = 50.D0 LEX =
+          .TRUE.NEX = 1 XEX(1) = 1.D0 XEX(2) = 1.D0 FEX = 2.D0 GG(
+              1, 1) = 1.D0 GG(1, 2) = 1.D0 GG(4, 2) = -1.D0 GG(5,
+                                                               1) = -1.D0 RETURN
+                                                                    2 FX =
+              X(1) * *2 +
+              X(2) * *2 RETURN 3 GF(1) =
+                  2.D0 *
+                  X(1) GF(2) =
+                      2.D0 *
+                      X(2) RETURN
+                      4 IF(INDEX1(1))
+                          G(1) =
+                          X(1) +
+                          X(2) -
+                          1.D0 IF(INDEX1(2))
+                              G(2) =
+                              X(1) * *2 +
+                              X(2) * *2 -
+                              1.D0 IF(INDEX1(3))
+                                  G(3) =
+                                  9.D0 * X(1) * *2 +
+                                  X(2) * *2 -
+                                  9.D0 IF(INDEX1(4))
+                                      G(4) =
+                                      X(1) * *2 -
+                                      X(2) IF(INDEX1(5))
+                                          G(5) =
+                                          X(2) * *2 - X(1) RETURN
+                                          5 IF(.NOT.INDEX2(2)) GOTO 8 GG(2, 1) =
+                                              2.D0 *
+                                              X(1) GG(2, 2) =
+                                                  2.D0 *
+                                                  X(2) 8 IF(.NOT.INDEX2(3)) GOTO
+                                                  9 GG(3, 1) =
+                                                      18.D0 *
+                                                      X(1) GG(3, 2) =
+                                                          2.D0 *
+                                                          X(2) 9 IF(INDEX2(4))
+                                                              GG(4, 1) =
+                                                              2.D0 *
+                                                              X(1) IF(INDEX2(5))
+                                                                  GG(5, 2) =
+                                                                  2.D0 *
+                                                                  X(2) RETURN
+                                                                  END C
+                                                                  SUBROUTINE
+                                                                  TP24(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX,
+    XEX(NMAX) COMMON / L24 /
+        A DOUBLEPRECISION A INTEGER I
+        A = DSQRT(3.0D0) GOTO(1, 2, 3, 4, 5),
+        MODE
+        1 N = 2 NILI = 3 NINL = 0 NELI = 0 NENL = 0 X(1) = 1.D0 X(2) = 0.5D0 DO
+        6 I = 1,
+        2 LXL(I) =.TRUE.LXU(I) =.FALSE.6 XL(I) = 0.D0 LEX =.TRUE.NEX =
+            1 XEX(1) = 3.D0 XEX(2) = A FEX = -1.D0 GG(1, 1) =
+                1.D0 / A GG(1, 2) = -1.D0 GG(2, 1) = 1.D0 GG(2, 2) =
+                    A GG(3, 1) = -1.D0 GG(3, 2) = -A RETURN 2 FX =
+                        ((X(1) - 3.D0) * *2 - 9.D0) * X(2) * *3 /
+                        (27.D0 * A) RETURN
+                        3 GF(1) = 2.D0 * (X(1) - 3.D0) * X(2) * *3 /
+                                  (27.D0 * A) GF(2) =
+                                      ((X(1) - 3.D0) * *2 - 9.D0) * X(2) * *2 /
+                                      (9.D0 * A) RETURN 4 IF(INDEX1(1)) G(1) =
+                                          X(1) / A - X(2) IF(INDEX1(2)) G(2) =
+                                              X(1) +
+                                              X(2) * A IF(INDEX1(3))
+                                                         G(3) =
+                                                  6.D0 -
+                                                  X(2) * A
+                                                  -
+                                                  X(1) 5 RETURN END C SUBROUTINE
+                                                  TP25(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) COMMON / D25 / A(99), B(99), U(99),
+    DA(99, 3), V1, T, S, V2, V11, V22, X13 DOUBLEPRECISION A, B, U, DA, V1, T,
+    S, V2, V11, V22, X13 INTEGER I, J GOTO(1, 2, 3, 4, 4),
+    MODE
+    1 N = 3 NILI = 0 NINL = 0 NELI = 0 NENL = 0 X(1) = 100.D0 X(2) =
+        12.5D0 X(3) = 3.D0 DO 6 I = 1,
+      3 LXL(I) =.TRUE.6 LXU(I) =.TRUE.XL(1) = 0.1D0 XL(2) =
+          1.D - 5 XL(3) = 1.D - 5 XU(1) = 100.D0 XU(2) = 25.6D0 XU(3) =
+                              5.0D0 LEX =.TRUE.NEX = 1 XEX(1) = 50.D0 XEX(2) =
+                                  25.D0 XEX(3) = 1.5D0 FEX = 0.D0 RETURN
+      2 CONTINUE DO 30 I = 1,
+      99 V1 = 2.D0 /
+              3.D0 U(I) = 25.D0 + (-50.D0 * DLOG(0.01D0 * DBLE(I))) **V1 V1 =
+                              U(I) - X(2) IF(V1.LT .0) GOTO
+                              7 V11 = -(V1 * *X(3)) /
+                                      X(1) B(I) = DEXP(V11) 30 A(I) =
+                                          B(I) - 0.01D0 * DBLE(I) T = 0.D0 DO
+      31 I = 1,
+      99 31 T = T + A(I) ** 2 FX = T RETURN 7 S = 0.D0 DO 8 I = 1,
+      3 8 S = S + (X(I) - 5.D0) ** 2 FX = S RETURN 3 CONTINUE DO 36 I = 1,
+      99 V1 = 2.D0 / 3.D0 U(I) = 25.D0 -
+                                 (50.D0 * DLOG(0.01D0 * DBLE(I))) **V1 V2 =
+                                     U(I) - X(2) IF(V2.LE .0) GOTO
+                                     9 V22 = -V2 * *X(3) /
+                                             X(1) IF(V22.GT.- 150.D0) GOTO42
+                                             B(I) = 0.D0 GOTO43
+      42 B(I) = DEXP(V22) 43 CONTINUE
+      A(I) = B(I) - 0.01D0 * DBLE(I) DA(I, 1) =
+                 V2 * *X(3) / X(1) * *2 *
+                 B(I) DA(I, 2) = X(3) * V2 * *(X(3) - 1.D0) / X(1) *
+                                 B(I) 36 DA(I, 3) = -V2 * *X(3) / X(1) *
+                                                    DLOG(V2) * B(I) DO 34 I = 1,
+      3 T = 0.D0 DO 33 J = 1,
+      99 33 T = T + 2.D0 * A(J) * DA(J, I) 34 GF(I) = T RETURN 9 DO 10 I = 1,
+      3 10 GF(I) = 2.D0 * (X(I) - 5.D0)4 RETURN END C SUBROUTINE TP26(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I DOUBLEPRECISION A GOTO(1, 2, 3, 4, 5),
+    MODE 1 N = 3 NILI = 0 NINL = 0 NELI = 0 NENL = 1 X(1) = -2.6D0 X(2) =
+        2.D0 X(3) = 2.D0 DO 6 I = 1,
+           3 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX = 1 XEX(1) =
+               1.D0 XEX(2) = 1.D0 XEX(3) = 1.D0 A = DSQRT(139.D0 / 108.D0)
+                   XEX(4) = (A - 61.D0 / 54.D0) * *(1.D0 / 3.D0) -
+                            (61.D0 / 54.D0 + A) * *(1.D0 / 3.D0) / -2.D0 /
+                                3.D0 XEX(5) = XEX(4)
+                                XEX(6) = XEX(4) FEX = 0.D0 RETURN
+           2 FX = (X(1) - X(2)) * *2 + (X(2) - X(3)) * *4 RETURN 3 GF(1) =
+                      2.D0 * (X(1) - X(2)) GF(3) =
+                          -4.D0 * (X(2) - X(3)) * *3 GF(2) =
+                              -GF(1) - GF(3) RETURN
+                              4 IF(INDEX1(1))
+                                  G(1) = X(1) * (1.D0 + X(2) * *2) + X(3) * *4 -
+                                         3.D0 RETURN 5 IF(.NOT.INDEX2(1)) GOTO
+                                         7 GG(1, 1) = 1.D0 +
+                                                      X(2) * *2 GG(1, 2) =
+                                                          2.D0 * X(1) *
+                                                          X(2) GG(1, 3) =
+                                                              4.D0 * X(3) *
+                                                              *3 7 RETURN END C
+                                                              SUBROUTINE
+                                                              TP27(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE 1 N = 3 NILI = 0 NINL = 0 NELI = 0 NENL = 1 DO 6 I = 1,
+           3 X(I) = 2.D0 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX =
+               1 XEX(1) = -1.D0 XEX(2) = 1.D0 XEX(3) = 0.D0 FEX = 4.0 GF(3) =
+                   0.D0 GG(1, 1) = 1.D0 GG(1, 2) = 0.D0 RETURN
+           2 FX = (X(1) - 1.0D0) * *2 +
+                  100.0D0 * (X(2) - X(1) * *2) * *2 RETURN 3 GF(1) =
+                      (X(1) - 1.0D0) * 2.0D0 -
+                      400.0D0 * (X(2) - X(1) * *2) * X(1) GF(2) =
+                          2.0D2 * (X(2) - X(1) * *2) RETURN
+                          4 IF(INDEX1(1))
+                              G(1) = X(1) + X(3) * *2 +
+                                     1.D0 RETURN
+                                     5 IF(INDEX2(1))
+                                         GG(1, 3) = 2.D0 *
+                                                    X(3) RETURN END C SUBROUTINE
+                                                    TP28(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 0 NELI = 1 NENL = 0 X(1) = -4.D0 X(2) = 1.D0 X(3) =
+        1.D0 DO 6 I = 1,
+      3 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX = 1 XEX(1) =
+          0.5D0 XEX(2) = -0.5D0 XEX(3) = 0.5D0 FEX = 0.D0 GG(1, 1) =
+              1.D0 GG(1, 2) = 2.D0 GG(1, 3) = 3.D0 RETURN
+      2 FX = (X(1) + X(2)) * *2 + (X(2) + X(3)) * *2 RETURN 3 GF(1) =
+                 2.D0 *
+                 (X(1) + X(2))
+                     GF(3) = 2.D0 * (X(2) + X(3)) GF(2) =
+                                 GF(1) +
+                                 GF(3) RETURN
+                                 4 IF(INDEX1(1))
+                                     G(1) = X(1) + 2.D0 * X(2) + 3.D0 * X(3) -
+                                            1.D0 5 RETURN END C SUBROUTINE
+                                            TP29(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 1 NELI = 0 NENL = 0 DO 6 I = 1,
+      3 X(I) = 1.D0 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX = 4 XEX(
+                                                             1) = 4.D0 XEX(2) =
+          2.D0 * DSQRT(2.D0) XEX(3) = 2.D0 XEX(4) = XEX(1)
+              XEX(5) = -XEX(2) XEX(6) = -XEX(3) XEX(7) = -XEX(1) XEX(8) = XEX(2)
+                  XEX(9) = -XEX(3) XEX(10) = -XEX(1) XEX(11) = -XEX(2) XEX(
+                                                             12) = XEX(3) FEX =
+                      -16.D0 * DSQRT(2.D0) RETURN
+                      2 FX = -X(1) * X(2) *
+                             X(3) RETURN 3 GF(1) =
+                                 -X(2) * X(3) GF(2) =
+                                     -X(1) *
+                                     X(3) GF(3) =
+                                         -X(1) *
+                                         X(2) RETURN
+                                         4 IF(INDEX1(1))
+                                             G(1) =
+                                             48.D0 -
+                                             X(1) * *2 -
+                                             2.D0 * X(2) * *2 -
+                                             4.D0 * X(3) *
+                                                 *2 RETURN
+                                                 5 IF(.NOT.INDEX2(1)) GOTO
+                                                 7 GG(1, 1) =
+                                                 -2.D0 * X(1) GG(1, 2) =
+                                                     -4.D0 * X(2) GG(1, 3) =
+                                                         -8.D0 *
+                                                         X(3) 7 RETURN END C
+                                                         SUBROUTINE TP30(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 1 NELI = 0 NENL = 0 DO 6 I = 1,
+      3 X(I) = 1.D0 LXL(I) =.TRUE.LXU(I) =.TRUE.6 XU(I) = 10.D0 XL(1) =
+          1.D0 XL(2) = -10.D0 XL(3) = -10.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+              1.D0 XEX(2) = 0.D0 XEX(3) = 0.D0 FEX = 1.D0 GG(1, 3) = 0.D0 RETURN
+      2 FX = X(1) * *2 + X(2) * *2 + X(3) * *2 RETURN 3 GF(1) =
+                 2.D0 * X(1) GF(2) =
+                     2.D0 * X(2) GF(3) =
+                         2.D0 * X(3) RETURN
+                         4 IF(INDEX1(1))
+                             G(1) = X(1) * *2 + X(2) * *2 -
+                                    1.D0 RETURN 5 IF(.NOT.INDEX2(1)) GOTO
+                                    7 GG(1, 1) = 2.D0 * X(1) GG(1, 2) =
+                                                     2.D0 * X(2) 7 RETURN END C
+                                                     SUBROUTINE TP31(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 1 NELI = 0 NENL = 0 DO 6 I = 1,
+      3 X(I) = 1.D0 LXL(I) =.TRUE.6 LXU(I) =.TRUE.XL(1) = -10.D0 XL(2) =
+          1.D0 XL(3) = -10.D0 XU(1) = 10.D0 XU(2) = 10.D0 XU(3) =
+              1.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+                  1.D0 / DSQRT(3.D0) XEX(2) = DSQRT(3.D0)
+                      XEX(3) = 0.D0 FEX = 6.D0 GG(1, 3) = 0.D0 RETURN
+      2 FX = 9.D0 * X(1) * *2 + X(2) * *2 + 9.D0 * X(3) * *2 RETURN 3 GF(1) =
+                 18.D0 * X(1) GF(2) =
+                     2.D0 * X(2) GF(3) =
+                         18.D0 *
+                         X(3) RETURN 4 IF(INDEX1(1))
+                             G(1) = X(1) * X(2) - 1.D0 RETURN
+                                    5 IF(.NOT.INDEX2(1)) GOTO 7 GG(1, 1) = X(2)
+                                        GG(1,
+                                           2) = X(1) 7 RETURN END C SUBROUTINE
+      TP32(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 1 NELI = 1 NENL = 0 X(1) = 0.1D0 X(2) = 0.7D0 X(3) =
+        0.2D0 DO 6 I = 1,
+      3 LXL(I) =.TRUE.LXU(I) =.FALSE.6 XL(I) = 0.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+          0.D0 XEX(2) = 0.D0 XEX(3) = 1.D0 FEX = 1.D0 GG(1, 2) = 6.D0 GG(1, 3) =
+              4.D0 GG(2, 1) = -1.D0 GG(2, 2) = -1.D0 GG(2, 3) = -1.D0 RETURN
+                                                                2 FX =
+                  (X(1) + 3.D0 * X(2) + X(3)) * *2 +
+                  4.D0 * (X(1) - X(2)) * *2 RETURN 3 GF(1) =
+                      10.D0 * X(1) - 2.D0 * X(2) + 2.D0 * X(3) GF(2) =
+                          -2.D0 * X(1) + 26.D0 * X(2) + 6.D0 * X(3) GF(3) =
+                              2.D0 * (X(1) + 3.D0 * X(2) + X(3)) RETURN
+                              4 IF(INDEX1(1))
+                                  G(1) = -X(1) * *3 + 6.D0 * X(2) +
+                                         4.D0 * X(3) -
+                                         3.D0 IF(INDEX1(2))
+                                             G(2) = 1.D0 - X(1) - X(2) -
+                                                    X(3) RETURN 5 IF(INDEX2(1))
+                                                        GG(1,
+                                                           1) = -3.D0 * X(1) *
+                                                                *2 RETURN END C
+                                                                SUBROUTINE
+                                                                TP33(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 2 NELI = 0 NENL = 0 X(1) = 0.D0 X(2) = 0.D0 X(3) =
+        3.D0 DO 6 I = 1,
+      3 LXL(I) =.TRUE.6 XL(I) = 0.D0 LXU(1) =.FALSE.LXU(2) =.FALSE.LXU(
+          3) =.TRUE.XU(3) = 5.D0 LEX =.TRUE.NEX = 1 XEX(1) = 0.D0 XEX(2) =
+          DSQRT(2.D0)
+              XEX(3) = DSQRT(2.D0) FEX = DSQRT(2.D0) -
+                                         6.0 GF(2) = 0.D0 GF(3) = 1.D0 RETURN
+      2 FX = (X(1) - 1.D0) * (X(1) - 2.D0) * (X(1) - 3.D0) + X(3) RETURN
+             3 GF(1) = 3.D0 * X(1) * *2 - 12.D0 * X(1) +
+                       11.D0 RETURN 4 IF(INDEX1(1))
+                           G(1) = X(3) * *2 - X(1) * *2 -
+                                  X(2) * *2 IF(INDEX1(2)) G(2) =
+                                      X(1) * *2 + X(2) * *2 +
+                                      X(3) * *2 -
+                                      4.D0 RETURN 5 IF(.NOT.INDEX2(1)) GOTO
+                                      7 GG(1, 1) =
+                                          -2.D0 * X(1)
+                                                      GG(1, 2) =
+                                              -2.D0 *
+                                              X(2) GG(1, 3) =
+                                                  2.D0 *
+                                                  X(3) 7 IF(.NOT.INDEX2(2)) GOTO
+                                                  8 GG(2, 1) =
+                                                      2.D0 * X(1) GG(2, 2) =
+                                                          2.D0 * X(2) GG(2, 3) =
+                                                              2.D0 *
+                                                              X(3) 8 RETURN END
+                                                              C SUBROUTINE
+                                                              TP34(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 2 NELI = 0 NENL = 0 X(1) = 0.D0 X(2) = 1.05D0 X(3) =
+        2.9D0 DO 6 I = 1,
+      3 LXL(I) =.TRUE.LXU(I) =.TRUE.6 XL(I) = 0.D0 XU(1) = 100.D0 XU(2) =
+          100.D0 XU(3) = 10.D0 LEX =.TRUE.NEX = 1 XEX(1) = DLOG(DLOG(10.D0))
+              XEX(2) = DLOG(10.D0) XEX(3) = 10.D0 FEX = -XEX(1) GF(1) =
+                  -1.D0 GF(2) = 0.D0 GF(3) = 0.D0 GG(1, 2) = 1.D0 GG(1, 3) =
+                      0.D0 GG(2, 1) = 0.D0 GG(2, 3) = 1.D0 RETURN
+      2 FX = -X(1) 3 RETURN 4 IF(INDEX1(1))
+                 G(1) = X(2) - DEXP(X(1)) IF(INDEX1(2)) G(2) =
+                            X(3) - DEXP(X(2)) RETURN 5 IF(INDEX2(1))
+                                       GG(1, 1) = -DEXP(X(1)) IF(INDEX2(2))
+                                                      GG(2, 2) =
+                                -DEXP(X(2)) RETURN END C SUBROUTINE TP35(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 1 NINL = 0 NELI = 0 NENL = 0 DO 6 I = 1,
+      3 X(I) = 0.5D0 LXL(I) =.TRUE.LXU(I) =.FALSE.6 XL(
+          I) = 0.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+          4.D0 /
+          3.D0 XEX(2) = 7.D0 / 9.D0 XEX(3) =
+                            4.D0 /
+                            9.D0 FEX = 1.D0 / 9.D0 GG(1, 1) = -1.D0 GG(1, 2) =
+                                           -1.D0 GG(1, 3) = -2.D0 RETURN 2 FX =
+                                               9.D0 - 8.D0 * X(1) -
+                                               6.D0 * X(2) - 4.D0 * X(3) +
+                                               2.D0 * X(1) * *2 +
+                                               2.D0 * X(2) * *2 / +X(3) * *2 +
+                                               2.D0 * X(1) * X(2) +
+                                               2.D0 * X(1) *
+                                                   X(3) RETURN 3 GF(1) =
+                                                   -8.D0 +
+                                                   4.D0 * X(1) + 2.D0 * X(2) +
+                                                   2.D0 * X(3) GF(2) =
+                                                       -6.D0 + 4.D0 * X(2) +
+                                                       2.D0 * X(1) GF(3) =
+                                                           -4.D0 + 2.D0 * X(3) +
+                                                           2.D0 * X(1) RETURN
+                                                               4 IF(INDEX1(1))
+                                                                   G(1) =
+                                                               -X(1) - X(2) -
+                                                               2.D0 * X(3) +
+                                                               3.D0 5 RETURN END
+                                                               C SUBROUTINE
+                                                               TP36(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 1 NINL = 0 NELI = 0 NENL = 0 DO 6 I = 1,
+      3 X(I) = 10.D0 LXL(I) =.TRUE.LXU(I) =.TRUE.6 XL(
+          I) = 0.D0 XU(1) = 20.D0 XU(2) = 11.D0 XU(3) = 42.D0 LEX =.TRUE.NEX =
+          1 XEX(1) = 20.D0 XEX(2) = 11.D0 XEX(3) = 15.D0 FEX =
+              -3.3D +
+              3 GG(1, 1) = -1.D0 GG(1, 2) = -2.D0 GG(1, 3) = -2.D0 RETURN 2 FX =
+                  -X(1) * X(2) * X(3) RETURN 3 GF(1) =
+                      -X(2) * X(3) GF(2) =
+                          -X(1) *
+                          X(3) GF(3) = -X(1) *
+                                       X(2) RETURN
+                                       4 IF(INDEX1(1))
+                                           G(1) = 72.D0 -
+                                                  X(1) -
+                                                  2.D0 * X(2) -
+                                                  2.D0 * X(3) RETURN
+                                                      5 RETURN END C SUBROUTINE
+                                                      TP37(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 2 NINL = 0 NELI = 0 NENL = 0 DO 6 I = 1,
+      3 X(I) = 10.D0 LXL(I) =.TRUE.LXU(I) =.TRUE.XU(I) = 42.D0 6 XL(I) =
+          0.D0 LEX =.TRUE.NEX = 1 XEX(1) = 24.D0 XEX(2) = 12.D0 XEX(3) =
+              12.D0 FEX = -3.456D + 3 GG(1, 1) = -1.D0 GG(1, 2) =
+                              -2.D0 GG(1, 3) = -2.D0 GG(2, 1) = 1.D0 GG(2, 2) =
+                                  2.D0 GG(2, 3) = 2.D0 RETURN
+      2 FX = -X(1) * X(2) * X(3) RETURN 3 GF(1) =
+                 -X(2) * X(3) GF(2) =
+                     -X(1) *
+                     X(3) GF(3) =
+                         -X(1) *
+                         X(2) RETURN 4 IF(INDEX1(1))
+                             G(1) = 72.D0 -
+                                    X(1) - 2.D0 * X(2) -
+                                    2.D0 * X(3) IF(INDEX1(2))
+                                               G(2) = X(1) + 2.D0 * X(2) +
+                                                      2.D0 * X(3) 5 RETURN END C
+                                                          SUBROUTINE TP38(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 4),
+    MODE
+    1 N = 4 NILI = 0 NINL = 0 NELI = 0 NENL = 0 X(1) = -3.D0 X(2) = -1.D0 X(3) =
+        -3.D0 X(4) = -1.D0 DO 6 I = 1,
+      4 LXL(I) =.TRUE.LXU(I) =.TRUE.XL(I) = -10.D0 6 XU(I) =
+          10.D0 LEX =.TRUE.NEX = 1 DO 30 I = 1,
+      4 30 XEX(I) = 1.D0 FEX = 0.D0 RETURN
+      2 FX = (100.D0 * (X(2) - X(1) * *2) * *2 +
+              (1.D0 - X(1)) * *2 / +90.D0 * (X(4) - X(3) * *2) * *2 /
+                  +(1.D0 - X(3)) * *2 +
+              10.1D0 * ((X(2) - 1.D0) * *2 + (X(4) - 1.D0) * *2) / +19.8D0 *
+                  (X(2) - 1.D0) * (X(4) - 1.D0)) RETURN
+      3 GF(1) = (-400.D0 * X(1) * (X(2) - X(1) * *2) -
+                 2.D0 * (1.D0 - X(1))) GF(2) = (200.D0 * (X(2) - X(1) * *2) +
+                                                20.2D0 * (X(2) - 1.D0) +
+                                                19.8D0 / *(X(4) - 1.D0))
+          GF(3) = (-360.D0 * X(3) * (X(4) - X(3) * *2) - 2.D0 * (1.D0 - X(3)))
+              GF(4) = (180.D0 * (X(4) - X(3) * *2) + 20.2D0 * (X(4) - 1.D0) +
+                       19.8D0 / *(X(2) - 1.D0))4 RETURN END C SUBROUTINE
+      TP39(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 4 NILI = 0 NINL = 0 NELI = 0 NENL = 2 DO 6 I = 1,
+      4 X(I) = 2.D0 LXL(I) =.FALSE.6 LXU(I) =.FALSE.NEX = 1 LEX =.TRUE.XEX(1) =
+          1.D0 XEX(2) = 1.D0 XEX(3) = 0.D0 XEX(4) = 0.D0 FEX = -1.D0 GF(1) =
+              -1.D0 GF(2) = 0.D0 GF(3) = 0.D0 GF(4) = 0.D0 GG(1, 2) =
+                  1.D0 GG(1, 4) = 0.D0 GG(2, 2) = -1.D0 GG(2, 3) = 0.D0 RETURN
+      2 FX = -X(1) 3 RETURN 4 IF(INDEX1(1)) G(1) =
+          X(2) - X(1) * *3 - X(3) * *2 IF(INDEX1(2)) G(2) =
+              X(1) * *2 - X(2) -
+              X(4) * *2 RETURN 5 IF(.NOT.INDEX2(1)) GOTO 7 GG(1, 1) =
+                  -3.D0 * X(1) *
+                  *2 GG(1, 3) = -2.D0 * X(3) 7 IF(.NOT.INDEX2(2)) GOTO
+                                8 GG(2, 1) = 2.D0 * X(1) GG(2, 4) =
+                                                 -2.D0 *
+                                                 X(4) 8 RETURN END C SUBROUTINE
+                                                 TP40(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I, J GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 4 NILI = 0 NINL = 0 NELI = 0 NENL = 3 DO 6 I = 1,
+      4 X(I) = 0.8D0 LXL(I) =.FALSE.6 LXU(I) =.FALSE.DO 15 I = 1, 3 DO 15 J = 1,
+      4 15 GG(I, J) = 0.D0 GG(2, 3) = -1.D0 GG(3, 2) = -1.D0 LEX =.TRUE.XEX(1) =
+          2.D0 * *(-1.D0 / 3.D0) XEX(2) =
+              2.D0 *
+              *(-0.5D0)XEX(3) = 2.D0 * *(-11.D0 / 12.D0) XEX(4) =
+                                    2.D0 *
+                                    *(-0.25D0)XEX(5) = XEX(1) XEX(6) = XEX(2)
+                                        XEX(7) = -XEX(3) XEX(8) = -XEX(4) FEX =
+                                            -0.25D0 NEX = 2 RETURN
+      2 FX = -X(1) * X(2) * X(3) * X(4) RETURN 3 GF(1) =
+                 -X(2) * X(3) * X(4) GF(2) =
+                     -X(1) *
+                     X(3) *
+                     X(4) GF(3) =
+                         -X(1) *
+                         X(2) *
+                         X(4) GF(4) =
+                             -X(1) *
+                             X(2) *
+                             X(3) RETURN 4 IF(INDEX1(1))
+                                 G(1) =
+                                 X(1) * *3 +
+                                 X(2) * *2 -
+                                 1.D0 IF(INDEX1(2))
+                                     G(2) =
+                                     X(1) * *2 *
+                                         X(4) -
+                                     X(3) IF(INDEX1(3))
+                                         G(3) =
+                                         X(4) * *2 -
+                                         X(2) RETURN
+                                         5 IF(.NOT.INDEX2(1)) GOTO 7 GG(1, 1) =
+                                             3.D0 *
+                                             X(1) *
+                                             *2 GG(1, 2) =
+                                                 2.D0 *
+                                                 X(2) 7 IF(.NOT.INDEX2(2)) GOTO
+                                                 8 GG(2, 1) =
+                                                     2.D0 * X(1) *
+                                                     X(4) GG(2, 4) =
+                                                         X(1) *
+                                                         *2 8 IF(.NOT.INDEX2(3))
+                                                             GOTO 9 GG(3, 4) =
+                                                             2.D0 *
+                                                             X(4) 9 RETURN END C
+                                                             SUBROUTINE
+                                                             TP41(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 4 NILI = 0 NINL = 0 NELI = 1 NENL = 0 DO 6 I = 1,
+      4 X(I) = 1.D0 LXL(I) =.TRUE.LXU(
+          I) =.TRUE.6 XL(I) = 0.D0 XU(1) = 1.D0 XU(2) = 1.D0 XU(3) =
+          1.D0 XU(4) = 2.D0 GF(4) = 0.D0 GG(1, 1) = 1.D0 GG(1, 2) = 2.D0 GG(
+                  1, 3) = 2.D0 GG(1, 4) = -1.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+              2.D0 / 3.D0 XEX(2) =
+                  1.D0 /
+                  3.D0 XEX(3) = XEX(2)
+                      XEX(4) = 2.D0 FEX =
+                          52.D0 / 27.D0 RETURN
+                          2 FX = 2.D0 - X(1) * X(2) *
+                                            X(3) RETURN
+                                            3 GF(1) =
+                                     -X(2) * X(3) GF(2) =
+                                         -X(1) *
+                                         X(3)
+                                             GF(3) = -X(1) *
+                                                     X(2) RETURN
+                                                     4 IF(INDEX1(1))
+                                                         G(1) = X(1) +
+                                                                2.D0 * X(2) +
+                                                                2.D0 * X(3) -
+                                                                X(4) 5 RETURN
+                                                                END C SUBROUTINE
+                                                                TP42(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 4 NILI = 0 NINL = 0 NELI = 1 NENL = 1 DO 6 I = 1,
+      4 X(I) = 1.D0 LXU(I) =.FALSE.6 LXL(I) =.FALSE.GG(1, 1) = 1.D0 GG(1, 2) =
+          0.D0 GG(1, 3) = 0.D0 GG(1, 4) = 0.D0 GG(2, 1) = 0.D0 GG(2, 2) =
+              0.D0 LEX =.TRUE.NEX = 1 XEX(1) = 2.D0 XEX(2) = 2.D0 XEX(3) =
+                  DSQRT(0.72D0) XEX(4) = DSQRT(1.28D0) FEX =
+                      28.D0 -
+                      10.D0 * DSQRT(2.D0) RETURN
+                          2 FX = (X(1) - 1.D0) * *2 + (X(2) - 2.D0) * *2 +
+                                 (X(3) - 3.D0) * *2 +
+                                 (X(4) - 4.D0) ** 2 RETURN 3 DO 21 I = 1,
+      4 21 GF(I) = 2.D0 * (X(I) - DBLE(I)) RETURN
+                   4 IF(INDEX1(1))
+                       G(1) = X(1) -
+                              2.D0 IF(INDEX1(2))
+                                  G(2) = X(3) * *2 + X(4) * *2 -
+                                         2.D0 RETURN
+                                         5 IF(.NOT.INDEX2(2)) GOTO
+                                         8 GG(2, 3) = 2.D0 * X(3) GG(2, 4) =
+                                                          2.D0 *
+                                                          X(4) 8 RETURN END C
+                                                          SUBROUTINE TP43(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 4 NILI = 0 NINL = 3 NELI = 0 NENL = 0 DO 6 I = 1,
+      4 X(I) = 0.D0 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.TRUE.NEX = 1 XEX(1) =
+          0.D0 XEX(2) = 1.D0 XEX(3) = 2.D0 XEX(4) = -1.D0 FEX =
+              -44.D0 GG(3, 4) = 1.D0 RETURN
+      2 FX =
+          X(1) * *2 + X(2) * *2 + 2.D0 * X(3) * *2 + X(4) * *2 - 5.D0 * X(1) -
+          5.D0 * X(2) - 21.D0 / *X(3) + 7.D0 * X(4) RETURN 3 GF(1) =
+              2.D0 *
+                  X(1) -
+              5.D0 GF(2) =
+                  2.D0 *
+                      X(2) -
+                  5.D0 GF(3) =
+                      4.D0 *
+                          X(3) -
+                      21.D0 GF(4) =
+                          2.D0 *
+                              X(4) +
+                          7.D0 RETURN
+                          4 IF(INDEX1(1))
+                              G(1) =
+                              -X(1) *
+                                  *2 -
+                              X(2) *
+                                  *2 -
+                              X(3) *
+                                  *2 -
+                              X(4) *
+                                  *2 -
+                              X(1) +
+                              X(2) /
+                                  -X(3) +
+                              X(4) + 8.D0 IF(INDEX1(2)) G(2) =
+                                  -X(1) *
+                                      *2 -
+                                  2.D0 *
+                                      X(2) * *2 -
+                                  X(3) *
+                                      *2 -
+                                  2.D0 *
+                                      X(4) * *2 /
+                                      +X(1) +
+                                  X(4) + 10.D0 IF(INDEX1(3)) G(3) =
+                                      -2.D0 *
+                                          X(1) * *2 -
+                                      X(2) *
+                                          *2 -
+                                      X(3) *
+                                          *2 -
+                                      2.D0 *
+                                          X(1) +
+                                      X(2) /
+                                          +X(4) +
+                                      5.D0 RETURN
+                                      5 IF(.NOT.INDEX2(1))
+                                          GOTO 7 GG(1, 1) =
+                                          -2.D0 *
+                                              X(1) -
+                                          1.D0 GG(1, 2) =
+                                              -2.D0 *
+                                                  X(2) +
+                                              1.D0 GG(1, 3) =
+                                                  -2.D0 *
+                                                      X(3) -
+                                                  1.D0 GG(1, 4) =
+                                                      -2.D0 *
+                                                          X(4) +
+                                                      1.D0 7 IF(.NOT.INDEX2(2))
+                                                          GOTO 8 GG(2, 1) =
+                                                          -2.D0 *
+                                                              X(1) +
+                                                          1.D0 GG(2, 2) =
+                                                              -4.D0 *
+                                                              X(2) GG(2, 3) =
+                                                                  -2.D0 *
+                                                                  X(3)
+                                                                      GG(2, 4) =
+                                                                      -4.D0 *
+                                                                          X(4) +
+                                                                      1.D0 8 IF(
+                                                                              .NOT
+                                                                              .INDEX2(
+                                                                                  3))
+                                                                          GOTO
+                                                                      9 GG(3,
+                                                                           1) =
+                                                                          -4.D0 *
+                                                                              X(1) -
+                                                                          2.D0 GG(
+                                                                              3,
+                                                                              2) =
+                                                                              -2.D0 *
+                                                                                  X(2) +
+                                                                              1.D0 GG(
+                                                                                  3,
+                                                                                  3) =
+                                                                                  -2.D0 *
+                                                                                  X(3) 9 RETURN
+                                                                                  END
+                                                                                  C
+                                                                                  SUBROUTINE
+                                                                                  TP44(
+                                                                                      MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I, J GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 4 NILI = 6 NINL = 0 NELI = 0 NENL = 0 DO 6 I = 1,
+      4 X(I) = 0.D0 XL(I) = 0.D0 LXL(I) =.TRUE.6 LXU(I) =.FALSE.DO 15 I = 1,
+      6 DO 15 J = 1,
+      4 15 GG(I, J) = 0.D0 GG(1, 1) = -1.D0 GG(1, 2) = -2.D0 GG(
+          2, 1) = -4.D0 GG(2, 2) = -1.D0 GG(3, 1) = -3.D0 GG(3,
+                                                             2) = -4.D0 GG(4,
+                                                                           3) =
+          -2.D0 GG(4, 4) = -1.D0 GG(5, 3) = -1.D0 GG(5, 4) = -2.D0 GG(
+              6, 3) = -1.D0 GG(6, 4) = -1.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+              0.D0 XEX(2) = 3.D0 XEX(3) = 0.D0 XEX(4) = 4.D0 FEX = -15.D0 RETURN
+                                                                   2 FX =
+                  X(1) -
+                  X(2) -
+                  X(3) -
+                  X(1) * X(3) + X(1) * X(4) +
+                  X(2) * X(3) -
+                  X(2) * X(4) RETURN
+                      3 GF(1) =
+                      1.D0 -
+                      X(3) +
+                      X(4) GF(2) =
+                          -1.D0 +
+                          X(3) -
+                          X(4) GF(3) =
+                              -1.D0 -
+                              X(1) +
+                              X(2) GF(4) =
+                                  X(1) -
+                                  X(2) RETURN
+                                  4 IF(INDEX1(1))
+                                      G(1) =
+                                      8.D0 -
+                                      X(1) -
+                                      2.D0 * X(2) IF(INDEX1(2))
+                                                 G(2) =
+                                          12.D0 -
+                                          4.D0 * X(1) -
+                                          X(2) IF(INDEX1(3))
+                                              G(3) =
+                                              12.D0 -
+                                              3.D0 * X(1) -
+                                              4.D0 * X(2) IF(INDEX1(4))
+                                                         G(4) =
+                                                  8.D0 -
+                                                  2.D0 * X(3) -
+                                                  X(4) IF(INDEX1(5))
+                                                      G(5) =
+                                                      8.D0 -
+                                                      X(3) -
+                                                      2.D0 * X(4) IF(INDEX1(6))
+                                                                 G(6) =
+                                                          5.D0 -
+                                                          X(3) -
+                                                          X(4) 5 RETURN END C
+                                                          SUBROUTINE TP45(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 4),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 0 NENL = 0 DO 6 I = 1,
+      5 X(I) = 2.D0 LXL(I) =.TRUE.LXU(I) =.TRUE.XL(I) = 0.D0 6 XU(I) =
+          DBLE(I) LEX =.TRUE.NEX = 1 DO 30 I = 1,
+      5 30 XEX(I) = DBLE(I) FEX = 1.D0 RETURN
+      2 FX = 2.D0 - X(1) * X(2) * X(3) * X(4) * X(5) / 120.D0 RETURN 3 GF(1) =
+                 -X(2) * X(3) * X(4) * X(5) / 120.D0 GF(2) =
+                     -X(1) * X(3) * X(4) * X(5) / 120.D0 GF(3) =
+                         -X(1) * X(2) * X(4) * X(5) / 120.D0 GF(4) =
+                             -X(1) * X(2) * X(3) *
+                             X(5) /
+                             120.D0 GF(5) = -X(1) * X(2) * X(3) *
+                                            X(4) /
+                                            120.D0 4 RETURN END C SUBROUTINE
+                                            TP46(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 0 NENL = 2 X(1) =
+        0.5D0 * DSQRT(2.D0)
+                    X(2) = 1.75D0 X(3) = 0.5D0 X(4) = 2.D0 X(5) = 2.D0 DO
+    6 I = 1,
+      5 LXL(I) =.FALSE.6 LXU(I) =.FALSE.GG(1, 2) = 0.D0 GG(1, 3) = 0.D0 GG(2,
+                                                                           1) =
+          0.D0 GG(2, 2) = 1.D0 GG(2, 5) = 0.D0 LEX =.TRUE.NEX = 1 DO 30 I = 1,
+      5 30 XEX(I) = 1.D0 FEX = 0.D0 RETURN
+      2 FX = (X(1) - X(2)) * *2 + (X(3) - 1.D0) * *2 + (X(4) - 1.D0) * *4 +
+             (X(5) - 1.D0) * *6 RETURN 3 GF(1) =
+                 2.D0 * (X(1) - X(2)) GF(2) = -GF(1) GF(3) =
+                     2.D0 * (X(3) - 1.D0)
+                                GF(4) =
+                         4.D0 * (X(4) - 1.D0) *
+                         *3 GF(5) =
+                             6.D0 *
+                             (X(5) - 1.D0) *
+                             *5 RETURN
+                             4 IF(INDEX1(1))
+                                 G(1) =
+                                 X(1) * *2 *
+                                     X(4) +
+                                 DSIN(X(4) - X(5)) -
+                                 1.D0 IF(INDEX1(2))
+                                     G(2) =
+                                     X(2) +
+                                     X(3) * *4 * X(4) *
+                                         *2 -
+                                     2.D0 RETURN
+                                     5 IF(.NOT.INDEX2(1)) GOTO 7 GG(1, 1) =
+                                         2.D0 *
+                                         X(1) *
+                                         X(4) GG(1, 5) = -DCOS(X(4) - X(5))
+                                                             GG(1, 4) =
+                                             X(1) * *2 -
+                                             GG(1, 5) 7 IF(.NOT.INDEX2(2)) GOTO
+                                             8 GG(2, 3) =
+                                                 4.D0 * X(3) * *3 * X(4) *
+                                                 *2 GG(2,
+                                                       4) = 2.D0 * X(3) * *4 *
+                                                            X(4) 8 RETURN END C
+                                                            SUBROUTINE
+                                                            TP47(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX,
+    XEX(NMAX) DOUBLEPRECISION V1, V2, V3, V4 INTEGER I, J GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 0 NENL = 3 X(1) = 2.D0 X(2) = DSQRT(2.D0)
+        X(3) = -1.D0 X(4) = 2.D0 - X(2) X(5) = 0.5D0 DO 6 I = 1,
+      5 LXL(I) =.FALSE.6 LXU(I) =.FALSE.DO 15 I = 1, 3 DO 15 J = 1,
+      5 15 GG(I, J) = 0.D0 GG(1, 1) = 1.D0 GG(2, 2) = 1.D0 GG(2, 4) =
+          1.D0 LEX =.TRUE.NEX = 1 DO 30 I = 1,
+      5 30 XEX(I) = 1.D0 FEX = 0.D0 RETURN 2 FX =
+          (X(1) - X(2)) * *2 + (X(2) - X(3)) * *2 + (X(3) - X(4)) * *4 +
+          (X(4) - X(5)) ** 4 RETURN 3 V1 =
+              2.D0 * (X(1) - X(2)) V2 =
+                  2.D0 * (X(2) - X(3)) V3 =
+                      4.D0 * (X(3) - X(4)) ** 3 V4 =
+                          4.D0 * (X(4) - X(5)) *
+                          *3 GF(1) = V1 GF(2) =
+                              -V1
+                              + V2 GF(3) =
+                                  -V2
+                                  + V3 GF(4) =
+                                      -V3
+                                      + V4 GF(5) = -V4 RETURN
+                                                   4 IF(INDEX1(1))
+                                                       G(1) =
+                                          X(1) +
+                                          X(2) *
+                                              *2 +
+                                          X(3) *
+                                              *3 -
+                                          3.D0 IF(INDEX1(2))
+                                              G(2) =
+                                              X(2) -
+                                              X(3) *
+                                                  *2 +
+                                              X(4) -
+                                              1.D0 IF(INDEX1(3))
+                                                  G(3) =
+                                                  X(1) *
+                                                      X(5) -
+                                                  1.D0 RETURN
+                                                  5 IF(.NOT.INDEX2(1)) GOTO
+                                                  7 GG(1, 2) =
+                                                      2.D0 *
+                                                      X(2) GG(1, 3) =
+                                                          3.D0 *
+                                                          X(3) *
+                                                          *2 7 IF(INDEX2(2))
+                                                              GG(2, 3) =
+                                                              -2.D0 *
+                                                              X(3) 8 IF(
+                                                                      .NOT
+                                                                      .INDEX2(
+                                                                          3))
+                                                                  GOTO
+                                                              9 GG(3, 1) = X(
+                                                                  5) GG(3, 5) =
+                                                                  X(1) 9 RETURN
+      END C SUBROUTINE TP48(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 2 NENL = 0 X(1) = 3.D0 X(2) = 5.D0 X(3) =
+        -3.D0 X(4) = 2.D0 X(5) = -2.D0 DO 6 I = 1,
+      5 LXL(I) =.FALSE.6 LXU(I) =.FALSE.GG(2, 1) = 0.D0 GG(2, 2) = 0.D0 DO
+      20 I = 1,
+      5 20 GG(1, I) = 1.D0 GG(2, 3) = 1.D0 GG(2, 4) = -2.D0 GG(2, 5) =
+          -2.D0 LEX =.TRUE.NEX = 1 DO 30 I = 1,
+      5 30 XEX(I) = 1.D0 FEX = 0.D0 RETURN
+      2 FX = (X(1) - 1.D0) * *2 + (X(2) - X(3)) * *2 +
+             (X(4) - X(5)) * *2 RETURN 3 GF(1) =
+                 2.D0 *
+                 (X(1) - 1.D0)
+                     GF(2) = 2.D0 * (X(2) - X(3)) GF(3) = -GF(2) GF(4) =
+                                 2.D0 * (X(4) - X(5)) GF(5) = -GF(4) RETURN
+                                                              4 IF(INDEX1(1))
+                                                                  G(1) =
+                                     X(1) + X(2) + X(3) +
+                                     X(4) + X(5) -
+                                     5.D0 IF(INDEX1(2))
+                                         G(2) = X(3) - 2.D0 * (X(4) + X(5)) +
+                                                3.D0 5 RETURN END C SUBROUTINE
+                                                TP49(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 2 NENL = 0 X(1) = 10.D0 X(2) = 7.D0 X(3) =
+        2.D0 X(4) = -3.D0 X(5) = 0.8D0 DO 6 I = 1,
+      5 LXL(I) =.FALSE.6 LXU(I) =.FALSE.GG(1, 5) = 0.D0 GG(2, 1) =
+          0.D0 GG(2, 2) = 0.D0 GG(2, 4) = 0.D0 GG(1, 1) = 1.D0 GG(1, 2) =
+              1.D0 GG(1, 3) = 1.D0 GG(1, 4) = 4.D0 GG(2, 3) = 1.D0 GG(2, 5) =
+                  5.D0 LEX =.TRUE.NEX = 1 DO 30 I = 1,
+      5 30 XEX(I) = 1.D0 FEX = 0.D0 RETURN
+      2 FX = ((X(1) - X(2)) * *2 + (X(3) - 1.D0) * *2 +
+              (X(4) - 1.D0) * *4 / +(X(5) - 1.D0) * *6) RETURN
+      3 GF(1) = 2.D0 * (X(1) - X(2)) GF(2) = -GF(1) GF(3) =
+                    2.D0 * (X(3) - 1.D0) GF(4) =
+                        4.D0 * (X(4) - 1.D0) *
+                        *3 GF(5) = 6.D0 * (X(5) - 1.D0) *
+                                   *5 RETURN 4 IF(INDEX1(1))
+                                       G(1) = X(1) + X(2) + X(3) + 4.D0 * X(4) -
+                                              7.D0 IF(INDEX1(2))
+                                                  G(2) = X(3) + 5.D0 * X(5) -
+                                                         6.D0 5 RETURN END C
+                                                         SUBROUTINE TP50(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX,
+    XEX(NMAX) INTEGER I, J DOUBLEPRECISION V1, V2, V3, V4 GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 3 NENL = 0 X(1) = 35.D0 X(2) =
+        -31.D0 X(3) = 11.D0 X(4) = 5.D0 X(5) = -5.D0 DO 6 I = 1,
+      5 LXL(I) =.FALSE.6 LXU(I) =.FALSE.DO 15 I = 1, 3 DO 15 J = 1,
+      5 15 GG(I, J) = 0.D0 GG(1, 1) = 1.D0 GG(1, 2) = 2.D0 GG(1, 3) =
+          3.D0 GG(2, 2) = 1.D0 GG(2, 3) = 2.D0 GG(2, 4) = 3.D0 GG(3, 3) =
+              1.D0 GG(3, 4) = 2.D0 GG(3, 5) = 3.D0 LEX =.TRUE.NEX = 1 DO
+      30 I = 1,
+      5 30 XEX(I) = 1.D0 FEX = 0.D0 RETURN
+      2 FX = (X(1) - X(2)) * *2 + (X(2) - X(3)) * *2 + (X(3) - X(4)) * *4 +
+             (X(4) - X(5)) ** 4 RETURN
+             3 V1 = 2.D0 * (X(1) - X(2)) V2 =
+                        2.D0 * (X(2) - X(3)) V3 =
+                            4.D0 * (X(3) - X(4)) ** 3 V4 =
+                                4.D0 * (X(4) - X(5)) * *3 GF(1) = V1 GF(2) =
+                                    -V1 + V2
+                                    GF(3) = -V2 + V3
+                                            GF(4) = -V3 + V4
+                                                    GF(5) = -V4 RETURN
+                                                            4 IF(INDEX1(1))
+                                                                G(1) =
+                                                        X(1) + 2.D0 * X(2) +
+                                                        3.D0 * X(3) -
+                                                        6.D0 IF(INDEX1(2))
+                                                            G(2) =
+                                                            X(2) +
+                                                            2.D0 * X(3) +
+                                                            3.D0 * X(4) -
+                                                            6.D0 IF(INDEX1(3))
+                                                                G(3) =
+                                                                X(3) +
+                                                                2.D0 * X(4) +
+                                                                3.D0 * X(5) -
+                                                                6.D0 5 RETURN
+                                                                END C SUBROUTINE
+                                                                TP51(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I, J GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 3 NENL = 0 X(1) = 2.5D0 X(2) = 0.5D0 X(3) =
+        2.D0 X(4) = -1.D0 X(5) = 0.5D0 DO 6 I = 1,
+      5 LXL(I) =.FALSE.6 LXU(I) =.FALSE.DO 15 I = 1, 3 DO 15 J = 1,
+      5 15 GG(I, J) = 0.D0 GG(1, 1) = 1.D0 GG(1, 2) = 3.D0 GG(2, 3) =
+          1.D0 GG(2, 4) = 1.D0 GG(2, 5) = -2.D0 GG(3, 2) = 1.D0 GG(3, 5) =
+              -1.D0 LEX =.TRUE.NEX = 1 DO 30 I = 1,
+      5 30 XEX(I) = 1.D0 FEX = 0.D0 RETURN
+      2 FX = (X(1) - X(2)) * *2 + (X(2) + X(3) - 2.D0) * *2 +
+             (X(4) - 1.D0) * *2 1 + (X(5) - 1.D0) * *2 RETURN 3 GF(1) =
+                 2.D0 * (X(1) - X(2)) GF(3) =
+                     2.D0 * (X(2) + X(3) - 2.D0) GF(2) =
+                         GF(3) -
+                         GF(1) GF(4) = 2.D0 * (X(4) - 1.D0) GF(5) =
+                                           2.D0 * (X(5) - 1.D0) RETURN
+                                           4 IF(INDEX1(1))
+                                               G(1) = X(1) + 3.D0 * X(2) -
+                                                      4.D0 IF(INDEX1(2)) G(2) =
+                                                          X(3) +
+                                                          X(4) -
+                                                          2.D0 *
+                                                              X(5) IF(INDEX1(3))
+                                                                  G(3) =
+                                                              X(2) -
+                                                              X(5) 5 RETURN END
+                                                              C SUBROUTINE
+                                                              TP52(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I, J GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 3 NENL = 0 DO 6 I = 1,
+      5 X(I) = 2.D0 LXL(I) =.FALSE.6 LXU(I) =.FALSE.DO 15 I = 1, 3 DO 15 J = 1,
+      5 15 GG(I, J) = 0.D0 GG(1, 1) = 1.D0 GG(1, 2) = 3.D0 GG(2, 3) = 1.D0 GG(
+          2, 4) = 1.D0 GG(2, 5) = -2.D0 GG(3, 2) = 1.D0 GG(3, 5) =
+          -1.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+              -33.D0 / 349.D0 XEX(2) =
+                  11.D0 / 349.D0 XEX(3) =
+                      180.D0 / 349.D0 XEX(4) =
+                          -158.D0 / 349.D0 XEX(5) = XEX(2) FEX =
+                              1859.D0 / 349.D0 RETURN
+                              2 FX =
+                                  (4.D0 * X(1) - X(2)) *
+                                      *2 +
+                                  (X(2) + X(3) - 2.D0) *
+                                      *2 +
+                                  (X(4) - 1.D0) *
+                                      *2 +
+                                  (X(5) / -1.D0) *
+                                      *2 RETURN 3 GF(1) =
+                                      8.D0 *
+                                      (X(1) * 4.D0 - X(2))
+                                          GF(3) =
+                                          2.D0 *
+                                          (X(2) + X(3) - 2.D0)
+                                              GF(2) =
+                                              -0.25D0 * GF(1) +
+                                              GF(3) GF(4) =
+                                                  2.D0 *
+                                                  (X(4) - 1.D0)
+                                                      GF(5) =
+                                                      2.D0 *
+                                                      (X(5) -
+                                                       1.D0) RETURN
+                                                      4 IF(INDEX1(1))
+                                                          G(1) =
+                                                          X(1) +
+                                                          3.D0 *
+                                                              X(2) IF(INDEX1(2))
+                                                                  G(2) =
+                                                              X(3) + X(4) -
+                                                              2.D0 *
+                                                                  X(5) IF(
+                                                                      INDEX1(3))
+                                                                      G(3) =
+                                                                  X(2) -
+                                                                  X(5) 5 RETURN
+                                                                  END C
+                                                                  SUBROUTINE
+                                                                  TP53(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I, J GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 3 NENL = 0 DO 6 I = 1,
+      5 X(I) = 2.D0 LXL(I) =.TRUE.LXU(I) =.TRUE.XL(I) = -10.D0 6 XU(I) =
+          10.D0 DO 15 I = 1,
+      3 DO 15 J = 1,
+      5 15 GG(I, J) = 0.D0 GG(1, 1) = 1.D0 GG(1, 2) = 3.D0 GG(2, 3) = 1.D0 GG(
+          2, 4) = 1.D0 GG(2, 5) = -2.D0 GG(3, 2) = 1.D0 GG(3, 5) =
+          -1.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+              -33.D0 / 43.D0 XEX(2) =
+                  11.D0 / 43.D0 XEX(3) =
+                      27.D0 / 43.D0 XEX(4) =
+                          -5.D0 / 43.D0 XEX(5) =
+                              11.D0 / 43.D0 FEX =
+                                  176.D0 /
+                                  43.D0 RETURN
+                                  2 FX =
+                                      (X(1) - X(2)) *
+                                          *2 +
+                                      (X(2) + X(3) - 2.D0) *
+                                          *2 +
+                                      (X(4) - 1.D0) *
+                                          *2 +
+                                      (X(5) / -1.D0) *
+                                          *2 RETURN 3 GF(1) =
+                                          2.D0 *
+                                          (X(1) - X(2))
+                                              GF(3) =
+                                              2.D0 *
+                                              (X(2) + X(3) - 2.D0)
+                                                  GF(2) =
+                                                  GF(3) -
+                                                  GF(1) GF(4) =
+                                                      2.D0 *
+                                                      (X(4) - 1.D0)
+                                                          GF(5) =
+                                                          2.D0 *
+                                                          (X(5) - 1.D0) RETURN
+                                                          4 IF(INDEX1(1)) G(1) =
+                                                              X(1) +
+                                                              3.D0 *
+                                                                  X(2) IF(
+                                                                      INDEX1(2))
+                                                                      G(2) =
+                                                                  X(3) + X(4) -
+                                                                  2.D0 *
+                                                                      X(5) IF(
+                                                                          INDEX1(
+                                                                              3))
+                                                                          G(3) =
+                                                                      X(2) -
+                                                                      X(5) 5 RETURN
+                                                                      END C
+                                                                      SUBROUTINE
+                                                                      TP54(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I COMMON / D54 / DQ, V1, V2, V3, V4, V5, V6, V7,
+    V8, V9, Q DOUBLEPRECISION DQ, V1, V2, V3, V4, V5, V6, V7, V8, V9,
+    Q DIMENSION DQ(6) GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 6 NILI = 0 NINL = 0 NELI = 1 NENL = 0 X(1) =
+        6.D + 3 X(2) = 1.5D0 X(3) = 4.D + 6 X(4) = 2.D0 X(5) = 3.D -
+                                                               3 X(6) = 5.D +
+                                                                        7 DO
+                                                                        6 I = 1,
+      6 LXL(I) =.TRUE.6 LXU(I) =.TRUE.XL(1) = 0.D0 XL(2) = -10.D0 XL(3) =
+          0.D0 XL(4) = 0.D0 XL(5) = 0.D0 XL(6) = 0.D0 XU(1) =
+              2.D +
+              4 XU(2) = 10.D0 XU(3) = 1.D + 7 XU(4) = 20.D0 XU(5) = 1.D0 XU(6) =
+                                          2.D +
+                                          8 GG(1, 1) = 1.D0 GG(1, 2) = 4.D +
+                                                                       3 DO
+                                                                       30 I = 3,
+      6 30 GG(1, I) = 0.0 LEX =.TRUE.NEX = 1 XEX(1) =
+          9.16D + 4 / 7.D0 XEX(2) =
+              79.D0 / 70.D0 XEX(3) =
+                  2.D + 6 XEX(4) = 10.D0 XEX(5) =
+                      1.D - 3 XEX(6) =
+                          1.D +
+                          8 FEX = -DEXP(-27.D0 /
+                                        280.D0) c FEX = -0.90807476D0 RETURN
+                                                        2 V1 =
+                              X(1) -
+                              1.D + 4 V2 =
+                                  X(2) -
+                                  1.D0 V3 =
+                                      X(3) -
+                                      2.D +
+                                      6 V4 =
+                                          X(4) -
+                                          10.D0 V5 =
+                                              X(5) -
+                                              1.D -
+                                              3 V6 =
+                                                  X(6) -
+                                                  1.D +
+                                                  8 V7 =
+                                                      1.D0 /
+                                                      0.96D0 V8 =
+                                                          1.D0 /
+                                                              4.9D +
+                                                          13 V9 =
+                                                              1.D0 /
+                                                                  2.45D +
+                                                              13 Q =
+                                                                  (1.5625D -
+                                                                   8 * V1 * *2 +
+                                                                   5.D -
+                                                                   5 * V1 * V2 +
+                                                                   V2 * *2) *V7
+                                                                  +
+                                                                  V3 ** 2 *V8 /
+                                                                      +4.D -
+                                                                  4 *V4 ** 2 +
+                                                                  4.D +
+                                                                  2 *V5 ** 2 +
+                                                                  4.D -
+                                                                  18 *V6 *
+                                                                      * 2 FX = -DEXP(
+                                                                      -0.5D0 *
+                                                                      Q) RETURN
+                                                                               3 V1 =
+                                                                      X(1) -
+                                                                      1.D +
+                                                                      4 V2 =
+                                                                          X(2) -
+                                                                          1.D0 V3 =
+                                                                              X(3) -
+                                                                              2.D +
+                                                                              6 V4 =
+                                                                                  X(4) -
+                                                                                  10.D0 V5 =
+                                                                                      X(5) -
+                                                                                      1.D -
+                                                                                      3 V6 =
+                                                                                          X(6) -
+                                                                                          1.D +
+                                                                                          8 V7 =
+                                                                                              1.D0 /
+                                                                                              0.96D0 V8 =
+                                                                                                  1.D0 /
+                                                                                                      4.9D +
+                                                                                                  13 V9 =
+                                                                                                      1.D0 /
+                                                                                                          2.45D +
+                                                                                                      13 DQ(
+                                                                                                          1) =
+                                                                                                          (3.125D -
+                                                                                                           8 * V1 +
+                                                                                                           5.D -
+                                                                                                           5 * V2) *
+                                                                                                          V7
+                                                                                                          DQ(2) =
+                                                                                                              (5.D -
+                                                                                                               5 * V1 +
+                                                                                                               2.D0 *
+                                                                                                                   V2) *
+                                                                                                              V7
+                                                                                                              DQ(3) =
+                                                                                                                  V3 *
+                                                                                                                  V9
+                                                                                                                  DQ(4) =
+                                                                                                                      8.D -
+                                                                                                                      4 * V4
+                                                                                                                          DQ(5) =
+                                                                                                                          800.D0 *
+                                                                                                                          V5
+                                                                                                                          DQ(6) =
+                                                                                                                              8.D -
+                                                                                                                              18 *V6
+                                                                                                                              DO
+                                                                                                                              31 I =
+                                                                                                                                  1,
+      6 31 GF(I) = 0.5D0 * DEXP(-0.5D0 * Q) *
+                   DQ(I) RETURN 4 IF(INDEX1(1))
+                       G(1) = X(1) + 4.D + 3 * X(2) - 1.76D +
+                              4 5 RETURN END C SUBROUTINE TP55(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I, J DOUBLEPRECISION V1 GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 6 NILI = 0 NINL = 0 NELI = 6 NENL = 0 X(1) = 1.D0 X(2) = 2.D0 X(3) =
+        0.D0 X(4) = 0.D0 X(5) = 0.D0 X(6) = 2.D0 DO 6 I = 1,
+      6 LXL(I) =.TRUE.LXU(I) =.FALSE.6 XL(I) = 0.D0 LXU(1) =.TRUE.LXU(
+          4) =.TRUE.XU(1) = 1.D + 0 XU(4) = 1.D + 0 DO 15 I = 1,
+      6 DO 15 J = 1,
+      6 15 GG(I, J) = 0.D0 GF(2) = 2.D0 GF(3) = 0.D0 GF(5) = 4.D0 GF(
+          6) = 0.D0 GG(1, 1) = 1.D0 GG(1, 2) = 2.D0 GG(1, 5) = 5.D0 GG(2, 1) =
+          1.D0 GG(2, 2) = 1.D0 GG(2, 3) = 1.D0 GG(3, 4) = 1.D0 GG(
+              3, 5) = 1.D0 GG(3, 6) = 1.D0 GG(4, 1) = 1.D0 GG(4, 4) =
+              1.D0 GG(5, 2) = 1.D0 GG(5, 5) = 1.D0 GG(6, 3) = 1.D0 GG(
+                  6, 6) = 1.D0 LEX =.TRUE.NEX = 1 XEX(1) = 0.D0 XEX(2) =
+                  4.D0 / 3.D0 XEX(3) =
+                      5.D0 /
+                      3.D0 XEX(4) = 1.D0 XEX(5) =
+                          2.D0 / 3.D0 XEX(6) =
+                              1.D0 / 3.D0 FEX =
+                                  19.D0 /
+                                  3.D0 RETURN
+                                  2 FX = X(1) +
+                                         2.D0 * X(2) +
+                                         4.D0 * X(5) +
+                                         DEXP(X(1) * X(4)) RETURN
+                                         3 V1 = DEXP(X(1) * X(4)) GF(1) =
+                                             1.D0 +
+                                             X(4) * V1 GF(4) =
+                                                 X(1) * V1 RETURN
+                                                 4 IF(INDEX1(1))
+                                                     G(1) =
+                                                     X(1) +
+                                                     2.D0 * X(2) +
+                                                     5.D0 * X(5) -
+                                                     6.D0 IF(INDEX1(2)) G(2) =
+                                                         X(1) +
+                                                         X(2) +
+                                                         X(3) -
+                                                         3.D0 IF(INDEX1(3))
+                                                             G(3) =
+                                                             X(4) +
+                                                             X(5) +
+                                                             X(6) -
+                                                             2.D0 IF(INDEX1(4))
+                                                                 G(4) =
+                                                                 X(1) +
+                                                                 X(4) -
+                                                                 1.D0 IF(INDEX1(
+                                                                     5)) G(5) =
+                                                                     X(2) +
+                                                                     X(5) -
+                                                                     2.D0 IF(
+                                                                         INDEX1(
+                                                                             6))
+                                                                         G(6) =
+                                                                         X(3) +
+                                                                         X(6) -
+                                                                         2.D0 5 RETURN
+                                                                         END C
+                                                                         SUBROUTINE
+                                                                         TP56(
+                                                                             MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I, J GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 7 NILI = 0 NINL = 0 NELI = 0 NENL = 4 X(1) = 1.D0 X(2) = 1.D0 X(3) =
+        1.D0 DO 6 I = 1,
+      7 LXL(I) =.FALSE.6 LXU(I) =.FALSE.X(4) = DASIN(DSQRT(1.D0 / 4.2D0))
+          X(5) = X(4) X(6) = X(4) X(7) = DASIN(DSQRT(5.D0 / 7.2D0)) DO 30 I = 4,
+      7 30 GF(I) = 0.D0 DO 15 I = 1, 4 DO 15 J = 1,
+      7 15 GG(I, J) = 0.D0 GG(1, 1) = 1.D0 GG(2, 2) = 1.D0 GG(3, 3) = 1.D0 GG(
+          4, 1) = 1.D0 GG(4, 2) = 2.D0 GG(4,
+                                          3) = 2.D0 LEX =.TRUE.NEX = 1 XEX(1) =
+          2.4D0 XEX(2) = 1.2D0 XEX(3) = 1.2D0 XEX(4) = DASIN(DSQRT(4.D0 / 7.D0))
+              XEX(5) = DASIN(DSQRT(2.D0 / 7.D0)) XEX(6) = XEX(5) XEX(7) =
+                  2.D0 * DATAN(1.D0) FEX = -3.456D0 RETURN 2 FX =
+                      -X(1) * X(2) * X(3) RETURN 3 GF(1) =
+                          -X(2) * X(3)
+                                      GF(2) =
+                              -X(1) *
+                              X(3) GF(3) =
+                                  -X(1) *
+                                  X(2) RETURN 4 IF(INDEX1(1))
+                                      G(1) =
+                                      X(1) -
+                                      4.2D0 * DSIN(X(4)) *
+                                          *2 IF(INDEX1(2)) G(2) =
+                                          X(2) -
+                                          4.2D0 * DSIN(X(5)) *
+                                              *2 IF(INDEX1(3)) G(3) =
+                                              X(3) -
+                                              4.2D0 * DSIN(X(6)) *
+                                                  *2 IF(INDEX1(4)) G(4) =
+                                                  X(1) +
+                                                  2.D0 * X(2) + 2.D0 * X(3) -
+                                                  7.2D0 * DSIN(X(7)) *
+                                                      *2 RETURN 5 IF(INDEX2(1))
+                                                          GG(1, 4) =
+                                                      -8.4D0 * DSIN(X(4)) *
+                                                      DCOS(X(4))
+                                                          IF(INDEX2(2))
+                                                              GG(2, 5) =
+                                                          -8.4D0 * DSIN(X(5)) *
+                                                          DCOS(X(5))
+                                                              IF(INDEX2(3))
+                                                                  GG(3, 6) =
+                                                              -8.4D0 *
+                                                              DSIN(X(6)) *
+                                                              DCOS(X(6))
+                                                                  IF(INDEX2(4))
+                                                                      GG(4, 7) =
+                                                                  -14.4D0 *
+                                                                  DSIN(X(7)) *
+                                                                  DCOS(X(7))
+                                                                      RETURN END
+                                                                  C SUBROUTINE
+                                                                  TP57(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L15 / F(200) / / L16 / DF(200, 200) /
+        / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I, J COMMON / D57 / S, A, B DIMENSION S(2),
+    A(44), B(44) DOUBLEPRECISION F, DF, S, A, B, T, V1 IF(MODE - 2) 1, 18,
+    18 1 N = 2 NILI = 0 NINL = 1 NELI = 0 NENL = 0 X(1) = 0.42D0 X(2) = 5.D0 DO
+    6 I = 1,
+         2 LXL(I) =.TRUE.6 LXU(I) =.FALSE.XL(1) = 0.4D0 XL(2) = -4.D0 LEX =
+             .FALSE.NEX = 1 XEX(1) = 0.419952674511D +
+                                     00 XEX(2) = 0.128484562930D +
+                                                 01 FEX = 0.284596697213D -
+                                                          01 RETURN
+                                                          18 CONTINUE DO
+                                                          20 I = 1,
+         2 A(I) = 8.D0 A(16 + I) = 18.D0 A(30 + I) = 28.D0 A(35 + I) = 32.D0 A(
+             38 + I) = 36.D0 A(40 + I) = 38.D0 B(I) = 0.49D0 B(6 + I) =
+             0.46D0 B(11 + I) = 0.43D0 B(14 + I) = 0.43D0 B(18 + I) = 0.42D0 B(
+                 21 + I) = 0.41D0 B(25 + I) = 0.4D0 B(29 + I) = 0.41D0 B(36 +
+                                                                         I) =
+                 0.4D0 B(40 + I) = 0.4D0 20 B(42 + I) = 0.39D0 DO 21 I = 1,
+         3 A(10 + I) = 14.D0 A(13 + I) = 16.D0 A(18 + I) = 20.D0 A(21 + I) =
+             22.D0 A(24 + I) = 24.D0 A(27 + I) = 26.D0 A(32 + I) =
+                 30.D0 21 B(31 + I) = 0.4D0 DO 22 I = 1,
+         4 A(2 + I) = 10.D0 22 A(6 + I) = 12.D0 A(38) = 34.D0 A(43) = 40.D0 A(
+             44) = 42.D0 B(3) = 0.48D0 B(4) = 0.47D0 B(5) = 0.48D0 B(6) =
+             0.47D0 B(9) = 0.45D0 B(10) = 0.43D0 B(11) = 0.45D0 B(14) =
+                 0.44D0 B(17) = 0.46D0 B(18) = 0.45D0 B(21) = 0.43D0 B(24) =
+                     0.4D0 B(25) = 0.42D0 B(28) = 0.41D0 B(29) = 0.4D0 B(35) =
+                         0.38D0 B(36) = 0.41D0 B(39) = 0.41D0 B(40) =
+                             0.38D0 IF(MODE - 4) 17,
+         4, 5 17 DO 30 I = 1,
+         44 30 F(I) = B(I) - X(1) -
+                      (0.49D0 - X(1)) * DEXP(-X(2) * (A(I) - 8.D0))
+                                            GOTO(1, 2, 3),
+         MODE 2 T = 0.D0 DO 19 I = 1,
+         44 19 T = T + F(I) ** 2 FX = T RETURN 3 S(1) = 0.D0 S(2) = 0.D0 DO
+         31 I = 1,
+         44 V1 = DEXP(-X(2) * (A(I) - 8.D0))
+             DF(I, 1) = -1.D0 + V1 DF(I, 2) = (A(I) - 8.D0) *
+                                              (0.49D0 - X(1)) *V1 DO 32 J = 1,
+         2 32 S(J) = S(J) + 2.D0 * F(I) * DF(I, J) 31 CONTINUE GF(1) = S(1)
+                         GF(2) = S(2) RETURN
+         4 IF(INDEX1(1))
+             G(1) = -X(1) * X(2) + 0.49D0 * X(2) -
+                    0.09D0 RETURN 5 IF(.NOT.INDEX2(1)) GOTO
+                    7 GG(1, 1) = -X(2)
+                                     GG(1, 2) = -X(1) +
+                                                0.49D0 7 RETURN END C SUBROUTINE
+                                                TP58(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) GOTO(1, 2, 3, 4, 5),
+    MODE 1 N = 2 NILI = 0 NINL = 3 NELI = 0 NENL = 0 X(1) = -2.D0 X(2) =
+        1.D0 LXL(1) =.TRUE.LXU(1) =.TRUE.LXL(2) =.FALSE.LXU(2) =.FALSE.C XL(1) =
+            -0.5D0 XL(1) = -2.0D0 XU(1) = 0.5D0 GG(1, 1) = -1.D0 GG(2, 2) =
+                -1.D0 LEX =.FALSE.NEX = 1 XEX(1) = -0.786150483331 XEX(2) =
+                    0.618034533851 FEX = 3.19033354957 RETURN
+    2 FX = 100.0D0 * (X(2) - X(1) * *2) * *2 + (1.0D0 - X(1)) * *2 RETURN
+                                                                3 GF(2) =
+               200.0D0 * (X(2) - X(1) * *2) GF(1) =
+                   -2.0D0 * (X(1) * (GF(2) - 1.0D0) + 1.0D0) RETURN
+                   4 IF(INDEX1(1))
+                       G(1) = X(2) * *2 -
+                              X(1) IF(INDEX1(2))
+                                  G(2) = X(1) * *2 - X(2) IF(INDEX1(3)) G(3) =
+                                             X(1) * *2 +
+                                             X(2) * *2 -
+                                             1.0D0 RETURN 5 IF(INDEX2(1))
+                                                 GG(1, 2) =
+                                                 2.0D0 *
+                                                 X(2)
+                                                     IF(INDEX2(2)) GG(2, 1) =
+                                                     2.0D0 *
+                                                     X(1)
+                                                         IF(.NOT.INDEX2(3)) GOTO
+                                                     9 GG(3, 1) =
+                                                         2.0D0 * X(1)
+                                                                     GG(3, 2) =
+                                                             2.0D0 *
+                                                             X(2) 9 RETURN END C
+                                                             SUBROUTINE
+                                                             TP59(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) COMMON / D59 / X11, X12, X13, X14, X21, X22, X23, X24,
+    XX11, XX12, XX13, / XX21, XX31 DOUBLEPRECISION X11, X12, X13, X14, X21, X22,
+    X23, X24, XX11, XX12, XX13, / XX21, XX31 INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 2 NILI = 0 NINL = 3 NELI = 0 NENL = 0 X(1) = 90.D0 X(2) = 10.D0 DO
+    6 I = 1,
+      2 LXL(I) =.TRUE.LXU(I) =.TRUE.6 XL(I) = 0.D0 XU(1) = 75.D0 XU(2) =
+          65.D0 GG(2, 2) = 1.D0 GG(3, 1) = -5.D0 NEX = 2 LEX =.FALSE.XEX(1) =
+              13.5501042366D0 XEX(2) = 51.6601812877D0 FEX = -7.80422632408D0 c
+                                                             XEX(3) =
+                  0.463995762710D + 2 c
+                  XEX(4) = 0.522196899513D +
+                           2 C FEX = -0.675456604292D + 1 RETURN
+                                     2 X11 = X(1) X12 = X11 *X11 X13 = X12 *X11
+      X14 = X13 *X11 X21 = X(2) X22 = X21 *X21 X23 = X22 *X21 X24 = X23 *X21
+      FX = -75.196D0 + 3.8112D0 * X11 - 0.12694D0 * X12 + 2.0567D -
+           3 * X13 / -1.0345D - 5 * X14 / +6.8306D0 * X21 - 3.0234D -
+           2 * X11 * X21 + 1.28134D - 3 * X12 * X21 / -3.5256D -
+           5 * X13 * X21 / +2.266D - 7 * X14 * X21 - 0.25645D0 * X22 + 3.4604D -
+           3 * X23 / -1.3514D - 5 * X24 + 28.106D0 / / (X21 + 1.D0) + 5.2375D -
+           6 * X12 * X22 / +6.3D - 8 * X13 * X22 - 7.D -
+           10 * X13 * X23 / -3.4054D - 4 * X11 * X22 + 1.6638D -
+           6 * X11 * X23 / +2.8673D0 *
+               DEXP(5.D - 4 * X11 * X21) RETURN 3 X11 = X(1) X12 = X11 *X11
+      X13 = X12 *X11 X14 = X13 *X11 X21 = X(2) X22 = X21 *X21 X23 =
+          X22 *X21 XX11 = X11 *X21 XX12 = X11 *X22 XX21 = X12 *X21 XX31 =
+              X13 * X21
+              GF(1) = 3.8112D0 - 0.25388D0 * X11 + 6.1701D - 3 * X12 - 4.138D -
+                      5 * X13 - 3.0234D - 2 - *X21 -
+                      +2.56268D - 3 * XX11 - 1.05768D - 4 * XX21 + 9.064D -
+                      7 * XX31 + 1.0475D - 5 * XX12 - +1.89D - 7 * X12 * X22 -
+                      2.1D - 9 * X12 * X23 - 3.4054D - 4 * X22 + 1.6638D -
+                      6 * X23 - +1.43365D -
+                      3 * X21 * DEXP(5.D - 4 * XX11) GF(2) =
+                          6.8306D0 - 3.0234D - 2 * X11
+                          + 1.28134D - 3 * X12 - 3.5256D - 5 * X13 + 2.266D -
+                          7 - *X14 - 0.5129D0 * X21 + 1.03812D - 2 * X22 -
+                          5.4056D - 5 * X23 - 28.106D0 / (X21 - +1.D0) * *2 -
+                          +1.0475D - 5 * XX21 + 1.26D - 7 * XX31 - 2.1D -
+                          9 * X13 * X22 - 6.8108D - 4 * XX11 - +4.9914D -
+                          6 * XX12 + 1.43365D -
+                          3 * X11 *
+                              DEXP(5.D - 4 * XX11) RETURN 4 IF(INDEX1(1)) G(1) =
+                              X(1) * X(2) - 700.D0 IF(INDEX1(2)) G(2) =
+                                  X(2) -
+                                  8.D - 3 * X(1) * *2 IF(INDEX1(3)) G(3) =
+                                      (X(2) - 50.D0) * *2 -
+                                      5.D0 * (X(1) - 55.D0) RETURN
+                                          5 IF(.NOT.INDEX2(1)) GOTO
+                                          7 GG(1, 1) = X(2)
+                                          GG(1, 2) = X(1) 7 IF(INDEX2(2))
+                                              GG(2,
+                                                 1) = -1.6D -
+                                                      2 * X(1) IF(INDEX2(3))
+                                                              GG(3, 2) =
+                                                          2.D0 *
+                                                          (X(2) -
+                                                           50.D0) RETURN END C
+                                                          SUBROUTINE TP60(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I DOUBLEPRECISION V1 GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 0 NELI = 0 NENL = 1 DO 6 I = 1,
+      3 X(I) = 2.D0 LXL(I) =.TRUE.LXU(I) =.TRUE.XL(
+          I) = -10.D0 6 XU(I) = 10.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+          0.110485902423D + 01 XEX(2) =
+              0.119667419413D + 01 XEX(3) =
+                  0.153526225739D + 01 FEX =
+                      0.325682002513D -
+                      01 RETURN
+                      2 FX = (X(1) - 1.D0) *
+                                 *2 +
+                             (X(1) - X(2)) *
+                                 *2 +
+                             (X(2) -
+                              X(3)) ** 4 RETURN
+                             3 V1 = 2.D0 *
+                                    (X(1) - X(2))
+                                        GF(1) =
+                                        2.D0 * (X(1) - 1.D0) + V1
+                                        GF(3) =
+                                            -4.D0 * (X(2) - X(3)) *
+                                            *3 GF(2) =
+                                                -GF(3) -
+                                                V1 RETURN
+                                                4 IF(INDEX1(1)) G(1) =
+                                                    X(1) * (1.D0 + X(2) * *2) +
+                                                    X(3) * *4 - 4.D0 -
+                                                    3.D0 1 *
+                                                        DSQRT(2.D0) RETURN
+                                                        5 IF(.NOT.INDEX2(1))
+                                                            GOTO 7 GG(1, 1) =
+                                                        1.D0 +
+                                                        X(2) * *2 GG(1, 2) =
+                                                            2.D0 * X(1) *
+                                                            X(2) GG(1, 3) =
+                                                                4.D0 * X(3) *
+                                                                *3 7 RETURN END
+                                                                C SUBROUTINE
+                                                                TP61(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 0 NELI = 0 NENL = 2 DO 6 I = 1,
+      3 X(I) = 0.0D0 LXL(I) =.FALSE.6 LXU(I) =.FALSE.LEX =.FALSE.NEX = 1 XEX(
+                                                              1) =
+          0.532677015744D + 01 XEX(2) =
+              -0.211899863998D + 01 XEX(3) =
+                  0.321046423906D + 01 FEX =
+                      -0.143646142201D +
+                      03 RETURN
+                      2 FX = 4.D0 * X(1) *
+                                 *2 +
+                             2.D0 * X(2) *
+                                 *2 +
+                             2.D0 * X(3) *
+                                 *2 -
+                             33.D0 * X(1) +
+                             16.D0 * X(2) 1 -
+                             24.D0 *
+                                 X(3) RETURN 3 GF(1) =
+                                 8.D0 * X(1) -
+                                 33.D0 GF(2) =
+                                     4.D0 * X(2) +
+                                     16.D0 GF(3) =
+                                         4.D0 * X(3) -
+                                         24.D0 RETURN
+                                         4 IF(INDEX1(1)) G(1) =
+                                             3.D0 * X(1) -
+                                             2.D0 * X(2) *
+                                                 *2 -
+                                             7.D0 IF(INDEX1(2)) G(2) =
+                                                 4.D0 * X(1) -
+                                                 X(3) * *2 -
+                                                 11.D0 RETURN 5 IF(INDEX2(1))
+                                                     GG(1, 2) =
+                                                     -4.D0 *
+                                                     X(2) IF(INDEX2(2))
+                                                         GG(2, 3) =
+                                                         -2.D0 *
+                                                         X(3)
+                                                             GG(1, 1) = 3.D0 GG(
+                                                              1,
+                                                              3) = 0.D0 GG(2,
+                                                                           1) =
+                                                             4.D0 GG(2, 2) =
+                                                                 0.D0 RETURN END
+      C SUBROUTINE TP62(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I DOUBLEPRECISION B1, B2, B3, C1, C2, C3, V1,
+    V2, V3, V4, V5, V6, V7, S, RB1, / RB2, RB3, RC1, RC2, RC3 IF(MODE - 2) 1,
+    17,
+    17 1 N = 3 NILI = 0 NINL = 0 NELI = 1 NENL = 0 X(1) = 0.7D0 X(2) =
+        0.2D0 X(3) = 0.1D0 DO 6 I = 1,
+         3 LXL(I) =.TRUE.LXU(I) =.TRUE.XL(I) = 0.D0 XU(I) = 1.D0 6 GG(1, I) =
+             1.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+                 0.617813298210D +
+                 00 XEX(2) = 0.328202155786D +
+                             00 XEX(3) = 0.539845460119D -
+                                         01 FEX = -0.262725144873D + 05 RETURN
+                                                  17 IF(MODE - 4) 18,
+         4,
+         5 18 B3 = X(3) + 0.03D0 C3 =
+                       0.13D0 * X(3) + 0.03D0 B2 =
+                           B3 + X(2) C2 = B3 + 0.07D0 * X(2) B1 =
+                                              B2 +
+                                              X(1) C1 = B2 +
+                                                        0.09D0 *
+                                                            X(1) GOTO(1, 2, 3),
+         MODE
+         2 V5 = B1 / C1 V6 =
+                    B2 / C2 V7 =
+                        B3 / C3 IF(V5.LE .0.D0.OR.V6.LE.0.D0.OR.V7.LE.0.D0) GOTO
+                        7 FX = -32.174D0 *
+                               (255.D0 * DLOG(V5) + 280.D0 * DLOG(V6) +
+                                290.D0 * DLOG(V7)) RETURN 7 S = 0.D0 DO 8 I = 1,
+         3 8 S =
+             S +
+             (X(I) - 5.D0) ** 2 FX =
+                 S +
+                 1.D + 3 - 2.67D +
+                 4 RETURN 3 RB1 =
+                     1.D0 / B1 RB2 =
+                         1.D0 / B2
+                         RB3 =
+                             1.D0 / B3
+                             RC1 =
+                                 1.D0 /
+                                 C1 RC2 =
+                                     1.D0 /
+                                     C2 RC3 =
+                                         1.D0 /
+                                         C3
+                                         V1 = -32.174D0
+                                                  * 255.D0 V2 = -32.174D0
+                                                                    * 280.D0 V3 =
+                                             -32.174D0
+                                                 * 290.D0 V4 =
+                                                 V1 * (RB1 - RC1)
+                                                          GF(1) =
+                                                     V1 * (RB1 - 0.09D0 * RC1)
+                                                              GF(2) =
+                                                         V4 +
+                                                         V2 * (RB2 -
+                                                               0.07D0 *
+                                                                   RC2)
+                                                                  GF(3) =
+                                                             V4 +
+                                                             V2 * (RB2 - RC2) +
+                                                             V3 * (RB3 -
+                                                                   0.13D0 *
+                                                                       RC3)
+                                                                      RETURN
+                                                                 4 IF(INDEX1(1))
+                                                                     G(1) =
+                                                                 X(1) + X(2) +
+                                                                 X(3) -
+                                                                 1.D0 5 RETURN
+                                                                 END C
+                                                                 SUBROUTINE
+                                                                 TP63(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 0 NELI = 1 NENL = 1 DO 6 I = 1,
+      3 X(I) = 2.D0 LXL(I) =.TRUE.LXU(I) =.FALSE.6 XL(I) = 0.D0 GG(1, 1) =
+          8.D0 GG(1, 2) = 14.D0 GG(1, 3) = 7.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+              0.351211841492D + 01 XEX(2) =
+                  0.216988174172D + 00 XEX(3) =
+                      0.355217403459D + 01 FEX =
+                          0.961715172127D +
+                          03 RETURN
+                          2 FX = 1.D + 3 -
+                                 X(1) * *2 - 2.D0 * X(2) * *2 - X(3) * *2 -
+                                 X(1) * X(2) - X(1) * X(3) RETURN 3 GF(1) =
+                                     -2.D0 * X(1) -
+                                     X(2) - X(3) GF(2) =
+                                         -4.D0 * X(2) -
+                                         X(1) GF(3) =
+                                             -2.D0 * X(3) -
+                                             X(1) RETURN 4 IF(INDEX1(1)) G(1) =
+                                                 8.D0 * X(1) +
+                                                 14.D0 * X(2) +
+                                                 7.D0 * X(3) -
+                                                 56.D0 IF(INDEX1(2)) G(2) =
+                                                     X(1) * *2 +
+                                                     X(2) * *2 +
+                                                     X(3) * *2 -
+                                                     25.D0 RETURN
+                                                     5 IF(.NOT.INDEX2(2)) GOTO
+                                                     8 GG(2, 1) =
+                                                         2.D0 * X(1) GG(2, 2) =
+                                                             2.D0 *
+                                                             X(2) GG(2, 3) =
+                                                                 2.D0 *
+                                                                 X(3) 8 RETURN
+                                                                 END C
+                                                                 SUBROUTINE
+                                                                 TP64(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 1 NELI = 0 NENL = 0 DO 6 I = 1,
+      3 X(I) = 1.D0 LXL(I) =.TRUE.LXU(I) =.FALSE.6 XL(I) =
+          1.D - 5 LEX =.FALSE.NEX = 1 XEX(1) =
+              0.108734717597D + 03 XEX(2) =
+                  0.851261394257D + 02 XEX(3) =
+                      0.204324707858D + 03 FEX =
+                          0.629984242821D +
+                          04 RETURN
+                          2 FX = 5.D0 * X(1) + 5.D +
+                                 4 / X(1) +
+                                 20.D0 * X(2) +
+                                 7.2D + 4 / X(2) +
+                                 10.D0 * X(3) 1 + 1.44D +
+                                 5 / X(3) RETURN 3 GF(1) =
+                                     5.D0 - 5.D +
+                                     4 / X(1) * *2 GF(2) =
+                                         20.D0 - 7.2D +
+                                         4 / X(2) * *2 GF(3) =
+                                             10.D0 - 1.44D +
+                                             5 / X(3) *
+                                                 *2 RETURN
+                                                 4 IF(INDEX1(1)) G(1) =
+                                                 1.D0 -
+                                                 4.D0 / X(1) -
+                                                 32.D0 / X(2) -
+                                                 120.D0 /
+                                                     X(3) RETURN
+                                                     5 IF(.NOT.INDEX2(1)) GOTO
+                                                     7 GG(1, 1) =
+                                                     4.D0 / X(1) * *2 GG(1, 2) =
+                                                         32.D0 / X(2) *
+                                                         *2 GG(1, 3) =
+                                                             120.D0 / X(3) *
+                                                             *2 7 RETURN END C
+                                                             SUBROUTINE
+                                                             TP65(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I DOUBLEPRECISION V1, V2 GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 1 NELI = 0 NENL = 0 X(1) = -5.D0 X(2) = 5.D0 X(3) =
+        0.D0 DO 6 I = 1,
+      3 LXL(I) =.TRUE.6 LXU(
+          I) =.TRUE
+                  .XL(1) = -4.5D0 XL(2) = -4.5D0 XL(3) = -5.D0 XU(1) = 4.5D0 XU(
+                  2) = 4.5D0 XU(3) = 5.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+          0.365046182158D + 01 XEX(2) =
+              0.365046168940D +
+              01 XEX(3) =
+                  0.462041750754D +
+                  01 FEX =
+                      0.953528856757D +
+                      00 RETURN
+                      2 FX = (X(1) - X(2)) *
+                                 *2 +
+                             ((X(1) + X(2) - 10.D0) / 3.D0) *
+                                 *2 +
+                             (X(3) -
+                              5.D0) ** 2 RETURN 3 V1 =
+                                 2.D0 *
+                                 (X(1) -
+                                  X(2)) V2 =
+                                     2.D0 *
+                                     (X(1) + X(2) - 10.D0) / 9.D0 GF(1) =
+                                         V1 + V2
+                                         GF(2) =
+                                             -V1
+                                             + V2
+                                             GF(3) =
+                                                 2.D0 * (X(3) -
+                                                         5.D0) RETURN
+                                                 4 IF(INDEX1(1))
+                                                     G(1) =
+                                                     48.D0 -
+                                                     X(1) * *2 -
+                                                     X(2) * *2 -
+                                                     X(3) * *2 RETURN
+                                                            5 IF(.NOT.INDEX2(1))
+                                                                GOTO
+                                                            7 GG(1, 1) =
+                                                         -2.D0 * X(1) GG(1, 2) =
+                                                             -2.D0 *
+                                                             X(2) GG(1, 3) =
+                                                                 -2.D0 *
+                                                                 X(3) 7 RETURN
+                                                                 END C
+                                                                 SUBROUTINE
+                                                                 TP66(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 3 NILI = 0 NINL = 2 NELI = 0 NENL = 0 X(1) = 0.D0 X(2) = 1.05D0 X(3) =
+        2.9D0 DO 6 I = 1,
+      3 LXL(I) =.TRUE.LXU(I) =.TRUE.XL(I) = 0.D0 6 XU(I) = 100.D0 XU(3) =
+          10.D0 GF(1) = -0.8D0 GF(2) = 0.D0 GF(3) = 0.2D0 GG(1,
+                                                             2) = 1.D0 GG(1,
+                                                                          3) =
+              0.D0 GG(2, 1) = 0.D0 GG(2, 3) = 1.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+                  0.184126487951D + 00 XEX(2) =
+                      0.120216787321D + 01 XEX(3) =
+                          0.332732232258D +
+                          01 FEX = 0.518163274159D +
+                                   00 RETURN
+                                   2 FX = 0.2D0 * X(3) -
+                                          0.8D0 * X(1) 3 RETURN
+                                              4 IF(INDEX1(1)) G(1) =
+                                              X(2) - DEXP(X(1)) IF(INDEX1(2))
+                                                         G(2) =
+                                                  X(3) - DEXP(X(2)) RETURN
+                                                  5 IF(INDEX2(1))
+                                                      GG(1,
+                                                         1) = -DEXP(X(1))
+                                                                  IF(INDEX2(2))
+                                                                      GG(2, 2) =
+                                                      -DEXP(X(2)) RETURN END C
+                                                      SUBROUTINE TP67(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) COMMON / D67 / A(3), Y(8), DY2C(3), DY4C(3), DY(8, 3),
+    / RX, V1, V2, Y2C, V3, Y4C DOUBLEPRECISION A, Y, DY2C, DY4C, DY, RX, V1, V2,
+    Y2C, V3, Y4C INTEGER I, J, IREP IF(MODE - 2) 1, 17,
+    17 1 N = 3 NILI = 0 NINL = 14 NELI = 0 NENL = 0 X(1) =
+        1.745D + 3 X(2) = 1.2D + 4 X(3) = 110.D0 DO 6 I = 1,
+         3 LXL(I) =.TRUE.LXU(I) =
+             .TRUE.6 XL(I) = 1.D - 5 XU(1) = 2.D +
+                                             3 XU(2) = 1.6D +
+                                                       4 XU(3) = 120.D0 LEX =
+             .FALSE.NEX = 1 XEX(1) =
+                 0.172837128614D + 04 XEX(2) =
+                     0.160000000000D + 05 XEX(3) =
+                         0.981415140238D + 02 FEX =
+                             -0.116203650728D +
+                             04 RETURN
+                             17 RX = 1.D0 / X(1) Y(2) =
+                                         1.6D0 *
+                                         X(1)
+                                             DY(2, 1) = 1.6D0 DY(2, 2) = 0.D0 DY(
+                                             2, 3) = 0.D0 IREP = 0 100 Y(3) =
+                                             1.22D0 *
+                                                 Y(2) -
+                                             X(1) DY(3, 1) =
+                                                 1.22D0 *
+                                                     DY(2, 1) -
+                                                 1.D0 DY(3, 2) =
+                                                     1.22D0 *
+                                                     DY(2, 2)
+                                                         DY(3, 3) =
+                                                         1.22D0 *
+                                                         DY(2, 3)
+                                                             Y(6) =
+                                                             (X(2) + Y(3)) * RX
+                                                             DY(6, 1) =
+                                                                 (X(1) *
+                                                                      DY(3, 1) -
+                                                                  X(2) - Y(3)) *
+                                                                 RX *
+                                                                 *2 DY(6, 2) =
+                                                                     (1.D0 +
+                                                                      DY(3,
+                                                                         2)) *
+                                                                     RX
+                                                                     DY(6, 3) =
+                                                                         DY(3,
+                                                                            1)
+                                                                             *RX
+         V1 = 0.01D0 * X(1) * (13.167D0 - 2.D0 * 0.6667D0 * Y(6)) V2 =
+                  (112.D0 + (13.167D0 - 0.6667D0 * Y(6)) * Y(6)) * 0.01D0 Y2C =
+                      X(1) * V2
+                      DY2C(1) = V2 + V1 * DY(6, 1) DY2C(2) =
+                                    V1 *
+                                    DY(6, 2)
+                                        DY2C(3) = V1 * DY(6, 3)
+                                                           IF(DABS(Y2C - Y(2)) -
+                                                              1.D - 3) 102,
+         102, 101 101 DO 103 I = 1,
+         3 103 DY(2, I) = DY2C(I)
+             Y(2) = Y2C IREP = IREP + 1 IF(IREP.GT .100) GOTO 102 GOTO
+                               100 102 Y(4) = 93.D0 DO 104 I = 1,
+         3 104 DY(4, I) = 0.D0 IREP = 0 105 Y(5) =
+             86.35D0 + 1.098D0 * Y(6) - 0.038D0 * Y(6) * *2 +
+             0.325D0 * (Y(4) - 89.D0)
+                           Y(8) = -133.D0 + 3.D0 * Y(5) Y(7) = 35.82D0 -
+                                                               0.222D0 * Y(8) DO
+                                                                   106 I = 1,
+         3 DY(5, I) = 1.098D0 * DY(6, I) - 0.076D0 * Y(6) * DY(6, I) +
+                      0.325D0 * DY(4, I) DY(8, I) =
+                          3.D0 * DY(5, I) 106 DY(7, I) =
+                              -0.222D0 * DY(8, I) V3 =
+                                  1.D0 / (Y(2) * Y(7) + 1.D +
+                                          3 * X(3)) Y4C = 9.8D + 4 * X(3) *V3 DO
+                                                                     107 I = 1,
+         2 107 DY4C(I) =
+             -9.8D +
+             4 * X(3) * (Y(2) * DY(7, I) + Y(7) * DY(2, I)) /
+                 (Y(2) * Y(7) + 1.D + 3 * -X(3)) *
+                 *2 DY4C(
+                     3) = 9.8D + 4 *
+                                     (Y(2) * Y(7) - X(3) * (Y(2) * DY(7, 3) +
+                                                            Y(7) * DY(2, 3))) *
+                                     V3 * *2 IF(DABS(Y4C - Y(4)) - 1.D - 4) 109,
+         109, 108 108 Y(4) = Y4C DO 110 I = 1,
+         3 110 DY(4, I) = DY4C(I) IREP = IREP + 1 IF(IREP.GT .100) GOTO 109 GOTO
+                                         105 109 GOTO(1, 2, 3, 4, 5),
+         MODE 2 FX = -(0.063D0 * Y(2) * Y(5) - 5.04D0 * X(1) - 3.36D0 * Y(3) -
+                       0.035D0 * X(2) - 10.D0 1 * X(3)) RETURN 3 DO 120 I = 1,
+         3 120 A(I) =
+             -0.063D0 * (DY(2, I) * Y(5) + DY(5, I) * Y(2)) +
+             3.36D0 * DY(3, I) GF(1) =
+                 A(1) + 5.04D0 GF(2) =
+                     A(2) + 0.035D0 GF(3) =
+                         A(3) + 10.D0 RETURN
+                         4 IF(INDEX1(1))
+                             G(1) = Y(
+                             2) IF(INDEX1(2)) G(2) = Y(3)
+                             IF(INDEX1(3)) G(3) =
+                                 Y(4) -
+                                 85.D0 IF(INDEX1(4))
+                                     G(4) =
+                                     Y(5) -
+                                     90.D0 IF(INDEX1(5))
+                                         G(5) =
+                                         Y(6) -
+                                         3.D0 IF(INDEX1(6))
+                                             G(6) =
+                                             Y(7) -
+                                             0.01D0 IF(INDEX1(7))
+                                                 G(7) =
+                                                 Y(8) -
+                                                 145.D0 IF(INDEX1(8))
+                                                     G(8) =
+                                                     5.D + 3 -
+                                                     Y(2) IF(INDEX1(9))
+                                                         G(9) =
+                                                         2.D + 3 -
+                                                         Y(3) IF(INDEX1(10))
+                                                             G(10) =
+                                                             93.D0 -
+                                                             Y(4) IF(INDEX1(11))
+                                                                 G(11) =
+                                                                 95.D0 -
+                                                                 Y(5) IF(
+                                                                     INDEX1(12))
+                                                                     G(12) =
+                                                                     12.D0 -
+                                                                     Y(6) IF(
+                                                                         INDEX1(
+                                                                             13))
+                                                                         G(13) =
+                                                                         4.D0 -
+                                                                         Y(7) IF(INDEX1(
+                                                                             14))
+                                                                             G(14) =
+                                                                             162.D0 -
+                                                                             Y(8)
+                                                                                 RETURN
+                                                                             5 DO
+                                                                             133 J =
+                                                                                 1,
+         7 IF(.NOT.INDEX2(J)) GOTO 131 DO 130 I = 1,
+         3 130 GG(J, I) = DY(J + 1, I) 131 IF(.NOT.INDEX2(J + 7)) GOTO 133 DO
+         132 I = 1,
+         3 132 GG(J + 7, I) = -DY(J + 1, I) 133 CONTINUE RETURN END C SUBROUTINE
+                              TP68(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) COMMON / D68 / A(2), B(2), Z(2),
+    D(2) DOUBLEPRECISION A, B, Z, D, V1, V2, V3, V4, V5, H1, H2, H3 INTEGER I,
+    KN1 NEX = 1 LEX =.FALSE.KN1 = 1 XEX(1) =
+        0.678587452312D -
+        01 XEX(2) = 0.364617174165D + 01 XEX(3) =
+                        0.266175189694D - 03 XEX(4) =
+                            0.894862212037D +
+                            00 FEX = -0.920425020704D + 00 GOTO 9 ENTRY
+                                     TP69(MODE) KN1 = 2 XEX(1) =
+                                         0.293714180830D - 01 XEX(2) =
+                                             0.119025343488D + 01 XEX(3) =
+                                                 0.233946796758D + 00 XEX(4) =
+                                                     0.791667815694D +
+                                                     00 FEX = -0.956712887064D +
+                                                              03 9 GOTO(1, 2, 3,
+                                                                        4, 5),
+        MODE 1 N = 4 NILI = 0 NINL = 0 NELI = 0 NENL = 2 DO 6 I = 1,
+        2 X(I) = 1.D0 X(I + 2) = 1.D0 LXL(I) =.TRUE.LXL(I + 2) =.TRUE.LXU(
+            I) =.TRUE.LXU(I + 2) =.TRUE.XL(I + 2) = 0.D0 XU(I) =
+            100.D0 6 XU(I + 2) = 2.D0 XL(1) =
+                1.D - 4 XL(2) = 0.D0 A(1) =
+                    1.D -
+                    4 A(2) = 0.1D0 B(1) = 1.D0 B(2) =
+                        1.D + 3 D(1) = 1.D0 D(2) = 1.D0 Z(1) = 24.D0 Z(2) =
+                            4.D0 GG(1, 1) = 0.D0 GG(1, 4) = 0.D0 GG(1, 3) =
+                                1.D0 GG(2, 1) = 0.D0 GG(2, 3) = 0.D0 GG(2, 4) =
+                                    1.D0 GF(2) = 0.D0 LEX =.FALSE.NEX = 0 RETURN
+        2 V1 =
+            DEXP(X(1)) - 1.D0 FX =
+                (A(KN1) * Z(KN1) - X(4) * (B(KN1) * V1 - X(3)) / (V1 + X(4))) /
+                X(1) RETURN 3 V1 = DEXP(X(1)) V2 =
+                    V1 -
+                    1.D0 V3 = 1.D0 / (V2 + X(4)) V4 =
+                                  1.D0 / X(1) V5 =
+                                      (B(KN1) * V2 - X(3)) * V4 GF(1) =
+                                          -((V1 * (X(4) * B(KN1) + X(3)) * V3 -
+                                             V5) *
+                                                X(4) * V3 +
+                                            A(KN1) * Z(KN1) * V4) *
+                                          V4 GF(3) =
+                                              X(4) * V4
+                                              * V3 GF(4) =
+                                                  -V5
+                                                  * V2 * V3
+                                                  *
+                                                  *2 RETURN
+                                                  4 IF(.NOT.INDEX1(1)) GOTO
+                                                  30 CALL MDNORD(-X(2), H1)
+                                                      G(1) =
+                                                      X(3) -
+                                                      2.D0 * H1
+                                                          30 IF(.NOT.INDEX1(2))
+                                                              RETURN CALL
+                                                          MDNORD(
+                                                              -X(2) +
+                                                                  DSQRT(Z(KN1)),
+                                                              H1)
+CALL MDNORD(-X(2) - DSQRT(Z(KN1)), H2)
+    G(2) = X(4) - H1 - H2 RETURN 5 IF(.NOT.INDEX2(1)) GOTO 7 GG(1, 2) =
+               2.D0 * DEXP(-0.5D0 * X(2) * *2) /
+               DSQRT(8.D0 * DATAN(1.D0)) 7 IF(.NOT.INDEX2(2)) GOTO
+               8 H1 = -X(2) - D(KN1) * DSQRT(Z(KN1)) H2 =
+                          -X(2) + D(KN1) * DSQRT(Z(KN1)) H3 =
+                              1.D0 / DSQRT(8.D0 * DATAN(1.D0))
+                                         GG(2, 2) = (DEXP(-0.5D0 * H1 * *2) +
+                                                     DEXP(-0.5D0 * H2 * *2)) *
+                                                    H3 8 RETURN END C SUBROUTINE
+                                                    TP70(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) COMMON / D70 / DF(19, 4), V4(19), U1(19), U2(19),
+    YC(19), C(19), / V3(19), V8(19), V9(19), F(19), YO(19) DOUBLEPRECISION DF,
+    V4, U1, U2, YC, C, V3, V8, V9, F, YO, B, H1, H2, H3,
+    / H4, H5, H6, H7, H30, H40, V10, V11, V12, Z1, Z2, Z5, Z6, Z7,
+    / T, H8, H9, H10, H11, H12, H13, H14, H15, H16, H17, H18, H19,
+    / H20, H21, H22, H23, S, SUM INTEGER I,
+    J LOGICAL LOG
+    LOG =.FALSE.IF(MODE - 2) 1,
+    17,
+    17 1 N = 4 NILI = 0 NINL = 1 NELI = 0 NENL = 0 X(1) = 2.D0 X(2) =
+        4.D0 X(3) = 0.04D0 X(4) = 2.D0 DO 6 I = 1,
+    4 LXU(I) =.TRUE.LXL(I) =.TRUE.XL(I) =
+        1.D -
+        5 6 XU(I) = 100.D0 XU(3) = 1.D0 GG(1, 1) = 0.D0 GG(1, 2) = 0.D0 XEX(1) =
+            0.122769537557D + 02 XEX(2) =
+                0.463178796886D +
+                01 XEX(3) = 0.312862470961D +
+                            00 XEX(4) = 0.202929031570D +
+                                        01 FEX = 0.749846356143D -
+                                                 02 LEX =.FALSE.NEX = 1 RETURN
+    17 CONTINUE C(1) = 0.1D0 DO 20 I = 2,
+    19 20 C(I) = DBLE(I - 1)
+        YO(1) = 1.89D -
+                3 YO(2) = 0.1038D0 YO(3) = 0.268D0 YO(4) = 0.506D0 YO(5) =
+                    0.577D0 YO(6) = 0.604D0 YO(7) = 0.725D0 YO(8) = 0.898D0 YO(
+                        9) = 0.947D0 YO(10) = 0.845D0 YO(11) = 0.702D0 YO(12) =
+                        0.528D0 YO(13) = 0.385D0 YO(14) = 0.257D0 YO(15) =
+                            0.159D0 YO(16) = 0.0869D0 YO(17) = 0.0453D0 YO(18) =
+                                0.01509D0 YO(19) = 1.89D - 3 IF(MODE - 4) 18,
+    4,
+    5 18 B = X(3) + (1.D0 - X(3)) * X(4) H1 =
+                 X(1) - 1.D0 H2 = X(2) - 1.D0 H3 = 1.D0 / 7.658D0 H5 = B *H3
+    H4 =
+        H5 / X(4) H6 =
+            12.D0 * X(1) / (12.D0 * X(1) + 1.D0) H7 =
+                12.D0 * X(2) /
+                (12.D0 * X(2) +
+                 1.D0) H30 = 0.D0 H40 = 0.D0 V10 =
+                    X(2) /
+                    6.2832D0 V11 =
+                        B / X(
+                                4) V12 =
+                            X(1) /
+                            6.2832D0 IF(
+                                B.LT .0.D0.OR.V10.LT.0.D0.OR.V11.LT.0.D0.OR.V12.LT.0.D0) 1 LOG =
+                                .TRUE.IF(LOG.AND.MODE.EQ .2) GOTO
+                                8 IF(LOG.AND.MODE.EQ .3) GOTO
+                                9 Z1 = X(3) * B * *X(2) Z2 = V10 ** 0.5D0 Z5 =
+                                           1.D0 -
+                                           X(3) Z6 = V11 *
+                                                     *X(1) Z7 = V12 ** 0.5D0 DO
+    30 I = 1,
+    19 V3(I) = (C(I) * H3) * *H2 V4(I) = DEXP(X(2) * (1.D0 - C(I) * H5))
+                   V8(I) = (C(I) * H3) * *H1
+                                         V9(I) = DEXP(X(1) * (1.D0 - C(I) * H4))
+                               U1(I) = Z1 * Z2 * V3(I) * V4(I) * H7 U2(I) =
+                                           Z5 * Z6 * Z7 *
+                                           V8(I) * V9(I) * H6 YC(I) =
+                                               U1(I) + U2(I) 30 F(I) =
+                                                   YC(I) - YO(I) GOTO(1, 2, 3),
+    MODE 2 T = 0.D0 DO 31 I = 1,
+    19 31 T = T + (F(I)) ** 2 FX = T RETURN
+    3 H8 = X(4) - 1.D0 H9 =
+               X(3) -
+               1.D0 H10 = 1.D0 / B H11 =
+                              1.D0 / X(4) H12 =
+                                  (0.5D0 + 1.D0 / (12.D0 * X(1) + 1.D0)) /
+                                      X(1) +
+                                  1.D0 H13 = (0.5D0 +
+                                              1.D0 / (12.D0 * X(2) + 1.D0)) /
+                                                 X(2) +
+                                             1.D0 H16 = X(2) *H8 H17 = X(1) *H8
+    H18 = 1.D0 / X(3) - H16 *H10 H19 = 1.D0 / H9 - H17 *H10 H16 = H16 *H3
+    H17 = H17 *H11 *H3 H20 = X(2) *H9 H21 = X(1) * X(3) *H11 ** 2 H22 = H20 *H3
+    H23 = H21 *H3 H20 = H20 *H10 H21 = H21 * H10 * X(4) DO 33 J = 1,
+    19 H14 = H4 * C(J) H15 = H5 * C(J) IF(H14.GT .0.D0) GOTO
+                             10 GF(1) = 2.D0 * (X(1) - 5.D0) H30 = 1.D0 GOTO
+    11 10 DF(J, 1) = U2(J) * (H12 - H14 + DLOG(H14))11 IF(H15.GT .0.D0) GOTO
+                     12 GF(2) = 2.D0 * (X(2) - 5.D0) H40 = 1.D0 GOTO
+    13 12 DF(J, 2) = U1(J) * (H13 - H15 + DLOG(H15))13 DF(J, 3) =
+                         U1(J) * (H18 + C(J) * H16) +
+                         U2(J) * (H19 + C(J) * H17)33 DF(J, 4) =
+                             U1(J) * (H22 * C(J) - H20) +
+                             U2(J) * (H23 * C(J) - H21)
+                                         IF(H30.EQ .1.D0.OR.H40.EQ.1.D0) GOTO
+                                 14 DO 37 I = 1,
+    4 S = 0.D0 DO 36 J = 1,
+    19 S = S + 2.D0 * F(J) * DF(J, I) 36 CONTINUE GF(I) = S 37 CONTINUE RETURN
+    14 DO 38 I = 1,
+    4 IF(I.EQ .1.AND.H30.EQ.1.D0) GOTO 38 IF(I.EQ .2.AND.H40.EQ..1) GOTO
+    38 S = 0.D0 DO 39 J = 1,
+    19 39 S = S + 2.D0 * F(J) *
+                      DF(J, I)
+                          GF(I) = S 38 CONTINUE H30 = 0.D0 H40 = 0.D0 RETURN
+    8 LOG =.FALSE.SUM = 0.D0 DO 40 I = 1,
+    4 40 SUM = SUM + (X(I) - 5.D0) ** 2 FX = SUM RETURN 9 LOG =.FALSE.DO
+                                                               41 I = 1,
+    4 41 GF(I) = 2.D0 * (X(I) - 5.D0) RETURN
+                 4 IF(INDEX1(1))
+                     G(1) = X(3) + (1.D0 - X(3)) * X(4) RETURN
+                                       5 IF(.NOT.INDEX2(1)) GOTO 7 GG(1, 3) =
+                                1.D0 -
+                                X(4) GG(1, 4) = -X(3) +
+                                                1.D0 7 RETURN END C SUBROUTINE
+                                                TP71(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 4 NILI = 0 NINL = 1 NELI = 0 NENL = 1 DO 6 I = 1,
+      4 LXL(I) =.TRUE.LXU(I) =.TRUE.XL(I) = 1.D0 6 XU(I) = 5.D0 X(1) =
+          1.D0 X(2) = 5.D0 X(3) = 5.D0 X(4) = 1.D0 XEX(1) =
+              0.100000000000D +
+              01 XEX(2) = 0.474299937545D +
+                          01 XEX(3) = 0.382115032617D + 01 XEX(4) =
+                                          0.137940824585D +
+                                          01 FEX = 0.170140172895D +
+                                                   02 LEX =.FALSE.NEX = 0 RETURN
+      2 FX = X(1) * X(4) * (X(1) + X(2) + X(3)) + X(3) RETURN 3 GF(1) =
+                 X(4) * (2.D0 * X(1) + X(2) + X(3)) GF(2) =
+                     X(1) * X(4) GF(3) =
+                         GF(2) +
+                         1.D0 GF(4) =
+                             X(1) * (X(1) + X(2) +
+                                     X(3)) RETURN 4 IF(INDEX1(1))
+                                        G(1) =
+                                 (X(1) * X(2) * X(3) * X(4) - 25.D0) /
+                                 25.0D0 IF(INDEX1(2))
+                                     G(2) =
+                                     (X(1) * *2 + X(2) * *2 + X(3) * *2 +
+                                      X(4) * *2 - 40.D0) /
+                                     40.0D0 RETURN
+                                     5 IF(.NOT.INDEX2(1)) GOTO 7 GG(1, 1) =
+                                         X(2) *
+                                         X(3) *
+                                         X(4) /
+                                         25.0D0 GG(1, 2) =
+                                             X(1) *
+                                             X(3) *
+                                             X(4) /
+                                             25.0D0 GG(1, 3) =
+                                                 X(1) *
+                                                 X(2) *
+                                                 X(4) /
+                                                 25.0D0 GG(1, 4) =
+                                                     X(1) *
+                                                     X(2) *
+                                                     X(3) /
+                                                     25.0D0 7 IF(.NOT.INDEX2(2))
+                                                         GOTO 8 DO 20 I = 1,
+      4 20 GG(2, I) = 2.D0 * X(I) / 40.0D0 8 RETURN END C SUBROUTINE TP72(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 4 NILI = 0 NINL = 2 NELI = 0 NENL = 0 DO 6 I = 1,
+      4 X(I) = 1.D0 XL(I) = 1.D -
+                            3 XU(I) = 1.D +
+                                      5 * (5.D0 - DBLE(I))
+                                              LXL(I) =.TRUE.6 LXU(I) =.TRUE.DO
+                                                                      30 I = 1,
+      4 30 GF(I) = 1.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+          0.193407050141D + 03 XEX(2) =
+              0.179547504555D + 03 XEX(3) =
+                  0.185018587841D + 03 XEX(4) =
+                      0.168706233485D + 03 C FEX =
+                          0.727679376021D +
+                          03 FEX =
+                              0.72767936D + 3 RETURN
+                              2 FX =
+                                  1.D0 +
+                                  X(1) +
+                                  X(2) +
+                                  X(3) +
+                                  X(4) 3 RETURN 4 IF(INDEX1(1))
+                                      G(1) =
+                                      -4.D0 / X(1) -
+                                      2.25D0 /
+                                          X(2) -
+                                      1.D0 /
+                                          X(3) -
+                                      0.25D0 /
+                                          X(4) 1 +
+                                      0.0401D0 IF(INDEX1(2)) G(2) =
+                                          -0.16D0 / X(1) -
+                                          0.36D0 / X(2) -
+                                          0.64D0 *
+                                              (1.D0 / X(3) 1 + 1.D0 / X(4)) +
+                                          0.010085D0 RETURN
+                                          5 IF(.NOT.INDEX2(1)) GOTO 7 GG(1, 1) =
+                                              4.D0 / X(1) *
+                                              *2 GG(1, 2) =
+                                                  2.25D0 /
+                                                  X(2) *
+                                                  *2 GG(1, 3) =
+                                                      1.D0 /
+                                                      X(3) *
+                                                      *2 GG(1, 4) =
+                                                          0.25D0 /
+                                                          X(4) *
+                                                          *2 7 IF(.NOT.INDEX2(
+                                                              2)) GOTO
+                                                          8 GG(2, 1) =
+                                                              0.16D0 /
+                                                              X(1) *
+                                                              *2 GG(2, 2) =
+                                                                  0.36D0 /
+                                                                  X(2) *
+                                                                  *2 GG(2, 3) =
+                                                                      0.64D0 /
+                                                                      X(3) *
+                                                                      *2 GG(2,
+                                                                            4) =
+                                                                          0.64D0 /
+                                                                          X(4) *
+                                                                          *2 8 RETURN
+                                                                          END C
+                                                                          SUBROUTINE
+                                                                          TP73(
+                                                                              MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX,
+    XEX(NMAX) INTEGER I DIMENSION A(4) DOUBLEPRECISION A GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 4 NILI = 1 NINL = 1 NELI = 1 NENL = 0 DO 6 I = 1,
+      4 X(I) = 1.D0 XL(I) = 0.D0 LXL(I) =.TRUE.6 LXU(I) =.FALSE.GF(1) =
+          24.55D0 GF(2) = 26.75D0 GF(3) = 39.D0 GF(4) = 40.5D0 GG(1, 1) =
+              2.3D0 GG(1, 2) = 5.6D0 GG(1, 3) = 11.1D0 GG(1, 4) = 1.3D0 DO
+      31 I = 1,
+      4 31 GG(3, I) = 1.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+          0.635521568605D + 00 XEX(2) =
+              -0.117862273760D - 11 XEX(3) =
+                  0.312701880754D + 00 XEX(4) =
+                      0.517765506011D -
+                      01 FEX = 0.298943781573D +
+                               02 RETURN
+                               2 FX = 24.55D0 * X(1) + 26.75D0 * X(2) +
+                                      39.D0 * X(3) +
+                                      40.50D0 * X(4) 3 RETURN 4 IF(INDEX1(1))
+                                                    G(1) =
+                                          2.3D0 * X(1) +
+                                          5.6D0 * X(2) + 11.1D0 * X(3) +
+                                          1.3D0 * X(4) 1 -
+                                          5.D0 IF(INDEX1(2)) G(2) =
+                                              12.0D0 * X(1) +
+                                              11.9D0 * X(2) +
+                                              41.8D0 * X(3) +
+                                              52.1D0 / *X(4) -
+                                              1.645D0 * /
+                                                  (0.28D0 * X(1) * *2 +
+                                                   0.19D0 * X(2) * *2 +
+                                                   20.5D0 * X(3) * *2 +
+                                                   0.62D0 * X(4) * *2) /
+                                                  **.5D0 -
+                                              21.D0 IF(INDEX1(3)) G(
+                                                  3) = X(1) + X(2) + X(3) +
+                                                       X(4) -
+                                                       1.D0 RETURN
+                                                       5 IF(.NOT.INDEX2(2)) GOTO
+                                                       8 DO 30 I = 1,
+      4 30 A(I) = 1.645D0 * X(I) *
+                  (0.28D0 * X(1) * *2 + 0.19D0 * X(2) * *2 +
+                   20.5D0 * X(3) * *2 / +0.62D0 * X(4) * *2) *
+                  *(-0.5D0)GG(2, 1) =
+                      12.D0 - 0.28D0 * A(1) GG(2, 2) =
+                          11.9D0 - 0.19D0 * A(2) GG(2, 3) =
+                              41.8D0 - 20.5D0 * A(3) GG(2, 4) =
+                                  52.1D0 - 0.62D0 *
+                                               A(4) 8 RETURN END C SUBROUTINE
+                                               TP74(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) COMMON / L74 / A(2) DOUBLEPRECISION A, V1, V2 INTEGER I,
+    KN1
+    XEX(1) = 0.679945319802D +
+             03 XEX(2) = 0.102606713256D +
+                         04 XEX(3) = 0.118876364490D +
+                                     00 XEX(4) = -0.396233553180D +
+                                                 00 FEX = 0.512649810934D +
+                                                          04 KN1 = 1 GOTO
+    7 ENTRY TP75(MODE) KN1 = 2 XEX(1) =
+        0.776159220293D +
+        03 XEX(2) = 0.925194939196D +
+                    03 XEX(3) = 0.511087936804D -
+                                01 XEX(4) = -0.428891137432D +
+                                            00 FEX = 0.517441288686D +
+                                                     04 7 GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 4 NILI = 2 NINL = 0 NELI = 0 NENL = 3 A(1) = 0.55D0 A(2) = 0.48D0 DO
+    6 I = 1,
+    4 X(I) = 0.D0 LXL(I) =.TRUE.6 LXU(I) =.TRUE.XL(
+        1) = 0.D0 XL(2) = 0.D0 XL(3) = -A(KN1) XL(4) = -A(KN1) XU(1) =
+        1.2D +
+        3 XU(2) = 1.2D +
+                  3 XU(3) = A(KN1) XU(4) = A(KN1)
+                      GF(3) = 0.D0 GF(4) = 0.D0 GG(1, 1) = 0.D0 GG(1, 2) =
+                          0.D0 GG(1, 3) = -1.D0 GG(1, 4) = 1.D0 GG(2, 1) =
+                              0.D0 GG(2, 2) = 0.D0 GG(2, 3) = 1.D0 GG(2, 4) =
+                                  -1.D0 GG(3, 1) = -1.D0 GG(3, 2) =
+                                      0.D0 GG(4, 1) = 0.D0 GG(4, 2) =
+                                          -1.D0 GG(5, 1) = 0.D0 GG(5, 2) =
+                                              0.D0 LEX =.FALSE.NEX = 0 RETURN
+    2 FX = 3.D0 * X(1) + X(1) * *3 * 1.D - 6 + 2.D0 * X(2) + 2.D0 * 1.D -
+           6 / 3.D0 * X(2) * *3 RETURN 3 GF(1) =
+               3.D0 + 3.D - 6 * X(1) * *2 GF(2) =
+                   2.D0 + 2.D - 6 * X(2) * *2 RETURN 4 IF(INDEX1(1)) G(1) =
+                       X(4) - X(3) + A(KN1) IF(INDEX1(2)) G(2) =
+                           X(3) -
+                           X(4) +
+                           A(KN1) IF(INDEX1(3))
+                               G(3) =
+                               1.D +
+                               3 * (DSIN(-X(3) - 0.25D0) +
+                                    DSIN(-X(4) - 0.25D0)) +
+                               -894.8D0 -
+                               X(1) IF(INDEX1(4))
+                                   G(4) =
+                                   1.D +
+                                   3 * (DSIN(X(3) - 0.25D0) +
+                                        DSIN(X(3) - X(4)-- 0.25D0)) +
+                                   -894.8D0 -
+                                   X(2) IF(INDEX1(5))
+                                       G(5) =
+                                       1.D +
+                                       3 * (DSIN(X(4) - 0.25D0) +
+                                            DSIN(X(4) - X(3)-- 0.25D0)) +
+                                       -1.2948D +
+                                       3 RETURN 5 IF(.NOT.INDEX2(3)) GOTO
+                                       9 GG(3, 3) =
+                                           -1.D +
+                                           3 * DCOS(-X(3) - 0.25D0)
+                                                   GG(3, 4) =
+                                               -1.D +
+                                               3 * DCOS(-X(4) - 0.25D0) 9 IF(
+                                                           .NOT.INDEX2(4)) GOTO
+                                                   10 V1 = DCOS(X(3) - X(4) -
+                                                                0.25D0) GG(4,
+                                                                           3) =
+                                                   1.D +
+                                                   3 * (DCOS(X(3) - 0.25D0) +
+                                                        V1) GG(4, 4) =
+                                                       -1.D +
+                                                       3 * V1 10 IF(.NOT.INDEX2(
+                                                               5)) GOTO
+                                                           11 V2 = DCOS(
+                                                            X(4) - X(3) -
+                                                            0.25D0) GG(5, 3) =
+                                                           -1.D +
+                                                           3 * V2 GG(5, 4) =
+                                                               1.D +
+                                                               3 * (DCOS(
+                                                                        X(4) -
+                                                                        0.25D0) +
+                                                                    V2)11 RETURN
+                                                                   END C
+                                                                   SUBROUTINE
+                                                                   TP76(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 4 NILI = 3 NINL = 0 NELI = 0 NENL = 0 DO 6 I = 1,
+      4 LXL(I) =.TRUE.LXU(I) =
+          .FALSE.X(I) = 0.5D0 6 XL(I) = 0.D0 GG(1, 1) = -1.D0 GG(1, 2) =
+              -2.D0 GG(1, 3) = -1.D0 GG(1, 4) = -1.D0 GG(2, 1) = -3.D0 GG(2,
+                                                                          2) =
+                  -1.D0 GG(2, 3) = -2.D0 GG(2, 4) = 1.D0 GG(3, 1) = 0.D0 GG(
+                      3, 2) = 1.D0 GG(3, 3) = 4.D0 GG(3, 4) = 0.D0 LEX =
+          .FALSE.NEX = 1 XEX(1) =
+              0.272727272717D +
+              00 XEX(2) =
+                  0.209090909094D +
+                  01 XEX(3) =
+                      -0.263371889808D -
+                      10 XEX(4) =
+                          0.545454545496D +
+                          00 FEX =
+                              -0.468181818182D +
+                              01 RETURN
+                              2 FX = X(1) * *2 +
+                                     X(3) * *2 +
+                                     0.5D0 * (X(2) * *2 + X(4) * *2) -
+                                     X(1) * X(3) +
+                                     X(3) * X(4) - -X(1) - 3.D0 * X(2) + X(3) -
+                                     X(4) RETURN 3 GF(1) =
+                                         2.D0 * X(1) -
+                                         X(3) - 1.D0 GF(2) =
+                                             X(2) - 3.D0 GF(3) =
+                                                 2.D0 * X(3) -
+                                                 X(1) + X(4) +
+                                                 1.D0 GF(4) =
+                                                     X(4) + X(3) -
+                                                     1.D0 RETURN 4 IF(INDEX1(1))
+                                                         G(1) =
+                                                         -X(1) -
+                                                         2.D0 * X(2) - X(3) -
+                                                         X(4) +
+                                                         5.D0 IF(INDEX1(2))
+                                                             G(2) =
+                                                             -3.D0 * X(1) -
+                                                             X(2) -
+                                                             2.D0 * X(3) +
+                                                             X(4) +
+                                                             4.D0 IF(INDEX1(3))
+                                                                 G(3) =
+                                                                 X(2) +
+                                                                 4.D0 * X(3) -
+                                                                 1.5D0 5 RETURN
+                                                                 END C
+                                                                 SUBROUTINE
+                                                                 TP77(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I DOUBLEPRECISION V1 GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 0 NENL = 2 DO 6 I = 1,
+      5 X(I) = 2.D0 LXL(I) =.FALSE.6 LXU(
+          I) =.FALSE
+                  .GG(1, 2) = 0.D0 GG(1, 3) = 0.D0 GG(2, 1) = 0.D0 GG(
+                  2, 2) = 1.D0 GG(2, 5) = 0.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+          0.116617219726D +
+          01 XEX(2) =
+              0.118211138813D +
+              01 XEX(3) =
+                  0.138025704044D +
+                  01 XEX(4) =
+                      0.150603627961D +
+                      01 XEX(5) =
+                          0.610920257517D +
+                          00 FEX =
+                              0.241505128786D +
+                              00 RETURN
+                              2 FX =
+                                  (X(1) - 1.D0) *
+                                      *2 +
+                                  (X(1) - X(2)) *
+                                      *2 +
+                                  (X(3) - 1.D0) *
+                                      *2 +
+                                  (X(4) - 1.D0) *
+                                      *4 -
+                                  +(X(5) - 1.D0) *
+                                      *6 RETURN
+                                      3 GF(1) =
+                                      2.D0 *
+                                      (2.D0 * X(1) - X(2) - 1.D0)
+                                          GF(2) =
+                                          -2.D0 *
+                                          (X(1) - X(2)) GF(3) =
+                                              2.D0 *
+                                              (X(3) - 1.D0)
+                                                  GF(4) =
+                                                  4.D0 *
+                                                  (X(4) - 1.D0) *
+                                                  *3 GF(5) =
+                                                      6.D0 *
+                                                      (X(5) - 1.D0) *
+                                                      *5 RETURN
+                                                      4 IF(INDEX1(1))
+                                                          G(1) =
+                                                          X(1) *
+                                                              *2 *
+                                                              X(4) +
+                                                          DSIN(X(4) - X(5)) -
+                                                          2.D0 *
+                                                              DSQRT(2.D0)
+                                                                  IF(INDEX1(2))
+                                                                      G(2) =
+                                                              X(2) +
+                                                              X(3) *
+                                                                  *4 * X(4) *
+                                                                  *2 -
+                                                              8.D0 -
+                                                              DSQRT(2.D0) RETURN
+                                                              5 IF(.NOT.INDEX2(
+                                                                  1)) GOTO
+                                                              7 V1 = DCOS(
+                                                                  X(4) -
+                                                                  X(5)) GG(1,
+                                                                           1) =
+                                                                  2.D0 * X(1) *
+                                                                  X(4)
+                                                                      GG(1, 4) =
+                                                                      X(1) *
+                                                                          *2 +
+                                                                      V1 GG(
+                                                                          1,
+                                                                          5) = -V1
+                                                                               7 IF(.NOT.INDEX2(
+                                                                                   2))
+                                                                                   GOTO
+                                                                               8 GG(
+                                                                                   2,
+                                                                                   3) =
+                                                                          4.D0 *
+                                                                          X(3) *
+                                                                          *3 *
+                                                                          X(4) *
+                                                                          *2 GG(
+                                                                              2,
+                                                                              4) =
+                                                                              2.D0 *
+                                                                              X(3) *
+                                                                              *4 *
+                                                                              X(4) 8 RETURN
+                                                                              END
+                                                                              C
+                                                                              SUBROUTINE
+                                                                              TP78(
+                                                                                  MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 0 NENL = 3 DO 6 I = 1,
+      5 LXL(I) =.FALSE.6 LXU(I) =.FALSE.X(1) = -2.D0 X(2) = 1.5D0 X(3) = 2.D0 X(
+                                     4) = -1.D0 X(5) = -1.D0 GG(2, 1) =
+          0.D0 GG(3, 3) = 0.D0 GG(3, 4) = 0.D0 GG(
+                                     3, 5) = 0.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+              -0.171714234230D + 01 XEX(2) =
+                  0.159570826805D + 01 XEX(3) =
+                      0.182724803488D + 01 XEX(4) =
+                          -0.763642946600D +
+                          00 XEX(5) =
+                              -0.763643482853D +
+                              00 FEX =
+                                  -0.291970040911D +
+                                  01 RETURN
+                                  2 FX =
+                                      X(1) *
+                                      X(2) *
+                                      X(3) *
+                                      X(4) *
+                                      X(5) RETURN
+                                      3 GF(1) =
+                                          X(2) *
+                                          X(3) *
+                                          X(4) *
+                                          X(5) GF(2) =
+                                              X(1) *
+                                              X(3) *
+                                              X(4) *
+                                              X(5) GF(3) =
+                                                  X(1) *
+                                                  X(2) *
+                                                  X(4) *
+                                                  X(5) GF(4) =
+                                                      X(1) *
+                                                      X(2) *
+                                                      X(3) *
+                                                      X(5) GF(5) =
+                                                          X(1) *
+                                                          X(2) *
+                                                          X(3) *
+                                                          X(4) RETURN
+                                                          4 IF(INDEX1(1)) G(1) =
+                                                              X(1) *
+                                                                  *2 +
+                                                              X(2) *
+                                                                  *2 +
+                                                              X(3) *
+                                                                  *2 +
+                                                              X(4) *
+                                                                  *2 +
+                                                              X(5) *
+                                                                  *2 -
+                                                              10.D0 IF(INDEX1(
+                                                                  2)) G(2) =
+                                                                  X(2) *
+                                                                      X(3) -
+                                                                  5.D0 *
+                                                                      X(4) *
+                                                                      X(5) IF(
+                                                                          INDEX1(
+                                                                              3))
+                                                                          G(3) =
+                                                                      X(1) *
+                                                                          *3 +
+                                                                      X(2) *
+                                                                          *3 +
+                                                                      1.D0 RETURN
+                                                                      5 IF(.NOT.INDEX2(
+                                                                          1))
+                                                                          GOTO
+                                                                      7 DO
+                                                                      30 I = 1,
+      5 30 GG(1, I) = 2.D0 * X(I) 7 IF(.NOT.INDEX2(2)) GOTO
+                      8 GG(2, 2) = X(3) GG(2, 3) = X(2)
+                          GG(2, 4) = -5.D0 * X(5) GG(2, 5) =
+                                         -5.D0 * X(4) 8 IF(.NOT.INDEX2(3)) GOTO
+                                         9 GG(3, 1) =
+                                             3.D0 * X(1) * *2 GG(3, 2) =
+                                                 3.D0 * X(2) *
+                                                 *2 9 RETURN END C SUBROUTINE
+                                                 TP79(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX,
+    XEX(NMAX) INTEGER I DOUBLEPRECISION V1, V2, V3, V4 GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 0 NENL = 3 DO 6 I = 1,
+      5 X(I) = 2.D0 LXL(I) =.FALSE.6 LXU(
+          I) =.FALSE.GG(1, 1) = 1.D0 GG(1, 4) = 0.D0 GG(1, 5) = 0.D0 GG(2, 1) =
+          0.D0 GG(2, 2) = 1.D0 GG(2, 4) = 1.D0 GG(2, 5) = 0.D0 GG(
+                  3, 2) = 0.D0 GG(3, 3) = 0.D0 GG(3,
+                                                  4) = 0.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+              0.119112745626D +
+              01 XEX(2) =
+                  0.136260316492D +
+                  01 XEX(3) =
+                      0.147281793150D +
+                      01 XEX(4) =
+                          0.163501661894D +
+                          01 XEX(5) =
+                              0.167908143619D +
+                              01 FEX =
+                                  0.787768208538D -
+                                  01 RETURN
+                                  2 FX =
+                                      (X(1) - 1.D0) *
+                                          *2 +
+                                      (X(1) - X(2)) *
+                                          *2 +
+                                      (X(2) - X(3)) *
+                                          *2 +
+                                      (X(3) - X(4)) *
+                                          *4 1 +
+                                      (X(4) -
+                                       X(5)) ** 4 RETURN 3 V1 =
+                                          X(1) -
+                                          X(2) V2 =
+                                              X(2) -
+                                              X(3) V3 =
+                                                  X(3) -
+                                                  X(4) V4 =
+                                                      X(4) -
+                                                      X(5) GF(1) =
+                                                          2.D0 *
+                                                          (X(1) - 1.D0 + V1)
+                                                              GF(2) =
+                                                              2.D0 *
+                                                              (V2 - V1) GF(3) =
+                                                                  -2.D0 *
+                                                                      V2
+                                                                  +
+                                                                  4.D0 * V3
+                                                                      *
+                                                                      *3 GF(4) =
+                                                                      4.D0 *
+                                                                      (V4 * *3 -
+                                                                       V3 * *3)
+                                                                          GF(5) =
+                                                                          -4.D0 *
+                                                                          V4 *
+                                                                          *3 RETURN
+                                                                          4 IF(INDEX1(
+                                                                              1))
+                                                                              G(1) =
+                                                                              X(1) +
+                                                                              X(2) *
+                                                                                  *2 +
+                                                                              X(3) *
+                                                                                  *3 -
+                                                                              2.D0 -
+                                                                              3.D0 *
+                                                                                  DSQRT(
+                                                                                      2.D0)
+                                                                                      IF(INDEX1(
+                                                                                          2))
+                                                                                          G(2) =
+                                                                                  X(2) -
+                                                                                  X(3) *
+                                                                                      *2 +
+                                                                                  X(4) +
+                                                                                  2.D0 -
+                                                                                  2.D0 *
+                                                                                      DSQRT(
+                                                                                          2.D0)
+                                                                                          IF(INDEX1(
+                                                                                              3))
+                                                                                              G(3) =
+                                                                                      X(1) *
+                                                                                          X(5) -
+                                                                                      2.D0 RETURN
+                                                                                      5 IF(.NOT.INDEX2(
+                                                                                          1))
+                                                                                          GOTO
+                                                                                      7 GG(
+                                                                                          1,
+                                                                                          2) =
+                                                                                          2.D0 *
+                                                                                          X(2) GG(
+                                                                                              1,
+                                                                                              3) =
+                                                                                              3.D0 *
+                                                                                              X(3) *
+                                                                                              *2 7 IF(INDEX2(
+                                                                                                  2))
+                                                                                                  GG(2,
+                                                                                                     3) =
+                                                                                                  -2.D0 *
+                                                                                                  X(3) IF(.NOT.INDEX2(
+                                                                                                      3))
+                                                                                                      GOTO
+                                                                                                  9 GG(
+                                                                                                      3,
+                                                                                                      1) =
+                                                                                                      X(5) GG(
+                                                                                                          3,
+                                                                                                          5) =
+                                                                                                          X(1) 9 RETURN
+      END C SUBROUTINE TP80(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I DOUBLEPRECISION V1, V2, T GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 0 NENL = 3 DO 6 I = 1,
+      5 LXL(I) =.TRUE.6 LXU(I) =.TRUE.X(1) = -2.D0 X(2) = 2.D0 X(3) =
+          2.D0 X(4) = -1.D0 X(5) = -1.D0 DO 20 I = 1,
+      2 XL(I) = -2.3D0 20 XU(I) = 2.3D0 DO 21 I = 3,
+      5 XL(I) = -3.2D0 21 XU(I) = 3.2D0 GG(2, 1) = 0.D0 GG(3, 3) = 0.D0 GG(
+          3, 4) = 0.D0 GG(3, 5) = 0.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+          -0.171714294417D +
+          01 XEX(2) = 0.159570896503D +
+                      01 XEX(3) = 0.182724691654D + 01 XEX(4) =
+                                      -0.763641279311D + 00 XEX(5) =
+                                          -0.763645016315D +
+                                          00 FEX = 0.539498477624D - 01 RETURN
+                                                   2 FX = DEXP(X(1) * X(2) *
+                                                               X(3) * X(4) *
+                                                               X(5)) RETURN
+      3 V1 =
+          X(4) * X(5) V2 =
+              X(1) * X(2) T = DEXP(V2 * X(3) * V1) GF(1) =
+                  X(2) *
+                  X(3) * V1 * T GF(2) =
+                      X(1) *
+                      X(3) * V1 * T GF(3) =
+                          V1 * V2
+                          * T GF(4) =
+                              V2 * X(3) *
+                              X(5) * T GF(5) =
+                                  V2 * X(3) *
+                                  X(4) * T RETURN 4 IF(INDEX1(1)) G(1) =
+                                      X(1) * *2 + X(2) * *2 +
+                                      X(3) * *2 + X(4) * *2 +
+                                      X(5) * *2 -
+                                      10.D0 IF(INDEX1(2))
+                                          G(2) = X(2) * X(3) -
+                                                 5.D0 * X(4) *
+                                                     X(5) IF(INDEX1(3)) G(3) =
+                                                     X(1) * *3 + X(2) * *3 +
+                                                     1.D0 RETURN
+                                                     5 IF(.NOT.INDEX2(1)) GOTO
+                                                     7 DO 30 I = 1,
+      5 30 GG(1, I) = 2.D0 * X(I) 7 IF(.NOT.INDEX2(2)) GOTO
+                      8 GG(2, 2) = X(3) GG(2, 3) = X(2)
+                          GG(2, 4) = -5.D0 * X(5) GG(2, 5) =
+                                         -5.D0 * X(4) 8 IF(.NOT.INDEX2(3)) GOTO
+                                         9 GG(3, 1) =
+                                             3.D0 * X(1) * *2 GG(3, 2) =
+                                                 3.D0 * X(2) *
+                                                 *2 9 RETURN END C SUBROUTINE
+                                                 TP81(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX,
+    XEX(NMAX) INTEGER I DOUBLEPRECISION V1, V2, V3, T GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 0 NELI = 0 NENL = 3 DO 6 I = 1,
+      5 LXL(I) =.TRUE.6 LXU(I) =.TRUE.DO 10 I = 1,
+      2 XL(I) = -2.3D0 10 XU(I) = 2.3D0 DO 20 I = 3,
+      5 XL(I) = -3.2D0 20 XU(I) = 3.2D0 X(1) = -2.D0 X(2) = 2.D0 X(3) = 2.D0 X(
+          4) = -1.D0 X(5) = -1.D0 GG(2, 1) = 0.D0 GG(3, 3) = 0.D0 GG(3, 4) =
+          0.D0 GG(3, 5) = 0.D0 LEX =.FALSE.NEX = 1 XEX(1) =
+              -0.171714240091D + 01 XEX(2) =
+                  0.159570833592D + 01 XEX(3) =
+                      0.182724792592D + 01 XEX(4) =
+                          -0.763647440817D +
+                          00 XEX(5) =
+                              -0.763638975604D +
+                              00 FEX =
+                                  0.539498477749D -
+                                  01 RETURN
+                                  2 FX =
+                                      DEXP(X(1) * X(2) * X(3) * X(4) * X(5)) -
+                                      0.5D0 * (X(1) * *3 + X(2) * *3 +
+                                               1.D0) ** 2 RETURN 3 V1 =
+                                          X(1) *
+                                              *3 +
+                                          X(2) ** 3 +
+                                          1.D0 V2 =
+                                              X(1) *
+                                              X(2) V3 =
+                                                  X(4) *
+                                                  X(5) T = DEXP(V2 * V3 *
+                                                                X(3)) GF(1) =
+                                                      X(2) * X(3) * V3
+                                                          * T
+                                                      - 3.D0 * X(1) *
+                                                            *2 * V1 GF(2) =
+                                                          X(1) * X(3) * V3 * T -
+                                                          3.D0 * X(2) *
+                                                              *2 * V1 GF(3) =
+                                                              V2 * V3
+                                                              * T GF(4) =
+                                                                  V2 * X(3) *
+                                                                  X(5) *
+                                                                  T GF(5) =
+                                                                      V2 *
+                                                                      X(3) *
+                                                                      X(4) *
+                                                                      T RETURN
+                                                                      4 IF(
+                                                                          INDEX1(
+                                                                              1))
+                                                                          G(1) =
+                                                                          X(1) *
+                                                                              *2 +
+                                                                          X(2) *
+                                                                              *2 +
+                                                                          X(3) *
+                                                                              *2 +
+                                                                          X(4) *
+                                                                              *2 +
+                                                                          X(5) *
+                                                                              *2 -
+                                                                          10.D0 IF(INDEX1(
+                                                                              2))
+                                                                              G(2) =
+                                                                              X(2) *
+                                                                                  X(3) -
+                                                                              5.D0 *
+                                                                                  X(4) *
+                                                                                  X(5) IF(INDEX1(
+                                                                                      3))
+                                                                                      G(3) =
+                                                                                  X(1) *
+                                                                                      *3 +
+                                                                                  X(2) *
+                                                                                      *3 +
+                                                                                  1.D0 RETURN
+                                                                                  5 IF(.NOT.INDEX2(
+                                                                                      1))
+                                                                                      GOTO
+                                                                                  7 DO
+                                                                                  30 I =
+                                                                                      1,
+      5 30 GG(1, I) = 2.D0 * X(I) 7 IF(.NOT.INDEX2(2)) GOTO
+                      8 GG(2, 2) = X(3) GG(2, 3) = X(2)
+                          GG(2, 4) = -5.D0 * X(5) GG(2, 5) =
+                                         -5.D0 * X(4) 8 IF(.NOT.INDEX2(3)) GOTO
+                                         9 GG(3, 1) =
+                                             3.D0 * X(1) * *2 GG(3, 2) =
+                                                 3.D0 * X(2) *
+                                                 *2 9 RETURN END C SUBROUTINE
+                                                 TP83(MODE)
+IMPLICIT DOUBLEPRECISION(A - H, O - Z) INTEGER MODE, NMAX, MMAX, N, NILI, NINL,
+    NELI, NENL, NEX DOUBLEPRECISION X, G, GF, GG, FX, XL, XU, FEX,
+    XEX LOGICAL INDEX1, INDEX2, LXL, LXU,
+    LEX PARAMETER(NMAX = 101, MMAX = 50) COMMON / L1 / N, NILI, NINL, NELI,
+    NENL / / L2 / X(NMAX) / / L3 / G(MMAX) / / L4 / GF(NMAX) / / L5 /
+        GG(MMAX, NMAX) / / L6 / FX / / L9 / INDEX1(MMAX) / / L10 /
+        INDEX2(MMAX) / / L11 / LXL(NMAX) / / L12 / LXU(NMAX) / / L13 /
+        XL(NMAX) / / L14 / XU(NMAX) / / L20 / LEX,
+    NEX, FEX, XEX(NMAX) INTEGER I COMMON / DATA83 / A, B, C, D, A1, A2, A3, A4,
+    A5, A6, A7, A8, A9, A10, A11, A12, / V1, V2, V3 DOUBLEPRECISION A, B, C, D,
+    A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12,
+    / V1, V2, V3 GOTO(1, 2, 3, 4, 5),
+    MODE
+    1 N = 5 NILI = 0 NINL = 6 NELI = 0 NENL = 0 X(1) = 78.0D0 X(2) =
+        33.0D0 X(3) = 27.0D0 X(4) = 27.0D0 X(5) = 27.0D0 DO 6 I = 1,
+      5 LXL(I) =.TRUE.6 LXU(I) =.TRUE.XL(1) = 78.0D0 XL(2) = 33.0D0 XU(1) =
+          102.0D0 XU(2) = 45.D0 DO 31 I = 3,
+      5 XL(I) = 27.0D0 31 XU(
+          I) = 45.0D0 A = 5.3578547D0 B = 0.8356891D0 C = 37.293239D0 D =
+          4.0792141D + 4 A1 = 85.334407D0 A2 =
+              5.6858D -
+              3 A3 = 6.262D -
+                     4 A4 = 2.2053D - 3 A5 = 80.51249D0 A6 =
+                                7.1317D -
+                                3 A7 = 2.9955D -
+                                       3 A8 = 2.1813D -
+                                              3 A9 = 9.300961D0 A10 =
+                                                  4.7026D -
+                                                  3 A11 =
+                                                      1.2547D -
+                                                      3 A12 =
+                                                          1.9085D -
+                                                          3 GF(2) = 0.D0 GF(4) =
+                                                              0.D0 GG(2, 4) =
+                                                                  0.D0 GG(3,
+                                                                          2) =
+                                                                      0.D0 GG(
+                                                                          5, 4) =
+                                                                          0.D0 GG(
+                                                                              6, 2) =
+                                                                              0.D0 LEX =
+                                                                                  .FALSE
+                                                                                  .NEX = 1 XEX(1) = 0.780000000000D + 02 XEX(2) = 0.330000000000D + 02 XEX(3) = 0.299952560253D + 02 XEX(4) = 0.450000000000D + 02 XEX(5) = 0.367758129081D + 02 FEX = -0.306655386717D + 05 RETURN 2 FX = A * X(3) *
+                                                                                                                                                                                                                                                                                               *2 +
+                                                                                                                                                                                                                                                                                           B * X(1) *
+                                                                                                                                                                                                                                                                                               X(5) +
+                                                                                                                                                                                                                                                                                           C * X(1) - D RETURN 3 GF(1) = B * X(5) +
+                                                                                                                                                                                                                                                                                                                         C
+                                                                                                                                                                                                                                                                                                                         GF(3) =
+                                                                                                                                                                                                                                                                                                                             2.D0 *
+                                                                                                                                                                                                                                                                                                                             A * X(3) GF(5) = B * X(1)
+                                                                                                                                                                                                                                                                                                                                                      RETURN
+                                                                                                                                                                                                                                                                                                                                              4 IF(
+                                                                                                                                                                                                                                                                                                                                                      .NOT
+                                                                                                                                                                                                                                                                                                                                                      .(INDEX1(
+                                                                                                                                                                                                                                                                                                                                                            1)
+                                                                                                                                                                                                                                                                                                                                                            .OR
+                                                                                                                                                                                                                                                                                                                                                            .INDEX1(
+                                                                                                                                                                                                                                                                                                                                                                4)))
+                                                                                                                                                                                                                                                                                                                                                  GOTO
+                                                                                                                                                                                                                                                                                                                                              41 V1 = A1 +
+                                                                                                                                                                                                                                                                                                                                                      A2 * X(2) *
+                                                                                                                                                                                                                                                                                                                                                          X(5) +
+                                                                                                                                                                                                                                                                                                                                                      A3 *
+                                                                                                                                                                                                                                                                                                                                                          X(1) *
+                                                                                                                                                                                                                                                                                                                                                          X(4) -
+                                                                                                                                                                                                                                                                                                                                                      A4 *
+                                                                                                                                                                                                                                                                                                                                                          X(3) *
+                                                                                                                                                                                                                                                                                                                                                          X(5) IF(
+                                                                                                                                                                                                                                                                                                                                                              INDEX1(
+                                                                                                                                                                                                                                                                                                                                                                  1)) G(1) = V1 IF(INDEX1(4)) G(4) =
+                                                                                                                                                                                                                                                                                                                                                          92.D0 -
+                                                                                                                                                                                                                                                                                                                                                          V1
+                                                                                                                                                                                                                                                                                                                                                          41 IF(.NOT.(INDEX1(
+                                                                                                                                                                                                                                                                                                                                                                          2)
+                                                                                                                                                                                                                                                                                                                                                                          .OR
+                                                                                                                                                                                                                                                                                                                                                                          .INDEX1(5)))
+                                                                                                                                                                                                                                                                                                                                                              GOTO 42 V2 = A5 +
+                                                                                                                                                                                                                                                                                                                                                                           A6 * X(2) * X(5) + A7 * X(1) * X(2) + A8 * X(3) * *2 - 90.D0 IF(INDEX1(2)) G(2) = V2 IF(
+                                                                                                                                                                                                                                                                                                                                                                               INDEX1(
+                                                                                                                                                                                                                                                                                                                                                                                   5)) G(5) =
+                                                                                                                                                                                                                                                                                                                                                                               20.D0 - V2 42 IF(
+                                                                                                                                                                                                                                                                                                                                                                                               .NOT
+                                                                                                                                                                                                                                                                                                                                                                                               .(
+                                                                                                                                                                                                                                                                                                                                                                                                   INDEX1(
+                                                                                                                                                                                                                                                                                                                                                                                                       3)
+                                                                                                                                                                                                                                                                                                                                                                                                       .OR
+                                                                                                                                                                                                                                                                                                                                                                                                       .INDEX1(
+                                                                                                                                                                                                                                                                                                                                                                                                           6)))
+                                                                                                                                                                                                                                                                                                                                                                                           GOTO
+                                                                                                                                                                                                                                                                                                                                                                               43 V3 =
+                                                                                                                                                                                                                                                                                                                                                                                   A9 +
+                                                                                                                                                                                                                                                                                                                                                                                   A10 * X(3) * X(5) + A11 * X(1) * X(3) + A12 * X(3) * X(4) -
+                                                                                                                                                                                                                                                                                                                                                                                   20.D0 IF(INDEX1(3)) G(
+                                                                                                                                                                                                                                                                                                                                                                                       3) = V3 IF(INDEX1(6)) G(6) =
+                                                                                                                                                                                                                                                                                                                                                                                       5.0D0 -
+                                                                                                                                                                                                                                                                                                                                                                                       V3
+                                                                                                                                                                                                                                                                                                                                                                                       43 RETURN
+                                                                                                                                                                                                                                                                                                                                                                                       5 IF(.NOT.INDEX2(
+                                                                                                                                                                                                                                                                                                                                                                                           1)) GOTO 7 GG(1,
+                                                                                                                                                                                                                                                                                                                                                                                                         1) =
+                                                                                                                                                                                                                                                                                                                                                                                           A3 *
+                                                                                                                                                                                                                                                                                                                                                                                           X(4) GG(
+                                                                                                                                                                                                                                                                                                                                                                                               1,
+                                                                                                                                                                                                                                                                                                                                                                                               2) =
+                                                                                                                                                                                                                                                                                                                                                                                               A2 *
+                                                                                                                                                                                                                                                                                                                                                                                               X(5)
+                                                                                                                                                                                                                                                                                                                                                                                                   GG(1, 3) = -A4 * X(5)
+                                                                                                                                                                                                                                                                                                                                                                                                                        GG(
+                                                                                                                                                                                                                                                                                                                                                                                                                            1, 4) =
+                                                                                                                                                                                                                                                                                                                                                                                                                  A3 *
+                                                                                                                                                                                                                                                                                                                                                                                                                  X(
+                                                                                                                                                                                                                                                                                                                                                                                                                      1) GG(1, 5) =
+                                                                                                                                                                                                                                                                                                                                                                                                                      A2 * X(2) - A4 * X(3) 7 IF(
+                                                                                                                                                                                                                                                                                                                                                                                                                                               .NOT
+                                                                                                                                                                                                                                                                                                                                                                                                                                               .INDEX2(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                   2))
+                                                                                                                                                                                                                                                                                                                                                                                                                                           GOTO 8 GG(
+                                                                                                                                                                                                                                                                                                                                                                                                                                               2, 1) = A7 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                       X(2)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                           GG(2, 2) = A6 * X(5) + A7 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      X(1)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          GG(2, 3) =
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                          2.D0 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                          A8
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                          *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                          X(3)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                              GG(2, 5) = A6 * X(2) 8 IF(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      .NOT
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      .INDEX2(3)) GOTO 9 GG(3,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            1) = A11 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 X(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     3) GG(3, 3) = A10 * X(5) + A11 * X(1) + A12 * X(4) GG(3, 4) =
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       A12 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       X(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           3) GG(3, 5) = A10 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         X(3) 9 IF(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 .NOT
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 .INDEX2(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     4))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             GOTO
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         10 GG(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             4,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1) =
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             -A3
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             * X(4) GG(4, 2) = -A2 * X(5) GG(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         4,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         3) =
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   A4 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   X(5)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       GG(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           4,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           4) =
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       -A3
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       X(1)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           GG(4, 5) = -A2 * X(2) + A4 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       X(3) 10 IF(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               .NOT
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               .INDEX2(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   5))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           GOTO
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       11 GG(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           5,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           1) =
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          -A7
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          X(2)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              GG(5,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 2) =
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              -A6 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  X(5) -
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              A7 * X(1)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       GG(5,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          3) =
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  -2.D0 * A8 * X(3) GG(5, 5) = -A6
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               * X(2) 11 IF(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         .NOT
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         .INDEX2(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             6)) GOTO 12 GG(6,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            1) = -A11
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 X(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     3) GG(6,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           3) = -A10
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    X(5) -
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                A11 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    X(1) -
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                A12 *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    X(4) GG(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        6,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        4) =
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    -A12
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    X(3) GG(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        6,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        5) =
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        -A10
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        X(3) 12 RETURN
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        END
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        C
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        SUBROUTINE
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        TP84(
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            MODE)
       IMPLICIT DOUBLEPRECISION (A-H,O-Z)  
       INTEGER    MODE,NMAX,MMAX,N,NILI,NINL,NELI,NENL,NEX   
       DOUBLEPRECISION X,G,GF,GG,FX,XL,XU,FEX,XEX 

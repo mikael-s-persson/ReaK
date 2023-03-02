@@ -34,16 +34,11 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-
 #include <algorithm>
-#include <iterator>
 #include <functional>
+#include <iterator>
 
-namespace ReaK {
-
-/** This is the namespace for all ReaK sorting algorithms implementations. */
-namespace sorting {
-
+namespace ReaK::sorting {
 
 /**
  * This function performs a merge sort on a given range of elements, and with the
@@ -54,16 +49,16 @@ namespace sorting {
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template < typename BidirIter, typename Compare >
-void merge_sort( BidirIter first, BidirIter last, Compare comp ) {
-  auto dist = std::distance( first, last ) / 2;
-  if( dist ) {
-    BidirIter middle = std::next( first, dist );
-    merge_sort( first, middle, comp );
-    merge_sort( middle, last, comp );
-    std::inplace_merge( first, middle, last, comp );
-  };
-};
+template <typename BidirIter, typename Compare>
+void merge_sort(BidirIter first, BidirIter last, Compare comp) {
+  auto dist = std::distance(first, last) / 2;
+  if (dist) {
+    BidirIter middle = std::next(first, dist);
+    merge_sort(first, middle, comp);
+    merge_sort(middle, last, comp);
+    std::inplace_merge(first, middle, last, comp);
+  }
+}
 
 /**
  * This function performs a merge sort on a given range of elements, and by using the
@@ -72,11 +67,11 @@ void merge_sort( BidirIter first, BidirIter last, Compare comp ) {
  * \param first The start of the range to be sorted.
  * \param last One element past the end of the range to be sorted.
  */
-template < typename BidirIter >
-inline void merge_sort( BidirIter first, BidirIter last ) {
-  merge_sort( first, last, std::less< typename std::iterator_traits< BidirIter >::value_type >() );
-};
-};
-};
+template <typename BidirIter>
+inline void merge_sort(BidirIter first, BidirIter last) {
+  merge_sort(first, last, std::less<>());
+}
 
-#endif
+}  // namespace ReaK::sorting
+
+#endif  // REAK_MERGE_SORT_HPP

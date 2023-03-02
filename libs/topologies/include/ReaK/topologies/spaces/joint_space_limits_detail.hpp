@@ -34,1402 +34,756 @@
 #ifndef REAK_JOINT_SPACE_LIMITS_DETAIL_HPP
 #define REAK_JOINT_SPACE_LIMITS_DETAIL_HPP
 
-
+#include "Ndof_spaces.hpp"
+#include "differentiable_space.hpp"
 #include "joint_space_topologies.hpp"
 #include "se2_topologies.hpp"
 #include "se3_topologies.hpp"
-#include "Ndof_spaces.hpp"
 
+#include <type_traits>
 
-#include <boost/mpl/and.hpp>
-#include <boost/mpl/equal_to.hpp>
-#include <boost/mpl/prior.hpp>
-#include <boost/mpl/less.hpp>
+namespace ReaK::pp::detail {
 
-namespace ReaK {
-
-namespace pp {
-
-namespace detail {
 namespace {
-
 
 /*****************************************************************************************************
                                  FUNCTIONS TO CREATE RATE-LIMITED JOINT-SPACES
 ******************************************************************************************************/
 
+template <typename OutSpace, typename InSpace, typename RateLimitMap>
+void create_rl_joint_space_impl(OutSpace& space_out, const InSpace& space_in,
+                                const RateLimitMap& j_limits,
+                                std::size_t& gen_i, std::size_t& f2d_i,
+                                std::size_t& f3d_i) {
+  if constexpr (is_rate_limited_joint_space_v<OutSpace>) {
+    constexpr int InOrder = max_derivation_order_v<InSpace, time_topology>;
+    using ValueType = typename RateLimitMap::value_type;
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_rate_limited_joint_space< OutSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 0 > > >,
-                           void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                              std::size_t& gen_i, std::size_t&, std::size_t& ) {
+    line_segment_topology<ValueType> topo_0(
+        get<0>(space_in).getName() + "_rl",
+        (get<0>(space_in).origin() - get<0>(space_in).get_radius()) /
+            j_limits.gen_speed_limits[gen_i],
+        (get<0>(space_in).origin() + get<0>(space_in).get_radius()) /
+            j_limits.gen_speed_limits[gen_i]);
+    if constexpr (InOrder > 0) {
+      line_segment_topology<ValueType> topo_1(
+          get<1>(space_in).getName() + "_rl",
+          (get<1>(space_in).origin() - get<1>(space_in).get_radius()) /
+              j_limits.gen_accel_limits[gen_i],
+          (get<1>(space_in).origin() + get<1>(space_in).get_radius()) /
+              j_limits.gen_accel_limits[gen_i]);
+      reach_time_differentiation diff_0(j_limits.gen_speed_limits[gen_i] /
+                                        j_limits.gen_accel_limits[gen_i]);
+      if constexpr (InOrder > 1) {
+        line_segment_topology<ValueType> topo_2(
+            get<2>(space_in).getName() + "_rl",
+            (get<2>(space_in).origin() - get<2>(space_in).get_radius()) /
+                j_limits.gen_jerk_limits[gen_i],
+            (get<2>(space_in).origin() + get<2>(space_in).get_radius()) /
+                j_limits.gen_jerk_limits[gen_i]);
+        reach_time_differentiation diff_1(j_limits.gen_accel_limits[gen_i] /
+                                          j_limits.gen_jerk_limits[gen_i]);
 
-  space_out = OutSpace( arithmetic_tuple< line_segment_topology< typename RateLimitMap::value_type > >(
-    line_segment_topology< typename RateLimitMap::value_type >(
-      get< 0 >( space_in ).getName() + "_rl",
-      ( get< 0 >( space_in ).origin() - get< 0 >( space_in ).get_radius() ) / j_limits.gen_speed_limits[gen_i],
-      ( get< 0 >( space_in ).origin() + get< 0 >( space_in ).get_radius() ) / j_limits.gen_speed_limits[gen_i] ) ) );
-  ++gen_i;
-};
+        space_out =
+            OutSpace(arithmetic_tuple(std::move(topo_0), std::move(topo_1),
+                                      std::move(topo_2)),
+                     euclidean_tuple_distance(),
+                     arithmetic_tuple(std::move(diff_0), std::move(diff_1)));
+      } else {
+        space_out = OutSpace(
+            arithmetic_tuple(std::move(topo_0), std::move(topo_1)),
+            euclidean_tuple_distance(), arithmetic_tuple(std::move(diff_0)));
+      }
+    } else {
+      space_out = OutSpace(arithmetic_tuple(std::move(topo_0)));
+    }
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_rate_limited_joint_space< OutSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 1 > > >,
-                           void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                              std::size_t& gen_i, std::size_t&, std::size_t& ) {
-
-  space_out = OutSpace(
-    arithmetic_tuple< line_segment_topology< typename RateLimitMap::value_type >,
-                      line_segment_topology< typename RateLimitMap::value_type > >(
-      line_segment_topology< typename RateLimitMap::value_type >(
-        get< 0 >( space_in ).getName() + "_rl",
-        ( get< 0 >( space_in ).origin() - get< 0 >( space_in ).get_radius() ) / j_limits.gen_speed_limits[gen_i],
-        ( get< 0 >( space_in ).origin() + get< 0 >( space_in ).get_radius() ) / j_limits.gen_speed_limits[gen_i] ),
-      line_segment_topology< typename RateLimitMap::value_type >(
-        get< 1 >( space_in ).getName() + "_rl",
-        ( get< 1 >( space_in ).origin() - get< 1 >( space_in ).get_radius() ) / j_limits.gen_accel_limits[gen_i],
-        ( get< 1 >( space_in ).origin() + get< 1 >( space_in ).get_radius() ) / j_limits.gen_accel_limits[gen_i] ) ),
-    euclidean_tuple_distance(),
-    differentiation_rule_array< 1, reach_time_differentiation >::type(
-      reach_time_differentiation( j_limits.gen_speed_limits[gen_i] / j_limits.gen_accel_limits[gen_i] ) ) );
-  ++gen_i;
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_rate_limited_joint_space< OutSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 2 > > >,
-                           void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                              std::size_t& gen_i, std::size_t&, std::size_t& ) {
-
-  space_out = OutSpace(
-    arithmetic_tuple< line_segment_topology< typename RateLimitMap::value_type >,
-                      line_segment_topology< typename RateLimitMap::value_type >,
-                      line_segment_topology< typename RateLimitMap::value_type > >(
-      line_segment_topology< typename RateLimitMap::value_type >(
-        get< 0 >( space_in ).getName() + "_rl",
-        ( get< 0 >( space_in ).origin() - get< 0 >( space_in ).get_radius() ) / j_limits.gen_speed_limits[gen_i],
-        ( get< 0 >( space_in ).origin() + get< 0 >( space_in ).get_radius() ) / j_limits.gen_speed_limits[gen_i] ),
-      line_segment_topology< typename RateLimitMap::value_type >(
-        get< 1 >( space_in ).getName() + "_rl",
-        ( get< 1 >( space_in ).origin() - get< 1 >( space_in ).get_radius() ) / j_limits.gen_accel_limits[gen_i],
-        ( get< 1 >( space_in ).origin() + get< 1 >( space_in ).get_radius() ) / j_limits.gen_accel_limits[gen_i] ),
-      line_segment_topology< typename RateLimitMap::value_type >(
-        get< 2 >( space_in ).getName() + "_rl",
-        ( get< 2 >( space_in ).origin() - get< 2 >( space_in ).get_radius() ) / j_limits.gen_jerk_limits[gen_i],
-        ( get< 2 >( space_in ).origin() + get< 2 >( space_in ).get_radius() ) / j_limits.gen_jerk_limits[gen_i] ) ),
-    euclidean_tuple_distance(),
-    differentiation_rule_array< 2, reach_time_differentiation >::type(
-      reach_time_differentiation( j_limits.gen_speed_limits[gen_i] / j_limits.gen_accel_limits[gen_i] ),
-      reach_time_differentiation( j_limits.gen_accel_limits[gen_i] / j_limits.gen_jerk_limits[gen_i] ) ) );
-  ++gen_i;
-};
-
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_Ndof_space< InSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 0 > > >,
-                           void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                              std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  typedef typename derived_N_order_space< InSpace, time_topology, 0 >::type BoxTopo;
-  typedef typename BoxTopo::point_type VectorType;
-  VectorType lower_bnd = get< 0 >( space_in ).get_lower_corner();
-  VectorType upper_bnd = get< 0 >( space_in ).get_upper_corner();
-  for( std::size_t i = 0; i < lower_bnd.size(); ++i ) {
-    lower_bnd[i] /= j_limits.gen_speed_limits[gen_i];
-    upper_bnd[i] /= j_limits.gen_speed_limits[gen_i];
     ++gen_i;
-  };
-  space_out = OutSpace( arithmetic_tuple< hyperbox_topology< VectorType, inf_norm_distance_metric > >(
-    hyperbox_topology< VectorType, inf_norm_distance_metric >( get< 0 >( space_in ).getName() + "_rl", lower_bnd,
-                                                               upper_bnd ) ) );
-};
+  } else if constexpr (is_Ndof_space_v<InSpace>) {
+    constexpr int InOrder = max_derivation_order_v<InSpace, time_topology>;
+    using BoxTopo = derived_N_order_space_t<InSpace, time_topology, 0>;
+    using VectorType = typename BoxTopo::point_type;
+    VectorType lower_bnd = get<0>(space_in).get_lower_corner();
+    VectorType upper_bnd = get<0>(space_in).get_upper_corner();
+    VectorType speed_lim = get<0>(space_in).get_upper_corner();
+    VectorType accel_lim = get<0>(space_in).get_upper_corner();
+    if constexpr (InOrder > 0) {
+      speed_lim = get<1>(space_in).get_upper_corner();
+    }
+    if constexpr (InOrder > 1) {
+      accel_lim = get<2>(space_in).get_upper_corner();
+    }
+    for (std::size_t i = 0; i < lower_bnd.size(); ++i) {
+      lower_bnd[i] /= j_limits.gen_speed_limits[gen_i];
+      upper_bnd[i] /= j_limits.gen_speed_limits[gen_i];
+      if constexpr (InOrder > 0) {
+        speed_lim[i] /= j_limits.gen_accel_limits[gen_i];
+      }
+      if constexpr (InOrder > 1) {
+        accel_lim[i] /= j_limits.gen_jerk_limits[gen_i];
+      }
+      ++gen_i;
+    }
+    if constexpr (InOrder == 0) {
+      space_out = OutSpace(arithmetic_tuple(
+          hyperbox_topology<VectorType, inf_norm_distance_metric>(
+              get<0>(space_in).getName() + "_rl", lower_bnd, upper_bnd)));
+    } else if constexpr (InOrder == 1) {
+      space_out = OutSpace(
+          arithmetic_tuple(
+              hyperbox_topology<VectorType, inf_norm_distance_metric>(
+                  get<0>(space_in).getName() + "_rl", lower_bnd, upper_bnd),
+              hyperbox_topology<VectorType, inf_norm_distance_metric>(
+                  get<1>(space_in).getName() + "_rl", -speed_lim, speed_lim)),
+          manhattan_tuple_distance(),
+          arithmetic_tuple(
+              Ndof_reach_time_differentiation<VectorType>(speed_lim)));
+    } else {
+      space_out = OutSpace(
+          arithmetic_tuple(
+              hyperbox_topology<VectorType, inf_norm_distance_metric>(
+                  get<0>(space_in).getName() + "_rl", lower_bnd, upper_bnd),
+              hyperbox_topology<VectorType, inf_norm_distance_metric>(
+                  get<1>(space_in).getName() + "_rl", -speed_lim, speed_lim),
+              hyperbox_topology<VectorType, inf_norm_distance_metric>(
+                  get<2>(space_in).getName() + "_rl", -accel_lim, accel_lim)),
+          manhattan_tuple_distance(),
+          arithmetic_tuple(
+              Ndof_reach_time_differentiation<VectorType>(speed_lim),
+              Ndof_reach_time_differentiation<VectorType>(accel_lim)));
+    }
+  } else if constexpr (is_rate_limited_se2_space_v<OutSpace>) {
+    constexpr int InOrder =
+        max_derivation_order_v<arithmetic_tuple_element_t<0, InSpace>,
+                               time_topology>;
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_Ndof_space< InSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 1 > > >,
-                           void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                              std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  typedef typename derived_N_order_space< InSpace, time_topology, 0 >::type BoxTopo;
-  typedef typename BoxTopo::point_type VectorType;
-  VectorType lower_bnd = get< 0 >( space_in ).get_lower_corner();
-  VectorType upper_bnd = get< 0 >( space_in ).get_upper_corner();
-  VectorType speed_lim = get< 1 >( space_in ).get_upper_corner();
-  for( std::size_t i = 0; i < lower_bnd.size(); ++i ) {
-    lower_bnd[i] /= j_limits.gen_speed_limits[gen_i];
-    upper_bnd[i] /= j_limits.gen_speed_limits[gen_i];
-    speed_lim[i] /= j_limits.gen_accel_limits[gen_i];
-    ++gen_i;
-  };
-  space_out = OutSpace( arithmetic_tuple< hyperbox_topology< VectorType, inf_norm_distance_metric >,
-                                          hyperbox_topology< VectorType, inf_norm_distance_metric > >(
-                          hyperbox_topology< VectorType, inf_norm_distance_metric >(
-                            get< 0 >( space_in ).getName() + "_rl", lower_bnd, upper_bnd ),
-                          hyperbox_topology< VectorType, inf_norm_distance_metric >(
-                            get< 1 >( space_in ).getName() + "_rl", -speed_lim, speed_lim ) ),
-                        manhattan_tuple_distance(), arithmetic_tuple< Ndof_reach_time_differentiation< VectorType > >(
-                                                      Ndof_reach_time_differentiation< VectorType >( speed_lim ) ) );
-};
+    using ValueType = typename RateLimitMap::value_type;
+    using LineSegTopo = line_segment_topology<ValueType>;
+    using BoxTopo = hyperbox_topology<vect<ValueType, 2>>;
+    using BallTopo = hyperball_topology<vect<ValueType, 2>>;
+    using PosTopoOutType = arithmetic_tuple_element_t<0, OutSpace>;
+    using RotTopoOutType = arithmetic_tuple_element_t<1, OutSpace>;
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_Ndof_space< InSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 2 > > >,
-                           void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                              std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  typedef typename derived_N_order_space< InSpace, time_topology, 0 >::type BoxTopo;
-  typedef typename BoxTopo::point_type VectorType;
-  VectorType lower_bnd = get< 0 >( space_in ).get_lower_corner();
-  VectorType upper_bnd = get< 0 >( space_in ).get_upper_corner();
-  VectorType speed_lim = get< 1 >( space_in ).get_upper_corner();
-  VectorType accel_lim = get< 2 >( space_in ).get_upper_corner();
-  for( std::size_t i = 0; i < lower_bnd.size(); ++i ) {
-    lower_bnd[i] /= j_limits.gen_speed_limits[gen_i];
-    upper_bnd[i] /= j_limits.gen_speed_limits[gen_i];
-    speed_lim[i] /= j_limits.gen_accel_limits[gen_i];
-    accel_lim[i] /= j_limits.gen_jerk_limits[gen_i];
-    ++gen_i;
-  };
-  space_out = OutSpace(
-    arithmetic_tuple< hyperbox_topology< VectorType, inf_norm_distance_metric >,
-                      hyperbox_topology< VectorType, inf_norm_distance_metric >,
-                      hyperbox_topology< VectorType, inf_norm_distance_metric > >(
-      hyperbox_topology< VectorType, inf_norm_distance_metric >( get< 0 >( space_in ).getName() + "_rl", lower_bnd,
-                                                                 upper_bnd ),
-      hyperbox_topology< VectorType, inf_norm_distance_metric >( get< 1 >( space_in ).getName() + "_rl", -speed_lim,
-                                                                 speed_lim ),
-      hyperbox_topology< VectorType, inf_norm_distance_metric >( get< 2 >( space_in ).getName() + "_rl", -accel_lim,
-                                                                 accel_lim ) ),
-    manhattan_tuple_distance(),
-    arithmetic_tuple< Ndof_reach_time_differentiation< VectorType >, Ndof_reach_time_differentiation< VectorType > >(
-      Ndof_reach_time_differentiation< VectorType >( speed_lim ),
-      Ndof_reach_time_differentiation< VectorType >( accel_lim ) ) );
-};
+    BoxTopo pos_0(get<0>(get<0>(space_in)).getName() + "_rl",
+                  get<0>(get<0>(space_in)).get_lower_corner() *
+                      (ValueType(1.0) / j_limits.frame2D_speed_limits[f2d_i]),
+                  get<0>(get<0>(space_in)).get_upper_corner() *
+                      (ValueType(1.0) / j_limits.frame2D_speed_limits[f2d_i]));
+    LineSegTopo rot_0(get<0>(get<1>(space_in)).getName() + "_rl",
+                      (get<0>(get<1>(space_in)).origin() -
+                       get<0>(get<1>(space_in)).get_radius()) /
+                          j_limits.frame2D_speed_limits[f2d_i + 1],
+                      (get<0>(get<1>(space_in)).origin() +
+                       get<0>(get<1>(space_in)).get_radius()) /
+                          j_limits.frame2D_speed_limits[f2d_i + 1]);
+    if constexpr (InOrder > 0) {
+      BallTopo pos_1(
+          get<1>(get<0>(space_in)).getName() + "_rl",
+          get<1>(get<0>(space_in)).origin() *
+              (ValueType(1.0) / j_limits.frame2D_accel_limits[f2d_i]),
+          get<1>(get<0>(space_in)).get_radius() /
+              j_limits.frame2D_accel_limits[f2d_i]);
+      LineSegTopo rot_1(get<1>(get<1>(space_in)).getName() + "_rl",
+                        (get<1>(get<1>(space_in)).origin() -
+                         get<1>(get<1>(space_in)).get_radius()) /
+                            j_limits.frame2D_accel_limits[f2d_i + 1],
+                        (get<1>(get<1>(space_in)).origin() +
+                         get<1>(get<1>(space_in)).get_radius()) /
+                            j_limits.frame2D_accel_limits[f2d_i + 1]);
+      reach_time_differentiation pos_diff_0(
+          j_limits.frame2D_speed_limits[f2d_i] /
+          j_limits.frame2D_accel_limits[f2d_i]);
+      reach_time_differentiation rot_diff_0(
+          j_limits.frame2D_speed_limits[f2d_i + 1] /
+          j_limits.frame2D_accel_limits[f2d_i + 1]);
 
+      if constexpr (InOrder > 1) {
+        BallTopo pos_2(
+            get<2>(get<0>(space_in)).getName() + "_rl",
+            get<2>(get<0>(space_in)).origin() *
+                (ValueType(1.0) / j_limits.frame2D_jerk_limits[f2d_i]),
+            get<2>(get<0>(space_in)).get_radius() /
+                j_limits.frame2D_jerk_limits[f2d_i]);
+        LineSegTopo rot_2(get<2>(get<1>(space_in)).getName() + "_rl",
+                          (get<2>(get<1>(space_in)).origin() -
+                           get<2>(get<1>(space_in)).get_radius()) /
+                              j_limits.frame2D_jerk_limits[f2d_i + 1],
+                          (get<2>(get<1>(space_in)).origin() +
+                           get<2>(get<1>(space_in)).get_radius()) /
+                              j_limits.frame2D_jerk_limits[f2d_i + 1]);
+        reach_time_differentiation pos_diff_1(
+            j_limits.frame2D_accel_limits[f2d_i] /
+            j_limits.frame2D_jerk_limits[f2d_i]);
+        reach_time_differentiation rot_diff_1(
+            j_limits.frame2D_accel_limits[f2d_i + 1] /
+            j_limits.frame2D_jerk_limits[f2d_i + 1]);
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se2_space< OutSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 0 > > >,
-             void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits, std::size_t&,
-                              std::size_t& f2d_i, std::size_t& ) {
+        space_out = OutSpace(arithmetic_tuple(
+            PosTopoOutType(
+                arithmetic_tuple(std::move(pos_0), std::move(pos_1),
+                                 std::move(pos_2)),
+                euclidean_tuple_distance(),
+                arithmetic_tuple(std::move(pos_diff_0), std::move(pos_diff_1))),
+            RotTopoOutType(arithmetic_tuple(std::move(rot_0), std::move(rot_1),
+                                            std::move(rot_2)),
+                           euclidean_tuple_distance(),
+                           arithmetic_tuple(std::move(rot_diff_0),
+                                            std::move(rot_diff_1)))));
+      } else {
+        space_out = OutSpace(arithmetic_tuple(
+            PosTopoOutType(arithmetic_tuple(std::move(pos_0), std::move(pos_1)),
+                           euclidean_tuple_distance(),
+                           arithmetic_tuple(std::move(pos_diff_0))),
+            RotTopoOutType(arithmetic_tuple(std::move(rot_0), std::move(rot_1)),
+                           euclidean_tuple_distance(),
+                           arithmetic_tuple(std::move(rot_diff_0)))));
+      }
+    } else {
+      space_out = OutSpace(
+          arithmetic_tuple(PosTopoOutType(arithmetic_tuple(std::move(pos_0))),
+                           RotTopoOutType(arithmetic_tuple(std::move(rot_0)))));
+    }
 
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef line_segment_topology< ValueType > LineSegTopo;
-  typedef hyperbox_topology< vect< ValueType, 2 > > BoxTopo;
-  typedef arithmetic_tuple< LineSegTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
+    f2d_i += 2;
+  } else if constexpr (is_rate_limited_se3_space_v<OutSpace>) {
+    constexpr int InOrder =
+        max_derivation_order_v<arithmetic_tuple_element_t<0, InSpace>,
+                               time_topology>;
 
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType( PosTopoTuple( BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_rl",
-                                           get< 0 >( get< 0 >( space_in ) ).get_lower_corner()
-                                           * ( ValueType( 1.0 ) / j_limits.frame2D_speed_limits[f2d_i] ),
-                                           get< 0 >( get< 0 >( space_in ) ).get_upper_corner()
-                                           * ( ValueType( 1.0 ) / j_limits.frame2D_speed_limits[f2d_i] ) ) ) ),
-    RotTopoOutType( RotTopoTuple(
-      LineSegTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_rl",
-                   ( get< 0 >( get< 1 >( space_in ) ).origin() - get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                   / j_limits.frame2D_speed_limits[f2d_i + 1],
-                   ( get< 0 >( get< 1 >( space_in ) ).origin() + get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                   / j_limits.frame2D_speed_limits[f2d_i + 1] ) ) ) ) );
-  f2d_i += 2;
-};
+    using ValueType = typename RateLimitMap::value_type;
+    using QuatTopo = rate_limited_quat_space<ValueType>;
+    using AngVelTopo = ang_velocity_3D_topology<ValueType>;
+    using AngAccTopo = ang_accel_3D_topology<ValueType>;
+    using BoxTopo = hyperbox_topology<vect<ValueType, 3>>;
+    using BallTopo = hyperball_topology<vect<ValueType, 3>>;
+    using PosTopoOutType = arithmetic_tuple_element_t<0, OutSpace>;
+    using RotTopoOutType = arithmetic_tuple_element_t<1, OutSpace>;
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se2_space< OutSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 1 > > >,
-             void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits, std::size_t&,
-                              std::size_t& f2d_i, std::size_t& ) {
+    BoxTopo pos_0(get<0>(get<0>(space_in)).getName() + "_rl",
+                  get<0>(get<0>(space_in)).get_lower_corner() *
+                      (ValueType(1.0) / j_limits.frame3D_speed_limits[f3d_i]),
+                  get<0>(get<0>(space_in)).get_upper_corner() *
+                      (ValueType(1.0) / j_limits.frame3D_speed_limits[f3d_i]));
+    QuatTopo rot_0(get<0>(get<1>(space_in)).getName() + "_rl",
+                   j_limits.frame3D_speed_limits[f3d_i + 1]);
 
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef line_segment_topology< ValueType > LineSegTopo;
-  typedef hyperbox_topology< vect< ValueType, 2 > > BoxTopo;
-  typedef hyperball_topology< vect< ValueType, 2 > > BallTopo;
-  typedef arithmetic_tuple< LineSegTopo, LineSegTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo, BallTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
+    if constexpr (InOrder > 0) {
+      BallTopo pos_1(
+          get<1>(get<0>(space_in)).getName() + "_rl",
+          get<1>(get<0>(space_in)).origin() *
+              (ValueType(1.0) / j_limits.frame3D_accel_limits[f3d_i]),
+          get<1>(get<0>(space_in)).get_radius() /
+              j_limits.frame3D_accel_limits[f3d_i]);
+      AngVelTopo rot_1(get<1>(get<1>(space_in)).getName() + "_rl",
+                       get<1>(get<1>(space_in)).get_radius() /
+                           j_limits.frame3D_accel_limits[f3d_i + 1]);
+      reach_time_differentiation pos_diff_0(
+          j_limits.frame3D_speed_limits[f3d_i] /
+          j_limits.frame3D_accel_limits[f3d_i]);
+      reach_time_differentiation rot_diff_0(
+          j_limits.frame3D_speed_limits[f3d_i + 1] /
+          j_limits.frame3D_accel_limits[f3d_i + 1]);
 
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType(
-      PosTopoTuple( BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_rl",
-                             get< 0 >( get< 0 >( space_in ) ).get_lower_corner()
-                             * ( ValueType( 1.0 ) / j_limits.frame2D_speed_limits[f2d_i] ),
-                             get< 0 >( get< 0 >( space_in ) ).get_upper_corner()
-                             * ( ValueType( 1.0 ) / j_limits.frame2D_speed_limits[f2d_i] ) ),
-                    BallTopo( get< 1 >( get< 0 >( space_in ) ).getName() + "_rl",
-                              get< 1 >( get< 0 >( space_in ) ).origin()
-                              * ( ValueType( 1.0 ) / j_limits.frame2D_accel_limits[f2d_i] ),
-                              get< 1 >( get< 0 >( space_in ) ).get_radius() / j_limits.frame2D_accel_limits[f2d_i] ) ),
-      euclidean_tuple_distance(),
-      differentiation_rule_array< 1, reach_time_differentiation >::type(
-        reach_time_differentiation( j_limits.frame2D_speed_limits[f2d_i] / j_limits.frame2D_accel_limits[f2d_i] ) ) ),
-    RotTopoOutType(
-      RotTopoTuple(
-        LineSegTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_rl",
-                     ( get< 0 >( get< 1 >( space_in ) ).origin() - get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                     / j_limits.frame2D_speed_limits[f2d_i + 1],
-                     ( get< 0 >( get< 1 >( space_in ) ).origin() + get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                     / j_limits.frame2D_speed_limits[f2d_i + 1] ),
-        LineSegTopo( get< 1 >( get< 1 >( space_in ) ).getName() + "_rl",
-                     ( get< 1 >( get< 1 >( space_in ) ).origin() - get< 1 >( get< 1 >( space_in ) ).get_radius() )
-                     / j_limits.frame2D_accel_limits[f2d_i + 1],
-                     ( get< 1 >( get< 1 >( space_in ) ).origin() + get< 1 >( get< 1 >( space_in ) ).get_radius() )
-                     / j_limits.frame2D_accel_limits[f2d_i + 1] ) ),
-      euclidean_tuple_distance(),
-      differentiation_rule_array< 1, reach_time_differentiation >::type( reach_time_differentiation(
-        j_limits.frame2D_speed_limits[f2d_i + 1] / j_limits.frame2D_accel_limits[f2d_i + 1] ) ) ) ) );
-  f2d_i += 2;
-};
+      if constexpr (InOrder > 1) {
+        BallTopo pos_2(
+            get<2>(get<0>(space_in)).getName() + "_rl",
+            get<2>(get<0>(space_in)).origin() *
+                (ValueType(1.0) / j_limits.frame3D_jerk_limits[f3d_i]),
+            get<2>(get<0>(space_in)).get_radius() /
+                j_limits.frame3D_jerk_limits[f3d_i]);
+        AngAccTopo rot_2(get<2>(get<1>(space_in)).getName() + "_rl",
+                         get<2>(get<1>(space_in)).get_radius() /
+                             j_limits.frame3D_jerk_limits[f3d_i + 1]);
+        reach_time_differentiation pos_diff_1(
+            j_limits.frame3D_accel_limits[f3d_i] /
+            j_limits.frame3D_jerk_limits[f3d_i]);
+        reach_time_differentiation rot_diff_1(
+            j_limits.frame3D_accel_limits[f3d_i + 1] /
+            j_limits.frame3D_jerk_limits[f3d_i + 1]);
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se2_space< OutSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 2 > > >,
-             void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits, std::size_t&,
-                              std::size_t& f2d_i, std::size_t& ) {
+        space_out = OutSpace(arithmetic_tuple(
+            PosTopoOutType(
+                arithmetic_tuple(std::move(pos_0), std::move(pos_1),
+                                 std::move(pos_2)),
+                euclidean_tuple_distance(),
+                arithmetic_tuple(std::move(pos_diff_0), std::move(pos_diff_1))),
+            RotTopoOutType(arithmetic_tuple(std::move(rot_0), std::move(rot_1),
+                                            std::move(rot_2)),
+                           euclidean_tuple_distance(),
+                           arithmetic_tuple(std::move(rot_diff_0),
+                                            std::move(rot_diff_1)))));
+      } else {
+        space_out = OutSpace(arithmetic_tuple(
+            PosTopoOutType(arithmetic_tuple(std::move(pos_0), std::move(pos_1)),
+                           euclidean_tuple_distance(),
+                           arithmetic_tuple(std::move(pos_diff_0))),
+            RotTopoOutType(arithmetic_tuple(std::move(rot_0), std::move(rot_1)),
+                           euclidean_tuple_distance(),
+                           arithmetic_tuple(std::move(rot_diff_0)))));
+      }
+    } else {
+      space_out = OutSpace(
+          arithmetic_tuple(PosTopoOutType(arithmetic_tuple(std::move(pos_0))),
+                           RotTopoOutType(arithmetic_tuple(std::move(rot_0)))));
+    }
 
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef line_segment_topology< ValueType > LineSegTopo;
-  typedef hyperbox_topology< vect< ValueType, 2 > > BoxTopo;
-  typedef hyperball_topology< vect< ValueType, 2 > > BallTopo;
-  typedef arithmetic_tuple< LineSegTopo, LineSegTopo, LineSegTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo, BallTopo, BallTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
+    f3d_i += 2;
+  } else {
+    tuple_for_each(space_out, space_in,
+                   [&](auto& space_elem_out, const auto& space_elem_in) {
+                     create_rl_joint_space_impl(space_elem_out, space_elem_in,
+                                                j_limits, gen_i, f2d_i, f3d_i);
+                   });
+  }
+}
 
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType(
-      PosTopoTuple( BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_rl",
-                             get< 0 >( get< 0 >( space_in ) ).get_lower_corner()
-                             * ( ValueType( 1.0 ) / j_limits.frame2D_speed_limits[f2d_i] ),
-                             get< 0 >( get< 0 >( space_in ) ).get_upper_corner()
-                             * ( ValueType( 1.0 ) / j_limits.frame2D_speed_limits[f2d_i] ) ),
-                    BallTopo( get< 1 >( get< 0 >( space_in ) ).getName() + "_rl",
-                              get< 1 >( get< 0 >( space_in ) ).origin()
-                              * ( ValueType( 1.0 ) / j_limits.frame2D_accel_limits[f2d_i] ),
-                              get< 1 >( get< 0 >( space_in ) ).get_radius() / j_limits.frame2D_accel_limits[f2d_i] ),
-                    BallTopo( get< 2 >( get< 0 >( space_in ) ).getName() + "_rl",
-                              get< 2 >( get< 0 >( space_in ) ).origin()
-                              * ( ValueType( 1.0 ) / j_limits.frame2D_jerk_limits[f2d_i] ),
-                              get< 2 >( get< 0 >( space_in ) ).get_radius() / j_limits.frame2D_jerk_limits[f2d_i] ) ),
-      euclidean_tuple_distance(),
-      differentiation_rule_array< 2, reach_time_differentiation >::type(
-        reach_time_differentiation( j_limits.frame2D_speed_limits[f2d_i] / j_limits.frame2D_accel_limits[f2d_i] ),
-        reach_time_differentiation( j_limits.frame2D_accel_limits[f2d_i] / j_limits.frame2D_jerk_limits[f2d_i] ) ) ),
-    RotTopoOutType(
-      RotTopoTuple(
-        LineSegTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_rl",
-                     ( get< 0 >( get< 1 >( space_in ) ).origin() - get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                     / j_limits.frame2D_speed_limits[f2d_i + 1],
-                     ( get< 0 >( get< 1 >( space_in ) ).origin() + get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                     / j_limits.frame2D_speed_limits[f2d_i + 1] ),
-        LineSegTopo( get< 1 >( get< 1 >( space_in ) ).getName() + "_rl",
-                     ( get< 1 >( get< 1 >( space_in ) ).origin() - get< 1 >( get< 1 >( space_in ) ).get_radius() )
-                     / j_limits.frame2D_accel_limits[f2d_i + 1],
-                     ( get< 1 >( get< 1 >( space_in ) ).origin() + get< 1 >( get< 1 >( space_in ) ).get_radius() )
-                     / j_limits.frame2D_accel_limits[f2d_i + 1] ),
-        LineSegTopo( get< 2 >( get< 1 >( space_in ) ).getName() + "_rl",
-                     ( get< 2 >( get< 1 >( space_in ) ).origin() - get< 2 >( get< 1 >( space_in ) ).get_radius() )
-                     / j_limits.frame2D_jerk_limits[f2d_i + 1],
-                     ( get< 2 >( get< 1 >( space_in ) ).origin() + get< 2 >( get< 1 >( space_in ) ).get_radius() )
-                     / j_limits.frame2D_jerk_limits[f2d_i + 1] ) ),
-      euclidean_tuple_distance(), differentiation_rule_array< 2, reach_time_differentiation >::type(
-                                    reach_time_differentiation( j_limits.frame2D_speed_limits[f2d_i + 1]
-                                                                / j_limits.frame2D_accel_limits[f2d_i + 1] ),
-                                    reach_time_differentiation( j_limits.frame2D_accel_limits[f2d_i + 1]
-                                                                / j_limits.frame2D_jerk_limits[f2d_i + 1] ) ) ) ) );
-  f2d_i += 2;
-};
-
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se3_space< OutSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 0 > > >,
-             void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits, std::size_t&,
-                              std::size_t&, std::size_t& f3d_i ) {
-
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef rate_limited_quat_space< ValueType > QuatTopo;
-  typedef hyperbox_topology< vect< ValueType, 3 > > BoxTopo;
-  typedef arithmetic_tuple< QuatTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
-
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType( PosTopoTuple( BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_rl",
-                                           get< 0 >( get< 0 >( space_in ) ).get_lower_corner()
-                                           * ( ValueType( 1.0 ) / j_limits.frame3D_speed_limits[f3d_i] ),
-                                           get< 0 >( get< 0 >( space_in ) ).get_upper_corner()
-                                           * ( ValueType( 1.0 ) / j_limits.frame3D_speed_limits[f3d_i] ) ) ) ),
-    RotTopoOutType( RotTopoTuple(
-      QuatTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_rl", j_limits.frame3D_speed_limits[f3d_i + 1] ) ) ) ) );
-  f3d_i += 2;
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se3_space< OutSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 1 > > >,
-             void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits, std::size_t&,
-                              std::size_t&, std::size_t& f3d_i ) {
-
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef rate_limited_quat_space< ValueType > QuatTopo;
-  typedef ang_velocity_3D_topology< ValueType > AngVelTopo;
-  typedef hyperbox_topology< vect< ValueType, 3 > > BoxTopo;
-  typedef hyperball_topology< vect< ValueType, 3 > > BallTopo;
-  typedef arithmetic_tuple< QuatTopo, AngVelTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo, BallTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
-
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType(
-      PosTopoTuple( BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_rl",
-                             get< 0 >( get< 0 >( space_in ) ).get_lower_corner()
-                             * ( ValueType( 1.0 ) / j_limits.frame3D_speed_limits[f3d_i] ),
-                             get< 0 >( get< 0 >( space_in ) ).get_upper_corner()
-                             * ( ValueType( 1.0 ) / j_limits.frame3D_speed_limits[f3d_i] ) ),
-                    BallTopo( get< 1 >( get< 0 >( space_in ) ).getName() + "_rl",
-                              get< 1 >( get< 0 >( space_in ) ).origin()
-                              * ( ValueType( 1.0 ) / j_limits.frame3D_accel_limits[f3d_i] ),
-                              get< 1 >( get< 0 >( space_in ) ).get_radius() / j_limits.frame3D_accel_limits[f3d_i] ) ),
-      euclidean_tuple_distance(),
-      differentiation_rule_array< 1, reach_time_differentiation >::type(
-        reach_time_differentiation( j_limits.frame3D_speed_limits[f3d_i] / j_limits.frame3D_accel_limits[f3d_i] ) ) ),
-    RotTopoOutType(
-      RotTopoTuple(
-        QuatTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_rl", j_limits.frame3D_speed_limits[f3d_i + 1] ),
-        AngVelTopo( get< 1 >( get< 1 >( space_in ) ).getName() + "_rl",
-                    get< 1 >( get< 1 >( space_in ) ).get_radius() / j_limits.frame3D_accel_limits[f3d_i + 1] ) ),
-      euclidean_tuple_distance(),
-      differentiation_rule_array< 1, reach_time_differentiation >::type( reach_time_differentiation(
-        j_limits.frame3D_speed_limits[f3d_i + 1] / j_limits.frame3D_accel_limits[f3d_i + 1] ) ) ) ) );
-  f3d_i += 2;
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se3_space< OutSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 2 > > >,
-             void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits, std::size_t&,
-                              std::size_t&, std::size_t& f3d_i ) {
-
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef rate_limited_quat_space< ValueType > QuatTopo;
-  typedef ang_velocity_3D_topology< ValueType > AngVelTopo;
-  typedef ang_accel_3D_topology< ValueType > AngAccTopo;
-  typedef hyperbox_topology< vect< ValueType, 3 > > BoxTopo;
-  typedef hyperball_topology< vect< ValueType, 3 > > BallTopo;
-  typedef arithmetic_tuple< QuatTopo, AngVelTopo, AngAccTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo, BallTopo, BallTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
-
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType(
-      PosTopoTuple( BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_rl",
-                             get< 0 >( get< 0 >( space_in ) ).get_lower_corner()
-                             * ( ValueType( 1.0 ) / j_limits.frame3D_speed_limits[f3d_i] ),
-                             get< 0 >( get< 0 >( space_in ) ).get_upper_corner()
-                             * ( ValueType( 1.0 ) / j_limits.frame3D_speed_limits[f3d_i] ) ),
-                    BallTopo( get< 1 >( get< 0 >( space_in ) ).getName() + "_rl",
-                              get< 1 >( get< 0 >( space_in ) ).origin()
-                              * ( ValueType( 1.0 ) / j_limits.frame3D_accel_limits[f3d_i] ),
-                              get< 1 >( get< 0 >( space_in ) ).get_radius() / j_limits.frame3D_accel_limits[f3d_i] ),
-                    BallTopo( get< 2 >( get< 0 >( space_in ) ).getName() + "_rl",
-                              get< 2 >( get< 0 >( space_in ) ).origin()
-                              * ( ValueType( 1.0 ) / j_limits.frame3D_jerk_limits[f3d_i] ),
-                              get< 2 >( get< 0 >( space_in ) ).get_radius() / j_limits.frame3D_jerk_limits[f3d_i] ) ),
-      euclidean_tuple_distance(),
-      differentiation_rule_array< 2, reach_time_differentiation >::type(
-        reach_time_differentiation( j_limits.frame3D_speed_limits[f3d_i] / j_limits.frame3D_accel_limits[f3d_i] ),
-        reach_time_differentiation( j_limits.frame3D_accel_limits[f3d_i] / j_limits.frame3D_jerk_limits[f3d_i] ) ) ),
-    RotTopoOutType(
-      RotTopoTuple(
-        QuatTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_rl", j_limits.frame3D_speed_limits[f3d_i + 1] ),
-        AngVelTopo( get< 1 >( get< 1 >( space_in ) ).getName() + "_rl",
-                    get< 1 >( get< 1 >( space_in ) ).get_radius() / j_limits.frame3D_accel_limits[f3d_i + 1] ),
-        AngAccTopo( get< 2 >( get< 1 >( space_in ) ).getName() + "_rl",
-                    get< 2 >( get< 1 >( space_in ) ).get_radius() / j_limits.frame3D_jerk_limits[f3d_i + 1] ) ),
-      euclidean_tuple_distance(), differentiation_rule_array< 2, reach_time_differentiation >::type(
-                                    reach_time_differentiation( j_limits.frame3D_speed_limits[f3d_i + 1]
-                                                                / j_limits.frame3D_accel_limits[f3d_i + 1] ),
-                                    reach_time_differentiation( j_limits.frame3D_accel_limits[f3d_i + 1]
-                                                                / j_limits.frame3D_jerk_limits[f3d_i + 1] ) ) ) ) );
-  f3d_i += 2;
-};
-
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::disable_if< boost::mpl::or_< is_rate_limited_joint_space< OutSpace >,
-                                             is_rate_limited_se2_space< OutSpace >,
-                                             is_rate_limited_se3_space< OutSpace >, is_Ndof_rl_space< OutSpace > >,
-                            void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                              std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i );
-
-template < typename RateLimitMap >
-struct create_rl_joint_space_functor {
-  std::size_t* p_gen_i;
-  std::size_t* p_f2d_i;
-  std::size_t* p_f3d_i;
-  const RateLimitMap* p_j_limits;
-  create_rl_joint_space_functor( std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                 const RateLimitMap& j_limits )
-      : p_gen_i( &gen_i ), p_f2d_i( &f2d_i ), p_f3d_i( &f3d_i ), p_j_limits( &j_limits ){};
-  template < typename OutSpace, typename InSpace >
-  void operator()( OutSpace& space_out, const InSpace& space_in ) {
-    create_rl_joint_space_impl( space_out, space_in, *p_j_limits, *p_gen_i, *p_f2d_i, *p_f3d_i );
-  };
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::disable_if< boost::mpl::or_< is_rate_limited_joint_space< OutSpace >,
-                                             is_rate_limited_se2_space< OutSpace >,
-                                             is_rate_limited_se3_space< OutSpace >, is_Ndof_rl_space< OutSpace > >,
-                            void >::type
-  create_rl_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                              std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i ) {
-  tuple_for_each( space_out, space_in, create_rl_joint_space_functor< RateLimitMap >( gen_i, f2d_i, f3d_i, j_limits ) );
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::disable_if< boost::mpl::or_< is_rate_limited_joint_space< OutSpace >,
-                                             is_rate_limited_se2_space< OutSpace >,
-                                             is_rate_limited_se3_space< OutSpace >, is_Ndof_rl_space< OutSpace > >,
-                            void >::type
-  create_rl_joint_spaces_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits ) {
+template <typename OutSpace, typename InSpace, typename RateLimitMap>
+void create_rl_joint_spaces_impl(OutSpace& space_out, const InSpace& space_in,
+                                 const RateLimitMap& j_limits) {
   std::size_t gen_i = 0;
   std::size_t f2d_i = 0;
   std::size_t f3d_i = 0;
-  tuple_for_each( space_out, space_in, create_rl_joint_space_functor< RateLimitMap >( gen_i, f2d_i, f3d_i, j_limits ) );
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::or_< is_rate_limited_joint_space< OutSpace >,
-                                            is_rate_limited_se2_space< OutSpace >,
-                                            is_rate_limited_se3_space< OutSpace >, is_Ndof_rl_space< OutSpace > >,
-                           void >::type
-  create_rl_joint_spaces_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits ) {
-  std::size_t gen_i = 0;
-  std::size_t f2d_i = 0;
-  std::size_t f3d_i = 0;
-  create_rl_joint_space_impl( space_out, space_in, j_limits, gen_i, f2d_i, f3d_i );
-};
-
+  create_rl_joint_space_impl(space_out, space_in, j_limits, gen_i, f2d_i,
+                             f3d_i);
+}
 
 /***********************************************************************************************************
                                  FUNCTIONS TO CREATE NORMAL JOINT-SPACES
 ************************************************************************************************************/
 
+template <typename OutSpace, typename InSpace, typename RateLimitMap>
+void create_normal_joint_space_impl(OutSpace& space_out,
+                                    const InSpace& space_in,
+                                    const RateLimitMap& j_limits,
+                                    std::size_t& gen_i, std::size_t& f2d_i,
+                                    std::size_t& f3d_i) {
+  if constexpr (is_rate_limited_joint_space_v<InSpace>) {
+    constexpr int InOrder = max_derivation_order_v<InSpace, time_topology>;
+    using ValueType = typename RateLimitMap::value_type;
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_rate_limited_joint_space< InSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 0 > > >,
-                           void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t& gen_i, std::size_t&, std::size_t& ) {
+    line_segment_topology<ValueType> topo_0(
+        get<0>(space_in).getName() + "_non_rl",
+        (get<0>(space_in).origin() - get<0>(space_in).get_radius()) *
+            j_limits.gen_speed_limits[gen_i],
+        (get<0>(space_in).origin() + get<0>(space_in).get_radius()) *
+            j_limits.gen_speed_limits[gen_i]);
 
-  space_out = OutSpace( arithmetic_tuple< line_segment_topology< typename RateLimitMap::value_type > >(
-    line_segment_topology< typename RateLimitMap::value_type >(
-      get< 0 >( space_in ).getName() + "_non_rl",
-      ( get< 0 >( space_in ).origin() - get< 0 >( space_in ).get_radius() ) * j_limits.gen_speed_limits[gen_i],
-      ( get< 0 >( space_in ).origin() + get< 0 >( space_in ).get_radius() ) * j_limits.gen_speed_limits[gen_i] ) ) );
-  ++gen_i;
-};
+    if constexpr (InOrder > 0) {
+      line_segment_topology<ValueType> topo_1(
+          get<1>(space_in).getName() + "_non_rl",
+          (get<1>(space_in).origin() - get<1>(space_in).get_radius()) *
+              j_limits.gen_accel_limits[gen_i],
+          (get<1>(space_in).origin() + get<1>(space_in).get_radius()) *
+              j_limits.gen_accel_limits[gen_i]);
+      if constexpr (InOrder > 1) {
+        line_segment_topology<ValueType> topo_2(
+            get<2>(space_in).getName() + "_non_rl",
+            (get<2>(space_in).origin() - get<2>(space_in).get_radius()) *
+                j_limits.gen_jerk_limits[gen_i],
+            (get<2>(space_in).origin() + get<2>(space_in).get_radius()) *
+                j_limits.gen_jerk_limits[gen_i]);
+        space_out = OutSpace(arithmetic_tuple(
+            std::move(topo_0), std::move(topo_1), std::move(topo_2)));
+      } else {
+        space_out =
+            OutSpace(arithmetic_tuple(std::move(topo_0), std::move(topo_1)));
+      }
+    } else {
+      space_out = OutSpace(arithmetic_tuple(std::move(topo_0)));
+    }
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_rate_limited_joint_space< InSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 1 > > >,
-                           void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t& gen_i, std::size_t&, std::size_t& ) {
-
-  space_out = OutSpace( arithmetic_tuple< line_segment_topology< typename RateLimitMap::value_type >,
-                                          line_segment_topology< typename RateLimitMap::value_type > >(
-    line_segment_topology< typename RateLimitMap::value_type >(
-      get< 0 >( space_in ).getName() + "_non_rl",
-      ( get< 0 >( space_in ).origin() - get< 0 >( space_in ).get_radius() ) * j_limits.gen_speed_limits[gen_i],
-      ( get< 0 >( space_in ).origin() + get< 0 >( space_in ).get_radius() ) * j_limits.gen_speed_limits[gen_i] ),
-    line_segment_topology< typename RateLimitMap::value_type >(
-      get< 1 >( space_in ).getName() + "_non_rl",
-      ( get< 1 >( space_in ).origin() - get< 1 >( space_in ).get_radius() ) * j_limits.gen_accel_limits[gen_i],
-      ( get< 1 >( space_in ).origin() + get< 1 >( space_in ).get_radius() ) * j_limits.gen_accel_limits[gen_i] ) ) );
-  ++gen_i;
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_rate_limited_joint_space< InSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 2 > > >,
-                           void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t& gen_i, std::size_t&, std::size_t& ) {
-
-  space_out = OutSpace( arithmetic_tuple< line_segment_topology< typename RateLimitMap::value_type >,
-                                          line_segment_topology< typename RateLimitMap::value_type >,
-                                          line_segment_topology< typename RateLimitMap::value_type > >(
-    line_segment_topology< typename RateLimitMap::value_type >(
-      get< 0 >( space_in ).getName() + "_non_rl",
-      ( get< 0 >( space_in ).origin() - get< 0 >( space_in ).get_radius() ) * j_limits.gen_speed_limits[gen_i],
-      ( get< 0 >( space_in ).origin() + get< 0 >( space_in ).get_radius() ) * j_limits.gen_speed_limits[gen_i] ),
-    line_segment_topology< typename RateLimitMap::value_type >(
-      get< 1 >( space_in ).getName() + "_non_rl",
-      ( get< 1 >( space_in ).origin() - get< 1 >( space_in ).get_radius() ) * j_limits.gen_accel_limits[gen_i],
-      ( get< 1 >( space_in ).origin() + get< 1 >( space_in ).get_radius() ) * j_limits.gen_accel_limits[gen_i] ),
-    line_segment_topology< typename RateLimitMap::value_type >(
-      get< 2 >( space_in ).getName() + "_non_rl",
-      ( get< 2 >( space_in ).origin() - get< 2 >( space_in ).get_radius() ) * j_limits.gen_jerk_limits[gen_i],
-      ( get< 2 >( space_in ).origin() + get< 2 >( space_in ).get_radius() ) * j_limits.gen_jerk_limits[gen_i] ) ) );
-  ++gen_i;
-};
-
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_Ndof_rl_space< InSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 0 > > >,
-                           void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  typedef typename derived_N_order_space< InSpace, time_topology, 0 >::type BoxTopo;
-  typedef typename BoxTopo::point_type VectorType;
-  VectorType lower_bnd = get< 0 >( space_in ).get_lower_corner();
-  VectorType upper_bnd = get< 0 >( space_in ).get_upper_corner();
-  for( std::size_t i = 0; i < lower_bnd.size(); ++i ) {
-    lower_bnd[i] *= j_limits.gen_speed_limits[gen_i];
-    upper_bnd[i] *= j_limits.gen_speed_limits[gen_i];
     ++gen_i;
-  };
-  space_out = OutSpace( arithmetic_tuple< hyperbox_topology< VectorType, manhattan_distance_metric > >(
-    hyperbox_topology< VectorType, manhattan_distance_metric >( get< 0 >( space_in ).getName() + "_non_rl", lower_bnd,
-                                                                upper_bnd ) ) );
-};
+  } else if constexpr (is_Ndof_rl_space_v<InSpace>) {
+    constexpr int InOrder = max_derivation_order_v<InSpace, time_topology>;
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_Ndof_rl_space< InSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 1 > > >,
-                           void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  typedef typename derived_N_order_space< InSpace, time_topology, 0 >::type BoxTopo;
-  typedef typename BoxTopo::point_type VectorType;
-  VectorType lower_bnd = get< 0 >( space_in ).get_lower_corner();
-  VectorType upper_bnd = get< 0 >( space_in ).get_upper_corner();
-  VectorType speed_lim = get< 1 >( space_in ).get_upper_corner();
-  for( std::size_t i = 0; i < lower_bnd.size(); ++i ) {
-    lower_bnd[i] *= j_limits.gen_speed_limits[gen_i];
-    upper_bnd[i] *= j_limits.gen_speed_limits[gen_i];
-    speed_lim[i] *= j_limits.gen_accel_limits[gen_i];
-    ++gen_i;
-  };
-  space_out = OutSpace( arithmetic_tuple< hyperbox_topology< VectorType, manhattan_distance_metric >,
-                                          hyperbox_topology< VectorType, manhattan_distance_metric > >(
-    hyperbox_topology< VectorType, manhattan_distance_metric >( get< 0 >( space_in ).getName() + "_non_rl", lower_bnd,
-                                                                upper_bnd ),
-    hyperbox_topology< VectorType, manhattan_distance_metric >( get< 1 >( space_in ).getName() + "_non_rl", -speed_lim,
-                                                                speed_lim ) ) );
-};
+    using BoxTopo = derived_N_order_space_t<InSpace, time_topology, 0>;
+    using VectorType = typename BoxTopo::point_type;
+    VectorType lower_bnd = get<0>(space_in).get_lower_corner();
+    VectorType upper_bnd = get<0>(space_in).get_upper_corner();
+    VectorType speed_lim = get<0>(space_in).get_upper_corner();
+    VectorType accel_lim = get<0>(space_in).get_upper_corner();
+    if constexpr (InOrder > 0) {
+      speed_lim = get<1>(space_in).get_upper_corner();
+    }
+    if constexpr (InOrder > 1) {
+      accel_lim = get<2>(space_in).get_upper_corner();
+    }
+    for (std::size_t i = 0; i < lower_bnd.size(); ++i) {
+      lower_bnd[i] *= j_limits.gen_speed_limits[gen_i];
+      upper_bnd[i] *= j_limits.gen_speed_limits[gen_i];
+      if constexpr (InOrder > 0) {
+        speed_lim[i] *= j_limits.gen_accel_limits[gen_i];
+      }
+      if constexpr (InOrder > 1) {
+        accel_lim[i] *= j_limits.gen_jerk_limits[gen_i];
+      }
+      ++gen_i;
+    }
+    hyperbox_topology<VectorType, manhattan_distance_metric> topo_0(
+        get<0>(space_in).getName() + "_non_rl", lower_bnd, upper_bnd);
+    if constexpr (InOrder > 0) {
+      hyperbox_topology<VectorType, manhattan_distance_metric> topo_1(
+          get<1>(space_in).getName() + "_non_rl", -speed_lim, speed_lim);
+      if constexpr (InOrder > 1) {
+        hyperbox_topology<VectorType, manhattan_distance_metric> topo_2(
+            get<2>(space_in).getName() + "_non_rl", -accel_lim, accel_lim);
+        space_out = OutSpace(arithmetic_tuple(
+            std::move(topo_0), std::move(topo_1), std::move(topo_2)));
+      } else {
+        space_out =
+            OutSpace(arithmetic_tuple(std::move(topo_0), std::move(topo_1)));
+      }
+    } else {
+      space_out = OutSpace(arithmetic_tuple(std::move(topo_0)));
+    }
+  } else if constexpr (is_rate_limited_se2_space_v<InSpace>) {
+    constexpr int InOrder =
+        max_derivation_order_v<arithmetic_tuple_element_t<0, InSpace>,
+                               time_topology>;
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::and_< is_Ndof_rl_space< InSpace >,
-                                             boost::mpl::equal_to< max_derivation_order< InSpace, time_topology >,
-                                                                   boost::mpl::size_t< 2 > > >,
-                           void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  typedef typename derived_N_order_space< InSpace, time_topology, 0 >::type BoxTopo;
-  typedef typename BoxTopo::point_type VectorType;
-  VectorType lower_bnd = get< 0 >( space_in ).get_lower_corner();
-  VectorType upper_bnd = get< 0 >( space_in ).get_upper_corner();
-  VectorType speed_lim = get< 1 >( space_in ).get_upper_corner();
-  VectorType accel_lim = get< 2 >( space_in ).get_upper_corner();
-  for( std::size_t i = 0; i < lower_bnd.size(); ++i ) {
-    lower_bnd[i] *= j_limits.gen_speed_limits[gen_i];
-    upper_bnd[i] *= j_limits.gen_speed_limits[gen_i];
-    speed_lim[i] *= j_limits.gen_accel_limits[gen_i];
-    accel_lim[i] *= j_limits.gen_jerk_limits[gen_i];
-    ++gen_i;
-  };
-  space_out = OutSpace( arithmetic_tuple< hyperbox_topology< VectorType, manhattan_distance_metric >,
-                                          hyperbox_topology< VectorType, manhattan_distance_metric >,
-                                          hyperbox_topology< VectorType, manhattan_distance_metric > >(
-    hyperbox_topology< VectorType, manhattan_distance_metric >( get< 0 >( space_in ).getName() + "_non_rl", lower_bnd,
-                                                                upper_bnd ),
-    hyperbox_topology< VectorType, manhattan_distance_metric >( get< 1 >( space_in ).getName() + "_non_rl", -speed_lim,
-                                                                speed_lim ),
-    hyperbox_topology< VectorType, manhattan_distance_metric >( get< 2 >( space_in ).getName() + "_non_rl", -accel_lim,
-                                                                accel_lim ) ) );
-};
+    using ValueType = typename RateLimitMap::value_type;
+    using LineSegTopo = line_segment_topology<ValueType>;
+    using BoxTopo = hyperbox_topology<vect<ValueType, 2>>;
+    using BallTopo = hyperball_topology<vect<ValueType, 2>>;
+    using PosTopoOutType = arithmetic_tuple_element_t<0, OutSpace>;
+    using RotTopoOutType = arithmetic_tuple_element_t<1, OutSpace>;
 
+    BoxTopo pos_0(get<0>(get<0>(space_in)).getName() + "_non_rl",
+                  get<0>(get<0>(space_in)).get_lower_corner() *
+                      j_limits.frame2D_speed_limits[f2d_i],
+                  get<0>(get<0>(space_in)).get_upper_corner() *
+                      j_limits.frame2D_speed_limits[f2d_i]);
+    LineSegTopo rot_0(get<0>(get<1>(space_in)).getName() + "_non_rl",
+                      (get<0>(get<1>(space_in)).origin() -
+                       get<0>(get<1>(space_in)).get_radius()) *
+                          j_limits.frame2D_speed_limits[f2d_i + 1],
+                      (get<0>(get<1>(space_in)).origin() +
+                       get<0>(get<1>(space_in)).get_radius()) *
+                          j_limits.frame2D_speed_limits[f2d_i + 1]);
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se2_space< InSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 0 > > >,
-             void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t&, std::size_t& f2d_i, std::size_t& ) {
+    if constexpr (InOrder > 0) {
+      BallTopo pos_1(get<1>(get<0>(space_in)).getName() + "_non_rl",
+                     get<1>(get<0>(space_in)).origin() *
+                         j_limits.frame2D_accel_limits[f2d_i],
+                     get<1>(get<0>(space_in)).get_radius() *
+                         j_limits.frame2D_accel_limits[f2d_i]);
+      LineSegTopo rot_1(get<1>(get<1>(space_in)).getName() + "_non_rl",
+                        (get<1>(get<1>(space_in)).origin() -
+                         get<1>(get<1>(space_in)).get_radius()) *
+                            j_limits.frame2D_accel_limits[f2d_i + 1],
+                        (get<1>(get<1>(space_in)).origin() +
+                         get<1>(get<1>(space_in)).get_radius()) *
+                            j_limits.frame2D_accel_limits[f2d_i + 1]);
+      if constexpr (InOrder > 1) {
+        BallTopo pos_2(get<2>(get<0>(space_in)).getName() + "_non_rl",
+                       get<2>(get<0>(space_in)).origin() *
+                           j_limits.frame2D_jerk_limits[f2d_i],
+                       get<2>(get<0>(space_in)).get_radius() *
+                           j_limits.frame2D_jerk_limits[f2d_i]);
+        LineSegTopo rot_2(get<2>(get<1>(space_in)).getName() + "_non_rl",
+                          (get<2>(get<1>(space_in)).origin() -
+                           get<2>(get<1>(space_in)).get_radius()) *
+                              j_limits.frame2D_jerk_limits[f2d_i + 1],
+                          (get<2>(get<1>(space_in)).origin() +
+                           get<2>(get<1>(space_in)).get_radius()) *
+                              j_limits.frame2D_jerk_limits[f2d_i + 1]);
+        space_out = OutSpace(arithmetic_tuple(
+            PosTopoOutType(arithmetic_tuple(std::move(pos_0), std::move(pos_1),
+                                            std::move(pos_2))),
+            RotTopoOutType(arithmetic_tuple(std::move(rot_0), std::move(rot_1),
+                                            std::move(rot_2)))));
+      } else {
+        space_out = OutSpace(arithmetic_tuple(
+            PosTopoOutType(
+                arithmetic_tuple(std::move(pos_0), std::move(pos_1))),
+            RotTopoOutType(
+                arithmetic_tuple(std::move(rot_0), std::move(rot_1)))));
+      }
+    } else {
+      space_out = OutSpace(
+          arithmetic_tuple(PosTopoOutType(arithmetic_tuple(std::move(pos_0))),
+                           RotTopoOutType(arithmetic_tuple(std::move(rot_0)))));
+    }
 
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef line_segment_topology< ValueType > LineSegTopo;
-  typedef hyperbox_topology< vect< ValueType, 2 > > BoxTopo;
-  typedef arithmetic_tuple< LineSegTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
+    f2d_i += 2;
+  } else if constexpr (is_rate_limited_se3_space_v<InSpace>) {
+    constexpr int InOrder =
+        max_derivation_order_v<arithmetic_tuple_element_t<0, InSpace>,
+                               time_topology>;
 
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType( PosTopoTuple(
-      BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-               get< 0 >( get< 0 >( space_in ) ).get_lower_corner() * j_limits.frame2D_speed_limits[f2d_i],
-               get< 0 >( get< 0 >( space_in ) ).get_upper_corner() * j_limits.frame2D_speed_limits[f2d_i] ) ) ),
-    RotTopoOutType( RotTopoTuple(
-      LineSegTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_non_rl",
-                   ( get< 0 >( get< 1 >( space_in ) ).origin() - get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_speed_limits[f2d_i + 1],
-                   ( get< 0 >( get< 1 >( space_in ) ).origin() + get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_speed_limits[f2d_i + 1] ) ) ) ) );
-  f2d_i += 2;
-};
+    using ValueType = typename RateLimitMap::value_type;
+    using QuatTopo = quaternion_topology<ValueType>;
+    using AngVelTopo = ang_velocity_3D_topology<ValueType>;
+    using AngAccTopo = ang_accel_3D_topology<ValueType>;
+    using BoxTopo = hyperbox_topology<vect<ValueType, 3>>;
+    using BallTopo = hyperball_topology<vect<ValueType, 3>>;
+    using PosTopoOutType = arithmetic_tuple_element_t<0, OutSpace>;
+    using RotTopoOutType = arithmetic_tuple_element_t<1, OutSpace>;
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se2_space< InSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 1 > > >,
-             void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t&, std::size_t& f2d_i, std::size_t& ) {
+    BoxTopo pos_0(get<0>(get<0>(space_in)).getName() + "_non_rl",
+                  get<0>(get<0>(space_in)).get_lower_corner() *
+                      j_limits.frame3D_speed_limits[f3d_i],
+                  get<0>(get<0>(space_in)).get_upper_corner() *
+                      j_limits.frame3D_speed_limits[f3d_i]);
+    QuatTopo rot_0(get<0>(get<1>(space_in)).getName() + "_non_rl");
 
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef line_segment_topology< ValueType > LineSegTopo;
-  typedef hyperbox_topology< vect< ValueType, 2 > > BoxTopo;
-  typedef hyperball_topology< vect< ValueType, 2 > > BallTopo;
-  typedef arithmetic_tuple< LineSegTopo, LineSegTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo, BallTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
+    if constexpr (InOrder > 0) {
+      BallTopo pos_1(get<1>(get<0>(space_in)).getName() + "_non_rl",
+                     get<1>(get<0>(space_in)).origin() *
+                         j_limits.frame3D_accel_limits[f3d_i],
+                     get<1>(get<0>(space_in)).get_radius() *
+                         j_limits.frame3D_accel_limits[f3d_i]);
+      AngVelTopo rot_1(get<1>(get<1>(space_in)).getName() + "_non_rl",
+                       get<1>(get<1>(space_in)).get_radius() *
+                           j_limits.frame3D_accel_limits[f3d_i + 1]);
+      if constexpr (InOrder > 1) {
+        BallTopo pos_2(get<2>(get<0>(space_in)).getName() + "_non_rl",
+                       get<2>(get<0>(space_in)).origin() *
+                           j_limits.frame3D_jerk_limits[f3d_i],
+                       get<2>(get<0>(space_in)).get_radius() *
+                           j_limits.frame3D_jerk_limits[f3d_i]);
+        AngAccTopo rot_2(get<2>(get<1>(space_in)).getName() + "_non_rl",
+                         get<2>(get<1>(space_in)).get_radius() *
+                             j_limits.frame3D_jerk_limits[f3d_i + 1]);
+        space_out = OutSpace(arithmetic_tuple(
+            PosTopoOutType(arithmetic_tuple(std::move(pos_0), std::move(pos_1),
+                                            std::move(pos_2))),
+            RotTopoOutType(arithmetic_tuple(std::move(rot_0), std::move(rot_1),
+                                            std::move(rot_2)))));
+      } else {
+        space_out = OutSpace(arithmetic_tuple(
+            PosTopoOutType(
+                arithmetic_tuple(std::move(pos_0), std::move(pos_1))),
+            RotTopoOutType(
+                arithmetic_tuple(std::move(rot_0), std::move(rot_1)))));
+      }
+    } else {
+      space_out = OutSpace(
+          arithmetic_tuple(PosTopoOutType(arithmetic_tuple(std::move(pos_0))),
+                           RotTopoOutType(arithmetic_tuple(std::move(rot_0)))));
+    }
 
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType( PosTopoTuple(
-      BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-               get< 0 >( get< 0 >( space_in ) ).get_lower_corner() * j_limits.frame2D_speed_limits[f2d_i],
-               get< 0 >( get< 0 >( space_in ) ).get_upper_corner() * j_limits.frame2D_speed_limits[f2d_i] ),
-      BallTopo( get< 1 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-                get< 1 >( get< 0 >( space_in ) ).origin() * j_limits.frame2D_accel_limits[f2d_i],
-                get< 1 >( get< 0 >( space_in ) ).get_radius() * j_limits.frame2D_accel_limits[f2d_i] ) ) ),
-    RotTopoOutType( RotTopoTuple(
-      LineSegTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_non_rl",
-                   ( get< 0 >( get< 1 >( space_in ) ).origin() - get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_speed_limits[f2d_i + 1],
-                   ( get< 0 >( get< 1 >( space_in ) ).origin() + get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_speed_limits[f2d_i + 1] ),
-      LineSegTopo( get< 1 >( get< 1 >( space_in ) ).getName() + "_non_rl",
-                   ( get< 1 >( get< 1 >( space_in ) ).origin() - get< 1 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_accel_limits[f2d_i + 1],
-                   ( get< 1 >( get< 1 >( space_in ) ).origin() + get< 1 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_accel_limits[f2d_i + 1] ) ) ) ) );
-  f2d_i += 2;
-};
+    f3d_i += 2;
+  } else {
+    tuple_for_each(space_out, space_in,
+                   [&](auto& space_elem_out, const auto& space_elem_in) {
+                     create_normal_joint_space_impl(space_elem_out,
+                                                    space_elem_in, j_limits,
+                                                    gen_i, f2d_i, f3d_i);
+                   });
+  }
+}
 
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se2_space< InSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 2 > > >,
-             void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t&, std::size_t& f2d_i, std::size_t& ) {
-
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef line_segment_topology< ValueType > LineSegTopo;
-  typedef hyperbox_topology< vect< ValueType, 2 > > BoxTopo;
-  typedef hyperball_topology< vect< ValueType, 2 > > BallTopo;
-  typedef arithmetic_tuple< LineSegTopo, LineSegTopo, LineSegTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo, BallTopo, BallTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
-
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType( PosTopoTuple(
-      BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-               get< 0 >( get< 0 >( space_in ) ).get_lower_corner() * j_limits.frame2D_speed_limits[f2d_i],
-               get< 0 >( get< 0 >( space_in ) ).get_upper_corner() * j_limits.frame2D_speed_limits[f2d_i] ),
-      BallTopo( get< 1 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-                get< 1 >( get< 0 >( space_in ) ).origin() * j_limits.frame2D_accel_limits[f2d_i],
-                get< 1 >( get< 0 >( space_in ) ).get_radius() * j_limits.frame2D_accel_limits[f2d_i] ),
-      BallTopo( get< 2 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-                get< 2 >( get< 0 >( space_in ) ).origin() * j_limits.frame2D_jerk_limits[f2d_i],
-                get< 2 >( get< 0 >( space_in ) ).get_radius() * j_limits.frame2D_jerk_limits[f2d_i] ) ) ),
-    RotTopoOutType( RotTopoTuple(
-      LineSegTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_non_rl",
-                   ( get< 0 >( get< 1 >( space_in ) ).origin() - get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_speed_limits[f2d_i + 1],
-                   ( get< 0 >( get< 1 >( space_in ) ).origin() + get< 0 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_speed_limits[f2d_i + 1] ),
-      LineSegTopo( get< 1 >( get< 1 >( space_in ) ).getName() + "_non_rl",
-                   ( get< 1 >( get< 1 >( space_in ) ).origin() - get< 1 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_accel_limits[f2d_i + 1],
-                   ( get< 1 >( get< 1 >( space_in ) ).origin() + get< 1 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_accel_limits[f2d_i + 1] ),
-      LineSegTopo( get< 2 >( get< 1 >( space_in ) ).getName() + "_non_rl",
-                   ( get< 2 >( get< 1 >( space_in ) ).origin() - get< 2 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_jerk_limits[f2d_i + 1],
-                   ( get< 2 >( get< 1 >( space_in ) ).origin() + get< 2 >( get< 1 >( space_in ) ).get_radius() )
-                   * j_limits.frame2D_jerk_limits[f2d_i + 1] ) ) ) ) );
-  f2d_i += 2;
-};
-
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se3_space< InSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 0 > > >,
-             void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t&, std::size_t&, std::size_t& f3d_i ) {
-
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef quaternion_topology< ValueType > QuatTopo;
-  typedef hyperbox_topology< vect< ValueType, 3 > > BoxTopo;
-  typedef arithmetic_tuple< QuatTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
-
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType( PosTopoTuple(
-      BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-               get< 0 >( get< 0 >( space_in ) ).get_lower_corner() * j_limits.frame3D_speed_limits[f3d_i],
-               get< 0 >( get< 0 >( space_in ) ).get_upper_corner() * j_limits.frame3D_speed_limits[f3d_i] ) ) ),
-    RotTopoOutType( RotTopoTuple( QuatTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_non_rl" ) ) ) ) );
-  f3d_i += 2;
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se3_space< InSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 1 > > >,
-             void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t&, std::size_t&, std::size_t& f3d_i ) {
-
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef quaternion_topology< ValueType > QuatTopo;
-  typedef ang_velocity_3D_topology< ValueType > AngVelTopo;
-  typedef hyperbox_topology< vect< ValueType, 3 > > BoxTopo;
-  typedef hyperball_topology< vect< ValueType, 3 > > BallTopo;
-  typedef arithmetic_tuple< QuatTopo, AngVelTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo, BallTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
-
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType( PosTopoTuple(
-      BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-               get< 0 >( get< 0 >( space_in ) ).get_lower_corner() * j_limits.frame3D_speed_limits[f3d_i],
-               get< 0 >( get< 0 >( space_in ) ).get_upper_corner() * j_limits.frame3D_speed_limits[f3d_i] ),
-      BallTopo( get< 1 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-                get< 1 >( get< 0 >( space_in ) ).origin() * j_limits.frame3D_accel_limits[f3d_i],
-                get< 1 >( get< 0 >( space_in ) ).get_radius() * j_limits.frame3D_accel_limits[f3d_i] ) ) ),
-    RotTopoOutType( RotTopoTuple(
-      QuatTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_non_rl" ),
-      AngVelTopo( get< 1 >( get< 1 >( space_in ) ).getName() + "_non_rl",
-                  get< 1 >( get< 1 >( space_in ) ).get_radius() * j_limits.frame3D_accel_limits[f3d_i + 1] ) ) ) ) );
-  f3d_i += 2;
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::
-  enable_if< boost::mpl::
-               and_< is_rate_limited_se3_space< InSpace >,
-                     boost::mpl::equal_to< max_derivation_order< typename arithmetic_tuple_element< 0, InSpace >::type,
-                                                                 time_topology >,
-                                           boost::mpl::size_t< 2 > > >,
-             void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t&, std::size_t&, std::size_t& f3d_i ) {
-
-  typedef typename RateLimitMap::value_type ValueType;
-  typedef quaternion_topology< ValueType > QuatTopo;
-  typedef ang_velocity_3D_topology< ValueType > AngVelTopo;
-  typedef ang_accel_3D_topology< ValueType > AngAccTopo;
-  typedef hyperbox_topology< vect< ValueType, 3 > > BoxTopo;
-  typedef hyperball_topology< vect< ValueType, 3 > > BallTopo;
-  typedef arithmetic_tuple< QuatTopo, AngVelTopo, AngAccTopo > RotTopoTuple;
-  typedef arithmetic_tuple< BoxTopo, BallTopo, BallTopo > PosTopoTuple;
-  typedef typename arithmetic_tuple_element< 0, OutSpace >::type PosTopoOutType;
-  typedef typename arithmetic_tuple_element< 1, OutSpace >::type RotTopoOutType;
-
-  space_out = OutSpace( arithmetic_tuple< PosTopoOutType, RotTopoOutType >(
-    PosTopoOutType( PosTopoTuple(
-      BoxTopo( get< 0 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-               get< 0 >( get< 0 >( space_in ) ).get_lower_corner() * j_limits.frame3D_speed_limits[f3d_i],
-               get< 0 >( get< 0 >( space_in ) ).get_upper_corner() * j_limits.frame3D_speed_limits[f3d_i] ),
-      BallTopo( get< 1 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-                get< 1 >( get< 0 >( space_in ) ).origin() * j_limits.frame3D_accel_limits[f3d_i],
-                get< 1 >( get< 0 >( space_in ) ).get_radius() * j_limits.frame3D_accel_limits[f3d_i] ),
-      BallTopo( get< 2 >( get< 0 >( space_in ) ).getName() + "_non_rl",
-                get< 2 >( get< 0 >( space_in ) ).origin() * j_limits.frame3D_jerk_limits[f3d_i],
-                get< 2 >( get< 0 >( space_in ) ).get_radius() * j_limits.frame3D_jerk_limits[f3d_i] ) ) ),
-    RotTopoOutType( RotTopoTuple(
-      QuatTopo( get< 0 >( get< 1 >( space_in ) ).getName() + "_non_rl" ),
-      AngVelTopo( get< 1 >( get< 1 >( space_in ) ).getName() + "_non_rl",
-                  get< 1 >( get< 1 >( space_in ) ).get_radius() * j_limits.frame3D_accel_limits[f3d_i + 1] ),
-      AngAccTopo( get< 2 >( get< 1 >( space_in ) ).getName() + "_non_rl",
-                  get< 2 >( get< 1 >( space_in ) ).get_radius() * j_limits.frame3D_jerk_limits[f3d_i + 1] ) ) ) ) );
-  f3d_i += 2;
-};
-
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::disable_if< boost::mpl::or_< is_rate_limited_joint_space< InSpace >,
-                                             is_rate_limited_se2_space< InSpace >, is_rate_limited_se3_space< InSpace >,
-                                             is_Ndof_rl_space< InSpace > >,
-                            void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i );
-
-template < typename RateLimitMap >
-struct create_normal_joint_space_functor {
-  std::size_t* p_gen_i;
-  std::size_t* p_f2d_i;
-  std::size_t* p_f3d_i;
-  const RateLimitMap* p_j_limits;
-  create_normal_joint_space_functor( std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                     const RateLimitMap& j_limits )
-      : p_gen_i( &gen_i ), p_f2d_i( &f2d_i ), p_f3d_i( &f3d_i ), p_j_limits( &j_limits ){};
-  template < typename OutSpace, typename InSpace >
-  void operator()( OutSpace& space_out, const InSpace& space_in ) {
-    create_normal_joint_space_impl( space_out, space_in, *p_j_limits, *p_gen_i, *p_f2d_i, *p_f3d_i );
-  };
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::disable_if< boost::mpl::or_< is_rate_limited_joint_space< InSpace >,
-                                             is_rate_limited_se2_space< InSpace >, is_rate_limited_se3_space< InSpace >,
-                                             is_Ndof_rl_space< InSpace > >,
-                            void >::type
-  create_normal_joint_space_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits,
-                                  std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i ) {
-  tuple_for_each( space_out, space_in,
-                  create_normal_joint_space_functor< RateLimitMap >( gen_i, f2d_i, f3d_i, j_limits ) );
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::disable_if< boost::mpl::or_< is_rate_limited_joint_space< InSpace >,
-                                             is_rate_limited_se2_space< InSpace >, is_rate_limited_se3_space< InSpace >,
-                                             is_Ndof_rl_space< InSpace > >,
-                            void >::type
-  create_normal_joint_spaces_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits ) {
+template <typename OutSpace, typename InSpace, typename RateLimitMap>
+void create_normal_joint_spaces_impl(OutSpace& space_out,
+                                     const InSpace& space_in,
+                                     const RateLimitMap& j_limits) {
   std::size_t gen_i = 0;
   std::size_t f2d_i = 0;
   std::size_t f3d_i = 0;
-  tuple_for_each( space_out, space_in,
-                  create_normal_joint_space_functor< RateLimitMap >( gen_i, f2d_i, f3d_i, j_limits ) );
-};
-
-template < typename OutSpace, typename InSpace, typename RateLimitMap >
-typename boost::enable_if< boost::mpl::or_< is_rate_limited_joint_space< InSpace >,
-                                            is_rate_limited_se2_space< InSpace >, is_rate_limited_se3_space< InSpace >,
-                                            is_Ndof_rl_space< InSpace > >,
-                           void >::type
-  create_normal_joint_spaces_impl( OutSpace& space_out, const InSpace& space_in, const RateLimitMap& j_limits ) {
-  std::size_t gen_i = 0;
-  std::size_t f2d_i = 0;
-  std::size_t f3d_i = 0;
-  create_normal_joint_space_impl( space_out, space_in, j_limits, gen_i, f2d_i, f3d_i );
-};
-
+  create_normal_joint_space_impl(space_out, space_in, j_limits, gen_i, f2d_i,
+                                 f3d_i);
+}
 
 /**************************************************************************************************
                                  FUNCTIONS TO CREATE RATE-LIMITED JOINT-SPACE VECTORS
 ***************************************************************************************************/
 
-
-template < typename RateLimitMap >
-void create_rl_joint_vector_impl( arithmetic_tuple< typename RateLimitMap::value_type >& result,
-                                  const arithmetic_tuple< typename RateLimitMap::value_type >& pt,
-                                  const RateLimitMap& j_limits, std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  get< 0 >( result ) = get< 0 >( pt ) / j_limits.gen_speed_limits[gen_i];
-  ++gen_i;
-};
-
-template < typename RateLimitMap >
-void create_rl_joint_vector_impl(
-  arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type >& result,
-  const arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type >& pt,
-  const RateLimitMap& j_limits, std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  get< 0 >( result ) = get< 0 >( pt ) / j_limits.gen_speed_limits[gen_i];
-  get< 1 >( result ) = get< 1 >( pt ) / j_limits.gen_accel_limits[gen_i];
-  ++gen_i;
-};
-
-template < typename RateLimitMap >
-void create_rl_joint_vector_impl(
-  arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type,
-                    typename RateLimitMap::value_type >& result,
-  const arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type,
-                          typename RateLimitMap::value_type >& pt,
-  const RateLimitMap& j_limits, std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  get< 0 >( result ) = get< 0 >( pt ) / j_limits.gen_speed_limits[gen_i];
-  get< 1 >( result ) = get< 1 >( pt ) / j_limits.gen_accel_limits[gen_i];
-  get< 2 >( result ) = get< 2 >( pt ) / j_limits.gen_jerk_limits[gen_i];
-  ++gen_i;
-};
-
-
-template < typename Idx, typename Vector, typename RateLimitMap >
-typename boost::enable_if< is_writable_vector< Vector >, void >::type
-  create_rl_joint_vectors_impl( arithmetic_tuple< Vector >& result, const arithmetic_tuple< Vector >& pt,
-                                const RateLimitMap& j_limits, std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  for( std::size_t i = 0; i < get< 0 >( pt ).size(); ++i ) {
-    get< 0 >( result )[i] = get< 0 >( pt )[i] / j_limits.gen_speed_limits[gen_i];
+template <typename RateLimitMap, typename Arg0, typename... Args>
+void create_rl_joint_vector_impl(arithmetic_tuple<Arg0, Args...>& result,
+                                 const arithmetic_tuple<Arg0, Args...>& pt,
+                                 const RateLimitMap& j_limits,
+                                 std::size_t& gen_i, std::size_t& f2d_i,
+                                 std::size_t& f3d_i) {
+  using ValueType = typename RateLimitMap::value_type;
+  if constexpr (std::is_same_v<Arg0, ValueType>) {
+    constexpr int Order = sizeof...(Args);
+    get<0>(result) = get<0>(pt) / j_limits.gen_speed_limits[gen_i];
+    if constexpr (Order > 0) {
+      get<1>(result) = get<1>(pt) / j_limits.gen_accel_limits[gen_i];
+    }
+    if constexpr (Order > 1) {
+      get<2>(result) = get<2>(pt) / j_limits.gen_jerk_limits[gen_i];
+    }
     ++gen_i;
-  };
-};
+  } else if constexpr (is_writable_vector_v<Arg0>) {
+    constexpr int Order = sizeof...(Args);
+    for (std::size_t i = 0; i < get<0>(pt).size(); ++i) {
+      get<0>(result)[i] = get<0>(pt)[i] / j_limits.gen_speed_limits[gen_i];
+      if constexpr (Order > 0) {
+        get<1>(result)[i] = get<1>(pt)[i] / j_limits.gen_accel_limits[gen_i];
+      }
+      if constexpr (Order > 1) {
+        get<2>(result)[i] = get<2>(pt)[i] / j_limits.gen_jerk_limits[gen_i];
+      }
+      ++gen_i;
+    }
+  } else if constexpr (is_arithmetic_tuple_v<Arg0>) {
+    constexpr int Order = arithmetic_tuple_size_v<Arg0> - 1;
+    using SubArg0 = std::decay_t<decltype(get<0>(get<0>(pt)))>;
+    if constexpr (std::is_same_v<SubArg0, vect<ValueType, 2>>) {
+      // SE2
+      get<0>(get<0>(result)) =
+          get<0>(get<0>(pt)) * (1.0 / j_limits.frame2D_speed_limits[f2d_i]);
+      get<0>(get<1>(result)) =
+          get<0>(get<1>(pt)) / j_limits.frame2D_speed_limits[f2d_i + 1];
+      if constexpr (Order > 0) {
+        get<1>(get<0>(result)) =
+            get<1>(get<0>(pt)) * (1.0 / j_limits.frame2D_accel_limits[f2d_i]);
+        get<1>(get<1>(result)) =
+            get<1>(get<1>(pt)) / j_limits.frame2D_accel_limits[f2d_i + 1];
+      }
+      if constexpr (Order > 1) {
+        get<2>(get<0>(result)) =
+            get<2>(get<0>(pt)) * (1.0 / j_limits.frame2D_jerk_limits[f2d_i]);
+        get<2>(get<1>(result)) =
+            get<2>(get<1>(pt)) / j_limits.frame2D_jerk_limits[f2d_i + 1];
+      }
+      f2d_i += 2;
+    } else if constexpr (std::is_same_v<SubArg0, vect<ValueType, 3>>) {
+      // SE3
+      get<0>(get<0>(result)) =
+          get<0>(get<0>(pt)) * (1.0 / j_limits.frame3D_speed_limits[f3d_i]);
+      get<0>(get<1>(result)) = get<0>(get<1>(pt));
+      if constexpr (Order > 0) {
+        get<1>(get<0>(result)) =
+            get<1>(get<0>(pt)) * (1.0 / j_limits.frame3D_accel_limits[f3d_i]);
+        get<1>(get<1>(result)) =
+            get<1>(get<1>(pt)) *
+            (1.0 / j_limits.frame3D_accel_limits[f3d_i + 1]);
+      }
+      if constexpr (Order > 1) {
+        get<2>(get<0>(result)) =
+            get<2>(get<0>(pt)) * (1.0 / j_limits.frame3D_jerk_limits[f3d_i]);
+        get<2>(get<1>(result)) =
+            get<2>(get<1>(pt)) *
+            (1.0 / j_limits.frame3D_jerk_limits[f3d_i + 1]);
+      }
+      f3d_i += 2;
+    } else {
+      // Unknown, just recurse.
+      tuple_for_each(result, pt, [&](auto& elem_out, const auto& elem_in) {
+        create_rl_joint_vector_impl(elem_out, elem_in, j_limits, gen_i, f2d_i,
+                                    f3d_i);
+      });
+    }
+  } else {
+    // Unknown, just recurse (will probably fail).
+    tuple_for_each(result, pt, [&](auto& elem_out, const auto& elem_in) {
+      create_rl_joint_vector_impl(elem_out, elem_in, j_limits, gen_i, f2d_i,
+                                  f3d_i);
+    });
+  }
+}
 
-template < typename Idx, typename Vector, typename RateLimitMap >
-typename boost::enable_if< is_writable_vector< Vector >, void >::type
-  create_rl_joint_vectors_impl( arithmetic_tuple< Vector, Vector >& result,
-                                const arithmetic_tuple< Vector, Vector >& pt, const RateLimitMap& j_limits,
-                                std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  for( std::size_t i = 0; i < get< 0 >( pt ).size(); ++i ) {
-    get< 0 >( result )[i] = get< 0 >( pt )[i] / j_limits.gen_speed_limits[gen_i];
-    get< 1 >( result )[i] = get< 1 >( pt )[i] / j_limits.gen_accel_limits[gen_i];
-    ++gen_i;
-  };
-};
-
-template < typename Idx, typename Vector, typename RateLimitMap >
-typename boost::enable_if< is_writable_vector< Vector >, void >::type
-  create_rl_joint_vectors_impl( arithmetic_tuple< Vector, Vector, Vector >& result,
-                                const arithmetic_tuple< Vector, Vector, Vector >& pt, const RateLimitMap& j_limits,
-                                std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  for( std::size_t i = 0; i < get< 0 >( pt ).size(); ++i ) {
-    get< 0 >( result )[i] = get< 0 >( pt )[i] / j_limits.gen_speed_limits[gen_i];
-    get< 1 >( result )[i] = get< 1 >( pt )[i] / j_limits.gen_accel_limits[gen_i];
-    get< 2 >( result )[i] = get< 2 >( pt )[i] / j_limits.gen_jerk_limits[gen_i];
-    ++gen_i;
-  };
-};
-
-
-template < typename RateLimitMap >
-void
-  create_rl_joint_vector_impl( arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 > >,
-                                                 arithmetic_tuple< typename RateLimitMap::value_type > >& result,
-                               const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 > >,
-                                                       arithmetic_tuple< typename RateLimitMap::value_type > >& pt,
-                               const RateLimitMap& j_limits, std::size_t&, std::size_t& f2d_i, std::size_t& ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame2D_speed_limits[f2d_i] );
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) ) / j_limits.frame2D_speed_limits[f2d_i + 1];
-  f2d_i += 2;
-};
-
-template < typename RateLimitMap >
-void create_rl_joint_vector_impl(
-  arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 >,
-                                      vect< typename RateLimitMap::value_type, 2 > >,
-                    arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type > >& result,
-  const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 >,
-                                            vect< typename RateLimitMap::value_type, 2 > >,
-                          arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type > >&
-    pt,
-  const RateLimitMap& j_limits, std::size_t&, std::size_t& f2d_i, std::size_t& ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame2D_speed_limits[f2d_i] );
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) ) / j_limits.frame2D_speed_limits[f2d_i + 1];
-  get< 1 >( get< 0 >( result ) ) = get< 1 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame2D_accel_limits[f2d_i] );
-  get< 1 >( get< 1 >( result ) ) = get< 1 >( get< 1 >( pt ) ) / j_limits.frame2D_accel_limits[f2d_i + 1];
-  f2d_i += 2;
-};
-
-template < typename RateLimitMap >
-void create_rl_joint_vector_impl(
-  arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 >,
-                                      vect< typename RateLimitMap::value_type, 2 >,
-                                      vect< typename RateLimitMap::value_type, 2 > >,
-                    arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type,
-                                      typename RateLimitMap::value_type > >& result,
-  const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 >,
-                                            vect< typename RateLimitMap::value_type, 2 >,
-                                            vect< typename RateLimitMap::value_type, 2 > >,
-                          arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type,
-                                            typename RateLimitMap::value_type > >& pt,
-  const RateLimitMap& j_limits, std::size_t&, std::size_t& f2d_i, std::size_t& ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame2D_speed_limits[f2d_i] );
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) ) / j_limits.frame2D_speed_limits[f2d_i + 1];
-  get< 1 >( get< 0 >( result ) ) = get< 1 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame2D_accel_limits[f2d_i] );
-  get< 1 >( get< 1 >( result ) ) = get< 1 >( get< 1 >( pt ) ) / j_limits.frame2D_accel_limits[f2d_i + 1];
-  get< 2 >( get< 0 >( result ) ) = get< 2 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame2D_jerk_limits[f2d_i] );
-  get< 2 >( get< 1 >( result ) ) = get< 2 >( get< 1 >( pt ) ) / j_limits.frame2D_jerk_limits[f2d_i + 1];
-  f2d_i += 2;
-};
-
-
-template < typename RateLimitMap >
-void create_rl_joint_vector_impl(
-  arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 > >,
-                    arithmetic_tuple< unit_quat< typename RateLimitMap::value_type > > >& result,
-  const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 > >,
-                          arithmetic_tuple< unit_quat< typename RateLimitMap::value_type > > >& pt,
-  const RateLimitMap& j_limits, std::size_t&, std::size_t&, std::size_t& f3d_i ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame3D_speed_limits[f3d_i] );
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) );
-  f3d_i += 2;
-};
-
-template < typename RateLimitMap >
-void create_rl_joint_vector_impl(
-  arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 >,
-                                      vect< typename RateLimitMap::value_type, 3 > >,
-                    arithmetic_tuple< unit_quat< typename RateLimitMap::value_type >,
-                                      vect< typename RateLimitMap::value_type, 3 > > >& result,
-  const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 >,
-                                            vect< typename RateLimitMap::value_type, 3 > >,
-                          arithmetic_tuple< unit_quat< typename RateLimitMap::value_type >,
-                                            vect< typename RateLimitMap::value_type, 3 > > >& pt,
-  const RateLimitMap& j_limits, std::size_t&, std::size_t&, std::size_t& f3d_i ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame3D_speed_limits[f3d_i] );
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) );
-  get< 1 >( get< 0 >( result ) ) = get< 1 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame3D_accel_limits[f3d_i] );
-  get< 1 >( get< 1 >( result ) ) = get< 1 >( get< 1 >( pt ) ) * ( 1.0 / j_limits.frame3D_accel_limits[f3d_i + 1] );
-  f3d_i += 2;
-};
-
-template < typename RateLimitMap >
-void create_rl_joint_vector_impl(
-  arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 >,
-                                      vect< typename RateLimitMap::value_type, 3 >,
-                                      vect< typename RateLimitMap::value_type, 3 > >,
-                    arithmetic_tuple< unit_quat< typename RateLimitMap::value_type >,
-                                      vect< typename RateLimitMap::value_type, 3 >,
-                                      vect< typename RateLimitMap::value_type, 3 > > >& result,
-  const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 >,
-                                            vect< typename RateLimitMap::value_type, 3 >,
-                                            vect< typename RateLimitMap::value_type, 3 > >,
-                          arithmetic_tuple< unit_quat< typename RateLimitMap::value_type >,
-                                            vect< typename RateLimitMap::value_type, 3 >,
-                                            vect< typename RateLimitMap::value_type, 3 > > >& pt,
-  const RateLimitMap& j_limits, std::size_t&, std::size_t&, std::size_t& f3d_i ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame3D_speed_limits[f3d_i] );
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) );
-  get< 1 >( get< 0 >( result ) ) = get< 1 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame3D_accel_limits[f3d_i] );
-  get< 1 >( get< 1 >( result ) ) = get< 1 >( get< 1 >( pt ) ) * ( 1.0 / j_limits.frame3D_accel_limits[f3d_i + 1] );
-  get< 2 >( get< 0 >( result ) ) = get< 2 >( get< 0 >( pt ) ) * ( 1.0 / j_limits.frame3D_jerk_limits[f3d_i] );
-  get< 2 >( get< 1 >( result ) ) = get< 2 >( get< 1 >( pt ) ) * ( 1.0 / j_limits.frame3D_jerk_limits[f3d_i + 1] );
-  f3d_i += 2;
-};
-
-
-template < typename OutPoint, typename InPoint, typename RateLimitMap >
-void create_rl_joint_vector_impl( OutPoint& result, const InPoint& pt, const RateLimitMap& j_limits, std::size_t& gen_i,
-                                  std::size_t& f2d_i, std::size_t& f3d_i );
-
-template < typename RateLimitMap >
-struct create_rl_joint_vector_functor {
-  std::size_t* p_gen_i;
-  std::size_t* p_f2d_i;
-  std::size_t* p_f3d_i;
-  const RateLimitMap* p_j_limits;
-  create_rl_joint_vector_functor( std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                  const RateLimitMap& j_limits )
-      : p_gen_i( &gen_i ), p_f2d_i( &f2d_i ), p_f3d_i( &f3d_i ), p_j_limits( &j_limits ){};
-  template < typename OutPoint, typename InPoint >
-  void operator()( OutPoint& result, const InPoint& pt ) {
-    create_rl_joint_vector_impl( result, pt, *p_j_limits, *p_gen_i, *p_f2d_i, *p_f3d_i );
-  };
-};
-
-template < typename OutPoint, typename InPoint, typename RateLimitMap >
-void create_rl_joint_vector_impl( OutPoint& result, const InPoint& pt, const RateLimitMap& j_limits, std::size_t& gen_i,
-                                  std::size_t& f2d_i, std::size_t& f3d_i ) {
-  tuple_for_each( result, pt, create_rl_joint_vector_functor< RateLimitMap >( gen_i, f2d_i, f3d_i, j_limits ) );
-};
-
-template < typename OutPoint, typename InPoint, typename RateLimitMap >
-void create_rl_joint_vectors_impl( OutPoint& result, const InPoint& pt, const RateLimitMap& j_limits ) {
+template <typename OutPoint, typename InPoint, typename RateLimitMap>
+void create_rl_joint_vectors_impl(OutPoint& result, const InPoint& pt,
+                                  const RateLimitMap& j_limits) {
   std::size_t gen_i = 0;
   std::size_t f2d_i = 0;
   std::size_t f3d_i = 0;
-  tuple_for_each( result, pt, create_rl_joint_vector_functor< RateLimitMap >( gen_i, f2d_i, f3d_i, j_limits ) );
-};
-
+  create_rl_joint_vector_impl(result, pt, j_limits, gen_i, f2d_i, f3d_i);
+}
 
 /*******************************************************************************************************************
                                  FUNCTIONS TO CREATE NORMAL JOINT-SPACE VECTORS
 *******************************************************************************************************************/
 
-
-template < typename RateLimitMap >
-void create_normal_joint_vector_impl( arithmetic_tuple< typename RateLimitMap::value_type >& result,
-                                      const arithmetic_tuple< typename RateLimitMap::value_type >& pt,
-                                      const RateLimitMap& j_limits, std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  get< 0 >( result ) = get< 0 >( pt ) * j_limits.gen_speed_limits[gen_i];
-  ++gen_i;
-};
-
-template < typename RateLimitMap >
-void create_normal_joint_vector_impl(
-  arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type >& result,
-  const arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type >& pt,
-  const RateLimitMap& j_limits, std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  get< 0 >( result ) = get< 0 >( pt ) * j_limits.gen_speed_limits[gen_i];
-  get< 1 >( result ) = get< 1 >( pt ) * j_limits.gen_accel_limits[gen_i];
-  ++gen_i;
-};
-
-template < typename RateLimitMap >
-void create_normal_joint_vector_impl(
-  arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type,
-                    typename RateLimitMap::value_type >& result,
-  const arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type,
-                          typename RateLimitMap::value_type >& pt,
-  const RateLimitMap& j_limits, std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  get< 0 >( result ) = get< 0 >( pt ) * j_limits.gen_speed_limits[gen_i];
-  get< 1 >( result ) = get< 1 >( pt ) * j_limits.gen_accel_limits[gen_i];
-  get< 2 >( result ) = get< 2 >( pt ) * j_limits.gen_jerk_limits[gen_i];
-  ++gen_i;
-};
-
-
-template < typename Idx, typename Vector, typename RateLimitMap >
-typename boost::enable_if< is_writable_vector< Vector >, void >::type
-  create_normal_joint_vectors_impl( arithmetic_tuple< Vector >& result, const arithmetic_tuple< Vector >& pt,
-                                    const RateLimitMap& j_limits, std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  for( std::size_t i = 0; i < get< 0 >( pt ).size(); ++i ) {
-    get< 0 >( result )[i] = get< 0 >( pt )[i] * j_limits.gen_speed_limits[gen_i];
+template <typename RateLimitMap, typename Arg0, typename... Args>
+void create_normal_joint_vector_impl(arithmetic_tuple<Arg0, Args...>& result,
+                                     const arithmetic_tuple<Arg0, Args...>& pt,
+                                     const RateLimitMap& j_limits,
+                                     std::size_t& gen_i, std::size_t& f2d_i,
+                                     std::size_t& f3d_i) {
+  using ValueType = typename RateLimitMap::value_type;
+  if constexpr (std::is_same_v<Arg0, ValueType>) {
+    constexpr int Order = sizeof...(Args);
+    get<0>(result) = get<0>(pt) * j_limits.gen_speed_limits[gen_i];
+    if constexpr (Order > 0) {
+      get<1>(result) = get<1>(pt) * j_limits.gen_accel_limits[gen_i];
+    }
+    if constexpr (Order > 1) {
+      get<2>(result) = get<2>(pt) * j_limits.gen_jerk_limits[gen_i];
+    }
     ++gen_i;
-  };
-};
+  } else if constexpr (is_writable_vector_v<Arg0>) {
+    constexpr int Order = sizeof...(Args);
+    for (std::size_t i = 0; i < get<0>(pt).size(); ++i) {
+      get<0>(result)[i] = get<0>(pt)[i] * j_limits.gen_speed_limits[gen_i];
+      if constexpr (Order > 0) {
+        get<1>(result)[i] = get<1>(pt)[i] * j_limits.gen_accel_limits[gen_i];
+      }
+      if constexpr (Order > 1) {
+        get<2>(result)[i] = get<2>(pt)[i] * j_limits.gen_jerk_limits[gen_i];
+      }
+      ++gen_i;
+    }
+  } else if constexpr (is_arithmetic_tuple_v<Arg0>) {
+    constexpr int Order = arithmetic_tuple_size_v<Arg0> - 1;
+    using SubArg0 = std::decay_t<decltype(get<0>(get<0>(pt)))>;
+    if constexpr (std::is_same_v<SubArg0, vect<ValueType, 2>>) {
+      // SE2
+      get<0>(get<0>(result)) =
+          get<0>(get<0>(pt)) * j_limits.frame2D_speed_limits[f2d_i];
+      get<0>(get<1>(result)) =
+          get<0>(get<1>(pt)) * j_limits.frame2D_speed_limits[f2d_i + 1];
+      if constexpr (Order > 0) {
+        get<1>(get<0>(result)) =
+            get<1>(get<0>(pt)) * j_limits.frame2D_accel_limits[f2d_i];
+        get<1>(get<1>(result)) =
+            get<1>(get<1>(pt)) * j_limits.frame2D_accel_limits[f2d_i + 1];
+      }
+      if constexpr (Order > 1) {
+        get<2>(get<0>(result)) =
+            get<2>(get<0>(pt)) * j_limits.frame2D_jerk_limits[f2d_i];
+        get<2>(get<1>(result)) =
+            get<2>(get<1>(pt)) * j_limits.frame2D_jerk_limits[f2d_i + 1];
+      }
+      f2d_i += 2;
+    } else if constexpr (std::is_same_v<SubArg0, vect<ValueType, 3>>) {
+      // SE3
+      get<0>(get<0>(result)) =
+          get<0>(get<0>(pt)) * j_limits.frame3D_speed_limits[f3d_i];
+      get<0>(get<1>(result)) = get<0>(get<1>(pt));
+      if constexpr (Order > 0) {
+        get<1>(get<0>(result)) =
+            get<1>(get<0>(pt)) * j_limits.frame3D_accel_limits[f3d_i];
+        get<1>(get<1>(result)) =
+            get<1>(get<1>(pt)) * j_limits.frame3D_accel_limits[f3d_i + 1];
+      }
+      if constexpr (Order > 1) {
+        get<2>(get<0>(result)) =
+            get<2>(get<0>(pt)) * j_limits.frame3D_jerk_limits[f3d_i];
+        get<2>(get<1>(result)) =
+            get<2>(get<1>(pt)) * j_limits.frame3D_jerk_limits[f3d_i + 1];
+      }
+      f3d_i += 2;
+    } else {
+      // Unknown, just recurse.
+      tuple_for_each(result, pt, [&](auto& elem_out, const auto& elem_in) {
+        create_normal_joint_vector_impl(elem_out, elem_in, j_limits, gen_i,
+                                        f2d_i, f3d_i);
+      });
+    }
+  } else {
+    // Unknown, just recurse (will probably fail).
+    tuple_for_each(result, pt, [&](auto& elem_out, const auto& elem_in) {
+      create_normal_joint_vector_impl(elem_out, elem_in, j_limits, gen_i, f2d_i,
+                                      f3d_i);
+    });
+  }
+}
 
-template < typename Idx, typename Vector, typename RateLimitMap >
-typename boost::enable_if< is_writable_vector< Vector >, void >::type
-  create_normal_joint_vectors_impl( arithmetic_tuple< Vector, Vector >& result,
-                                    const arithmetic_tuple< Vector, Vector >& pt, const RateLimitMap& j_limits,
-                                    std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  for( std::size_t i = 0; i < get< 0 >( pt ).size(); ++i ) {
-    get< 0 >( result )[i] = get< 0 >( pt )[i] * j_limits.gen_speed_limits[gen_i];
-    get< 1 >( result )[i] = get< 1 >( pt )[i] * j_limits.gen_accel_limits[gen_i];
-    ++gen_i;
-  };
-};
-
-template < typename Idx, typename Vector, typename RateLimitMap >
-typename boost::enable_if< is_writable_vector< Vector >, void >::type
-  create_normal_joint_vectors_impl( arithmetic_tuple< Vector, Vector, Vector >& result,
-                                    const arithmetic_tuple< Vector, Vector, Vector >& pt, const RateLimitMap& j_limits,
-                                    std::size_t& gen_i, std::size_t&, std::size_t& ) {
-  for( std::size_t i = 0; i < get< 0 >( pt ).size(); ++i ) {
-    get< 0 >( result )[i] = get< 0 >( pt )[i] * j_limits.gen_speed_limits[gen_i];
-    get< 1 >( result )[i] = get< 1 >( pt )[i] * j_limits.gen_accel_limits[gen_i];
-    get< 2 >( result )[i] = get< 2 >( pt )[i] * j_limits.gen_jerk_limits[gen_i];
-    ++gen_i;
-  };
-};
-
-
-template < typename RateLimitMap >
-void create_normal_joint_vector_impl(
-  arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 > >,
-                    arithmetic_tuple< typename RateLimitMap::value_type > >& result,
-  const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 > >,
-                          arithmetic_tuple< typename RateLimitMap::value_type > >& pt,
-  const RateLimitMap& j_limits, std::size_t&, std::size_t& f2d_i, std::size_t& ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * j_limits.frame2D_speed_limits[f2d_i];
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) ) * j_limits.frame2D_speed_limits[f2d_i + 1];
-  f2d_i += 2;
-};
-
-template < typename RateLimitMap >
-void create_normal_joint_vector_impl(
-  arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 >,
-                                      vect< typename RateLimitMap::value_type, 2 > >,
-                    arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type > >& result,
-  const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 >,
-                                            vect< typename RateLimitMap::value_type, 2 > >,
-                          arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type > >&
-    pt,
-  const RateLimitMap& j_limits, std::size_t&, std::size_t& f2d_i, std::size_t& ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * j_limits.frame2D_speed_limits[f2d_i];
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) ) * j_limits.frame2D_speed_limits[f2d_i + 1];
-  get< 1 >( get< 0 >( result ) ) = get< 1 >( get< 0 >( pt ) ) * j_limits.frame2D_accel_limits[f2d_i];
-  get< 1 >( get< 1 >( result ) ) = get< 1 >( get< 1 >( pt ) ) * j_limits.frame2D_accel_limits[f2d_i + 1];
-  f2d_i += 2;
-};
-
-template < typename RateLimitMap >
-void create_normal_joint_vector_impl(
-  arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 >,
-                                      vect< typename RateLimitMap::value_type, 2 >,
-                                      vect< typename RateLimitMap::value_type, 2 > >,
-                    arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type,
-                                      typename RateLimitMap::value_type > >& result,
-  const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 2 >,
-                                            vect< typename RateLimitMap::value_type, 2 >,
-                                            vect< typename RateLimitMap::value_type, 2 > >,
-                          arithmetic_tuple< typename RateLimitMap::value_type, typename RateLimitMap::value_type,
-                                            typename RateLimitMap::value_type > >& pt,
-  const RateLimitMap& j_limits, std::size_t&, std::size_t& f2d_i, std::size_t& ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * j_limits.frame2D_speed_limits[f2d_i];
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) ) * j_limits.frame2D_speed_limits[f2d_i + 1];
-  get< 1 >( get< 0 >( result ) ) = get< 1 >( get< 0 >( pt ) ) * j_limits.frame2D_accel_limits[f2d_i];
-  get< 1 >( get< 1 >( result ) ) = get< 1 >( get< 1 >( pt ) ) * j_limits.frame2D_accel_limits[f2d_i + 1];
-  get< 2 >( get< 0 >( result ) ) = get< 2 >( get< 0 >( pt ) ) * j_limits.frame2D_jerk_limits[f2d_i];
-  get< 2 >( get< 1 >( result ) ) = get< 2 >( get< 1 >( pt ) ) * j_limits.frame2D_jerk_limits[f2d_i + 1];
-  f2d_i += 2;
-};
-
-
-template < typename RateLimitMap >
-void create_normal_joint_vector_impl(
-  arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 > >,
-                    arithmetic_tuple< unit_quat< typename RateLimitMap::value_type > > >& result,
-  const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 > >,
-                          arithmetic_tuple< unit_quat< typename RateLimitMap::value_type > > >& pt,
-  const RateLimitMap& j_limits, std::size_t&, std::size_t&, std::size_t& f3d_i ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * j_limits.frame3D_speed_limits[f3d_i];
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) );
-  f3d_i += 2;
-};
-
-template < typename RateLimitMap >
-void create_normal_joint_vector_impl(
-  arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 >,
-                                      vect< typename RateLimitMap::value_type, 3 > >,
-                    arithmetic_tuple< unit_quat< typename RateLimitMap::value_type >,
-                                      vect< typename RateLimitMap::value_type, 3 > > >& result,
-  const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 >,
-                                            vect< typename RateLimitMap::value_type, 3 > >,
-                          arithmetic_tuple< unit_quat< typename RateLimitMap::value_type >,
-                                            vect< typename RateLimitMap::value_type, 3 > > >& pt,
-  const RateLimitMap& j_limits, std::size_t&, std::size_t&, std::size_t& f3d_i ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * j_limits.frame3D_speed_limits[f3d_i];
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) );
-  get< 1 >( get< 0 >( result ) ) = get< 1 >( get< 0 >( pt ) ) * j_limits.frame3D_accel_limits[f3d_i];
-  get< 1 >( get< 1 >( result ) ) = get< 1 >( get< 1 >( pt ) ) * j_limits.frame3D_accel_limits[f3d_i + 1];
-  f3d_i += 2;
-};
-
-template < typename RateLimitMap >
-void create_normal_joint_vector_impl(
-  arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 >,
-                                      vect< typename RateLimitMap::value_type, 3 >,
-                                      vect< typename RateLimitMap::value_type, 3 > >,
-                    arithmetic_tuple< unit_quat< typename RateLimitMap::value_type >,
-                                      vect< typename RateLimitMap::value_type, 3 >,
-                                      vect< typename RateLimitMap::value_type, 3 > > >& result,
-  const arithmetic_tuple< arithmetic_tuple< vect< typename RateLimitMap::value_type, 3 >,
-                                            vect< typename RateLimitMap::value_type, 3 >,
-                                            vect< typename RateLimitMap::value_type, 3 > >,
-                          arithmetic_tuple< unit_quat< typename RateLimitMap::value_type >,
-                                            vect< typename RateLimitMap::value_type, 3 >,
-                                            vect< typename RateLimitMap::value_type, 3 > > >& pt,
-  const RateLimitMap& j_limits, std::size_t&, std::size_t&, std::size_t& f3d_i ) {
-  get< 0 >( get< 0 >( result ) ) = get< 0 >( get< 0 >( pt ) ) * j_limits.frame3D_speed_limits[f3d_i];
-  get< 0 >( get< 1 >( result ) ) = get< 0 >( get< 1 >( pt ) );
-  get< 1 >( get< 0 >( result ) ) = get< 1 >( get< 0 >( pt ) ) * j_limits.frame3D_accel_limits[f3d_i];
-  get< 1 >( get< 1 >( result ) ) = get< 1 >( get< 1 >( pt ) ) * j_limits.frame3D_accel_limits[f3d_i + 1];
-  get< 2 >( get< 0 >( result ) ) = get< 2 >( get< 0 >( pt ) ) * j_limits.frame3D_jerk_limits[f3d_i];
-  get< 2 >( get< 1 >( result ) ) = get< 2 >( get< 1 >( pt ) ) * j_limits.frame3D_jerk_limits[f3d_i + 1];
-  f3d_i += 2;
-};
-
-
-template < typename OutPoint, typename InPoint, typename RateLimitMap >
-void create_normal_joint_vector_impl( OutPoint& result, const InPoint& pt, const RateLimitMap& j_limits,
-                                      std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i );
-
-template < typename RateLimitMap >
-struct create_normal_joint_vector_functor {
-  std::size_t* p_gen_i;
-  std::size_t* p_f2d_i;
-  std::size_t* p_f3d_i;
-  const RateLimitMap* p_j_limits;
-  create_normal_joint_vector_functor( std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                      const RateLimitMap& j_limits )
-      : p_gen_i( &gen_i ), p_f2d_i( &f2d_i ), p_f3d_i( &f3d_i ), p_j_limits( &j_limits ){};
-  template < typename OutPoint, typename InPoint >
-  void operator()( OutPoint& result, const InPoint& pt ) {
-    create_normal_joint_vector_impl( result, pt, *p_j_limits, *p_gen_i, *p_f2d_i, *p_f3d_i );
-  };
-};
-
-template < typename OutPoint, typename InPoint, typename RateLimitMap >
-void create_normal_joint_vector_impl( OutPoint& result, const InPoint& pt, const RateLimitMap& j_limits,
-                                      std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i ) {
-  tuple_for_each( result, pt, create_normal_joint_vector_functor< RateLimitMap >( gen_i, f2d_i, f3d_i, j_limits ) );
-};
-
-template < typename OutPoint, typename InPoint, typename RateLimitMap >
-void create_normal_joint_vectors_impl( OutPoint& result, const InPoint& pt, const RateLimitMap& j_limits ) {
+template <typename OutPoint, typename InPoint, typename RateLimitMap>
+void create_normal_joint_vectors_impl(OutPoint& result, const InPoint& pt,
+                                      const RateLimitMap& j_limits) {
   std::size_t gen_i = 0;
   std::size_t f2d_i = 0;
   std::size_t f3d_i = 0;
-  tuple_for_each( result, pt, create_normal_joint_vector_functor< RateLimitMap >( gen_i, f2d_i, f3d_i, j_limits ) );
-};
-};
-};
-};
-};
+  create_normal_joint_vector_impl(result, pt, j_limits, gen_i, f2d_i, f3d_i);
+}
+
+}  // namespace
+}  // namespace ReaK::pp::detail
 
 #endif

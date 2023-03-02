@@ -37,29 +37,25 @@
 
 #include "proximity_record_2D.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
+namespace ReaK::geom {
 
 /**
  * This class is the base-class for a proximity query with 2D shapes.
  */
 class proximity_finder_2D {
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_2D computeProximity( const shape_2D_precompute_pack& aPack1,
-                                                const shape_2D_precompute_pack& aPack2 ) = 0;
+  virtual proximity_record_2D computeProximity(
+      const shape_2D_precompute_pack& aPack1,
+      const shape_2D_precompute_pack& aPack2) = 0;
 
   /** Default constructor. */
-  proximity_finder_2D(){};
+  proximity_finder_2D() = default;
 
   /** Destructor. */
-  virtual ~proximity_finder_2D(){};
+  virtual ~proximity_finder_2D() = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

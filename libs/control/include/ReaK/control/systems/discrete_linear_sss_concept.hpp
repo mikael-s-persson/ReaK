@@ -43,14 +43,12 @@
 
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 
-#include "linear_ss_system_concept.hpp"
 #include "discrete_sss_concept.hpp"
+#include "linear_ss_system_concept.hpp"
 
 #include <boost/concept_check.hpp>
 
-namespace ReaK {
-
-namespace ctrl {
+namespace ReaK::ctrl {
 
 /**
  * This traits class defines the traits of a discrete-time linear state-space system.
@@ -58,24 +56,26 @@ namespace ctrl {
  * discrete_sss_traits class.
  * \tparam DiscreteSystem The discrete-time state-space system whose traits are sought.
  */
-template < typename DiscreteSystem >
+template <typename DiscreteSystem>
 struct discrete_linear_sss_traits {
-  typedef typename DiscreteSystem::matrixA_type matrixA_type;
-  typedef typename DiscreteSystem::matrixB_type matrixB_type;
-  typedef typename DiscreteSystem::matrixC_type matrixC_type;
-  typedef typename DiscreteSystem::matrixD_type matrixD_type;
+  using matrixA_type = typename DiscreteSystem::matrixA_type;
+  using matrixB_type = typename DiscreteSystem::matrixB_type;
+  using matrixC_type = typename DiscreteSystem::matrixC_type;
+  using matrixD_type = typename DiscreteSystem::matrixD_type;
 };
-
 
 /**
  * This concept class defines no requirements for a system to be able to provide
  * linear(ized) system matrices.
  */
 struct DiscreteNonLinearSystemType {
-  template < typename System, typename StateSpaceType, typename Point, typename Input, typename Time, typename A_t,
-             typename B_t, typename C_t, typename D_t >
-  void constraints( const System&, const StateSpaceType&, const Point&, const Input&, const Time&, A_t&, B_t&, C_t&,
-                    D_t& ){};
+  template <typename System, typename StateSpaceType, typename Point,
+            typename Input, typename Time, typename A_t, typename B_t,
+            typename C_t, typename D_t>
+  void constraints(const System& /*unused*/, const StateSpaceType& /*unused*/,
+                   const Point& /*unused*/, const Input& /*unused*/,
+                   const Time& /*unused*/, A_t& /*unused*/, B_t& /*unused*/,
+                   C_t& /*unused*/, D_t& /*unused*/) {}
 };
 
 /**
@@ -92,13 +92,15 @@ struct DiscreteNonLinearSystemType {
  *or state.
  */
 struct DiscreteLTISystemType {
-  template < typename System, typename StateSpaceType, typename Point, typename Input, typename Time, typename A_t,
-             typename B_t, typename C_t, typename D_t >
-  void constraints( const System& sys, const StateSpaceType& state_space, const Point&, const Input&, const Time&,
-                    A_t& A, B_t& B, C_t& C, D_t& D ) {
-    sys.get_state_transition_blocks( A, B, state_space );
-    sys.get_output_function_blocks( C, D, state_space );
-  };
+  template <typename System, typename StateSpaceType, typename Point,
+            typename Input, typename Time, typename A_t, typename B_t,
+            typename C_t, typename D_t>
+  void constraints(const System& sys, const StateSpaceType& state_space,
+                   const Point& /*unused*/, const Input& /*unused*/,
+                   const Time& /*unused*/, A_t& A, B_t& B, C_t& C, D_t& D) {
+    sys.get_state_transition_blocks(A, B, state_space);
+    sys.get_output_function_blocks(C, D, state_space);
+  }
 };
 
 /**
@@ -116,13 +118,15 @@ struct DiscreteLTISystemType {
  *state.
  */
 struct DiscreteLTVSystemType {
-  template < typename System, typename StateSpaceType, typename Point, typename Input, typename Time, typename A_t,
-             typename B_t, typename C_t, typename D_t >
-  void constraints( const System& sys, const StateSpaceType& state_space, const Point&, const Input&, const Time& t,
-                    A_t& A, B_t& B, C_t& C, D_t& D ) {
-    sys.get_state_transition_blocks( A, B, state_space, t, t );
-    sys.get_output_function_blocks( C, D, state_space, t );
-  };
+  template <typename System, typename StateSpaceType, typename Point,
+            typename Input, typename Time, typename A_t, typename B_t,
+            typename C_t, typename D_t>
+  void constraints(const System& sys, const StateSpaceType& state_space,
+                   const Point& /*unused*/, const Input& /*unused*/,
+                   const Time& t, A_t& A, B_t& B, C_t& C, D_t& D) {
+    sys.get_state_transition_blocks(A, B, state_space, t, t);
+    sys.get_output_function_blocks(C, D, state_space, t);
+  }
 };
 
 /**
@@ -140,15 +144,16 @@ struct DiscreteLTVSystemType {
  *current time, state and input.
  */
 struct DiscreteLinearizedSystemType {
-  template < typename System, typename StateSpaceType, typename Point, typename Input, typename Time, typename A_t,
-             typename B_t, typename C_t, typename D_t >
-  void constraints( const System& sys, const StateSpaceType& state_space, const Point& p, const Input& u, const Time& t,
-                    A_t& A, B_t& B, C_t& C, D_t& D ) {
-    sys.get_state_transition_blocks( A, B, state_space, t, t, p, p, u, u );
-    sys.get_output_function_blocks( C, D, state_space, t, p, u );
-  };
+  template <typename System, typename StateSpaceType, typename Point,
+            typename Input, typename Time, typename A_t, typename B_t,
+            typename C_t, typename D_t>
+  void constraints(const System& sys, const StateSpaceType& state_space,
+                   const Point& p, const Input& u, const Time& t, A_t& A,
+                   B_t& B, C_t& C, D_t& D) {
+    sys.get_state_transition_blocks(A, B, state_space, t, t, p, p, u, u);
+    sys.get_output_function_blocks(C, D, state_space, t, p, u);
+  }
 };
-
 
 /**
  * This concept class defines the requirements for a discrete-time state-space system to be
@@ -176,31 +181,38 @@ struct DiscreteLinearizedSystemType {
  * \tparam SystemType The concept class that tests the system-type, can be either DiscreteLTISystemType,
  *DiscreteLTVSystemType or DiscreteLinearizedSystemType.
  */
-template < typename DiscreteSystem, typename StateSpaceType, typename SystemType = DiscreteLTISystemType >
-struct DiscreteLinearSSSConcept : DiscreteSSSConcept< DiscreteSystem, StateSpaceType > {
+template <typename DiscreteSystem, typename StateSpaceType,
+          typename SystemType = DiscreteLTISystemType>
+struct DiscreteLinearSSSConcept
+    : DiscreteSSSConcept<DiscreteSystem, StateSpaceType> {
   SystemType sys_type;
 
-  typename discrete_sss_traits< DiscreteSystem >::point_difference_type dp;
+  typename discrete_sss_traits<DiscreteSystem>::point_difference_type dp;
 
-  typename discrete_linear_sss_traits< DiscreteSystem >::matrixA_type A;
-  typename discrete_linear_sss_traits< DiscreteSystem >::matrixB_type B;
-  typename discrete_linear_sss_traits< DiscreteSystem >::matrixC_type C;
-  typename discrete_linear_sss_traits< DiscreteSystem >::matrixD_type D;
+  typename discrete_linear_sss_traits<DiscreteSystem>::matrixA_type A;
+  typename discrete_linear_sss_traits<DiscreteSystem>::matrixB_type B;
+  typename discrete_linear_sss_traits<DiscreteSystem>::matrixC_type C;
+  typename discrete_linear_sss_traits<DiscreteSystem>::matrixD_type D;
 
-  BOOST_CONCEPT_USAGE( DiscreteLinearSSSConcept ) {
-    using ReaK::to_vect;
+  BOOST_CONCEPT_USAGE(DiscreteLinearSSSConcept) {
     using ReaK::from_vect;
-    typedef typename discrete_sss_traits< DiscreteSystem >::point_difference_type StateDiffType;
-    typedef typename discrete_sss_traits< DiscreteSystem >::output_type OutputType;
-    typedef typename mat_traits< typename discrete_linear_sss_traits< DiscreteSystem >::matrixA_type >::value_type
-      ValueType;
+    using ReaK::to_vect;
+    using StateDiffType =
+        typename discrete_sss_traits<DiscreteSystem>::point_difference_type;
+    using OutputType =
+        typename discrete_sss_traits<DiscreteSystem>::output_type;
+    using ValueType = typename mat_traits<typename discrete_linear_sss_traits<
+        DiscreteSystem>::matrixA_type>::value_type;
 
-    sys_type.constraints( this->sys, this->state_space, this->p, this->u, this->t, A, B, C, D );
-    this->dp = from_vect< StateDiffType >( A * to_vect< ValueType >( this->dp ) + B * to_vect< ValueType >( this->u ) );
-    this->y = from_vect< OutputType >( C * to_vect< ValueType >( this->dp ) + D * to_vect< ValueType >( this->u ) );
-  };
+    sys_type.constraints(this->sys, this->state_space, this->p, this->u,
+                         this->t, A, B, C, D);
+    this->dp = from_vect<StateDiffType>(A * to_vect<ValueType>(this->dp) +
+                                        B * to_vect<ValueType>(this->u));
+    this->y = from_vect<OutputType>(C * to_vect<ValueType>(this->dp) +
+                                    D * to_vect<ValueType>(this->u));
+  }
 };
-};
-};
+
+}  // namespace ReaK::ctrl
 
 #endif

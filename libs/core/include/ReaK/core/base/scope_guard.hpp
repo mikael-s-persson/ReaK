@@ -34,10 +34,6 @@
 #ifndef REAK_SCOPE_GUARD_HPP
 #define REAK_SCOPE_GUARD_HPP
 
-#include "defs.hpp"
-
-#if( !defined( BOOST_NO_CXX11_DELETED_FUNCTIONS ) )
-
 namespace ReaK {
 
 /**
@@ -73,48 +69,52 @@ namespace ReaK {
  * \endcode
  * \tparam Functor A callable type (functor) that can be called with no argument (and discarded result) at scope exit.
  */
-template < typename Functor >
+template <typename Functor>
 class scope_guard {
-private:
+ private:
   Functor f;
   bool isActive;
 
-public:
+ public:
   /**
    * Construct the scope-guard with a functor to be called on the scope exit.
    * \param aF The functor to be called with no argument at scope exit.
    */
-  scope_guard( Functor aF ) : f( std::move( aF ) ), isActive( true ){};
+  scope_guard(Functor aF) : f(std::move(aF)), isActive(true) {}
   /**
    * Destructor.
    */
   ~scope_guard() {
-    if( isActive )
+    if (isActive) {
       f();
-  };
+    }
+  }
   /**
    * Dismiss the scope-guard such that the functor won't be called.
    */
-  void dismiss() { isActive = false; };
+  void dismiss() { isActive = false; }
 
   scope_guard() = delete;
-  scope_guard( const scope_guard& ) = delete;
-  scope_guard& operator=( const scope_guard& ) = delete;
+  scope_guard(const scope_guard&) = delete;
+  scope_guard& operator=(const scope_guard&) = delete;
 
   /**
    * Standard move-constructor.
    */
-  scope_guard( scope_guard&& rhs ) : f( std::move( rhs.f ) ), isActive( rhs.isActive ) { rhs.dismiss(); };
+  scope_guard(scope_guard&& rhs) : f(std::move(rhs.f)), isActive(rhs.isActive) {
+    rhs.dismiss();
+  }
   /**
    * Standard move-assignment operator.
    */
-  scope_guard& operator=( scope_guard&& rhs ) {
-    if( isActive )
+  scope_guard& operator=(scope_guard&& rhs) {
+    if (isActive) {
       f();
-    f = std::move( rhs.f );
+    }
+    f = std::move(rhs.f);
     isActive = rhs.isActive;
     rhs.dismiss();
-  };
+  }
 };
 
 /**
@@ -145,37 +145,27 @@ public:
  * } catch(...) { };
  * \endcode
  */
-template < typename Functor >
-scope_guard< Functor > make_scope_guard( Functor f ) {
-  return scope_guard< Functor >( std::move( f ) );
-};
+template <typename Functor>
+scope_guard<Functor> make_scope_guard(Functor f) {
+  return scope_guard<Functor>(std::move(f));
+}
 
 namespace detail {
 
 struct scope_guard_on_exit {};
 
-template < typename Functor >
-scope_guard< Functor > operator+( scope_guard_on_exit, Functor&& f ) {
-  return scope_guard< Functor >( std::forward< Functor >( f ) );
-};
-};
+template <typename Functor>
+scope_guard<Functor> operator+(scope_guard_on_exit, Functor&& f) {
+  return scope_guard<Functor>(std::forward<Functor>(f));
+}
+}  // namespace detail
 
 #define RK_SCOPE_EXIT ReaK::detail::scope_guard_on_exit() + [&]()
 
-#define RK_SCOPE_EXIT_ROUTINE( X ) auto X = ReaK::detail::scope_guard_on_exit() + [&]()
+#define RK_SCOPE_EXIT_ROUTINE(X) \
+  auto X = ReaK::detail::scope_guard_on_exit() + [&]()
 
-#define RK_SCOPE_EXIT_DISMISS( X ) X.dismiss()
-};
-
-#else
-
-
-#define RK_SCOPE_EXIT_ROUTINE( X ) \
-  #warning("Warning : Use of a scope-guard on a pre-C++11 compiler has no effect!") \
-if(false)
-
-#define RK_SCOPE_EXIT_DISMISS( X ) #warning("Warning : Use of a scope-guard on a pre-C++11 compiler has no effect!")
-
-#endif
+#define RK_SCOPE_EXIT_DISMISS(X) X.dismiss()
+}  // namespace ReaK
 
 #endif

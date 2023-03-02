@@ -33,62 +33,67 @@
 #ifndef REAK_NDOF_LINEAR_SPACES_HPP
 #define REAK_NDOF_LINEAR_SPACES_HPP
 
-#include "Ndof_spaces.hpp"
-#include "temporal_space.hpp"
-#include "time_poisson_topology.hpp"
-#include "reachability_space.hpp"
 #include <ReaK/topologies/interpolation/interpolated_topologies.hpp>
 #include <ReaK/topologies/interpolation/linear_interp.hpp>
+#include "Ndof_spaces.hpp"
+#include "reachability_space.hpp"
+#include "temporal_space.hpp"
+#include "time_poisson_topology.hpp"
 
+namespace ReaK::pp {
 
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
+#define RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL(NDOF)                   \
+  extern template class interpolated_topology<                                \
+      Ndof_rl_space_t<double, NDOF, 0>, linear_interpolation_tag>;            \
+  extern template class interpolated_topology<                                \
+      Ndof_rl_space_t<double, NDOF, 1>, linear_interpolation_tag>;            \
+  extern template class interpolated_topology<                                \
+      Ndof_rl_space_t<double, NDOF, 2>, linear_interpolation_tag>;            \
+                                                                              \
+  extern template class interpolated_topology<                                \
+      temporal_space<Ndof_rl_space_t<double, NDOF, 0>, time_poisson_topology, \
+                     reach_plus_time_metric>,                                 \
+      linear_interpolation_tag>;                                              \
+  extern template class interpolated_topology<                                \
+      temporal_space<Ndof_rl_space_t<double, NDOF, 1>, time_poisson_topology, \
+                     reach_plus_time_metric>,                                 \
+      linear_interpolation_tag>;                                              \
+  extern template class interpolated_topology<                                \
+      temporal_space<Ndof_rl_space_t<double, NDOF, 2>, time_poisson_topology, \
+                     reach_plus_time_metric>,                                 \
+      linear_interpolation_tag>;
 
-namespace ReaK {
+RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL(1)
+RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL(2)
+RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL(3)
+RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL(4)
+RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL(5)
+RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL(6)
+RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL(7)
+RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL(8)
+RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL(9)
+RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL(10)
 
-namespace pp {
+extern template class interpolated_topology<Ndof_rl_space_t<double, 0, 0>,
+                                            linear_interpolation_tag>;
+extern template class interpolated_topology<Ndof_rl_space_t<double, 0, 1>,
+                                            linear_interpolation_tag>;
+extern template class interpolated_topology<Ndof_rl_space_t<double, 0, 2>,
+                                            linear_interpolation_tag>;
 
-#define RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL( NDOF )                                                      \
-  extern template class interpolated_topology< Ndof_rl_space< double, NDOF, 0 >::type, linear_interpolation_tag >; \
-  extern template class interpolated_topology< Ndof_rl_space< double, NDOF, 1 >::type, linear_interpolation_tag >; \
-  extern template class interpolated_topology< Ndof_rl_space< double, NDOF, 2 >::type, linear_interpolation_tag >; \
-                                                                                                                   \
-  extern template class interpolated_topology< temporal_space< Ndof_rl_space< double, NDOF, 0 >::type,             \
-                                                               time_poisson_topology, reach_plus_time_metric >,    \
-                                               linear_interpolation_tag >;                                         \
-  extern template class interpolated_topology< temporal_space< Ndof_rl_space< double, NDOF, 1 >::type,             \
-                                                               time_poisson_topology, reach_plus_time_metric >,    \
-                                               linear_interpolation_tag >;                                         \
-  extern template class interpolated_topology< temporal_space< Ndof_rl_space< double, NDOF, 2 >::type,             \
-                                                               time_poisson_topology, reach_plus_time_metric >,    \
-                                               linear_interpolation_tag >;
+extern template class interpolated_topology<
+    temporal_space<Ndof_rl_space_t<double, 0, 0>, time_poisson_topology,
+                   reach_plus_time_metric>,
+    linear_interpolation_tag>;
+extern template class interpolated_topology<
+    temporal_space<Ndof_rl_space_t<double, 0, 1>, time_poisson_topology,
+                   reach_plus_time_metric>,
+    linear_interpolation_tag>;
+extern template class interpolated_topology<
+    temporal_space<Ndof_rl_space_t<double, 0, 2>, time_poisson_topology,
+                   reach_plus_time_metric>,
+    linear_interpolation_tag>;
 
-RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL( 1 )
-RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL( 2 )
-RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL( 3 )
-RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL( 4 )
-RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL( 5 )
-RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL( 6 )
-RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL( 7 )
-RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL( 8 )
-RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL( 9 )
-RK_NDOF_LINEAR_SPACES_MAKE_NORMAL_EXTERN_DECL( 10 )
-
-extern template class interpolated_topology< Ndof_rl_space< double, 0, 0 >::type, linear_interpolation_tag >;
-extern template class interpolated_topology< Ndof_rl_space< double, 0, 1 >::type, linear_interpolation_tag >;
-extern template class interpolated_topology< Ndof_rl_space< double, 0, 2 >::type, linear_interpolation_tag >;
-
-extern template class interpolated_topology< temporal_space< Ndof_rl_space< double, 0, 0 >::type, time_poisson_topology,
-                                                             reach_plus_time_metric >,
-                                             linear_interpolation_tag >;
-extern template class interpolated_topology< temporal_space< Ndof_rl_space< double, 0, 1 >::type, time_poisson_topology,
-                                                             reach_plus_time_metric >,
-                                             linear_interpolation_tag >;
-extern template class interpolated_topology< temporal_space< Ndof_rl_space< double, 0, 2 >::type, time_poisson_topology,
-                                                             reach_plus_time_metric >,
-                                             linear_interpolation_tag >;
-};
-};
-
-#endif
+}  // namespace ReaK::pp
 
 #endif

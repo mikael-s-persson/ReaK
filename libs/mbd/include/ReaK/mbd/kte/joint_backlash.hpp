@@ -33,65 +33,74 @@
 #ifndef REAK_JOINT_BACKLASH_HPP
 #define REAK_JOINT_BACKLASH_HPP
 
-#include "kte_map.hpp"
 #include <ReaK/math/kinetostatics/kinetostatics.hpp>
+#include <utility>
+#include "kte_map.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * NOT A WORKING MODEL.
  */
 class joint_backlash_gen : public kte_map {
-private:
-  shared_ptr< gen_coord< double > > mBase;
-  shared_ptr< gen_coord< double > > mEnd;
+ private:
+  std::shared_ptr<gen_coord<double>> mBase;
+  std::shared_ptr<gen_coord<double>> mEnd;
   double mGapSize;
 
-public:
-  double& GapSize() { return mGapSize; };
-  double GapSize() const { return mGapSize; };
+ public:
+  double& GapSize() { return mGapSize; }
+  double GapSize() const { return mGapSize; }
 
   /**
    * Default constructor.
    */
-  joint_backlash_gen( const std::string& aName = "" ) : kte_map( aName ), mBase(), mEnd(), mGapSize( 0.0 ){};
+  explicit joint_backlash_gen(const std::string& aName = "")
+      : kte_map(aName), mGapSize(0.0) {}
 
   /**
    * Parametrized constructor.
    */
-  joint_backlash_gen( const std::string& aName, const shared_ptr< gen_coord< double > >& aBase,
-                      const shared_ptr< gen_coord< double > >& aEnd, double aGapSize )
-      : kte_map( aName ), mBase( aBase ), mEnd( aEnd ), mGapSize( aGapSize ){};
+  joint_backlash_gen(const std::string& aName,
+                     std::shared_ptr<gen_coord<double>> aBase,
+                     std::shared_ptr<gen_coord<double>> aEnd, double aGapSize)
+      : kte_map(aName),
+        mBase(std::move(aBase)),
+        mEnd(std::move(aEnd)),
+        mGapSize(aGapSize) {}
 
   /**
    * Default destructor.
    */
-  virtual ~joint_backlash_gen(){};
+  ~joint_backlash_gen() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mBase ) & RK_SERIAL_SAVE_WITH_NAME( mEnd ) & RK_SERIAL_SAVE_WITH_NAME( mGapSize );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mBase) & RK_SERIAL_SAVE_WITH_NAME(mEnd) &
+        RK_SERIAL_SAVE_WITH_NAME(mGapSize);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mBase ) & RK_SERIAL_LOAD_WITH_NAME( mEnd ) & RK_SERIAL_LOAD_WITH_NAME( mGapSize );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mBase) & RK_SERIAL_LOAD_WITH_NAME(mEnd) &
+        RK_SERIAL_LOAD_WITH_NAME(mGapSize);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( joint_backlash_gen, 0xC2100022, 1, "joint_backlash_gen", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(joint_backlash_gen, 0xC2100022, 1,
+                              "joint_backlash_gen", kte_map)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

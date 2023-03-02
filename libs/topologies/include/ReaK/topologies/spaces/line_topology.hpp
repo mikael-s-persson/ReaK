@@ -35,41 +35,39 @@
 #define REAK_LINE_TOPOLOGY_HPP
 
 #include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
 #include <ReaK/core/base/global_rng.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
 #include "metric_space_concept.hpp"
 #include "reversible_space_concept.hpp"
 
 #include "default_random_sampler.hpp"
 
-#include <boost/random/uniform_01.hpp>
-
 #include <cmath>
 
-namespace ReaK {
-
-namespace pp {
+namespace ReaK::pp {
 
 /**
  * This class implements an infinite line topology. This class models the TopologyConcept,
  * the LieGroupConcept, and the MetricSpaceConcept.
  * \tparam T The value-type for the topology (should be an arithmetic type that is implicitly convertable to double).
  */
-template < typename T = double >
+template <typename T = double>
 class line_topology : public named_object {
-public:
-  typedef line_topology< T > self;
+ public:
+  using self = line_topology<T>;
 
-  typedef T point_type;
-  typedef T point_difference_type;
+  using point_type = T;
+  using point_difference_type = T;
 
-  typedef default_distance_metric distance_metric_type;
+  using distance_metric_type = default_distance_metric;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 1 );
+  static constexpr std::size_t dimensions = 1;
 
-  line_topology( const std::string& aName = "line_topology" ) : named_object() { setName( aName ); };
-
+  explicit line_topology(const std::string& aName = "line_topology")
+      : named_object() {
+    setName(aName);
+  }
 
   /*************************************************************************
    *                             TopologyConcept
@@ -78,22 +76,28 @@ public:
   /**
    * Returns the difference between two points (a - b).
    */
-  point_difference_type difference( const point_type& a, const point_type& b ) const { return a - b; }
+  point_difference_type difference(const point_type& a,
+                                   const point_type& b) const {
+    return a - b;
+  }
 
   /**
    * Returns the addition of a point-difference to a point.
    */
-  point_type adjust( const point_type& a, const point_difference_type& delta ) const { return a + delta; }
+  point_type adjust(const point_type& a,
+                    const point_difference_type& delta) const {
+    return a + delta;
+  }
 
   /**
    * Returns the origin of the space (the lower-limit).
    */
-  virtual point_type origin() const { return point_type( 0 ); };
+  virtual point_type origin() const { return point_type(0); }
 
   /**
    * Tests if a given point is within the boundary of this space.
    */
-  virtual bool is_in_bounds( const point_type& a ) const { return true; };
+  virtual bool is_in_bounds(const point_type& a) const { return true; }
 
   /*************************************************************************
   *                             MetricSpaceConcept
@@ -102,25 +106,25 @@ public:
   /**
    * Returns the distance between two points.
    */
-  double distance( const point_type& a, const point_type& b ) const {
-    using std::fabs;
-    return fabs( b - a );
+  double distance(const point_type& a, const point_type& b) const {
+    using std::abs;
+    return abs(b - a);
   }
 
   /**
    * Returns the norm of the difference between two points.
    */
-  double norm( const point_difference_type& delta ) const {
-    using std::fabs;
-    return fabs( delta );
+  double norm(const point_difference_type& delta) const {
+    using std::abs;
+    return abs(delta);
   }
 
   /**
    * Returns the volume of the difference between two points.
    */
-  double volume( const point_difference_type& delta ) const {
-    using std::fabs;
-    return fabs( delta );
+  double volume(const point_difference_type& delta) const {
+    using std::abs;
+    return abs(delta);
   }
 
   /*************************************************************************
@@ -130,38 +134,43 @@ public:
   /**
    * Returns a point which is at a fraction between two points a to b.
    */
-  point_type move_position_toward( const point_type& a, double fraction, const point_type& b ) const {
-    return a + ( b - a ) * fraction;
-  };
+  point_type move_position_toward(const point_type& a, double fraction,
+                                  const point_type& b) const {
+    return a + (b - a) * fraction;
+  }
 
   /**
    * Returns a point which is at a backward fraction between two points a to b.
    */
-  point_type move_position_back_to( const point_type& a, double fraction, const point_type& b ) const {
-    return b + ( a - b ) * fraction;
+  point_type move_position_back_to(const point_type& a, double fraction,
+                                   const point_type& b) const {
+    return b + (a - b) * fraction;
   }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    ReaK::named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    ReaK::named_object::save(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    ReaK::named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    ReaK::named_object::load(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2400001, 1, "line_topology", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400001, 1, "line_topology",
+                              named_object)
 };
 
-template < typename T >
-struct is_metric_space< line_topology< T > > : boost::mpl::true_ {};
+template <typename T>
+struct is_metric_space<line_topology<T>> : std::true_type {};
 
-template < typename T >
-struct is_reversible_space< line_topology< T > > : boost::mpl::true_ {};
-
+template <typename T>
+struct is_reversible_space<line_topology<T>> : std::true_type {};
 
 /**
  * This class implements a line-segment topology. The space extends from the minimum value up to some
@@ -171,30 +180,31 @@ struct is_reversible_space< line_topology< T > > : boost::mpl::true_ {};
  *
  * \tparam T A value-type (scalar value).
  */
-template < typename T = double >
-class line_segment_topology : public line_topology< T > {
-  typedef boost::uniform_01< global_rng_type&, T > rand_t;
+template <typename T = double>
+class line_segment_topology : public line_topology<T> {
+  using rand_t = std::uniform_real_distribution<T>;
 
-public:
-  typedef line_segment_topology< T > self;
+ public:
+  using self = line_segment_topology<T>;
 
-  typedef typename line_topology< T >::point_type point_type;
-  typedef typename line_topology< T >::point_difference_type point_difference_type;
+  using point_type = typename line_topology<T>::point_type;
+  using point_difference_type =
+      typename line_topology<T>::point_difference_type;
 
-  typedef typename line_topology< T >::distance_metric_type distance_metric_type;
-  typedef default_random_sampler random_sampler_type;
+  using distance_metric_type = typename line_topology<T>::distance_metric_type;
+  using random_sampler_type = default_random_sampler;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = line_topology< T >::dimensions );
+  static constexpr std::size_t dimensions = line_topology<T>::dimensions;
 
   /**
    * Default constructor.
    * \param aStart The minimum bound of the line-segment.
    * \param aEnd The maximum bound of the line-segment.
    */
-  explicit line_segment_topology( const std::string& aName = "line_segment_topology",
-                                  point_type aStart = point_type( 0.0 ), point_type aEnd = point_type( 1.0 ) )
-      : line_topology< T >( aName ), start_pt( aStart ), end_pt( aEnd ){};
-
+  explicit line_segment_topology(
+      const std::string& aName = "line_segment_topology",
+      point_type aStart = point_type(0.0), point_type aEnd = point_type(1.0))
+      : line_topology<T>(aName), start_pt(aStart), end_pt(aEnd) {}
 
   /*************************************************************************
   *                         for PointDistributionConcept
@@ -203,7 +213,9 @@ public:
   /**
    * Generates a random point in the space, uniformly distributed.
    */
-  point_type random_point() const { return rand_t( get_global_rng() )() * ( end_pt - start_pt ) + start_pt; };
+  point_type random_point() const {
+    return rand_t()(get_global_rng()) * (end_pt - start_pt) + start_pt;
+  }
 
   /*************************************************************************
   *                             BoundedSpaceConcept
@@ -212,62 +224,68 @@ public:
   /**
    * Takes a point and clips it to within this line-segment space.
    */
-  void bring_point_in_bounds( point_type& a ) const {
-    if( end_pt > start_pt ) {
-      if( a > end_pt )
+  void bring_point_in_bounds(point_type& a) const {
+    if (end_pt > start_pt) {
+      if (a > end_pt) {
         a = end_pt;
-      else if( a < start_pt )
+      } else if (a < start_pt) {
         a = start_pt;
+      }
     } else {
-      if( a < end_pt )
+      if (a < end_pt) {
         a = end_pt;
-      else if( a > start_pt )
+      } else if (a > start_pt) {
         a = start_pt;
-    };
-  };
+      }
+    }
+  }
 
   /**
    * Returns the distance to the boundary of the space.
    */
-  double distance_from_boundary( point_type a ) const {
-    using std::fabs;
-    double dist = fabs( end_pt - a );
-    if( fabs( a - start_pt ) < dist )
-      return fabs( a - start_pt );
-    else
-      return dist;
-  };
+  double distance_from_boundary(point_type a) const {
+    using std::abs;
+    double dist = abs(end_pt - a);
+    if (abs(a - start_pt) < dist) {
+      return abs(a - start_pt);
+    }
+    return dist;
+  }
 
   /**
    * Returns the difference to the closest boundary.
    */
-  point_difference_type get_diff_to_boundary( point_type a ) const {
-    using std::fabs;
-    double dist = fabs( end_pt - a );
-    if( fabs( a - start_pt ) < dist )
+  point_difference_type get_diff_to_boundary(point_type a) const {
+    using std::abs;
+    double dist = abs(end_pt - a);
+    if (abs(a - start_pt) < dist) {
       return start_pt - a;
-    else
-      return end_pt - a;
-  };
+    }
+    return end_pt - a;
+  }
 
   /**
    * Tests if a given point is within the boundary of this space.
    */
-  bool is_in_bounds( const point_type& a ) const {
-    if( end_pt > start_pt ) {
-      if( ( a > end_pt ) || ( a < start_pt ) )
+  bool is_in_bounds(const point_type& a) const override {
+    if (end_pt > start_pt) {
+      if ((a > end_pt) || (a < start_pt)) {
         return false;
+      }
     } else {
-      if( ( a < end_pt ) || ( a > start_pt ) )
+      if ((a < end_pt) || (a > start_pt)) {
         return false;
-    };
+      }
+    }
     return true;
-  };
+  }
 
   /**
    * Returns the origin of the space (the lower-limit).
    */
-  point_type origin() const { return ( end_pt - start_pt ) * 0.5 + start_pt; };
+  point_type origin() const override {
+    return (end_pt - start_pt) * 0.5 + start_pt;
+  }
 
   /*************************************************************************
   *                             SphereBoundedSpaceConcept
@@ -277,56 +295,48 @@ public:
    * Returns the radius of the space.
    */
   double get_radius() const {
-    using std::fabs;
-    return fabs( end_pt - start_pt ) * 0.5;
-  };
+    using std::abs;
+    return abs(end_pt - start_pt) * 0.5;
+  }
 
-private:
+ private:
   point_type start_pt;
   point_type end_pt;
 
-public:
+ public:
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    line_topology< T >::save( A, line_topology< T >::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( start_pt ) & RK_SERIAL_SAVE_WITH_NAME( end_pt );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    line_topology<T>::save(
+        A, line_topology<T>::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(start_pt) & RK_SERIAL_SAVE_WITH_NAME(end_pt);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    line_topology< T >::load( A, line_topology< T >::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( start_pt ) & RK_SERIAL_LOAD_WITH_NAME( end_pt );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    line_topology<T>::load(
+        A, line_topology<T>::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(start_pt) & RK_SERIAL_LOAD_WITH_NAME(end_pt);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2400006, 1, "line_segment_topology", line_topology< T > )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400006, 1, "line_segment_topology",
+                              line_topology<T>)
 };
 
-template < typename T >
-struct is_metric_space< line_segment_topology< T > > : boost::mpl::true_ {};
+template <typename T>
+struct is_metric_space<line_segment_topology<T>> : std::true_type {};
 
-template < typename T >
-struct is_reversible_space< line_segment_topology< T > > : boost::mpl::true_ {};
+template <typename T>
+struct is_reversible_space<line_segment_topology<T>> : std::true_type {};
 
-template < typename T >
-struct is_point_distribution< line_segment_topology< T > > : boost::mpl::true_ {};
-};
-};
+template <typename T>
+struct is_point_distribution<line_segment_topology<T>> : std::true_type {};
 
+extern template class line_topology<double>;
+extern template class line_segment_topology<double>;
 
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
-namespace ReaK {
-
-namespace pp {
-
-extern template class line_topology< double >;
-extern template class line_segment_topology< double >;
-};
-};
-
-#endif
-
+}  // namespace ReaK::pp
 
 #endif

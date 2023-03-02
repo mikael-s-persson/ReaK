@@ -36,22 +36,23 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
-#include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
 #include <ReaK/topologies/spaces/bounded_space_concept.hpp>
+#include <ReaK/topologies/spaces/metric_space_concept.hpp>
 #include <ReaK/topologies/spaces/rate_limited_spaces.hpp>
+#include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
+#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
 
-#include "interpolated_trajectory.hpp"
 #include "generic_interpolator_factory.hpp"
+#include "interpolated_trajectory.hpp"
 
 #include "sustained_acceleration_pulse_detail.hpp"
 
 #include <boost/concept_check.hpp>
 
 #include <limits>
+#include <type_traits>
 
 namespace ReaK {
-
 namespace pp {
 
 /**
@@ -60,8 +61,7 @@ namespace pp {
 struct sap_interpolation_tag {};
 
 template <>
-struct is_metric_symmetric< sap_interpolation_tag > : boost::mpl::false_ {};
-
+struct is_metric_symmetric<sap_interpolation_tag> : std::false_type {};
 
 /**
  * This function template computes a Sustained Acceleration Pulse (SAP) interpolation between two points in a
@@ -74,141 +74,152 @@ struct is_metric_symmetric< sap_interpolation_tag > : boost::mpl::false_ {};
  * \param space The space on which the points reside.
  * \return The interpolated point at time t, between a and b.
  */
-template < typename PointType, typename Topology >
-PointType sap_interpolate( const PointType& a, const PointType& b, double t, const Topology& space ) {
-  typedef typename temporal_space_traits< Topology >::space_topology SpaceType;
-  typedef typename temporal_space_traits< Topology >::time_topology TimeSpaceType;
-  BOOST_CONCEPT_ASSERT( (TemporalSpaceConcept< Topology >));
-  BOOST_CONCEPT_ASSERT( (MetricSpaceConcept< SpaceType >));
-  BOOST_CONCEPT_ASSERT( (TangentBundleConcept< SpaceType, 2, TimeSpaceType >));
-  BOOST_CONCEPT_ASSERT(
-    (SphereBoundedSpaceConcept< typename derived_N_order_space< SpaceType, TimeSpaceType, 1 >::type >));
-  BOOST_CONCEPT_ASSERT(
-    (SphereBoundedSpaceConcept< typename derived_N_order_space< SpaceType, TimeSpaceType, 2 >::type >));
+template <typename PointType, typename Topology>
+PointType sap_interpolate(const PointType& a, const PointType& b, double t,
+                          const Topology& space) {
+  using SpaceType = typename temporal_space_traits<Topology>::space_topology;
+  using TimeSpaceType = typename temporal_space_traits<Topology>::time_topology;
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<SpaceType>));
+  BOOST_CONCEPT_ASSERT((TangentBundleConcept<SpaceType, 2, TimeSpaceType>));
+  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<
+                        derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>));
+  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<
+                        derived_N_order_space_t<SpaceType, TimeSpaceType, 2>>));
 
-  typedef typename derived_N_order_space< SpaceType, TimeSpaceType, 0 >::type Space0;
-  typedef typename topology_traits< Space0 >::point_difference_type PointDiff0;
+  using Space0 = derived_N_order_space_t<SpaceType, TimeSpaceType, 0>;
+  using PointDiff0 = topology_point_difference_type_t<Space0>;
 
-  typedef typename derived_N_order_space< SpaceType, TimeSpaceType, 1 >::type Space1;
-  typedef typename topology_traits< Space1 >::point_type PointType1;
+  using Space1 = derived_N_order_space_t<SpaceType, TimeSpaceType, 1>;
+  using PointType1 = topology_point_type_t<Space1>;
 
-  typedef typename derived_N_order_space< SpaceType, TimeSpaceType, 2 >::type Space2;
+  using Space2 = derived_N_order_space_t<SpaceType, TimeSpaceType, 2>;
 
-  BOOST_CONCEPT_ASSERT( (MetricSpaceConcept< Space0 >));
-  BOOST_CONCEPT_ASSERT( (MetricSpaceConcept< Space1 >));
-  BOOST_CONCEPT_ASSERT( (MetricSpaceConcept< Space2 >));
-  BOOST_CONCEPT_ASSERT( (LieGroupConcept< Space0 >));
-  BOOST_CONCEPT_ASSERT( (LieGroupConcept< Space1 >));
-  BOOST_CONCEPT_ASSERT( (LieGroupConcept< Space2 >));
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space1>));
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space2>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
 
-  if( t <= a.time )
+  if (t <= a.time) {
     return a;
-  if( t >= b.time )
+  }
+  if (t >= b.time) {
     return b;
+  }
 
   PointDiff0 delta_first_order;
   PointType1 peak_velocity;
   double delta_time = b.time - a.time;
 
   double min_delta_time = detail::sap_compute_interpolation_data_impl(
-    a.pt, b.pt, delta_first_order, peak_velocity, space.get_space_topology(), space.get_time_topology(), delta_time,
-    nullptr, 1e-6, 60 );
+      a.pt, b.pt, delta_first_order, peak_velocity, space.get_space_topology(),
+      space.get_time_topology(), delta_time, nullptr, 1e-6, 60);
 
-  if( min_delta_time > delta_time )
+  if (min_delta_time > delta_time) {
     delta_time = min_delta_time;
+  }
   double dt = t - a.time;
 
   PointType result;
   result.time = t;
 
-  detail::sap_interpolate_impl< max_derivation_order< SpaceType, TimeSpaceType > >(
-    result.pt, a.pt, b.pt, delta_first_order, peak_velocity, space.get_space_topology(), space.get_time_topology(), dt,
-    delta_time );
+  detail::sap_interpolate_impl<
+      max_derivation_order_v<SpaceType, TimeSpaceType>>(
+      result.pt, a.pt, b.pt, delta_first_order, peak_velocity,
+      space.get_space_topology(), space.get_time_topology(), dt, delta_time);
 
   return result;
-};
+}
 
+template <typename Topology, typename TimeTopology>
+bool sap_is_in_bounds(const topology_point_type_t<Topology>& pt,
+                      const Topology& space, const TimeTopology& t_space) {
+  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<Topology>));
 
-template < typename Topology, typename TimeTopology >
-bool sap_is_in_bounds( const typename topology_traits< Topology >::point_type& pt, const Topology& space,
-                       const TimeTopology& t_space ) {
-  BOOST_CONCEPT_ASSERT( (TopologyConcept< Topology >));
-  BOOST_CONCEPT_ASSERT( (BoundedSpaceConcept< Topology >));
+  using Space0 = derived_N_order_space_t<Topology, TimeTopology, 0>;
+  using Space1 = derived_N_order_space_t<Topology, TimeTopology, 1>;
+  using Space2 = derived_N_order_space_t<Topology, TimeTopology, 2>;
+  using PointType = topology_point_type_t<Topology>;
+  using Point2 = topology_point_type_t<Space2>;
+  using PointDiff1 = topology_point_difference_type_t<Space1>;
+  using PointDiff2 = topology_point_difference_type_t<Space2>;
 
-  typedef typename derived_N_order_space< Topology, TimeTopology, 0 >::type Space0;
-  typedef typename derived_N_order_space< Topology, TimeTopology, 1 >::type Space1;
-  typedef typename derived_N_order_space< Topology, TimeTopology, 2 >::type Space2;
-  typedef typename topology_traits< Topology >::point_type PointType;
-  typedef typename topology_traits< Space2 >::point_type Point2;
-  typedef typename topology_traits< Space1 >::point_difference_type PointDiff1;
-  typedef typename topology_traits< Space2 >::point_difference_type PointDiff2;
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
+  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<Space1>));
+  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<Space2>));
 
-  BOOST_CONCEPT_ASSERT( (LieGroupConcept< Space0 >));
-  BOOST_CONCEPT_ASSERT( (LieGroupConcept< Space1 >));
-  BOOST_CONCEPT_ASSERT( (LieGroupConcept< Space2 >));
-  BOOST_CONCEPT_ASSERT( (SphereBoundedSpaceConcept< Space1 >));
-  BOOST_CONCEPT_ASSERT( (SphereBoundedSpaceConcept< Space2 >));
-
-  const Space1& s1 = get_space< 1 >( space, t_space );
-  const Space2& s2 = get_space< 2 >( space, t_space );
-  const typename metric_space_traits< Space1 >::distance_metric_type& get_dist1 = get( distance_metric, s1 );
-  const typename metric_space_traits< Space2 >::distance_metric_type& get_dist2 = get( distance_metric, s2 );
+  const Space1& s1 = get_space<1>(space, t_space);
+  const Space2& s2 = get_space<2>(space, t_space);
+  const auto& get_dist1 = get(distance_metric, s1);
+  const auto& get_dist2 = get(distance_metric, s2);
 
   // Get the descended acceleration to the point of zero velocity (origin).
-  PointDiff1 dp1 = s1.difference( s1.origin(), get< 1 >( pt ) );
-  double dt1 = get_dist1( s1.origin(), get< 1 >( pt ), s1 );
+  PointDiff1 dp1 = s1.difference(s1.origin(), get<1>(pt));
+  double dt1 = get_dist1(s1.origin(), get<1>(pt), s1);
   // Get the corresponding acceleration.
-  Point2 p2 = lift_to_space< 2 >( dp1, dt1, space, t_space );
+  Point2 p2 = lift_to_space<2>(dp1, dt1, space, t_space);
   // Get the descended jerk to reach that acceleration.
-  PointDiff2 dp2 = s2.difference( p2, s2.origin() );
-  double dt2 = get_dist2( p2, s2.origin(), s2 );
+  PointDiff2 dp2 = s2.difference(p2, s2.origin());
+  double dt2 = get_dist2(p2, s2.origin(), s2);
 
   // Check if we can safely ramp-up to that acceleration:
   PointType result_a = pt;
-  detail::sap_constant_jerk_motion_impl< max_derivation_order< Topology, TimeTopology > >( result_a, dp2, space,
-                                                                                           t_space, dt2 );
-  if( !space.is_in_bounds( result_a ) )
-    return false; // reject the sample.
+  detail::sap_constant_jerk_motion_impl<
+      max_derivation_order<Topology, TimeTopology>>(result_a, dp2, space,
+                                                    t_space, dt2);
+  if (!space.is_in_bounds(result_a)) {
+    return false;  // reject the sample.
+  }
 
-  if( dt1 > get_dist1( get< 1 >( result_a ), get< 1 >( pt ), s1 ) ) {
+  if (dt1 > get_dist1(get<1>(result_a), get<1>(pt), s1)) {
     // This means, we didn't cross the zero-velocity during the jerk-down.
 
     // Get the new descended acceleration to the point of zero velocity (origin).
-    dp1 = s1.difference( s1.origin(), get< 1 >( result_a ) );
-    double dt1a = get_dist1( s1.origin(), get< 1 >( result_a ), s1 );
+    dp1 = s1.difference(s1.origin(), get<1>(result_a));
+    double dt1a = get_dist1(s1.origin(), get<1>(result_a), s1);
 
     // Check if we can safely stop before the boundary:
-    detail::svp_constant_accel_motion_impl< max_derivation_order< Topology, TimeTopology > >( result_a, dp1, space,
-                                                                                              t_space, dt1a );
-    if( !space.is_in_bounds( result_a ) )
-      return false; // reject the sample.
-  };
+    detail::svp_constant_accel_motion_impl<
+        max_derivation_order<Topology, TimeTopology>>(result_a, dp1, space,
+                                                      t_space, dt1a);
+    if (!space.is_in_bounds(result_a)) {
+      return false;  // reject the sample.
+    }
+  }
 
   // Check if we could have ramped-down from that inverse acceleration:
   PointType result_b = pt;
-  detail::sap_constant_jerk_motion_impl< max_derivation_order< Topology, TimeTopology > >( result_b, -dp2, space,
-                                                                                           t_space, -dt2 );
-  if( !space.is_in_bounds( result_b ) )
-    return false; // reject the sample.
+  detail::sap_constant_jerk_motion_impl<
+      max_derivation_order<Topology, TimeTopology>>(result_b, -dp2, space,
+                                                    t_space, -dt2);
+  if (!space.is_in_bounds(result_b)) {
+    return false;  // reject the sample.
+  }
 
-  if( dt1 > get_dist1( get< 1 >( pt ), get< 1 >( result_b ), s1 ) ) {
+  if (dt1 > get_dist1(get<1>(pt), get<1>(result_b), s1)) {
     // This means, the zero-velocity point is not in the wake of the last jerk-down.
 
     // Get the new descended acceleration to the point of zero velocity (origin).
-    dp1 = s1.difference( s1.origin(), get< 1 >( result_b ) );
-    double dt1b = get_dist1( s1.origin(), get< 1 >( result_b ), s1 );
+    dp1 = s1.difference(s1.origin(), get<1>(result_b));
+    double dt1b = get_dist1(s1.origin(), get<1>(result_b), s1);
 
     // Check if we could have ramped up from within the boundary:
-    detail::svp_constant_accel_motion_impl< max_derivation_order< Topology, TimeTopology > >( result_b, -dp1, space,
-                                                                                              t_space, -dt1b );
-    if( !space.is_in_bounds( result_b ) )
-      return false; // reject the sample.
-  };
+    detail::svp_constant_accel_motion_impl<
+        max_derivation_order<Topology, TimeTopology>>(result_b, -dp1, space,
+                                                      t_space, -dt1b);
+    if (!space.is_in_bounds(result_b)) {
+      return false;  // reject the sample.
+    }
+  }
 
   // if this point is reached it means that the sample is acceptable:
   return true;
-};
-
+}
 
 /**
  * This functor class implements a sustained acceleration pulse (SAP) interpolation in a temporal
@@ -217,47 +228,48 @@ bool sap_is_in_bounds( const typename topology_traits< Topology >::point_type& p
  * DifferentiableSpaceConcept once against time.
  * \tparam TimeSpaceType The time topology.
  */
-template < typename SpaceType, typename TimeSpaceType >
+template <typename SpaceType, typename TimeSpaceType>
 class sap_interpolator {
-public:
-  typedef sap_interpolator< SpaceType, TimeSpaceType > self;
-  typedef typename topology_traits< SpaceType >::point_type point_type;
+ public:
+  using self = sap_interpolator<SpaceType, TimeSpaceType>;
+  using point_type = topology_point_type_t<SpaceType>;
 
-  typedef typename derived_N_order_space< SpaceType, TimeSpaceType, 0 >::type Space0;
-  typedef typename topology_traits< Space0 >::point_type PointType0;
-  typedef typename topology_traits< Space0 >::point_difference_type PointDiff0;
-  typedef typename derived_N_order_space< SpaceType, TimeSpaceType, 1 >::type Space1;
-  typedef typename topology_traits< Space1 >::point_type PointType1;
-  typedef typename topology_traits< Space1 >::point_difference_type PointDiff1;
-  typedef typename derived_N_order_space< SpaceType, TimeSpaceType, 2 >::type Space2;
-  typedef typename topology_traits< Space1 >::point_type PointType2;
-  typedef typename topology_traits< Space1 >::point_difference_type PointDiff2;
+  using Space0 = derived_N_order_space_t<SpaceType, TimeSpaceType, 0>;
+  using PointType0 = topology_point_type_t<Space0>;
+  using PointDiff0 = topology_point_difference_type_t<Space0>;
+  using Space1 = derived_N_order_space_t<SpaceType, TimeSpaceType, 1>;
+  using PointType1 = topology_point_type_t<Space1>;
+  using PointDiff1 = topology_point_difference_type_t<Space1>;
+  using Space2 = derived_N_order_space_t<SpaceType, TimeSpaceType, 2>;
+  using PointType2 = topology_point_type_t<Space1>;
+  using PointDiff2 = topology_point_difference_type_t<Space1>;
 
-  BOOST_CONCEPT_ASSERT( ( MetricSpaceConcept< SpaceType > ) );
-  BOOST_CONCEPT_ASSERT( ( TangentBundleConcept< SpaceType, 2, TimeSpaceType > ) );
-  BOOST_CONCEPT_ASSERT(
-    ( SphereBoundedSpaceConcept< typename derived_N_order_space< SpaceType, TimeSpaceType, 1 >::type > ) );
-  BOOST_CONCEPT_ASSERT(
-    ( SphereBoundedSpaceConcept< typename derived_N_order_space< SpaceType, TimeSpaceType, 2 >::type > ) );
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<SpaceType>));
+  BOOST_CONCEPT_ASSERT((TangentBundleConcept<SpaceType, 2, TimeSpaceType>));
+  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<
+                        derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>));
+  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<
+                        derived_N_order_space_t<SpaceType, TimeSpaceType, 2>>));
 
-  BOOST_CONCEPT_ASSERT( ( MetricSpaceConcept< Space0 > ) );
-  BOOST_CONCEPT_ASSERT( ( MetricSpaceConcept< Space1 > ) );
-  BOOST_CONCEPT_ASSERT( ( MetricSpaceConcept< Space2 > ) );
-  BOOST_CONCEPT_ASSERT( ( LieGroupConcept< Space0 > ) );
-  BOOST_CONCEPT_ASSERT( ( LieGroupConcept< Space1 > ) );
-  BOOST_CONCEPT_ASSERT( ( LieGroupConcept< Space2 > ) );
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space1>));
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space2>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
 
-private:
+ private:
   PointDiff0 delta_first_order;
   PointType1 peak_velocity;
   double min_delta_time;
   PointType1 best_peak_velocity;
 
-public:
+ public:
   /**
    * Default constructor.
    */
-  sap_interpolator() : min_delta_time( std::numeric_limits< double >::infinity() ){};
+  sap_interpolator()
+      : min_delta_time(std::numeric_limits<double>::infinity()) {}
 
   /**
    * Constructs the interpolator with its start and end points.
@@ -268,11 +280,12 @@ public:
    * \param t_space The time-space against which the interpolation is done.
    * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
    */
-  template < typename Factory >
-  sap_interpolator( const point_type& start_point, const point_type& end_point, double dt, const SpaceType& space,
-                    const TimeSpaceType& t_space, const Factory& factory ) {
-    initialize( start_point, end_point, dt, space, t_space, factory );
-  };
+  template <typename Factory>
+  sap_interpolator(const point_type& start_point, const point_type& end_point,
+                   double dt, const SpaceType& space,
+                   const TimeSpaceType& t_space, const Factory& factory) {
+    initialize(start_point, end_point, dt, space, t_space, factory);
+  }
 
   /**
    * Initializes the interpolator with its start and end points.
@@ -284,14 +297,16 @@ public:
    * \param t_space The time-space against which the interpolation is done.
    * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
    */
-  template < typename Factory >
-  void initialize( const point_type& start_point, const point_type& end_point, double dt, const SpaceType& space,
-                   const TimeSpaceType& t_space, const Factory& factory ) {
+  template <typename Factory>
+  void initialize(const point_type& start_point, const point_type& end_point,
+                  double dt, const SpaceType& space,
+                  const TimeSpaceType& t_space, const Factory& factory) {
 
     min_delta_time = detail::sap_compute_interpolation_data_impl(
-      start_point, end_point, delta_first_order, peak_velocity, space, t_space, dt, &best_peak_velocity,
-      factory.tolerance, factory.maximum_iterations );
-  };
+        start_point, end_point, delta_first_order, peak_velocity, space,
+        t_space, dt, &best_peak_velocity, factory.tolerance,
+        factory.maximum_iterations);
+  }
 
   /**
    * Computes the point at a given delta-time from the start-point.
@@ -305,30 +320,32 @@ public:
    * \param dt_total The time difference from the start-point to the end point.
    * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
    */
-  template < typename Factory >
-  void compute_point( point_type& result, const point_type& start_point, const point_type& end_point,
-                      const SpaceType& space, const TimeSpaceType& t_space, double dt, double dt_total,
-                      const Factory& factory ) const {
-    if( dt <= 0.0 ) {
+  template <typename Factory>
+  void compute_point(point_type& result, const point_type& start_point,
+                     const point_type& end_point, const SpaceType& space,
+                     const TimeSpaceType& t_space, double dt, double dt_total,
+                     const Factory& factory) const {
+    if (dt <= 0.0) {
       result = start_point;
       return;
-    };
-    if( dt >= dt_total ) {
+    }
+    if (dt >= dt_total) {
       result = end_point;
       return;
-    };
+    }
 
-    detail::sap_interpolate_impl< max_derivation_order< SpaceType, TimeSpaceType > >(
-      result, start_point, end_point, delta_first_order, peak_velocity, space, t_space, dt, dt_total );
-  };
+    detail::sap_interpolate_impl<
+        max_derivation_order_v<SpaceType, TimeSpaceType>>(
+        result, start_point, end_point, delta_first_order, peak_velocity, space,
+        t_space, dt, dt_total);
+  }
 
   /**
    * Returns the minimum travel time between the initialized start and end points.
    * \return The minimum travel time between the initialized start and end points.
    */
-  double get_minimum_travel_time() const { return min_delta_time; };
+  double get_minimum_travel_time() const { return min_delta_time; }
 };
-
 
 /**
  * This class is a factory class for sustained acceleration pulse (SAP) interpolators on a temporal
@@ -338,53 +355,55 @@ public:
  *                          whose 1-order and 2-order derivative space has a spherical bound (see
  * SphereBoundedSpaceConcept).
  */
-template < typename TemporalTopology >
+template <typename TemporalTopology>
 class sap_interpolator_factory : public serializable {
-public:
-  typedef sap_interpolator_factory< TemporalTopology > self;
-  typedef TemporalTopology topology;
-  typedef typename topology_traits< TemporalTopology >::point_type point_type;
+ public:
+  using self = sap_interpolator_factory<TemporalTopology>;
+  using topology = TemporalTopology;
+  using point_type = topology_point_type_t<TemporalTopology>;
 
-  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< topology > ) );
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
 
-  typedef generic_interpolator< self, sap_interpolator > interpolator_type;
+  using interpolator_type = generic_interpolator<self, sap_interpolator>;
 
-private:
-  shared_ptr< topology > space;
+ private:
+  std::shared_ptr<topology> space;
 
-public:
+ public:
   double tolerance;
   unsigned int maximum_iterations;
 
-  sap_interpolator_factory( const shared_ptr< topology >& aSpace = shared_ptr< topology >(), double aTolerance = 1e-6,
-                            unsigned int aMaxIter = 60 )
-      : space( aSpace ), tolerance( aTolerance ), maximum_iterations( aMaxIter ){};
+  sap_interpolator_factory(const std::shared_ptr<topology>& aSpace = {},
+                           double aTolerance = 1e-6, unsigned int aMaxIter = 60)
+      : space(aSpace), tolerance(aTolerance), maximum_iterations(aMaxIter) {}
 
-  void set_temporal_space( const shared_ptr< topology >& aSpace ) { space = aSpace; };
-  const shared_ptr< topology >& get_temporal_space() const { return space; };
+  void set_temporal_space(const std::shared_ptr<topology>& aSpace) {
+    space = aSpace;
+  }
+  const std::shared_ptr<topology>& get_temporal_space() const { return space; }
 
-  interpolator_type create_interpolator( const point_type* pp1, const point_type* pp2 ) const {
-    return interpolator_type( this, pp1, pp2 );
-  };
-
+  interpolator_type create_interpolator(const point_type* pp1,
+                                        const point_type* pp2) const {
+    return interpolator_type(this, pp1, pp2);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    A& RK_SERIAL_SAVE_WITH_NAME( space ) & RK_SERIAL_SAVE_WITH_NAME( tolerance )
-      & RK_SERIAL_SAVE_WITH_NAME( maximum_iterations );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    A& RK_SERIAL_SAVE_WITH_NAME(space) & RK_SERIAL_SAVE_WITH_NAME(tolerance) &
+        RK_SERIAL_SAVE_WITH_NAME(maximum_iterations);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    A& RK_SERIAL_LOAD_WITH_NAME( space ) & RK_SERIAL_LOAD_WITH_NAME( tolerance )
-      & RK_SERIAL_LOAD_WITH_NAME( maximum_iterations );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    A& RK_SERIAL_LOAD_WITH_NAME(space) & RK_SERIAL_LOAD_WITH_NAME(tolerance) &
+        RK_SERIAL_LOAD_WITH_NAME(maximum_iterations);
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC2430005, 1, "sap_interpolator_factory", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2430005, 1, "sap_interpolator_factory",
+                              serializable)
 };
-
 
 /**
  * This class implements a trajectory in a temporal and twice-differentiable topology.
@@ -397,29 +416,36 @@ public:
  * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the
  * DistanceMetricConcept.
  */
-template < typename Topology, typename DistanceMetric = typename metric_space_traits< Topology >::distance_metric_type >
+template <typename Topology,
+          typename DistanceMetric =
+              typename metric_space_traits<Topology>::distance_metric_type>
 class sap_interp_traj
-  : public interpolated_trajectory< Topology, sap_interpolator_factory< Topology >, DistanceMetric > {
-public:
-  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< Topology > ) );
+    : public interpolated_trajectory<
+          Topology, sap_interpolator_factory<Topology>, DistanceMetric> {
+ public:
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
 
-  typedef sap_interp_traj< Topology, DistanceMetric > self;
-  typedef interpolated_trajectory< Topology, sap_interpolator_factory< Topology >, DistanceMetric > base_class_type;
+  using self = sap_interp_traj<Topology, DistanceMetric>;
+  using base_class_type =
+      interpolated_trajectory<Topology, sap_interpolator_factory<Topology>,
+                              DistanceMetric>;
 
-  typedef typename base_class_type::point_type point_type;
-  typedef typename base_class_type::topology topology;
-  typedef typename base_class_type::distance_metric distance_metric;
+  using point_type = typename base_class_type::point_type;
+  using topology = typename base_class_type::topology;
+  using distance_metric = typename base_class_type::distance_metric;
 
-public:
+ public:
   /**
    * Constructs the path from a space, assumes the start and end are at the origin
    * of the space.
    * \param aSpace The space on which the path is.
    * \param aDist The distance metric functor that the path should use.
    */
-  explicit sap_interp_traj( const shared_ptr< topology >& aSpace = shared_ptr< topology >( new topology() ),
-                            const distance_metric& aDist = distance_metric() )
-      : base_class_type( aSpace, aDist, sap_interpolator_factory< Topology >( aSpace ) ){};
+  explicit sap_interp_traj(
+      const std::shared_ptr<topology>& aSpace = std::make_shared<topology>(),
+      const distance_metric& aDist = distance_metric())
+      : base_class_type(aSpace, aDist,
+                        sap_interpolator_factory<Topology>(aSpace)) {}
 
   /**
    * Constructs the path from a space, the start and end points.
@@ -428,9 +454,11 @@ public:
    * \param aEnd The end-point of the path.
    * \param aDist The distance metric functor that the path should use.
    */
-  sap_interp_traj( const shared_ptr< topology >& aSpace, const point_type& aStart, const point_type& aEnd,
-                   const distance_metric& aDist = distance_metric() )
-      : base_class_type( aSpace, aStart, aEnd, aDist, sap_interpolator_factory< Topology >( aSpace ) ){};
+  sap_interp_traj(const std::shared_ptr<topology>& aSpace,
+                  const point_type& aStart, const point_type& aEnd,
+                  const distance_metric& aDist = distance_metric())
+      : base_class_type(aSpace, aStart, aEnd, aDist,
+                        sap_interpolator_factory<Topology>(aSpace)) {}
 
   /**
    * Constructs the path from a range of points and their space.
@@ -440,42 +468,43 @@ public:
    * \param aSpace The space on which the path is.
    * \param aDist The distance metric functor that the path should use.
    */
-  template < typename ForwardIter >
-  sap_interp_traj( ForwardIter aBegin, ForwardIter aEnd, const shared_ptr< topology >& aSpace,
-                   const distance_metric& aDist = distance_metric() )
-      : base_class_type( aBegin, aEnd, aSpace, aDist, sap_interpolator_factory< Topology >( aSpace ) ){};
-
+  template <typename ForwardIter>
+  sap_interp_traj(ForwardIter aBegin, ForwardIter aEnd,
+                  const std::shared_ptr<topology>& aSpace,
+                  const distance_metric& aDist = distance_metric())
+      : base_class_type(aBegin, aEnd, aSpace, aDist,
+                        sap_interpolator_factory<Topology>(aSpace)) {}
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    base_class_type::save( A, base_class_type::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    base_class_type::save(
+        A, base_class_type::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    base_class_type::load( A, base_class_type::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    base_class_type::load(
+        A, base_class_type::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2440007, 1, "sap_interp_traj", base_class_type )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2440007, 1, "sap_interp_traj",
+                              base_class_type)
 };
-};
+
+}  // namespace pp
 
 namespace rtti {
 
 template <>
-struct get_type_id< pp::sap_interpolation_tag > {
-  BOOST_STATIC_CONSTANT( unsigned int, ID = 4 );
-#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "sap_interpolation_tag" );
-#else
-  static const char* type_name() BOOST_NOEXCEPT { return "sap_interpolation_tag"; };
-#endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
-};
-};
+struct get_type_id<pp::sap_interpolation_tag> {
+  static constexpr unsigned int ID = 4;
+  static constexpr auto type_name = std::string_view{"sap_interpolation_tag"};
+  static construct_ptr CreatePtr() noexcept { return nullptr; }
 };
 
+}  // namespace rtti
+}  // namespace ReaK
 
 #endif

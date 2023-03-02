@@ -29,11 +29,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef REAK_MANIP_FREE_DYNAMIC_WORKSPACE_EXT_HPP
 #define REAK_MANIP_FREE_DYNAMIC_WORKSPACE_EXT_HPP
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 #include <ReaK/core/base/defs.hpp>
 
@@ -41,69 +38,42 @@
 #include "metric_space_tuple.hpp"
 #include "rate_limited_spaces.hpp"
 
+#include "Ndof_spaces.hpp"
 #include "se2_topologies.hpp"
 #include "se3_topologies.hpp"
-#include "Ndof_spaces.hpp"
 
-#if 0
-#include "joint_space_topologies.hpp"
-#endif
+namespace ReaK::pp {
 
-namespace ReaK {
+#define RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(NDOF)                \
+  extern template class manip_dynamic_env<Ndof_rl_space_t<double, NDOF, 0>>; \
+  extern template class manip_dynamic_env<Ndof_rl_space_t<double, NDOF, 1>>; \
+  extern template class manip_dynamic_env<Ndof_rl_space_t<double, NDOF, 2>>;
 
-namespace pp {
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(1)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(2)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(3)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(4)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(5)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(6)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(7)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(8)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(9)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(10)
 
+extern template class manip_dynamic_env<
+    metric_space_array_t<se2_0th_order_rl_topology_t<double>, 1>>;
+extern template class manip_dynamic_env<
+    metric_space_array_t<se2_1st_order_rl_topology_t<double>, 1>>;
+extern template class manip_dynamic_env<
+    metric_space_array_t<se2_2nd_order_rl_topology_t<double>, 1>>;
 
-#if 0
+extern template class manip_dynamic_env<
+    metric_space_array_t<se3_0th_order_rl_topology_t<double>, 1>>;
+extern template class manip_dynamic_env<
+    metric_space_array_t<se3_1st_order_rl_topology_t<double>, 1>>;
+extern template class manip_dynamic_env<
+    metric_space_array_t<se3_2nd_order_rl_topology_t<double>, 1>>;
 
-#define RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( NDOF )                                                       \
-  extern template class manip_dynamic_env< Ndof_0th_order_rl_space< double, NDOF, euclidean_tuple_distance >::type >; \
-  extern template class manip_dynamic_env< Ndof_1st_order_rl_space< double, NDOF, euclidean_tuple_distance >::type >; \
-  extern template class manip_dynamic_env< Ndof_2nd_order_rl_space< double, NDOF, euclidean_tuple_distance >::type >; \
-                                                                                                                      \
-                                                                                                                      \
-  extern template class manip_dynamic_env< Ndof_0th_order_rl_space< double, NDOF, inf_norm_tuple_distance >::type >;  \
-  extern template class manip_dynamic_env< Ndof_1st_order_rl_space< double, NDOF, inf_norm_tuple_distance >::type >;  \
-  extern template class manip_dynamic_env< Ndof_2nd_order_rl_space< double, NDOF, inf_norm_tuple_distance >::type >;  \
-                                                                                                                      \
-                                                                                                                      \
-  extern template class manip_dynamic_env< Ndof_rl_space< double, NDOF, 0 >::type >;                                  \
-  extern template class manip_dynamic_env< Ndof_rl_space< double, NDOF, 1 >::type >;                                  \
-  extern template class manip_dynamic_env< Ndof_rl_space< double, NDOF, 2 >::type >;
-
-#else
-
-#define RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( NDOF )                      \
-  extern template class manip_dynamic_env< Ndof_rl_space< double, NDOF, 0 >::type >; \
-  extern template class manip_dynamic_env< Ndof_rl_space< double, NDOF, 1 >::type >; \
-  extern template class manip_dynamic_env< Ndof_rl_space< double, NDOF, 2 >::type >;
-
-#endif
-
-
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( 1 )
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( 2 )
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( 3 )
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( 4 )
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( 5 )
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( 6 )
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( 7 )
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( 8 )
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( 9 )
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS( 10 )
-
-
-extern template class manip_dynamic_env< metric_space_array< se2_0th_order_rl_topology< double >::type, 1 >::type >;
-extern template class manip_dynamic_env< metric_space_array< se2_1st_order_rl_topology< double >::type, 1 >::type >;
-extern template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology< double >::type, 1 >::type >;
-
-extern template class manip_dynamic_env< metric_space_array< se3_0th_order_rl_topology< double >::type, 1 >::type >;
-extern template class manip_dynamic_env< metric_space_array< se3_1st_order_rl_topology< double >::type, 1 >::type >;
-extern template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology< double >::type, 1 >::type >;
-};
-};
-
-
-#endif
+}  // namespace ReaK::pp
 
 #endif

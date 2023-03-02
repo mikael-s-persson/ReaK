@@ -29,8 +29,8 @@
 #ifndef REAK_PROP_EDITOR_WIDGET_HPP
 #define REAK_PROP_EDITOR_WIDGET_HPP
 
-#include "objtree_qtmodel.hpp"
 #include "obj_properties_qtmodel.hpp"
+#include "objtree_qtmodel.hpp"
 
 #include <QDockWidget>
 
@@ -38,37 +38,36 @@ namespace Ui {
 class RKPropEditorWidget;
 };
 
-namespace ReaK {
-
-namespace qt {
+namespace ReaK::qt {
 
 class PropEditorWidget : public QDockWidget {
   Q_OBJECT
 
-public:
-  PropEditorWidget( ObjTreeQtModel* aObjTreeMdl, QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
+ public:
+  PropEditorWidget(ObjTreeQtModel* aObjTreeMdl, QWidget* parent = nullptr,
+                   Qt::WindowFlags flags = 0);
   virtual ~PropEditorWidget();
 
-private slots:
+ private slots:
 
   void xmlSrcChanged();
   void onTextChanged();
   void applyButtonClick();
   void cancelButtonClick();
-  void objNameChanged( const std::string& newName );
+  void objNameChanged(const std::string& newName);
 
-signals:
+ signals:
 
-  void editedXMLSrc( const std::string& newSrc );
+  void editedXMLSrc(const std::string& newSrc);
 
-private:
+ private:
   Ui::RKPropEditorWidget* ui;
 
-public:
+ public:
   ObjPropertiesQtModel mdl;
   ObjPropertiesQtDelegate delegate;
 };
-};
-};
+
+}  // namespace ReaK::qt
 
 #endif

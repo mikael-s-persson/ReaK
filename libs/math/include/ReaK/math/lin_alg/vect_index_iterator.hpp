@@ -46,31 +46,31 @@ namespace ReaK {
  * takes by reference (internally held by pointer, to be copyable).
  * \tparam Vector A readable vector type.
  */
-template < typename Vector >
+template <typename Vector>
 class vect_index_iter {
-public:
-  typedef typename vect_traits< Vector >::value_type value_type;
-  typedef typename vect_traits< Vector >::size_type size_type;
-  typedef typename vect_traits< Vector >::reference reference;
-  typedef typename vect_traits< Vector >::difference_type difference_type;
-  typedef typename vect_traits< Vector >::pointer pointer;
-  typedef std::random_access_iterator_tag iterator_category;
-  typedef vect_index_iter< Vector > self;
+ public:
+  using value_type = vect_value_type_t<Vector>;
+  using size_type = typename vect_traits<Vector>::size_type;
+  using reference = typename vect_traits<Vector>::reference;
+  using difference_type = typename vect_traits<Vector>::difference_type;
+  using pointer = typename vect_traits<Vector>::pointer;
+  using iterator_category = std::random_access_iterator_tag;
+  using self = vect_index_iter<Vector>;
 
-private:
-  Vector* v;   ///< Holds a reference to the vector.
-  size_type i; ///< Holds the current index into the vector.
+ private:
+  Vector* v;    ///< Holds a reference to the vector.
+  size_type i;  ///< Holds the current index into the vector.
 
-public:
+ public:
   /**
    * Constructs an index-iterator from a vector reference, automatically starts at one-past-last element (it creates the
    * end-iterator).
    */
-  vect_index_iter( Vector& aV ) : v( &aV ), i( aV.size() ){};
+  explicit vect_index_iter(Vector& aV) : v(&aV), i(aV.size()) {}
   /**
    * Constructs an index-iterator from a vector reference and a starting index.
    */
-  vect_index_iter( Vector& aV, size_type aI ) : v( &aV ), i( aI ){};
+  vect_index_iter(Vector& aV, size_type aI) : v(&aV), i(aI) {}
 
   // compiler-generated copy-constructor and assignment operator are correct.
 
@@ -80,128 +80,141 @@ public:
   self& operator++() {
     ++i;
     return *this;
-  };
+  }
   /**
    * Post-increment operator.
    */
-  self operator++( int ) {
+  self operator++(int) {
     self tmp = *this;
     ++i;
     return tmp;
-  };
+  }
   /**
    * Add-and-store operator.
    */
-  self& operator+=( difference_type aStep ) {
+  self& operator+=(difference_type aStep) {
     i += aStep;
     return *this;
-  };
+  }
   /**
    * Pre-decrement operator.
    */
   self& operator--() {
     --i;
     return *this;
-  };
+  }
   /**
    * Post-decrement operator.
    */
-  self operator--( int ) {
+  self operator--(int) {
     self tmp = *this;
     --i;
     return tmp;
-  };
+  }
   /**
    * Sub-and-store operator.
    */
-  self& operator-=( difference_type aStep ) {
+  self& operator-=(difference_type aStep) {
     i -= aStep;
     return *this;
-  };
+  }
   /**
    * Indexing operator.
    */
-  reference operator[]( difference_type aIdx ) const { return ( *v )[aIdx]; };
+  reference operator[](difference_type aIdx) const { return (*v)[aIdx]; }
   /**
    * Dereference operator.
    */
-  reference operator*() const { return ( *v )[i]; };
+  reference operator*() const { return (*v)[i]; }
   /**
    * Member-access operator.
    */
-  pointer operator->() const { return &( *v )[i]; };
+  pointer operator->() const { return &(*v)[i]; }
 
   /**
    * Addition operator.
    */
-  friend self operator+( self it, difference_type n ) { return it += n; };
+  friend self operator+(self it, difference_type n) { return it += n; }
   /**
    * Addition operator.
    */
-  friend self operator+( difference_type n, self it ) { return it += n; };
+  friend self operator+(difference_type n, self it) { return it += n; }
 
   /**
    * Subtraction operator.
    */
-  friend difference_type operator-( const self& it1, const self& it2 ) { return it1.i - it2.i; };
+  friend difference_type operator-(const self& it1, const self& it2) {
+    return it1.i - it2.i;
+  }
 
   /**
    * Equality operator.
    */
-  friend bool operator==( const self& it1, const self& it2 ) { return it1.i == it2.i; };
+  friend bool operator==(const self& it1, const self& it2) {
+    return it1.i == it2.i;
+  }
   /**
    * Inequality operator.
    */
-  friend bool operator!=( const self& it1, const self& it2 ) { return it1.i != it2.i; };
+  friend bool operator!=(const self& it1, const self& it2) {
+    return it1.i != it2.i;
+  }
   /**
    * Less-than operator.
    */
-  friend bool operator<( const self& it1, const self& it2 ) { return it1.i < it2.i; };
+  friend bool operator<(const self& it1, const self& it2) {
+    return it1.i < it2.i;
+  }
   /**
    * Greater-than operator.
    */
-  friend bool operator>( const self& it1, const self& it2 ) { return it1.i > it2.i; };
+  friend bool operator>(const self& it1, const self& it2) {
+    return it1.i > it2.i;
+  }
   /**
    * Less-or-equal-than operator.
    */
-  friend bool operator<=( const self& it1, const self& it2 ) { return it1.i <= it2.i; };
+  friend bool operator<=(const self& it1, const self& it2) {
+    return it1.i <= it2.i;
+  }
   /**
    * Greater-or-equal-than operator.
    */
-  friend bool operator>=( const self& it1, const self& it2 ) { return it1.i >= it2.i; };
+  friend bool operator>=(const self& it1, const self& it2) {
+    return it1.i >= it2.i;
+  }
 };
-
 
 /**
  * This class template implements an iterator via indexing into a vector, which it
  * takes by const-reference (internally held by const-pointer, to be copyable).
  * \tparam Vector A readable vector type.
  */
-template < typename Vector >
+template <typename Vector>
 class vect_index_const_iter {
-public:
-  typedef typename vect_traits< Vector >::value_type value_type;
-  typedef typename vect_traits< Vector >::size_type size_type;
-  typedef typename vect_traits< Vector >::const_reference reference;
-  typedef typename vect_traits< Vector >::difference_type difference_type;
-  typedef typename vect_traits< Vector >::const_pointer pointer;
-  typedef std::random_access_iterator_tag iterator_category;
-  typedef vect_index_const_iter< Vector > self;
+ public:
+  using value_type = vect_value_type_t<Vector>;
+  using size_type = typename vect_traits<Vector>::size_type;
+  using reference = typename vect_traits<Vector>::const_reference;
+  using difference_type = typename vect_traits<Vector>::difference_type;
+  using pointer = typename vect_traits<Vector>::const_pointer;
+  using iterator_category = std::random_access_iterator_tag;
+  using self = vect_index_const_iter<Vector>;
 
-private:
+ private:
   const Vector* v;
   size_type i;
 
-public:
+ public:
   /**
    * Constructs an index-iterator from a vector reference, automatically starts at one-past-last element (it creates the
    * end-iterator).
    */
-  vect_index_const_iter( const Vector& aV ) : v( &aV ), i( aV.size() ){};
+  explicit vect_index_const_iter(const Vector& aV) : v(&aV), i(aV.size()){};
   /**
    * Constructs an index-iterator from a vector reference and a starting index.
    */
-  vect_index_const_iter( const Vector& aV, size_type aI ) : v( &aV ), i( aI ){};
+  vect_index_const_iter(const Vector& aV, size_type aI) : v(&aV), i(aI) {}
 
   /**
    * Pre-increment operator.
@@ -209,96 +222,110 @@ public:
   self& operator++() {
     ++i;
     return *this;
-  };
+  }
   /**
    * Post-increment operator.
    */
-  self operator++( int ) {
+  self operator++(int) {
     self tmp = *this;
     ++i;
     return tmp;
-  };
+  }
   /**
    * Add-and-store operator.
    */
-  self& operator+=( difference_type aStep ) {
+  self& operator+=(difference_type aStep) {
     i += aStep;
     return *this;
-  };
+  }
   /**
    * Pre-decrement operator.
    */
   self& operator--() {
     --i;
     return *this;
-  };
+  }
   /**
    * Post-decrement operator.
    */
-  self operator--( int ) {
+  self operator--(int) {
     self tmp = *this;
     --i;
     return tmp;
-  };
+  }
   /**
    * Sub-and-store operator.
    */
-  self& operator-=( difference_type aStep ) {
+  self& operator-=(difference_type aStep) {
     i -= aStep;
     return *this;
-  };
+  }
   /**
    * Indexing operator.
    */
-  reference operator[]( difference_type aIdx ) const { return ( *v )[aIdx]; };
+  reference operator[](difference_type aIdx) const { return (*v)[aIdx]; }
   /**
    * Dereference operator.
    */
-  reference operator*() const { return ( *v )[i]; };
+  reference operator*() const { return (*v)[i]; }
   /**
    * Member-access operator.
    */
-  pointer operator->() const { return &( *v )[i]; };
+  pointer operator->() const { return &(*v)[i]; }
 
   /**
    * Addition operator.
    */
-  friend self operator+( self it, difference_type n ) { return it += n; };
+  friend self operator+(self it, difference_type n) { return it += n; }
   /**
    * Addition operator.
    */
-  friend self operator+( difference_type n, self it ) { return it += n; };
+  friend self operator+(difference_type n, self it) { return it += n; }
 
   /**
    * Subtraction operator.
    */
-  friend difference_type operator-( const self& it1, const self& it2 ) { return it1.i - it2.i; };
+  friend difference_type operator-(const self& it1, const self& it2) {
+    return it1.i - it2.i;
+  }
 
   /**
    * Equality operator.
    */
-  friend bool operator==( const self& it1, const self& it2 ) { return it1.i == it2.i; };
+  friend bool operator==(const self& it1, const self& it2) {
+    return it1.i == it2.i;
+  }
   /**
    * Inequality operator.
    */
-  friend bool operator!=( const self& it1, const self& it2 ) { return it1.i != it2.i; };
+  friend bool operator!=(const self& it1, const self& it2) {
+    return it1.i != it2.i;
+  }
   /**
    * Less-than operator.
    */
-  friend bool operator<( const self& it1, const self& it2 ) { return it1.i < it2.i; };
+  friend bool operator<(const self& it1, const self& it2) {
+    return it1.i < it2.i;
+  }
   /**
    * Greater-than operator.
    */
-  friend bool operator>( const self& it1, const self& it2 ) { return it1.i > it2.i; };
+  friend bool operator>(const self& it1, const self& it2) {
+    return it1.i > it2.i;
+  }
   /**
    * Less-or-equal-than operator.
    */
-  friend bool operator<=( const self& it1, const self& it2 ) { return it1.i <= it2.i; };
+  friend bool operator<=(const self& it1, const self& it2) {
+    return it1.i <= it2.i;
+  }
   /**
    * Greater-or-equal-than operator.
    */
-  friend bool operator>=( const self& it1, const self& it2 ) { return it1.i >= it2.i; };
+  friend bool operator>=(const self& it1, const self& it2) {
+    return it1.i >= it2.i;
+  }
 };
-};
+}  // namespace ReaK
 
 #endif

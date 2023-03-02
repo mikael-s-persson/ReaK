@@ -37,15 +37,15 @@
 #include <ReaK/core/base/named_object.hpp>
 
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/steerable_space_concept.hpp>
 #include <ReaK/topologies/spaces/random_sampler_concept.hpp>
+#include <ReaK/topologies/spaces/steerable_space_concept.hpp>
 #include <ReaK/topologies/spaces/subspace_concept.hpp>
 
 #include "planning_queries.hpp"
 
-#include <ReaK/topologies/interpolation/seq_trajectory_wrapper.hpp>
-#include <ReaK/topologies/interpolation/point_to_point_trajectory.hpp>
 #include <ReaK/topologies/interpolation/discrete_point_trajectory.hpp>
+#include <ReaK/topologies/interpolation/point_to_point_trajectory.hpp>
+#include <ReaK/topologies/interpolation/seq_trajectory_wrapper.hpp>
 
 #include "any_motion_graphs.hpp"
 
@@ -53,15 +53,11 @@
 
 #include <ReaK/math/optimization/optim_exceptions.hpp>
 
-#include <boost/mpl/if.hpp>
-
 #include <map>
 #include <set>
+#include <type_traits>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class template is used to act as a query object for a motion planner, in this class,
@@ -71,185 +67,211 @@ namespace pp {
  * \tparam FreeSpaceType The topology of the planning problem, including obstacles (i.e., the free-space).
  * \tparam TargetTrajectory The trajectory that the target follows (or will follow).
  */
-template < typename FreeSpaceType, typename TargetTrajectory >
-class motion_plan_intercept_query : public planning_query< FreeSpaceType > {
-public:
-  typedef motion_plan_intercept_query< FreeSpaceType, TargetTrajectory > self;
-  typedef planning_query< FreeSpaceType > base_type;
-  typedef typename base_type::space_type space_type;
-  typedef typename base_type::super_space_type super_space_type;
+template <typename FreeSpaceType, typename TargetTrajectory>
+class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
+ public:
+  using self = motion_plan_intercept_query<FreeSpaceType, TargetTrajectory>;
+  using base_type = planning_query<FreeSpaceType>;
+  using space_type = typename base_type::space_type;
+  using super_space_type = typename base_type::super_space_type;
 
-  typedef typename base_type::point_type point_type;
-  typedef typename base_type::point_difference_type point_difference_type;
+  using point_type = typename base_type::point_type;
+  using point_difference_type = typename base_type::point_difference_type;
 
-  typedef typename base_type::solution_record_ptr solution_record_ptr;
+  using solution_record_ptr = typename base_type::solution_record_ptr;
 
-  typedef typename boost::mpl::if_< is_steerable_space< space_type >,
-                                    seq_trajectory_wrapper< discrete_point_trajectory< super_space_type > >,
-                                    seq_trajectory_wrapper< point_to_point_trajectory< super_space_type > > >::type
-    solution_trajectory_wrapper;
+  using solution_trajectory_wrapper = std::conditional_t<
+      is_steerable_space_v<space_type>,
+      seq_trajectory_wrapper<discrete_point_trajectory<super_space_type>>,
+      seq_trajectory_wrapper<point_to_point_trajectory<super_space_type>>>;
 
-  typedef TargetTrajectory target_trajectory_type;
+  using target_trajectory_type = TargetTrajectory;
 
-public:
+ public:
   point_type start_pos;
-  shared_ptr< target_trajectory_type > goal_traj;
-  std::set< point_type, temporal_point_time_ordering > goal_knots;
+  std::shared_ptr<target_trajectory_type> goal_traj;
+  std::set<point_type, temporal_point_time_ordering> goal_knots;
   std::size_t max_num_results;
   double maximum_horizon;
   double horizon_decimation;
 
-  std::map< double, solution_record_ptr > solutions;
-
+  std::map<double, solution_record_ptr> solutions;
 
   /**
    * Returns the best solution distance registered in this query object.
    * \return The best solution distance registered in this query object.
    */
-  virtual double get_best_solution_distance() const {
-    if( solutions.size() == 0 )
-      return std::numeric_limits< double >::infinity();
-    else
+  double get_best_solution_distance() const override {
+    if (solutions.size() == 0) {
+      return std::numeric_limits<double>::infinity();
+    } else {
       return solutions.begin()->first;
-  };
+    }
+  }
 
   /**
    * Returns true if the solver should keep on going trying to solve the motion-planning problem.
    * \return True if the solver should keep on going trying to solve the motion-planning problem.
    */
-  virtual bool keep_going() const { return ( max_num_results > solutions.size() ); };
+  bool keep_going() const override {
+    return (max_num_results > solutions.size());
+  }
 
   /**
    * This function is called to reset the internal state of the planner.
    */
-  virtual void reset_solution_records() { solutions.clear(); };
+  void reset_solution_records() override { solutions.clear(); }
 
-  virtual const point_type& get_start_position() const { return start_pos; };
+  const point_type& get_start_position() const override { return start_pos; }
 
-  void set_start_position( const point_type& pt ) { start_pos = pt; };
+  void set_start_position(const point_type& pt) { start_pos = pt; }
 
-  void clear_cached_intercepts() { goal_knots.clear(); };
+  void clear_cached_intercepts() { goal_knots.clear(); }
 
   void scan_for_goal_knots() {
-    std::size_t init_knot_count = goal_knots.size();
-    for( double t = goal_traj->get_start_time(); t < goal_traj->get_end_time() + horizon_decimation * 0.5;
-         t += horizon_decimation ) {
+    int init_knot_count = goal_knots.size();
+    for (double t = goal_traj->get_start_time();
+         t < goal_traj->get_end_time() + horizon_decimation * 0.5;
+         t += horizon_decimation) {
       try {
-        point_type goal_pos = goal_traj->get_point_at_time( t );
-        if( this->space->is_free( goal_pos ) ) {
-          goal_knots.insert( goal_pos );
-        };
-      } catch( std::exception& e ) {
-        RK_UNUSED( e );
-      };
-    };
+        point_type goal_pos = goal_traj->get_point_at_time(t);
+        if (this->space->is_free(goal_pos)) {
+          goal_knots.insert(goal_pos);
+        }
+      } catch (std::exception& e) {
+        RK_UNUSED(e);
+      }
+    }
 
-    if( init_knot_count == goal_knots.size() )
-      throw optim::infeasible_problem( "Interception problem is infeasible! Not a single point on the target "
-                                       "trajectory is feasible and collision-free!" );
-  };
+    if (init_knot_count == goal_knots.size()) {
+      throw optim::infeasible_problem(
+          "Interception problem is infeasible! Not a single point on the "
+          "target "
+          "trajectory is feasible and collision-free!");
+    }
+  }
 
-  std::pair< point_type, double > get_distance_position_to_goal( const point_type& pos ) {
-    typedef typename std::set< point_type, temporal_point_time_ordering >::const_iterator KnotIter;
-
-    for( KnotIter it = goal_knots.begin(); it != goal_knots.end(); ++it ) {
-      if( it->time <= pos.time )
+  std::pair<point_type, double> get_distance_position_to_goal(
+      const point_type& pos) {
+    for (const auto& knot : goal_knots) {
+      if (knot.time <= pos.time) {
         continue;
-      double tmp = get( distance_metric, *( this->space ) )( pos, *it, *( this->space ) );
-      if( tmp != std::numeric_limits< double >::infinity() )
-        return std::pair< point_type, double >( *it, tmp );
-    };
+      }
+      double tmp =
+          get(distance_metric, *(this->space))(pos, knot, *(this->space));
+      if (tmp != std::numeric_limits<double>::infinity()) {
+        return {knot, tmp};
+      }
+    }
 
-    for( double t = pos.time; t < maximum_horizon + pos.time + horizon_decimation * 0.5; t += horizon_decimation ) {
+    for (double t = pos.time;
+         t < maximum_horizon + pos.time + horizon_decimation * 0.5;
+         t += horizon_decimation) {
       try {
-        point_type goal_pos = goal_traj->get_point_at_time( t );
-        double tmp = get( distance_metric, *( this->space ) )( pos, goal_pos, *( this->space ) );
-        if( tmp != std::numeric_limits< double >::infinity() ) {
-          goal_knots.insert( goal_pos );
-          return std::pair< point_type, double >( goal_pos, tmp );
-        };
-      } catch( std::exception& e ) {
-        RK_UNUSED( e );
-      };
-    };
+        point_type goal_pos = goal_traj->get_point_at_time(t);
+        double tmp =
+            get(distance_metric, *(this->space))(pos, goal_pos, *(this->space));
+        if (tmp != std::numeric_limits<double>::infinity()) {
+          goal_knots.insert(goal_pos);
+          return {goal_pos, tmp};
+        }
+      } catch (std::exception& e) {
+        RK_UNUSED(e);
+      }
+    }
 
-    return std::pair< point_type, double >( pos, std::numeric_limits< double >::infinity() );
-  };
+    return {pos, std::numeric_limits<double>::infinity()};
+  }
 
+  double get_distance_to_goal(const point_type& pos) override {
+    return get_distance_position_to_goal(pos).second;
+  }
 
-  virtual double get_distance_to_goal( const point_type& pos ) { return get_distance_position_to_goal( pos ).second; };
-
-  virtual double get_heuristic_to_goal( const point_type& pos ) {
-    typedef typename std::set< point_type, temporal_point_time_ordering >::const_iterator KnotIter;
-
-    for( KnotIter it = goal_knots.begin(); it != goal_knots.end(); ++it ) {
-      if( it->time <= pos.time )
+  double get_heuristic_to_goal(const point_type& pos) override {
+    for (const auto& knot : goal_knots) {
+      if (knot.time <= pos.time) {
         continue;
-      double tmp = get( distance_metric, this->space->get_super_space() )( pos, *it, this->space->get_super_space() );
-      if( tmp != std::numeric_limits< double >::infinity() )
+      }
+      double tmp = get(distance_metric, this->space->get_super_space())(
+          pos, knot, this->space->get_super_space());
+      if (tmp != std::numeric_limits<double>::infinity()) {
         return tmp;
-    };
+      }
+    }
 
-    for( double t = pos.time; t < maximum_horizon + pos.time + horizon_decimation * 0.5; t += horizon_decimation ) {
+    for (double t = pos.time;
+         t < maximum_horizon + pos.time + horizon_decimation * 0.5;
+         t += horizon_decimation) {
       try {
-        point_type goal_pos = goal_traj->get_point_at_time( t );
-        double tmp
-          = get( distance_metric, this->space->get_super_space() )( pos, goal_pos, this->space->get_super_space() );
-        if( tmp != std::numeric_limits< double >::infinity() ) {
-          goal_knots.insert( goal_pos );
+        point_type goal_pos = goal_traj->get_point_at_time(t);
+        double tmp = get(distance_metric, this->space->get_super_space())(
+            pos, goal_pos, this->space->get_super_space());
+        if (tmp != std::numeric_limits<double>::infinity()) {
+          goal_knots.insert(goal_pos);
           return tmp;
-        };
-      } catch( std::exception& e ) {
-        RK_UNUSED( e );
-      };
-    };
+        }
+      } catch (std::exception& e) {
+        RK_UNUSED(e);
+      }
+    }
 
-    return std::numeric_limits< double >::infinity();
-  };
+    return std::numeric_limits<double>::infinity();
+  }
 
-protected:
-  virtual solution_record_ptr register_solution_from_optimal_mg( graph::any_graph::vertex_descriptor start_node,
-                                                                 graph::any_graph::vertex_descriptor goal_node,
-                                                                 double goal_distance, graph::any_graph& g ) {
-    graph::any_graph::property_map_by_ptr< const point_type > position
-      = graph::get_dyn_prop< const point_type& >( "vertex_position", g );
-    std::pair< point_type, double > goal_pos_dist = get_distance_position_to_goal( position[goal_node] );
-    return detail::register_optimal_solution_path_impl< solution_trajectory_wrapper >(
-      *( this->space ), g, start_node, goal_node, goal_pos_dist.first, goal_pos_dist.second, solutions );
-  };
+ protected:
+  solution_record_ptr register_solution_from_optimal_mg(
+      graph::any_graph::vertex_descriptor start_node,
+      graph::any_graph::vertex_descriptor goal_node, double goal_distance,
+      graph::any_graph& g) override {
+    graph::any_graph::property_map_by_ptr<const point_type> position =
+        graph::get_dyn_prop<const point_type&>("vertex_position", g);
+    std::pair<point_type, double> goal_pos_dist =
+        get_distance_position_to_goal(position[goal_node]);
+    return detail::register_optimal_solution_path_impl<
+        solution_trajectory_wrapper>(*(this->space), g, start_node, goal_node,
+                                     goal_pos_dist.first, goal_pos_dist.second,
+                                     solutions);
+  }
 
-  virtual solution_record_ptr register_solution_from_basic_mg( graph::any_graph::vertex_descriptor start_node,
-                                                               graph::any_graph::vertex_descriptor goal_node,
-                                                               double goal_distance, graph::any_graph& g ) {
-    graph::any_graph::property_map_by_ptr< const point_type > position
-      = graph::get_dyn_prop< const point_type& >( "vertex_position", g );
-    std::pair< point_type, double > goal_pos_dist = get_distance_position_to_goal( position[goal_node] );
-    return detail::register_basic_solution_path_impl< solution_trajectory_wrapper >(
-      *( this->space ), g, start_node, goal_node, goal_pos_dist.first, goal_pos_dist.second, solutions );
-  };
+  solution_record_ptr register_solution_from_basic_mg(
+      graph::any_graph::vertex_descriptor start_node,
+      graph::any_graph::vertex_descriptor goal_node, double goal_distance,
+      graph::any_graph& g) override {
+    graph::any_graph::property_map_by_ptr<const point_type> position =
+        graph::get_dyn_prop<const point_type&>("vertex_position", g);
+    std::pair<point_type, double> goal_pos_dist =
+        get_distance_position_to_goal(position[goal_node]);
+    return detail::register_basic_solution_path_impl<
+        solution_trajectory_wrapper>(*(this->space), g, start_node, goal_node,
+                                     goal_pos_dist.first, goal_pos_dist.second,
+                                     solutions);
+  }
 
-  virtual solution_record_ptr register_joining_point_from_optimal_mg( graph::any_graph::vertex_descriptor start_node,
-                                                                      graph::any_graph::vertex_descriptor goal_node,
-                                                                      graph::any_graph::vertex_descriptor join1_node,
-                                                                      graph::any_graph::vertex_descriptor join2_node,
-                                                                      double joining_distance, graph::any_graph& g1,
-                                                                      graph::any_graph& g2 ) {
-    return detail::register_optimal_solution_path_impl< solution_trajectory_wrapper >(
-      *( this->space ), g1, g2, start_node, goal_node, join1_node, join2_node, joining_distance, solutions );
-  };
+  solution_record_ptr register_joining_point_from_optimal_mg(
+      graph::any_graph::vertex_descriptor start_node,
+      graph::any_graph::vertex_descriptor goal_node,
+      graph::any_graph::vertex_descriptor join1_node,
+      graph::any_graph::vertex_descriptor join2_node, double joining_distance,
+      graph::any_graph& g1, graph::any_graph& g2) override {
+    return detail::register_optimal_solution_path_impl<
+        solution_trajectory_wrapper>(*(this->space), g1, g2, start_node,
+                                     goal_node, join1_node, join2_node,
+                                     joining_distance, solutions);
+  }
 
-  virtual solution_record_ptr register_joining_point_from_basic_mg( graph::any_graph::vertex_descriptor start_node,
-                                                                    graph::any_graph::vertex_descriptor goal_node,
-                                                                    graph::any_graph::vertex_descriptor join1_node,
-                                                                    graph::any_graph::vertex_descriptor join2_node,
-                                                                    double joining_distance, graph::any_graph& g1,
-                                                                    graph::any_graph& g2 ) {
-    return detail::register_basic_solution_path_impl< solution_trajectory_wrapper >(
-      *( this->space ), g1, g2, start_node, goal_node, join1_node, join2_node, joining_distance, solutions );
-  };
+  solution_record_ptr register_joining_point_from_basic_mg(
+      graph::any_graph::vertex_descriptor start_node,
+      graph::any_graph::vertex_descriptor goal_node,
+      graph::any_graph::vertex_descriptor join1_node,
+      graph::any_graph::vertex_descriptor join2_node, double joining_distance,
+      graph::any_graph& g1, graph::any_graph& g2) override {
+    return detail::register_basic_solution_path_impl<
+        solution_trajectory_wrapper>(*(this->space), g1, g2, start_node,
+                                     goal_node, join1_node, join2_node,
+                                     joining_distance, solutions);
+  }
 
-
-public:
+ public:
   /**
    * Parametrized constructor.
    * \param aName The name for this object.
@@ -262,41 +284,52 @@ public:
    * "distance to goal".
    * \param aMaxNumResults The maximum number of solutions to record and consider the planning successful once reached.
    */
-  motion_plan_intercept_query( const std::string& aName, const shared_ptr< space_type >& aWorld,
-                               const point_type& aStartPos, const shared_ptr< target_trajectory_type >& aGoalTraj,
-                               double aMaximumHorizon, double aHorizonDecimation, std::size_t aMaxNumResults = 1 )
-      : base_type( aName, aWorld ), start_pos( aStartPos ), goal_traj( aGoalTraj ), max_num_results( aMaxNumResults ),
-        maximum_horizon( aMaximumHorizon ), horizon_decimation( aHorizonDecimation ) {
+  motion_plan_intercept_query(
+      const std::string& aName, const std::shared_ptr<space_type>& aWorld,
+      const point_type& aStartPos,
+      const std::shared_ptr<target_trajectory_type>& aGoalTraj,
+      double aMaximumHorizon, double aHorizonDecimation,
+      std::size_t aMaxNumResults = 1)
+      : base_type(aName, aWorld),
+        start_pos(aStartPos),
+        goal_traj(aGoalTraj),
+        max_num_results(aMaxNumResults),
+        maximum_horizon(aMaximumHorizon),
+        horizon_decimation(aHorizonDecimation) {
     scan_for_goal_knots();
-  };
+  }
 
-  virtual ~motion_plan_intercept_query(){};
-
+  ~motion_plan_intercept_query() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    base_type::save( A, base_type::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( start_pos ) & RK_SERIAL_SAVE_WITH_NAME( goal_traj )
-      & RK_SERIAL_SAVE_WITH_NAME( max_num_results ) & RK_SERIAL_SAVE_WITH_NAME( maximum_horizon )
-      & RK_SERIAL_SAVE_WITH_NAME( horizon_decimation );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(start_pos) &
+        RK_SERIAL_SAVE_WITH_NAME(goal_traj) &
+        RK_SERIAL_SAVE_WITH_NAME(max_num_results) &
+        RK_SERIAL_SAVE_WITH_NAME(maximum_horizon) &
+        RK_SERIAL_SAVE_WITH_NAME(horizon_decimation);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    base_type::load( A, base_type::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( start_pos ) & RK_SERIAL_LOAD_WITH_NAME( goal_traj )
-      & RK_SERIAL_LOAD_WITH_NAME( max_num_results ) & RK_SERIAL_LOAD_WITH_NAME( maximum_horizon )
-      & RK_SERIAL_LOAD_WITH_NAME( horizon_decimation );
+  void load(serialization::iarchive& A, unsigned int) override {
+    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(start_pos) &
+        RK_SERIAL_LOAD_WITH_NAME(goal_traj) &
+        RK_SERIAL_LOAD_WITH_NAME(max_num_results) &
+        RK_SERIAL_LOAD_WITH_NAME(maximum_horizon) &
+        RK_SERIAL_LOAD_WITH_NAME(horizon_decimation);
     solutions.clear();
     goal_knots.clear();
     scan_for_goal_knots();
-  };
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC2460018, 1, "motion_plan_intercept_query", base_type )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2460018, 1,
+                              "motion_plan_intercept_query", base_type)
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

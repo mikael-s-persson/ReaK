@@ -23,76 +23,81 @@
 
 #include <ReaK/mbd/kte/joint_backlash.hpp>
 
-namespace ReaK {
+namespace ReaK::kte {
 
-namespace kte {
-
-
-void joint_backlash_gen::doMotion( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mBase ) || ( !mEnd ) )
+void joint_backlash_gen::doMotion(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mBase) || (!mEnd)) {
     return;
+  }
 
-  if( mBase->q_dot >= mEnd->q_dot ) {
-    if( mEnd->q <= mBase->q - 0.5 * mGapSize ) {
+  if (mBase->q_dot >= mEnd->q_dot) {
+    if (mEnd->q <= mBase->q - 0.5 * mGapSize) {
       // Connection is rigid from input to output
       mEnd->q = mBase->q - 0.5 * mGapSize;
       mEnd->q_dot = mBase->q_dot;
-      if( mBase->q_ddot > mEnd->q_ddot )
+      if (mBase->q_ddot > mEnd->q_ddot) {
         mEnd->q_ddot = mBase->q_ddot;
-    }; // Otherwise, connection is loose and mEnd is left unchanged (free coordinate, can be integrated or not).
+      }
+    }  // Otherwise, connection is loose and mEnd is left unchanged (free coordinate, can be integrated or not).
   } else {
-    if( mEnd->q >= mBase->q + 0.5 * mGapSize ) {
+    if (mEnd->q >= mBase->q + 0.5 * mGapSize) {
       // Connection is rigid from input to output
       mEnd->q = mBase->q + 0.5 * mGapSize;
       mEnd->q_dot = mBase->q_dot;
-      if( mBase->q_ddot < mEnd->q_ddot )
+      if (mBase->q_ddot < mEnd->q_ddot) {
         mEnd->q_ddot = mBase->q_ddot;
-    }; // Otherwise, connection is loose and mEnd is left unchanged (free coordinate, can be integrated or not).
-  };
+      }
+    }  // Otherwise, connection is loose and mEnd is left unchanged (free coordinate, can be integrated or not).
+  }
 
-  if( ( aFlag == store_kinematics ) && ( aStorage ) ) {
-    if( !( aStorage->gen_coord_mapping[mBase] ) )
-      aStorage->gen_coord_mapping[mBase]
-        = shared_ptr< gen_coord< double > >( new gen_coord< double >( ( *mBase ) ), scoped_deleter() );
-    else
-      ( *( aStorage->gen_coord_mapping[mBase] ) ) = ( *mBase );
-    if( !( aStorage->gen_coord_mapping[mEnd] ) )
-      aStorage->gen_coord_mapping[mEnd]
-        = shared_ptr< gen_coord< double > >( new gen_coord< double >( ( *mEnd ) ), scoped_deleter() );
-    else
-      ( *( aStorage->gen_coord_mapping[mEnd] ) ) = ( *mEnd );
-  };
-};
+  if ((aFlag == store_kinematics) && (aStorage)) {
+    if (!(aStorage->gen_coord_mapping[mBase])) {
+      aStorage->gen_coord_mapping[mBase] =
+          std::make_shared<gen_coord<double>>(*mBase);
+    } else {
+      (*(aStorage->gen_coord_mapping[mBase])) = (*mBase);
+    }
+    if (!(aStorage->gen_coord_mapping[mEnd])) {
+      aStorage->gen_coord_mapping[mEnd] =
+          std::make_shared<gen_coord<double>>(*mEnd);
+    } else {
+      (*(aStorage->gen_coord_mapping[mEnd])) = (*mEnd);
+    }
+  }
+}
 
-void joint_backlash_gen::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mBase ) || ( !mEnd ) )
+void joint_backlash_gen::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mBase) || (!mEnd)) {
     return;
+  }
 
-  if( mBase->q_dot >= mEnd->q_dot ) {
-    if( ( mEnd->q <= mBase->q - 0.5 * mGapSize ) && ( mEnd->f < 0.0 ) ) {
+  if (mBase->q_dot >= mEnd->q_dot) {
+    if ((mEnd->q <= mBase->q - 0.5 * mGapSize) && (mEnd->f < 0.0)) {
       // Connection is rigid from input to output
       mBase->f += mEnd->f;
-    }; // Otherwise, connection is loose and mBase is left unchanged (free coordinate, can be integrated or not).
+    }  // Otherwise, connection is loose and mBase is left unchanged (free coordinate, can be integrated or not).
   } else {
-    if( ( mEnd->q >= mBase->q - 0.5 * mGapSize ) && ( mEnd->f > 0.0 ) ) {
+    if ((mEnd->q >= mBase->q - 0.5 * mGapSize) && (mEnd->f > 0.0)) {
       // Connection is rigid from input to output
       mBase->f += mEnd->f;
-    }; // Otherwise, connection is loose and mEnd is left unchanged (free coordinate, can be integrated or not).
-  };
+    }  // Otherwise, connection is loose and mEnd is left unchanged (free coordinate, can be integrated or not).
+  }
 
-  if( ( aFlag == store_dynamics ) && ( aStorage ) ) {
-    if( aStorage->gen_coord_mapping[mEnd] ) {
+  if ((aFlag == store_dynamics) && (aStorage)) {
+    if (aStorage->gen_coord_mapping[mEnd]) {
       aStorage->gen_coord_mapping[mEnd]->f = mEnd->f;
-    };
-  };
-};
-
+    }
+  }
+}
 
 void joint_backlash_gen::clearForce() {
-  if( mBase )
+  if (mBase) {
     mBase->f = 0.0;
-  if( mEnd )
+  }
+  if (mEnd) {
     mEnd->f = 0.0;
-};
-};
-};
+  }
+}
+}  // namespace ReaK::kte

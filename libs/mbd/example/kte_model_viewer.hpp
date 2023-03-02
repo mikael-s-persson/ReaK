@@ -26,14 +26,14 @@
 
 #include <ReaK/core/qt/rk_object_tree_widget.hpp>
 #include <ReaK/core/qt/rk_prop_editor_widget.hpp>
-#include <ReaK/mbd/qt/rk_view3d_menu.hpp>
 #include <ReaK/core/serialization/scheme_builder.hpp>
+#include <ReaK/mbd/qt/rk_view3d_menu.hpp>
 
 #include <map>
 #include <string>
 
-#include <QMainWindow>
 #include <QDockWidget>
+#include <QMainWindow>
 
 class SoSeparator;
 class SoQtExaminerViewer;
@@ -43,20 +43,20 @@ namespace geom {
 class oi_scene_graph;
 class colored_model_3D;
 class proxy_query_model_3D;
-};
+};  // namespace geom
 
-template < typename T >
+template <typename T>
 class pose_3D;
 
 namespace kte {
 class kte_chain_geometry_3D;
-template < typename T >
+template <typename T>
 struct joint_limits_collection;
 class direct_kinematics_model;
 class inverse_kinematics_model;
 class inverse_dynamics_model;
-};
-};
+};  // namespace kte
+};  // namespace ReaK
 
 namespace Ui {
 class KTEModelView;
@@ -69,11 +69,11 @@ namespace qt {
 class KTEModelViewerEditor : public QMainWindow {
   Q_OBJECT
 
-public:
-  KTEModelViewerEditor( QWidget* parent = 0, Qt::WindowFlags flags = 0 );
+ public:
+  KTEModelViewerEditor(QWidget* parent = 0, Qt::WindowFlags flags = 0);
   ~KTEModelViewerEditor();
 
-private slots:
+ private slots:
 
   void onLoad();
   void onSave();
@@ -81,28 +81,36 @@ private slots:
 
   void onRefreshView();
 
-private:
+ private:
   Ui::KTEModelView* ui;
 
-  std::string loadKinModelFromArchive( serialization::iarchive& in );
-  std::string addGeometricModel( const shared_ptr< geom::colored_model_3D >& mdl_geom );
-  std::string addProximityModel( const shared_ptr< geom::proxy_query_model_3D >& mdl_prox );
-  void loadFromArchive( serialization::iarchive& in, QString fileContentExt );
+  std::string loadKinModelFromArchive(serialization::iarchive& in);
+  std::string addGeometricModel(
+      const std::shared_ptr<geom::colored_model_3D>& mdl_geom);
+  std::string addProximityModel(
+      const std::shared_ptr<geom::proxy_query_model_3D>& mdl_prox);
+  void loadFromArchive(serialization::iarchive& in, QString fileContentExt);
 
-  void saveKTEChainGeometry( serialization::oarchive& out, const std::string& mdl_name,
-                             const shared_ptr< kte::kte_chain_geometry_3D >& kte_geom );
-  void saveGeometricModel( serialization::oarchive& out, const std::string& mdl_name,
-                           const shared_ptr< geom::colored_model_3D >& geom_mdl );
-  void saveProximityModel( serialization::oarchive& out, const std::string& mdl_name,
-                           const shared_ptr< geom::proxy_query_model_3D >& prox_mdl );
-  void saveDirectKinModel( serialization::oarchive& out, const std::string& mdl_name,
-                           const shared_ptr< kte::direct_kinematics_model >& dk_mdl );
-  void saveInverseKinModel( serialization::oarchive& out, const std::string& mdl_name,
-                            const shared_ptr< kte::inverse_kinematics_model >& ik_mdl );
-  void saveDynamicsModel( serialization::oarchive& out, const std::string& mdl_name,
-                          const shared_ptr< kte::inverse_dynamics_model >& dyn_mdl );
+  void saveKTEChainGeometry(
+      serialization::oarchive& out, const std::string& mdl_name,
+      const std::shared_ptr<kte::kte_chain_geometry_3D>& kte_geom);
+  void saveGeometricModel(
+      serialization::oarchive& out, const std::string& mdl_name,
+      const std::shared_ptr<geom::colored_model_3D>& geom_mdl);
+  void saveProximityModel(
+      serialization::oarchive& out, const std::string& mdl_name,
+      const std::shared_ptr<geom::proxy_query_model_3D>& prox_mdl);
+  void saveDirectKinModel(
+      serialization::oarchive& out, const std::string& mdl_name,
+      const std::shared_ptr<kte::direct_kinematics_model>& dk_mdl);
+  void saveInverseKinModel(
+      serialization::oarchive& out, const std::string& mdl_name,
+      const std::shared_ptr<kte::inverse_kinematics_model>& ik_mdl);
+  void saveDynamicsModel(
+      serialization::oarchive& out, const std::string& mdl_name,
+      const std::shared_ptr<kte::inverse_dynamics_model>& dyn_mdl);
 
-  shared_ptr< serialization::object_graph > objtree_graph;
+  std::shared_ptr<serialization::object_graph> objtree_graph;
   serialization::object_node_desc objtree_root;
 
   serialization::scheme_builder objtree_sch_bld;
@@ -114,20 +122,26 @@ private:
 
   View3DMenu view3d_menu;
 
-  std::map< std::string, shared_ptr< kte::kte_chain_geometry_3D > > kte_geometries;
-  std::map< std::string, shared_ptr< geom::colored_model_3D > > geom_models;
-  std::map< std::string, shared_ptr< geom::proxy_query_model_3D > > proxy_models;
+  std::map<std::string, std::shared_ptr<kte::kte_chain_geometry_3D>>
+      kte_geometries;
+  std::map<std::string, std::shared_ptr<geom::colored_model_3D>> geom_models;
+  std::map<std::string, std::shared_ptr<geom::proxy_query_model_3D>>
+      proxy_models;
 
-  std::map< std::string, shared_ptr< pose_3D< double > > > mdl_base_frames;
-  std::map< std::string, shared_ptr< kte::joint_limits_collection< double > > > mdl_jt_limits;
-  std::map< std::string, shared_ptr< kte::direct_kinematics_model > > dk_models;
-  std::map< std::string, shared_ptr< kte::inverse_kinematics_model > > ik_models;
-  std::map< std::string, shared_ptr< kte::inverse_dynamics_model > > dyn_models;
+  std::map<std::string, std::shared_ptr<pose_3D<double>>> mdl_base_frames;
+  std::map<std::string, std::shared_ptr<kte::joint_limits_collection<double>>>
+      mdl_jt_limits;
+  std::map<std::string, std::shared_ptr<kte::direct_kinematics_model>>
+      dk_models;
+  std::map<std::string, std::shared_ptr<kte::inverse_kinematics_model>>
+      ik_models;
+  std::map<std::string, std::shared_ptr<kte::inverse_dynamics_model>>
+      dyn_models;
 
-  std::map< std::string, std::string > mdl_to_base;
-  std::map< std::string, std::string > mdl_to_jt_lim;
+  std::map<std::string, std::string> mdl_to_base;
+  std::map<std::string, std::string> mdl_to_jt_lim;
 };
-};
-};
+};  // namespace qt
+};  // namespace ReaK
 
 #endif

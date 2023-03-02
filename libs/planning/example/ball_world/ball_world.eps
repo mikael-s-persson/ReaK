@@ -27,7 +27,10 @@
 /bstr 256 string def
 {currentfile /ASCII85Decode filter /RunLengthDecode filter rstr readstring pop}
 {currentfile /ASCII85Decode filter /RunLengthDecode filter gstr readstring pop}
-{currentfile /ASCII85Decode filter /RunLengthDecode filter bstr readstring pop}
+{
+  currentfile / ASCII85Decode filter /
+      RunLengthDecode filter bstr readstring pop
+}
 true 3
 %%BeginData:        46548 ASCII Bytes
 colorimage

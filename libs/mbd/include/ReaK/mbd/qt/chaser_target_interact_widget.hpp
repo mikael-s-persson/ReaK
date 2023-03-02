@@ -35,24 +35,23 @@
 
 namespace Ui {
 class ChaserTargetInteract;
-};
+}  // namespace Ui
 
-namespace ReaK {
-
-namespace qt {
+namespace ReaK::qt {
 
 class ChaserTargetInteractWidget : public QDockWidget {
   Q_OBJECT
 
-private:
+ private:
   Ui::ChaserTargetInteract* ui;
 
-public:
-  ChaserTargetInteractWidget( kte::chaser_target_data* aPSceneData, QWidget* parent = nullptr,
-                              Qt::WindowFlags flags = 0 );
-  virtual ~ChaserTargetInteractWidget();
+ public:
+  ChaserTargetInteractWidget(kte::chaser_target_data* aPSceneData,
+                             QWidget* parent = nullptr,
+                             Qt::WindowFlags flags = 0);
+  ~ChaserTargetInteractWidget() override;
 
-public slots:
+ public slots:
 
   void savePositions();
   void loadPositions();
@@ -62,24 +61,24 @@ public slots:
 
   void loadTargetTrajectory();
 
-public slots:
+ public slots:
 
   void loadJointPosFromModel();
   void loadTargetPosFromModel();
 
-signals:
+ signals:
 
-  void onLoadTargetTrajectory( QString );
+  void onLoadTargetTrajectory(QString);
 
-public:
+ public:
   kte::chaser_target_data* pSceneData;
 
   bool isIKEnabled() const;
 
-  void saveChaserTargetPositions( const std::string& aFilename );
-  void loadChaserTargetPositions( const std::string& aFilename );
+  void saveChaserTargetPositions(const std::string& aFilename);
+  void loadChaserTargetPositions(const std::string& aFilename);
 };
-};
-};
+
+}  // namespace ReaK::qt
 
 #endif

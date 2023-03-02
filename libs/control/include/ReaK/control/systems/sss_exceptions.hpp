@@ -35,9 +35,7 @@
 #include <exception>
 #include <string>
 
-namespace ReaK {
-
-namespace ctrl {
+namespace ReaK::ctrl {
 
 /**
  * This exception is thrown whenever there is an incoherency in the definition of a
@@ -45,27 +43,29 @@ namespace ctrl {
  * matrix definitions (singular mass-matrix for example).
  */
 class system_incoherency : public std::exception {
-public:
-  std::string message; ///< Message string that identifies the singular matrix.
+ public:
+  std::string message;  ///< Message string that identifies the singular matrix.
 
   /**
    * Default constructor.
    * \param aMessage the message corresponding to the incoherency.
    */
-  system_incoherency( const std::string& aMessage )
-      : message( std::string( "State space system is incoherent, with message '" ) + aMessage + "'" ){};
+  explicit system_incoherency(const std::string& aMessage)
+      : message(
+            std::string("State space system is incoherent, with message '") +
+            aMessage + "'") {}
   /**
    * Destructor.
    */
-  ~system_incoherency() throw(){};
+  ~system_incoherency() noexcept override = default;
 
   /**
    * Gets the error message.
    * \return c_string of the error message.
    */
-  const char* what() const throw() { return message.c_str(); };
+  const char* what() const noexcept override { return message.c_str(); }
 };
-};
-};
+
+}  // namespace ReaK::ctrl
 
 #endif

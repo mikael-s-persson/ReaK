@@ -44,10 +44,7 @@
 
 #include <utility>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class implements a point-to-point path within a topology (interpolated by whatever method is used in
@@ -58,78 +55,91 @@ namespace pp {
  * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the
  * DistanceMetricConcept.
  */
-template < typename Topology, typename DistanceMetric = typename metric_space_traits< Topology >::distance_metric_type >
-class discrete_point_trajectory : public waypoint_container< Topology, DistanceMetric > {
-public:
-  BOOST_CONCEPT_ASSERT( ( MetricSpaceConcept< Topology > ) );
+template <typename Topology,
+          typename DistanceMetric =
+              typename metric_space_traits<Topology>::distance_metric_type>
+class discrete_point_trajectory
+    : public waypoint_container<Topology, DistanceMetric> {
+ public:
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
 
-  typedef discrete_point_trajectory< Topology, DistanceMetric > self;
-  typedef waypoint_container< Topology, DistanceMetric > base_class_type;
+  using self = discrete_point_trajectory<Topology, DistanceMetric>;
+  using base_class_type = waypoint_container<Topology, DistanceMetric>;
 
-  typedef typename base_class_type::const_waypoint_descriptor const_waypoint_descriptor;
-  typedef typename base_class_type::const_waypoint_bounds const_waypoint_bounds;
-  typedef typename base_class_type::point_type point_type;
-  typedef typename base_class_type::topology topology;
-  typedef typename base_class_type::distance_metric distance_metric;
+  using const_waypoint_descriptor =
+      typename base_class_type::const_waypoint_descriptor;
+  using const_waypoint_bounds = typename base_class_type::const_waypoint_bounds;
+  using point_type = typename base_class_type::point_type;
+  using topology = typename base_class_type::topology;
+  using distance_metric = typename base_class_type::distance_metric;
 
-  typedef typename base_class_type::waypoint_pair waypoint_pair;
+  using waypoint_pair = typename base_class_type::waypoint_pair;
 
-protected:
-  typedef typename base_class_type::container_type container_type;
+ protected:
+  using container_type = typename base_class_type::container_type;
 
-
-  virtual double travel_distance_impl( const point_type& a, const point_type& b ) const {
-    if( a.time > b.time )
-      return travel_distance_impl( b, a );
-    const_waypoint_bounds wpb_a = this->get_waypoint_bounds( a.time );
-    const_waypoint_bounds wpb_b = this->get_waypoint_bounds( b.time );
+  double travel_distance_impl(const point_type& a,
+                              const point_type& b) const override {
+    if (a.time > b.time) {
+      return travel_distance_impl(b, a);
+    }
+    const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.time);
+    const_waypoint_bounds wpb_b = this->get_waypoint_bounds(b.time);
 
     // first assume that a is before b:
     double sum = 0.0;
     const_waypoint_descriptor a_cpy = wpb_a.first;
-    while( a_cpy != wpb_b.first ) {
+    while (a_cpy != wpb_b.first) {
       const_waypoint_descriptor a_next = a_cpy;
       ++a_next;
-      if( a_next == this->waypoints.end() )
-        break; // we're done.
-      sum += this->getDistanceMetric()( a_cpy->second, a_next->second, this->getSpace() );
+      if (a_next == this->waypoints.end()) {
+        break;  // we're done.
+      }
+      sum += this->getDistanceMetric()(a_cpy->second, a_next->second,
+                                       this->getSpace());
       a_cpy = a_next;
-    };
+    }
     return sum;
-  };
+  }
 
-  virtual waypoint_pair move_time_diff_from_impl( const point_type& a, const const_waypoint_bounds& wpb_a,
-                                                  double dt ) const {
+  waypoint_pair move_time_diff_from_impl(const point_type& a,
+                                         const const_waypoint_bounds& wpb_a,
+                                         double dt) const override {
     const_waypoint_bounds wpb_p = wpb_a;
-    if( ( a.time + dt < wpb_p.first->first ) || ( a.time + dt > wpb_p.second->first ) ) {
-      wpb_p = this->get_waypoint_bounds( a.time + dt );
+    if ((a.time + dt < wpb_p.first->first) ||
+        (a.time + dt > wpb_p.second->first)) {
+      wpb_p = this->get_waypoint_bounds(a.time + dt);
       dt = a.time + dt - wpb_p.first->first;
-    };
+    }
 
-    if( dt < 0.0 ) // is at start
-      return waypoint_pair( wpb_p.first, wpb_p.first->second );
+    if (dt < 0.0) {
+      return waypoint_pair(wpb_p.first, wpb_p.first->second);
+    }
 
     const_waypoint_descriptor a_next = wpb_p.first;
     ++a_next;
-    if( a_next == this->waypoints.end() ) // is at end
-      return waypoint_pair( wpb_p.first, wpb_p.first->second );
+    if (a_next == this->waypoints.end()) {
+      return waypoint_pair(wpb_p.first, wpb_p.first->second);
+    }
 
-    if( dt < 0.5 * ( a_next->first - wpb_p.first->first ) ) // round up or down
-      return waypoint_pair( wpb_p.first, wpb_p.first->second );
-    else
-      return waypoint_pair( a_next, a_next->second );
-  };
+    if (dt < 0.5 * (a_next->first - wpb_p.first->first)) {
+      return waypoint_pair(wpb_p.first, wpb_p.first->second);
+    } else {
+      return waypoint_pair(a_next, a_next->second);
+    }
+  }
 
-public:
+ public:
   /**
    * Constructs the trajectory from a space, assumes the start and end are at the origin
    * of the space.
    * \param aSpace The space on which the trajectory is.
    * \param aDist The distance metric functor that the trajectory should use.
    */
-  explicit discrete_point_trajectory( const shared_ptr< topology >& aSpace = shared_ptr< topology >( new topology() ),
-                                      const distance_metric& aDist = distance_metric() )
-      : base_class_type( aSpace, aDist ){};
+  explicit discrete_point_trajectory(
+      const std::shared_ptr<topology>& aSpace = std::make_shared<topology>(),
+      const distance_metric& aDist = distance_metric())
+      : base_class_type(aSpace, aDist) {}
 
   /**
    * Constructs the trajectory from a space, the start and end points.
@@ -138,9 +148,10 @@ public:
    * \param aEnd The end-point of the trajectory.
    * \param aDist The distance metric functor that the trajectory should use.
    */
-  discrete_point_trajectory( const shared_ptr< topology >& aSpace, const point_type& aStart, const point_type& aEnd,
-                             const distance_metric& aDist = distance_metric() )
-      : base_class_type( aSpace, aStart, aEnd, aDist ){};
+  discrete_point_trajectory(const std::shared_ptr<topology>& aSpace,
+                            const point_type& aStart, const point_type& aEnd,
+                            const distance_metric& aDist = distance_metric())
+      : base_class_type(aSpace, aStart, aEnd, aDist) {}
 
   /**
    * Constructs the trajectory from a range of points and their space.
@@ -150,35 +161,39 @@ public:
    * \param aSpace The space on which the trajectory is.
    * \param aDist The distance metric functor that the trajectory should use.
    */
-  template < typename ForwardIter >
-  discrete_point_trajectory( ForwardIter aBegin, ForwardIter aEnd, const shared_ptr< topology >& aSpace,
-                             const distance_metric& aDist = distance_metric() )
-      : base_class_type( aBegin, aEnd, aSpace, aDist ){};
+  template <typename ForwardIter>
+  discrete_point_trajectory(ForwardIter aBegin, ForwardIter aEnd,
+                            const std::shared_ptr<topology>& aSpace,
+                            const distance_metric& aDist = distance_metric())
+      : base_class_type(aBegin, aEnd, aSpace, aDist) {}
 
   /**
    * Standard swap function.
    */
-  friend void swap( self& lhs, self& rhs ) throw() {
+  friend void swap(self& lhs, self& rhs) throw() {
     using std::swap;
-    swap( static_cast< base_class_type& >( lhs ), static_cast< base_class_type& >( rhs ) );
-  };
-
+    swap(static_cast<base_class_type&>(lhs),
+         static_cast<base_class_type&>(rhs));
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    base_class_type::save( A, base_class_type::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    base_class_type::save(
+        A, base_class_type::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    base_class_type::load( A, base_class_type::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    base_class_type::load(
+        A, base_class_type::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2440016, 1, "discrete_point_trajectory", base_class_type )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2440016, 1, "discrete_point_trajectory",
+                              base_class_type)
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

@@ -35,134 +35,140 @@
 
 #include "archiver.hpp"
 
-
 #include <iostream>
-#include <utility>
+#include <memory>
 #include <string>
+#include <utility>
 
-namespace ReaK {
-
-namespace serialization {
+namespace ReaK::serialization {
 
 /**
  * Binary input archive.
  */
 class bin_iarchive : public iarchive {
-private:
-  shared_ptr< std::istream > file_stream;
+ private:
+  std::shared_ptr<std::istream> file_stream;
 
-protected:
-  virtual iarchive& RK_CALL load_serializable_ptr( serializable_shared_pointer& Item );
+ protected:
+  iarchive& load_serializable_ptr(serializable_shared_pointer& Item) override;
 
-  virtual iarchive& RK_CALL load_serializable_ptr( const std::pair< std::string, serializable_shared_pointer& >& Item );
+  iarchive& load_serializable_ptr(
+      const std::pair<std::string, serializable_shared_pointer&>& Item)
+      override;
 
-  virtual iarchive& RK_CALL load_serializable( serializable& Item );
+  iarchive& load_serializable(serializable& Item) override;
 
-  virtual iarchive& RK_CALL load_serializable( const std::pair< std::string, serializable& >& Item );
+  iarchive& load_serializable(
+      const std::pair<std::string, serializable&>& Item) override;
 
-  virtual iarchive& RK_CALL load_char( char& i );
+  iarchive& load_char(char& i) override;
 
-  virtual iarchive& RK_CALL load_char( const std::pair< std::string, char& >& i );
+  iarchive& load_char(const std::pair<std::string, char&>& i) override;
 
-  virtual iarchive& RK_CALL load_unsigned_char( unsigned char& u );
+  iarchive& load_unsigned_char(unsigned char& u) override;
 
-  virtual iarchive& RK_CALL load_unsigned_char( const std::pair< std::string, unsigned char& >& u );
+  iarchive& load_unsigned_char(
+      const std::pair<std::string, unsigned char&>& u) override;
 
-  virtual iarchive& RK_CALL load_int( std::ptrdiff_t& i );
+  iarchive& load_int(std::ptrdiff_t& i) override;
 
-  virtual iarchive& RK_CALL load_int( const std::pair< std::string, std::ptrdiff_t& >& i );
+  iarchive& load_int(const std::pair<std::string, std::ptrdiff_t&>& i) override;
 
-  virtual iarchive& RK_CALL load_unsigned_int( std::size_t& u );
+  iarchive& load_unsigned_int(std::size_t& u) override;
 
-  virtual iarchive& RK_CALL load_unsigned_int( const std::pair< std::string, std::size_t& >& u );
+  iarchive& load_unsigned_int(
+      const std::pair<std::string, std::size_t&>& u) override;
 
-  virtual iarchive& RK_CALL load_float( float& f );
+  iarchive& load_float(float& f) override;
 
-  virtual iarchive& RK_CALL load_float( const std::pair< std::string, float& >& f );
+  iarchive& load_float(const std::pair<std::string, float&>& f) override;
 
-  virtual iarchive& RK_CALL load_double( double& d );
+  iarchive& load_double(double& d) override;
 
-  virtual iarchive& RK_CALL load_double( const std::pair< std::string, double& >& d );
+  iarchive& load_double(const std::pair<std::string, double&>& d) override;
 
-  virtual iarchive& RK_CALL load_bool( bool& b );
+  iarchive& load_bool(bool& b) override;
 
-  virtual iarchive& RK_CALL load_bool( const std::pair< std::string, bool& >& b );
+  iarchive& load_bool(const std::pair<std::string, bool&>& b) override;
 
-  virtual iarchive& RK_CALL load_string( std::string& s );
+  iarchive& load_string(std::string& s) override;
 
-  virtual iarchive& RK_CALL load_string( const std::pair< std::string, std::string& >& s );
+  iarchive& load_string(const std::pair<std::string, std::string&>& s) override;
 
-public:
-  bin_iarchive( const std::string& FileName );
-  bin_iarchive( std::istream& aStream );
-  virtual ~bin_iarchive();
+ public:
+  explicit bin_iarchive(const std::string& FileName);
+  explicit bin_iarchive(std::istream& aStream);
+  ~bin_iarchive() override;
 };
 
 /**
  * Binary output archive.
  */
 class bin_oarchive : public oarchive {
-private:
-  shared_ptr< std::ostream > file_stream;
+ private:
+  std::shared_ptr<std::ostream> file_stream;
 
-protected:
-  virtual oarchive& RK_CALL
-    saveToNewArchive_impl( const serializable_shared_pointer& Item, const std::string& FileName );
+ protected:
+  oarchive& saveToNewArchive_impl(const serializable_shared_pointer& Item,
+                                  const std::string& FileName) override;
 
-  virtual oarchive& RK_CALL
-    saveToNewArchiveNamed_impl( const std::pair< std::string, const serializable_shared_pointer& >& Item,
-                                const std::string& FileName );
+  oarchive& saveToNewArchiveNamed_impl(
+      const std::pair<std::string, const serializable_shared_pointer&>& Item,
+      const std::string& FileName) override;
 
-  virtual oarchive& RK_CALL save_serializable_ptr( const serializable_shared_pointer& Item );
+  oarchive& save_serializable_ptr(
+      const serializable_shared_pointer& Item) override;
 
-  virtual oarchive& RK_CALL
-    save_serializable_ptr( const std::pair< std::string, const serializable_shared_pointer& >& Item );
+  oarchive& save_serializable_ptr(
+      const std::pair<std::string, const serializable_shared_pointer&>& Item)
+      override;
 
-  virtual oarchive& RK_CALL save_serializable( const serializable& Item );
+  oarchive& save_serializable(const serializable& Item) override;
 
-  virtual oarchive& RK_CALL save_serializable( const std::pair< std::string, const serializable& >& Item );
+  oarchive& save_serializable(
+      const std::pair<std::string, const serializable&>& Item) override;
 
-  virtual oarchive& RK_CALL save_char( char i );
+  oarchive& save_char(char i) override;
 
-  virtual oarchive& RK_CALL save_char( const std::pair< std::string, char >& i );
+  oarchive& save_char(const std::pair<std::string, char>& i) override;
 
-  virtual oarchive& RK_CALL save_unsigned_char( unsigned char u );
+  oarchive& save_unsigned_char(unsigned char u) override;
 
-  virtual oarchive& RK_CALL save_unsigned_char( const std::pair< std::string, unsigned char >& u );
+  oarchive& save_unsigned_char(
+      const std::pair<std::string, unsigned char>& u) override;
 
-  virtual oarchive& RK_CALL save_int( std::ptrdiff_t i );
+  oarchive& save_int(std::ptrdiff_t i) override;
 
-  virtual oarchive& RK_CALL save_int( const std::pair< std::string, std::ptrdiff_t >& i );
+  oarchive& save_int(const std::pair<std::string, std::ptrdiff_t>& i) override;
 
-  virtual oarchive& RK_CALL save_unsigned_int( std::size_t u );
+  oarchive& save_unsigned_int(std::size_t u) override;
 
-  virtual oarchive& RK_CALL save_unsigned_int( const std::pair< std::string, std::size_t >& u );
+  oarchive& save_unsigned_int(
+      const std::pair<std::string, std::size_t>& u) override;
 
-  virtual oarchive& RK_CALL save_float( float f );
+  oarchive& save_float(float f) override;
 
-  virtual oarchive& RK_CALL save_float( const std::pair< std::string, float >& f );
+  oarchive& save_float(const std::pair<std::string, float>& f) override;
 
-  virtual oarchive& RK_CALL save_double( double d );
+  oarchive& save_double(double d) override;
 
-  virtual oarchive& RK_CALL save_double( const std::pair< std::string, double >& d );
+  oarchive& save_double(const std::pair<std::string, double>& d) override;
 
-  virtual oarchive& RK_CALL save_bool( bool b );
+  oarchive& save_bool(bool b) override;
 
-  virtual oarchive& RK_CALL save_bool( const std::pair< std::string, bool >& b );
+  oarchive& save_bool(const std::pair<std::string, bool>& b) override;
 
-  virtual oarchive& RK_CALL save_string( const std::string& s );
+  oarchive& save_string(const std::string& s) override;
 
-  virtual oarchive& RK_CALL save_string( const std::pair< std::string, const std::string& >& s );
+  oarchive& save_string(
+      const std::pair<std::string, const std::string&>& s) override;
 
-public:
-  bin_oarchive( const std::string& FileName );
-  bin_oarchive( std::ostream& aStream );
-  virtual ~bin_oarchive();
+ public:
+  explicit bin_oarchive(const std::string& FileName);
+  explicit bin_oarchive(std::ostream& aStream);
+  ~bin_oarchive() override;
 };
 
-
-}; // serialization
-
-}; // ReaK
+}  // namespace ReaK::serialization
 
 #endif

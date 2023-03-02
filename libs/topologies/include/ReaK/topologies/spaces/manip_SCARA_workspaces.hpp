@@ -38,20 +38,17 @@
 #include <ReaK/topologies/spaces/manip_planning_traits.hpp>
 #include <ReaK/topologies/spaces/se3_topologies.hpp>
 
-namespace ReaK {
+namespace ReaK::pp {
 
-namespace pp {
+template <int Order>
+struct manip_pp_traits<kte::manip_SCARA_kinematics, Order> {
+  static constexpr std::size_t degrees_of_freedom = 3;
 
-
-template < int Order >
-struct manip_pp_traits< kte::manip_SCARA_kinematics, Order > {
-  BOOST_STATIC_CONSTANT( std::size_t, degrees_of_freedom = 3 );
-
-  typedef typename Ndof_rl_space< double, 3, Order >::type rl_jt_space_type;
-  typedef typename Ndof_space< double, 3, Order >::type jt_space_type;
-  typedef typename se3_topology< double, Order >::type ee_space_type;
+  using rl_jt_space_type = Ndof_rl_space_t<double, 3, Order>;
+  using jt_space_type = Ndof_space_t<double, 3, Order>;
+  using ee_space_type = se3_topology_t<double, Order>;
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

@@ -1,6 +1,5 @@
 
 
-
 Notes on BIT* algorithm:
 
 Vertices can basically be in three states:
@@ -38,7 +37,9 @@ NOTE: Q_worst and Q_hopeless could be merged into one, with the following orderi
     est-f(u) = ( est-g(u) + est-h(u) )
 
 NOTE: Qv could use the same est-f(u) values for ordering, using this function (Rust-style):
-    best-Qv = { while( g(Qv.top()) == infinity && h(Qv.top()) == infinity ) Qv.pop(); Qv.top() }
+    best-Qv = { while( g(Qv.top()) == infinity && h(Qv.top()) == infinity ) Qv.pop();
+Qv.top()
+}
 
 NOTE: Qv and Q_worst could be merged as a double-ended priority queue (min-max-heap)
 
@@ -52,10 +53,3 @@ is_candidate(v) = ( color(v) == white )
 
 lines 21-22: "X_samples <-(-)- x; V <-(+)- x"   would become  "color(x) = gray;"
 line 22:     "Qv <-(+)- x"                      would become  "Qv.push_or_update(x); Q_worst.push_or_update(x);"
-
-
-
-
-
-
-

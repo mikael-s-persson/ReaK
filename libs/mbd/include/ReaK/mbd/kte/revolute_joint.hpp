@@ -36,76 +36,88 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include "reacting_kte.hpp"
 #include <ReaK/math/kinetostatics/motion_jacobians.hpp>
+#include <utility>
+#include "reacting_kte.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class implements a revolute joint in 2D space. A generalized coordinate is used to represent the
  * joint's angular displacement between a base coordinate frame to an end coordinate frame.
  */
 class revolute_joint_2D : public reacting_kte_gen {
-protected:
-  shared_ptr< gen_coord< double > > mAngle; ///< Generalized coordinate representing the joint's angular displacement.
-  shared_ptr< frame_2D< double > > mBase;   ///< The coordinate frame at the base of the joint.
-  shared_ptr< frame_2D< double > > mEnd;    ///< The coordinate frame just after the joint transformations are applied.
+ protected:
+  std::shared_ptr<gen_coord<double>>
+      mAngle;  ///< Generalized coordinate representing the joint's angular displacement.
+  std::shared_ptr<frame_2D<double>>
+      mBase;  ///< The coordinate frame at the base of the joint.
+  std::shared_ptr<frame_2D<double>>
+      mEnd;  ///< The coordinate frame just after the joint transformations are applied.
 
-  shared_ptr< jacobian_gen_2D< double > > mJacobian; ///< The Jacobian frame produced by this joint.
+  std::shared_ptr<jacobian_gen_2D<double>>
+      mJacobian;  ///< The Jacobian frame produced by this joint.
 
-public:
+ public:
   /**
    * Sets the joint's angular coordinate.
    * \param aPtr The new joint's angular coordinate.
    */
-  void setAngle( const shared_ptr< gen_coord< double > >& aPtr ) { mAngle = aPtr; };
+  void setAngle(const std::shared_ptr<gen_coord<double>>& aPtr) {
+    mAngle = aPtr;
+  }
   /**
    * Returns the joint's angular coordinate.
    * \return The joint's angular coordinate.
    */
-  shared_ptr< gen_coord< double > > Angle() const { return mAngle; };
+  std::shared_ptr<gen_coord<double>> Angle() const { return mAngle; }
 
   /**
    * Sets the joint's base frame.
    * \param aPtr The new joint's base frame.
    */
-  void setBaseFrame( const shared_ptr< frame_2D< double > >& aPtr ) { mBase = aPtr; };
+  void setBaseFrame(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mBase = aPtr;
+  }
   /**
    * Returns the joint's base frame.
    * \return The joint's base frame.
    */
-  shared_ptr< frame_2D< double > > BaseFrame() const { return mBase; };
+  std::shared_ptr<frame_2D<double>> BaseFrame() const { return mBase; }
 
   /**
    * Sets the joint's output frame.
    * \param aPtr The new joint's output frame.
    */
-  void setEndFrame( const shared_ptr< frame_2D< double > >& aPtr ) { mEnd = aPtr; };
+  void setEndFrame(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mEnd = aPtr;
+  }
   /**
    * Returns the joint's output frame.
    * \return The joint's output frame.
    */
-  shared_ptr< frame_2D< double > > EndFrame() const { return mEnd; };
+  std::shared_ptr<frame_2D<double>> EndFrame() const { return mEnd; }
 
   /**
    * Sets the joint's Jacobian.
    * \param aPtr The new joint's Jacobian.
    */
-  void setJacobian( const shared_ptr< jacobian_gen_2D< double > >& aPtr ) { mJacobian = aPtr; };
+  void setJacobian(const std::shared_ptr<jacobian_gen_2D<double>>& aPtr) {
+    mJacobian = aPtr;
+  }
   /**
    * Returns the joint's Jacobian.
    * \return The joint's Jacobian.
    */
-  shared_ptr< jacobian_gen_2D< double > > Jacobian() const { return mJacobian; };
+  std::shared_ptr<jacobian_gen_2D<double>> Jacobian() const {
+    return mJacobian;
+  }
 
   /**
    * Default constructor.
    */
-  revolute_joint_2D( const std::string& aName = "" )
-      : reacting_kte_gen( aName ), mAngle(), mBase(), mEnd(), mJacobian(){};
+  explicit revolute_joint_2D(const std::string& aName = "")
+      : reacting_kte_gen(aName) {}
 
   /**
    * Parametrized constructor.
@@ -116,40 +128,52 @@ public:
    * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the
    * Jacobian frame's calculation.
    */
-  revolute_joint_2D( const std::string& aName, const shared_ptr< gen_coord< double > >& aAngle,
-                     const shared_ptr< frame_2D< double > >& aBase, const shared_ptr< frame_2D< double > >& aEnd,
-                     const shared_ptr< jacobian_gen_2D< double > >& aJacobian
-                     = shared_ptr< jacobian_gen_2D< double > >() )
-      : reacting_kte_gen( aName ), mAngle( aAngle ), mBase( aBase ), mEnd( aEnd ), mJacobian( aJacobian ){};
+  revolute_joint_2D(const std::string& aName,
+                    std::shared_ptr<gen_coord<double>> aAngle,
+                    std::shared_ptr<frame_2D<double>> aBase,
+                    std::shared_ptr<frame_2D<double>> aEnd,
+                    std::shared_ptr<jacobian_gen_2D<double>> aJacobian =
+                        std::shared_ptr<jacobian_gen_2D<double>>())
+      : reacting_kte_gen(aName),
+        mAngle(std::move(aAngle)),
+        mBase(std::move(aBase)),
+        mEnd(std::move(aEnd)),
+        mJacobian(std::move(aJacobian)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~revolute_joint_2D(){};
+  ~revolute_joint_2D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void applyReactionForce( double aForce );
+  void applyReactionForce(double aForce) override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    reacting_kte_gen::save( A, reacting_kte_gen::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAngle ) & RK_SERIAL_SAVE_WITH_NAME( mBase ) & RK_SERIAL_SAVE_WITH_NAME( mEnd )
-      & RK_SERIAL_SAVE_WITH_NAME( mJacobian );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    reacting_kte_gen::save(
+        A, reacting_kte_gen::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAngle) & RK_SERIAL_SAVE_WITH_NAME(mBase) &
+        RK_SERIAL_SAVE_WITH_NAME(mEnd) & RK_SERIAL_SAVE_WITH_NAME(mJacobian);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    reacting_kte_gen::load( A, reacting_kte_gen::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAngle ) & RK_SERIAL_LOAD_WITH_NAME( mBase ) & RK_SERIAL_LOAD_WITH_NAME( mEnd )
-      & RK_SERIAL_LOAD_WITH_NAME( mJacobian );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    reacting_kte_gen::load(
+        A, reacting_kte_gen::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAngle) & RK_SERIAL_LOAD_WITH_NAME(mBase) &
+        RK_SERIAL_LOAD_WITH_NAME(mEnd) & RK_SERIAL_LOAD_WITH_NAME(mJacobian);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( revolute_joint_2D, 0xC2100003, 1, "revolute_joint_2D", reacting_kte_gen )
+  RK_RTTI_MAKE_CONCRETE_1BASE(revolute_joint_2D, 0xC2100003, 1,
+                              "revolute_joint_2D", reacting_kte_gen)
 };
 
 /**
@@ -157,75 +181,90 @@ public:
  * joint's angular displacement between a base coordinate frame to an end coordinate frame.
  */
 class revolute_joint_3D : public reacting_kte_gen {
-protected:
-  shared_ptr< gen_coord< double > > mAngle; ///< Generalized coordinate representing the joint's angular displacement.
-  vect< double, 3 > mAxis; ///< Joint axis, as a fixed vector, in the coordinate system of the base frame.
-  shared_ptr< frame_3D< double > > mBase; ///< The coordinate frame at the base of the joint.
-  shared_ptr< frame_3D< double > > mEnd;  ///< The coordinate frame just after the joint transformations are applied.
+ protected:
+  std::shared_ptr<gen_coord<double>>
+      mAngle;  ///< Generalized coordinate representing the joint's angular displacement.
+  vect<double, 3>
+      mAxis;  ///< Joint axis, as a fixed vector, in the coordinate system of the base frame.
+  std::shared_ptr<frame_3D<double>>
+      mBase;  ///< The coordinate frame at the base of the joint.
+  std::shared_ptr<frame_3D<double>>
+      mEnd;  ///< The coordinate frame just after the joint transformations are applied.
 
-  shared_ptr< jacobian_gen_3D< double > > mJacobian; ///< The Jacobian frame produced by this joint.
+  std::shared_ptr<jacobian_gen_3D<double>>
+      mJacobian;  ///< The Jacobian frame produced by this joint.
 
-public:
+ public:
   /**
    * Sets the joint's angular coordinate.
    * \param aPtr The new joint's angular coordinate.
    */
-  void setAngle( const shared_ptr< gen_coord< double > >& aPtr ) { mAngle = aPtr; };
+  void setAngle(const std::shared_ptr<gen_coord<double>>& aPtr) {
+    mAngle = aPtr;
+  }
   /**
    * Returns the joint's angular coordinate.
    * \return The joint's angular coordinate.
    */
-  shared_ptr< gen_coord< double > > Angle() const { return mAngle; };
+  std::shared_ptr<gen_coord<double>> Angle() const { return mAngle; }
 
   /**
    * Sets the joint's axis vector (relative to base frame).
    * \param aValue The new joint's axis vector (relative to base frame).
    */
-  void setAxis( const vect< double, 3 >& aValue ) { mAxis = aValue; };
+  void setAxis(const vect<double, 3>& aValue) { mAxis = aValue; }
   /**
    * Returns the joint's axis vector (relative to base frame).
    * \return The joint's axis vector (relative to base frame).
    */
-  vect< double, 3 > Axis() const { return mAxis; };
+  vect<double, 3> Axis() const { return mAxis; }
 
   /**
    * Sets the joint's base frame.
    * \param aPtr The new joint's base frame.
    */
-  void setBaseFrame( const shared_ptr< frame_3D< double > >& aPtr ) { mBase = aPtr; };
+  void setBaseFrame(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mBase = aPtr;
+  }
   /**
    * Returns the joint's base frame.
    * \return The joint's base frame.
    */
-  shared_ptr< frame_3D< double > > BaseFrame() const { return mBase; };
+  std::shared_ptr<frame_3D<double>> BaseFrame() const { return mBase; }
 
   /**
    * Sets the joint's output frame.
    * \param aPtr The new joint's output frame.
    */
-  void setEndFrame( const shared_ptr< frame_3D< double > >& aPtr ) { mEnd = aPtr; };
+  void setEndFrame(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mEnd = aPtr;
+  }
   /**
    * Returns the joint's output frame.
    * \return The joint's output frame.
    */
-  shared_ptr< frame_3D< double > > EndFrame() const { return mEnd; };
+  std::shared_ptr<frame_3D<double>> EndFrame() const { return mEnd; }
 
   /**
    * Sets the joint's Jacobian.
    * \param aPtr The new joint's Jacobian.
    */
-  void setJacobian( const shared_ptr< jacobian_gen_3D< double > >& aPtr ) { mJacobian = aPtr; };
+  void setJacobian(const std::shared_ptr<jacobian_gen_3D<double>>& aPtr) {
+    mJacobian = aPtr;
+  }
   /**
    * Returns a const-reference to the joint's Jacobian.
    * \return The joint's Jacobian.
    */
-  shared_ptr< jacobian_gen_3D< double > > Jacobian() const { return mJacobian; };
+  std::shared_ptr<jacobian_gen_3D<double>> Jacobian() const {
+    return mJacobian;
+  }
 
   /**
    * Default constructor.
    */
-  revolute_joint_3D( const std::string& aName = "" )
-      : reacting_kte_gen( aName ), mAngle(), mAxis(), mBase(), mEnd(), mJacobian(){};
+  explicit revolute_joint_3D(const std::string& aName = "")
+      : reacting_kte_gen(aName) {}
 
   /**
    * Parametrized constructor.
@@ -237,44 +276,58 @@ public:
    * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the
    * Jacobian frame's calculation.
    */
-  revolute_joint_3D( const std::string& aName, const shared_ptr< gen_coord< double > >& aAngle,
-                     const vect< double, 3 >& aAxis, const shared_ptr< frame_3D< double > >& aBase,
-                     const shared_ptr< frame_3D< double > >& aEnd,
-                     const shared_ptr< jacobian_gen_3D< double > >& aJacobian
-                     = shared_ptr< jacobian_gen_3D< double > >() )
-      : reacting_kte_gen( aName ), mAngle( aAngle ), mAxis( aAxis ), mBase( aBase ), mEnd( aEnd ),
-        mJacobian( aJacobian ){};
+  revolute_joint_3D(const std::string& aName,
+                    std::shared_ptr<gen_coord<double>> aAngle,
+                    const vect<double, 3>& aAxis,
+                    std::shared_ptr<frame_3D<double>> aBase,
+                    std::shared_ptr<frame_3D<double>> aEnd,
+                    std::shared_ptr<jacobian_gen_3D<double>> aJacobian =
+                        std::shared_ptr<jacobian_gen_3D<double>>())
+      : reacting_kte_gen(aName),
+        mAngle(std::move(aAngle)),
+        mAxis(aAxis),
+        mBase(std::move(aBase)),
+        mEnd(std::move(aEnd)),
+        mJacobian(std::move(aJacobian)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~revolute_joint_3D(){};
+  ~revolute_joint_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void applyReactionForce( double aForce );
+  void applyReactionForce(double aForce) override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    reacting_kte_gen::save( A, reacting_kte_gen::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAngle ) & RK_SERIAL_SAVE_WITH_NAME( mAxis ) & RK_SERIAL_SAVE_WITH_NAME( mBase )
-      & RK_SERIAL_SAVE_WITH_NAME( mEnd ) & RK_SERIAL_SAVE_WITH_NAME( mJacobian );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    reacting_kte_gen::save(
+        A, reacting_kte_gen::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAngle) & RK_SERIAL_SAVE_WITH_NAME(mAxis) &
+        RK_SERIAL_SAVE_WITH_NAME(mBase) & RK_SERIAL_SAVE_WITH_NAME(mEnd) &
+        RK_SERIAL_SAVE_WITH_NAME(mJacobian);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    reacting_kte_gen::load( A, reacting_kte_gen::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAngle ) & RK_SERIAL_LOAD_WITH_NAME( mAxis ) & RK_SERIAL_LOAD_WITH_NAME( mBase )
-      & RK_SERIAL_LOAD_WITH_NAME( mEnd ) & RK_SERIAL_LOAD_WITH_NAME( mJacobian );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    reacting_kte_gen::load(
+        A, reacting_kte_gen::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAngle) & RK_SERIAL_LOAD_WITH_NAME(mAxis) &
+        RK_SERIAL_LOAD_WITH_NAME(mBase) & RK_SERIAL_LOAD_WITH_NAME(mEnd) &
+        RK_SERIAL_LOAD_WITH_NAME(mJacobian);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( revolute_joint_3D, 0xC2100004, 1, "revolute_joint_3D", reacting_kte_gen )
+  RK_RTTI_MAKE_CONCRETE_1BASE(revolute_joint_3D, 0xC2100004, 1,
+                              "revolute_joint_3D", reacting_kte_gen)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

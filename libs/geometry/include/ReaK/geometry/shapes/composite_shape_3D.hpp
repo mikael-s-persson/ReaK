@@ -34,58 +34,57 @@
 
 #include "shape_3D.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
+namespace ReaK::geom {
 
 /** This class represents a composite of 3D shapes. */
 class composite_shape_3D : public shape_3D {
-protected:
-  std::vector< shared_ptr< shape_3D > > mShapes;
+ protected:
+  std::vector<std::shared_ptr<shape_3D>> mShapes;
 
-public:
+ public:
   /**
    * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
    * \return The maximum radius of the shape.
    */
-  virtual double getBoundingRadius() const;
+  double getBoundingRadius() const override;
 
   /**
    * This function returns a const-reference to the vector of shapes.
    * \return A const-reference to the vector of shapes.
    */
-  const std::vector< shared_ptr< shape_3D > >& Shapes() const { return mShapes; };
+  const std::vector<std::shared_ptr<shape_3D>>& Shapes() const {
+    return mShapes;
+  }
   /**
    * This function returns a reference to the vector of shapes.
    * \return A reference to the vector of shapes.
    */
-  std::vector< shared_ptr< shape_3D > >& Shapes() { return mShapes; };
+  std::vector<std::shared_ptr<shape_3D>>& Shapes() { return mShapes; }
 
   /**
    * Default constructor.
    */
-  composite_shape_3D( const std::string& aName = "" );
+  explicit composite_shape_3D(const std::string& aName = "");
 
   /**
    * Default destructor.
    */
-  virtual ~composite_shape_3D(){};
-
+  ~composite_shape_3D() override = default;
+  ;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( composite_shape_3D, 0xC310000B, 1, "composite_shape_3D", shape_3D )
+  RK_RTTI_MAKE_CONCRETE_1BASE(composite_shape_3D, 0xC310000B, 1,
+                              "composite_shape_3D", shape_3D)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

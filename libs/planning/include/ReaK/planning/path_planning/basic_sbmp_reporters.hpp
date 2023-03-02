@@ -35,23 +35,21 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/shared_object.hpp>
 
-#include <ReaK/topologies/spaces/subspace_concept.hpp>
-#include <ReaK/topologies/spaces/steerable_space_concept.hpp>
-#include <ReaK/topologies/interpolation/seq_trajectory_base.hpp>
 #include <ReaK/topologies/interpolation/seq_path_base.hpp>
+#include <ReaK/topologies/interpolation/seq_trajectory_base.hpp>
+#include <ReaK/topologies/spaces/steerable_space_concept.hpp>
+#include <ReaK/topologies/spaces/subspace_concept.hpp>
 
 #include <boost/concept_check.hpp>
 #include <boost/graph/graph_concepts.hpp>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <chrono>
 #include <iostream>
+#include <string>
+#include <tuple>
+#include <type_traits>
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Path-Planning */
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class can be used as a SBMP/SBPP Reporter (SBMPReporterConcept and SBPPReporterConcept)
@@ -59,7 +57,7 @@ namespace pp {
  */
 struct no_sbmp_report : public shared_object {
 
-  void reset_internal_state(){};
+  void reset_internal_state() {}
 
   /**
    * Draws the entire motion-graph.
@@ -67,48 +65,35 @@ struct no_sbmp_report : public shared_object {
    * \tparam MotionGraph The graph structure type representing the motion-graph.
    * \tparam PositionMap The property-map type that can map motion-graph vertex descriptors into point values.
    */
-  template < typename FreeSpaceType, typename MotionGraph, typename PositionMap >
-  void draw_motion_graph( const FreeSpaceType&, const MotionGraph&, PositionMap ) const {};
+  template <typename FreeSpaceType, typename MotionGraph,
+            typename SteerRecOrPosMap>
+  void draw_motion_graph(const FreeSpaceType& /*unused*/,
+                         const MotionGraph& /*unused*/,
+                         SteerRecOrPosMap /*unused*/) const {}
 
   /**
    * Draws the solution trajectory.
    * \tparam FreeSpaceType The C-free topology type.
    */
-  template < typename FreeSpaceType >
-  void draw_solution(
-    const FreeSpaceType&,
-    typename boost::enable_if< is_temporal_space< FreeSpaceType >,
-                               const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::
-                                                                        super_space_type > >& >::type ) const {};
-
-  /**
-   * Draws the solution trajectory.
-   * \tparam FreeSpaceType The C-free topology type.
-   */
-  template < typename FreeSpaceType >
-  void draw_solution(
-    const FreeSpaceType&,
-    typename boost::
-      disable_if< is_temporal_space< FreeSpaceType >,
-                  const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::
-        type ) const {};
-
+  template <typename FreeSpaceType, typename TrajOrPathPtr>
+  void draw_solution(const FreeSpaceType& /*unused*/,
+                     const TrajOrPathPtr& /*unused*/) const {}
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( no_sbmp_report, 0xC2460002, 1, "no_sbmp_report", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(no_sbmp_report, 0xC2460002, 1, "no_sbmp_report",
+                              shared_object)
 };
-
 
 /**
  * This class can be used as a SBMP/SBPP Reporter (SBMPReporterConcept and SBPPReporterConcept)
@@ -121,9 +106,9 @@ struct no_sbmp_report : public shared_object {
  *
  * void save_output(const std::string& filename) const;
  */
-template < typename NextReporter = no_sbmp_report >
+template <typename NextReporter = no_sbmp_report>
 struct differ_sbmp_report_to_space : public shared_object {
-  typedef differ_sbmp_report_to_space< NextReporter > self;
+  using self = differ_sbmp_report_to_space<NextReporter>;
 
   NextReporter next_reporter;
   /// Holds the interval-size between output points of the solution trajectory/path.
@@ -134,207 +119,163 @@ struct differ_sbmp_report_to_space : public shared_object {
   mutable std::size_t progress_count;
   mutable std::size_t solution_count;
 
-  explicit differ_sbmp_report_to_space( const std::string& aFilePath = "", double aIntervalSize = 0.1,
-                                        NextReporter aNextReporter = NextReporter() )
-      : next_reporter( aNextReporter ), interval_size( aIntervalSize ), file_path( aFilePath ), progress_count( 0 ),
-        solution_count( 0 ){};
+  explicit differ_sbmp_report_to_space(
+      const std::string& aFilePath, double aIntervalSize = 0.1,
+      NextReporter aNextReporter = NextReporter())
+      : next_reporter(aNextReporter),
+        interval_size(aIntervalSize),
+        file_path(aFilePath),
+        progress_count(0),
+        solution_count(0) {}
+
+  differ_sbmp_report_to_space() : differ_sbmp_report_to_space("") {}
 
   void reset_internal_state() {
     progress_count = 0;
     solution_count = 0;
 
     next_reporter.reset_internal_state();
-  };
+  }
 
   /**
    * Draws the entire motion-graph.
    * \tparam FreeSpaceType The C-free topology type.
    * \tparam MotionGraph The graph structure type representing the motion-graph.
-   * \tparam PositionMap The property-map type that can map motion-graph vertex descriptors into point values.
+   * \tparam SteerRecOrPosMap The property-map type that can map motion-graph edge descriptors into steer-records or position.
    * \param free_space The C-free topology.
    * \param g The motion-graph.
-   * \param pos The position-map to obtain positions of the motion-graph vertices.
+   * \param steer_rec_or_pos The steer-record-map to obtain steer-records of the motion-graph edges,
+   *                         or the position-map to obtain positions of the motion-graph vertices.
    */
-  template < typename FreeSpaceType, typename MotionGraph, typename PositionMap >
-  typename boost::disable_if< is_steerable_space< FreeSpaceType >, void >::type
-    draw_motion_graph( const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos ) const {
-    typedef typename boost::graph_traits< MotionGraph >::vertex_iterator VIter;
-    typedef typename boost::graph_traits< MotionGraph >::out_edge_iterator EIter;
-
+  template <typename FreeSpaceType, typename MotionGraph,
+            typename SteerRecOrPosMap>
+  void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g,
+                         SteerRecOrPosMap steer_rec_or_pos) const {
     free_space.reset_output();
 
-    VIter vi, vi_end;
-    for( boost::tie( vi, vi_end ) = vertices( g ); vi != vi_end; ++vi ) {
-      EIter ei, ei_end;
-      for( boost::tie( ei, ei_end ) = out_edges( *vi, g ); ei != ei_end; ++ei )
-        free_space.draw_edge( get( pos, *vi ), get( pos, target( *ei, g ) ), false );
-    };
+    if constexpr (is_steerable_space_v<FreeSpaceType>) {
+      using PointType = topology_point_type_t<FreeSpaceType>;
+      for (auto [vi, vi_end] = vertices(g); vi != vi_end; ++vi) {
+        for (auto [ei, ei_end] = out_edges(*vi, g); ei != ei_end; ++ei) {
+          const auto& st_rec = get(steer_rec_or_pos, *ei);
+          auto it = st_rec.begin_fraction_travel();
+          auto prev_it = it;
+          it += 0.1;
+          for (; prev_it != st_rec.end_fraction_travel(); it += 0.1) {
+            free_space.draw_edge(PointType(*prev_it), PointType(*it), false);
+            prev_it = it;
+          }
+        }
+      }
+    } else {
+      for (auto [vi, vi_end] = vertices(g); vi != vi_end; ++vi) {
+        for (auto [ei, ei_end] = out_edges(*vi, g); ei != ei_end; ++ei) {
+          free_space.draw_edge(get(steer_rec_or_pos, *vi),
+                               get(steer_rec_or_pos, target(*ei, g)), false);
+        }
+      }
+    }
 
     std::stringstream ss;
-    ss << std::setw( 6 ) << std::setfill( '0' ) << ( progress_count++ );
-    free_space.save_output( file_path + "progress_" + ss.str() );
+    ss << std::setw(6) << std::setfill('0') << (progress_count++);
+    free_space.save_output(file_path + "progress_" + ss.str());
 
-    next_reporter.draw_motion_graph( free_space, g, pos );
-  };
-
-
-  /**
-   * Draws the entire motion-graph.
-   * \tparam FreeSpaceType The C-free topology type.
-   * \tparam MotionGraph The graph structure type representing the motion-graph.
-   * \tparam SteerRecMap The property-map type that can map motion-graph edge descriptors into steer-records.
-   * \param free_space The C-free topology.
-   * \param g The motion-graph.
-   * \param steer_rec The steer-record-map to obtain steer-records of the motion-graph edges.
-   */
-  template < typename FreeSpaceType, typename MotionGraph, typename SteerRecMap >
-  typename boost::enable_if< is_steerable_space< FreeSpaceType >, void >::type
-    draw_motion_graph( const FreeSpaceType& free_space, const MotionGraph& g, SteerRecMap steer_rec ) const {
-    typedef typename boost::graph_traits< MotionGraph >::vertex_iterator VIter;
-    typedef typename boost::graph_traits< MotionGraph >::out_edge_iterator EIter;
-    typedef typename topology_traits< FreeSpaceType >::point_type PointType;
-    typedef typename boost::property_traits< SteerRecMap >::value_type SteerRecType;
-    typedef typename SteerRecType::point_fraction_iterator SteerIter;
-
-    free_space.reset_output();
-
-    VIter vi, vi_end;
-    for( boost::tie( vi, vi_end ) = vertices( g ); vi != vi_end; ++vi ) {
-      EIter ei, ei_end;
-      for( boost::tie( ei, ei_end ) = out_edges( *vi, g ); ei != ei_end; ++ei ) {
-        const SteerRecType& st_rec = get( steer_rec, *ei );
-        SteerIter it = st_rec.begin_fraction_travel();
-        SteerIter prev_it = it;
-        it += 0.1;
-        for( ; prev_it != st_rec.end_fraction_travel(); it += 0.1 ) {
-          free_space.draw_edge( PointType( *prev_it ), PointType( *it ), false );
-          prev_it = it;
-        };
-      };
-    };
-
-    std::stringstream ss;
-    ss << std::setw( 6 ) << std::setfill( '0' ) << ( progress_count++ );
-    free_space.save_output( file_path + "progress_" + ss.str() );
-
-    next_reporter.draw_motion_graph( free_space, g, steer_rec );
-  };
-
+    next_reporter.draw_motion_graph(free_space, g, steer_rec_or_pos);
+  }
 
   /**
-   * Draws the solution trajectory.
+   * Draws the solution.
    * \tparam FreeSpaceType The C-free topology type.
    * \param free_space The C-free topology.
-   * \param traj The solution trajectory.
+   * \param traj_or_path The solution.
    */
-  template < typename FreeSpaceType >
-  void draw_solution(
-    const FreeSpaceType& free_space,
-    typename boost::enable_if< is_temporal_space< FreeSpaceType >,
-                               const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::
-                                                                        super_space_type > >& >::type traj ) const {
-    typedef typename topology_traits< FreeSpaceType >::point_type PointType;
-
-    free_space.reset_output();
-
-    double t = traj->get_start_time();
-    PointType u_pt = traj->get_point_at_time( t );
-    PointType v_pt;
-    while( t < traj->get_end_time() ) {
-      t += interval_size;
-      v_pt = traj->get_point_at_time( t );
-      free_space.draw_edge( u_pt, v_pt, true );
-      u_pt = v_pt;
-    };
-
-    std::stringstream ss;
-    ss << std::setw( 3 ) << std::setfill( '0' ) << ( solution_count++ ) << "_"
-       << ( traj->get_end_time() - traj->get_start_time() );
-    free_space.save_output( file_path + "solution_" + ss.str() );
-
-    next_reporter.draw_solution( free_space, traj );
-  };
-
-  /**
-   * Draws the solution path.
-   * \tparam FreeSpaceType The C-free topology type.
-   * \param free_space The C-free topology.
-   * \param p The solution path.
-   */
-  template < typename FreeSpaceType >
-  void draw_solution(
-    const FreeSpaceType& free_space,
-    typename boost::
-      disable_if< is_temporal_space< FreeSpaceType >,
-                  const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::
-        type p ) const {
-    typedef typename seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type >::
-      point_distance_iterator PtIter;
-
+  template <typename FreeSpaceType, typename TrajOrPathPtr>
+  void draw_solution(const FreeSpaceType& free_space,
+                     const TrajOrPathPtr& traj_or_path) const {
     free_space.reset_output();
 
     double total_dist = 0.0;
 
-    PtIter u_it = p->begin_distance_travel();
-    PtIter v_it = u_it;
-    v_it += interval_size;
-    while( u_it != p->end_distance_travel() ) {
-      total_dist += interval_size;
-      free_space.draw_edge( *u_it, *v_it, true );
-      u_it = v_it;
+    if constexpr (is_temporal_space_v<FreeSpaceType>) {
+      double t = traj_or_path->get_start_time();
+      auto u_pt = traj_or_path->get_point_at_time(t);
+      auto v_pt = u_pt;
+      while (t < traj_or_path->get_end_time()) {
+        t += interval_size;
+        v_pt = traj_or_path->get_point_at_time(t);
+        free_space.draw_edge(u_pt, v_pt, true);
+        u_pt = v_pt;
+      }
+      total_dist =
+          (traj_or_path->get_end_time() - traj_or_path->get_start_time());
+    } else {
+      auto u_it = traj_or_path->begin_distance_travel();
+      auto v_it = u_it;
       v_it += interval_size;
-    };
+      while (u_it != traj_or_path->end_distance_travel()) {
+        total_dist += interval_size;
+        free_space.draw_edge(*u_it, *v_it, true);
+        u_it = v_it;
+        v_it += interval_size;
+      }
+    }
 
     std::stringstream ss;
-    ss << std::setw( 3 ) << std::setfill( '0' ) << ( solution_count++ ) << "_" << total_dist;
-    free_space.save_output( file_path + "solution_" + ss.str() );
+    ss << std::setw(3) << std::setfill('0') << (solution_count++) << "_"
+       << total_dist;
+    free_space.save_output(file_path + "solution_" + ss.str());
 
-    next_reporter.draw_solution( free_space, p );
-  };
-
+    next_reporter.draw_solution(free_space, traj_or_path);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( next_reporter ) & RK_SERIAL_SAVE_WITH_NAME( interval_size )
-      & RK_SERIAL_SAVE_WITH_NAME( file_path );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(next_reporter) &
+        RK_SERIAL_SAVE_WITH_NAME(interval_size) &
+        RK_SERIAL_SAVE_WITH_NAME(file_path);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( next_reporter ) & RK_SERIAL_LOAD_WITH_NAME( interval_size )
-      & RK_SERIAL_LOAD_WITH_NAME( file_path );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(next_reporter) &
+        RK_SERIAL_LOAD_WITH_NAME(interval_size) &
+        RK_SERIAL_LOAD_WITH_NAME(file_path);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2460003, 1, "differ_sbmp_report_to_space", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2460003, 1,
+                              "differ_sbmp_report_to_space", shared_object)
 };
-
 
 /**
  * This class can be used as a SBMP/SBPP Reporter (SBMPReporterConcept and SBPPReporterConcept)
  * and simply times the progress of the planner, which it outputs to a given output stream.
  */
-template < typename NextReporter = no_sbmp_report >
+template <typename NextReporter = no_sbmp_report>
 struct timing_sbmp_report : public shared_object {
-  typedef timing_sbmp_report< NextReporter > self;
+  using self = timing_sbmp_report<NextReporter>;
 
   NextReporter next_reporter;
   /// Holds the interval-size between output points of the solution trajectory/path.
-  mutable boost::posix_time::ptime last_time;
+  mutable std::chrono::high_resolution_clock::time_point last_time;
   std::ostream* p_out;
 
-  explicit timing_sbmp_report( std::ostream& aOutStream = std::cout, NextReporter aNextReporter = NextReporter() )
-      : next_reporter( aNextReporter ), last_time( boost::posix_time::microsec_clock::local_time() ),
-        p_out( &aOutStream ){};
+  explicit timing_sbmp_report(std::ostream& aOutStream,
+                              NextReporter aNextReporter = NextReporter())
+      : next_reporter(aNextReporter),
+        last_time(std::chrono::high_resolution_clock::now()),
+        p_out(&aOutStream) {}
+
+  timing_sbmp_report() : timing_sbmp_report(std::cout) {}
 
   void reset_internal_state() {
-    last_time = boost::posix_time::microsec_clock::local_time();
+    last_time = std::chrono::high_resolution_clock::now();
 
     next_reporter.reset_internal_state();
-  };
+  }
 
   /**
    * Draws the entire motion-graph.
@@ -345,16 +286,21 @@ struct timing_sbmp_report : public shared_object {
    * \param g The motion-graph.
    * \param pos The position-map to obtain positions of the motion-graph vertices.
    */
-  template < typename FreeSpaceType, typename MotionGraph, typename PositionMap >
-  void draw_motion_graph( const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos ) const {
+  template <typename FreeSpaceType, typename MotionGraph,
+            typename SteerRecOrPosMap>
+  void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g,
+                         SteerRecOrPosMap steer_rec_or_pos) const {
+    std::chrono::high_resolution_clock::duration dt =
+        std::chrono::high_resolution_clock::now() - last_time;
+    (*p_out)
+        << num_vertices(g) << " "
+        << std::chrono::duration_cast<std::chrono::microseconds>(dt).count()
+        << std::endl;
 
-    boost::posix_time::time_duration dt = boost::posix_time::microsec_clock::local_time() - last_time;
-    ( *p_out ) << num_vertices( g ) << " " << dt.total_microseconds() << std::endl;
+    next_reporter.draw_motion_graph(free_space, g, steer_rec_or_pos);
 
-    next_reporter.draw_motion_graph( free_space, g, pos );
-
-    last_time = boost::posix_time::microsec_clock::local_time();
-  };
+    last_time = std::chrono::high_resolution_clock::now();
+  }
 
   /**
    * Draws the solution trajectory.
@@ -362,64 +308,47 @@ struct timing_sbmp_report : public shared_object {
    * \param free_space The C-free topology.
    * \param traj The solution trajectory.
    */
-  template < typename FreeSpaceType >
-  void draw_solution(
-    const FreeSpaceType& free_space,
-    typename boost::enable_if< is_temporal_space< FreeSpaceType >,
-                               const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::
-                                                                        super_space_type > >& >::type traj ) const {
-    next_reporter.draw_solution( free_space, traj );
-  };
-
-  /**
-   * Draws the solution path.
-   * \tparam FreeSpaceType The C-free topology type.
-   * \param free_space The C-free topology.
-   * \param p The solution path.
-   */
-  template < typename FreeSpaceType >
-  void draw_solution(
-    const FreeSpaceType& free_space,
-    typename boost::
-      disable_if< is_temporal_space< FreeSpaceType >,
-                  const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::
-        type p ) const {
-    next_reporter.draw_solution( free_space, p );
-  };
-
+  template <typename FreeSpaceType, typename TrajOrPathPtr>
+  void draw_solution(const FreeSpaceType& free_space,
+                     const TrajOrPathPtr& traj_or_path) const {
+    next_reporter.draw_solution(free_space, traj_or_path);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( next_reporter );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(next_reporter);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( next_reporter );
-    last_time = boost::posix_time::microsec_clock::local_time();
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(next_reporter);
+    last_time = std::chrono::high_resolution_clock::now();
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2460004, 1, "timing_sbmp_report", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2460004, 1, "timing_sbmp_report",
+                              shared_object)
 };
-
 
 /**
  * This class can be used as a SBMP/SBPP Reporter (SBMPReporterConcept and SBPPReporterConcept)
  * and simply prints the progress of the planner.
  */
-template < typename NextReporter = no_sbmp_report >
+template <typename NextReporter = no_sbmp_report>
 struct print_sbmp_progress : public shared_object {
-  typedef print_sbmp_progress< NextReporter > self;
+  using self = print_sbmp_progress<NextReporter>;
 
   NextReporter next_reporter;
 
-  explicit print_sbmp_progress( NextReporter aNextReporter = NextReporter() ) : next_reporter( aNextReporter ){};
+  explicit print_sbmp_progress(NextReporter aNextReporter)
+      : next_reporter(aNextReporter) {}
 
-  void reset_internal_state() { next_reporter.reset_internal_state(); };
+  print_sbmp_progress() : print_sbmp_progress(NextReporter()) {}
+
+  void reset_internal_state() { next_reporter.reset_internal_state(); }
 
   /**
    * Draws the entire motion-graph.
@@ -430,75 +359,55 @@ struct print_sbmp_progress : public shared_object {
    * \param g The motion-graph.
    * \param pos The position-map to obtain positions of the motion-graph vertices.
    */
-  template < typename FreeSpaceType, typename MotionGraph, typename PositionMap >
-  void draw_motion_graph( const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos ) const {
-    std::cout << "\r" << std::setw( 15 ) << num_vertices( g );
+  template <typename FreeSpaceType, typename MotionGraph,
+            typename SteerRecOrPosMap>
+  void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g,
+                         SteerRecOrPosMap steer_rec_or_pos) const {
+    std::cout << "\r" << std::setw(15) << num_vertices(g);
     std::cout.flush();
 
-    next_reporter.draw_motion_graph( free_space, g, pos );
-  };
+    next_reporter.draw_motion_graph(free_space, g, steer_rec_or_pos);
+  }
 
   /**
-   * Draws the solution trajectory.
+   * Draws the solution.
    * \tparam FreeSpaceType The C-free topology type.
    * \param free_space The C-free topology.
-   * \param traj The solution trajectory.
+   * \param traj_or_path The solution.
    */
-  template < typename FreeSpaceType >
-  void draw_solution(
-    const FreeSpaceType& free_space,
-    typename boost::enable_if< is_temporal_space< FreeSpaceType >,
-                               const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::
-                                                                        super_space_type > >& >::type traj ) const {
+  template <typename FreeSpaceType, typename TrajOrPathPtr>
+  void draw_solution(const FreeSpaceType& free_space,
+                     const TrajOrPathPtr& traj_or_path) const {
     std::cout << "Solution Found!" << std::endl;
 
-    next_reporter.draw_solution( free_space, traj );
-  };
-
-  /**
-   * Draws the solution path.
-   * \tparam FreeSpaceType The C-free topology type.
-   * \param free_space The C-free topology.
-   * \param p The solution path.
-   */
-  template < typename FreeSpaceType >
-  void draw_solution(
-    const FreeSpaceType& free_space,
-    typename boost::
-      disable_if< is_temporal_space< FreeSpaceType >,
-                  const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::
-        type p ) const {
-    std::cout << "Solution Found!" << std::endl;
-
-    next_reporter.draw_solution( free_space, p );
-  };
-
+    next_reporter.draw_solution(free_space, traj_or_path);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( next_reporter );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(next_reporter);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( next_reporter );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(next_reporter);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2460005, 1, "print_sbmp_progress", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2460005, 1, "print_sbmp_progress",
+                              shared_object)
 };
-
 
 /**
  * This class can be used as a SBMP/SBPP Reporter (SBMPReporterConcept and SBPPReporterConcept)
  * and records the current best solution for each progress interval, which it outputs to a given output stream.
  */
-template < typename NextReporter = no_sbmp_report >
+template <typename NextReporter = no_sbmp_report>
 struct least_cost_sbmp_report : public shared_object {
-  typedef least_cost_sbmp_report< NextReporter > self;
+  using self = least_cost_sbmp_report<NextReporter>;
 
   NextReporter next_reporter;
   std::ostream* p_out;
@@ -506,34 +415,42 @@ struct least_cost_sbmp_report : public shared_object {
   mutable double current_best;
   mutable std::size_t last_node_count;
 
-  explicit least_cost_sbmp_report( std::ostream& aOutStream = std::cout, std::ostream* aPSolutionOutput = nullptr,
-                                   NextReporter aNextReporter = NextReporter() )
-      : next_reporter( aNextReporter ), p_out( &aOutStream ), p_sol( aPSolutionOutput ), current_best( 1e10 ),
-        last_node_count( 0 ){};
+  explicit least_cost_sbmp_report(std::ostream& aOutStream,
+                                  std::ostream* aPSolutionOutput = nullptr,
+                                  NextReporter aNextReporter = NextReporter())
+      : next_reporter(aNextReporter),
+        p_out(&aOutStream),
+        p_sol(aPSolutionOutput),
+        current_best(1e10),
+        last_node_count(0) {}
+
+  least_cost_sbmp_report() : least_cost_sbmp_report(std::cout) {}
 
   void reset_internal_state() {
     current_best = 1e10;
     last_node_count = 0;
 
     next_reporter.reset_internal_state();
-  };
+  }
 
   /**
    * Draws the entire motion-graph.
    * \tparam FreeSpaceType The C-free topology type.
    * \tparam MotionGraph The graph structure type representing the motion-graph.
-   * \tparam PositionMap The property-map type that can map motion-graph vertex descriptors into point values.
+   * \tparam SteerRecOrPosMap The property-map type.
    * \param free_space The C-free topology.
    * \param g The motion-graph.
-   * \param pos The position-map to obtain positions of the motion-graph vertices.
+   * \param pos The map to obtain position or steer record.
    */
-  template < typename FreeSpaceType, typename MotionGraph, typename PositionMap >
-  void draw_motion_graph( const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos ) const {
-    last_node_count = num_vertices( g );
-    ( *p_out ) << num_vertices( g ) << " " << current_best << std::endl;
+  template <typename FreeSpaceType, typename MotionGraph,
+            typename SteerRecOrPosMap>
+  void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g,
+                         SteerRecOrPosMap steer_rec_or_pos) const {
+    last_node_count = num_vertices(g);
+    (*p_out) << num_vertices(g) << " " << current_best << std::endl;
 
-    next_reporter.draw_motion_graph( free_space, g, pos );
-  };
+    next_reporter.draw_motion_graph(free_space, g, steer_rec_or_pos);
+  }
 
   /**
    * Draws the solution trajectory.
@@ -541,85 +458,55 @@ struct least_cost_sbmp_report : public shared_object {
    * \param free_space The C-free topology.
    * \param traj The solution trajectory.
    */
-  template < typename FreeSpaceType >
-  void draw_solution(
-    const FreeSpaceType& free_space,
-    typename boost::enable_if< is_temporal_space< FreeSpaceType >,
-                               const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::
-                                                                        super_space_type > >& >::type traj ) const {
-    //     typedef typename seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type
-    //     >::point_time_iterator TIter;
-    //     double total_cost = 0.0;
-    //     TIter it_prev = traj->begin_time_travel();
-    //     TIter it = traj->begin_time_travel(); it += 0.1;
-    //     for(; it != traj->end_time_travel(); it += 0.1) {
-    //       total_cost += get(distance_metric, free_space.get_super_space())(*it_prev, *it,
-    //       free_space.get_super_space());
-    //     };
-    //     double total_cost = get(distance_metric, free_space.get_super_space())(
-    //       *(traj->begin_time_travel()), *(traj->end_time_travel()), free_space.get_super_space());
-    double total_cost = traj->travel_distance( *( traj->begin_time_travel() ), *( traj->end_time_travel() ) );
-    if( total_cost < current_best )
-      current_best = total_cost;
-
-    if( p_sol )
-      ( *p_sol ) << last_node_count << " " << current_best << std::endl;
-
-    next_reporter.draw_solution( free_space, traj );
-  };
-
-  /**
-   * Draws the solution path.
-   * \tparam FreeSpaceType The C-free topology type.
-   * \param free_space The C-free topology.
-   * \param p The solution path.
-   */
-  template < typename FreeSpaceType >
-  void draw_solution(
-    const FreeSpaceType& free_space,
-    typename boost::
-      disable_if< is_temporal_space< FreeSpaceType >,
-                  const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::
-        type p ) const {
-    typedef typename seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type >::
-      point_fraction_iterator FIter;
+  template <typename FreeSpaceType, typename TrajOrPathPtr>
+  void draw_solution(const FreeSpaceType& free_space,
+                     const TrajOrPathPtr& traj_or_path) const {
     double total_cost = 0.0;
-    for( FIter it = p->begin_fraction_travel(); it != p->end_fraction_travel(); ) {
-      FIter it_next = it;
-      it_next += 1.0;
-      total_cost += get( distance_metric, free_space.get_super_space() )( *it, *it_next, free_space.get_super_space() );
-      it = it_next;
-    };
-    if( total_cost < current_best )
+    if constexpr (is_temporal_space_v<FreeSpaceType>) {
+      total_cost =
+          traj_or_path->travel_distance(*(traj_or_path->begin_time_travel()),
+                                        *(traj_or_path->end_time_travel()));
+    } else {
+      for (auto it = traj_or_path->begin_fraction_travel();
+           it != traj_or_path->end_fraction_travel();) {
+        auto it_next = it;
+        it_next += 1.0;
+        total_cost += get(distance_metric, free_space.get_super_space())(
+            *it, *it_next, free_space.get_super_space());
+        it = it_next;
+      }
+    }
+    if (total_cost < current_best) {
       current_best = total_cost;
+    }
 
-    if( p_sol )
-      ( *p_sol ) << last_node_count << " " << current_best << std::endl;
+    if (p_sol) {
+      (*p_sol) << last_node_count << " " << current_best << std::endl;
+    }
 
-    next_reporter.draw_solution( free_space, p );
-  };
-
+    next_reporter.draw_solution(free_space, traj_or_path);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( next_reporter );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(next_reporter);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( next_reporter );
+  void load(serialization::iarchive& A, unsigned int) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(next_reporter);
     current_best = 1e10;
     last_node_count = 0;
-  };
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2460006, 1, "least_cost_sbmp_report", shared_object )
-};
-};
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2460006, 1, "least_cost_sbmp_report",
+                              shared_object)
 };
 
+}  // namespace ReaK::pp
 
 #endif

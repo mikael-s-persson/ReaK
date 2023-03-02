@@ -30,8 +30,8 @@
 #define REAK_CRS_RUN_DIALOG_HPP
 
 #include <QDialog>
-#include <QTimer>
 #include <QString>
+#include <QTimer>
 
 namespace Ui {
 class CRSRunDialog;
@@ -41,17 +41,16 @@ namespace ReaK {
 
 namespace qt {
 
-
 class CRSRunDialogWidget : public QDialog {
   Q_OBJECT
-private:
+ private:
   Ui::CRSRunDialog* ui;
 
-public:
-  CRSRunDialogWidget( QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
+ public:
+  CRSRunDialogWidget(QWidget* parent = nullptr, Qt::WindowFlags flags = 0);
   virtual ~CRSRunDialogWidget();
 
-private slots:
+ private slots:
 
   void onStartPressed();
   void onStopPressed();
@@ -60,7 +59,7 @@ private slots:
 
   void flipLaunchButtonColor();
 
-public slots:
+ public slots:
 
   void onInitializationDone();
   void onPlanningDone();
@@ -72,21 +71,21 @@ public slots:
 
   void onReset();
 
-  void publishConsoleMessage( QString aMessage );
+  void publishConsoleMessage(QString aMessage);
 
-signals:
+ signals:
 
-  void triggeredStartPlanning( int mode );
+  void triggeredStartPlanning(int mode);
   void triggeredStopPlanning();
 
-  void triggeredLaunch( int mode );
+  void triggeredLaunch(int mode);
 
   void triggeredAbort();
 
-private:
+ private:
   QTimer flashing_button_timer;
 };
-};
-};
+};  // namespace qt
+};  // namespace ReaK
 
 #endif

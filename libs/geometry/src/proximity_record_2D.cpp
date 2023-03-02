@@ -23,21 +23,20 @@
 
 #include <ReaK/geometry/proximity/proximity_record_2D.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
+void proximity_record_2D::save(ReaK::serialization::oarchive& A,
+                               unsigned int /*Version*/) const {
+  shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_SAVE_WITH_NAME(mPoint1) & RK_SERIAL_SAVE_WITH_NAME(mPoint2) &
+      RK_SERIAL_SAVE_WITH_NAME(mDistance);
+}
 
+void proximity_record_2D::load(ReaK::serialization::iarchive& A,
+                               unsigned int /*Version*/) {
+  shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_LOAD_WITH_NAME(mPoint1) & RK_SERIAL_LOAD_WITH_NAME(mPoint2) &
+      RK_SERIAL_LOAD_WITH_NAME(mDistance);
+}
 
-void RK_CALL proximity_record_2D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
-  shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_SAVE_WITH_NAME( mPoint1 ) & RK_SERIAL_SAVE_WITH_NAME( mPoint2 ) & RK_SERIAL_SAVE_WITH_NAME( mDistance );
-};
-
-void RK_CALL proximity_record_2D::load( ReaK::serialization::iarchive& A, unsigned int ) {
-  shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_LOAD_WITH_NAME( mPoint1 ) & RK_SERIAL_LOAD_WITH_NAME( mPoint2 ) & RK_SERIAL_LOAD_WITH_NAME( mDistance );
-};
-};
-};
+}  // namespace ReaK::geom

@@ -34,29 +34,24 @@
 
 #include "geometry_2D.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
+namespace ReaK::geom {
 
 /** This class defines a class to render 2D coordinate arrows. */
 class coord_arrows_2D : public geometry_2D {
-protected:
+ protected:
   double mArrowLength;
 
-public:
+ public:
   /**
    * This function returns the length of the arrows representing the coordinate axes.
    * \return The length of the arrows representing the coordinate axes.
    */
-  double getArrowLength() const { return mArrowLength; };
+  double getArrowLength() const { return mArrowLength; }
   /**
    * This function sets the new length of the arrows representing the coordinate axes.
    * \param aArrowLength The new length of the arrows representing the coordinate axes.
    */
-  void setArrowLength( double aArrowLength ) { mArrowLength = aArrowLength; };
+  void setArrowLength(double aArrowLength) { mArrowLength = aArrowLength; }
 
   /**
    * Default constructor.
@@ -65,27 +60,30 @@ public:
    * \param aPose The pose of the geometry (relative to the anchor).
    * \param aArrowLength The length of the arrows representing the coordinate axes.
    */
-  coord_arrows_2D( const std::string& aName = "",
-                   const shared_ptr< pose_2D< double > >& aAnchor = shared_ptr< pose_2D< double > >(),
-                   const pose_2D< double >& aPose = pose_2D< double >(), double aArrowLength = 1.0 );
+  explicit coord_arrows_2D(const std::string& aName = "",
+                           const std::shared_ptr<pose_2D<double>>& aAnchor =
+                               std::shared_ptr<pose_2D<double>>(),
+                           const pose_2D<double>& aPose = pose_2D<double>(),
+                           double aArrowLength = 1.0);
 
   /**
    * Default destructor.
    */
-  virtual ~coord_arrows_2D(){};
-
+  ~coord_arrows_2D() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( coord_arrows_2D, 0xC3100002, 1, "coord_arrows_2D", geometry_2D )
+  RK_RTTI_MAKE_CONCRETE_1BASE(coord_arrows_2D, 0xC3100002, 1, "coord_arrows_2D",
+                              geometry_2D)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

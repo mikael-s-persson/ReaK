@@ -36,12 +36,9 @@
 
 #include <ReaK/math/lin_alg/vect_alg.hpp>
 
+#include <type_traits>
 
-namespace ReaK {
-
-
-namespace optim {
-
+namespace ReaK::optim {
 
 /**
  * This limit functor is a no-op limiter which imposes no limits on the candidate step.
@@ -51,10 +48,9 @@ struct no_limit_functor {
   /**
    * This function imposes no limits on the step proposed over the given vector.
    */
-  template < typename Vector >
-  void operator()( const Vector&, Vector& ) const {};
+  template <typename Vector>
+  void operator()(const Vector& /*unused*/, Vector& /*unused*/) const {}
 };
-
 
 /**
  * This function limits a proposed step size such that the resulting vector is within
@@ -66,19 +62,20 @@ struct no_limit_functor {
  * \param l The lower bound vector.
  * \param u The upper bound vector.
  */
-template < typename Vector >
-typename boost::enable_if< is_writable_vector< Vector >, void >::type
-  box_limit_function( const Vector& x, Vector& dx, const Vector& l, const Vector& u ) {
-  typedef typename vect_traits< Vector >::size_type SizeType;
-  for( SizeType i = 0; i < x.size(); ++i ) {
-    if( x[i] + dx[i] < l[i] )
+template <typename Vector>
+void box_limit_function(const Vector& x, Vector& dx, const Vector& l,
+                        const Vector& u) {
+  static_assert(is_writable_vector_v<Vector>);
+  for (int i = 0; i < x.size(); ++i) {
+    if (x[i] + dx[i] < l[i]) {
       dx[i] = l[i] - x[i];
-    if( x[i] + dx[i] > u[i] )
+    }
+    if (x[i] + dx[i] > u[i]) {
       dx[i] = u[i] - x[i];
-  };
-};
-};
-};
+    }
+  }
+}
 
+}  // namespace ReaK::optim
 
 #endif

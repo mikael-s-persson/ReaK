@@ -37,10 +37,10 @@
 #ifndef REAK_SHARED_OBJECT_HPP
 #define REAK_SHARED_OBJECT_HPP
 
-#include "defs.hpp"
+#include <memory>
 
+#include "defs.hpp"
 #include "serializable.hpp"
-#include "shared_object_base.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -53,84 +53,62 @@ namespace ReaK {
  * defined classes). Usually, however, end-users will prefer the ReaK::named_object class which
  * adds a name to the objects (and it is the next descendant after ReaK::shared_object).
  */
-class shared_object : public serializable, public shared_object_base {
-protected:
-  virtual void RK_CALL destroy() { delete this; };
+class shared_object : public serializable {
+ public:
+  ~shared_object() override = default;
 
-public:
-  virtual ~shared_object(){};
-
-  RK_RTTI_MAKE_ABSTRACT_1BASE( shared_object, 0x80000001, 1, "shared_object", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(shared_object, 0x80000001, 1, "shared_object",
+                              serializable)
 };
 
 class empty_base_object {};
 
-#ifdef BOOST_NO_CXX11_VARIADIC_TEMPLATES
-
-template < typename T >
-ReaK::shared_ptr< T > rk_create() {
-  return ReaK::shared_ptr< T >( new T(), ReaK::scoped_deleter() );
+/**
+ * This structure is a simple callable structure that does nothing. It acts as a place-holder for
+ * a special deleter for a std::shared_ptr, in this case this "null deleter" simply does not delete anything.
+ * This is useful for an object for which you want a std::shared_ptr to, but that is not going to be
+ * deleted by this std::shared_ptr branch (i.e. will be deleted by another std::shared_ptr branch). This can
+ * be used to break cycles in the object hierarchy.
+ */
+struct null_deleter {
+  void operator()(void const* /*unused*/) const {}
 };
 
-#else
+template <typename T>
+std::shared_ptr<T> rk_share(T& t) {
+  return std::shared_ptr<T>(&t, ReaK::null_deleter());
+}
 
-template < typename T, typename... Args >
-ReaK::shared_ptr< T > rk_create( Args&&... args ) {
-  return ReaK::shared_ptr< T >( new T( std::forward< Args >( args )... ), ReaK::scoped_deleter() );
-};
-
-#endif
-
-template < typename T >
-ReaK::shared_ptr< T > rk_share( T& t ) {
-  return ReaK::shared_ptr< T >( &t, ReaK::null_deleter() );
-};
-
+template <typename T, typename... Args>
+std::shared_ptr<T> rk_create(Args&&... args) {
+  return std::make_shared<T>(std::forward<Args>(args)...);
+}
 
 namespace rtti {
 
-#ifdef BOOST_NO_CXX11_SMART_PTR
-
-template < typename Y >
-ReaK::shared_ptr< Y > rk_static_ptr_cast( const ReaK::shared_ptr< ReaK::shared_object_base >& p ) {
-  return boost::static_pointer_cast< Y >( p );
-};
-
-#else
-
-template < typename Y >
-ReaK::shared_ptr< Y > rk_static_ptr_cast( const ReaK::shared_ptr< ReaK::shared_object_base >& p ) {
-  return std::static_pointer_cast< Y >( p );
-};
-
-template < typename Y, typename Deleter >
-ReaK::unique_ptr< Y, Deleter > rk_dynamic_ptr_cast( ReaK::unique_ptr< ReaK::shared_object_base, Deleter >&& p ) {
-  void* tmp = static_cast< ReaK::shared_object* >( p.get() )->castTo( Y::getStaticObjectType() );
-  if( tmp ) {
-    ReaK::unique_ptr< Y, Deleter > r( tmp, p.get_deleter() );
-    p.release();
-    return std::move( r );
-  } else
-    return ReaK::unique_ptr< Y, Deleter >();
-};
-
-#endif
+template <typename Y>
+std::shared_ptr<Y> rk_static_ptr_cast(
+    const std::shared_ptr<ReaK::shared_object>& p) {
+  return std::static_pointer_cast<Y>(p);
+}
 
 /**
  * This function replaces the standard C++ dynamic cast (i.e. dynamic_cast<>()) and furthermore, also
- * replaces the boost::shared_ptr dynamic cast (i.e. boost::dynamic_pointer_cast<>()). This new function
+ * replaces the std::shared_ptr dynamic cast (i.e. std::dynamic_pointer_cast<>()). This new function
  * for dynamic casting is required in order for ReaK::rtti system to take precedence over the C++ RTTI
  * because, unlike the C++ standard version of RTTI, this implementation will work across executable modules,
  * and thus, allow objects to be shared between modules with full dynamic up- and down- casting capabilities.
- * \note this function is a special overload for the shared_object_base class pointers, the general version is
+ * \note this function is a special overload for the shared_object class pointers, the general version is
  *       found in the "typed_object.hpp" library, as part of the ReaK::rtti system.
  */
-template < typename Y >
-shared_ptr< Y > rk_dynamic_ptr_cast( const shared_ptr< shared_object_base >& p ) {
-  return shared_ptr< Y >(
-    p, reinterpret_cast< Y* >( rk_static_ptr_cast< shared_object >( p )->castTo( Y::getStaticObjectType() ) ) );
-};
-};
-};
+template <typename Y>
+std::shared_ptr<Y> rk_dynamic_ptr_cast(
+    const std::shared_ptr<ReaK::shared_object>& p) {
+  return std::shared_ptr<Y>(
+      p, reinterpret_cast<Y*>(p->castTo(Y::getStaticObjectType())));
+}
+}  // namespace rtti
+
+}  // namespace ReaK
 
 #endif

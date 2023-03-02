@@ -23,27 +23,28 @@
 
 #include <ReaK/geometry/shapes/rectangle.hpp>
 
-namespace ReaK {
+namespace ReaK::geom {
 
-namespace geom {
+double rectangle::getBoundingRadius() const {
+  return norm_2(mDimensions) * 0.5;
+}
 
+rectangle::rectangle(const std::string& aName,
+                     const std::shared_ptr<pose_2D<double>>& aAnchor,
+                     const pose_2D<double>& aPose,
+                     const vect<double, 2>& aDimensions)
+    : shape_2D(aName, aAnchor, aPose), mDimensions(aDimensions) {}
 
-double rectangle::getBoundingRadius() const { return norm_2( mDimensions ) * 0.5; };
+void rectangle::save(ReaK::serialization::oarchive& A,
+                     unsigned int /*unused*/) const {
+  shape_2D::save(A, shape_2D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_SAVE_WITH_NAME(mDimensions);
+}
 
+void rectangle::load(ReaK::serialization::iarchive& A,
+                     unsigned int /*unused*/) {
+  shape_2D::load(A, shape_2D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_LOAD_WITH_NAME(mDimensions);
+}
 
-rectangle::rectangle( const std::string& aName, const shared_ptr< pose_2D< double > >& aAnchor,
-                      const pose_2D< double >& aPose, const vect< double, 2 >& aDimensions )
-    : shape_2D( aName, aAnchor, aPose ), mDimensions( aDimensions ){};
-
-
-void RK_CALL rectangle::save( ReaK::serialization::oarchive& A, unsigned int ) const {
-  shape_2D::save( A, shape_2D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_SAVE_WITH_NAME( mDimensions );
-};
-
-void RK_CALL rectangle::load( ReaK::serialization::iarchive& A, unsigned int ) {
-  shape_2D::load( A, shape_2D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_LOAD_WITH_NAME( mDimensions );
-};
-};
-};
+}  // namespace ReaK::geom

@@ -23,35 +23,19 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
 #include <ReaK/topologies/spaces/hyperbox_topology.hpp>
 
-namespace ReaK {
+namespace ReaK::pp {
 
-namespace pp {
+template class hyperbox_topology<vect<double, 1>, manhattan_distance_metric>;
+template class hyperbox_topology<vect<double, 2>, manhattan_distance_metric>;
+template class hyperbox_topology<vect<double, 3>, manhattan_distance_metric>;
+template class hyperbox_topology<vect<double, 4>, manhattan_distance_metric>;
+template class hyperbox_topology<vect<double, 5>, manhattan_distance_metric>;
+template class hyperbox_topology<vect<double, 6>, manhattan_distance_metric>;
+template class hyperbox_topology<vect<double, 7>, manhattan_distance_metric>;
+template class hyperbox_topology<vect<double, 8>, manhattan_distance_metric>;
+template class hyperbox_topology<vect<double, 9>, manhattan_distance_metric>;
+template class hyperbox_topology<vect_n<double>, manhattan_distance_metric>;
 
-template class hyperbox_topology< vect< double, 1 >, manhattan_distance_metric >;
-template class hyperbox_topology< vect< double, 2 >, manhattan_distance_metric >;
-template class hyperbox_topology< vect< double, 3 >, manhattan_distance_metric >;
-template class hyperbox_topology< vect< double, 4 >, manhattan_distance_metric >;
-template class hyperbox_topology< vect< double, 5 >, manhattan_distance_metric >;
-template class hyperbox_topology< vect< double, 6 >, manhattan_distance_metric >;
-template class hyperbox_topology< vect< double, 7 >, manhattan_distance_metric >;
-template class hyperbox_topology< vect< double, 8 >, manhattan_distance_metric >;
-template class hyperbox_topology< vect< double, 9 >, manhattan_distance_metric >;
-template class hyperbox_topology< vect_n< double >, manhattan_distance_metric >;
-};
-};
-
-#else
-
-namespace ReaK {
-
-namespace pp {
-
-void dummy_hyperbox_topology_externs_2_symbol(){};
-};
-};
-
-#endif
+}  // namespace ReaK::pp

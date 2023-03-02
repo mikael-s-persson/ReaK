@@ -33,93 +33,83 @@
 #ifndef REAK_CALIBRATE_FRAMES_3D_HPP
 #define REAK_CALIBRATE_FRAMES_3D_HPP
 
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include <ReaK/math/kinetostatics/pose_3D.hpp>
 #include <ReaK/math/lin_alg/mat_alg.hpp>
 #include <ReaK/math/lin_alg/mat_svd_method.hpp>
-#include <ReaK/math/kinetostatics/pose_3D.hpp>
+#include <ReaK/math/lin_alg/vect_alg.hpp>
 
 #include <vector>
 
-
 namespace ReaK {
 
+template <typename T>
+pose_3D<T> get_relative_pose_pointcloud(
+    const std::vector<std::pair<vect<T, 3>, vect<T, 3>>>& aPointCloud) {
 
-template < typename T >
-pose_3D< T > get_relative_pose_pointcloud( const std::vector< std::pair< vect< T, 3 >, vect< T, 3 > > >& aPointCloud ) {
-
-  vect< T, 3 > centroid_1;
-  vect< T, 3 > centroid_2;
-  for( std::size_t i = 0; i < aPointCloud.size(); ++i ) {
+  vect<T, 3> centroid_1;
+  vect<T, 3> centroid_2;
+  for (int i = 0; i < aPointCloud.size(); ++i) {
     centroid_1 += aPointCloud[i].first;
     centroid_2 += aPointCloud[i].second;
-  };
+  }
   centroid_1 *= 1.0 / aPointCloud.size();
   centroid_2 *= 1.0 / aPointCloud.size();
 
-  mat< T, mat_structure::rectangular > X( aPointCloud.size(), 3 );
-  mat< T, mat_structure::rectangular > B( aPointCloud.size(), 3 );
+  mat<T, mat_structure::rectangular> X(aPointCloud.size(), 3);
+  mat<T, mat_structure::rectangular> B(aPointCloud.size(), 3);
 
-  for( std::size_t i = 0; i < aPointCloud.size(); ++i ) {
-    X( i, 0 ) = aPointCloud[i].first[0] - centroid_1[0];
-    X( i, 1 ) = aPointCloud[i].first[1] - centroid_1[1];
-    X( i, 2 ) = aPointCloud[i].first[2] - centroid_1[2];
-    B( i, 0 ) = aPointCloud[i].second[0] - centroid_2[0];
-    B( i, 1 ) = aPointCloud[i].second[1] - centroid_2[1];
-    B( i, 2 ) = aPointCloud[i].second[2] - centroid_2[2];
-  };
+  for (int i = 0; i < aPointCloud.size(); ++i) {
+    X(i, 0) = aPointCloud[i].first[0] - centroid_1[0];
+    X(i, 1) = aPointCloud[i].first[1] - centroid_1[1];
+    X(i, 2) = aPointCloud[i].first[2] - centroid_1[2];
+    B(i, 0) = aPointCloud[i].second[0] - centroid_2[0];
+    B(i, 1) = aPointCloud[i].second[1] - centroid_2[1];
+    B(i, 2) = aPointCloud[i].second[2] - centroid_2[2];
+  }
 
   // Solve the Orthogonal Procrustes problem: (Kabsch's algorithm)
-  mat< T, mat_structure::square > C( transpose_view( X ) * B );
+  mat<T, mat_structure::square> C(transpose_view(X) * B);
 
-  mat< T, mat_structure::square > U( 3 );
-  mat< T, mat_structure::diagonal > E( 3 );
-  mat< T, mat_structure::square > V( 3 );
+  mat<T, mat_structure::square> U(3);
+  mat<T, mat_structure::diagonal> E(3);
+  mat<T, mat_structure::square> V(3);
 
-  decompose_SVD( C, U, E, V );
+  decompose_SVD(C, U, E, V);
 
-  rot_mat_3D< T > Rt( U * transpose_view( V ) );
+  rot_mat_3D<T> Rt(U * transpose_view(V));
 
   //   std::cout << "Rt = \n" << Rt << std::endl;
 
-  return pose_3D< T >( weak_ptr< pose_3D< T > >(), centroid_1 - Rt * centroid_2, quaternion< T >( Rt ) );
-};
+  return pose_3D<T>(std::weak_ptr<pose_3D<T>>(), centroid_1 - Rt * centroid_2,
+                    quaternion<T>(Rt));
+}
 
-
-template < typename T >
-rot_mat_3D< T >
-  get_relative_rotation_vectcloud( const std::vector< std::pair< vect< T, 3 >, vect< T, 3 > > >& aVectCloud ) {
-  mat< T, mat_structure::rectangular > X( aVectCloud.size(), 3 );
-  mat< T, mat_structure::rectangular > B( aVectCloud.size(), 3 );
-  for( std::size_t i = 0; i < aVectCloud.size(); ++i ) {
-    X( i, 0 ) = aVectCloud[i].first[0];
-    X( i, 1 ) = aVectCloud[i].first[1];
-    X( i, 2 ) = aVectCloud[i].first[2];
-    B( i, 0 ) = aVectCloud[i].second[0];
-    B( i, 1 ) = aVectCloud[i].second[1];
-    B( i, 2 ) = aVectCloud[i].second[2];
-  };
+template <typename T>
+rot_mat_3D<T> get_relative_rotation_vectcloud(
+    const std::vector<std::pair<vect<T, 3>, vect<T, 3>>>& aVectCloud) {
+  mat<T, mat_structure::rectangular> X(aVectCloud.size(), 3);
+  mat<T, mat_structure::rectangular> B(aVectCloud.size(), 3);
+  for (int i = 0; i < aVectCloud.size(); ++i) {
+    X(i, 0) = aVectCloud[i].first[0];
+    X(i, 1) = aVectCloud[i].first[1];
+    X(i, 2) = aVectCloud[i].first[2];
+    B(i, 0) = aVectCloud[i].second[0];
+    B(i, 1) = aVectCloud[i].second[1];
+    B(i, 2) = aVectCloud[i].second[2];
+  }
 
   // Solve the Orthogonal Procrustes problem: (Kabsch's algorithm)
-  mat< T, mat_structure::square > C( transpose_view( X ) * B );
+  mat<T, mat_structure::square> C(transpose_view(X) * B);
 
-  mat< T, mat_structure::square > U( 3 );
-  mat< T, mat_structure::diagonal > E( 3 );
-  mat< T, mat_structure::square > V( 3 );
+  mat<T, mat_structure::square> U(3);
+  mat<T, mat_structure::diagonal> E(3);
+  mat<T, mat_structure::square> V(3);
 
-  decompose_SVD( C, U, E, V );
+  decompose_SVD(C, U, E, V);
 
-  return rot_mat_3D< T >( U * transpose_view( V ) );
-};
+  return rot_mat_3D<T>(U * transpose_view(V));
+}
 
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
-// extern template rot_mat_3D<double> operator *(const rot_mat_3D<double>& R, const quaternion<double>& Q);
-
-// extern template rot_mat_3D<float> operator *(const rot_mat_3D<float>& R, const quaternion<float>& Q);
-
-#endif
-};
-
+}  // namespace ReaK
 
 #endif

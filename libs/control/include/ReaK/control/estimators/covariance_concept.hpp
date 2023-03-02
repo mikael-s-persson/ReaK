@@ -40,8 +40,8 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include <ReaK/math/lin_alg/mat_concepts.hpp>
 #include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/math/lin_alg/mat_concepts.hpp>
 
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 
@@ -49,48 +49,42 @@
 
 #include <boost/concept_check.hpp>
 
-
-namespace ReaK {
-
-namespace ctrl {
+namespace ReaK::ctrl {
 
 /** This namespace has a tag that tells the storage strategy for a covariance matrix. */
 namespace covariance_storage {
 /** This tag tells the storage strategy for a covariance matrix. */
 enum tag { covariance = 1, information, decomposed, other };
-};
-
+}  // namespace covariance_storage
 
 /**
  * This traits class template defines the traits that characterize a covariance
  * matrix (see CovarianceMatrixConcept).
  * \tparam CovarianceMatrix The covariance matrix type for which the traits are sought.
  */
-template < typename CovarianceMatrix >
+template <typename CovarianceMatrix>
 struct covariance_mat_traits {
 
   /** The type of the values of the components of the covariance matrix. */
-  typedef typename CovarianceMatrix::value_type value_type;
+  using value_type = typename CovarianceMatrix::value_type;
   /** The type of the size of the covariance matrix. */
-  typedef typename CovarianceMatrix::size_type size_type;
+  using size_type = typename CovarianceMatrix::size_type;
 
   /** The type of the actual covariance matrix that can be obtained with the required functions (see
    * CovarianceMatrixConcept). */
-  typedef typename CovarianceMatrix::matrix_type matrix_type;
+  using matrix_type = typename CovarianceMatrix::matrix_type;
 
   /** This constant tells the dimensions (or size) of the covariance matrix (0 if not known at compile-time). */
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = CovarianceMatrix::dimensions );
+  static constexpr std::size_t dimensions = CovarianceMatrix::dimensions;
   /** This constant tells the storage strategy of the covariance matrix (see covariance_storage::tag). */
-  BOOST_STATIC_CONSTANT( covariance_storage::tag, storage = CovarianceMatrix::storage );
+  static constexpr covariance_storage::tag storage = CovarianceMatrix::storage;
 };
-
 
 /** This namespace has a tag that gives the initial value of a covariance matrix. */
 namespace covariance_initial_level {
 /** This tag gives the initial value of a covariance matrix. */
 enum tag { no_info = 0, full_info };
-};
-
+}  // namespace covariance_initial_level
 
 /**
  * This concept class template checks that a covariance matrix type models the concept
@@ -119,45 +113,46 @@ enum tag { no_info = 0, full_info };
  * \tparam CovarianceMatrix The covariance matrix type for which the traits are sought.
  * \tparam StateDiffType The state-difference type on which the covariance can apply.
  */
-template < typename CovarianceMatrix, typename StateDiffType >
+template <typename CovarianceMatrix, typename StateDiffType>
 struct CovarianceMatrixConcept {
 
-  typedef StateDiffType state_difference_type;
+  using state_difference_type = StateDiffType;
 
-  BOOST_CONCEPT_ASSERT( ( ReadableMatrixConcept< typename covariance_mat_traits< CovarianceMatrix >::matrix_type > ) );
+  BOOST_CONCEPT_ASSERT(
+      (ReadableMatrixConcept<
+          typename covariance_mat_traits<CovarianceMatrix>::matrix_type>));
 
   CovarianceMatrix c;
   state_difference_type dp;
-  typename covariance_mat_traits< CovarianceMatrix >::value_type s;
-  typename covariance_mat_traits< CovarianceMatrix >::size_type sz;
+  typename covariance_mat_traits<CovarianceMatrix>::value_type s;
+  typename covariance_mat_traits<CovarianceMatrix>::size_type sz;
 
-  typename covariance_mat_traits< CovarianceMatrix >::matrix_type m;
+  typename covariance_mat_traits<CovarianceMatrix>::matrix_type m;
 
-  BOOST_CONCEPT_USAGE( CovarianceMatrixConcept ) {
-    typedef typename covariance_mat_traits< CovarianceMatrix >::value_type ValueType;
+  BOOST_CONCEPT_USAGE(CovarianceMatrixConcept) {
+    using ValueType =
+        typename covariance_mat_traits<CovarianceMatrix>::value_type;
     using ReaK::to_vect;
     m = c.get_matrix();
     m = c.get_inverse_matrix();
 
-    s = to_vect< ValueType >( dp ) * m * to_vect< ValueType >( dp );
+    s = to_vect<ValueType>(dp) * m * to_vect<ValueType>(dp);
     sz = c.size();
-  };
+  }
 };
-
 
 /**
  * This traits class template defines the traits that characterize a decomposed covariance
  * matrix (see DecomposedCovarianceConcept).
  * \tparam CovarianceMatrix The covariance matrix type for which the traits are sought.
  */
-template < typename CovarianceMatrix >
+template <typename CovarianceMatrix>
 struct decomp_covariance_mat_traits {
 
   /** This type is the matrix type for the block components of the covariance matrix, should model ReadableMatrixConcept
    * and WritableMatrixConcept. */
-  typedef typename CovarianceMatrix::matrix_block_type matrix_block_type;
+  using matrix_block_type = typename CovarianceMatrix::matrix_block_type;
 };
-
 
 /**
  * This concept class template checks that a covariance matrix type models the concept
@@ -182,18 +177,19 @@ struct decomp_covariance_mat_traits {
  * \tparam CovarianceMatrix The covariance matrix type for which the traits are sought.
  * \tparam StateDiffType The state-difference type on which the covariance can apply.
  */
-template < typename CovarianceMatrix, typename StateDiffType >
-struct DecomposedCovarianceConcept : CovarianceMatrixConcept< CovarianceMatrix, StateDiffType > {
+template <typename CovarianceMatrix, typename StateDiffType>
+struct DecomposedCovarianceConcept
+    : CovarianceMatrixConcept<CovarianceMatrix, StateDiffType> {
 
-  typename decomp_covariance_mat_traits< CovarianceMatrix >::matrix_block_type mb;
+  typename decomp_covariance_mat_traits<CovarianceMatrix>::matrix_block_type mb;
 
-  BOOST_CONCEPT_USAGE( DecomposedCovarianceConcept ) {
-    this->c = CovarianceMatrix( mb, mb );
+  BOOST_CONCEPT_USAGE(DecomposedCovarianceConcept) {
+    this->c = CovarianceMatrix(mb, mb);
     mb = this->c.get_covarying_block();
     mb = this->c.get_informing_inv_block();
-  };
+  }
 };
-};
-};
+
+}  // namespace ReaK::ctrl
 
 #endif

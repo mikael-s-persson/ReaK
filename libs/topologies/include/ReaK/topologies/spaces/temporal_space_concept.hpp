@@ -40,28 +40,24 @@
 
 #include "metric_space_concept.hpp"
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This traits class defines the characteristics associated to a temporal-space type.
  * \tparam TemporalSpace The temporal-space type for which the traits are sought.
  */
-template < typename TemporalSpace >
+template <typename TemporalSpace>
 struct temporal_space_traits {
   /** The type that describes a point in the space. */
-  typedef typename TemporalSpace::point_type point_type;
+  using point_type = typename TemporalSpace::point_type;
   /** The type that describes a difference between points in the space. */
-  typedef typename TemporalSpace::point_difference_type point_difference_type;
+  using point_difference_type = typename TemporalSpace::point_difference_type;
 
   /** The topology type which describes the space in which the time values reside. */
-  typedef typename TemporalSpace::time_topology time_topology;
+  using time_topology = typename TemporalSpace::time_topology;
   /** The topology type which describes the space in which the spatial points reside. */
-  typedef typename TemporalSpace::space_topology space_topology;
+  using space_topology = typename TemporalSpace::space_topology;
 };
-
 
 /**
  * This concept defines the requirements to fulfill in order to model a temporal-space
@@ -85,22 +81,32 @@ struct temporal_space_traits {
  *
  * \tparam TemporalSpace The topology type to be checked for this concept.
  */
-template < typename TemporalSpace >
-struct TemporalSpaceConcept : public TopologyConcept< TemporalSpace > {
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< typename temporal_space_traits< TemporalSpace >::space_topology > ) );
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< typename temporal_space_traits< TemporalSpace >::time_topology > ) );
+template <typename TemporalSpace>
+struct TemporalSpaceConcept : public TopologyConcept<TemporalSpace> {
+  BOOST_CONCEPT_ASSERT(
+      (TopologyConcept<
+          typename temporal_space_traits<TemporalSpace>::space_topology>));
+  BOOST_CONCEPT_ASSERT(
+      (TopologyConcept<
+          typename temporal_space_traits<TemporalSpace>::time_topology>));
 
-  BOOST_CONCEPT_USAGE( TemporalSpaceConcept ) {
-    const typename temporal_space_traits< TemporalSpace >::space_topology& cs_space = this->space.get_space_topology();
-    RK_UNUSED( cs_space );
-    const typename temporal_space_traits< TemporalSpace >::time_topology& ct_space = this->space.get_time_topology();
-    RK_UNUSED( ct_space );
-  };
+  BOOST_CONCEPT_USAGE(TemporalSpaceConcept) {
+    const typename temporal_space_traits<TemporalSpace>::space_topology&
+        cs_space = this->space.get_space_topology();
+    RK_UNUSED(cs_space);
+    const typename temporal_space_traits<TemporalSpace>::time_topology&
+        ct_space = this->space.get_time_topology();
+    RK_UNUSED(ct_space);
+  }
 };
 
-template < typename TemporalSpace >
-struct is_temporal_space : boost::mpl::false_ {};
-};
-};
+template <typename TemporalSpace>
+struct is_temporal_space : std::false_type {};
+
+template <typename TemporalSpace>
+static constexpr bool is_temporal_space_v =
+    is_temporal_space<TemporalSpace>::value;
+
+}  // namespace ReaK::pp
 
 #endif

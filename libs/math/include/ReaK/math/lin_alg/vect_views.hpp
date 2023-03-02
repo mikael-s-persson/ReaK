@@ -38,10 +38,9 @@
 
 #include "vect_concepts.hpp"
 #include "vect_traits.hpp"
-#include <boost/static_assert.hpp>
-#include <boost/utility/enable_if.hpp>
 
 #include <stdexcept>
+#include <type_traits>
 
 namespace ReaK {
 
@@ -50,54 +49,55 @@ namespace ReaK {
  * A range is simple a pair of first and last indices (notice that the last index is
  * included in the range).
  */
-inline std::pair< std::size_t, std::size_t > range( std::size_t aFirst, std::size_t aLast ) {
-  return std::pair< std::size_t, std::size_t >( aFirst, aLast );
-};
-
+inline std::pair<std::size_t, std::size_t> range(std::size_t aFirst,
+                                                 std::size_t aLast) {
+  return {aFirst, aLast};
+}
 
 /**
  * This class template constructs a sub-vector which represents part of the vector.
  * This class takes a const reference to the given vector.
  * \tparam Vector A readable vector type.
  */
-template < typename Vector >
+template <typename Vector>
 class vect_const_ref_view {
-public:
-  typedef vect_const_ref_view< Vector > self;
-  typedef typename vect_traits< Vector >::allocator_type allocator_type;
+ public:
+  using self = vect_const_ref_view<Vector>;
+  using allocator_type = typename vect_traits<Vector>::allocator_type;
 
-  typedef typename vect_traits< Vector >::value_type value_type;
+  using value_type = vect_value_type_t<Vector>;
 
-  typedef typename vect_traits< Vector >::reference reference;
-  typedef typename vect_traits< Vector >::const_reference const_reference;
-  typedef typename vect_traits< Vector >::pointer pointer;
-  typedef typename vect_traits< Vector >::const_pointer const_pointer;
+  using reference = typename vect_traits<Vector>::reference;
+  using const_reference = typename vect_traits<Vector>::const_reference;
+  using pointer = typename vect_traits<Vector>::pointer;
+  using const_pointer = typename vect_traits<Vector>::const_pointer;
 
-  typedef typename vect_traits< Vector >::iterator iterator;
-  typedef typename vect_traits< Vector >::const_iterator const_iterator;
+  using iterator = typename vect_traits<Vector>::iterator;
+  using const_iterator = typename vect_traits<Vector>::const_iterator;
 
-  typedef typename vect_traits< Vector >::size_type size_type;
-  typedef typename vect_traits< Vector >::difference_type difference_type;
+  using size_type = typename vect_traits<Vector>::size_type;
+  using difference_type = typename vect_traits<Vector>::difference_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = vect_traits< Vector >::dimensions );
+  static constexpr std::size_t dimensions = vect_traits<Vector>::dimensions;
 
-  BOOST_CONCEPT_ASSERT( ( ReadableVectorConcept< Vector > ) );
+  BOOST_CONCEPT_ASSERT((ReadableVectorConcept<Vector>));
 
-private:
+ private:
   const Vector* v;
   size_type offset;
   size_type count;
 
-  self& operator=( const self& );
-  explicit vect_const_ref_view( Vector&& );
-  vect_const_ref_view( Vector&&, size_type, size_type aOffset = 0 );
+  self& operator=(const self&);
+  explicit vect_const_ref_view(Vector&&);
+  vect_const_ref_view(Vector&&, size_type, size_type aOffset = 0);
 
-public:
+ public:
   /**
    * Constructs the sub-vector which represents the entire vector.
    * \param aV The vector from which the sub-part is taken.
    */
-  explicit vect_const_ref_view( const Vector& aV ) BOOST_NOEXCEPT : v( &aV ), offset( 0 ), count( aV.size() ){};
+  explicit vect_const_ref_view(const Vector& aV) noexcept
+      : v(&aV), offset(0), count(aV.size()) {}
 
   /**
    * Constructs the sub-vector which represents part of the vector.
@@ -105,10 +105,9 @@ public:
    * \param aCount The number of elements for the sub-vector.
    * \param aOffset The offset from the start of the vector.
    */
-  vect_const_ref_view( const Vector& aV, size_type aCount, size_type aOffset = 0 ) BOOST_NOEXCEPT : v( &aV ),
-                                                                                                    offset( aOffset ),
-                                                                                                    count( aCount ){};
-
+  vect_const_ref_view(const Vector& aV, size_type aCount,
+                      size_type aOffset = 0) noexcept
+      : v(&aV), offset(aOffset), count(aCount) {}
 
   /*******************************************************************************
                            Accessors and Methods
@@ -120,122 +119,122 @@ public:
    * \return the element at the given position.
    * TEST PASSED
    */
-  value_type operator[]( size_type i ) const BOOST_NOEXCEPT { return ( *v )[offset + i]; };
+  value_type operator[](size_type i) const noexcept { return (*v)[offset + i]; }
 
   /**
    * Sub-vector operator, accessor for read only.
    * \test PASSED
    */
-  vect_const_ref_view< self > operator[]( const std::pair< size_type, size_type >& r ) const BOOST_NOEXCEPT {
-    return vect_const_ref_view< self >( *this, r.second - r.first, r.first );
-  };
+  vect_const_ref_view<self> operator[](
+      const std::pair<size_type, size_type>& r) const noexcept {
+    return vect_const_ref_view<self>(*this, r.second - r.first, r.first);
+  }
 
   /**
    * Vector indexing operator, accessor for read only.
    * TEST PASSED
    */
-  value_type operator()( size_type i ) const BOOST_NOEXCEPT { return ( *v )[offset + i]; };
+  value_type operator()(size_type i) const noexcept { return (*v)[offset + i]; }
 
   /**
    * Gets the size of the vector.
    * \return number of elements of the vector.
    * TEST PASSED
    */
-  size_type size() const BOOST_NOEXCEPT { return count; };
+  size_type size() const noexcept { return count; }
   /**
    * Returns the max-size of the vector.
    */
-  size_type max_size() const BOOST_NOEXCEPT { return count; };
+  size_type max_size() const noexcept { return count; }
   /**
    * Returns the capacity of the vector.
    */
-  size_type capacity() const BOOST_NOEXCEPT { return count; };
+  size_type capacity() const noexcept { return count; }
   /**
    * Checks if the vector is empty.
    */
-  bool empty() const BOOST_NOEXCEPT { return ( count == 0 ); };
+  bool empty() const noexcept { return (count == 0); }
 
   /**
    * Returns a const-iterator to the first element of the vector.
    */
-  const_iterator begin() const BOOST_NOEXCEPT { return v->begin() + offset; };
+  const_iterator begin() const noexcept { return v->begin() + offset; }
   /**
    * Returns a const-iterator to the one-past-last element of the vector.
    */
-  const_iterator end() const BOOST_NOEXCEPT { return v->begin() + offset + count; };
+  const_iterator end() const noexcept { return v->begin() + offset + count; }
 
   /**
    * Returns the allocator object of the underlying container.
    * \return the allocator object of the underlying container.
    */
-  allocator_type get_allocator() const { return v->get_allocator(); };
+  allocator_type get_allocator() const { return v->get_allocator(); }
 };
 
-
-template < typename Vector >
-struct is_readable_vector< vect_const_ref_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = is_readable_vector< Vector >::value );
-  typedef is_readable_vector< Vector > type;
+template <typename Vector>
+struct is_readable_vector<vect_const_ref_view<Vector>> {
+  static constexpr bool value = is_readable_vector_v<Vector>;
+  using type = is_readable_vector<Vector>;
 };
 
-template < typename Vector >
-struct is_writable_vector< vect_const_ref_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_writable_vector< vect_const_ref_view< Vector > > type;
+template <typename Vector>
+struct is_writable_vector<vect_const_ref_view<Vector>> {
+  static constexpr bool value = false;
+  using type = is_writable_vector<vect_const_ref_view<Vector>>;
 };
 
-template < typename Vector >
-struct is_resizable_vector< vect_const_ref_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_resizable_vector< vect_const_ref_view< Vector > > type;
+template <typename Vector>
+struct is_resizable_vector<vect_const_ref_view<Vector>> {
+  static constexpr bool value = false;
+  using type = is_resizable_vector<vect_const_ref_view<Vector>>;
 };
 
-template < typename Vector >
-struct has_allocator_vector< vect_const_ref_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = has_allocator_vector< Vector >::value );
-  typedef has_allocator_vector< Vector > type;
+template <typename Vector>
+struct has_allocator_vector<vect_const_ref_view<Vector>> {
+  static constexpr bool value = has_allocator_vector<Vector>::value;
+  using type = has_allocator_vector<Vector>;
 };
-
 
 /**
  * This class template constructs a sub-vector which represents part of the vector.
  * This class takes a reference to the given vector.
  * \tparam Vector A readable vector type.
  */
-template < typename Vector >
+template <typename Vector>
 class vect_ref_view {
-public:
-  typedef vect_ref_view< Vector > self;
-  typedef typename vect_traits< Vector >::allocator_type allocator_type;
+ public:
+  using self = vect_ref_view<Vector>;
+  using allocator_type = typename vect_traits<Vector>::allocator_type;
 
-  typedef typename vect_traits< Vector >::value_type value_type;
+  using value_type = vect_value_type_t<Vector>;
 
-  typedef typename vect_traits< Vector >::reference reference;
-  typedef typename vect_traits< Vector >::const_reference const_reference;
-  typedef typename vect_traits< Vector >::pointer pointer;
-  typedef typename vect_traits< Vector >::const_pointer const_pointer;
+  using reference = typename vect_traits<Vector>::reference;
+  using const_reference = typename vect_traits<Vector>::const_reference;
+  using pointer = typename vect_traits<Vector>::pointer;
+  using const_pointer = typename vect_traits<Vector>::const_pointer;
 
-  typedef typename vect_traits< Vector >::iterator iterator;
-  typedef typename vect_traits< Vector >::const_iterator const_iterator;
+  using iterator = typename vect_traits<Vector>::iterator;
+  using const_iterator = typename vect_traits<Vector>::const_iterator;
 
-  typedef typename vect_traits< Vector >::size_type size_type;
-  typedef typename vect_traits< Vector >::difference_type difference_type;
+  using size_type = typename vect_traits<Vector>::size_type;
+  using difference_type = typename vect_traits<Vector>::difference_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = vect_traits< Vector >::dimensions );
+  static constexpr std::size_t dimensions = vect_traits<Vector>::dimensions;
 
-  BOOST_CONCEPT_ASSERT( ( ReadableVectorConcept< Vector > ) );
+  BOOST_CONCEPT_ASSERT((ReadableVectorConcept<Vector>));
 
-private:
+ private:
   Vector* v;
   size_type offset;
   size_type count;
 
-public:
+ public:
   /**
    * Constructs the sub-vector which represents the entire vector.
    * \param aV The vector from which the sub-part is taken.
    */
-  explicit vect_ref_view( Vector& aV ) BOOST_NOEXCEPT : v( &aV ), offset( 0 ), count( aV.size() ){};
+  explicit vect_ref_view(Vector& aV) noexcept
+      : v(&aV), offset(0), count(aV.size()) {}
 
   /**
    * Constructs the sub-vector which represents part of the vector.
@@ -243,55 +242,64 @@ public:
    * \param aCount The number of elements for the sub-part.
    * \param aOffset The offset from the start of the vector.
    */
-  vect_ref_view( Vector& aV, size_type aCount, size_type aOffset = 0 ) BOOST_NOEXCEPT : v( &aV ),
-                                                                                        offset( aOffset ),
-                                                                                        count( aCount ){};
+  vect_ref_view(Vector& aV, size_type aCount, size_type aOffset = 0) noexcept
+      : v(&aV), offset(aOffset), count(aCount) {}
 
   /**
    * Standard assignment operator.
    */
-  template < typename Vector2 >
-  typename boost::enable_if< is_readable_vector< Vector2 >, self& >::type operator=( const Vector2& rhs ) {
-    if( rhs.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
-      ( *v )[offset + i] = rhs[i];
+  template <typename Vector2>
+  self& operator=(const Vector2& rhs) {
+    static_assert(is_readable_vector_v<Vector2>);
+    if (rhs.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
+      (*v)[offset + i] = rhs[i];
+    }
     return *this;
-  };
+  }
 
   /**
    * Standard assignment operator.
    */
-  template < typename Vector2 >
-  typename boost::enable_if< is_readable_vector< Vector2 >, self& >::type operator+=( const Vector2& rhs ) {
-    if( rhs.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
-      ( *v )[offset + i] += rhs[i];
+  template <typename Vector2>
+  self& operator+=(const Vector2& rhs) {
+    static_assert(is_readable_vector_v<Vector2>);
+    if (rhs.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
+      (*v)[offset + i] += rhs[i];
+    }
     return *this;
-  };
+  }
 
   /**
    * Standard assignment operator.
    */
-  template < typename Vector2 >
-  typename boost::enable_if< is_readable_vector< Vector2 >, self& >::type operator-=( const Vector2& rhs ) {
-    if( rhs.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
-      ( *v )[offset + i] -= rhs[i];
+  template <typename Vector2>
+  self& operator-=(const Vector2& rhs) {
+    static_assert(is_readable_vector_v<Vector2>);
+    if (rhs.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
+      (*v)[offset + i] -= rhs[i];
+    }
     return *this;
-  };
+  }
 
   /**
    * Standard assignment operator.
    */
-  template < typename Scalar >
-  self& operator*=( const Scalar& rhs ) BOOST_NOEXCEPT {
-    for( size_type i = 0; i < count; ++i )
-      ( *v )[offset + i] *= rhs;
+  template <typename Scalar>
+  self& operator*=(const Scalar& rhs) noexcept {
+    for (size_type i = 0; i < count; ++i) {
+      (*v)[offset + i] *= rhs;
+    }
     return *this;
-  };
+  }
 
   /*******************************************************************************
                            Accessors and Methods
@@ -303,119 +311,119 @@ public:
    * \return the element at the given position.
    * TEST PASSED
    */
-  reference operator[](size_type i)BOOST_NOEXCEPT { return ( *v )[offset + i]; };
+  reference operator[](size_type i) noexcept { return (*v)[offset + i]; }
   /**
    * Vector indexing accessor for read-only access.
    * \param i Index.
    * \return the element at the given position.
    * TEST PASSED
    */
-  value_type operator[]( size_type i ) const BOOST_NOEXCEPT { return ( *v )[offset + i]; };
+  value_type operator[](size_type i) const noexcept { return (*v)[offset + i]; }
 
   /**
    * Sub-vector operator, accessor for read only.
    * \test PASSED
    */
-  vect_ref_view< self > operator[](const std::pair< size_type, size_type >& r)BOOST_NOEXCEPT {
-    return vect_ref_view< self >( *this, r.second - r.first, r.first );
-  };
+  vect_ref_view<self> operator[](
+      const std::pair<size_type, size_type>& r) noexcept {
+    return vect_ref_view<self>(*this, r.second - r.first, r.first);
+  }
 
   /**
    * Sub-vector operator, accessor for read only.
    * \test PASSED
    */
-  vect_const_ref_view< self > operator[]( const std::pair< size_type, size_type >& r ) const BOOST_NOEXCEPT {
-    return vect_const_ref_view< self >( *this, r.second - r.first, r.first );
-  };
+  vect_const_ref_view<self> operator[](
+      const std::pair<size_type, size_type>& r) const noexcept {
+    return vect_const_ref_view<self>(*this, r.second - r.first, r.first);
+  }
 
   /**
    * Vector indexing operator, accessor for read/write.
    * TEST PASSED
    */
-  reference operator()( size_type i ) BOOST_NOEXCEPT { return ( *v )[offset + i]; };
+  reference operator()(size_type i) noexcept { return (*v)[offset + i]; }
 
   /**
    * Vector indexing operator, accessor for read only.
    * TEST PASSED
    */
-  value_type operator()( size_type i ) const BOOST_NOEXCEPT { return ( *v )[offset + i]; };
+  value_type operator()(size_type i) const noexcept { return (*v)[offset + i]; }
 
   /**
    * Gets the size of the vector.
    * \return number of elements of the vector.
    * TEST PASSED
    */
-  size_type size() const BOOST_NOEXCEPT { return count; };
+  size_type size() const noexcept { return count; }
   /**
    * Returns the max-size of the vector.
    */
-  size_type max_size() const BOOST_NOEXCEPT { return count; };
+  size_type max_size() const noexcept { return count; }
   /**
    * Returns the capacity of the vector.
    */
-  size_type capacity() const BOOST_NOEXCEPT { return count; };
+  size_type capacity() const noexcept { return count; }
   /**
    * Resizes the vector.
    */
-  void resize( size_type sz, value_type c = value_type() ) const BOOST_NOEXCEPT{};
+  void resize(size_type sz, value_type c = value_type()) const noexcept {}
   /**
    * Checks if the vector is empty.
    */
-  bool empty() const BOOST_NOEXCEPT { return ( count == 0 ); };
+  bool empty() const noexcept { return (count == 0); }
   /**
    * Reserve a capacity for the vector.
    */
-  void reserve( size_type sz ) const BOOST_NOEXCEPT{};
+  void reserve(size_type sz) const noexcept {}
 
   /**
    * Returns an iterator to the first element of the vector.
    */
-  iterator begin() BOOST_NOEXCEPT { return v->begin() + offset; };
+  iterator begin() noexcept { return v->begin() + offset; }
   /**
    * Returns a const-iterator to the first element of the vector.
    */
-  const_iterator begin() const BOOST_NOEXCEPT { return v->begin() + offset; };
+  const_iterator begin() const noexcept { return v->begin() + offset; }
   /**
    * Returns an iterator to the one-past-last element of the vector.
    */
-  iterator end() BOOST_NOEXCEPT { return v->begin() + offset + count; };
+  iterator end() noexcept { return v->begin() + offset + count; }
   /**
    * Returns a const-iterator to the one-past-last element of the vector.
    */
-  const_iterator end() const BOOST_NOEXCEPT { return v->begin() + offset + count; };
+  const_iterator end() const noexcept { return v->begin() + offset + count; }
 
   /**
    * Returns the allocator object of the underlying container.
    * \return the allocator object of the underlying container.
    */
-  allocator_type get_allocator() const { return v->get_allocator(); };
+  allocator_type get_allocator() const { return v->get_allocator(); }
 };
 
-
-template < typename Vector >
-struct is_readable_vector< vect_ref_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = is_readable_vector< Vector >::value );
-  typedef is_readable_vector< Vector > type;
+template <typename Vector>
+struct is_readable_vector<vect_ref_view<Vector>> {
+  static constexpr bool value = is_readable_vector_v<Vector>;
+  using type = is_readable_vector<Vector>;
 };
 
-template < typename Vector >
-struct is_writable_vector< vect_ref_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = is_writable_vector< Vector >::value );
-  typedef is_writable_vector< Vector > type;
+template <typename Vector>
+struct is_writable_vector<vect_ref_view<Vector>> {
+  static constexpr bool value = is_writable_vector_v<Vector>;
+  using type = is_writable_vector<Vector>;
 };
 
-template < typename Vector >
-struct is_resizable_vector< vect_ref_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_resizable_vector< vect_ref_view< Vector > > type;
+template <typename Vector>
+struct is_resizable_vector<vect_ref_view<Vector>> {
+  static constexpr bool value = false;
+  using type = is_resizable_vector<vect_ref_view<Vector>>;
 };
 
-template < typename Vector >
-struct has_allocator_vector< vect_ref_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = has_allocator_vector< Vector >::value );
-  typedef has_allocator_vector< Vector > type;
+template <typename Vector>
+struct has_allocator_vector<vect_ref_view<Vector>> {
+  static constexpr bool value = has_allocator_vector<Vector>::value;
+  using type = has_allocator_vector<Vector>;
 };
-
 
 /**
  * This class template constructs a sub-vector which represents part of the vector.
@@ -423,44 +431,45 @@ struct has_allocator_vector< vect_ref_view< Vector > > {
  * when rvalue vectors are involved, requires C++11).
  * \tparam Vector A readable vector type.
  */
-template < typename Vector >
+template <typename Vector>
 class vect_copy_view {
-public:
-  typedef vect_copy_view< Vector > self;
-  typedef typename vect_traits< Vector >::allocator_type allocator_type;
+ public:
+  using self = vect_copy_view<Vector>;
+  using allocator_type = typename vect_traits<Vector>::allocator_type;
 
-  typedef typename vect_traits< Vector >::value_type value_type;
+  using value_type = vect_value_type_t<Vector>;
 
-  typedef typename vect_traits< Vector >::reference reference;
-  typedef typename vect_traits< Vector >::const_reference const_reference;
-  typedef typename vect_traits< Vector >::pointer pointer;
-  typedef typename vect_traits< Vector >::const_pointer const_pointer;
+  using reference = typename vect_traits<Vector>::reference;
+  using const_reference = typename vect_traits<Vector>::const_reference;
+  using pointer = typename vect_traits<Vector>::pointer;
+  using const_pointer = typename vect_traits<Vector>::const_pointer;
 
-  typedef typename vect_traits< Vector >::iterator iterator;
-  typedef typename vect_traits< Vector >::const_iterator const_iterator;
+  using iterator = typename vect_traits<Vector>::iterator;
+  using const_iterator = typename vect_traits<Vector>::const_iterator;
 
-  typedef typename vect_traits< Vector >::size_type size_type;
-  typedef typename vect_traits< Vector >::difference_type difference_type;
+  using size_type = typename vect_traits<Vector>::size_type;
+  using difference_type = typename vect_traits<Vector>::difference_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = vect_traits< Vector >::dimensions );
+  static constexpr std::size_t dimensions = vect_traits<Vector>::dimensions;
 
-  BOOST_CONCEPT_ASSERT( ( ReadableVectorConcept< Vector > ) );
+  BOOST_CONCEPT_ASSERT((ReadableVectorConcept<Vector>));
 
-private:
+ private:
   Vector v;
   size_type offset;
   size_type count;
 
-public:
+ public:
   /**
    * Default constructor.
    */
-  vect_copy_view() : v(), offset( 0 ), count( 0 ){};
+  vect_copy_view() : v(), offset(0), count(0) {}
 
   /**
    * Constructs the sub-vector which represents the entire vector.
    */
-  explicit vect_copy_view( const Vector& aV ) : v( aV ), offset( 0 ), count( aV.size() ){};
+  explicit vect_copy_view(const Vector& aV)
+      : v(aV), offset(0), count(aV.size()) {}
 
   /**
    * Constructs the sub-vector which represents part of the vector.
@@ -468,13 +477,15 @@ public:
    * \param aCount The number of elements for the sub-vector.
    * \param aOffset The offset from the start of the vector.
    */
-  vect_copy_view( const Vector& aV, size_type aCount, size_type aOffset = 0 )
-      : v( aV ), offset( aOffset ), count( aCount ){};
+  vect_copy_view(const Vector& aV, size_type aCount, size_type aOffset = 0)
+      : v(aV), offset(aOffset), count(aCount) {}
 
   /**
    * Constructs the sub-matrix which represents the entire matrix.
    */
-  explicit vect_copy_view( Vector&& aV ) : v( std::move( aV ) ), offset( 0 ), count( 0 ) { count = v.size(); };
+  explicit vect_copy_view(Vector&& aV) : v(std::move(aV)), offset(0), count(0) {
+    count = v.size();
+  }
 
   /**
    * Constructs the sub-vector which represents part of the vector.
@@ -482,76 +493,79 @@ public:
    * \param aCount The number of elements for the sub-vector.
    * \param aOffset The offset from the start of the vector.
    */
-  vect_copy_view( Vector&& aV, size_type aCount, size_type aOffset = 0 )
-      : v( std::move( aV ) ), offset( aOffset ), count( aCount ){};
+  vect_copy_view(Vector&& aV, size_type aCount, size_type aOffset = 0)
+      : v(std::move(aV)), offset(aOffset), count(aCount) {}
 
   /**
    * Standard swap function.
    */
-  friend void swap( self& lhs, self& rhs ) BOOST_NOEXCEPT {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
-    swap( lhs.v, rhs.v );
-    swap( lhs.offset, rhs.offset );
-    swap( lhs.count, rhs.count );
-    return;
-  };
+    swap(lhs.v, rhs.v);
+    swap(lhs.offset, rhs.offset);
+    swap(lhs.count, rhs.count);
+  }
+
+  vect_copy_view(const self& rhs) = default;
+  vect_copy_view(self&& rhs) noexcept = default;
+  self& operator=(const self& rhs) = default;
+  self& operator=(self&& rhs) noexcept = default;
 
   /**
    * Standard assignment operator.
    */
-  self& operator=( self rhs ) BOOST_NOEXCEPT {
-    swap( *this, rhs );
-    return *this;
-  };
-
-  /**
-   * Standard assignment operator.
-   */
-  template < typename Vector2 >
-  typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector2 >,
-                                               boost::mpl::not_< boost::is_same< Vector2, self > > >,
-                             self& >::type
-    operator=( const Vector2& rhs ) {
-    if( rhs.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
+  template <typename Vector2>
+  self& operator=(const Vector2& rhs) {
+    static_assert(is_readable_vector_v<Vector2>);
+    if (rhs.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
       v[offset + i] = rhs[i];
+    }
     return *this;
-  };
+  }
 
   /**
    * Standard assignment operator.
    */
-  template < typename Vector2 >
-  typename boost::enable_if< is_readable_vector< Vector2 >, self& >::type operator+=( const Vector2& rhs ) {
-    if( rhs.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
+  template <typename Vector2>
+  self& operator+=(const Vector2& rhs) {
+    static_assert(is_readable_vector_v<Vector2>);
+    if (rhs.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
       v[offset + i] += rhs[i];
+    }
     return *this;
-  };
+  }
 
   /**
    * Standard assignment operator.
    */
-  template < typename Vector2 >
-  typename boost::enable_if< is_readable_vector< Vector2 >, self& >::type operator-=( const Vector2& rhs ) {
-    if( rhs.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
+  template <typename Vector2>
+  self& operator-=(const Vector2& rhs) {
+    static_assert(is_readable_vector_v<Vector2>);
+    if (rhs.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
       v[offset + i] -= rhs[i];
+    }
     return *this;
-  };
+  }
 
   /**
    * Standard assignment operator.
    */
-  template < typename Scalar >
-  self& operator*=( const Scalar& rhs ) BOOST_NOEXCEPT {
-    for( size_type i = 0; i < count; ++i )
+  template <typename Scalar>
+  self& operator*=(const Scalar& rhs) noexcept {
+    for (size_type i = 0; i < count; ++i) {
       v[offset + i] *= rhs;
+    }
     return *this;
-  };
+  }
 
   /*******************************************************************************
                            Accessors and Methods
@@ -563,177 +577,184 @@ public:
    * \return the element at the given position.
    * TEST PASSED
    */
-  reference operator[](size_type i)BOOST_NOEXCEPT { return v[offset + i]; };
+  reference operator[](size_type i) noexcept { return v[offset + i]; }
   /**
    * Vector indexing accessor for read-only access.
    * \param i Index.
    * \return the element at the given position.
    * TEST PASSED
    */
-  value_type operator[]( size_type i ) const BOOST_NOEXCEPT { return v[offset + i]; };
+  value_type operator[](size_type i) const noexcept { return v[offset + i]; }
 
   /**
    * Sub-vector operator, accessor for read only.
    * \test PASSED
    */
-  vect_ref_view< self > operator[](const std::pair< size_type, size_type >& r)BOOST_NOEXCEPT {
-    return vect_ref_view< self >( *this, r.second - r.first, r.first );
-  };
+  vect_ref_view<self> operator[](
+      const std::pair<size_type, size_type>& r) noexcept {
+    return vect_ref_view<self>(*this, r.second - r.first, r.first);
+  }
 
   /**
    * Sub-vector operator, accessor for read only.
    * \test PASSED
    */
-  vect_const_ref_view< self > operator[]( const std::pair< size_type, size_type >& r ) const BOOST_NOEXCEPT {
-    return vect_const_ref_view< self >( *this, r.second - r.first, r.first );
-  };
+  vect_const_ref_view<self> operator[](
+      const std::pair<size_type, size_type>& r) const noexcept {
+    return vect_const_ref_view<self>(*this, r.second - r.first, r.first);
+  }
 
   /**
    * Vector indexing operator, accessor for read/write.
    * TEST PASSED
    */
-  reference operator()( size_type i ) BOOST_NOEXCEPT { return v[offset + i]; };
+  reference operator()(size_type i) noexcept { return v[offset + i]; }
 
   /**
    * Vector indexing operator, accessor for read only.
    * TEST PASSED
    */
-  value_type operator()( size_type i ) const BOOST_NOEXCEPT { return v[offset + i]; };
+  value_type operator()(size_type i) const noexcept { return v[offset + i]; }
 
   /**
    * Gets the size of the vector.
    * \return number of elements of the vector.
    * TEST PASSED
    */
-  size_type size() const BOOST_NOEXCEPT { return count; };
+  size_type size() const noexcept { return count; }
   /**
    * Returns the max-size of the vector.
    */
-  size_type max_size() const BOOST_NOEXCEPT { return count; };
+  size_type max_size() const noexcept { return count; }
   /**
    * Returns the capacity of the vector.
    */
-  size_type capacity() const BOOST_NOEXCEPT { return count; };
+  size_type capacity() const noexcept { return count; }
   /**
    * Resizes the vector.
    */
-  void resize( size_type sz, value_type c = value_type() ) const BOOST_NOEXCEPT{};
+  void resize(size_type sz, value_type c = value_type()) const noexcept {}
   /**
    * Checks if the vector is empty.
    */
-  bool empty() const BOOST_NOEXCEPT { return ( count == 0 ); };
+  bool empty() const noexcept { return (count == 0); }
   /**
    * Reserve a capacity for the vector.
    */
-  void reserve( size_type sz ) const BOOST_NOEXCEPT{};
+  void reserve(size_type sz) const noexcept {}
 
   /**
    * Returns an iterator to the first element of the vector.
    */
-  iterator begin() BOOST_NOEXCEPT { return v.begin() + offset; };
+  iterator begin() noexcept { return v.begin() + offset; }
   /**
    * Returns a const-iterator to the first element of the vector.
    */
-  const_iterator begin() const BOOST_NOEXCEPT { return v.begin() + offset; };
+  const_iterator begin() const noexcept { return v.begin() + offset; }
   /**
    * Returns an iterator to the one-past-last element of the vector.
    */
-  iterator end() BOOST_NOEXCEPT { return v.begin() + offset + count; };
+  iterator end() noexcept { return v.begin() + offset + count; }
   /**
    * Returns a const-iterator to the one-past-last element of the vector.
    */
-  const_iterator end() const BOOST_NOEXCEPT { return v.begin() + offset + count; };
+  const_iterator end() const noexcept { return v.begin() + offset + count; }
 
   /**
    * Returns the allocator object of the underlying container.
    * \return the allocator object of the underlying container.
    */
-  allocator_type get_allocator() const { return v.get_allocator(); };
+  allocator_type get_allocator() const { return v.get_allocator(); }
 };
 
-
-template < typename Vector >
-struct is_readable_vector< vect_copy_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = is_readable_vector< Vector >::value );
-  typedef is_readable_vector< Vector > type;
+template <typename Vector>
+struct is_readable_vector<vect_copy_view<Vector>> {
+  static constexpr bool value = is_readable_vector_v<Vector>;
+  using type = is_readable_vector<Vector>;
 };
 
-template < typename Vector >
-struct is_writable_vector< vect_copy_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = is_writable_vector< Vector >::value );
-  typedef is_writable_vector< Vector > type;
+template <typename Vector>
+struct is_writable_vector<vect_copy_view<Vector>> {
+  static constexpr bool value = is_writable_vector_v<Vector>;
+  using type = is_writable_vector<Vector>;
 };
 
-template < typename Vector >
-struct is_resizable_vector< vect_copy_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_resizable_vector< vect_copy_view< Vector > > type;
+template <typename Vector>
+struct is_resizable_vector<vect_copy_view<Vector>> {
+  static constexpr bool value = false;
+  using type = is_resizable_vector<vect_copy_view<Vector>>;
 };
 
-template < typename Vector >
-struct has_allocator_vector< vect_copy_view< Vector > > {
-  BOOST_STATIC_CONSTANT( bool, value = has_allocator_vector< Vector >::value );
-  typedef has_allocator_vector< Vector > type;
+template <typename Vector>
+struct has_allocator_vector<vect_copy_view<Vector>> {
+  static constexpr bool value = has_allocator_vector<Vector>::value;
+  using type = has_allocator_vector<Vector>;
 };
 
-
-template < typename Vector >
+template <typename Vector>
 struct vect_copy_view_factory {
-  typedef typename vect_traits< Vector >::size_type size_type;
+  using size_type = typename vect_traits<Vector>::size_type;
 
   Vector v;
-  vect_copy_view_factory( const Vector& aV ) : v( aV ){};
-  vect_copy_view_factory( Vector&& aV ) : v( std::move( aV ) ){};
-  vect_copy_view< Vector > operator[]( const std::pair< size_type, size_type >& indices ) {
-    return vect_copy_view< Vector >( std::move( v ), indices.second - indices.first, indices.first );
-  };
+  explicit vect_copy_view_factory(const Vector& aV) : v(aV) {}
+  explicit vect_copy_view_factory(Vector&& aV) : v(std::move(aV)) {}
+  vect_copy_view<Vector> operator[](
+      const std::pair<size_type, size_type>& indices) {
+    return vect_copy_view<Vector>(std::move(v), indices.second - indices.first,
+                                  indices.first);
+  }
 };
 
-template < typename Vector >
+template <typename Vector>
 struct vect_ref_view_factory {
-  typedef typename vect_traits< Vector >::size_type size_type;
+  using size_type = typename vect_traits<Vector>::size_type;
 
   Vector& v;
-  vect_ref_view_factory( Vector& aV ) BOOST_NOEXCEPT : v( aV ){};
-  vect_ref_view< Vector > operator[](const std::pair< size_type, size_type >& indices)BOOST_NOEXCEPT {
-    return vect_ref_view< Vector >( v, indices.second - indices.first, indices.first );
-  };
+  explicit vect_ref_view_factory(Vector& aV) noexcept : v(aV) {}
+  vect_ref_view<Vector> operator[](
+      const std::pair<size_type, size_type>& indices) noexcept {
+    return vect_ref_view<Vector>(v, indices.second - indices.first,
+                                 indices.first);
+  }
 };
 
-template < typename Vector >
+template <typename Vector>
 struct vect_const_ref_view_factory {
-  typedef typename vect_traits< Vector >::size_type size_type;
+  using size_type = typename vect_traits<Vector>::size_type;
 
   const Vector& v;
-  vect_const_ref_view_factory( const Vector& aV ) BOOST_NOEXCEPT : v( aV ){};
-  vect_const_ref_view< Vector > operator[](const std::pair< size_type, size_type >& indices)BOOST_NOEXCEPT {
-    return vect_const_ref_view< Vector >( v, indices.second - indices.first, indices.first );
-  };
+  explicit vect_const_ref_view_factory(const Vector& aV) noexcept : v(aV) {}
+  vect_const_ref_view<Vector> operator[](
+      const std::pair<size_type, size_type>& indices) noexcept {
+    return vect_const_ref_view<Vector>(v, indices.second - indices.first,
+                                       indices.first);
+  }
 };
 
+template <typename Vector>
+std::enable_if_t<is_readable_vector_v<Vector>, vect_ref_view_factory<Vector>>
+sub(Vector& V) noexcept {
+  return vect_ref_view_factory<Vector>(V);
+}
 
-template < typename Vector >
-typename boost::enable_if< is_readable_vector< Vector >, vect_ref_view_factory< Vector > >::type
-  sub( Vector& V ) BOOST_NOEXCEPT {
-  return vect_ref_view_factory< Vector >( V );
-};
+template <typename Vector>
+std::enable_if_t<is_readable_vector_v<Vector>,
+                 vect_const_ref_view_factory<Vector>>
+sub(const Vector& V) noexcept {
+  return vect_const_ref_view_factory<Vector>(V);
+}
 
-template < typename Vector >
-typename boost::enable_if< is_readable_vector< Vector >, vect_const_ref_view_factory< Vector > >::type
-  sub( const Vector& V ) BOOST_NOEXCEPT {
-  return vect_const_ref_view_factory< Vector >( V );
-};
+template <typename Vector>
+std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_view_factory<Vector>>
+sub_copy(const Vector& V) {
+  return vect_copy_view_factory<Vector>(V);
+}
 
-template < typename Vector >
-typename boost::enable_if< is_readable_vector< Vector >, vect_copy_view_factory< Vector > >::type
-  sub_copy( const Vector& V ) {
-  return vect_copy_view_factory< Vector >( V );
-};
-
-template < typename Vector >
-typename boost::enable_if< is_readable_vector< Vector >, vect_copy_view_factory< Vector > >::type sub( Vector&& V ) {
-  return vect_copy_view_factory< Vector >( std::move( V ) );
-};
-};
+template <typename Vector>
+std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_view_factory<Vector>>
+sub(Vector&& V) {
+  return vect_copy_view_factory<Vector>(std::move(V));
+}
+}  // namespace ReaK
 
 #endif

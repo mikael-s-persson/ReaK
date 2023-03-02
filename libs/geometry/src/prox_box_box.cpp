@@ -25,34 +25,30 @@
 
 #include <ReaK/geometry/proximity/prox_fundamentals_3D.hpp>
 
+namespace ReaK::geom {
 
-/** Main namespace for ReaK */
-namespace ReaK {
+proximity_record_3D compute_proximity(const box& aBox1,
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const box& aBox2,
+                                      const shape_3D_precompute_pack& aPack2) {
+  return findProximityByGJKEPA(box_support_func(aBox1, aPack1.global_pose),
+                               box_support_func(aBox2, aPack2.global_pose));
+}
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
+proximity_record_3D prox_box_box::computeProximity(
+    const shape_3D_precompute_pack& aPack1,
+    const shape_3D_precompute_pack& aPack2) {
+  if ((mBox1 == nullptr) || (mBox2 == nullptr)) {
+    return {};
+  }
 
+  if (aPack1.parent == mBox1) {
+    return compute_proximity(*mBox1, aPack1, *mBox2, aPack2);
+  }  // note, respect the order of packs.
+  return compute_proximity(*mBox2, aPack1, *mBox1, aPack2);
+}
 
-proximity_record_3D compute_proximity( const box& aBox1, const shape_3D_precompute_pack& aPack1, const box& aBox2,
-                                       const shape_3D_precompute_pack& aPack2 ) {
-  return findProximityByGJKEPA( box_support_func( aBox1, aPack1.global_pose ),
-                                box_support_func( aBox2, aPack2.global_pose ) );
-};
+prox_box_box::prox_box_box(const box* aBox1, const box* aBox2)
+    : mBox1(aBox1), mBox2(aBox2) {}
 
-
-proximity_record_3D prox_box_box::computeProximity( const shape_3D_precompute_pack& aPack1,
-                                                    const shape_3D_precompute_pack& aPack2 ) {
-  if( ( !mBox1 ) || ( !mBox2 ) )
-    return proximity_record_3D();
-
-  if( aPack1.parent == mBox1 )
-    return compute_proximity( *mBox1, aPack1, *mBox2, aPack2 );
-  else // note, respect the order of packs.
-    return compute_proximity( *mBox2, aPack1, *mBox1, aPack2 );
-};
-
-
-prox_box_box::prox_box_box( const box* aBox1, const box* aBox2 )
-    : proximity_finder_3D(), mBox1( aBox1 ), mBox2( aBox2 ){};
-};
-};
+}  // namespace ReaK::geom

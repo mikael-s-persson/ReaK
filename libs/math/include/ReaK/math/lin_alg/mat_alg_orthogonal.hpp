@@ -32,25 +32,26 @@
 
 #include "mat_alg_general.hpp"
 
-
 namespace ReaK {
 
+template <>
+struct mat_indexer<mat_structure::orthogonal, mat_alignment::column_major> {
+  int rowCount;
+  explicit mat_indexer<mat_structure::orthogonal, mat_alignment::column_major>(
+      int aRowCount)
+      : rowCount(aRowCount) {}
+  int operator()(int i, int j) const { return j * rowCount + i; }
+};
 
 template <>
-struct mat_indexer< mat_structure::orthogonal, mat_alignment::column_major > {
-  std::size_t rowCount;
-  mat_indexer< mat_structure::orthogonal, mat_alignment::column_major >( std::size_t aRowCount )
-      : rowCount( aRowCount ){};
-  std::size_t operator()( std::size_t i, std::size_t j ) const { return j * rowCount + i; };
+struct mat_indexer<mat_structure::orthogonal, mat_alignment::row_major> {
+  int rowCount;
+  explicit mat_indexer<mat_structure::orthogonal, mat_alignment::row_major>(
+      int aRowCount)
+      : rowCount(aRowCount) {}
+  int operator()(int i, int j) const { return i * rowCount + j; }
 };
 
-template <>
-struct mat_indexer< mat_structure::orthogonal, mat_alignment::row_major > {
-  std::size_t rowCount;
-  mat_indexer< mat_structure::orthogonal, mat_alignment::row_major >( std::size_t aRowCount ) : rowCount( aRowCount ){};
-  std::size_t operator()( std::size_t i, std::size_t j ) const { return i * rowCount + j; };
-};
-};
-
+}  // namespace ReaK
 
 #endif

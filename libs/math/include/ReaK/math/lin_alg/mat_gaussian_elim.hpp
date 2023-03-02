@@ -48,8 +48,9 @@
 #include "mat_alg.hpp"
 #include "mat_num_exceptions.hpp"
 
-namespace ReaK {
+#include <ReaK/core/base/shared_object.hpp>
 
+namespace ReaK {
 
 /*************************************************************************
                         Gaussian Elimination
@@ -71,205 +72,157 @@ namespace ReaK {
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                           void >::type
-  invert_gaussian( const Matrix1& A, Matrix2& A_inv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
+template <typename Matrix1, typename Matrix2>
+void invert_gaussian(const Matrix1& A, Matrix2& A_inv,
+                     mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_readable_matrix_v<Matrix1>);
+  static_assert(is_writable_matrix_v<Matrix2>);
 
-  using std::fabs;
+  if constexpr (!is_fully_writable_matrix_v<Matrix2>) {
+    mat<mat_value_type_t<Matrix2>, mat_structure::rectangular> A_inv_tmp(
+        A_inv.get_row_count(), A_inv.get_col_count());
+    invert_gaussian(A, A_inv_tmp, NumTol);
+    A_inv = A_inv_tmp;
+  } else {
+    using ValueType = mat_value_type_t<Matrix1>;
+    using std::abs;
 
-  if( A.get_col_count() != A.get_row_count() )
-    throw std::range_error( "Inversion impossible! Matrix A is not square!" );
+    if (A.get_col_count() != A.get_row_count()) {
+      throw std::range_error("Inversion impossible! Matrix A is not square!");
+    }
 
-  SizeType Size = A.get_col_count();
-  Matrix2 tmp( A );
-  A_inv = mat< ValueType, mat_structure::identity >( Size );
+    int Size = A.get_col_count();
+    Matrix2 tmp(A);
+    A_inv = mat<ValueType, mat_structure::identity>(Size);
 
-  for( SizeType i = 0; i < Size; ++i ) {
-    if( fabs( tmp( i, i ) ) < NumTol ) {
-      for( SizeType j = i + 1; j <= Size; ++j ) {
-        if( j == Size ) {
-          throw singularity_error( "M" );
-        };
-        if( fabs( tmp( j, i ) ) > NumTol ) {
-          for( SizeType k = i; k < Size; ++k )
-            tmp( i, k ) += tmp( j, k );
-          for( SizeType k = 0; k < Size; ++k )
-            A_inv( i, k ) += A_inv( j, k );
-          break;
-        };
-      };
-    };
+    for (int i = 0; i < Size; ++i) {
+      if (abs(tmp(i, i)) < NumTol) {
+        for (int j = i + 1; j <= Size; ++j) {
+          if (j == Size) {
+            throw singularity_error("M");
+          }
+          if (abs(tmp(j, i)) > NumTol) {
+            for (int k = i; k < Size; ++k) {
+              tmp(i, k) += tmp(j, k);
+            }
+            for (int k = 0; k < Size; ++k) {
+              A_inv(i, k) += A_inv(j, k);
+            }
+            break;
+          }
+        }
+      }
 
-    ValueType s = tmp( i, i );
-    for( SizeType k = i; k < Size; ++k )
-      tmp( i, k ) /= s;
-    for( SizeType k = 0; k < Size; ++k )
-      A_inv( i, k ) /= s;
+      ValueType s = tmp(i, i);
+      for (int k = i; k < Size; ++k) {
+        tmp(i, k) /= s;
+      }
+      for (int k = 0; k < Size; ++k) {
+        A_inv(i, k) /= s;
+      }
 
-    for( SizeType j = 0; j < Size; ++j ) {
-      if( i != j ) {
-        s = tmp( j, i );
-        for( SizeType k = i; k < Size; ++k )
-          tmp( j, k ) -= s * tmp( i, k );
-        for( SizeType k = 0; k < Size; ++k )
-          A_inv( j, k ) -= s * A_inv( i, k );
-      };
-    };
-  };
-};
-
-
-/**
- * Inverts a matrix using the Gauss-Jordan elimination on the identity matrix.
- * \note that PLU decomposition or any other method is faster for matrix sizes of more than 20x20.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 Any writable matrix type.
- * \param A well-conditioned, square (Size x Size), real, full-rank matrix to be inverted.
- * \param A_inv The matrix which stores, as output, the inverse of A.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero.
- *
- * \throws singularity_error if the matrix A is numerically singular (or rank-deficient).
- * \throws std::range_error if the matrix A is not a square matrix.
- *
- * \author Mikael Persson
- */
-template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
-                                             boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
-                           void >::type
-  invert_gaussian( const Matrix1& A, Matrix2& A_inv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  typedef typename mat_traits< Matrix2 >::value_type ValueType2;
-  mat< ValueType2, mat_structure::rectangular > A_inv_tmp( A_inv.get_row_count(), A_inv.get_col_count() );
-  invert_gaussian( A, A_inv_tmp, NumTol );
-  A_inv = A_inv_tmp;
-};
-
+      for (int j = 0; j < Size; ++j) {
+        if (i != j) {
+          s = tmp(j, i);
+          for (int k = i; k < Size; ++k) {
+            tmp(j, k) -= s * tmp(i, k);
+          }
+          for (int k = 0; k < Size; ++k) {
+            A_inv(j, k) -= s * A_inv(i, k);
+          }
+        }
+      }
+    }
+  }
+}
 
 /*************************************************************************
              Permuted Lower- / Upper-triangular Decomposition
 *************************************************************************/
 
-
 namespace detail {
 
-template < typename Matrix1, typename Matrix2, typename IndexVector >
-void linsolve_PLU_impl( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits< Matrix1 >::value_type NumTol ) {
+template <typename Matrix1, typename Matrix2, typename IndexVector>
+void linsolve_PLU_impl(Matrix1& A, Matrix2& b, IndexVector& P,
+                       mat_value_type_t<Matrix1> NumTol) {
+  using std::abs;
   using std::swap;
-  using std::fabs;
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
+  using ValueType = mat_value_type_t<Matrix1>;
 
-  mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > s( b.get_row_count(), b.get_col_count() );
-  SizeType An = A.get_row_count();
-  SizeType bn = b.get_col_count();
+  mat<ValueType, mat_structure::rectangular, mat_alignment::column_major> s(
+      b.get_row_count(), b.get_col_count());
+  int An = A.get_row_count();
+  int bn = b.get_col_count();
 
-  for( SizeType i = 0; i < An; ++i ) {
+  for (int i = 0; i < An; ++i) {
     P[i] = i;
-    s( i, 0 ) = 0.0;
-    for( SizeType j = 0; j < An; ++j )
-      if( s( i, 0 ) < fabs( A( i, j ) ) )
-        s( i, 0 ) = fabs( A( i, j ) );
-  };
+    s(i, 0) = 0.0;
+    for (int j = 0; j < An; ++j) {
+      if (s(i, 0) < abs(A(i, j))) {
+        s(i, 0) = abs(A(i, j));
+      }
+    }
+  }
 
-  for( SizeType k = 0; k < An; ++k ) {
+  for (int k = 0; k < An; ++k) {
 
-    for( SizeType i = k; i < An; ++i )
-      for( SizeType j = 0; j < k; ++j )
-        A( i, k ) -= A( i, j ) * A( j, k );
+    for (int i = k; i < An; ++i) {
+      for (int j = 0; j < k; ++j) {
+        A(i, k) -= A(i, j) * A(j, k);
+      }
+    }
 
-    SizeType temp_i = k;
-    for( SizeType i = k + 1; i < An; ++i )
-      if( fabs( A( i, k ) / s( i, 0 ) ) > fabs( A( temp_i, k ) / s( temp_i, 0 ) ) )
+    int temp_i = k;
+    for (int i = k + 1; i < An; ++i) {
+      if (abs(A(i, k) / s(i, 0)) > abs(A(temp_i, k) / s(temp_i, 0))) {
         temp_i = i;
+      }
+    }
 
-    if( k != temp_i ) {
-      for( SizeType i = 0; i < An; ++i )
-        swap( A( k, i ), A( temp_i, i ) );
-      swap( s( k, 0 ), s( temp_i, 0 ) );
-      swap( P[k], P[temp_i] );
-    };
+    if (k != temp_i) {
+      for (int i = 0; i < An; ++i) {
+        swap(A(k, i), A(temp_i, i));
+      }
+      swap(s(k, 0), s(temp_i, 0));
+      swap(P[k], P[temp_i]);
+    }
 
-    for( SizeType j = k + 1; j < An; ++j ) {
-      for( SizeType i = 0; i < k; ++i )
-        A( k, j ) -= A( k, i ) * A( i, j );
-      if( fabs( A( k, k ) ) < NumTol )
-        throw singularity_error( "A" );
-      A( k, j ) /= A( k, k );
-    };
-  };
+    for (int j = k + 1; j < An; ++j) {
+      for (int i = 0; i < k; ++i) {
+        A(k, j) -= A(k, i) * A(i, j);
+      }
+      if (abs(A(k, k)) < NumTol) {
+        throw singularity_error("A");
+      }
+      A(k, j) /= A(k, k);
+    }
+  }
 
   // Back-substitution
-  for( SizeType k = 0; k < An; ++k ) {
-    for( SizeType l = 0; l < bn; ++l )
-      s( P[k], l ) = b( P[k], l );
+  for (int k = 0; k < An; ++k) {
+    for (int l = 0; l < bn; ++l) {
+      s(P[k], l) = b(P[k], l);
+    }
 
-    for( SizeType l = 0; l < bn; ++l ) {
-      for( SizeType j = 0; j < k; ++j )
-        s( k, l ) -= A( k, j ) * s( j, l );
-      s( k, l ) /= A( k, k );
-    };
-  };
+    for (int l = 0; l < bn; ++l) {
+      for (int j = 0; j < k; ++j) {
+        s(k, l) -= A(k, j) * s(j, l);
+      }
+      s(k, l) /= A(k, k);
+    }
+  }
 
   b = s;
 
-  for( SizeType k = An; k > 0; --k )
-    for( SizeType l = 0; l < bn; ++l )
-      for( SizeType j = k; j < An; ++j )
-        b( k - 1, l ) -= A( k - 1, j ) * b( j, l );
-
-  return;
-};
-
-
-template < typename Matrix1, typename Matrix2, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                           void >::type
-  linsolve_PLU_dispatch( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits< Matrix1 >::value_type NumTol ) {
-  linsolve_PLU_impl( A, b, P, NumTol );
-};
-
-template < typename Matrix1, typename Matrix2, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_fully_writable_matrix< Matrix1 > >,
-                                             is_fully_writable_matrix< Matrix2 > >,
-                           void >::type
-  linsolve_PLU_dispatch( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits< Matrix1 >::value_type NumTol ) {
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  mat< ValueType, mat_structure::square > A_tmp( A );
-  linsolve_PLU_impl( A_tmp, b, P, NumTol );
-  A = A_tmp;
-};
-
-template < typename Matrix1, typename Matrix2, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_fully_writable_matrix< Matrix1 > >,
-                                             boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
-                           void >::type
-  linsolve_PLU_dispatch( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits< Matrix1 >::value_type NumTol ) {
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  mat< ValueType, mat_structure::square > A_tmp( A );
-  typedef typename mat_traits< Matrix2 >::value_type ValueType2;
-  mat< ValueType2, mat_structure::rectangular > b_tmp( b );
-  linsolve_PLU_impl( A_tmp, b_tmp, P, NumTol );
-  A = A_tmp;
-  b = b_tmp;
-};
-
-template < typename Matrix1, typename Matrix2, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >,
-                                             boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
-                           void >::type
-  linsolve_PLU_dispatch( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits< Matrix1 >::value_type NumTol ) {
-  typedef typename mat_traits< Matrix2 >::value_type ValueType2;
-  mat< ValueType2, mat_structure::rectangular > b_tmp( b );
-  linsolve_PLU_impl( A, b_tmp, P, NumTol );
-  b = b_tmp;
-};
-};
-
+  for (int k = An; k > 0; --k) {
+    for (int l = 0; l < bn; ++l) {
+      for (int j = k; j < An; ++j) {
+        b(k - 1, l) -= A(k - 1, j) * b(j, l);
+      }
+    }
+  }
+}
+}  // namespace detail
 
 /**
  * Solves the linear problem AX = B using PLU decomposition as defined by Crout`s method.
@@ -293,20 +246,54 @@ typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_writable_matrix< Matrix2 >,
-                                             is_writable_vector< IndexVector > >,
-                           void >::type
-  linsolve_PLU( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  if( A.get_col_count() != A.get_row_count() )
-    throw std::range_error( "PLU decomposition impossible! Matrix A is not square!" );
-  if( b.get_row_count() != A.get_col_count() )
-    throw std::range_error( "PLU decomposition impossible! Matrix b must have same row count as A!" );
+template <typename Matrix1, typename Matrix2, typename IndexVector>
+void linsolve_PLU(Matrix1& A, Matrix2& b, IndexVector& P,
+                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_writable_matrix_v<Matrix1>);
+  static_assert(is_writable_matrix_v<Matrix2> || is_writable_vector_v<Matrix2>);
+  static_assert(is_writable_vector_v<IndexVector>);
 
-  P.resize( A.get_col_count() );
-  detail::linsolve_PLU_dispatch( A, b, P, NumTol );
-};
+  P.resize(A.get_col_count());
 
+  auto Atmp = [&]() {
+    if constexpr (is_fully_writable_matrix_v<Matrix1>) {
+      return std::unique_ptr<Matrix1, null_deleter>(&A, null_deleter());
+    } else {
+      return std::make_unique<
+          mat<mat_value_type_t<Matrix1>, mat_structure::square>>(A);
+    }
+  }();
+  auto btmp = [&]() {
+    if constexpr (is_fully_writable_matrix_v<Matrix2>) {
+      return std::unique_ptr<Matrix2, null_deleter>(&b, null_deleter());
+    } else if constexpr (is_writable_vector_v<Matrix2>) {
+      return std::make_unique<
+          mat_vect_adaptor<Matrix2, mat_alignment::column_major>>(b);
+    } else {
+      return std::make_unique<
+          mat<mat_value_type_t<Matrix2>, mat_structure::rectangular>>(b);
+    }
+  }();
+
+  if (Atmp->get_col_count() != Atmp->get_row_count()) {
+    throw std::range_error(
+        "PLU decomposition impossible! Matrix A is not square!");
+  }
+  if (btmp->get_row_count() != Atmp->get_col_count()) {
+    throw std::range_error(
+        "PLU decomposition impossible! Matrix b must have same row count as "
+        "A!");
+  }
+
+  detail::linsolve_PLU_impl(*Atmp, *btmp, P, NumTol);
+
+  if constexpr (!is_fully_writable_matrix_v<Matrix1>) {
+    A = *Atmp;
+  }
+  if constexpr (!is_fully_writable_matrix_v<Matrix2>) {
+    b = *btmp;
+  }
+}
 
 /**
  * Solves the linear problem AX = B using PLU decomposition as defined by Crout`s method.
@@ -327,88 +314,26 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_w
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_writable_matrix< Matrix2 > >,
-                           void >::type
-  linsolve_PLU( Matrix1& A, Matrix2& b, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  vect_n< typename mat_traits< Matrix1 >::size_type > P;
-  linsolve_PLU( A, b, P, NumTol );
-};
-
-/**
- * Solves the linear problem AX = B using PLU decomposition as defined by Crout`s method.
- *
- * \tparam Matrix A writable matrix type.
- * \tparam Vector A writable vector type.
- * \tparam IndexVector A writable vector type.
- * \param A well-conditioned, square (Size x Size), real, full-rank matrix which multiplies x.
- *          As output, A stores the LU decomposition, permutated by P.
- * \param b stores, as input, the RHS of the linear system of equation and stores, as output,
- *          the solution vector X.
- * \param P vector of Size unsigned integer elements holding, as output, the permutations done
- *          the rows of matrix A during the decomposition to LU.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero.
- *
- * \throws singularity_error if the matrix A is numerically singular (or rank-deficient).
- * \throws std::range_error if the matrix A is not square or if b's row count does not match that of A.
- *
- * \author Mikael Persson
- */
-template < typename Matrix, typename Vector, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix >, is_writable_vector< Vector >,
-                                             is_writable_vector< IndexVector > >,
-                           void >::type
-  linsolve_PLU( Matrix& A, Vector& b, IndexVector& P, typename mat_traits< Matrix >::value_type NumTol = 1E-8 ) {
-  if( A.get_col_count() != A.get_row_count() )
-    throw std::range_error( "PLU decomposition impossible! Matrix A is not square!" );
-  if( b.size() != A.get_col_count() )
-    throw std::range_error( "PLU decomposition impossible! Matrix b must have same row count as A!" );
-
-  P.resize( A.get_col_count() );
-  mat_vect_adaptor< Vector, mat_alignment::column_major > b_mat( b );
-  detail::linsolve_PLU_dispatch( A, b_mat, P, NumTol );
-};
-
-/**
- * Solves the linear problem AX = B using PLU decomposition as defined by Crout`s method.
- *
- * \tparam Matrix A writable matrix type.
- * \tparam Vector A writable vector type.
- * \param A well-conditioned, square (Size x Size), real, full-rank matrix which multiplies x.
- *          As output, A stores the LU decomposition, permutated by P.
- * \param b stores, as input, the RHS of the linear system of equation and stores, as output,
- *          the solution vector X.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero.
- *
- * \throws singularity_error if the matrix A is numerically singular (or rank-deficient).
- * \throws std::range_error if the matrix A is not square or if b's row count does not match that of A.
- *
- * \author Mikael Persson
- */
-template < typename Matrix, typename Vector, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix >, is_writable_vector< Vector > >, void >::type
-  linsolve_PLU( Matrix& A, Vector& b, typename mat_traits< Matrix >::value_type NumTol = 1E-8 ) {
-  vect_n< typename mat_traits< Matrix >::size_type > P;
-  linsolve_PLU( A, b, P, NumTol );
-};
-
+template <typename Matrix1, typename Matrix2, typename IndexVector>
+void linsolve_PLU(Matrix1& A, Matrix2& b,
+                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  vect_n<int> P;
+  linsolve_PLU(A, b, P, NumTol);
+}
 
 /**
  * Functor to wrap a call to a PLU decomposition-based linear system solver.
  */
 struct PLU_linsolver {
-  template < typename Matrix1, typename Matrix2, typename Matrix3 >
-  void operator()( const Matrix1& A, Matrix2& X, const Matrix3& B,
-                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-    typedef typename mat_traits< Matrix1 >::value_type ValueType;
-    mat< ValueType, mat_structure::square > A_tmp( A );
+  template <typename Matrix1, typename Matrix2, typename Matrix3>
+  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B,
+                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
+    using ValueType = mat_value_type_t<Matrix1>;
+    mat<ValueType, mat_structure::square> A_tmp(A);
     X = B;
-    linsolve_PLU( A_tmp, X, NumTol );
-  };
+    linsolve_PLU(A_tmp, X, NumTol);
+  }
 };
-
 
 /**
  * Inverts a matrix using PLU decomposition as defined by Crout`s method.
@@ -425,94 +350,18 @@ struct PLU_linsolver {
  *
  * \author Mikael Persson
  */
-template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_writable_matrix< Matrix2 > >,
-                           void >::type
-  invert_PLU( Matrix1 A, Matrix2& A_inv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
-  typedef typename mat_traits< Matrix1 >::size_type SizeType;
-  typedef typename mat_traits< Matrix1 >::value_type ValueType;
+template <typename Matrix1, typename Matrix2>
+void invert_PLU(Matrix1 A, Matrix2& A_inv,
+                mat_value_type_t<Matrix1> NumTol = 1E-8) {
+  static_assert(is_writable_matrix_v<Matrix1>);
+  static_assert(is_writable_matrix_v<Matrix2>);
+  using ValueType = mat_value_type_t<Matrix1>;
 
-  if( A.get_col_count() != A.get_row_count() )
-    throw std::range_error( "PLU decomposition impossible! Matrix A is not square!" );
+  A_inv = mat<ValueType, mat_structure::identity>(A.get_col_count());
+  vect_n<int> P(A.get_col_count());
+  linsolve_PLU(A, A_inv, P, NumTol);
+}
 
-  A_inv = mat< ValueType, mat_structure::identity >( A.get_col_count() );
-  vect_n< SizeType > P( A.get_col_count() );
-  detail::linsolve_PLU_dispatch( A, A_inv, P, NumTol );
-};
-
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
-extern template void invert_gaussian( const mat< double, mat_structure::rectangular >& A,
-                                      mat< double, mat_structure::rectangular >& A_inv, double NumTol );
-extern template void invert_gaussian( const mat< double, mat_structure::rectangular >& A,
-                                      mat< double, mat_structure::square >& A_inv, double NumTol );
-extern template void invert_gaussian( const mat< double, mat_structure::square >& A,
-                                      mat< double, mat_structure::rectangular >& A_inv, double NumTol );
-extern template void invert_gaussian( const mat< double, mat_structure::square >& A,
-                                      mat< double, mat_structure::square >& A_inv, double NumTol );
-
-extern template void linsolve_PLU( mat< double, mat_structure::rectangular >& A,
-                                   mat< double, mat_structure::rectangular >& b, vect_n< std::size_t >& P,
-                                   double NumTol );
-extern template void linsolve_PLU( mat< double, mat_structure::rectangular >& A,
-                                   mat< double, mat_structure::square >& b, vect_n< std::size_t >& P, double NumTol );
-extern template void linsolve_PLU( mat< double, mat_structure::square >& A,
-                                   mat< double, mat_structure::rectangular >& b, vect_n< std::size_t >& P,
-                                   double NumTol );
-extern template void linsolve_PLU( mat< double, mat_structure::square >& A, mat< double, mat_structure::square >& b,
-                                   vect_n< std::size_t >& P, double NumTol );
-
-extern template void linsolve_PLU( mat< double, mat_structure::rectangular >& A, vect_n< double >& b,
-                                   vect_n< std::size_t >& P, double NumTol );
-extern template void linsolve_PLU( mat< double, mat_structure::square >& A, vect_n< double >& b,
-                                   vect_n< std::size_t >& P, double NumTol );
-
-extern template void invert_PLU( mat< double, mat_structure::rectangular > A,
-                                 mat< double, mat_structure::rectangular >& A_inv, double NumTol );
-extern template void invert_PLU( mat< double, mat_structure::rectangular > A,
-                                 mat< double, mat_structure::square >& A_inv, double NumTol );
-extern template void invert_PLU( mat< double, mat_structure::square > A,
-                                 mat< double, mat_structure::rectangular >& A_inv, double NumTol );
-extern template void invert_PLU( mat< double, mat_structure::square > A, mat< double, mat_structure::square >& A_inv,
-                                 double NumTol );
-
-
-extern template void invert_gaussian( const mat< float, mat_structure::rectangular >& A,
-                                      mat< float, mat_structure::rectangular >& A_inv, float NumTol );
-extern template void invert_gaussian( const mat< float, mat_structure::rectangular >& A,
-                                      mat< float, mat_structure::square >& A_inv, float NumTol );
-extern template void invert_gaussian( const mat< float, mat_structure::square >& A,
-                                      mat< float, mat_structure::rectangular >& A_inv, float NumTol );
-extern template void invert_gaussian( const mat< float, mat_structure::square >& A,
-                                      mat< float, mat_structure::square >& A_inv, float NumTol );
-
-extern template void linsolve_PLU( mat< float, mat_structure::rectangular >& A,
-                                   mat< float, mat_structure::rectangular >& b, vect_n< std::size_t >& P,
-                                   float NumTol );
-extern template void linsolve_PLU( mat< float, mat_structure::rectangular >& A, mat< float, mat_structure::square >& b,
-                                   vect_n< std::size_t >& P, float NumTol );
-extern template void linsolve_PLU( mat< float, mat_structure::square >& A, mat< float, mat_structure::rectangular >& b,
-                                   vect_n< std::size_t >& P, float NumTol );
-extern template void linsolve_PLU( mat< float, mat_structure::square >& A, mat< float, mat_structure::square >& b,
-                                   vect_n< std::size_t >& P, float NumTol );
-
-extern template void linsolve_PLU( mat< float, mat_structure::rectangular >& A, vect_n< float >& b,
-                                   vect_n< std::size_t >& P, float NumTol );
-extern template void linsolve_PLU( mat< float, mat_structure::square >& A, vect_n< float >& b, vect_n< std::size_t >& P,
-                                   float NumTol );
-
-extern template void invert_PLU( mat< float, mat_structure::rectangular > A,
-                                 mat< float, mat_structure::rectangular >& A_inv, float NumTol );
-extern template void invert_PLU( mat< float, mat_structure::rectangular > A, mat< float, mat_structure::square >& A_inv,
-                                 float NumTol );
-extern template void invert_PLU( mat< float, mat_structure::square > A, mat< float, mat_structure::rectangular >& A_inv,
-                                 float NumTol );
-extern template void invert_PLU( mat< float, mat_structure::square > A, mat< float, mat_structure::square >& A_inv,
-                                 float NumTol );
-
-#endif
-};
-
+}  // namespace ReaK
 
 #endif

@@ -1,7 +1,5 @@
 
 
-
-
            TEST EXAMPLES FOR CONSTRAINED NONLINEAR PROGRAMMING     
            ---------------------------------------------------
 
@@ -166,5 +164,4 @@
       
 
 
-      Bayreuth, April 2008                                              
-
+      Bayreuth, April 2008

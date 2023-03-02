@@ -1,41 +1,65 @@
-#!/bin/bash
+#!/ bin / bash
 
-if [ $2 -eq 1 ] ;
-then
-  echo "Making single runs ..."
-  SR_OPTIONS="-s --max-vertices=3000 --max-results=50 --prog-interval=10"
-  SR_STRUCTS="--knn-method=bf4 --mg-storage=adj-list"
+if
+  [$2 - eq 1];
+then echo "Making single runs ..." SR_OPTIONS =
+    "-s --max-vertices=3000 --max-results=50 --prog-interval=10" SR_STRUCTS =
+        "--knn-method=bf4 --mg-storage=adj-list"
 
-#   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --rrt $SR_STRUCTS
-#   echo "$SR_OPTIONS --rrt $SR_STRUCTS" > pp_results/$1/rrt/info.txt
+#./ test_planners - i $1.bmp - o pp_results / $1 $SR_OPTIONS -- rrt $SR_STRUCTS
+#echo "$SR_OPTIONS --rrt $SR_STRUCTS"> pp_results / $1 / rrt / info.txt
 
-#   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --bi-rrt $SR_STRUCTS
-#   echo "$SR_OPTIONS --bi-rrt $SR_STRUCTS" > pp_results/$1/birrt/info.txt
+#./ test_planners - i $1.bmp - o pp_results / $1 $SR_OPTIONS -- bi - \
+    rrt $SR_STRUCTS
+#echo "$SR_OPTIONS --bi-rrt $SR_STRUCTS"> pp_results / $1 / birrt / info.txt
 
-#   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --rrt-star $SR_STRUCTS
-#   echo "$SR_OPTIONS --rrt-star $SR_STRUCTS" > pp_results/$1/rrt_star/info.txt
+#./ test_planners - i $1.bmp - o pp_results / $1 $SR_OPTIONS -- rrt - \
+    star $SR_STRUCTS
+#echo "$SR_OPTIONS --rrt-star $SR_STRUCTS"> pp_results / $1 / rrt_star / \
+    info.txt
 
-#   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --rrt-star --rrt-star-with-bnb $SR_STRUCTS
-#   echo "$SR_OPTIONS --rrt-star --rrt-star-with-bnb $SR_STRUCTS" > pp_results/$1/rrt_star_bnb/info.txt
+#./ test_planners - i $1.bmp - o pp_results / $1 $SR_OPTIONS -- rrt - \
+    star -- rrt - star - with - bnb $SR_STRUCTS
+#echo "$SR_OPTIONS --rrt-star --rrt-star-with-bnb $SR_STRUCTS"> pp_results / \
+    $1 / rrt_star_bnb / info.txt
 
-#   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --prm $SR_STRUCTS
-#   echo "$SR_OPTIONS --prm $SR_STRUCTS" > pp_results/$1/prm/info.txt
+#./ test_planners - i $1.bmp - o pp_results / $1 $SR_OPTIONS -- prm $SR_STRUCTS
+#echo "$SR_OPTIONS --prm $SR_STRUCTS"> pp_results / $1 / prm / info.txt
 
-#   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --fadprm --fadprm-relaxation=10.0 $SR_STRUCTS
-#   echo "$SR_OPTIONS --fadprm --fadprm-relaxation=10.0 $SR_STRUCTS" > pp_results/$1/fadprm/info.txt
+#./ test_planners - i $1.bmp - o pp_results / \
+    $1 $SR_OPTIONS -- fadprm -- fadprm - relaxation = 10.0 $SR_STRUCTS
+#echo                                                                         \
+    "$SR_OPTIONS --fadprm --fadprm-relaxation=10.0 $SR_STRUCTS"> pp_results / \
+    $1 / fadprm / info.txt
 
-#   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-density-cutoff=0.1 $SR_STRUCTS
-#   echo "$SR_OPTIONS --sba-star --sba-density-cutoff=0.1 $SR_STRUCTS" > pp_results/$1/sbastar_lazy/info.txt
+#./ test_planners - i $1.bmp - o pp_results / $1 $SR_OPTIONS -- sba - \
+    star -- sba - density - cutoff = 0.1 $SR_STRUCTS
+#echo "$SR_OPTIONS --sba-star --sba-density-cutoff=0.1 $SR_STRUCTS"> \
+    pp_results /                                                     \
+    $1 / sbastar_lazy / info.txt
 
-  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-density-cutoff=0.1 --sba-relaxation=5.0 $SR_STRUCTS
-  echo "$SR_OPTIONS --sba-star --sba-density-cutoff=0.1 --sba-relaxation=5.0 $SR_STRUCTS" > pp_results/$1/sbastar_lazy_any/info.txt
+                ./
+            test_planners -
+        i $1.bmp - o pp_results / $1 $SR_OPTIONS-- sba - star-- sba - density -
+        cutoff = 0.1 --sba - relaxation =
+                     5.0 $SR_STRUCTS echo
+                     "$SR_OPTIONS --sba-star --sba-density-cutoff=0.1 "
+                     "--sba-relaxation=5.0 $SR_STRUCTS" >
+                     pp_results / $1 / sbastar_lazy_any / info.txt
 
-#   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-density-cutoff=0.1 --sba-relaxation=5.0 --sba-with-bnb $SR_STRUCTS
-#   echo "$SR_OPTIONS --sba-star --sba-density-cutoff=0.1 --sba-relaxation=5.0 --sba-with-bnb $SR_STRUCTS" > pp_results/$1/sbastar_lazy_any_bnb/info.txt
+#./ test_planners - i $1.bmp - o pp_results / $1 $SR_OPTIONS -- sba - \
+    star -- sba - density - cutoff = 0.1 -- sba - relaxation =        \
+        5.0 -- sba - with - bnb $SR_STRUCTS
+#echo                                                                                                  \
+    "$SR_OPTIONS --sba-star --sba-density-cutoff=0.1 --sba-relaxation=5.0 --sba-with-bnb $SR_STRUCTS"> \
+    pp_results /                                                                                       \
+    $1 / sbastar_lazy_any_bnb / info.txt
 
-#   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-density-cutoff=0.1 --sba-relaxation=5.0 --sba-with-voronoi-pull $SR_STRUCTS
-#   mkdir pp_results/$1/sbastar_rrtstar
-#   mv pp_results/$1/sbastar_lazy_any_sa/* pp_results/$1/sbastar_rrtstar/
+#./ test_planners - i $1.bmp - o pp_results / $1 $SR_OPTIONS -- sba - \
+    star -- sba - density - cutoff = 0.1 -- sba - relaxation =        \
+        5.0 -- sba - with - voronoi - pull $SR_STRUCTS
+#mkdir pp_results / $1 / sbastar_rrtstar
+#mv pp_results / $1 / sbastar_lazy_any_sa/* pp_results/$1/sbastar_rrtstar/
 #   echo "$SR_OPTIONS --sba-star --sba-density-cutoff=0.1 --sba-relaxation=5.0 --sba-with-voronoi-pull $SR_STRUCTS" > pp_results/$1/sbastar_rrtstar/info.txt
 
   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-density-cutoff=0.1 --sba-relaxation=5.0 --sba-with-voronoi-pull --sba-sa-temperature=2.0 $SR_STRUCTS

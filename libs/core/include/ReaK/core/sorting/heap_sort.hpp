@@ -34,15 +34,11 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-
 #include <algorithm>
-#include <iterator>
 #include <functional>
+#include <iterator>
 
-namespace ReaK {
-
-/** This is the namespace for all ReaK sorting algorithms implementations. */
-namespace sorting {
+namespace ReaK::sorting {
 
 /**
  * This function performs a heap sort on a given range of elements, and with the
@@ -53,11 +49,11 @@ namespace sorting {
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template < typename RandomAccessIter, typename Compare >
-void heap_sort( RandomAccessIter first, RandomAccessIter last, Compare comp ) {
-  std::make_heap( first, last, comp );
-  std::sort_heap( first, last, comp );
-};
+template <typename RandomAccessIter, typename Compare>
+void heap_sort(RandomAccessIter first, RandomAccessIter last, Compare comp) {
+  std::make_heap(first, last, comp);
+  std::sort_heap(first, last, comp);
+}
 
 /**
  * This function performs a heap sort on a given range of elements, and by using the
@@ -66,11 +62,11 @@ void heap_sort( RandomAccessIter first, RandomAccessIter last, Compare comp ) {
  * \param first The start of the range to be sorted.
  * \param last One element past the end of the range to be sorted.
  */
-template < typename RandomAccessIter >
-inline void heap_sort( RandomAccessIter first, RandomAccessIter last ) {
-  heap_sort( first, last, std::less< typename std::iterator_traits< RandomAccessIter >::value_type >() );
-};
-};
-};
+template <typename RandomAccessIter>
+inline void heap_sort(RandomAccessIter first, RandomAccessIter last) {
+  heap_sort(first, last, std::less<>());
+}
 
-#endif
+}  // namespace ReaK::sorting
+
+#endif  // REAK_HEAP_SORT_HPP

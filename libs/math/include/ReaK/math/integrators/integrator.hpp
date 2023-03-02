@@ -42,13 +42,12 @@
 /** Main namespace for ReaK */
 namespace ReaK {
 
-
 /**
  * This class is the function-object interface for a state equation (or state time-derivative computation).
  */
-template < class T >
+template <class T>
 class state_rate_function : public virtual shared_object {
-public:
+ public:
   /**
    * This function computes the time-derivative of the state vector.
    *
@@ -56,21 +55,22 @@ public:
    * \param aState current state vector
    * \param aStateRate holds, as output, the time-derivative of the state vector
    */
-  virtual void RK_CALL computeStateRate( double aTime, const ReaK::vect_n< T >& aState, ReaK::vect_n< T >& aStateRate )
-    = 0;
+  virtual void computeStateRate(double aTime, const ReaK::vect_n<T>& aState,
+                                ReaK::vect_n<T>& aStateRate) = 0;
 
-  virtual ~state_rate_function(){};
+  ~state_rate_function() override = default;
 
-  typedef state_rate_function< T > self;
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC2200001, 1, "state_rate_function", shared_object )
+  using self = state_rate_function<T>;
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2200001, 1, "state_rate_function",
+                              shared_object)
 };
 
 /**
  * This class is the function-object interface for a state equation (or state time-derivative computation).
  */
-template < class T >
-class state_rate_function_with_io : public state_rate_function< T > {
-public:
+template <class T>
+class state_rate_function_with_io : public state_rate_function<T> {
+ public:
   /**
    * This function computes the output-vector corresponding to a state vector.
    *
@@ -78,19 +78,22 @@ public:
    * \param aState current state vector
    * \param aOutput holds, as output, the output-vector
    */
-  virtual void RK_CALL computeOutput( double aTime, const ReaK::vect_n< T >& aState, ReaK::vect_n< T >& aOutput ) = 0;
+  virtual void computeOutput(double aTime, const ReaK::vect_n<T>& aState,
+                             ReaK::vect_n<T>& aOutput) = 0;
 
   /**
    * This function sets the input-vector.
    *
    * \param aInput current input-vector
    */
-  virtual void RK_CALL setInput( const ReaK::vect_n< T >& aInput ) = 0;
+  virtual void setInput(const ReaK::vect_n<T>& aInput) = 0;
 
-  virtual ~state_rate_function_with_io(){};
+  ~state_rate_function_with_io() override = default;
 
-  typedef state_rate_function_with_io< T > self;
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC2200002, 1, "state_rate_function_with_io", state_rate_function< T > )
+  using self = state_rate_function_with_io<T>;
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2200002, 1,
+                              "state_rate_function_with_io",
+                              state_rate_function<T>)
 };
 
 /**
@@ -98,51 +101,56 @@ public:
  * state vector with a rate of change vector (specified by vectors of pointers
  * to the variables), and the time span (StartTime, EndTime, and StepSize).
  */
-template < class T >
+template <class T>
 class integrator : public named_object {
-protected:
-  vect_n< T > mState;     ///< Holds the current state vector.
-  vect_n< T > mStateRate; ///< Holds the last computed time-derivative of the state vector.
+ protected:
+  /// Holds the current state vector.
+  vect_n<T> mState;
+  /// Holds the last computed time-derivative of the state vector.
+  vect_n<T> mStateRate;
 
-  double mTime;     ///< Current integration time.
-  double mStepSize; ///< Current integration time step.
+  /// Current integration time.
+  double mTime;
+  /// Current integration time step.
+  double mStepSize;
 
-  weak_ptr< state_rate_function< T > >
-    mGetStateRate; ///< Pointer to a function-object that computes the time-derivative of the state vector.
+  /// Pointer to a function-object that computes the time-derivative of the state vector.
+  std::weak_ptr<state_rate_function<T>> mGetStateRate;
 
-public:
+ public:
   /// Gets the state vector iterator to the current state vector.
-  typename std::vector< T >::const_iterator getStateBegin() const { return mState.q.begin(); };
+  auto getStateBegin() const { return mState.q.begin(); }
   /// Gets the state vector iterator to the current state vector's end element.
-  typename std::vector< T >::const_iterator getStateEnd() const { return mState.q.end(); };
+  auto getStateEnd() const { return mState.q.end(); }
 
   /// Set the integration time step to aNewStepSize.
-  virtual void RK_CALL setStepSize( double aNewStepSize ) { mStepSize = aNewStepSize; };
+  virtual void setStepSize(double aNewStepSize) { mStepSize = aNewStepSize; }
   /// Sets the integration time to aNewTime.
-  virtual void RK_CALL setTime( double aNewTime ) { mTime = aNewTime; };
+  virtual void setTime(double aNewTime) { mTime = aNewTime; }
   /// Gets the current integration time.
-  virtual double RK_CALL getTime() { return mTime; };
+  virtual double getTime() { return mTime; }
 
   /// Clears the state vector, makes it zero in size.
-  virtual void RK_CALL clearStateVector() {
+  virtual void clearStateVector() {
     mState.q.clear();
     mStateRate.q.clear();
-  };
+  }
   /// Adds an element to the state vector and initializes its value to Element.
-  virtual void RK_CALL addStateElement( T Element ) {
-    mState.q.push_back( Element );
-    mStateRate.q.push_back( T( 0.0 ) );
-  };
+  virtual void addStateElement(T Element) {
+    mState.q.push_back(Element);
+    mStateRate.q.push_back(T(0.0));
+  }
   /// Adds elements to the state vector and initializes their value to Elements.
-  virtual void RK_CALL addStateElements( const ReaK::vect_n< T >& Elements ) {
-    mState.q.insert( mState.q.end(), Elements.q.begin(), Elements.q.end() );
-    mStateRate.q.insert( mStateRate.q.end(), Elements.q.size(), T( 0.0 ) );
-  };
+  virtual void addStateElements(const ReaK::vect_n<T>& Elements) {
+    mState.q.insert(mState.q.end(), Elements.q.begin(), Elements.q.end());
+    mStateRate.q.insert(mStateRate.q.end(), Elements.q.size(), T(0.0));
+  }
 
   /// Set the function-object pointer to aGetStateRate.
-  virtual void RK_CALL setStateRateFunc( const weak_ptr< state_rate_function< T > >& aGetStateRate ) {
+  virtual void setStateRateFunc(
+      const std::weak_ptr<state_rate_function<T>>& aGetStateRate) {
     mGetStateRate = aGetStateRate;
-  };
+  }
 
   /**
    * Performs the integration.
@@ -153,93 +161,126 @@ public:
    * \throw impossible_integration if the integrator is in an invalid state such as expired function-object pointer for
    * example.
    */
-  virtual void RK_CALL integrate( double aEndTime ) = 0;
+  virtual void integrate(double aEndTime) = 0;
 
   /// Default constructor.
-  integrator( const std::string& aName = "" )
-      : named_object(), mState(), mStateRate(), mTime(), mStepSize(), mGetStateRate() {
-    setName( aName );
-  };
+  explicit integrator(const std::string& aName = "")
+      : named_object(),
+        mState(),
+        mStateRate(),
+        mTime(),
+        mStepSize(),
+        mGetStateRate() {
+    setName(aName);
+  }
   /// Parametrized constructor, see data members for meaning of parameters.
-  integrator( const std::string& aName, const ReaK::vect_n< T >& aState, double aStartTime, double aStepSize,
-              const weak_ptr< state_rate_function< T > >& aGetStateRate )
-      : named_object(), mState( aState ), mStateRate( aState.q.size() ), mTime( aStartTime ), mStepSize( aStepSize ),
-        mGetStateRate( aGetStateRate ) {
-    setName( aName );
-  };
+  integrator(const std::string& aName, const ReaK::vect_n<T>& aState,
+             double aStartTime, double aStepSize,
+             const std::weak_ptr<state_rate_function<T>>& aGetStateRate)
+      : named_object(),
+        mState(aState),
+        mStateRate(aState.q.size()),
+        mTime(aStartTime),
+        mStepSize(aStepSize),
+        mGetStateRate(aGetStateRate) {
+    setName(aName);
+  }
   /// Default virtual destructor.
-  virtual ~integrator(){};
+  ~integrator() override = default;
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    ReaK::named_object::save( A, ReaK::named_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mState ) & RK_SERIAL_SAVE_WITH_NAME( mTime ) & RK_SERIAL_SAVE_WITH_NAME( mStepSize )
-      & RK_SERIAL_SAVE_WITH_NAME( mGetStateRate );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    ReaK::named_object::load( A, ReaK::named_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mState ) & RK_SERIAL_LOAD_WITH_NAME( mTime ) & RK_SERIAL_LOAD_WITH_NAME( mStepSize )
-      & RK_SERIAL_LOAD_WITH_NAME( mGetStateRate );
-    mStateRate.q.resize( mState.q.size() );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    ReaK::named_object::save(
+        A, ReaK::named_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mState) & RK_SERIAL_SAVE_WITH_NAME(mTime) &
+        RK_SERIAL_SAVE_WITH_NAME(mStepSize) &
+        RK_SERIAL_SAVE_WITH_NAME(mGetStateRate);
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    ReaK::named_object::load(
+        A, ReaK::named_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mState) & RK_SERIAL_LOAD_WITH_NAME(mTime) &
+        RK_SERIAL_LOAD_WITH_NAME(mStepSize) &
+        RK_SERIAL_LOAD_WITH_NAME(mGetStateRate);
+    mStateRate.q.resize(mState.q.size());
+  }
 
-  typedef integrator< T > self;
+  using self = integrator<T>;
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC2210000, 1, "integrator", named_object )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2210000, 1, "integrator", named_object)
 };
 
 /**
  * This class is the basis for all variable time step integrators. It features
  * a maximum and minimum time step size as well as a tolerance for error control.
  */
-template < class T >
-class variable_step_integrator : public integrator< T > {
-protected:
-  double mMaxStepSize; ///< Maximum allowable integration time step.
-  double mMinStepSize; ///< Minimum allowable integration time step.
-  double mTolerance;   ///< Tolerance by which the estimated error is used to assess changes to the time step.
+template <class T>
+class variable_step_integrator : public integrator<T> {
+ protected:
+  /// Maximum allowable integration time step.
+  double mMaxStepSize;
+  /// Minimum allowable integration time step.
+  double mMinStepSize;
+  /// Tolerance by which the estimated error is used to assess changes to the time step.
+  double mTolerance;
 
-public:
+ public:
   /// Sets maximum allowable integration time step to aNewMaxStepSize.
-  virtual void RK_CALL setMaxStepSize( double aNewMaxStepSize ) { mMaxStepSize = aNewMaxStepSize; };
+  virtual void setMaxStepSize(double aNewMaxStepSize) {
+    mMaxStepSize = aNewMaxStepSize;
+  }
   /// Sets minimum allowable integration time step to aNewMinStepSize.
-  virtual void RK_CALL setMinStepSize( double aNewMinStepSize ) { mMinStepSize = aNewMinStepSize; };
+  virtual void setMinStepSize(double aNewMinStepSize) {
+    mMinStepSize = aNewMinStepSize;
+  };
   /// Sets tolerance to aNewTolerance.
-  virtual void RK_CALL setTolerance( double aNewTolerance ) { mTolerance = aNewTolerance; };
-
+  virtual void setTolerance(double aNewTolerance) {
+    mTolerance = aNewTolerance;
+  }
 
   /// Default constructor.
-  variable_step_integrator( const std::string& aName = "" )
-      : integrator< T >( aName ), mMaxStepSize( 1.0 ), mMinStepSize( 1E-6 ), mTolerance( 1E-4 ){
-
-                                                                             };
+  explicit variable_step_integrator(const std::string& aName = "")
+      : integrator<T>(aName),
+        mMaxStepSize(1.0),
+        mMinStepSize(1E-6),
+        mTolerance(1E-4) {}
   /// Parametrized constructor, see data members for meaning of parameters.
-  variable_step_integrator( const std::string& aName, const ReaK::vect_n< T >& aState, double aStartTime,
-                            double aInitialStepSize, const weak_ptr< state_rate_function< T > >& aGetStateRate,
-                            double aMaxStepSize, double aMinStepSize, double aTolerance )
-      : integrator< T >( aName, aState, aStartTime, aInitialStepSize, aGetStateRate ), mMaxStepSize( aMaxStepSize ),
-        mMinStepSize( aMinStepSize ), mTolerance( aTolerance ){
-
-                                      };
+  variable_step_integrator(
+      const std::string& aName, const ReaK::vect_n<T>& aState,
+      double aStartTime, double aInitialStepSize,
+      const std::weak_ptr<state_rate_function<T>>& aGetStateRate,
+      double aMaxStepSize, double aMinStepSize, double aTolerance)
+      : integrator<T>(aName, aState, aStartTime, aInitialStepSize,
+                      aGetStateRate),
+        mMaxStepSize(aMaxStepSize),
+        mMinStepSize(aMinStepSize),
+        mTolerance(aTolerance) {}
   /// Default virtual destructor.
-  virtual ~variable_step_integrator(){};
+  ~variable_step_integrator() override = default;
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    integrator< T >::save( A, integrator< T >::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mMaxStepSize ) & RK_SERIAL_SAVE_WITH_NAME( mMinStepSize )
-      & RK_SERIAL_SAVE_WITH_NAME( mTolerance );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    integrator< T >::load( A, integrator< T >::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mMaxStepSize ) & RK_SERIAL_LOAD_WITH_NAME( mMinStepSize )
-      & RK_SERIAL_LOAD_WITH_NAME( mTolerance );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    integrator<T>::save(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mMaxStepSize) &
+        RK_SERIAL_SAVE_WITH_NAME(mMinStepSize) &
+        RK_SERIAL_SAVE_WITH_NAME(mTolerance);
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    integrator<T>::load(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mMaxStepSize) &
+        RK_SERIAL_LOAD_WITH_NAME(mMinStepSize) &
+        RK_SERIAL_LOAD_WITH_NAME(mTolerance);
+  }
 
-  typedef variable_step_integrator< T > self;
-  typedef integrator< T > base;
+  using self = variable_step_integrator<T>;
+  using base = integrator<T>;
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC2220000, 1, "variable_step_integrator", base )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2220000, 1, "variable_step_integrator",
+                              base)
 };
-};
+}  // namespace ReaK
 
 #endif
 

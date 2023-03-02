@@ -1,19 +1,18 @@
-#!/bin/bash
+#!/ bin / bash
 
-
-# All the constant options here:
+#All the constant options here:
 
 OPTIONS="--init-motion models/satellite3D_init.rkx"
 OPTIONS="${OPTIONS} --inertia models/sat3D_airship_inertia.rkx"
 OPTIONS="${OPTIONS} --Q-matrix models/sat3D_airship_Q.rkx"
 OPTIONS="${OPTIONS} --IMU-config models/sat3D_airship_IMU_config.rkx"
 OPTIONS="${OPTIONS} --time-step 0.01"
-# OPTIONS="${OPTIONS} --imkf"
-# OPTIONS="${OPTIONS} --imkf-em"
+#OPTIONS = "${OPTIONS} --imkf"
+#OPTIONS = "${OPTIONS} --imkf-em"
 OPTIONS="${OPTIONS} --imkf-emd"
-# OPTIONS="${OPTIONS} --imkf-emdJ"
+#OPTIONS = "${OPTIONS} --imkf-emdJ"
 
-# OPTIONS="${OPTIONS} --R-matrix temp_sat3D_airship_R.rkx"
+#OPTIONS = "${OPTIONS} --R-matrix temp_sat3D_airship_R.rkx"
 
 OPTIONS="${OPTIONS} --R-matrix temp_sat3D_airship_R_gyro.rkx"
 OPTIONS="${OPTIONS} --gyro"
@@ -21,11 +20,11 @@ OPTIONS="${OPTIONS} --gyro"
 OPTIONS="${OPTIONS} --prediction-runs --prediction-interval 5.0"
 
 OPTIONS="${OPTIONS} --pred-assumption 0"
-# OPTIONS="${OPTIONS} --pred-assumption 1"
+#OPTIONS = "${OPTIONS} --pred-assumption 1"
 
-# OPTIONS="${OPTIONS} --tsosakf --Pa-matrix temp_sat3D_airship_Pa_em.rkx"
+#OPTIONS = "${OPTIONS} --tsosakf --Pa-matrix temp_sat3D_airship_Pa_em.rkx"
 OPTIONS="${OPTIONS} --tsosakf --Pa-matrix temp_sat3D_airship_Pa_emd.rkx"
-# OPTIONS="${OPTIONS} --tsosakf --Pa-matrix temp_sat3D_airship_Pa_emdJ.rkx"
+#OPTIONS = "${OPTIONS} --tsosakf --Pa-matrix temp_sat3D_airship_Pa_emdJ.rkx"
 
 OPTIONS="${OPTIONS} --monte-carlo --min-skips 3 --max-skips 5"
 
@@ -58,20 +57,22 @@ MEAS_COV_FACT_HI=1
 
 FINAL_OUTPUT_FILE="$1/pred/all_predstats.ssv"
 
-# # Start from the beginning:
-# DM_COV=$DM_COV_HI
-# ECC_COV=$ECC_COV_HI
-# LD_COV=$LD_COV_HI
-# RD_COV=$RD_COV_HI
-# 
-# POS_MEAS_COV=$POS_MEAS_COV_HI
-# ANG_MEAS_COV=$ANG_MEAS_COV_HI
-# GYRO_MEAS_COV=$GYRO_MEAS_COV_HI
-# MEAS_COV_FACT=$MEAS_COV_FACT_HI
-# 
-# echo "% pos_meas_cov ang_meas_cov gyro_meas_cov dm_cov ecc_cov ld_cov rd_cov P_th success_rate pred_start_time ep_m ea_m ev_m ew_m pdf_est lr_est pdf_meas lr_meas" > $FINAL_OUTPUT_FILE
+# #Start from the beginning:
+#DM_COV = $DM_COV_HI
+#ECC_COV = $ECC_COV_HI
+#LD_COV = $LD_COV_HI
+#RD_COV = $RD_COV_HI
+#
+#POS_MEAS_COV = $POS_MEAS_COV_HI
+#ANG_MEAS_COV = $ANG_MEAS_COV_HI
+#GYRO_MEAS_COV = $GYRO_MEAS_COV_HI
+#MEAS_COV_FACT = $MEAS_COV_FACT_HI
+#
+#echo                                                                                                                                                               \
+    "% pos_meas_cov ang_meas_cov gyro_meas_cov dm_cov ecc_cov ld_cov rd_cov P_th success_rate pred_start_time ep_m ea_m ev_m ew_m pdf_est lr_est pdf_meas lr_meas"> \
+    $FINAL_OUTPUT_FILE
 
-# Start from this point:
+#Start from this point:
 POS_MEAS_COV=0.0005
 ANG_MEAS_COV=0.0009
 GYRO_MEAS_COV=0.0005
@@ -92,15 +93,18 @@ until (( $(echo "$MEAS_COV_FACT > $MEAS_COV_FACT_LO" | bc -q 2>/dev/null) == "0"
 do
   echo "meas cov factor = $MEAS_COV_FACT"
 
-# until (( $(echo "$POS_MEAS_COV > $POS_MEAS_COV_LO" | bc -q 2>/dev/null) == "0" ))
-# do
-#   echo "pos-meas cov = $POS_MEAS_COV"
-#   until (( $(echo "$ANG_MEAS_COV > $ANG_MEAS_COV_LO" | bc -q 2>/dev/null) == "0" ))
-#   do
-#     echo "ang-meas cov = $ANG_MEAS_COV"
-#     until (( $(echo "$GYRO_MEAS_COV > $GYRO_MEAS_COV_LO" | bc -q 2>/dev/null) == "0" ))
-#     do
-#       echo "gyro-meas cov = $GYRO_MEAS_COV"
+#until(($(echo "$POS_MEAS_COV > $POS_MEAS_COV_LO" | \
+          bc - q 2 > / dev / null) == "0"))
+#do
+#echo "pos-meas cov = $POS_MEAS_COV"
+#until(($(echo "$ANG_MEAS_COV > $ANG_MEAS_COV_LO" | \
+          bc - q 2 > / dev / null) == "0"))
+#do
+#echo "ang-meas cov = $ANG_MEAS_COV"
+#until(($(echo "$GYRO_MEAS_COV > $GYRO_MEAS_COV_LO" | \
+          bc - q 2 > / dev / null) == "0"))
+#do
+#echo "gyro-meas cov = $GYRO_MEAS_COV"
 
       until (( $(echo "$DM_COV > $DM_COV_LO" | bc -q 2>/dev/null) == "0" ))
       do
@@ -111,7 +115,7 @@ do
           until (( $(echo "$LD_COV > $LD_COV_LO" | bc -q 2>/dev/null) == "0" ))
           do
             echo "lin-drag cov = $LD_COV"
-#             RD_COV=$LD_COV
+#RD_COV = $LD_COV
             until (( $(echo "$RD_COV > $RD_COV_LO" | bc -q 2>/dev/null) == "0" ))
             do
               echo "rot-drag cov = $RD_COV"

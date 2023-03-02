@@ -34,38 +34,34 @@
 #ifndef REAK_SEQUENTIAL_TRAJECTORY_CONCEPT_HPP
 #define REAK_SEQUENTIAL_TRAJECTORY_CONCEPT_HPP
 
-
 #include <boost/concept_check.hpp>
 
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 #include <ReaK/topologies/spaces/temporal_space_concept.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This traits class defines the traits that characterize a sequential spatial trajectory within a
  * temporal topology.
  * \tparam SequentialTraj The spatial trajectory type for which the traits are sought.
  */
-template < typename SequentialTraj >
+template <typename SequentialTraj>
 struct sequential_trajectory_traits {
   /** This type describes a point in the space or topology. */
-  typedef typename SequentialTraj::point_type point_type;
+  using point_type = typename SequentialTraj::point_type;
 
   /** This type describes an iterator, corresponding to a point on the trajectory, which can be incremented by time to
    * travel to the next iterator. */
-  typedef typename SequentialTraj::point_time_iterator point_time_iterator;
+  using point_time_iterator = typename SequentialTraj::point_time_iterator;
   /** This type describes an iterator, corresponding to a point on the trajectory, which can be incremented by a
    * fraction between waypoints to travel to the next iterator. */
-  typedef typename SequentialTraj::point_fraction_iterator point_fraction_iterator;
+  using point_fraction_iterator =
+      typename SequentialTraj::point_fraction_iterator;
 
   /** This type is the topology type in which the path exists. */
-  typedef typename SequentialTraj::topology topology;
+  using topology = typename SequentialTraj::topology;
 };
-
 
 /**
  * This concept class defines the requirements for a type to model a sequential trajectory
@@ -118,19 +114,21 @@ struct sequential_trajectory_traits {
  * \tparam SequentialTraj The type to be checked for the requirements of this concept.
  * \tparam Topology The topology in which the trajectory should reside.
  */
-template < typename SequentialTraj, typename Topology >
+template <typename SequentialTraj, typename Topology>
 struct SequentialTrajectoryConcept {
 
-  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< Topology > ) );
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
 
   SequentialTraj* traj;
-  typename topology_traits< Topology >::point_type pt;
+  typename topology_traits<Topology>::point_type pt;
   double d;
   bool b;
-  typename sequential_trajectory_traits< SequentialTraj >::point_time_iterator tit;
-  typename sequential_trajectory_traits< SequentialTraj >::point_fraction_iterator fit;
+  typename sequential_trajectory_traits<SequentialTraj>::point_time_iterator
+      tit;
+  typename sequential_trajectory_traits<SequentialTraj>::point_fraction_iterator
+      fit;
 
-  BOOST_CONCEPT_USAGE( SequentialTrajectoryConcept ) {
+  BOOST_CONCEPT_USAGE(SequentialTrajectoryConcept) {
     tit = traj->begin_time_travel();
     tit = traj->end_time_travel();
 
@@ -142,8 +140,8 @@ struct SequentialTrajectoryConcept {
     tit = tit - d;
     tit -= d;
 
-    b = ( tit != tit );
-    b = ( tit == tit );
+    b = (tit != tit);
+    b = (tit == tit);
 
     fit = traj->begin_fraction_travel();
     fit = traj->end_fraction_travel();
@@ -156,14 +154,13 @@ struct SequentialTrajectoryConcept {
     fit = fit - d;
     fit -= d;
 
-    b = ( fit != fit );
-    b = ( fit == fit );
+    b = (fit != fit);
+    b = (fit == fit);
 
-    d = traj->travel_distance( pt, pt );
-  };
-};
-};
+    d = traj->travel_distance(pt, pt);
+  }
 };
 
+}  // namespace ReaK::pp
 
 #endif

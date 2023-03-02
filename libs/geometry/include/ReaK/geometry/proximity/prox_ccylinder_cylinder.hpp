@@ -37,43 +37,44 @@
 #include <ReaK/geometry/shapes/capped_cylinder.hpp>
 #include <ReaK/geometry/shapes/cylinder.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
+proximity_record_3D compute_proximity(const capped_cylinder& aCCylinder,
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const cylinder& aCylinder,
+                                      const shape_3D_precompute_pack& aPack2);
 
-
-proximity_record_3D compute_proximity( const capped_cylinder& aCCylinder, const shape_3D_precompute_pack& aPack1,
-                                       const cylinder& aCylinder, const shape_3D_precompute_pack& aPack2 );
-
-proximity_record_3D compute_proximity( const cylinder& aCylinder, const shape_3D_precompute_pack& aPack1,
-                                       const capped_cylinder& aCCylinder, const shape_3D_precompute_pack& aPack2 );
+proximity_record_3D compute_proximity(const cylinder& aCylinder,
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const capped_cylinder& aCCylinder,
+                                      const shape_3D_precompute_pack& aPack2);
 
 /**
  * This class is for proximity queries between a capped cylinder and a capped cylinder.
  */
 class prox_ccylinder_cylinder : public proximity_finder_3D {
-protected:
+ protected:
   const capped_cylinder* mCCylinder;
   const cylinder* mCylinder;
 
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_3D computeProximity( const shape_3D_precompute_pack& aPack1,
-                                                const shape_3D_precompute_pack& aPack2 );
+  proximity_record_3D computeProximity(
+      const shape_3D_precompute_pack& aPack1,
+      const shape_3D_precompute_pack& aPack2) override;
 
   /**
    * Default constructor.
    * \param aCCylinder The capped cylinder involved in the proximity query.
    * \param aCylinder The cylinder involved in the proximity query.
    */
-  prox_ccylinder_cylinder( const capped_cylinder* aCCylinder = nullptr, const cylinder* aCylinder = nullptr );
+  explicit prox_ccylinder_cylinder(const capped_cylinder* aCCylinder = nullptr,
+                                   const cylinder* aCylinder = nullptr);
 
   /** Destructor. */
-  virtual ~prox_ccylinder_cylinder(){};
+  ~prox_ccylinder_cylinder() override = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

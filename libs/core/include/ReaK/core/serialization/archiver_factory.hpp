@@ -35,9 +35,7 @@
 
 #include "archiver.hpp"
 
-namespace ReaK {
-
-namespace serialization {
+namespace ReaK::serialization {
 
 /**
  * This function creates a file-archive from a given file-name by recognizing its file-extension
@@ -45,7 +43,7 @@ namespace serialization {
  * \param aFileName The complete file name of the file to open for read operations (iarchive).
  * \return A pointer to an archive object that will be capable of correctly reading from the specified file.
  */
-shared_ptr< iarchive > open_iarchive( const std::string& aFileName );
+std::shared_ptr<iarchive> open_iarchive(const std::string& aFileName);
 
 /**
  * This function creates a file-archive from a given file-name by recognizing its file-extension
@@ -53,8 +51,8 @@ shared_ptr< iarchive > open_iarchive( const std::string& aFileName );
  * \param aFileName The complete file name of the file to open for write operations (oarchive).
  * \return A pointer to an archive object that will be capable of correctly writing to the specified file.
  */
-shared_ptr< oarchive > open_oarchive( const std::string& aFileName );
-};
-};
+std::shared_ptr<oarchive> open_oarchive(const std::string& aFileName);
+
+}  // namespace ReaK::serialization
 
 #endif

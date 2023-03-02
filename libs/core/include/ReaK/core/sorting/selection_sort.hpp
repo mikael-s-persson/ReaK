@@ -35,14 +35,10 @@
 #include <ReaK/core/base/defs.hpp>
 
 #include <algorithm>
-#include <iterator>
 #include <functional>
+#include <iterator>
 
-namespace ReaK {
-
-/** This is the namespace for all ReaK sorting algorithms implementations. */
-namespace sorting {
-
+namespace ReaK::sorting {
 
 /**
  * This function performs a selection sort on a given range of elements, and with the
@@ -53,11 +49,12 @@ namespace sorting {
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template < typename ForwardIter, typename Compare >
-void selection_sort( ForwardIter first, ForwardIter last, Compare comp ) {
-  for( ; first != last; ++first )
-    std::iter_swap( first, std::min_element( first, last, comp ) );
-};
+template <typename ForwardIter, typename Compare>
+void selection_sort(ForwardIter first, ForwardIter last, Compare comp) {
+  for (; first != last; ++first) {
+    std::iter_swap(first, std::min_element(first, last, comp));
+  }
+}
 
 /**
  * This function performs a selection sort on a given range of elements, and by using the
@@ -66,11 +63,11 @@ void selection_sort( ForwardIter first, ForwardIter last, Compare comp ) {
  * \param first The start of the range to be sorted.
  * \param last One element past the end of the range to be sorted.
  */
-template < typename ForwardIter >
-inline void selection_sort( ForwardIter first, ForwardIter last ) {
-  selection_sort( first, last, std::less< typename std::iterator_traits< ForwardIter >::value_type >() );
-};
-};
-};
+template <typename ForwardIter>
+inline void selection_sort(ForwardIter first, ForwardIter last) {
+  selection_sort(first, last, std::less<>());
+}
 
-#endif
+}  // namespace ReaK::sorting
+
+#endif  // REAK_SELECTION_SORT_HPP

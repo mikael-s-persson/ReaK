@@ -35,10 +35,11 @@
 #define REAK_MAT_ALG_SKEW_SYMMETRIC_HPP
 
 #include "mat_alg_general.hpp"
+#include "mat_op_results.hpp"
 
+#include <type_traits>
 
 namespace ReaK {
-
 
 /**
  * This class holds a skew-symmetric matrix. This class will hold only the strict upper-triangular part
@@ -51,40 +52,45 @@ namespace ReaK {
  *mat_alignment::column_major (default).
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template < typename T, mat_alignment::tag Alignment, typename Allocator >
-class mat< T, mat_structure::skew_symmetric, Alignment, Allocator > : public serializable {
-public:
-  typedef mat< T, mat_structure::skew_symmetric, Alignment, Allocator > self;
-  typedef Allocator allocator_type;
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
+    : public serializable {
+ public:
+  using self = mat<T, mat_structure::skew_symmetric, Alignment, Allocator>;
+  using allocator_type = Allocator;
 
-  typedef T value_type;
-  typedef std::vector< value_type, allocator_type > container_type;
+  using value_type = T;
+  using container_type = std::vector<value_type, allocator_type>;
 
-  typedef typename container_type::reference reference;
-  typedef typename container_type::const_reference const_reference;
-  typedef typename container_type::pointer pointer;
-  typedef typename container_type::const_pointer const_pointer;
+  using reference = typename container_type::reference;
+  using const_reference = typename container_type::const_reference;
+  using pointer = typename container_type::pointer;
+  using const_pointer = typename container_type::const_pointer;
 
-  typedef void col_iterator;
-  typedef void const_col_iterator;
-  typedef void row_iterator;
-  typedef void const_row_iterator;
+  using col_iterator = void;
+  using const_col_iterator = void;
+  using row_iterator = void;
+  using const_row_iterator = void;
 
-  typedef std::size_t size_type;
-  typedef std::ptrdiff_t difference_type;
+  using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
 
-  BOOST_STATIC_CONSTANT( std::size_t, static_row_count = 0 );
-  BOOST_STATIC_CONSTANT( std::size_t, static_col_count = 0 );
-  BOOST_STATIC_CONSTANT( mat_alignment::tag, alignment = Alignment );
-  BOOST_STATIC_CONSTANT( mat_structure::tag, structure = mat_structure::skew_symmetric );
+  static constexpr std::size_t static_row_count = 0;
+  static constexpr std::size_t static_col_count = 0;
+  static constexpr mat_alignment::tag alignment = Alignment;
+  static constexpr mat_structure::tag structure = mat_structure::skew_symmetric;
 
-private:
-  std::vector< T, Allocator > q; ///< Holds the array of scalar entries.
-  size_type rowCount;            ///< Holds the dimension, both row and column count are equal to size.
+ private:
+  /// Holds the array of scalar entries.
+  std::vector<T, Allocator> q;
+  /// Holds the dimension, both row and column count are equal to size.
+  size_type rowCount;
 
-  static size_type mat_triangular_size( size_type Size ) { return ( Size * ( Size - 1 ) ) / 2 + Size; };
+  static size_type mat_triangular_size(size_type Size) {
+    return (Size * (Size - 1)) / 2 + Size;
+  }
 
-public:
+ public:
   /*******************************************************************************
                            Constructors / Destructors
   *******************************************************************************/
@@ -92,152 +98,170 @@ public:
    * Default constructor: sets all to zero.
    * \test PASSED
    */
-  mat( const allocator_type& aAlloc = allocator_type() ) : q( 0, value_type( 0 ), aAlloc ), rowCount( 0 ){};
+  explicit mat(const allocator_type& aAlloc = allocator_type())
+      : q(0, value_type(0), aAlloc), rowCount(0) {}
 
   /**
    * Constructor for a sized matrix.
    * \test PASSED
    */
-  mat( size_type aRowCount, value_type aFill = 0, const allocator_type& aAlloc = allocator_type() )
-      : q( mat_triangular_size( aRowCount - 1 ), aFill, aAlloc ), rowCount( aRowCount ){};
+  explicit mat(size_type aRowCount, value_type aFill = 0,
+               const allocator_type& aAlloc = allocator_type())
+      : q(mat_triangular_size(aRowCount - 1), aFill, aAlloc),
+        rowCount(aRowCount) {}
 
   /**
    * Standard Copy Constructor with standard semantics.
    * \test PASSED
    */
-  mat( const self& M ) : q( M.q ), rowCount( M.rowCount ){};
+  mat(const self& M) : q(M.q), rowCount(M.rowCount) {}
 
   /**
    * Standard Copy Constructor with standard semantics.
    * \test PASSED
    */
-  mat( self&& M ) : q( std::move( M.q ) ), rowCount( std::move( M.rowCount ) ){};
+  mat(self&& M) noexcept : q(std::move(M.q)), rowCount(std::move(M.rowCount)) {}
 
   /**
    * Explicit constructor from any type of matrix. The "(M - M.transpose) / 2" is applied to guarantee skew-symmetry.
    * \test PASSED
    */
-  template < typename Matrix >
-  explicit mat( const Matrix& M, const allocator_type& aAlloc = allocator_type(),
-                typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
-                                                             boost::mpl::not_< boost::is_same< Matrix, self > > >,
-                                           void* >::type dummy = nullptr )
-      : q( mat_triangular_size( static_cast< size_type >(
-                                  M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count() ) - 1 ),
-           value_type( 0 ), aAlloc ),
-        rowCount(
-          static_cast< size_type >( M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count() ) ) {
-    size_type k = 0;
-    size_type i = 1;
-    size_type min_size
-      = static_cast< size_type >( M.get_row_count() > M.get_col_count() ? M.get_col_count() : M.get_row_count() );
-    for( ; i < min_size; k += i++ ) {
-      for( size_type j = 0; j < i; ++j ) {
-        q[k + j] = value_type( 0.5 ) * ( M( j, i ) - M( i, j ) );
-      };
-    };
-    if( M.get_row_count() > M.get_col_count() ) {
-      for( ; i < rowCount; k += i++ ) {
-        for( size_type j = 0; j < min_size; ++j )
-          q[k + j] = value_type( -0.5 ) * M( i, j );
-      };
+  template <typename Matrix>
+  explicit mat(
+      const Matrix& M, const allocator_type& aAlloc = allocator_type(),
+      std::enable_if_t<
+          is_readable_matrix_v<Matrix> && !std::is_same_v<Matrix, self>, void*>
+          dummy = nullptr)
+      : q(mat_triangular_size(
+              static_cast<size_type>(M.get_row_count() > M.get_col_count()
+                                         ? M.get_row_count()
+                                         : M.get_col_count()) -
+              1),
+          value_type(0), aAlloc),
+        rowCount(static_cast<size_type>(M.get_row_count() > M.get_col_count()
+                                            ? M.get_row_count()
+                                            : M.get_col_count())) {
+    int k = 0;
+    int i = 1;
+    int min_size = (M.get_row_count() > M.get_col_count() ? M.get_col_count()
+                                                          : M.get_row_count());
+    for (; i < min_size; k += i++) {
+      for (int j = 0; j < i; ++j) {
+        q[k + j] = value_type(0.5) * (M(j, i) - M(i, j));
+      }
+    }
+    if (M.get_row_count() > M.get_col_count()) {
+      for (; i < rowCount; k += i++) {
+        for (int j = 0; j < min_size; ++j) {
+          q[k + j] = value_type(-0.5) * M(i, j);
+        }
+      }
     } else {
-      for( ; i < rowCount; k += i++ ) {
-        for( size_type j = 0; j < min_size; ++j )
-          q[k + j] = value_type( 0.5 ) * M( j, i );
-      };
-    };
-  };
+      for (; i < rowCount; k += i++) {
+        for (int j = 0; j < min_size; ++j) {
+          q[k + j] = value_type(0.5) * M(j, i);
+        }
+      }
+    }
+  }
 
   /**
    * Constructor from a symmetric matrix, i.e., takes the skew-symmetric part of a symmetric matrix, which is null.
    * \test PASSED
    */
-  template < mat_alignment::tag Align2, typename Alloc2 >
-  mat( const mat< value_type, mat_structure::symmetric, Align2, Alloc2 >& M,
-       const allocator_type& aAlloc = allocator_type() )
-      : q( mat_triangular_size( M.get_row_count() - 1 ), value_type( 0 ), aAlloc ), rowCount( M.get_row_count() ){};
+  template <mat_alignment::tag Align2, typename Alloc2>
+  explicit mat(
+      const mat<value_type, mat_structure::symmetric, Align2, Alloc2>& M,
+      const allocator_type& aAlloc = allocator_type())
+      : q(mat_triangular_size(M.get_row_count() - 1), value_type(0), aAlloc),
+        rowCount(M.get_row_count()) {}
 
   /**
    * Destructor.
    * \test PASSED
    */
-  ~mat(){};
+  ~mat() override = default;
 
   /**
    * Constructs a 2x2 skew-symmetric matrix from one element.
    * \test PASSED
    */
-  explicit mat( const_reference a12, const allocator_type& aAlloc = allocator_type() )
-      : q( 1, value_type( 0 ), aAlloc ), rowCount( 2 ) {
+  explicit mat(const_reference a12,
+               const allocator_type& aAlloc = allocator_type())
+      : q(1, value_type(0), aAlloc), rowCount(2) {
     q[0] = a12;
-  };
+  }
 
   /**
    * Constructs a 3x3 skew-symmetric matrix from 3 elements.
    * \test PASSED
    */
-  mat( const_reference a12, const_reference a13, const_reference a23, const allocator_type& aAlloc = allocator_type() )
-      : q( 3, value_type( 0 ), aAlloc ), rowCount( 3 ) {
+  mat(const_reference a12, const_reference a13, const_reference a23,
+      const allocator_type& aAlloc = allocator_type())
+      : q(3, value_type(0), aAlloc), rowCount(3) {
     q[0] = a12;
     q[1] = a13;
     q[2] = a23;
-  };
+  }
 
   /**
    * Constructs a 4x4 skew-symmetric matrix from six elements.
    * \test PASSED
    */
-  mat( const_reference a12, const_reference a13, const_reference a14, const_reference a23, const_reference a24,
-       const_reference a34, const allocator_type& aAlloc = allocator_type() )
-      : q( 6, value_type( 0 ), aAlloc ), rowCount( 4 ) {
+  mat(const_reference a12, const_reference a13, const_reference a14,
+      const_reference a23, const_reference a24, const_reference a34,
+      const allocator_type& aAlloc = allocator_type())
+      : q(6, value_type(0), aAlloc), rowCount(4) {
     q[0] = a12;
     q[1] = a13;
     q[2] = a23;
     q[3] = a14;
     q[4] = a24;
     q[5] = a34;
-  };
+  }
 
   /**
    * Explicit constructor of a skew-symmetric matrix from a 3D vector (cross-product matrix).
    * \throw std::range_error if the size of the vector is not 3.
    * \test PASSED
    */
-  explicit mat( const vect_n< T >& V, const allocator_type& aAlloc = allocator_type() )
-      : q( 3, value_type( 0 ), aAlloc ), rowCount( 3 ) {
-    if( V.size() != 3 )
-      throw std::range_error( "To construct a skew-matrix from a vector, that vector must have dimension 3" );
+  explicit mat(const vect_n<T>& V,
+               const allocator_type& aAlloc = allocator_type())
+      : q(3, value_type(0), aAlloc), rowCount(3) {
+    if (V.size() != 3) {
+      throw std::range_error(
+          "To construct a skew-matrix from a vector, that vector must have "
+          "dimension 3");
+    }
     q[0] = -V[2];
     q[1] = V[1];
     q[2] = -V[0];
-  };
+  }
 
   /**
    * Explicit constructor of a skew-symmetric matrix from a 3D vector (cross-product matrix).
    * \test PASSED
    */
-  explicit mat( const vect< T, 3 >& V, const allocator_type& aAlloc = allocator_type() )
-      : q( 3, value_type( 0 ), aAlloc ), rowCount( 3 ) {
+  explicit mat(const vect<T, 3>& V,
+               const allocator_type& aAlloc = allocator_type())
+      : q(3, value_type(0), aAlloc), rowCount(3) {
     q[0] = -V[2];
     q[1] = V[1];
     q[2] = -V[0];
-  };
+  }
 
   /**
    * The standard swap function (works with ADL).
    */
-  friend void swap( self& lhs, self& rhs ) throw() {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
-    swap( lhs.q, rhs.q );
-    swap( lhs.rowCount, rhs.rowCount );
-  };
-
+    swap(lhs.q, rhs.q);
+    swap(lhs.rowCount, rhs.rowCount);
+  }
 
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
-
 
   /**
    * Matrix indexing accessor for read-write access.
@@ -247,14 +271,17 @@ public:
    * \throw std::range_error if the element accessed cannot be written to (diagonal elements).
    * \test PASSED
    */
-  reference operator()( size_type i, size_type j ) {
-    if( i > j )
-      return q[mat_triangular_size( i - 1 ) + j];
-    else if( i < j )
-      return q[mat_triangular_size( j - 1 ) + i];
-    else
-      throw std::range_error( "Cannot set the elements of the diagonal of a skew-symmetric matrix!" );
-  };
+  reference operator()(int i, int j) {
+    if (i > j) {
+      return q[mat_triangular_size(i - 1) + j];
+    }
+    if (i < j) {
+      return q[mat_triangular_size(j - 1) + i];
+    }
+    throw std::range_error(
+        "Cannot set the elements of the diagonal of a skew-symmetric "
+        "matrix!");
+  }
 
   /**
    * Matrix indexing accessor for read-only access.
@@ -263,46 +290,49 @@ public:
    * \return the element at the given position.
    * \test PASSED
    */
-  value_type operator()( size_type i, size_type j ) const {
-    if( i > j )
-      return -q[mat_triangular_size( i - 1 ) + j];
-    else if( i < j )
-      return q[mat_triangular_size( j - 1 ) + i];
-    else
-      return value_type( 0.0 );
-  };
+  value_type operator()(int i, int j) const {
+    if (i > j) {
+      return -q[mat_triangular_size(i - 1) + j];
+    }
+    if (i < j) {
+      return q[mat_triangular_size(j - 1) + i];
+    }
+    return value_type(0.0);
+  }
 
   /**
    * Sub-matrix operator, accessor for read only.
    * \test PASSED
    */
-  mat_const_sub_block< self > operator()( const std::pair< size_type, size_type >& r,
-                                          const std::pair< size_type, size_type >& c ) const {
-    return sub ( *this )( r, c );
-  };
+  mat_const_sub_block<self> operator()(const std::pair<int, int>& r,
+                                       const std::pair<int, int>& c) const {
+    return sub(*this)(r, c);
+  }
 
   /**
    * Sub-matrix operator, accessor for read only.
    * \test PASSED
    */
-  mat_const_col_slice< self > operator()( size_type r, const std::pair< size_type, size_type >& c ) const {
-    return slice ( *this )( r, c );
-  };
+  mat_const_col_slice<self> operator()(int r,
+                                       const std::pair<int, int>& c) const {
+    return slice(*this)(r, c);
+  }
 
   /**
    * Sub-matrix operator, accessor for read only.
    * \test PASSED
    */
-  mat_const_row_slice< self > operator()( const std::pair< size_type, size_type >& r, size_type c ) const {
-    return slice ( *this )( r, c );
-  };
+  mat_const_row_slice<self> operator()(const std::pair<int, int>& r,
+                                       int c) const {
+    return slice(*this)(r, c);
+  }
 
   /**
    * Gets the row-count (number of rows) of the matrix.
    * \return number of rows of the matrix.
    * \test PASSED
    */
-  size_type get_row_count() const { return rowCount; };
+  size_type get_row_count() const { return rowCount; }
 
   /**
    * Sets the row-count (number of rows) of the matrix.
@@ -310,18 +340,18 @@ public:
    * \param aPreserveData If true, the resizing will preserve all the data it can.
    * \test PASSED
    */
-  void set_row_count( size_type aRowCount, bool aPreserveData = false ) {
-    RK_UNUSED( aPreserveData );
-    q.resize( mat_triangular_size( aRowCount - 1 ), value_type( 0 ) );
+  void set_row_count(size_type aRowCount, bool aPreserveData = false) {
+    RK_UNUSED(aPreserveData);
+    q.resize(mat_triangular_size(aRowCount - 1), value_type(0));
     rowCount = aRowCount;
-  };
+  }
 
   /**
    * Gets the column-count (number of columns) of the matrix.
    * \return number of columns of the matrix.
    * \test PASSED
    */
-  size_type get_col_count() const { return rowCount; };
+  size_type get_col_count() const { return rowCount; }
 
   /**
    * Sets the column-count (number of columns) of the matrix.
@@ -329,31 +359,35 @@ public:
    * \param aPreserveData If true, the resizing will preserve all the data it can.
    * \test PASSED
    */
-  void set_col_count( unsigned int aColCount, bool aPreserveData = false ) {
-    RK_UNUSED( aPreserveData );
-    q.resize( mat_triangular_size( aColCount - 1 ), value_type( 0 ) );
+  void set_col_count(unsigned int aColCount, bool aPreserveData = false) {
+    RK_UNUSED(aPreserveData);
+    q.resize(mat_triangular_size(aColCount - 1), value_type(0));
     rowCount = aColCount;
-  };
+  }
 
   /**
    * Gets the row-count and column-count of the matrix, as a std::pair of values.
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair< size_type, size_type > size() const throw() { return std::make_pair( rowCount, rowCount ); };
+  std::pair<size_type, size_type> size() const noexcept {
+    return std::make_pair(rowCount, rowCount);
+  }
 
   /**
    * Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
    * \param sz new dimensions for the matrix.
    * \test PASSED
    */
-  void resize( const std::pair< size_type, size_type >& sz ) { set_row_count( sz.first, true ); };
+  void resize(const std::pair<size_type, size_type>& sz) {
+    set_row_count(sz.first, true);
+  }
 
   /**
    * Returns the allocator object of the underlying container.
    * \return the allocator object of the underlying container.
    */
-  allocator_type get_allocator() const { return q.get_allocator(); };
+  allocator_type get_allocator() const { return q.get_allocator(); }
 
   /*******************************************************************************
                            Assignment Operators
@@ -363,21 +397,21 @@ public:
    * Standard Assignment operator with a symmetric matrix.
    * \test PASSED
    */
-  self& operator=( self M ) {
-    swap( *this, M );
+  self& operator=(self M) {
+    swap(*this, M);
     return *this;
-  };
+  }
 
   /**
    * Standard Assignment operator with a symmetric matrix.
    * \test PASSED
    */
-  template < typename Matrix >
-  self& operator=( const Matrix& M ) {
-    self tmp( M );
-    swap( *this, tmp );
+  template <typename Matrix>
+  self& operator=(const Matrix& M) {
+    self tmp(M);
+    swap(*this, tmp);
     return *this;
-  };
+  }
 
   /**
    * Add-and-store operator with standard semantics.
@@ -386,14 +420,16 @@ public:
    * \throw std::range_error if the matrix dimensions don't match.
    * \test PASSED
    */
-  self& operator+=( const self& M ) {
-    if( M.rowCount != rowCount )
-      throw std::range_error( "Matrix dimension mismatch." );
-    typename container_type::iterator it = q.begin();
-    for( typename container_type::const_iterator cit = M.q.begin(); it != q.end(); ++it, ++cit )
+  self& operator+=(const self& M) {
+    if (M.rowCount != rowCount) {
+      throw std::range_error("Matrix dimension mismatch.");
+    }
+    auto it = q.begin();
+    for (auto cit = M.q.begin(); it != q.end(); ++it, ++cit) {
       *it += *cit;
+    }
     return *this;
-  };
+  }
 
   /**
    * Sub-and-store operator with standard semantics.
@@ -402,14 +438,16 @@ public:
    * \throw std::range_error if the matrix dimensions don't match.
    * \test PASSED
    */
-  self& operator-=( const self& M ) {
-    if( M.rowCount != rowCount )
-      throw std::range_error( "Matrix dimension mismatch." );
-    typename container_type::iterator it = q.begin();
-    for( typename container_type::const_iterator cit = M.q.begin(); it != q.end(); ++it, ++cit )
+  self& operator-=(const self& M) {
+    if (M.rowCount != rowCount) {
+      throw std::range_error("Matrix dimension mismatch.");
+    }
+    auto it = q.begin();
+    for (auto cit = M.q.begin(); it != q.end(); ++it, ++cit) {
       *it -= *cit;
+    }
     return *this;
-  };
+  }
 
   /**
    * Scalar-multiply-and-store operator with standard semantics.
@@ -417,12 +455,12 @@ public:
    * \return this matrix by reference.
    * \test PASSED
    */
-  self& operator*=( const T& S ) {
-    for( typename container_type::iterator it = q.begin(); it != q.end(); ++it )
-      *it *= S;
+  self& operator*=(const T& S) {
+    for (auto& v : q) {
+      v *= S;
+    }
     return *this;
-  };
-
+  }
 
   /*******************************************************************************
                            Basic Operators
@@ -435,10 +473,10 @@ public:
    * \throw std::range_error if the matrix dimensions don't match.
    * \test PASSED
    */
-  friend self operator+( self M1, const self& M2 ) {
+  friend self operator+(self M1, const self& M2) {
     M1 += M2;
     return M1;
-  };
+  }
 
   /**
    * Negation operator with standard semantics.
@@ -446,12 +484,13 @@ public:
    * \test PASSED
    */
   self operator-() const {
-    self result( rowCount, value_type( 0 ), q.get_allocator() );
-    typename container_type::iterator it = result.q.begin();
-    for( typename container_type::const_iterator cit = q.begin(); cit != q.end(); ++it, ++cit )
+    self result(rowCount, value_type(0), q.get_allocator());
+    auto it = result.q.begin();
+    for (auto cit = q.begin(); cit != q.end(); ++it, ++cit) {
       *it -= *cit;
+    }
     return result;
-  };
+  }
 
   /**
    * Substraction operator with standard semantics.
@@ -460,10 +499,10 @@ public:
    * \throw std::range_error if the matrix dimensions don't match.
    * \test PASSED
    */
-  friend self operator-( self M1, const self& M2 ) {
+  friend self operator-(self M1, const self& M2) {
     M1 -= M2;
     return M1;
-  };
+  }
 
   /**
    * Multiplication operator with standard semantics.
@@ -473,28 +512,24 @@ public:
    * \throw std::range_error if the matrix dimensions don't match.
    * \test PASSED
    */
-  template < typename Matrix >
-  friend typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
-                                                      boost::mpl::bool_< ( mat_product_priority< Matrix >::value
-                                                                           < mat_product_priority< self >::value ) > >,
-                                    mat< value_type, mat_structure::rectangular, Alignment, Allocator > >::type
-    operator*( const self& M1, const Matrix& M2 ) {
-    if( M1.rowCount != M2.get_row_count() )
-      throw std::range_error( "Matrix dimension mismatch." );
-    mat< value_type, mat_structure::rectangular, Alignment, Allocator > result( M1.rowCount, M2.get_col_count(),
-                                                                                value_type( 0 ), M1.get_allocator() );
-    size_type k = 0;
-    size_type i = 1;
-    for( ; i < M1.rowCount; k += i++ ) {
-      for( size_type l = 0; l < M2.get_col_count(); ++l ) {
-        for( size_type j = 0; j < i; ++j ) {
-          result( j, l ) += M1.q[k + j] * M2( i, l );
-          result( i, l ) -= M1.q[k + j] * M2( j, l );
-        };
-      };
-    };
-    return result;
-  };
+  template <typename Matrix>
+  auto multiply_this_and_dense_mat(const Matrix& M2) const {
+    using ValueType = mat_value_type_t<Matrix>;
+    mat_product_result_t<self, Matrix> result{M2.get_row_count(),
+                                              M2.get_col_count(), ValueType(0),
+                                              M2.get_allocator()};
+    int k = 0;
+    int i = 1;
+    for (; i < rowCount; k += i++) {
+      for (int l = 0; l < M2.get_col_count(); ++l) {
+        for (int j = 0; j < i; ++j) {
+          result(j, l) += q[k + j] * M2(i, l);
+          result(i, l) -= q[k + j] * M2(j, l);
+        }
+      }
+    }
+    return result;  // NRVO
+  }
 
   /**
    * Multiplication operator with standard semantics.
@@ -504,28 +539,24 @@ public:
    * \throw std::range_error if the matrix dimensions don't match.
    * \test PASSED
    */
-  template < typename Matrix >
-  friend typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
-                                                      boost::mpl::bool_< ( mat_product_priority< Matrix >::value
-                                                                           < mat_product_priority< self >::value ) > >,
-                                    mat< value_type, mat_structure::rectangular, Alignment, Allocator > >::type
-    operator*( const Matrix& M1, const self& M2 ) {
-    if( M2.rowCount != M1.get_col_count() )
-      throw std::range_error( "Matrix dimension mismatch." );
-    mat< value_type, mat_structure::rectangular, Alignment, Allocator > result( M1.get_row_count(), M2.rowCount,
-                                                                                value_type( 0 ), M2.get_allocator() );
-    size_type k = 0;
-    size_type i = 1;
-    for( ; i < M2.rowCount; k += i++ ) {
-      for( size_type l = 0; l < M1.get_row_count(); ++l ) {
-        for( size_type j = 0; j < i; ++j ) {
-          result( l, j ) -= M2.q[k + j] * M1( l, i );
-          result( l, i ) += M2.q[k + j] * M1( l, j );
-        };
-      };
-    };
+  template <typename Matrix>
+  auto multiply_dense_and_this_mat(const Matrix& M1) const {
+    using ValueType = mat_value_type_t<Matrix>;
+    mat_product_result_t<Matrix, self> result{M1.get_row_count(),
+                                              M1.get_col_count(), ValueType(0),
+                                              M1.get_allocator()};
+    int k = 0;
+    int i = 1;
+    for (; i < rowCount; k += i++) {
+      for (int l = 0; l < M1.get_row_count(); ++l) {
+        for (int j = 0; j < i; ++j) {
+          result(l, j) -= q[k + j] * M1(l, i);
+          result(l, i) += q[k + j] * M1(l, j);
+        }
+      }
+    }
     return result;
-  };
+  }
 
   /**
    * Multiplication operator with a skew-symmetric matrix.
@@ -534,42 +565,37 @@ public:
    * \throw std::range_error if the matrix dimensions don't match.
    * \test PASSED
    */
-  friend mat< value_type, mat_structure::square, alignment, allocator_type > operator*( const self& M1,
-                                                                                        const self& M2 ) {
-    if( M1.rowCount != M2.rowCount )
-      throw std::range_error( "Matrix dimension mismatch." );
-    mat< value_type, mat_structure::square, alignment, allocator_type > result( M1.rowCount, value_type( 0 ),
-                                                                                M1.get_allocator() );
-    size_type k = 0;
-    size_type i = 1;
-    for( ; i < M1.rowCount; k += i++ ) {
-      size_type h = 0;
-      size_type l = 0;
-      for( ; l <= i; h += l++ ) {
-        size_type m = 0;
-        size_type j = 0;
-        for( ; j < l; m += j++ ) {
-          result( j, l ) -= M1.q[k + j] * M2.q[k + l];
-          result( i, l ) -= M1.q[k + j] * M2.q[h + j];
-        };
-        result( j, l ) -= M1.q[k + j] * M2.q[k + l];
-        for( m += j++; j < i; m += j++ ) {
-          result( j, l ) -= M1.q[k + j] * M2.q[k + l];
-          result( i, l ) += M1.q[k + j] * M2.q[m + l];
-        };
-      };
-      for( ; l < M2.rowCount; h += l++ ) {
-        size_type m = 0;
-        size_type j = 0;
-        for( ; j < i; m += j++ ) {
-          result( j, l ) += M1.q[k + j] * M2.q[h + i];
-          result( i, l ) -= M1.q[k + j] * M2.q[h + j];
-        };
-      };
-    };
+  auto multiply_with_same_mat(const self& M2) const {
+    mat_product_result_t<self, self> result{rowCount, value_type(0),
+                                            get_allocator()};
+    int k = 0;
+    int i = 1;
+    for (; i < rowCount; k += i++) {
+      int h = 0;
+      int l = 0;
+      for (; l <= i; h += l++) {
+        int m = 0;
+        int j = 0;
+        for (; j < l; m += j++) {
+          result(j, l) -= q[k + j] * M2.q[k + l];
+          result(i, l) -= q[k + j] * M2.q[h + j];
+        }
+        result(j, l) -= q[k + j] * M2.q[k + l];
+        for (m += j++; j < i; m += j++) {
+          result(j, l) -= q[k + j] * M2.q[k + l];
+          result(i, l) += q[k + j] * M2.q[m + l];
+        }
+      }
+      for (; l < M2.rowCount; h += l++) {
+        int j = 0;
+        for (; j < i; j++) {
+          result(j, l) += q[k + j] * M2.q[h + i];
+          result(i, l) -= q[k + j] * M2.q[h + j];
+        }
+      }
+    }
     return result;
-  };
-
+  }
 
   /**
    * Multiplication by a column-vector.
@@ -578,21 +604,17 @@ public:
    * \return column-vector equal to this * V.
    * \throw std::range_error if this matrix and the vector dimensions don't match.
    */
-  template < unsigned int Size >
-  friend vect< T, Size > operator*( const self& M, const vect< T, Size >& V ) {
-    if( M.rowCount != Size )
-      throw std::range_error( "Matrix dimension mismatch." );
-    vect< T, Size > result;
-    size_type k = 0;
-    size_type i = 1;
-    for( ; i < Size; k += i++ ) {
-      for( size_type j = 0; j < i; ++j ) {
-        result[j] += M.q[k + j] * V[i];
-        result[i] -= M.q[k + j] * V[j];
-      };
-    };
-    return result;
-  };
+  template <typename Vector, typename Result>
+  void multiply_with_vector_rhs(const Vector& V, Result& R) const {
+    int k = 0;
+    int i = 1;
+    for (; i < R.size(); k += i++) {
+      for (int j = 0; j < i; ++j) {
+        R[j] += q[k + j] * V[i];
+        R[i] -= q[k + j] * V[j];
+      }
+    }
+  }
 
   /**
    * Multiplication by a row-vector.
@@ -601,70 +623,17 @@ public:
    * \return column-vector equal to this * V.
    * \throw std::range_error if this matrix and the vector dimensions don't match.
    */
-  template < unsigned int Size >
-  friend vect< T, Size > operator*( const vect< T, Size >& V, const self& M ) {
-    if( M.rowCount != Size )
-      throw std::range_error( "Matrix dimension mismatch." );
-    vect< T, Size > result;
-    size_type k = 0;
-    size_type i = 1;
-    for( ; i < Size; k += i++ ) {
-      for( size_type j = 0; j < i; ++j ) {
-        result[j] -= M.q[k + j] * V[i];
-        result[i] += M.q[k + j] * V[j];
-      };
-    };
-    return result;
-  };
-
-  /**
-   * Multiplication by a column-vector.
-   * \param M the matrix.
-   * \param V the column vector.
-   * \return column-vector equal to this * V.
-   * \throw std::range_error if this matrix and the vector dimensions don't match.
-   */
-  template < typename Vector >
-  friend typename boost::enable_if< is_writable_vector< Vector >, Vector >::type operator*( const self& M,
-                                                                                            const Vector& V ) {
-    if( M.rowCount != V.size() )
-      throw std::range_error( "Matrix dimension mismatch." );
-    Vector result( V.size(), value_type( 0 ), V.get_allocator() );
-    size_type k = 0;
-    size_type i = 1;
-    for( ; i < V.size(); k += i++ ) {
-      for( size_type j = 0; j < i; ++j ) {
-        result[j] += M.q[k + j] * V[i];
-        result[i] -= M.q[k + j] * V[j];
-      };
-    };
-    return result;
-  };
-
-  /**
-   * Multiplication by a row-vector.
-   * \param M the matrix.
-   * \param V the column vector.
-   * \return column-vector equal to this * V.
-   * \throw std::range_error if this matrix and the vector dimensions don't match.
-   */
-  template < typename Vector >
-  friend typename boost::enable_if< is_writable_vector< Vector >, Vector >::type operator*( const Vector& V,
-                                                                                            const self& M ) {
-    if( M.rowCount != V.size() )
-      throw std::range_error( "Matrix dimension mismatch." );
-    Vector result( V.size(), value_type( 0 ), V.get_allocator() );
-    size_type k = 0;
-    size_type i = 1;
-    for( ; i < V.size(); k += i++ ) {
-      for( size_type j = 0; j < i; ++j ) {
-        result[j] -= M.q[k + j] * V[i];
-        result[i] += M.q[k + j] * V[j];
-      };
-    };
-    return result;
-  };
-
+  template <typename Vector, typename Result>
+  void multiply_with_vector_lhs(const Vector& V, Result& R) const {
+    int k = 0;
+    int i = 1;
+    for (; i < R.size(); k += i++) {
+      for (int j = 0; j < i; ++j) {
+        R[j] -= q[k + j] * V[i];
+        R[i] += q[k + j] * V[j];
+      }
+    }
+  }
 
   /*******************************************************************************
                            Special Methods
@@ -678,18 +647,20 @@ public:
    * \return The skew-symmetric sub-matrix contained in this matrix.
    * \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
    */
-  friend self get_block( const self& M, size_type aDiagOffset, size_type aSizeOut ) {
-    if( aDiagOffset + aSizeOut > M.rowCount )
-      throw std::range_error( "Matrix dimension mismatch." );
-    self result( aSizeOut, value_type( 0 ), M.get_allocator() );
-    size_type k = mat_triangular_size( aDiagOffset );
-    size_type k_out = 0;
-    for( size_type i = 1; i < aSizeOut; k += ( i + aDiagOffset ), k_out += i++ )
-      for( size_type j = 0; j < i; ++j )
+  friend self get_block(const self& M, int aDiagOffset, int aSizeOut) {
+    if (aDiagOffset + aSizeOut > M.rowCount) {
+      throw std::range_error("Matrix dimension mismatch.");
+    }
+    self result(aSizeOut, value_type(0), M.get_allocator());
+    int k = mat_triangular_size(aDiagOffset);
+    int k_out = 0;
+    for (int i = 1; i < aSizeOut; k += (i + aDiagOffset), k_out += i++) {
+      for (int j = 0; j < i; ++j) {
         result.q[k_out + j] = M.q[k + j + aDiagOffset];
+      }
+    }
     return result;
-  };
-
+  }
 
   /** Sets the sub-part of this matrix to a skew-symmetric sub-matrix M.
    * \param M A skew-symmetric sub-matrix that will be written in the sub-part of this matrix.
@@ -697,116 +668,108 @@ public:
    * \return This matrix, by reference.
    * \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
    */
-  friend self& set_block( self& M, const self& subM, size_type aDiagOffset ) {
-    if( aDiagOffset + subM.rowCount > M.rowCount )
-      throw std::range_error( "Matrix dimension mismatch." );
-    size_type k = mat_triangular_size( aDiagOffset );
-    size_type k_in = 0;
-    for( size_type i = 1; i < subM.rowCount; k += ( i + aDiagOffset ), k_in += i++ )
-      for( size_type j = 0; j <= i; ++j )
+  friend self& set_block(self& M, const self& subM, int aDiagOffset) {
+    if (aDiagOffset + subM.rowCount > M.rowCount) {
+      throw std::range_error("Matrix dimension mismatch.");
+    }
+    int k = mat_triangular_size(aDiagOffset);
+    int k_in = 0;
+    for (int i = 1; i < subM.rowCount; k += (i + aDiagOffset), k_in += i++) {
+      for (int j = 0; j <= i; ++j) {
         M.q[k + j + aDiagOffset] = subM.q[k_in + j];
+      }
+    }
     return M;
-  };
-
+  }
 
   /**
    * Appends the matrix 'rhs' to the end of the matrix 'lhs'.
    * \param lhs The matrix to which to append the other.
    * \param rhs The matrix to be appended to 'lhs'.
    */
-  friend void append_block_diag( self& lhs, const self& rhs ) {
+  friend void append_block_diag(self& lhs, const self& rhs) {
     size_type oldCount = lhs.get_col_count();
-    lhs.set_col_count( oldCount + rhs.get_col_count(), true );
-    set_block( lhs, rhs, oldCount );
-  };
-
+    lhs.set_col_count(oldCount + rhs.get_col_count(), true);
+    set_block(lhs, rhs, oldCount);
+  }
 
   /**
    * Transposes the matrix M.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
-  friend self transpose( const self& M ) { return -M; };
+  friend self transpose(const self& M) { return -M; }
 
   /**
    * Transposes and moves the matrix M.
    * \param M The matrix to be transposed and moved.
    * \return The transpose of M.
    */
-  friend self transpose_move( self& M ) {
+  friend self transpose_move(self& M) {
     self result;
-    swap( result, M );
-    for( typename container_type::iterator it = result.q.begin(); it != result.q.end(); ++it )
-      *it = -( *it );
+    swap(result, M);
+    for (auto& v : result.q) {
+      v = -v;
+    }
     return result;
-  };
+  }
 
   /**
    * Transposes and moves the matrix M.
    * \param M The matrix to be transposed and moved.
    * \return The transpose of M.
    */
-  friend self transpose( self&& M ) {
-    self result( std::move( M ) );
-    for( typename container_type::iterator it = result.q.begin(); it != result.q.end(); ++it )
-      *it = -( *it );
+  friend self transpose(self&& M) {
+    self result(std::move(M));
+    for (auto& v : result.q) {
+      v = -v;
+    }
     return result;
-  };
+  }
 
   /**
    * Returns the trace of matrix M.
    * \param M A diagonal matrix.
    * \return the trace of matrix M.
    */
-  friend value_type trace( const self& M ) { return value_type( 0 ); };
-
+  friend value_type trace(const self& M) { return value_type(0); }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    A& std::pair< std::string, const std::vector< T >& >( "q", q )
-      & std::pair< std::string, std::size_t >( "rowCount", rowCount );
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    A& std::pair< std::string, std::vector< T >& >( "q", q )
-      & std::pair< std::string, std::size_t& >( "rowCount", rowCount );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    A& std::pair<std::string, const std::vector<T>&>("q", q) &
+        std::pair<std::string, std::size_t>("rowCount", rowCount);
+  }
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
+    A& std::pair<std::string, std::vector<T>&>("q", q) &
+        std::pair<std::string, std::size_t&>("rowCount", rowCount);
+  }
 
-  RK_RTTI_REGISTER_CLASS_1BASE( self, 1, serializable )
+  RK_RTTI_REGISTER_CLASS_1BASE(self, 1, serializable)
 };
 
+#define RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS(SUBMATRIX)                 \
+  template <typename Matrix>                                                   \
+  mat<mat_value_type_t<Matrix>, mat_structure::skew_symmetric> transpose(      \
+      const SUBMATRIX<Matrix, mat_structure::skew_symmetric>& M) {             \
+    return -M;                                                                 \
+  }                                                                            \
+                                                                               \
+  template <typename Matrix>                                                   \
+  mat<mat_value_type_t<Matrix>, mat_structure::skew_symmetric> transpose_move( \
+      const SUBMATRIX<Matrix, mat_structure::skew_symmetric>& M) {             \
+    return -M;                                                                 \
+  }
 
-#define RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS( SUBMATRIX )                                         \
-  template < typename Matrix >                                                                           \
-  mat< typename mat_traits< Matrix >::value_type, mat_structure::skew_symmetric > transpose(             \
-    const SUBMATRIX< Matrix, mat_structure::skew_symmetric >& M ) {                                      \
-    typedef mat< typename mat_traits< Matrix >::value_type, mat_structure::skew_symmetric > result_type; \
-    return result_type( -M );                                                                            \
-  };                                                                                                     \
-                                                                                                         \
-  template < typename Matrix >                                                                           \
-  mat< typename mat_traits< Matrix >::value_type, mat_structure::skew_symmetric > transpose_move(        \
-    const SUBMATRIX< Matrix, mat_structure::skew_symmetric >& M ) {                                      \
-    typedef mat< typename mat_traits< Matrix >::value_type, mat_structure::skew_symmetric > result_type; \
-    return result_type( -M );                                                                            \
-  };
-
-RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS( mat_copy_sub_sym_block )
-RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS( mat_sub_sym_block )
-RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS( mat_const_sub_sym_block )
+RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS(mat_copy_sub_sym_block)
+RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS(mat_sub_sym_block)
+RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS(mat_const_sub_sym_block)
 
 #undef RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS
 
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
-extern template class mat< double, mat_structure::skew_symmetric >;
-extern template class mat< float, mat_structure::skew_symmetric >;
-
-#endif
-};
-
+}  // namespace ReaK
 
 #endif

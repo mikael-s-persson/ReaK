@@ -30,139 +30,149 @@
 
 #include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
 
-
 namespace ReaK {
 
 namespace qt {
 
-View3DMenu::View3DMenu( QWidget* parent, SoQtExaminerViewer* aViewer )
-    : QMenu( tr( "View" ), parent ), qtviewer( aViewer ), root_sep( nullptr ) {
+View3DMenu::View3DMenu(QWidget* parent, SoQtExaminerViewer* aViewer)
+    : QMenu(tr("View"), parent), qtviewer(aViewer), root_sep(nullptr) {
   // addAction("Some General Option");
   addSeparator();
 
-  if( qtviewer ) {
+  if (qtviewer) {
     root_sep = new SoSeparator;
     root_sep->ref();
-    qtviewer->setSceneGraph( root_sep );
+    qtviewer->setSceneGraph(root_sep);
     qtviewer->show();
   };
 };
 
 View3DMenu::~View3DMenu() {
-  if( root_sep )
+  if (root_sep)
     root_sep->unref();
   delete qtviewer;
 };
 
-
-void View3DMenu::toggleDisplayGroup( bool isChecked ) {
-  QAction* snder = static_cast< QAction* >( sender() );
+void View3DMenu::toggleDisplayGroup(bool isChecked) {
+  QAction* snder = static_cast<QAction*>(sender());
 
   std::string snder_name = snder->text().toStdString();
-  std::map< std::string, display_group >::iterator itd = display_items.find( snder_name );
-  if( itd != display_items.end() ) {
-    itd->second.display_switch->whichChild.setValue( ( isChecked ? SO_SWITCH_ALL : SO_SWITCH_NONE ) );
+  std::map<std::string, display_group>::iterator itd =
+      display_items.find(snder_name);
+  if (itd != display_items.end()) {
+    itd->second.display_switch->whichChild.setValue(
+        (isChecked ? SO_SWITCH_ALL : SO_SWITCH_NONE));
     return;
   };
 
-  std::map< std::string, geometry_group >::iterator itg = geometry_items.find( snder_name );
-  if( itg != geometry_items.end() ) {
-    itg->second.geom_scene->setVisibility( isChecked );
+  std::map<std::string, geometry_group>::iterator itg =
+      geometry_items.find(snder_name);
+  if (itg != geometry_items.end()) {
+    itg->second.geom_scene->setVisibility(isChecked);
     return;
   };
 };
 
-
-void View3DMenu::setViewer( SoQtExaminerViewer* aViewer ) {
+void View3DMenu::setViewer(SoQtExaminerViewer* aViewer) {
   SoSeparator* newRoot = nullptr;
-  if( aViewer ) {
+  if (aViewer) {
     newRoot = new SoSeparator;
     newRoot->ref();
-    aViewer->setSceneGraph( newRoot );
+    aViewer->setSceneGraph(newRoot);
     aViewer->show();
   };
-  if( ( root_sep ) && ( newRoot ) ) {
-    for( std::map< std::string, display_group >::iterator it = display_items.begin(); it != display_items.end();
-         ++it ) {
-      newRoot->addChild( it->second.display_switch );
-      root_sep->removeChild( it->second.display_switch );
+  if ((root_sep) && (newRoot)) {
+    for (std::map<std::string, display_group>::iterator it =
+             display_items.begin();
+         it != display_items.end(); ++it) {
+      newRoot->addChild(it->second.display_switch);
+      root_sep->removeChild(it->second.display_switch);
     };
-    for( std::map< std::string, geometry_group >::iterator it = geometry_items.begin(); it != geometry_items.end();
-         ++it ) {
-      newRoot->addChild( it->second.geom_scene->getSceneGraph() );
-      root_sep->removeChild( it->second.geom_scene->getSceneGraph() );
+    for (std::map<std::string, geometry_group>::iterator it =
+             geometry_items.begin();
+         it != geometry_items.end(); ++it) {
+      newRoot->addChild(it->second.geom_scene->getSceneGraph());
+      root_sep->removeChild(it->second.geom_scene->getSceneGraph());
     };
   };
-  if( root_sep )
+  if (root_sep)
     root_sep->unref();
   delete qtviewer;
   qtviewer = aViewer;
-  root_sep = newRoot; // already been ref'ed (above).
+  root_sep = newRoot;  // already been ref'ed (above).
 };
 
-
-SoSwitch* View3DMenu::getDisplayGroup( const std::string& aGroupName, bool initChecked ) {
-  std::map< std::string, display_group >::iterator it = display_items.find( aGroupName );
-  if( it != display_items.end() )
+SoSwitch* View3DMenu::getDisplayGroup(const std::string& aGroupName,
+                                      bool initChecked) {
+  std::map<std::string, display_group>::iterator it =
+      display_items.find(aGroupName);
+  if (it != display_items.end())
     return it->second.display_switch;
-  if( !root_sep )
+  if (!root_sep)
     return nullptr;
 
   display_group& dg = display_items[aGroupName];
   dg.display_switch = new SoSwitch;
-  dg.display_switch->whichChild.setValue( ( initChecked ? SO_SWITCH_ALL : SO_SWITCH_NONE ) );
-  root_sep->addChild( dg.display_switch );
-  dg.selector = addAction( QString::fromStdString( aGroupName ) );
-  dg.selector->setCheckable( true );
-  dg.selector->setChecked( initChecked );
+  dg.display_switch->whichChild.setValue(
+      (initChecked ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  root_sep->addChild(dg.display_switch);
+  dg.selector = addAction(QString::fromStdString(aGroupName));
+  dg.selector->setCheckable(true);
+  dg.selector->setChecked(initChecked);
 
-  connect( dg.selector, SIGNAL( toggled(bool)), this, SLOT( toggleDisplayGroup(bool)) );
+  connect(dg.selector, SIGNAL(toggled(bool)), this,
+          SLOT(toggleDisplayGroup(bool)));
 
   return dg.display_switch;
 };
 
-void View3DMenu::removeDisplayGroup( const std::string& aGroupName ) {
-  std::map< std::string, display_group >::iterator it = display_items.find( aGroupName );
-  if( it == display_items.end() )
+void View3DMenu::removeDisplayGroup(const std::string& aGroupName) {
+  std::map<std::string, display_group>::iterator it =
+      display_items.find(aGroupName);
+  if (it == display_items.end())
     return;
 
-  if( root_sep )
-    root_sep->removeChild( it->second.display_switch );
-  removeAction( it->second.selector );
-  display_items.erase( it );
+  if (root_sep)
+    root_sep->removeChild(it->second.display_switch);
+  removeAction(it->second.selector);
+  display_items.erase(it);
 };
 
-
-shared_ptr< geom::oi_scene_graph > View3DMenu::getGeometryGroup( const std::string& aGroupName, bool initChecked ) {
-  std::map< std::string, geometry_group >::iterator it = geometry_items.find( aGroupName );
-  if( it != geometry_items.end() )
+shared_ptr<geom::oi_scene_graph> View3DMenu::getGeometryGroup(
+    const std::string& aGroupName, bool initChecked) {
+  std::map<std::string, geometry_group>::iterator it =
+      geometry_items.find(aGroupName);
+  if (it != geometry_items.end())
     return it->second.geom_scene;
-  if( !root_sep )
+  if (!root_sep)
     return nullptr;
 
   geometry_group& gg = geometry_items[aGroupName];
-  gg.geom_scene = shared_ptr< geom::oi_scene_graph >( new geom::oi_scene_graph );
+  gg.geom_scene =
+      std::shared_ptr<geom::oi_scene_graph>(new geom::oi_scene_graph);
   gg.geom_scene->enableAnchorUpdates();
-  gg.geom_scene->setVisibility( initChecked );
-  root_sep->addChild( gg.geom_scene->getSceneGraph() );
-  gg.selector = addAction( QString::fromStdString( aGroupName ) );
-  gg.selector->setCheckable( true );
-  gg.selector->setChecked( initChecked );
+  gg.geom_scene->setVisibility(initChecked);
+  root_sep->addChild(gg.geom_scene->getSceneGraph());
+  gg.selector = addAction(QString::fromStdString(aGroupName));
+  gg.selector->setCheckable(true);
+  gg.selector->setChecked(initChecked);
 
-  connect( gg.selector, SIGNAL( toggled(bool)), this, SLOT( toggleDisplayGroup(bool)) );
+  connect(gg.selector, SIGNAL(toggled(bool)), this,
+          SLOT(toggleDisplayGroup(bool)));
 
   return gg.geom_scene;
 };
 
-void View3DMenu::removeGeometryGroup( const std::string& aGroupName ) {
-  std::map< std::string, geometry_group >::iterator it = geometry_items.find( aGroupName );
-  if( it == geometry_items.end() )
+void View3DMenu::removeGeometryGroup(const std::string& aGroupName) {
+  std::map<std::string, geometry_group>::iterator it =
+      geometry_items.find(aGroupName);
+  if (it == geometry_items.end())
     return;
 
-  if( root_sep )
-    root_sep->removeChild( it->second.geom_scene->getSceneGraph() );
-  removeAction( it->second.selector );
-  geometry_items.erase( it );
+  if (root_sep)
+    root_sep->removeChild(it->second.geom_scene->getSceneGraph());
+  removeAction(it->second.selector);
+  geometry_items.erase(it);
 };
-};
-};
+};  // namespace qt
+};  // namespace ReaK

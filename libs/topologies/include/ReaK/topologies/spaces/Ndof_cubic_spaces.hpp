@@ -33,55 +33,55 @@
 #ifndef REAK_NDOF_CUBIC_SPACES_HPP
 #define REAK_NDOF_CUBIC_SPACES_HPP
 
+#include <ReaK/topologies/interpolation/cubic_hermite_interp.hpp>
+#include <ReaK/topologies/interpolation/interpolated_topologies.hpp>
 #include "Ndof_spaces.hpp"
+#include "reachability_space.hpp"
 #include "temporal_space.hpp"
 #include "time_poisson_topology.hpp"
-#include "reachability_space.hpp"
-#include <ReaK/topologies/interpolation/interpolated_topologies.hpp>
-#include <ReaK/topologies/interpolation/cubic_hermite_interp.hpp>
 
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
+namespace ReaK::pp {
 
-namespace ReaK {
+#define RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL(NDOF)                    \
+  extern template class interpolated_topology<                                \
+      Ndof_rl_space_t<double, NDOF, 1>, cubic_hermite_interpolation_tag>;     \
+  extern template class interpolated_topology<                                \
+      Ndof_rl_space_t<double, NDOF, 2>, cubic_hermite_interpolation_tag>;     \
+                                                                              \
+  extern template class interpolated_topology<                                \
+      temporal_space<Ndof_rl_space_t<double, NDOF, 1>, time_poisson_topology, \
+                     reach_plus_time_metric>,                                 \
+      cubic_hermite_interpolation_tag>;                                       \
+  extern template class interpolated_topology<                                \
+      temporal_space<Ndof_rl_space_t<double, NDOF, 2>, time_poisson_topology, \
+                     reach_plus_time_metric>,                                 \
+      cubic_hermite_interpolation_tag>;
 
-namespace pp {
+RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL(1)
+RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL(2)
+RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL(3)
+RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL(4)
+RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL(5)
+RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL(6)
+RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL(7)
+RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL(8)
+RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL(9)
+RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL(10)
 
-#define RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL( NDOF )                                                    \
-  extern template class interpolated_topology< Ndof_rl_space< double, NDOF, 1 >::type,                          \
-                                               cubic_hermite_interpolation_tag >;                               \
-  extern template class interpolated_topology< Ndof_rl_space< double, NDOF, 2 >::type,                          \
-                                               cubic_hermite_interpolation_tag >;                               \
-                                                                                                                \
-  extern template class interpolated_topology< temporal_space< Ndof_rl_space< double, NDOF, 1 >::type,          \
-                                                               time_poisson_topology, reach_plus_time_metric >, \
-                                               cubic_hermite_interpolation_tag >;                               \
-  extern template class interpolated_topology< temporal_space< Ndof_rl_space< double, NDOF, 2 >::type,          \
-                                                               time_poisson_topology, reach_plus_time_metric >, \
-                                               cubic_hermite_interpolation_tag >;
+extern template class interpolated_topology<Ndof_rl_space_t<double, 0, 1>,
+                                            cubic_hermite_interpolation_tag>;
+extern template class interpolated_topology<Ndof_rl_space_t<double, 0, 2>,
+                                            cubic_hermite_interpolation_tag>;
 
-RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL( 1 )
-RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL( 2 )
-RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL( 3 )
-RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL( 4 )
-RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL( 5 )
-RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL( 6 )
-RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL( 7 )
-RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL( 8 )
-RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL( 9 )
-RK_NDOF_CUBIC_SPACES_MAKE_NORMAL_EXTERN_DECL( 10 )
+extern template class interpolated_topology<
+    temporal_space<Ndof_rl_space_t<double, 0, 1>, time_poisson_topology,
+                   reach_plus_time_metric>,
+    cubic_hermite_interpolation_tag>;
+extern template class interpolated_topology<
+    temporal_space<Ndof_rl_space_t<double, 0, 2>, time_poisson_topology,
+                   reach_plus_time_metric>,
+    cubic_hermite_interpolation_tag>;
 
-extern template class interpolated_topology< Ndof_rl_space< double, 0, 1 >::type, cubic_hermite_interpolation_tag >;
-extern template class interpolated_topology< Ndof_rl_space< double, 0, 2 >::type, cubic_hermite_interpolation_tag >;
-
-extern template class interpolated_topology< temporal_space< Ndof_rl_space< double, 0, 1 >::type, time_poisson_topology,
-                                                             reach_plus_time_metric >,
-                                             cubic_hermite_interpolation_tag >;
-extern template class interpolated_topology< temporal_space< Ndof_rl_space< double, 0, 2 >::type, time_poisson_topology,
-                                                             reach_plus_time_metric >,
-                                             cubic_hermite_interpolation_tag >;
-};
-};
-
-#endif
+}  // namespace ReaK::pp
 
 #endif

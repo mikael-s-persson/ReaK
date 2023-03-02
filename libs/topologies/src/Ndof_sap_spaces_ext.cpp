@@ -23,48 +23,36 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
 #include <ReaK/topologies/spaces/Ndof_sap_spaces.hpp>
 
-namespace ReaK {
+namespace ReaK::pp {
 
-namespace pp {
+#define RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS(NDOF)                      \
+  template class interpolated_topology<Ndof_rl_space_t<double, NDOF, 2>,      \
+                                       sap_Ndof_interpolation_tag>;           \
+                                                                              \
+  template class interpolated_topology<                                       \
+      temporal_space<Ndof_rl_space_t<double, NDOF, 2>, time_poisson_topology, \
+                     reach_plus_time_metric>,                                 \
+      sap_Ndof_interpolation_tag>;
 
-#define RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS( NDOF )                                                             \
-  template class interpolated_topology< Ndof_rl_space< double, NDOF, 2 >::type, sap_Ndof_interpolation_tag >;          \
-                                                                                                                       \
-  template class interpolated_topology< temporal_space< Ndof_rl_space< double, NDOF, 2 >::type, time_poisson_topology, \
-                                                        reach_plus_time_metric >,                                      \
-                                        sap_Ndof_interpolation_tag >;
+RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS(1)
+RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS(2)
+RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS(3)
+RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS(4)
+RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS(5)
+RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS(6)
+RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS(7)
+RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS(8)
+RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS(9)
+RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS(10)
 
-RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS( 1 )
-RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS( 2 )
-RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS( 3 )
-RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS( 4 )
-RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS( 5 )
-RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS( 6 )
-RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS( 7 )
-RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS( 8 )
-RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS( 9 )
-RK_NDOF_SAP_SPACES_MAKE_NORMAL_EXTERN_DEFS( 10 )
+template class interpolated_topology<Ndof_rl_space_t<double, 0, 2>,
+                                     sap_Ndof_interpolation_tag>;
 
-template class interpolated_topology< Ndof_rl_space< double, 0, 2 >::type, sap_Ndof_interpolation_tag >;
+template class interpolated_topology<
+    temporal_space<Ndof_rl_space_t<double, 0, 2>, time_poisson_topology,
+                   reach_plus_time_metric>,
+    sap_Ndof_interpolation_tag>;
 
-template class interpolated_topology< temporal_space< Ndof_rl_space< double, 0, 2 >::type, time_poisson_topology,
-                                                      reach_plus_time_metric >,
-                                      sap_Ndof_interpolation_tag >;
-};
-};
-
-#else
-
-namespace ReaK {
-
-namespace pp {
-
-void dummy_Ndof_sap_spaces_externs_symbol(){};
-};
-};
-
-#endif
+}  // namespace ReaK::pp

@@ -6,7 +6,7 @@
  * ResizableMatrixConcept, and DynAllocMatrixConcept. All these concepts are also
  * paired with meta-functions that can evaluate whether a Matrix class fulfill the
  * concept or not, and return a compile-time constant bool (on the model of
- * boost::mpl::bool_ class). Note that these meta-functions cannot really check the
+ * std::bool_constant class). Note that these meta-functions cannot really check the
  * concepts directly (this is impossible in current and future C++ standard versions, might
  * eventually be part of the standard, but not in the forseeable future). These meta-functions
  * are constant meta-functions that always return false, the implementer of a given matrix
@@ -42,12 +42,11 @@
 #ifndef REAK_MAT_CONCEPTS_HPP
 #define REAK_MAT_CONCEPTS_HPP
 
-#include "mat_traits.hpp"
-#include <boost/concept_check.hpp>
 #include <boost/concept/requires.hpp>
+#include <boost/concept_check.hpp>
+#include "mat_traits.hpp"
 
-#include <boost/type_traits.hpp>
-
+#include <type_traits>
 
 namespace ReaK {
 
@@ -61,20 +60,20 @@ namespace ReaK {
  *  s = m.get_col_count()  can obtain the number of columns of the matrix.
  *  s = m.get_row_count()  can obtain the number of rows of the matrix.
  */
-template < typename Matrix >
+template <typename Matrix>
 struct ReadableMatrixConcept {
   Matrix m;
 
-  typename mat_traits< Matrix >::size_type s;
-  typename mat_traits< Matrix >::value_type e;
+  mat_size_type_t<Matrix> s;
+  mat_value_type_t<Matrix> e;
 
-  typedef ReadableMatrixConcept< Matrix > self;
+  using self = ReadableMatrixConcept<Matrix>;
 
-  BOOST_CONCEPT_USAGE( ReadableMatrixConcept ) {
-    e = m( 0, 0 ); // can be indexed and given an rvalue
+  BOOST_CONCEPT_USAGE(ReadableMatrixConcept) {
+    e = m(0, 0);  // can be indexed and given an rvalue
     s = m.get_col_count();
     s = m.get_row_count();
-  };
+  }
 };
 
 /**
@@ -84,13 +83,15 @@ struct ReadableMatrixConcept {
  * in a false value, and the implementer of a matrix class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
-template < typename Matrix >
+template <typename Matrix>
 struct is_readable_matrix {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_readable_matrix< Matrix > type;
+  using value_type = bool;
+  static constexpr bool value = false;
+  using type = is_readable_matrix<Matrix>;
 };
+
+template <typename Matrix>
+static constexpr bool is_readable_matrix_v = is_readable_matrix<Matrix>::value;
 
 /**
  * This concept will fail to be instantiated if the Matrix class does not model
@@ -100,17 +101,17 @@ struct is_readable_matrix {
  * Required expressions for Matrix m in addition to that of ReadableMatrixConcept:
  *  m(i,j) = e;   write access to the elements of m by a row and column index.
  */
-template < typename Matrix >
-struct WritableMatrixConcept : ReadableMatrixConcept< Matrix > { // must also be readable.
+template <typename Matrix>
+struct WritableMatrixConcept
+    : ReadableMatrixConcept<Matrix> {  // must also be readable.
   Matrix m;
 
-  typename mat_traits< Matrix >::value_type r;
+  mat_value_type_t<Matrix> r;
 
-  BOOST_CONCEPT_USAGE( WritableMatrixConcept ) {
-    m( 0, 0 ) = r; // can be indexed and given an lvalue
-  };
+  BOOST_CONCEPT_USAGE(WritableMatrixConcept) {
+    m(0, 0) = r;  // can be indexed and given an lvalue
+  }
 };
-
 
 /**
  * This meta-function evaluates whether a Matrix class fulfills the WritableMatrixConcept,
@@ -119,14 +120,15 @@ struct WritableMatrixConcept : ReadableMatrixConcept< Matrix > { // must also be
  * in a false value, and the implementer of a matrix class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
-template < typename Matrix >
+template <typename Matrix>
 struct is_writable_matrix {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_writable_matrix< Matrix > type;
+  using value_type = bool;
+  static constexpr bool value = false;
+  using type = is_writable_matrix<Matrix>;
 };
 
+template <typename Matrix>
+static constexpr bool is_writable_matrix_v = is_writable_matrix<Matrix>::value;
 
 /**
  * This meta-function evaluates whether a Matrix class fulfills the WritableMatrixConcept and
@@ -136,14 +138,16 @@ struct is_writable_matrix {
  * in a false value, and the implementer of a matrix class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
-template < typename Matrix >
+template <typename Matrix>
 struct is_fully_writable_matrix {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_fully_writable_matrix< Matrix > type;
+  using value_type = bool;
+  static constexpr bool value = false;
+  using type = is_fully_writable_matrix<Matrix>;
 };
 
+template <typename Matrix>
+static constexpr bool is_fully_writable_matrix_v =
+    is_fully_writable_matrix<Matrix>::value;
 
 /**
  * This concept will fail to be instantiated if the Matrix class does not model
@@ -155,18 +159,17 @@ struct is_fully_writable_matrix {
  *  m.set_col_count(s)  can set the number of columns of the matrix.
  *  m.set_row_count(s)  can set the number of rows of the matrix.
  */
-template < typename Matrix >
+template <typename Matrix>
 struct ResizableMatrixConcept {
   Matrix m;
 
-  typename mat_traits< Matrix >::size_type sz;
+  mat_size_type_t<Matrix> sz;
 
-  BOOST_CONCEPT_USAGE( ResizableMatrixConcept ) {
-    m.set_row_count( sz );
-    m.set_col_count( sz );
-  };
+  BOOST_CONCEPT_USAGE(ResizableMatrixConcept) {
+    m.set_row_count(sz);
+    m.set_col_count(sz);
+  }
 };
-
 
 /**
  * This meta-function evaluates whether a Matrix class fulfills the ResizableMatrixConcept,
@@ -175,13 +178,16 @@ struct ResizableMatrixConcept {
  * in a false value, and the implementer of a matrix class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
-template < typename Matrix >
+template <typename Matrix>
 struct is_resizable_matrix {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_resizable_matrix< Matrix > type;
+  using value_type = bool;
+  static constexpr bool value = false;
+  using type = is_resizable_matrix<Matrix>;
 };
+
+template <typename Matrix>
+static constexpr bool is_resizable_matrix_v =
+    is_resizable_matrix<Matrix>::value;
 
 /**
  * This concept will fail to be instantiated if the Matrix class does not model
@@ -193,15 +199,14 @@ struct is_resizable_matrix {
  * Required expressions for Matrix m:
  *  al = m.get_allocator()  can obtain the allocator object of the matrix.
  */
-template < typename Matrix >
-struct DynAllocMatrixConcept : ResizableMatrixConcept< Matrix > {
+template <typename Matrix>
+struct DynAllocMatrixConcept : ResizableMatrixConcept<Matrix> {
   Matrix m;
 
-  typename mat_traits< Matrix >::allocator_type al;
+  typename mat_traits<Matrix>::allocator_type al;
 
-  BOOST_CONCEPT_USAGE( DynAllocMatrixConcept ) { al = m.get_allocator(); };
+  BOOST_CONCEPT_USAGE(DynAllocMatrixConcept) { al = m.get_allocator(); }
 };
-
 
 /**
  * This meta-function evaluates whether a Matrix class fulfills the DynAllocMatrixConcept,
@@ -210,56 +215,63 @@ struct DynAllocMatrixConcept : ResizableMatrixConcept< Matrix > {
  * in a false value, and the implementer of a matrix class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
-template < typename Matrix >
+template <typename Matrix>
 struct has_allocator_matrix {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef has_allocator_matrix< Matrix > type;
+  using value_type = bool;
+  static constexpr bool value = false;
+  using type = has_allocator_matrix<Matrix>;
 };
 
+template <typename Matrix>
+static constexpr bool has_allocator_matrix_v =
+    has_allocator_matrix<Matrix>::value;
 
 /**
  * This meta-function evaluates whether a Matrix class is a square matrix. The implementer of
  * a matrix class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
-template < typename Matrix >
+template <typename Matrix>
 struct is_square_matrix {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_square_matrix< Matrix > type;
+  using value_type = bool;
+  static constexpr bool value = false;
+  using type = is_square_matrix<Matrix>;
 };
 
+template <typename Matrix>
+static constexpr bool is_square_matrix_v = is_square_matrix<Matrix>::value;
 
 /**
  * This meta-function evaluates whether a Matrix class is a symmetric matrix. The implementer of
  * a matrix class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
-template < typename Matrix >
+template <typename Matrix>
 struct is_symmetric_matrix {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_symmetric_matrix< Matrix > type;
+  using value_type = bool;
+  static constexpr bool value = false;
+  using type = is_symmetric_matrix<Matrix>;
 };
 
+template <typename Matrix>
+static constexpr bool is_symmetric_matrix_v =
+    is_symmetric_matrix<Matrix>::value;
 
 /**
  * This meta-function evaluates whether a Matrix class is a diagonal matrix. The implementer of
  * a matrix class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
-template < typename Matrix >
+template <typename Matrix>
 struct is_diagonal_matrix {
-  typedef boost::mpl::integral_c_tag tag;
-  typedef bool value_type;
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_diagonal_matrix< Matrix > type;
-};
+  using value_type = bool;
+  static constexpr bool value = false;
+  using type = is_diagonal_matrix<Matrix>;
 };
 
+template <typename Matrix>
+static constexpr bool is_diagonal_matrix_v = is_diagonal_matrix<Matrix>::value;
+
+}  // namespace ReaK
 
 #endif

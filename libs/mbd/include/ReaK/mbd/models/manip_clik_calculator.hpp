@@ -39,29 +39,25 @@
 #ifndef REAK_MANIP_CLIK_CALCULATOR_HPP
 #define REAK_MANIP_CLIK_CALCULATOR_HPP
 
-#include <ReaK/math/optimization/optim_exceptions.hpp>
 #include <ReaK/math/optimization/function_types.hpp>
+#include <ReaK/math/optimization/optim_exceptions.hpp>
 
 #include "direct_kinematics_model.hpp"
 #include "manip_kinematics_helper.hpp"
 
 #include <cmath>
+#include <utility>
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This function manufactures a basic quadratic cost function for use in the CLIK calculator.
  * This quadratic cost function normalizes the range of joint values (between bounds) and
  * centered around the given preferred posture.
  */
-shared_ptr< optim::quadratic_cost_evaluator > create_clik_quad_cost( const vect_n< double >& aPreferredPosture,
-                                                                     const vect_n< double >& aLowerBounds,
-                                                                     const vect_n< double >& aUpperBounds,
-                                                                     const direct_kinematics_model& aModel );
-
+std::shared_ptr<optim::quadratic_cost_evaluator> create_clik_quad_cost(
+    const vect_n<double>& aPreferredPosture, const vect_n<double>& aLowerBounds,
+    const vect_n<double>& aUpperBounds, const direct_kinematics_model& aModel);
 
 /**
  * This cost evaluator attempts to keep joints from being too straight, i.e., tries
@@ -73,125 +69,147 @@ shared_ptr< optim::quadratic_cost_evaluator > create_clik_quad_cost( const vect_
  * value decompositions of the Jacobian matrix, or similarly expensive metrics).
  */
 class clik_bent_joints_cost_eval : public optim::cost_evaluator {
-public:
-  std::vector< int > joint_ids; ///< Holds the indices of the joints to keep bent.
+ public:
+  std::vector<int>
+      joint_ids;  ///< Holds the indices of the joints to keep bent.
 
   /**
    * Parametrized Constructor.
    * \param aJointIDs The indices of the joints to keep bent.
    */
-  clik_bent_joints_cost_eval( const std::vector< int >& aJointIDs ) : joint_ids( aJointIDs ){};
+  explicit clik_bent_joints_cost_eval(std::vector<int> aJointIDs)
+      : joint_ids(std::move(aJointIDs)) {}
 
-  explicit clik_bent_joints_cost_eval( int J1 = -1, int J2 = -1, int J3 = -1, int J4 = -1 ) {
-    if( J1 >= 0 )
-      joint_ids.push_back( J1 );
-    if( J2 >= 0 )
-      joint_ids.push_back( J2 );
-    if( J3 >= 0 )
-      joint_ids.push_back( J3 );
-    if( J4 >= 0 )
-      joint_ids.push_back( J4 );
-  };
+  explicit clik_bent_joints_cost_eval(int J1 = -1, int J2 = -1, int J3 = -1,
+                                      int J4 = -1) {
+    if (J1 >= 0) {
+      joint_ids.push_back(J1);
+    }
+    if (J2 >= 0) {
+      joint_ids.push_back(J2);
+    }
+    if (J3 >= 0) {
+      joint_ids.push_back(J3);
+    }
+    if (J4 >= 0) {
+      joint_ids.push_back(J4);
+    }
+  }
 
-  clik_bent_joints_cost_eval( int J1, int J2, int J3, int J4, int J5, int J6 = -1, int J7 = -1, int J8 = -1 ) {
-    if( J1 >= 0 )
-      joint_ids.push_back( J1 );
-    if( J2 >= 0 )
-      joint_ids.push_back( J2 );
-    if( J3 >= 0 )
-      joint_ids.push_back( J3 );
-    if( J4 >= 0 )
-      joint_ids.push_back( J4 );
-    if( J5 >= 0 )
-      joint_ids.push_back( J5 );
-    if( J6 >= 0 )
-      joint_ids.push_back( J6 );
-    if( J7 >= 0 )
-      joint_ids.push_back( J7 );
-    if( J8 >= 0 )
-      joint_ids.push_back( J8 );
-  };
+  clik_bent_joints_cost_eval(int J1, int J2, int J3, int J4, int J5,
+                             int J6 = -1, int J7 = -1, int J8 = -1) {
+    if (J1 >= 0) {
+      joint_ids.push_back(J1);
+    }
+    if (J2 >= 0) {
+      joint_ids.push_back(J2);
+    }
+    if (J3 >= 0) {
+      joint_ids.push_back(J3);
+    }
+    if (J4 >= 0) {
+      joint_ids.push_back(J4);
+    }
+    if (J5 >= 0) {
+      joint_ids.push_back(J5);
+    }
+    if (J6 >= 0) {
+      joint_ids.push_back(J6);
+    }
+    if (J7 >= 0) {
+      joint_ids.push_back(J7);
+    }
+    if (J8 >= 0) {
+      joint_ids.push_back(J8);
+    }
+  }
 
-  virtual double compute_cost( const vect_n< double >& x ) const {
+  double compute_cost(const vect_n<double>& x) const override {
     double sum = 0.0;
-    for( std::size_t i = 0; i < joint_ids.size(); ++i ) {
-      double s = std::sin( x[joint_ids[i]] );
+    for (int joint_id : joint_ids) {
+      double s = std::sin(x[joint_id]);
       sum += 1.0 - s * s;
-    };
+    }
     return sum;
-  };
+  }
 
-  virtual vect_n< double > compute_cost_grad( const vect_n< double >& x ) const {
-    vect_n< double > result( x.size(), 0.0 );
-    for( std::size_t i = 0; i < joint_ids.size(); ++i ) {
-      result[joint_ids[i]] = -2.0 * std::sin( x[joint_ids[i]] ) * std::cos( x[joint_ids[i]] );
-    };
+  vect_n<double> compute_cost_grad(const vect_n<double>& x) const override {
+    vect_n<double> result(x.size(), 0.0);
+    for (int joint_id : joint_ids) {
+      result[joint_id] = -2.0 * std::sin(x[joint_id]) * std::cos(x[joint_id]);
+    }
     return result;
-  };
+  }
 
-  virtual void compute_cost_hessian( mat< double, mat_structure::symmetric >& H, const vect_n< double >& x, double,
-                                     const vect_n< double >& ) const {
-    H.set_row_count( x.size() );
-    for( std::size_t i = 0; i < joint_ids.size(); ++i ) {
-      double s = std::sin( x[joint_ids[i]] );
+  void compute_cost_hessian(mat<double, mat_structure::symmetric>& H,
+                            const vect_n<double>& x, double /*f*/,
+                            const vect_n<double>& /*x_grad*/) const override {
+    H.set_row_count(x.size());
+    for (int joint_id : joint_ids) {
+      double s = std::sin(x[joint_id]);
       s *= s;
-      double c = std::cos( x[joint_ids[i]] );
+      double c = std::cos(x[joint_id]);
       c *= c;
-      H( joint_ids[i], joint_ids[i] ) = 2.0 * ( s - c );
-    };
-  };
+      H(joint_id, joint_id) = 2.0 * (s - c);
+    }
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    optim::cost_evaluator::save( A, optim::cost_evaluator::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( joint_ids );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    optim::cost_evaluator::load( A, optim::cost_evaluator::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( joint_ids );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    optim::cost_evaluator::save(
+        A, optim::cost_evaluator::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(joint_ids);
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    optim::cost_evaluator::load(
+        A, optim::cost_evaluator::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(joint_ids);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( clik_bent_joints_cost_eval, 0xC1500004, 1, "clik_bent_joints_cost_eval",
-                               optim::cost_evaluator )
-};
-
-
-/**
- * This function manufactures a bent-joint cost function.
- */
-inline shared_ptr< clik_bent_joints_cost_eval > create_clik_bent_joints( const std::vector< int >& aJointIDs ) {
-  return shared_ptr< clik_bent_joints_cost_eval >( new clik_bent_joints_cost_eval( aJointIDs ) );
+  RK_RTTI_MAKE_CONCRETE_1BASE(clik_bent_joints_cost_eval, 0xC1500004, 1,
+                              "clik_bent_joints_cost_eval",
+                              optim::cost_evaluator)
 };
 
 /**
  * This function manufactures a bent-joint cost function.
  */
-inline shared_ptr< clik_bent_joints_cost_eval > create_clik_bent_joints( int J1 = -1, int J2 = -1, int J3 = -1,
-                                                                         int J4 = -1 ) {
-  return shared_ptr< clik_bent_joints_cost_eval >( new clik_bent_joints_cost_eval( J1, J2, J3, J4 ) );
-};
+inline std::shared_ptr<clik_bent_joints_cost_eval> create_clik_bent_joints(
+    const std::vector<int>& aJointIDs) {
+  return std::make_shared<clik_bent_joints_cost_eval>(aJointIDs);
+}
 
 /**
  * This function manufactures a bent-joint cost function.
  */
-inline shared_ptr< clik_bent_joints_cost_eval > create_clik_bent_joints( int J1, int J2, int J3, int J4, int J5,
-                                                                         int J6 = -1, int J7 = -1, int J8 = -1 ) {
-  return shared_ptr< clik_bent_joints_cost_eval >( new clik_bent_joints_cost_eval( J1, J2, J3, J4, J5, J6, J7, J8 ) );
-};
+inline std::shared_ptr<clik_bent_joints_cost_eval> create_clik_bent_joints(
+    int J1 = -1, int J2 = -1, int J3 = -1, int J4 = -1) {
+  return std::make_shared<clik_bent_joints_cost_eval>(J1, J2, J3, J4);
+}
 
+/**
+ * This function manufactures a bent-joint cost function.
+ */
+inline std::shared_ptr<clik_bent_joints_cost_eval> create_clik_bent_joints(
+    int J1, int J2, int J3, int J4, int J5, int J6 = -1, int J7 = -1,
+    int J8 = -1) {
+  return std::make_shared<clik_bent_joints_cost_eval>(J1, J2, J3, J4, J5, J6,
+                                                      J7, J8);
+}
 
 /**
  * This function manufactures a mixed cost function which adds the cost of any two cost evaluators.
  */
-inline shared_ptr< optim::added_cost_evaluator >
-  create_clik_mixed_cost( const shared_ptr< optim::cost_evaluator >& aCostFunc1,
-                          const shared_ptr< optim::cost_evaluator >& aCostFunc2 ) {
-  return shared_ptr< optim::added_cost_evaluator >( new optim::added_cost_evaluator( aCostFunc1, aCostFunc2 ) );
-};
-
+inline std::shared_ptr<optim::added_cost_evaluator> create_clik_mixed_cost(
+    const std::shared_ptr<optim::cost_evaluator>& aCostFunc1,
+    const std::shared_ptr<optim::cost_evaluator>& aCostFunc2) {
+  return std::make_shared<optim::added_cost_evaluator>(aCostFunc1, aCostFunc2);
+}
 
 /**
  * This class is a helper class which is used to perform
@@ -207,17 +225,17 @@ inline shared_ptr< optim::added_cost_evaluator >
  * optimization of the resulting configuration.
  */
 class manip_clik_calculator : public shared_object {
-public:
-  shared_ptr< direct_kinematics_model > model;
+ public:
+  std::shared_ptr<direct_kinematics_model> model;
 
-  shared_ptr< optim::cost_evaluator > cost_eval;
+  std::shared_ptr<optim::cost_evaluator> cost_eval;
 
-  vect_n< double > lower_bounds;
-  vect_n< double > upper_bounds;
+  vect_n<double> lower_bounds;
+  vect_n<double> upper_bounds;
 
-  std::vector< gen_coord< double > > desired_gen_coords;
-  std::vector< frame_2D< double > > desired_frame_2D;
-  std::vector< frame_3D< double > > desired_frame_3D;
+  std::vector<gen_coord<double>> desired_gen_coords;
+  std::vector<frame_2D<double>> desired_frame_2D;
+  std::vector<frame_3D<double>> desired_frame_3D;
 
   double max_radius;
   double mu;
@@ -240,37 +258,48 @@ public:
    * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint
    * (barrier).
    */
-  manip_clik_calculator( const shared_ptr< direct_kinematics_model >& aModel = shared_ptr< direct_kinematics_model >(),
-                         const shared_ptr< optim::cost_evaluator >& aCostEvaluator
-                         = shared_ptr< optim::cost_evaluator >(),
-                         double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300, double aTol = 1e-6,
-                         double aEta = 1e-3, double aTau = 0.99 )
-      : model( aModel ), cost_eval( aCostEvaluator ), max_radius( aMaxRadius ), mu( aMu ), max_iter( aMaxIter ),
-        tol( aTol ), eta( aEta ), tau( aTau ) {
-    if( model ) {
-      lower_bounds.resize( model->getJointPositionsCount() + model->getJointVelocitiesCount() );
-      upper_bounds.resize( model->getJointPositionsCount() + model->getJointVelocitiesCount() );
-      for( std::size_t i = 0; i < lower_bounds.size(); ++i ) {
-        lower_bounds[i] = -std::numeric_limits< double >::infinity();
-        upper_bounds[i] = std::numeric_limits< double >::infinity();
-      };
-    };
-  };
+  explicit manip_clik_calculator(
+      std::shared_ptr<direct_kinematics_model> aModel =
+          std::shared_ptr<direct_kinematics_model>(),
+      std::shared_ptr<optim::cost_evaluator> aCostEvaluator =
+          std::shared_ptr<optim::cost_evaluator>(),
+      double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300,
+      double aTol = 1e-6, double aEta = 1e-3, double aTau = 0.99)
+      : model(std::move(aModel)),
+        cost_eval(std::move(aCostEvaluator)),
+        max_radius(aMaxRadius),
+        mu(aMu),
+        max_iter(aMaxIter),
+        tol(aTol),
+        eta(aEta),
+        tau(aTau) {
+    if (model) {
+      lower_bounds.resize(model->getJointPositionsCount() +
+                          model->getJointVelocitiesCount());
+      upper_bounds.resize(model->getJointPositionsCount() +
+                          model->getJointVelocitiesCount());
+      for (std::size_t i = 0; i < lower_bounds.size(); ++i) {
+        lower_bounds[i] = -std::numeric_limits<double>::infinity();
+        upper_bounds[i] = std::numeric_limits<double>::infinity();
+      }
+    }
+  }
 
   /**
    * Default destructor.
    */
-  ~manip_clik_calculator(){};
+  ~manip_clik_calculator() override = default;
+  ;
 
   void readDesiredFromModel();
 
-  vect_n< double > readJointStatesFromModel();
+  vect_n<double> readJointStatesFromModel() const;
 
-  void writeJointStatesToModel( const vect_n< double >& x ) const;
+  void writeJointStatesToModel(const vect_n<double>& x) const;
 
-  vect_n< double > computeStatesError( const vect_n< double >& x ) const;
+  vect_n<double> computeStatesError(const vect_n<double>& x) const;
 
-  void runOptimizer( vect_n< double >& x );
+  void runOptimizer(vect_n<double>& x);
 
   /**
    * This function takes its given desired 'end-effector' states and solves the inverse
@@ -284,29 +313,35 @@ public:
    */
   void solveInverseKinematics();
 
-
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( model ) & RK_SERIAL_SAVE_WITH_NAME( cost_eval )
-      & RK_SERIAL_SAVE_WITH_NAME( lower_bounds ) & RK_SERIAL_SAVE_WITH_NAME( upper_bounds )
-      & RK_SERIAL_SAVE_WITH_NAME( max_radius ) & RK_SERIAL_SAVE_WITH_NAME( mu ) & RK_SERIAL_SAVE_WITH_NAME( max_iter )
-      & RK_SERIAL_SAVE_WITH_NAME( tol ) & RK_SERIAL_SAVE_WITH_NAME( eta ) & RK_SERIAL_SAVE_WITH_NAME( tau );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( model ) & RK_SERIAL_LOAD_WITH_NAME( cost_eval )
-      & RK_SERIAL_LOAD_WITH_NAME( lower_bounds ) & RK_SERIAL_LOAD_WITH_NAME( upper_bounds )
-      & RK_SERIAL_LOAD_WITH_NAME( max_radius ) & RK_SERIAL_LOAD_WITH_NAME( mu ) & RK_SERIAL_LOAD_WITH_NAME( max_iter )
-      & RK_SERIAL_LOAD_WITH_NAME( tol ) & RK_SERIAL_LOAD_WITH_NAME( eta ) & RK_SERIAL_LOAD_WITH_NAME( tau );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(model) & RK_SERIAL_SAVE_WITH_NAME(cost_eval) &
+        RK_SERIAL_SAVE_WITH_NAME(lower_bounds) &
+        RK_SERIAL_SAVE_WITH_NAME(upper_bounds) &
+        RK_SERIAL_SAVE_WITH_NAME(max_radius) & RK_SERIAL_SAVE_WITH_NAME(mu) &
+        RK_SERIAL_SAVE_WITH_NAME(max_iter) & RK_SERIAL_SAVE_WITH_NAME(tol) &
+        RK_SERIAL_SAVE_WITH_NAME(eta) & RK_SERIAL_SAVE_WITH_NAME(tau);
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(model) & RK_SERIAL_LOAD_WITH_NAME(cost_eval) &
+        RK_SERIAL_LOAD_WITH_NAME(lower_bounds) &
+        RK_SERIAL_LOAD_WITH_NAME(upper_bounds) &
+        RK_SERIAL_LOAD_WITH_NAME(max_radius) & RK_SERIAL_LOAD_WITH_NAME(mu) &
+        RK_SERIAL_LOAD_WITH_NAME(max_iter) & RK_SERIAL_LOAD_WITH_NAME(tol) &
+        RK_SERIAL_LOAD_WITH_NAME(eta) & RK_SERIAL_LOAD_WITH_NAME(tau);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( manip_clik_calculator, 0xC2100051, 1, "manip_clik_calculator", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(manip_clik_calculator, 0xC2100051, 1,
+                              "manip_clik_calculator", shared_object)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

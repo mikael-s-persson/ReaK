@@ -44,9 +44,7 @@
 
 #include <boost/concept_check.hpp>
 
-namespace ReaK {
-
-namespace pp {
+namespace ReaK::pp {
 
 /**
  * This traits class defines the characteristics of a reachability space (or topology).
@@ -54,28 +52,30 @@ namespace pp {
  * or an extension of a temporal-space, the traits are very similary to those of a temporal-space.
  * \tparam ReachabilityTopology The reachability-space type for which the traits are sought.
  */
-template < typename ReachabilityTopology >
+template <typename ReachabilityTopology>
 struct reachability_topology_traits {
   /** The point type that described the points of the reachability-space. */
-  typedef typename ReachabilityTopology::point_type point_type;
+  using point_type = typename ReachabilityTopology::point_type;
   /** The point-difference type that described the difference between points of the reachability-space. */
-  typedef typename ReachabilityTopology::point_difference_type point_difference_type;
+  using point_difference_type =
+      typename ReachabilityTopology::point_difference_type;
 
   /** The temporal-topology type in which the points of the reachability-space lie. */
-  typedef typename ReachabilityTopology::temporal_space_type temporal_space_type;
+  using temporal_space_type =
+      typename ReachabilityTopology::temporal_space_type;
   /** The time-topology type in which the time-components of points of the reachability-space lie. */
-  typedef typename ReachabilityTopology::time_topology time_topology;
+  using time_topology = typename ReachabilityTopology::time_topology;
   /** The space-topology type in which the space-components of points of the reachability-space lie. */
-  typedef typename ReachabilityTopology::space_topology space_topology;
+  using space_topology = typename ReachabilityTopology::space_topology;
   /** The distance-metric type for the reachability-space. */
-  typedef typename ReachabilityTopology::distance_metric distance_metric;
+  using distance_metric = typename ReachabilityTopology::distance_metric;
 
   /** This constant defines the temporal dimensions (0 if unknown at compile-time). */
-  BOOST_STATIC_CONSTANT( std::size_t, time_dimensions = time_topology::dimensions );
+  static constexpr std::size_t time_dimensions = time_topology::dimensions;
   /** This constant defines the spatial dimensions (0 if unknown at compile-time). */
-  BOOST_STATIC_CONSTANT( std::size_t, space_dimensions = space_topology::point_type::dimensions );
+  static constexpr std::size_t space_dimensions =
+      space_topology::point_type::dimensions;
 };
-
 
 /**
  * This concept class defines the idea of a
@@ -114,24 +114,26 @@ struct reachability_topology_traits {
  *
  * \tparam ReachabilityTopology The topology type for which this concept is checked.
  */
-template < typename ReachabilityTopology >
+template <typename ReachabilityTopology>
 struct ReachabilitySpaceConcept {
   BOOST_CONCEPT_ASSERT(
-    ( TemporalSpaceConcept< typename reachability_topology_traits< ReachabilityTopology >::temporal_space_type > ) );
+      (TemporalSpaceConcept<typename reachability_topology_traits<
+           ReachabilityTopology>::temporal_space_type>));
 
-  typename reachability_topology_traits< ReachabilityTopology >::point_type p1;
-  typename reachability_topology_traits< ReachabilityTopology >::point_difference_type pd;
+  typename reachability_topology_traits<ReachabilityTopology>::point_type p1;
+  typename reachability_topology_traits<
+      ReachabilityTopology>::point_difference_type pd;
   ReachabilityTopology reachable_space;
   double d;
 
-  BOOST_CONCEPT_USAGE( ReachabilitySpaceConcept ) {
-    d = reachable_space.forward_reach( p1 );
-    d = reachable_space.backward_reach( p1 );
-    d = reachable_space.forward_norm( pd );
-    d = reachable_space.backward_norm( pd );
-  };
+  BOOST_CONCEPT_USAGE(ReachabilitySpaceConcept) {
+    d = reachable_space.forward_reach(p1);
+    d = reachable_space.backward_reach(p1);
+    d = reachable_space.forward_norm(pd);
+    d = reachable_space.backward_norm(pd);
+  }
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

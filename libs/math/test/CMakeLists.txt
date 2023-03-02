@@ -14,17 +14,15 @@ target_link_libraries(unit_test_mat_num reak_math)
 
 add_executable(unit_test_mat_are "unit_test_mat_are.cpp")
 ReaK_setup_test_program(unit_test_mat_are)
-get_target_property(UNIT_TEST_MAT_ARE_LOCATION unit_test_mat_are LOCATION)
-get_filename_component(UNIT_TEST_MAT_ARE_PATH ${UNIT_TEST_MAT_ARE_LOCATION} PATH)
 add_custom_command(TARGET unit_test_mat_are PRE_BUILD
   COMMAND ${CMAKE_COMMAND} -E 
-  make_directory "${UNIT_TEST_MAT_ARE_PATH}/are_data")
+  make_directory "${CMAKE_CURRENT_BINARY_DIR}/are_data")
 add_custom_command(TARGET unit_test_mat_are PRE_BUILD
   COMMAND ${CMAKE_COMMAND} -E 
-  copy "${CMAKE_CURRENT_SOURCE_DIR}/carex_m/carex_data.txt" "${UNIT_TEST_MAT_ARE_PATH}/are_data/")
+  copy "${CMAKE_CURRENT_SOURCE_DIR}/carex_m/carex_data.txt" "${CMAKE_CURRENT_BINARY_DIR}/are_data/")
 add_custom_command(TARGET unit_test_mat_are PRE_BUILD
   COMMAND ${CMAKE_COMMAND} -E 
-  copy "${CMAKE_CURRENT_SOURCE_DIR}/darex_m/darex_data.txt" "${UNIT_TEST_MAT_ARE_PATH}/are_data/")
+  copy "${CMAKE_CURRENT_SOURCE_DIR}/darex_m/darex_data.txt" "${CMAKE_CURRENT_BINARY_DIR}/are_data/")
 target_link_libraries(unit_test_mat_are reak_math)
 
 add_executable(unit_test_rotations "unit_test_rotations.cpp")

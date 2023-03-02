@@ -33,96 +33,108 @@
 #define REAK_UAV_KINEMATICS_HPP
 
 #include <ReaK/core/base/defs.hpp>
-#include <ReaK/mbd/models/inverse_kinematics_model.hpp>
 #include <ReaK/mbd/kte/kte_map_chain.hpp>
+#include <ReaK/mbd/models/inverse_kinematics_model.hpp>
+#include <memory>
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class to represent a kte-based model of a UAV.
  */
 class UAV_kinematics : public inverse_kinematics_model {
-private:
-  shared_ptr< frame_3D< double > > m_base_frame;
-  shared_ptr< frame_3D< double > > m_motion_frame;
-  shared_ptr< joint_dependent_frame_3D > m_output_frame;
-  shared_ptr< kte_map_chain > m_chain;
+ private:
+  std::shared_ptr<frame_3D<double>> m_base_frame;
+  std::shared_ptr<frame_3D<double>> m_motion_frame;
+  std::shared_ptr<joint_dependent_frame_3D> m_output_frame;
+  std::shared_ptr<kte_map_chain> m_chain;
 
-public:
-  shared_ptr< kte_map_chain > getKTEChain() const { return m_chain; };
+ public:
+  std::shared_ptr<kte_map_chain> getKTEChain() const override {
+    return m_chain;
+  }
 
   /**
    * Default constructor.
    */
-  UAV_kinematics( const std::string& aName = "", const shared_ptr< frame_3D< double > >& aBaseFrame
-                                                 = shared_ptr< frame_3D< double > >( new frame_3D< double >() ) );
+  explicit UAV_kinematics(const std::string& aName = "",
+                          std::shared_ptr<frame_3D<double>> aBaseFrame =
+                              std::make_shared<frame_3D<double>>());
 
-  virtual ~UAV_kinematics(){};
+  ~UAV_kinematics() override = default;
+  ;
 
-  virtual std::size_t getJointPositionsCount() const { return 7; };
+  std::size_t getJointPositionsCount() const override { return 7; }
 
-  virtual std::size_t getJointVelocitiesCount() const { return 6; };
+  std::size_t getJointVelocitiesCount() const override { return 6; }
 
-  virtual std::size_t getJointAccelerationsCount() const { return 6; };
+  std::size_t getJointAccelerationsCount() const override { return 6; }
 
-  virtual std::size_t getDependentPositionsCount() const { return 7; };
+  std::size_t getDependentPositionsCount() const override { return 7; }
 
-  virtual std::size_t getDependentVelocitiesCount() const { return 6; };
+  std::size_t getDependentVelocitiesCount() const override { return 6; }
 
-  virtual std::size_t getDependentAccelerationsCount() const { return 6; };
+  std::size_t getDependentAccelerationsCount() const override { return 6; }
 
+  std::size_t getFrames3DCount() const override { return 1; }
 
-  virtual std::size_t getFrames3DCount() const { return 1; };
+  std::shared_ptr<frame_3D<double>> getFrame3D(
+      std::size_t /*i*/) const override {
+    return m_motion_frame;
+  }
 
-  virtual shared_ptr< frame_3D< double > > getFrame3D( std::size_t ) const { return m_motion_frame; };
+  std::size_t getDependentFrames3DCount() const override { return 1; }
 
-  virtual std::size_t getDependentFrames3DCount() const { return 1; };
+  std::shared_ptr<joint_dependent_frame_3D> getDependentFrame3D(
+      std::size_t i) const override {
+    return m_output_frame;
+  }
 
-  virtual shared_ptr< joint_dependent_frame_3D > getDependentFrame3D( std::size_t i ) const { return m_output_frame; };
+  void doDirectMotion() override;
 
-  virtual void doDirectMotion();
+  void doInverseMotion() override;
 
-  virtual void doInverseMotion();
+  void getJacobianMatrix(
+      mat<double, mat_structure::rectangular>& Jac) const override;
 
-  virtual void getJacobianMatrix( mat< double, mat_structure::rectangular >& Jac ) const;
+  void getJacobianMatrixAndDerivative(
+      mat<double, mat_structure::rectangular>& Jac,
+      mat<double, mat_structure::rectangular>& JacDot) const override;
 
-  virtual void getJacobianMatrixAndDerivative( mat< double, mat_structure::rectangular >& Jac,
-                                               mat< double, mat_structure::rectangular >& JacDot ) const;
+  vect_n<double> getJointPositions() const override;
 
-  virtual vect_n< double > getJointPositions() const;
+  void setJointPositions(const vect_n<double>& aJointPositions) override;
 
-  virtual void setJointPositions( const vect_n< double >& aJointPositions );
+  vect_n<double> getJointVelocities() const override;
 
-  virtual vect_n< double > getJointVelocities() const;
+  void setJointVelocities(const vect_n<double>& aJointVelocities) override;
 
-  virtual void setJointVelocities( const vect_n< double >& aJointVelocities );
+  vect_n<double> getJointAccelerations() const override;
 
-  virtual vect_n< double > getJointAccelerations() const;
+  void setJointAccelerations(
+      const vect_n<double>& aJointAccelerations) override;
 
-  virtual void setJointAccelerations( const vect_n< double >& aJointAccelerations );
+  vect_n<double> getDependentPositions() const override;
 
-  virtual vect_n< double > getDependentPositions() const;
+  vect_n<double> getDependentVelocities() const override;
 
-  virtual vect_n< double > getDependentVelocities() const;
+  vect_n<double> getDependentAccelerations() const override;
 
-  virtual vect_n< double > getDependentAccelerations() const;
+  void setDependentPositions(const vect_n<double>& aDepPositions) override;
 
-  virtual void setDependentPositions( const vect_n< double >& aDepPositions );
+  void setDependentVelocities(const vect_n<double>& aDepVelocities) override;
 
-  virtual void setDependentVelocities( const vect_n< double >& aDepVelocities );
+  void setDependentAccelerations(
+      const vect_n<double>& aDepAccelerations) override;
 
-  virtual void setDependentAccelerations( const vect_n< double >& aDepAccelerations );
+  void save(serialization::oarchive& A, unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const;
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int );
-
-  RK_RTTI_MAKE_CONCRETE_1BASE( UAV_kinematics, 0xC2100058, 1, "UAV_kinematics", inverse_kinematics_model )
+  RK_RTTI_MAKE_CONCRETE_1BASE(UAV_kinematics, 0xC2100058, 1, "UAV_kinematics",
+                              inverse_kinematics_model)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

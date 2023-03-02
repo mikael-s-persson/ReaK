@@ -35,77 +35,81 @@
 #include <ReaK/core/serialization/objtree_archiver.hpp>
 
 #include <QAbstractItemModel>
-#include <QVariant>
-#include <QString>
 #include <QModelIndex>
+#include <QString>
+#include <QVariant>
 
-namespace ReaK {
-
-namespace qt {
+namespace ReaK::qt {
 
 class ObjTreeQtModel : public QAbstractItemModel {
   Q_OBJECT
 
-public:
-  ObjTreeQtModel( const shared_ptr< serialization::object_graph >& aObjGraph,
-                  serialization::object_node_desc aRoot = 0 );
+ public:
+  ObjTreeQtModel(const std::shared_ptr<serialization::object_graph>& aObjGraph,
+                 serialization::object_node_desc aRoot = 0);
   ~ObjTreeQtModel();
 
   // All the virtual functions required by QAbstractItemModel:
-  QVariant data( const QModelIndex& index, int role ) const;
-  Qt::ItemFlags flags( const QModelIndex& index ) const;
-  QVariant headerData( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
-  QModelIndex index( int row, int column, const QModelIndex& parent = QModelIndex() ) const;
-  QModelIndex parent( const QModelIndex& index ) const;
-  int rowCount( const QModelIndex& parent = QModelIndex() ) const;
-  int columnCount( const QModelIndex& parent = QModelIndex() ) const;
+  QVariant data(const QModelIndex& index, int role) const;
+  Qt::ItemFlags flags(const QModelIndex& index) const;
+  QVariant headerData(int section, Qt::Orientation orientation,
+                      int role = Qt::DisplayRole) const;
+  QModelIndex index(int row, int column,
+                    const QModelIndex& parent = QModelIndex()) const;
+  QModelIndex parent(const QModelIndex& index) const;
+  int rowCount(const QModelIndex& parent = QModelIndex()) const;
+  int columnCount(const QModelIndex& parent = QModelIndex()) const;
 
   /**
    * This function refreshes the object-tree representation to synchronize it to the object-graph.
    */
   void refreshObjTree();
 
-private:
-  shared_ptr< serialization::object_graph > obj_graph;
+ private:
+  std::shared_ptr<serialization::object_graph> obj_graph;
   serialization::object_node_desc root_node;
 
   struct objtree_indirect_node {
     serialization::object_node_desc g_node;
-    objtree_indirect_node( serialization::object_node_desc aGNode = serialization::object_node_desc() )
-        : g_node( aGNode ){};
+    objtree_indirect_node(serialization::object_node_desc aGNode =
+                              serialization::object_node_desc())
+        : g_node(aGNode) {}
   };
-  typedef boost::adjacency_list_BC< boost::vecBC, boost::vecBC, boost::bidirectionalS, objtree_indirect_node >
-    obj_indirect_tree_type;
-  typedef boost::graph_traits< obj_indirect_tree_type >::vertex_descriptor obj_indirect_node_desc;
+  typedef boost::adjacency_list_BC<boost::vecBC, boost::vecBC,
+                                   boost::bidirectionalS, objtree_indirect_node>
+      obj_indirect_tree_type;
+  typedef boost::graph_traits<obj_indirect_tree_type>::vertex_descriptor
+      obj_indirect_node_desc;
   obj_indirect_tree_type obj_tree;
 
-  void updateObjTreeNode( obj_indirect_node_desc u );
+  void updateObjTreeNode(obj_indirect_node_desc u);
 
-public slots:
+ public slots:
 
-  void itemSelected( const QModelIndex& index );
+  void itemSelected(const QModelIndex& index);
   void treeChanged();
 
-signals:
+ signals:
 
   void aboutToResetModel();
   void justAfterModelReset();
-  void objectNodeSelected( serialization::object_node_desc u );
+  void objectNodeSelected(serialization::object_node_desc u);
 
-public:
+ public:
   /**
    * This function returns the shared-pointer to the object-graph wrapped by this model.
    * \return The shared-pointer to the object-graph wrapped by this model.
    */
-  shared_ptr< serialization::object_graph > get_object_graph() const { return obj_graph; };
+  std::shared_ptr<serialization::object_graph> get_object_graph() const {
+    return obj_graph;
+  }
   /**
    * This function returns the root node of the object-graph wrapped by this model.
    * \return The root node of the object-graph wrapped by this model.
    */
-  serialization::object_node_desc get_root_node() const { return root_node; };
-};
+  serialization::object_node_desc get_root_node() const { return root_node; }
 };
 
-}; // ReaK
+}  // namespace ReaK::qt
 
 #endif

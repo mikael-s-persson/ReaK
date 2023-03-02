@@ -37,19 +37,14 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/shared_object.hpp>
 
-
-#include <cmath>
 #include <boost/concept_check.hpp>
+#include <cmath>
 
 #include "metric_space_concept.hpp"
 #include "tangent_bundle_concept.hpp"
 
 /** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Path-Planning */
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This concept defines the requirements to fulfill in order to model a bijection between
@@ -68,21 +63,22 @@ namespace pp {
  * \tparam InSpace The input space type of the mapping.
  * \tparam OutSpace The output space type of the mapping.
  */
-template < typename Mapping, typename InSpace, typename OutSpace >
+template <typename Mapping, typename InSpace, typename OutSpace>
 struct BijectionConcept {
 
   InSpace space_in;
   OutSpace space_out;
-  typename topology_traits< InSpace >::point_type p_in;
-  typename topology_traits< OutSpace >::point_type p_out;
+  topology_point_type_t<InSpace> p_in;
+  topology_point_type_t<OutSpace> p_out;
   Mapping m;
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< InSpace > ) );
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< OutSpace > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<InSpace>));
+  BOOST_CONCEPT_ASSERT((TopologyConcept<OutSpace>));
 
-  BOOST_CONCEPT_USAGE( BijectionConcept ) { p_out = m.map_to_space( p_in, space_in, space_out ); };
+  BOOST_CONCEPT_USAGE(BijectionConcept) {
+    p_out = m.map_to_space(p_in, space_in, space_out);
+  }
 };
-
 
 /**
  * This class is a simple composition of two topological maps. Provided an output map,
@@ -95,17 +91,19 @@ struct BijectionConcept {
  * \tparam InnerBijection The type of the map used to map the given point to the intermediate space of the composition.
  * \tparam MiddleSpace The intermediate space type between the two bijections.
  */
-template < typename OuterBijection, typename InnerBijection, typename MiddleSpace >
+template <typename OuterBijection, typename InnerBijection,
+          typename MiddleSpace>
 struct bijection_cascade : public shared_object {
-  typedef bijection_cascade< OuterBijection, InnerBijection, MiddleSpace > self;
+  using self = bijection_cascade<OuterBijection, InnerBijection, MiddleSpace>;
 
   OuterBijection map_outer;
   InnerBijection map_inner;
-  shared_ptr< MiddleSpace > mid_space;
+  std::shared_ptr<MiddleSpace> mid_space;
 
-  bijection_cascade( const OuterBijection& aMapOuter, const InnerBijection& aMapInner,
-                     const shared_ptr< MiddleSpace >& aMidSpace )
-      : map_outer( aMapOuter ), map_inner( aMapInner ), mid_space( aMidSpace ){};
+  bijection_cascade(const OuterBijection& aMapOuter,
+                    const InnerBijection& aMapInner,
+                    const std::shared_ptr<MiddleSpace>& aMidSpace)
+      : map_outer(aMapOuter), map_inner(aMapInner), mid_space(aMidSpace) {}
 
   /**
    * This function template maps a given point in an input space
@@ -118,30 +116,36 @@ struct bijection_cascade : public shared_object {
    * \param s_out The output space.
    * \return A point in the output space, identical in value and type to the input point.
    */
-  template < typename PointType, typename SpaceIn, typename SpaceOut >
-  typename topology_traits< SpaceOut >::point_type map_to_space( const PointType& p_in, const SpaceIn& s_in,
-                                                                 const SpaceOut& s_out ) const {
-    return map_outer.map_to_space( map_inner.map_to_space( p_in, s_in, *mid_space ), *mid_space, s_out );
-  };
+  template <typename PointType, typename SpaceIn, typename SpaceOut>
+  topology_point_type_t<SpaceOut> map_to_space(const PointType& p_in,
+                                               const SpaceIn& s_in,
+                                               const SpaceOut& s_out) const {
+    return map_outer.map_to_space(
+        map_inner.map_to_space(p_in, s_in, *mid_space), *mid_space, s_out);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( map_outer ) & RK_SERIAL_SAVE_WITH_NAME( map_inner )
-      & RK_SERIAL_SAVE_WITH_NAME( mid_space );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( map_outer ) & RK_SERIAL_LOAD_WITH_NAME( map_inner )
-      & RK_SERIAL_LOAD_WITH_NAME( mid_space );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(map_outer) &
+        RK_SERIAL_SAVE_WITH_NAME(map_inner) &
+        RK_SERIAL_SAVE_WITH_NAME(mid_space);
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(map_outer) &
+        RK_SERIAL_LOAD_WITH_NAME(map_inner) &
+        RK_SERIAL_LOAD_WITH_NAME(mid_space);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC240002B, 1, "bijection_cascade", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240002B, 1, "bijection_cascade",
+                              shared_object)
 };
-
 
 /**
  * This class is a simple identity topological map, that is, a map that simply
@@ -149,10 +153,9 @@ struct bijection_cascade : public shared_object {
  * \note This class will only be a valid map between spaces with compatible point-types.
  */
 struct identity_topo_map : public shared_object {
-  typedef identity_topo_map self;
+  using self = identity_topo_map;
 
-  identity_topo_map(){};
-
+  identity_topo_map() = default;
 
   /**
    * This function template maps a given point in an input space
@@ -163,25 +166,28 @@ struct identity_topo_map : public shared_object {
    * \param p_in The point in the input space.
    * \return A point in the output space, identical in value and type to the input point.
    */
-  template < typename PointType, typename SpaceIn, typename SpaceOut >
-  PointType map_to_space( const PointType& p_in, const SpaceIn&, const SpaceOut& ) const {
+  template <typename PointType, typename SpaceIn, typename SpaceOut>
+  PointType map_to_space(const PointType& p_in, const SpaceIn& /*unused*/,
+                         const SpaceOut& /*unused*/) const {
     return p_in;
-  };
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC240002D, 1, "identity_topo_map", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240002D, 1, "identity_topo_map",
+                              shared_object)
 };
-
 
 /**
  * This concept defines the requirements to fulfill in order to model a homeomorphism between
@@ -195,13 +201,13 @@ struct identity_topo_map : public shared_object {
  * \tparam InSpace The input space type of the mapping.
  * \tparam OutSpace The output space type of the mapping.
  */
-template < typename Mapping, typename InSpace, typename OutSpace >
-struct HomeomorphismConcept : public BijectionConcept< Mapping, InSpace, OutSpace >,
-                              public BijectionConcept< Mapping, OutSpace, InSpace > {
+template <typename Mapping, typename InSpace, typename OutSpace>
+struct HomeomorphismConcept
+    : public BijectionConcept<Mapping, InSpace, OutSpace>,
+      public BijectionConcept<Mapping, OutSpace, InSpace> {
 
-  BOOST_CONCEPT_USAGE( HomeomorphismConcept ){};
+  BOOST_CONCEPT_USAGE(HomeomorphismConcept) {}
 };
-
 
 /**
  * This concept defines the requirements to fulfill in order to model a diffeomorphism between
@@ -219,16 +225,17 @@ struct HomeomorphismConcept : public BijectionConcept< Mapping, InSpace, OutSpac
  * \tparam Order The order of differentiation required by the diffeomorphism.
  * \tparam IndependentSpace The independent space against which the differentiation is taken on the spaces.
  */
-template < typename Mapping, typename InSpace, typename OutSpace, unsigned int Order, typename IndependentSpace >
-struct DiffeomorphismConcept : public BijectionConcept< Mapping, InSpace, OutSpace >,
-                               public BijectionConcept< Mapping, OutSpace, InSpace >,
-                               public TangentBundleConcept< InSpace, Order, IndependentSpace >,
-                               public TangentBundleConcept< OutSpace, Order, IndependentSpace > {
+template <typename Mapping, typename InSpace, typename OutSpace,
+          unsigned int Order, typename IndependentSpace>
+struct DiffeomorphismConcept
+    : public BijectionConcept<Mapping, InSpace, OutSpace>,
+      public BijectionConcept<Mapping, OutSpace, InSpace>,
+      public TangentBundleConcept<InSpace, Order, IndependentSpace>,
+      public TangentBundleConcept<OutSpace, Order, IndependentSpace> {
 
-  BOOST_CONCEPT_USAGE( DiffeomorphismConcept ){};
-};
-};
+  BOOST_CONCEPT_USAGE(DiffeomorphismConcept) {}
 };
 
+}  // namespace ReaK::pp
 
 #endif

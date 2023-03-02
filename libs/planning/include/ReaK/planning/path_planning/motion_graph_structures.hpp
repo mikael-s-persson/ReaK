@@ -37,16 +37,14 @@
 #ifndef REAK_MOTION_GRAPH_STRUCTURES_HPP
 #define REAK_MOTION_GRAPH_STRUCTURES_HPP
 
-
 // #define RK_PLANNERS_ENABLE_VEBL_TREE
 // #define RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
-
 
 #include <ReaK/core/base/defs.hpp>
 
 // BGL-Extra includes:
-#include <boost/graph/bfl_d_ary_tree.hpp>
 #include <boost/graph/adjacency_list_BC.hpp>
+#include <boost/graph/bfl_d_ary_tree.hpp>
 
 #ifdef RK_PLANNERS_ENABLE_VEBL_TREE
 #include <boost/graph/vebl_d_ary_tree.hpp>
@@ -56,23 +54,22 @@
 #include "dvp_layout_adjacency_list.hpp"
 #endif
 
-
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 
-#include <boost/mpl/if.hpp>
+#include <type_traits>
 
+namespace ReaK::pp {
 
-namespace ReaK {
-
-namespace pp {
-
-template < typename FreeSpaceType >
+template <typename FreeSpaceType>
 struct motion_segment_directionality {
-  typedef typename boost::mpl::if_< is_metric_symmetric< FreeSpaceType >, boost::undirectedS,
-                                    boost::bidirectionalS >::type type;
-};
-};
+  using type = std::conditional_t<is_metric_symmetric_v<FreeSpaceType>,
+                                  boost::undirectedS, boost::bidirectionalS>;
 };
 
+template <typename FreeSpaceType>
+using motion_segment_directionality_t =
+    typename motion_segment_directionality<FreeSpaceType>::type;
+
+}  // namespace ReaK::pp
 
 #endif

@@ -34,64 +34,63 @@ class SoQtExaminerViewer;
 class SoSwitch;
 class SoSeparator;
 
-namespace ReaK {
-
-namespace geom {
+namespace ReaK::geom {
 class oi_scene_graph;
-};
-};
+}  // namespace ReaK::geom
 
-namespace ReaK {
-
-namespace qt {
+namespace ReaK::qt {
 
 class View3DMenu : public QMenu {
   Q_OBJECT
 
-public:
-  View3DMenu( QWidget* parent = 0, SoQtExaminerViewer* aViewer = nullptr );
+ public:
+  View3DMenu(QWidget* parent = 0, SoQtExaminerViewer* aViewer = nullptr);
   ~View3DMenu();
 
-private slots:
+ private slots:
 
-  void toggleDisplayGroup( bool isChecked );
+  void toggleDisplayGroup(bool isChecked);
 
-public:
-  void setViewer( SoQtExaminerViewer* aViewer );
-  SoQtExaminerViewer* getViewer() const { return qtviewer; };
+ public:
+  void setViewer(SoQtExaminerViewer* aViewer);
+  SoQtExaminerViewer* getViewer() const { return qtviewer; }
 
-  SoSeparator* getRoot() const { return root_sep; };
+  SoSeparator* getRoot() const { return root_sep; }
 
-  SoSwitch* getDisplayGroup( const std::string& aGroupName, bool initChecked = true );
-  void removeDisplayGroup( const std::string& aGroupName );
+  SoSwitch* getDisplayGroup(const std::string& aGroupName,
+                            bool initChecked = true);
+  void removeDisplayGroup(const std::string& aGroupName);
 
-  shared_ptr< geom::oi_scene_graph > getGeometryGroup( const std::string& aGroupName, bool initChecked = true );
-  void removeGeometryGroup( const std::string& aGroupName );
+  std::shared_ptr<geom::oi_scene_graph> getGeometryGroup(
+      const std::string& aGroupName, bool initChecked = true);
+  void removeGeometryGroup(const std::string& aGroupName);
 
-private:
+ private:
   struct display_group {
     QAction* selector;
     SoSwitch* display_switch;
 
-    display_group( QAction* aSelector = nullptr, SoSwitch* aDisplaySwitch = nullptr )
-        : selector( aSelector ), display_switch( aDisplaySwitch ){};
+    display_group(QAction* aSelector = nullptr,
+                  SoSwitch* aDisplaySwitch = nullptr)
+        : selector(aSelector), display_switch(aDisplaySwitch) {}
   };
 
   struct geometry_group {
     QAction* selector;
-    shared_ptr< geom::oi_scene_graph > geom_scene;
+    std::shared_ptr<geom::oi_scene_graph> geom_scene;
 
-    geometry_group( QAction* aSelector = nullptr,
-                    const shared_ptr< geom::oi_scene_graph >& aGeomScene = shared_ptr< geom::oi_scene_graph >() )
-        : selector( aSelector ), geom_scene( aGeomScene ){};
+    geometry_group(QAction* aSelector = nullptr,
+                   const std::shared_ptr<geom::oi_scene_graph>& aGeomScene =
+                       std::shared_ptr<geom::oi_scene_graph>())
+        : selector(aSelector), geom_scene(aGeomScene) {}
   };
 
   SoQtExaminerViewer* qtviewer;
   SoSeparator* root_sep;
-  std::map< std::string, display_group > display_items;
-  std::map< std::string, geometry_group > geometry_items;
+  std::map<std::string, display_group> display_items;
+  std::map<std::string, geometry_group> geometry_items;
 };
-};
-};
+
+}  // namespace ReaK::qt
 
 #endif

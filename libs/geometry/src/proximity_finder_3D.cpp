@@ -23,9 +23,4 @@
 
 #include <ReaK/geometry/proximity/proximity_finder_3D.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {};
-};
+namespace ReaK::geom {}  // namespace ReaK::geom

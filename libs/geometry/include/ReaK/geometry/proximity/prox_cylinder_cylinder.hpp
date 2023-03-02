@@ -36,40 +36,39 @@
 
 #include <ReaK/geometry/shapes/cylinder.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
-
-proximity_record_3D compute_proximity( const cylinder& aCylinder1, const shape_3D_precompute_pack& aPack1,
-                                       const cylinder& aCylinder2, const shape_3D_precompute_pack& aPack2 );
+proximity_record_3D compute_proximity(const cylinder& aCylinder1,
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const cylinder& aCylinder2,
+                                      const shape_3D_precompute_pack& aPack2);
 
 /**
  * This class is for proximity queries between a cylinder and a cylinder.
  */
 class prox_cylinder_cylinder : public proximity_finder_3D {
-protected:
+ protected:
   const cylinder* mCylinder1;
   const cylinder* mCylinder2;
 
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_3D computeProximity( const shape_3D_precompute_pack& aPack1,
-                                                const shape_3D_precompute_pack& aPack2 );
+  proximity_record_3D computeProximity(
+      const shape_3D_precompute_pack& aPack1,
+      const shape_3D_precompute_pack& aPack2) override;
 
   /**
    * Default constructor.
    * \param aCylinder1 The capped cylinder involved in the proximity query.
    * \param aCylinder2 The capped cylinder involved in the proximity query.
    */
-  prox_cylinder_cylinder( const cylinder* aCylinder1 = nullptr, const cylinder* aCylinder2 = nullptr );
+  explicit prox_cylinder_cylinder(const cylinder* aCylinder1 = nullptr,
+                                  const cylinder* aCylinder2 = nullptr);
 
   /** Destructor. */
-  virtual ~prox_cylinder_cylinder(){};
+  ~prox_cylinder_cylinder() override = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

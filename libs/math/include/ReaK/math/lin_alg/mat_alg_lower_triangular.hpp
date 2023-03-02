@@ -36,9 +36,7 @@
 
 #include "mat_alg_general.hpp"
 
-
 namespace ReaK {
-
 
 #if 0
 
@@ -527,9 +525,7 @@ class mat_lo_tri : public mat<T> {
 
 };
 
-
 #endif
-};
-
+};  // namespace ReaK
 
 #endif

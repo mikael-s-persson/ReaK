@@ -37,548 +37,606 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/math/optimization/optim_exceptions.hpp>
 
-#include "spatial_trajectory_concept.hpp"
-#include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
 #include <ReaK/topologies/spaces/bounded_space_concept.hpp>
-#include <ReaK/topologies/spaces/reversible_space_concept.hpp>
 #include <ReaK/topologies/spaces/generic_sampler_factory.hpp>
 #include <ReaK/topologies/spaces/rate_limited_spaces.hpp>
+#include <ReaK/topologies/spaces/reversible_space_concept.hpp>
+#include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
+#include "spatial_trajectory_concept.hpp"
 
-#include "interpolated_topologies.hpp"
 #include "generic_interpolator_factory.hpp"
+#include "interpolated_topologies.hpp"
 #include "sustained_velocity_pulse.hpp"
 #include "svp_metrics.hpp"
 #include "svp_samplers.hpp"
 
 #include <boost/concept_check.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 namespace detail {
 
-template < typename BaseTopology, bool IsTemporal >
+template <typename BaseTopology, bool IsTemporal>
 struct svp_reach_topo_impl {
 
-  typedef typename topology_traits< BaseTopology >::point_type point_type;
-  typedef typename topology_traits< BaseTopology >::point_difference_type point_difference_type;
+  using point_type = topology_point_type_t<BaseTopology>;
+  using point_difference_type = topology_point_difference_type_t<BaseTopology>;
 
-  typedef svp_reach_time_metric< time_topology > rt_metric_type;
-  typedef generic_sampler< svp_rate_limited_sampler< time_topology >, BaseTopology > sampler_type;
+  using rt_metric_type = svp_reach_time_metric<time_topology>;
+  using sampler_type =
+      generic_sampler<svp_rate_limited_sampler<time_topology>, BaseTopology>;
 
-  static rt_metric_type make_rt_metric( const BaseTopology& ) { return rt_metric_type(); };
-  static sampler_type make_sampler( const BaseTopology& ) { return sampler_type(); };
+  static rt_metric_type make_rt_metric(const BaseTopology&) {
+    return rt_metric_type();
+  }
+  static sampler_type make_sampler(const BaseTopology&) {
+    return sampler_type();
+  }
 
-#ifdef BOOST_NO_CXX11_HDR_FUNCTIONAL
-  typedef boost::function< bool(const point_type&)> validity_predicate_type;
-#else
-  typedef std::function< bool(const point_type&)> validity_predicate_type;
-#endif
+  using validity_predicate_type = std::function<bool(const point_type&)>;
 
-  static point_type move_pt_toward( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                                    double fraction, const point_type& b ) {
+  static point_type move_pt_toward(const BaseTopology& b_space,
+                                   const rt_metric_type& rt_dist,
+                                   const point_type& a, double fraction,
+                                   const point_type& b) {
     try {
-      generic_interpolator_impl< svp_interpolator, BaseTopology, time_topology > interp;
-      interp.initialize( a, b, 0.0, b_space, time_topology(), rt_dist );
+      generic_interpolator_impl<svp_interpolator, BaseTopology, time_topology>
+          interp;
+      interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
       double dt_min = interp.get_minimum_travel_time();
-      if( dt_min == std::numeric_limits< double >::infinity() )
+      if (dt_min == std::numeric_limits<double>::infinity()) {
         return a;
+      }
       double dt = dt_min * fraction;
       point_type result = a;
-      interp.compute_point( result, a, b, b_space, time_topology(), dt, dt_min, rt_dist );
+      interp.compute_point(result, a, b, b_space, time_topology(), dt, dt_min,
+                           rt_dist);
       return result;
-    } catch( optim::infeasible_problem& e ) {
-      RK_UNUSED( e );
+    } catch (optim::infeasible_problem& e) {
+      RK_UNUSED(e);
       return a;
-    };
-  };
+    }
+  }
 
-  static point_type move_pt_toward( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                                    double fraction, const point_type& b, double min_dist_interval,
-                                    validity_predicate_type predicate ) {
+  static point_type move_pt_toward(const BaseTopology& b_space,
+                                   const rt_metric_type& rt_dist,
+                                   const point_type& a, double fraction,
+                                   const point_type& b,
+                                   double min_dist_interval,
+                                   validity_predicate_type predicate) {
     try {
-      generic_interpolator_impl< svp_interpolator, BaseTopology, time_topology > interp;
-      interp.initialize( a, b, 0.0, b_space, time_topology(), rt_dist );
+      generic_interpolator_impl<svp_interpolator, BaseTopology, time_topology>
+          interp;
+      interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
       double dt_min = interp.get_minimum_travel_time();
-      if( dt_min == std::numeric_limits< double >::infinity() )
+      if (dt_min == std::numeric_limits<double>::infinity()) {
         return a;
+      }
       double dt = dt_min * fraction;
       double d = min_dist_interval;
       point_type result = a;
       point_type last_result = a;
-      while( d < dt ) {
-        interp.compute_point( result, a, b, b_space, time_topology(), d, dt_min, rt_dist );
-        if( !predicate( result ) )
+      while (d < dt) {
+        interp.compute_point(result, a, b, b_space, time_topology(), d, dt_min,
+                             rt_dist);
+        if (!predicate(result)) {
           return last_result;
+        }
         d += min_dist_interval;
         last_result = result;
-      };
-      if( fraction == 1.0 ) // these equal comparison are used for when exact end fractions are used.
+      }
+      if (fraction == 1.0) {
         return b;
-      if( fraction == 0.0 )
+      }
+      if (fraction == 0.0) {
         return a;
-      interp.compute_point( result, a, b, b_space, time_topology(), dt, dt_min, rt_dist );
+      }
+      interp.compute_point(result, a, b, b_space, time_topology(), dt, dt_min,
+                           rt_dist);
       return result;
-    } catch( optim::infeasible_problem& e ) {
-      RK_UNUSED( e );
+    } catch (optim::infeasible_problem& e) {
+      RK_UNUSED(e);
       return a;
-    };
-  };
+    }
+  }
 
-  static point_type move_pt_back_to( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                                     double fraction, const point_type& b ) {
+  static point_type move_pt_back_to(const BaseTopology& b_space,
+                                    const rt_metric_type& rt_dist,
+                                    const point_type& a, double fraction,
+                                    const point_type& b) {
     try {
-      generic_interpolator_impl< svp_interpolator, BaseTopology, time_topology > interp;
-      interp.initialize( a, b, 0.0, b_space, time_topology(), rt_dist );
+      generic_interpolator_impl<svp_interpolator, BaseTopology, time_topology>
+          interp;
+      interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
       double dt_min = interp.get_minimum_travel_time();
-      if( dt_min == std::numeric_limits< double >::infinity() )
+      if (dt_min == std::numeric_limits<double>::infinity()) {
         return b;
-      double dt = dt_min * ( 1.0 - fraction );
+      }
+      double dt = dt_min * (1.0 - fraction);
       point_type result = b;
-      interp.compute_point( result, a, b, b_space, time_topology(), dt, dt_min, rt_dist );
+      interp.compute_point(result, a, b, b_space, time_topology(), dt, dt_min,
+                           rt_dist);
       return result;
-    } catch( optim::infeasible_problem& e ) {
-      RK_UNUSED( e );
+    } catch (optim::infeasible_problem& e) {
+      RK_UNUSED(e);
       return b;
-    };
-  };
+    }
+  }
 
-  static point_type move_pt_back_to( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                                     double fraction, const point_type& b, double min_dist_interval,
-                                     validity_predicate_type predicate ) {
+  static point_type move_pt_back_to(const BaseTopology& b_space,
+                                    const rt_metric_type& rt_dist,
+                                    const point_type& a, double fraction,
+                                    const point_type& b,
+                                    double min_dist_interval,
+                                    validity_predicate_type predicate) {
     try {
-      generic_interpolator_impl< svp_interpolator, BaseTopology, time_topology > interp;
-      interp.initialize( a, b, 0.0, b_space, time_topology(), rt_dist );
+      generic_interpolator_impl<svp_interpolator, BaseTopology, time_topology>
+          interp;
+      interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
       double dt_min = interp.get_minimum_travel_time();
-      if( dt_min == std::numeric_limits< double >::infinity() )
+      if (dt_min == std::numeric_limits<double>::infinity()) {
         return b;
-      double dt = dt_min * ( 1.0 - fraction );
+      }
+      double dt = dt_min * (1.0 - fraction);
       double d = dt_min - min_dist_interval;
       point_type result = b;
       point_type last_result = b;
-      while( d > dt ) {
-        interp.compute_point( result, a, b, b_space, time_topology(), d, dt_min, rt_dist );
-        if( !predicate( result ) )
+      while (d > dt) {
+        interp.compute_point(result, a, b, b_space, time_topology(), d, dt_min,
+                             rt_dist);
+        if (!predicate(result)) {
           return last_result;
+        }
         d -= min_dist_interval;
         last_result = result;
-      };
-      if( fraction == 1.0 ) // these equal comparison are used for when exact end fractions are used.
+      }
+      if (fraction == 1.0) {
         return a;
-      if( fraction == 0.0 )
+      }
+      if (fraction == 0.0) {
         return b;
-      interp.compute_point( result, a, b, b_space, time_topology(), dt, dt_min, rt_dist );
+      }
+      interp.compute_point(result, a, b, b_space, time_topology(), dt, dt_min,
+                           rt_dist);
       return result;
-    } catch( optim::infeasible_problem& e ) {
-      RK_UNUSED( e );
+    } catch (optim::infeasible_problem& e) {
+      RK_UNUSED(e);
       return b;
-    };
-  };
+    }
+  }
 
-  static double get_distance( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                              const point_type& b ) {
-    return rt_dist( a, b, b_space );
-  };
+  static double get_distance(const BaseTopology& b_space,
+                             const rt_metric_type& rt_dist, const point_type& a,
+                             const point_type& b) {
+    return rt_dist(a, b, b_space);
+  }
 
-  static double get_norm( const BaseTopology& b_space, const rt_metric_type& rt_dist,
-                          const point_difference_type& dp ) {
-    return rt_dist( dp, b_space );
-  };
+  static double get_norm(const BaseTopology& b_space,
+                         const rt_metric_type& rt_dist,
+                         const point_difference_type& dp) {
+    return rt_dist(dp, b_space);
+  }
 
-  static double get_proper_distance( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                                     const point_type& b ) {
-    svp_reach_time_metric< time_topology, true > p_rt_dist( rt_dist );
-    return p_rt_dist( a, b, b_space );
-  };
+  static double get_proper_distance(const BaseTopology& b_space,
+                                    const rt_metric_type& rt_dist,
+                                    const point_type& a, const point_type& b) {
+    svp_reach_time_metric<time_topology, true> p_rt_dist(rt_dist);
+    return p_rt_dist(a, b, b_space);
+  }
 
-  static double get_proper_norm( const BaseTopology& b_space, const rt_metric_type& rt_dist,
-                                 const point_difference_type& dp ) {
-    svp_reach_time_metric< time_topology, true > p_rt_dist( rt_dist );
-    return p_rt_dist( dp, b_space );
-  };
+  static double get_proper_norm(const BaseTopology& b_space,
+                                const rt_metric_type& rt_dist,
+                                const point_difference_type& dp) {
+    svp_reach_time_metric<time_topology, true> p_rt_dist(rt_dist);
+    return p_rt_dist(dp, b_space);
+  }
 
-  static bool is_in_bounds( const BaseTopology& b_space, const point_type& a ) {
-    return svp_is_in_bounds( a, b_space, time_topology() );
-  };
+  static bool is_in_bounds(const BaseTopology& b_space, const point_type& a) {
+    return svp_is_in_bounds(a, b_space, time_topology());
+  }
 
-  static point_type random_point( const BaseTopology& b_space, const sampler_type& rl_sampler ) {
-    return rl_sampler( b_space );
-  };
+  static point_type random_point(const BaseTopology& b_space,
+                                 const sampler_type& rl_sampler) {
+    return rl_sampler(b_space);
+  }
 };
 
-
 // Implementation for the temporal spaces:
-template < typename BaseTopology >
-struct svp_reach_topo_impl< BaseTopology, true > {
+template <typename BaseTopology>
+struct svp_reach_topo_impl<BaseTopology, true> {
 
-  typedef typename topology_traits< BaseTopology >::point_type point_type;
-  typedef typename topology_traits< BaseTopology >::point_difference_type point_difference_type;
+  using point_type = topology_point_type_t<BaseTopology>;
+  using point_difference_type = topology_point_difference_type_t<BaseTopology>;
 
-  typedef typename temporal_space_traits< BaseTopology >::time_topology base_time_topo;
-  typedef typename temporal_space_traits< BaseTopology >::space_topology base_space_topo;
+  using base_time_topo =
+      typename temporal_space_traits<BaseTopology>::time_topology;
+  using base_space_topo =
+      typename temporal_space_traits<BaseTopology>::space_topology;
 
-  typedef svp_reach_time_metric< base_time_topo > rt_metric_type;
-  typedef generic_sampler< svp_rate_limited_sampler< base_time_topo >, base_space_topo > sampler_type;
+  using rt_metric_type = svp_reach_time_metric<base_time_topo>;
+  using sampler_type = generic_sampler<svp_rate_limited_sampler<base_time_topo>,
+                                       base_space_topo>;
 
-  static rt_metric_type make_rt_metric( const BaseTopology& b_space ) {
-    return rt_metric_type( shared_ptr< const base_time_topo >( &( b_space.get_time_topology() ), null_deleter() ) );
-  };
+  static rt_metric_type make_rt_metric(const BaseTopology& b_space) {
+    return rt_metric_type(std::shared_ptr<const base_time_topo>(
+        &(b_space.get_time_topology()), null_deleter()));
+  }
 
-  static sampler_type make_sampler( const BaseTopology& b_space ) {
-    return sampler_type( shared_ptr< const base_time_topo >( &( b_space.get_time_topology() ), null_deleter() ) );
-  };
+  static sampler_type make_sampler(const BaseTopology& b_space) {
+    return sampler_type(std::shared_ptr<const base_time_topo>(
+        &(b_space.get_time_topology()), null_deleter()));
+  }
 
-#ifdef BOOST_NO_CXX11_HDR_FUNCTIONAL
-  typedef boost::function< bool(const point_type&)> validity_predicate_type;
-#else
-  typedef std::function< bool(const point_type&)> validity_predicate_type;
-#endif
+  using validity_predicate_type = std::function<bool(const point_type&)>;
 
-  static point_type move_pt_toward( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                                    double fraction, const point_type& b ) {
+  static point_type move_pt_toward(const BaseTopology& b_space,
+                                   const rt_metric_type& rt_dist,
+                                   const point_type& a, double fraction,
+                                   const point_type& b) {
 
-    if( a.time > b.time ) // Am I trying to go backwards in time (impossible)?
-      return a; // b is not reachable from a.
+    if (a.time > b.time) {
+      return a;
+    }
 
     try {
-      generic_interpolator_impl< svp_interpolator, base_space_topo, base_time_topo > interp;
-      double dt_total = ( b.time - a.time ); // the free time that I have along the path.
-      interp.initialize( a.pt, b.pt, dt_total, b_space.get_space_topology(), b_space.get_time_topology(), rt_dist );
-      if( interp.get_minimum_travel_time() == std::numeric_limits< double >::infinity() )
+      generic_interpolator_impl<svp_interpolator, base_space_topo,
+                                base_time_topo>
+          interp;
+      double dt_total =
+          (b.time - a.time);  // the free time that I have along the path.
+      interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(),
+                        b_space.get_time_topology(), rt_dist);
+      if (interp.get_minimum_travel_time() ==
+          std::numeric_limits<double>::infinity()) {
         return a;
+      }
       double dt = dt_total * fraction;
       point_type result = a;
-      interp.compute_point( result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), dt,
-                            dt_total, rt_dist );
+      interp.compute_point(result.pt, a.pt, b.pt, b_space.get_space_topology(),
+                           b_space.get_time_topology(), dt, dt_total, rt_dist);
       result.time += dt;
       return result;
-    } catch( optim::infeasible_problem& e ) {
-      RK_UNUSED( e );
+    } catch (optim::infeasible_problem& e) {
+      RK_UNUSED(e);
       return a;
-    };
-  };
+    }
+  }
 
-  static point_type move_pt_toward( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                                    double fraction, const point_type& b, double min_dist_interval,
-                                    validity_predicate_type predicate ) {
+  static point_type move_pt_toward(const BaseTopology& b_space,
+                                   const rt_metric_type& rt_dist,
+                                   const point_type& a, double fraction,
+                                   const point_type& b,
+                                   double min_dist_interval,
+                                   validity_predicate_type predicate) {
 
-    if( a.time > b.time ) // Am I trying to go backwards in time (impossible)?
-      return a; // b is not reachable from a.
+    if (a.time > b.time) {
+      return a;
+    }
 
     try {
-      double dt_total = ( b.time - a.time ); // the free time that I have along the path.
-      if( dt_total < min_dist_interval )
-        return move_pt_toward( b_space, rt_dist, a, fraction, b );
+      double dt_total =
+          (b.time - a.time);  // the free time that I have along the path.
+      if (dt_total < min_dist_interval) {
+        return move_pt_toward(b_space, rt_dist, a, fraction, b);
+      }
 
-      generic_interpolator_impl< svp_interpolator, base_space_topo, base_time_topo > interp;
-      interp.initialize( a.pt, b.pt, dt_total, b_space.get_space_topology(), b_space.get_time_topology(), rt_dist );
-      if( interp.get_minimum_travel_time() == std::numeric_limits< double >::infinity() )
+      generic_interpolator_impl<svp_interpolator, base_space_topo,
+                                base_time_topo>
+          interp;
+      interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(),
+                        b_space.get_time_topology(), rt_dist);
+      if (interp.get_minimum_travel_time() ==
+          std::numeric_limits<double>::infinity()) {
         return a;
+      }
       double dt = dt_total * fraction;
       double d = min_dist_interval;
       point_type result = a;
       point_type last_result = a;
-      while( d < dt ) {
-        interp.compute_point( result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), d,
-                              dt_total, rt_dist );
+      while (d < dt) {
+        interp.compute_point(result.pt, a.pt, b.pt,
+                             b_space.get_space_topology(),
+                             b_space.get_time_topology(), d, dt_total, rt_dist);
         result.time = a.time + d;
-        if( !predicate( result ) )
+        if (!predicate(result)) {
           return last_result;
+        }
         d += min_dist_interval;
         last_result = result;
       };
-      if( fraction == 1.0 ) // these equal comparison are used for when exact end fractions are used.
+      if (fraction == 1.0) {
         return b;
-      if( fraction == 0.0 )
+      }
+      if (fraction == 0.0) {
         return a;
-      interp.compute_point( result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), dt,
-                            dt_total, rt_dist );
+      }
+      interp.compute_point(result.pt, a.pt, b.pt, b_space.get_space_topology(),
+                           b_space.get_time_topology(), dt, dt_total, rt_dist);
       result.time = a.time + dt;
       return result;
-    } catch( optim::infeasible_problem& e ) {
-      RK_UNUSED( e );
+    } catch (optim::infeasible_problem& e) {
+      RK_UNUSED(e);
       return a;
-    };
+    }
   };
 
-  static point_type move_pt_back_to( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                                     double fraction, const point_type& b ) {
+  static point_type move_pt_back_to(const BaseTopology& b_space,
+                                    const rt_metric_type& rt_dist,
+                                    const point_type& a, double fraction,
+                                    const point_type& b) {
 
-    if( a.time > b.time ) // Am I trying to go backwards in time (impossible)?
-      return b; // a is not reachable from b.
+    if (a.time > b.time) {
+      return b;
+    }
 
     try {
-      generic_interpolator_impl< svp_interpolator, base_space_topo, base_time_topo > interp;
-      double dt_total = ( b.time - a.time ); // the free time that I have along the path.
-      interp.initialize( a.pt, b.pt, dt_total, b_space.get_space_topology(), b_space.get_time_topology(), rt_dist );
-      if( interp.get_minimum_travel_time() == std::numeric_limits< double >::infinity() )
+      generic_interpolator_impl<svp_interpolator, base_space_topo,
+                                base_time_topo>
+          interp;
+      double dt_total =
+          (b.time - a.time);  // the free time that I have along the path.
+      interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(),
+                        b_space.get_time_topology(), rt_dist);
+      if (interp.get_minimum_travel_time() ==
+          std::numeric_limits<double>::infinity()) {
         return b;
-      double dt = dt_total * ( 1.0 - fraction );
+      }
+      double dt = dt_total * (1.0 - fraction);
       point_type result = b;
-      interp.compute_point( result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), dt,
-                            dt_total, rt_dist );
+      interp.compute_point(result.pt, a.pt, b.pt, b_space.get_space_topology(),
+                           b_space.get_time_topology(), dt, dt_total, rt_dist);
       result.time = a.time + dt;
       return result;
-    } catch( optim::infeasible_problem& e ) {
-      RK_UNUSED( e );
+    } catch (optim::infeasible_problem& e) {
+      RK_UNUSED(e);
       return b;
-    };
-  };
+    }
+  }
 
-  static point_type move_pt_back_to( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                                     double fraction, const point_type& b, double min_dist_interval,
-                                     validity_predicate_type predicate ) {
+  static point_type move_pt_back_to(const BaseTopology& b_space,
+                                    const rt_metric_type& rt_dist,
+                                    const point_type& a, double fraction,
+                                    const point_type& b,
+                                    double min_dist_interval,
+                                    validity_predicate_type predicate) {
 
-    if( a.time > b.time ) // Am I trying to go backwards in time (impossible)?
-      return b; // a is not reachable from b.
+    if (a.time > b.time) {
+      return b;
+    }
 
     try {
-      double dt_total = ( b.time - a.time ); // the free time that I have along the path.
-      if( dt_total < min_dist_interval )
-        return move_pt_back_to( b_space, rt_dist, a, fraction, b );
+      double dt_total =
+          (b.time - a.time);  // the free time that I have along the path.
+      if (dt_total < min_dist_interval) {
+        return move_pt_back_to(b_space, rt_dist, a, fraction, b);
+      }
 
-      generic_interpolator_impl< svp_interpolator, base_space_topo, base_time_topo > interp;
-      interp.initialize( a.pt, b.pt, dt_total, b_space.get_space_topology(), b_space.get_time_topology(), rt_dist );
-      if( interp.get_minimum_travel_time() == std::numeric_limits< double >::infinity() )
+      generic_interpolator_impl<svp_interpolator, base_space_topo,
+                                base_time_topo>
+          interp;
+      interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(),
+                        b_space.get_time_topology(), rt_dist);
+      if (interp.get_minimum_travel_time() ==
+          std::numeric_limits<double>::infinity()) {
         return b;
-      double dt = dt_total * ( 1.0 - fraction );
+      }
+      double dt = dt_total * (1.0 - fraction);
       double d = dt_total - min_dist_interval;
       point_type result = b;
       point_type last_result = b;
-      while( d > dt ) {
-        interp.compute_point( result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), d,
-                              dt_total, rt_dist );
+      while (d > dt) {
+        interp.compute_point(result.pt, a.pt, b.pt,
+                             b_space.get_space_topology(),
+                             b_space.get_time_topology(), d, dt_total, rt_dist);
         result.time = a.time + d;
-        if( !predicate( result ) )
+        if (!predicate(result)) {
           return last_result;
+        }
         d -= min_dist_interval;
         last_result = result;
       };
-      if( fraction == 1.0 ) // these equal comparison are used for when exact end fractions are used.
+      if (fraction == 1.0) {
         return a;
-      if( fraction == 0.0 )
+      }
+      if (fraction == 0.0) {
         return b;
-      interp.compute_point( result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), dt,
-                            dt_total, rt_dist );
+      }
+      interp.compute_point(result.pt, a.pt, b.pt, b_space.get_space_topology(),
+                           b_space.get_time_topology(), dt, dt_total, rt_dist);
       result.time = a.time + dt;
       return result;
-    } catch( optim::infeasible_problem& e ) {
-      RK_UNUSED( e );
+    } catch (optim::infeasible_problem& e) {
+      RK_UNUSED(e);
       return b;
-    };
-  };
+    }
+  }
 
-  static double get_distance( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                              const point_type& b ) {
-    if( a.time > b.time ) // Am I trying to go backwards in time (impossible)?
-      return std::numeric_limits< double >::infinity(); // p2 is not reachable from p1.
-    double reach_time = rt_dist( a.pt, b.pt, b_space.get_space_topology() );
-    if( ( b.time - a.time ) < reach_time ) // There is not enough time to reach the end-point.
-      return std::numeric_limits< double >::infinity();
-    return ( b.time - a.time ) + reach_time;
-  };
+  static double get_distance(const BaseTopology& b_space,
+                             const rt_metric_type& rt_dist, const point_type& a,
+                             const point_type& b) {
+    if (a.time > b.time) {
+      return std::numeric_limits<double>::infinity();
+    }
+    double reach_time = rt_dist(a.pt, b.pt, b_space.get_space_topology());
+    if ((b.time - a.time) < reach_time) {
+      return std::numeric_limits<double>::infinity();
+    }
+    return (b.time - a.time) + reach_time;
+  }
 
-  static double get_norm( const BaseTopology& b_space, const rt_metric_type& rt_dist,
-                          const point_difference_type& dp ) {
-    if( dp.time < 0.0 ) // Am I trying to go backwards in time (impossible)?
-      return std::numeric_limits< double >::infinity(); // p2 is not reachable from p1.
-    double reach_time = rt_dist( dp.pt, b_space.get_space_topology() );
-    if( dp.time < reach_time ) // There is not enough time to reach the end-point.
-      return std::numeric_limits< double >::infinity();
+  static double get_norm(const BaseTopology& b_space,
+                         const rt_metric_type& rt_dist,
+                         const point_difference_type& dp) {
+    if (dp.time < 0.0) {
+      return std::numeric_limits<double>::infinity();
+    }
+    double reach_time = rt_dist(dp.pt, b_space.get_space_topology());
+    if (dp.time < reach_time) {
+      return std::numeric_limits<double>::infinity();
+    }
     return dp.time + reach_time;
-  };
+  }
 
-  static double get_proper_distance( const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a,
-                                     const point_type& b ) {
-    using std::fabs;
-    svp_reach_time_metric< base_time_topo, true > p_rt_dist( rt_dist );
-    double reach_time = p_rt_dist( a.pt, b.pt, b_space.get_space_topology() );
-    return fabs( b.time - a.time ) + reach_time;
-  };
+  static double get_proper_distance(const BaseTopology& b_space,
+                                    const rt_metric_type& rt_dist,
+                                    const point_type& a, const point_type& b) {
+    using std::abs;
+    svp_reach_time_metric<base_time_topo, true> p_rt_dist(rt_dist);
+    double reach_time = p_rt_dist(a.pt, b.pt, b_space.get_space_topology());
+    return abs(b.time - a.time) + reach_time;
+  }
 
-  static double get_proper_norm( const BaseTopology& b_space, const rt_metric_type& rt_dist,
-                                 const point_difference_type& dp ) {
-    using std::fabs;
-    svp_reach_time_metric< base_time_topo, true > p_rt_dist( rt_dist );
-    double reach_time = p_rt_dist( dp.pt, b_space.get_space_topology() );
-    return fabs( dp.time ) + reach_time;
-  };
+  static double get_proper_norm(const BaseTopology& b_space,
+                                const rt_metric_type& rt_dist,
+                                const point_difference_type& dp) {
+    using std::abs;
+    svp_reach_time_metric<base_time_topo, true> p_rt_dist(rt_dist);
+    double reach_time = p_rt_dist(dp.pt, b_space.get_space_topology());
+    return abs(dp.time) + reach_time;
+  }
 
+  static bool is_in_bounds(const BaseTopology& b_space, const point_type& a) {
+    return svp_is_in_bounds(a.pt, b_space.get_space_topology(),
+                            b_space.get_time_topology());
+  }
 
-  static bool is_in_bounds( const BaseTopology& b_space, const point_type& a ) {
-    return svp_is_in_bounds( a.pt, b_space.get_space_topology(), b_space.get_time_topology() );
-  };
-
-  static point_type random_point( const BaseTopology& b_space, const sampler_type& rl_sampler ) {
-    return point_type( get( random_sampler, b_space.get_time_topology() )( b_space.get_time_topology() ),
-                       rl_sampler( b_space.get_space_topology() ) );
-  };
+  static point_type random_point(const BaseTopology& b_space,
+                                 const sampler_type& rl_sampler) {
+    return point_type(get(random_sampler, b_space.get_time_topology())(
+                          b_space.get_time_topology()),
+                      rl_sampler(b_space.get_space_topology()));
+  }
 };
 
-template < typename BaseTopology >
+template <typename BaseTopology>
 struct svp_reach_topo_selector {
-  typedef svp_reach_topo_impl< BaseTopology, is_temporal_space< BaseTopology >::type::value > type;
-};
+  using type =
+      svp_reach_topo_impl<BaseTopology, is_temporal_space_v<BaseTopology>>;
 };
 
+}  // namespace detail
 
 /**
  * This class wraps an interpolated topology which is a topology with a new travel function, distance metric and
  * sampler.
  * \tparam BaseTopology The topology underlying this space, should model TopologyConcept.
  */
-template < typename BaseTopology >
-class interpolated_topology< BaseTopology, svp_interpolation_tag > : public interpolated_topology_base< BaseTopology > {
-public:
-  typedef interpolated_topology_base< BaseTopology > base_type;
-  typedef interpolated_topology< BaseTopology, svp_interpolation_tag > self;
+template <typename BaseTopology>
+class interpolated_topology<BaseTopology, svp_interpolation_tag>
+    : public interpolated_topology_base<BaseTopology> {
+ public:
+  using base_type = interpolated_topology_base<BaseTopology>;
+  using self = interpolated_topology<BaseTopology, svp_interpolation_tag>;
 
-  typedef typename base_type::point_type point_type;
-  typedef typename base_type::point_difference_type point_difference_type;
+  using point_type = typename base_type::point_type;
+  using point_difference_type = typename base_type::point_difference_type;
 
-  typedef typename base_type::distance_metric_type distance_metric_type;
-  typedef typename base_type::random_sampler_type random_sampler_type;
+  using distance_metric_type = typename base_type::distance_metric_type;
+  using random_sampler_type = typename base_type::random_sampler_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = base_type::dimensions );
+  static constexpr std::size_t dimensions = base_type::dimensions;
 
+  using validity_predicate_type = std::function<bool(const point_type&)>;
 
-#ifdef BOOST_NO_CXX11_HDR_FUNCTIONAL
-  typedef boost::function< bool(const point_type&)> validity_predicate_type;
-#else
-  typedef std::function< bool(const point_type&)> validity_predicate_type;
-#endif
-
-protected:
-  typedef typename detail::svp_reach_topo_selector< BaseTopology >::type Impl;
-  typedef typename Impl::rt_metric_type rt_metric_type;
-  typedef typename Impl::sampler_type sampler_type;
+ protected:
+  using Impl = typename detail::svp_reach_topo_selector<BaseTopology>::type;
+  using rt_metric_type = typename Impl::rt_metric_type;
+  using sampler_type = typename Impl::sampler_type;
 
   rt_metric_type rt_dist;
   sampler_type rl_sampler;
 
-  virtual point_type interp_topo_move_position_toward( const point_type& a, double fraction,
-                                                       const point_type& b ) const {
-    return Impl::move_pt_toward( *this, rt_dist, a, fraction, b );
-  };
+  virtual point_type interp_topo_move_position_toward(
+      const point_type& a, double fraction, const point_type& b) const {
+    return Impl::move_pt_toward(*this, rt_dist, a, fraction, b);
+  }
 
-  virtual point_type interp_topo_move_position_toward_pred( const point_type& a, double fraction, const point_type& b,
-                                                            double min_dist_interval,
-                                                            validity_predicate_type predicate ) const {
-    return Impl::move_pt_toward( *this, rt_dist, a, fraction, b, min_dist_interval, predicate );
-  };
+  virtual point_type interp_topo_move_position_toward_pred(
+      const point_type& a, double fraction, const point_type& b,
+      double min_dist_interval, validity_predicate_type predicate) const {
+    return Impl::move_pt_toward(*this, rt_dist, a, fraction, b,
+                                min_dist_interval, predicate);
+  }
 
-  virtual point_type interp_topo_move_position_back_to( const point_type& a, double fraction,
-                                                        const point_type& b ) const {
-    return Impl::move_pt_back_to( *this, rt_dist, a, fraction, b );
-  };
+  virtual point_type interp_topo_move_position_back_to(
+      const point_type& a, double fraction, const point_type& b) const {
+    return Impl::move_pt_back_to(*this, rt_dist, a, fraction, b);
+  }
 
-  virtual point_type interp_topo_move_position_back_to_pred( const point_type& a, double fraction, const point_type& b,
-                                                             double min_dist_interval,
-                                                             validity_predicate_type predicate ) const {
-    return Impl::move_pt_back_to( *this, rt_dist, a, fraction, b, min_dist_interval, predicate );
-  };
+  virtual point_type interp_topo_move_position_back_to_pred(
+      const point_type& a, double fraction, const point_type& b,
+      double min_dist_interval, validity_predicate_type predicate) const {
+    return Impl::move_pt_back_to(*this, rt_dist, a, fraction, b,
+                                 min_dist_interval, predicate);
+  }
 
-  virtual double interp_topo_get_distance( const point_type& a, const point_type& b ) const {
-    return Impl::get_distance( *this, rt_dist, a, b );
-  };
-  virtual double interp_topo_get_norm( const point_difference_type& dp ) const {
-    return Impl::get_norm( *this, rt_dist, dp );
-  };
-  virtual double interp_topo_get_proper_distance( const point_type& a, const point_type& b ) const {
-    return Impl::get_proper_distance( *this, rt_dist, a, b );
-  };
-  virtual double interp_topo_get_proper_norm( const point_difference_type& dp ) const {
-    return Impl::get_proper_norm( *this, rt_dist, dp );
-  };
-  virtual bool interp_topo_is_in_bounds( const point_type& a ) const { return Impl::is_in_bounds( *this, a ); };
-  virtual point_type interp_topo_random_point() const { return Impl::random_point( *this, rl_sampler ); };
+  virtual double interp_topo_get_distance(const point_type& a,
+                                          const point_type& b) const {
+    return Impl::get_distance(*this, rt_dist, a, b);
+  }
+  virtual double interp_topo_get_norm(const point_difference_type& dp) const {
+    return Impl::get_norm(*this, rt_dist, dp);
+  }
+  virtual double interp_topo_get_proper_distance(const point_type& a,
+                                                 const point_type& b) const {
+    return Impl::get_proper_distance(*this, rt_dist, a, b);
+  }
+  virtual double interp_topo_get_proper_norm(
+      const point_difference_type& dp) const {
+    return Impl::get_proper_norm(*this, rt_dist, dp);
+  }
+  virtual bool interp_topo_is_in_bounds(const point_type& a) const {
+    return Impl::is_in_bounds(*this, a);
+  }
+  virtual point_type interp_topo_random_point() const {
+    return Impl::random_point(*this, rl_sampler);
+  }
 
+ public:
+  const rt_metric_type& get_pseudo_factory() const { return rt_dist; }
 
-public:
-  const rt_metric_type& get_pseudo_factory() const { return rt_dist; };
+  interpolated_topology(const BaseTopology& aTopo)
+      : base_type(aTopo),
+        rt_dist(Impl::make_rt_metric(*this)),
+        rl_sampler(Impl::make_sampler(*this)) {}
 
-  interpolated_topology( const BaseTopology& aTopo )
-      : base_type( aTopo ), rt_dist( Impl::make_rt_metric( *this ) ), rl_sampler( Impl::make_sampler( *this ) ){};
-
-#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
-  template < typename... Args >
-  interpolated_topology( Args&&... args )
-      : base_type( std::forward< Args >( args )... ), rt_dist( Impl::make_rt_metric( *this ) ),
-        rl_sampler( Impl::make_sampler( *this ) ){};
-#else
-  interpolated_topology()
-      : base_type(), rt_dist( Impl::make_rt_metric( *this ) ), rl_sampler( Impl::make_sampler( *this ) ){};
-
-  template < typename A1 >
-  interpolated_topology( const A1& a1 )
-      : base_type( a1 ), rt_dist( Impl::make_rt_metric( *this ) ), rl_sampler( Impl::make_sampler( *this ) ){};
-
-  template < typename A1, typename A2 >
-  interpolated_topology( const A1& a1, const A2& a2 )
-      : base_type( a1, a2 ), rt_dist( Impl::make_rt_metric( *this ) ), rl_sampler( Impl::make_sampler( *this ) ){};
-
-  template < typename A1, typename A2, typename A3 >
-  interpolated_topology( const A1& a1, const A2& a2, const A3& a3 )
-      : base_type( a1, a2, a3 ), rt_dist( Impl::make_rt_metric( *this ) ), rl_sampler( Impl::make_sampler( *this ) ){};
-
-  template < typename A1, typename A2, typename A3, typename A4 >
-  interpolated_topology( const A1& a1, const A2& a2, const A3& a3, const A4& a4 )
-      : base_type( a1, a2, a3, a4 ), rt_dist( Impl::make_rt_metric( *this ) ),
-        rl_sampler( Impl::make_sampler( *this ) ){};
-
-  template < typename A1, typename A2, typename A3, typename A4, typename A5 >
-  interpolated_topology( const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5 )
-      : base_type( a1, a2, a3, a4, a5 ), rt_dist( Impl::make_rt_metric( *this ) ),
-        rl_sampler( Impl::make_sampler( *this ) ){};
-
-  template < typename A1, typename A2, typename A3, typename A4, typename A5, typename A6 >
-  interpolated_topology( const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6 )
-      : base_type( a1, a2, a3, a4, a5, a6 ), rt_dist( Impl::make_rt_metric( *this ) ),
-        rl_sampler( Impl::make_sampler( *this ) ){};
-
-  template < typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7 >
-  interpolated_topology( const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6,
-                         const A7& a7 )
-      : base_type( a1, a2, a3, a4, a5, a6, a7 ), rt_dist( Impl::make_rt_metric( *this ) ),
-        rl_sampler( Impl::make_sampler( *this ) ){};
-
-  template < typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8 >
-  interpolated_topology( const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6,
-                         const A7& a7, const A8& a8 )
-      : base_type( a1, a2, a3, a4, a5, a6, a7, a8 ), rt_dist( Impl::make_rt_metric( *this ) ),
-        rl_sampler( Impl::make_sampler( *this ) ){};
-#endif
+  template <typename... Args>
+  interpolated_topology(Args&&... args)
+      : base_type(std::forward<Args>(args)...),
+        rt_dist(Impl::make_rt_metric(*this)),
+        rl_sampler(Impl::make_sampler(*this)) {}
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    base_type::save( A, base_type::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    base_type::load( A, base_type::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC240003A, 1, "interpolated_topology", base_type )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240003A, 1, "interpolated_topology",
+                              base_type)
 };
 
-
-template < typename SpaceType, typename TimeTopology >
-struct get_tagged_spatial_interpolator< svp_interpolation_tag, SpaceType, TimeTopology > {
-  typedef detail::generic_interpolator_impl< svp_interpolator, SpaceType, TimeTopology > type;
-  typedef svp_reach_time_metric< TimeTopology > pseudo_factory_type;
+template <typename SpaceType, typename TimeTopology>
+struct get_tagged_spatial_interpolator<svp_interpolation_tag, SpaceType,
+                                       TimeTopology> {
+  using type = detail::generic_interpolator_impl<svp_interpolator, SpaceType,
+                                                 TimeTopology>;
+  using pseudo_factory_type = svp_reach_time_metric<TimeTopology>;
 };
 
-template < typename TemporalSpaceType >
-struct get_tagged_temporal_interpolator< svp_interpolation_tag, TemporalSpaceType > {
-  typedef generic_interpolator< svp_interpolator_factory< TemporalSpaceType >, svp_interpolator > type;
-};
-};
+template <typename TemporalSpaceType>
+struct get_tagged_temporal_interpolator<svp_interpolation_tag,
+                                        TemporalSpaceType> {
+  using type = generic_interpolator<svp_interpolator_factory<TemporalSpaceType>,
+                                    svp_interpolator>;
 };
 
+}  // namespace ReaK::pp
 
 #endif

@@ -37,19 +37,15 @@
 #define REAK_DISCRETIZED_LTI_SYS_HPP
 
 #include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/lin_alg/mat_concepts.hpp>
 #include <ReaK/math/lin_alg/mat_alg.hpp>
+#include <ReaK/math/lin_alg/mat_concepts.hpp>
 #include <ReaK/math/lin_alg/mat_exp_methods.hpp>
 #include <ReaK/math/lin_alg/mat_qr_decomp.hpp>
 
-#include "linear_ss_system_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"
+#include "linear_ss_system_concept.hpp"
 
-
-namespace ReaK {
-
-namespace ctrl {
-
+namespace ReaK::ctrl {
 
 /**
  * This class template can take a continuous-time linear time-invariant
@@ -61,34 +57,43 @@ namespace ctrl {
  * \tparam LTISystem The linear time-invariance, continuous-time state-space system type, should model
  *LinearSSSystemConcept with LTISystemType.
  */
-template < typename LTISystem >
+template <typename LTISystem>
 class discretized_lti_sys : public named_object {
-public:
-  typedef discretized_lti_sys< LTISystem > self;
-  typedef LTISystem::value_type value_type;
-  typedef LTISystem::size_type size_type;
+ public:
+  using self = discretized_lti_sys<LTISystem>;
+  using value_type = LTISystem::value_type;
+  using size_type = LTISystem::size_type;
 
-  typedef typename ss_system_traits< LTISystem >::point_type point_type;
-  typedef typename ss_system_traits< LTISystem >::point_difference_type point_difference_type;
+  using point_type = typename ss_system_traits<LTISystem>::point_type;
+  using point_difference_type =
+      typename ss_system_traits<LTISystem>::point_difference_type;
 
-  typedef typename ss_system_traits< LTISystem >::time_type time_type;
-  typedef typename ss_system_traits< LTISystem >::time_difference_type time_difference_type;
+  using time_type = typename ss_system_traits<LTISystem>::time_type;
+  using time_difference_type =
+      typename ss_system_traits<LTISystem>::time_difference_type;
 
-  typedef typename ss_system_traits< LTISystem >::input_type input_type;
-  typedef typename ss_system_traits< LTISystem >::output_type output_type;
+  using input_type = typename ss_system_traits<LTISystem>::input_type;
+  using output_type = typename ss_system_traits<LTISystem>::output_type;
 
-  typedef typename linear_ss_system_traits< LTISystem >::matrixA_type matrixA_type;
-  typedef typename linear_ss_system_traits< LTISystem >::matrixB_type matrixB_type;
-  typedef typename linear_ss_system_traits< LTISystem >::matrixC_type matrixC_type;
-  typedef typename linear_ss_system_traits< LTISystem >::matrixD_type matrixD_type;
+  using matrixA_type =
+      typename linear_ss_system_traits<LTISystem>::matrixA_type;
+  using matrixB_type =
+      typename linear_ss_system_traits<LTISystem>::matrixB_type;
+  using matrixC_type =
+      typename linear_ss_system_traits<LTISystem>::matrixC_type;
+  using matrixD_type =
+      typename linear_ss_system_traits<LTISystem>::matrixD_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = ss_system_traits< LTISystem >::dimensions );
-  BOOST_STATIC_CONSTANT( std::size_t, input_dimensions = ss_system_traits< LTISystem >::input_dimensions );
-  BOOST_STATIC_CONSTANT( std::size_t, output_dimensions = ss_system_traits< LTISystem >::output_dimensions );
+  static constexpr std::size_t dimensions =
+      ss_system_traits<LTISystem>::dimensions;
+  static constexpr std::size_t input_dimensions =
+      ss_system_traits<LTISystem>::input_dimensions;
+  static constexpr std::size_t output_dimensions =
+      ss_system_traits<LTISystem>::output_dimensions;
 
-  BOOST_CONCEPT_ASSERT( ( LinearSSSystemConcept< LTISystem, LTISystemType > ) );
+  BOOST_CONCEPT_ASSERT((LinearSSSystemConcept<LTISystem, LTISystemType>));
 
-private:
+ private:
   time_difference_type dt;
 
   matrixA_type Ad;
@@ -96,140 +101,153 @@ private:
   matrixC_type Cd;
   matrixD_type Dd;
 
-public:
+ public:
   /**
    * Returns the dimensions of the state vectors.
    * \return The dimensions of the state vectors.
    */
-  size_type get_state_dimensions() const { return Ad.get_row_count(); };
+  size_type get_state_dimensions() const { return Ad.get_row_count(); }
 
   /**
    * Returns the dimensions of the input vectors.
    * \return The dimensions of the input vectors.
    */
-  size_type get_input_dimensions() const { return Bd.get_col_count(); };
+  size_type get_input_dimensions() const { return Bd.get_col_count(); }
 
   /**
    * Returns the dimensions of the output vectors.
    * \return The dimensions of the output vectors.
    */
-  size_type get_output_dimensions() const { return Cd.get_row_count(); };
+  size_type get_output_dimensions() const { return Cd.get_row_count(); }
 
   /**
    * Parametrized and default constructor.
    * \param aSys The continuous-time system.
    * \param aDt The time-step of the discrete-time system.
    */
-  discretized_lti_sys( const LTISystem& aSys = LTISystem(), const time_difference_type& aDt = 1 ) : dt( aDt ) {
-    setName( aSys.getName() );
+  discretized_lti_sys(const LTISystem& aSys = LTISystem(),
+                      const time_difference_type& aDt = 1)
+      : dt(aDt) {
+    setName(aSys.getName());
 
-    aSys.get_linear_blocks( Ad, Bd, Cd, Dd );
+    aSys.get_linear_blocks(Ad, Bd, Cd, Dd);
 
-    mat< value_type, mat_structure::square > A_aug( Ad.get_col_count() + Bd.get_col_count(), value_type( 0 ) );
-    set_block( A_aug, Ad * dt, 0, 0 );
-    set_block( A_aug, Bd * dt, 0, Ad.get_col_count() );
-    mat< value_type, mat_structure::square > A_aug_exp( Ad.get_col_count() + Bd.get_col_count(), value_type( 0 ) );
-    exp_PadeSAS( A_aug, A_aug_exp, QR_linlsqsolver() );
-    Ad = get_block( A_aug_exp, 0, 0, Ad.get_row_count(), Ad.get_col_count() );
-    Bd = get_block( A_aug_exp, 0, Ad.get_col_count(), Bd.get_row_count(), Bd.get_col_count() );
-  };
+    mat<value_type, mat_structure::square> A_aug(
+        Ad.get_col_count() + Bd.get_col_count(), value_type(0));
+    set_block(A_aug, Ad * dt, 0, 0);
+    set_block(A_aug, Bd * dt, 0, Ad.get_col_count());
+    mat<value_type, mat_structure::square> A_aug_exp(
+        Ad.get_col_count() + Bd.get_col_count(), value_type(0));
+    exp_PadeSAS(A_aug, A_aug_exp, QR_linlsqsolver());
+    Ad = get_block(A_aug_exp, 0, 0, Ad.get_row_count(), Ad.get_col_count());
+    Bd = get_block(A_aug_exp, 0, Ad.get_col_count(), Bd.get_row_count(),
+                   Bd.get_col_count());
+  }
 
   /**
    * Standard copy-constructor.
    */
-  discretized_lti_sys( const self& rhs ) : dt( rhs.dt ), Ad( rhs.Ad ), Bd( rhs.Bd ), Cd( rhs.Cd ), Dd( rhs.Dd ) {
-    setName( rhs.getName() );
-  };
+  discretized_lti_sys(const self& rhs)
+      : dt(rhs.dt), Ad(rhs.Ad), Bd(rhs.Bd), Cd(rhs.Cd), Dd(rhs.Dd) {
+    setName(rhs.getName());
+  }
 
   /**
    * Standard swap function.
    */
-  friend void swap( self& lhs, self& rhs ) throw() {
+  friend void swap(self& lhs, self& rhs) throw() {
     using std::swap;
-    swap( lhs.dt, rhs.dt );
-    swap( lhs.Ad, rhs.Ad );
-    swap( lhs.Bd, rhs.Bd );
-    swap( lhs.Cd, rhs.Cd );
-    swap( lhs.Dd, rhs.Dd );
-  };
+    swap(lhs.dt, rhs.dt);
+    swap(lhs.Ad, rhs.Ad);
+    swap(lhs.Bd, rhs.Bd);
+    swap(lhs.Cd, rhs.Cd);
+    swap(lhs.Dd, rhs.Dd);
+  }
 
   /**
    * Standard assignment operator.
    */
-  self& operator=( self rhs ) {
-    swap( *this, rhs );
+  self& operator=(self rhs) {
+    swap(*this, rhs);
     return *this;
-  };
+  }
 
   /**
    * Fills the given matrices with the discrete-time system's state transition matrices.
    * \param aA Stores, as output, the system matrix A.
    * \param aB Stores, as output, the system matrix B.
    */
-  template < typename MatrixA, typename MatrixB >
-  typename boost::enable_if_c< is_writable_matrix< MatrixA >::value && is_writable_matrix< MatrixB >::value,
-                               void >::type
-    get_state_transition_blocks( MatrixA& aA, MatrixB& aB ) const {
+  template <typename MatrixA, typename MatrixB>
+  void get_state_transition_blocks(MatrixA& aA, MatrixB& aB) const {
+    static_assert(is_writable_matrix_v<MatrixA>);
+    static_assert(is_writable_matrix_v<MatrixB>);
     aA = Ad;
     aB = Bd;
-  };
+  }
 
   /**
    * Fills the given matrices with the discrete-time system's state transition matrices.
    * \param aA Stores, as output, the system matrix A.
    * \param aB Stores, as output, the system matrix B.
    */
-  template < typename StateSpaceType, typename MatrixA, typename MatrixB >
-  typename boost::enable_if_c< is_writable_matrix< MatrixA >::value && is_writable_matrix< MatrixB >::value,
-                               void >::type
-    get_state_transition_blocks( MatrixA& aA, MatrixB& aB, const StateSpaceType&, const time_type& t_0 = time_type(),
-                                 const time_type& t_1 = time_type(), const point_type& p_0 = point_type(),
-                                 const point_type& p_1 = point_type(), const input_type& u_0 = input_type(),
-                                 const input_type& u_1 = input_type() ) const {
-    RK_UNUSED( t_0 );
-    RK_UNUSED( t_1 );
-    RK_UNUSED( p_0 );
-    RK_UNUSED( p_1 );
-    RK_UNUSED( u_0 );
-    RK_UNUSED( u_1 );
+  template <typename StateSpaceType, typename MatrixA, typename MatrixB>
+  void get_state_transition_blocks(MatrixA& aA, MatrixB& aB,
+                                   const StateSpaceType&,
+                                   const time_type& t_0 = time_type(),
+                                   const time_type& t_1 = time_type(),
+                                   const point_type& p_0 = point_type(),
+                                   const point_type& p_1 = point_type(),
+                                   const input_type& u_0 = input_type(),
+                                   const input_type& u_1 = input_type()) const {
+    static_assert(is_writable_matrix_v<MatrixA>);
+    static_assert(is_writable_matrix_v<MatrixB>);
+    RK_UNUSED(t_0);
+    RK_UNUSED(t_1);
+    RK_UNUSED(p_0);
+    RK_UNUSED(p_1);
+    RK_UNUSED(u_0);
+    RK_UNUSED(u_1);
     aA = Ad;
     aB = Bd;
-  };
+  }
 
   /**
    * Fills the given matrices with the discrete-time system's output function matrices.
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template < typename MatrixC, typename MatrixD >
-  typename boost::enable_if_c< is_writable_matrix< MatrixC >::value && is_writable_matrix< MatrixD >::value,
-                               void >::type
-    get_output_function_blocks( MatrixC& aC, MatrixD& aD ) const {
+  template <typename MatrixC, typename MatrixD>
+  void get_output_function_blocks(MatrixC& aC, MatrixD& aD) const {
+    static_assert(is_writable_matrix_v<MatrixC>);
+    static_assert(is_writable_matrix_v<MatrixD>);
     aC = Cd;
     aD = Dd;
-  };
+  }
 
   /**
    * Fills the given matrices with the discrete-time system's output function matrices.
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template < typename StateSpaceType, typename MatrixC, typename MatrixD >
-  typename boost::enable_if_c< is_writable_matrix< MatrixC >::value && is_writable_matrix< MatrixD >::value,
-                               void >::type
-    get_output_function_blocks( MatrixC& aC, MatrixD& aD, const StateSpaceType&, const time_type& t = time_type(),
-                                const point_type& p = point_type(), const input_type& u = input_type() ) const {
-    RK_UNUSED( t );
-    RK_UNUSED( p );
-    RK_UNUSED( u );
+  template <typename StateSpaceType, typename MatrixC, typename MatrixD>
+  void get_output_function_blocks(MatrixC& aC, MatrixD& aD,
+                                  const StateSpaceType&,
+                                  const time_type& t = time_type(),
+                                  const point_type& p = point_type(),
+                                  const input_type& u = input_type()) const {
+    static_assert(is_writable_matrix_v<MatrixC>);
+    static_assert(is_writable_matrix_v<MatrixD>);
+    RK_UNUSED(t);
+    RK_UNUSED(p);
+    RK_UNUSED(u);
     aC = Cd;
     aD = Dd;
-  };
+  }
 
   /**
    * Returns the time-step of the discrete-time system.
    */
-  time_difference_type get_time_step() const { return dt; };
+  time_difference_type get_time_step() const { return dt; }
 
   /**
    * Returns next state of the system given the current state, input and time.
@@ -238,14 +256,15 @@ public:
    * \param t The current time.
    * \return The next state, at t + get_time_step().
    */
-  template < typename StateSpaceType >
-  point_type get_next_state( const StateSpaceType&, const point_type& p, const input_type& u,
-                             const time_type& t = 0 ) const {
-    RK_UNUSED( t );
-    using ReaK::to_vect;
+  template <typename StateSpaceType>
+  point_type get_next_state(const StateSpaceType&, const point_type& p,
+                            const input_type& u, const time_type& t = 0) const {
+    RK_UNUSED(t);
     using ReaK::from_vect;
-    return from_vect< point_type >( Ad * to_vect< value_type >( p ) + Bd * to_vect< value_type >( u ) );
-  };
+    using ReaK::to_vect;
+    return from_vect<point_type>(Ad * to_vect<value_type>(p) +
+                                 Bd * to_vect<value_type>(u));
+  }
 
   /**
    * Returns output of the system given the current state, input and time.
@@ -254,32 +273,37 @@ public:
    * \param t The current time.
    * \return The current output.
    */
-  template < typename StateSpaceType >
-  output_type get_output( const StateSpaceType&, const point_type& p, const input_type& u,
-                          const time_type& t = 0 ) const {
-    RK_UNUSED( t );
-    return from_vect< output_type >( Cd * to_vect< value_type >( p ) + Dd * to_vect< value_type >( u ) );
-  };
-
+  template <typename StateSpaceType>
+  output_type get_output(const StateSpaceType&, const point_type& p,
+                         const input_type& u, const time_type& t = 0) const {
+    RK_UNUSED(t);
+    return from_vect<output_type>(Cd * to_vect<value_type>(p) +
+                                  Dd * to_vect<value_type>(u));
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& aA, unsigned int ) const {
-    ReaK::named_object::save( aA, ReaK::named_object::getStaticObjectType()->TypeVersion() );
-    aA& RK_SERIAL_SAVE_WITH_NAME( dt ) & RK_SERIAL_SAVE_WITH_NAME( Ad ) & RK_SERIAL_SAVE_WITH_NAME( Bd )
-      & RK_SERIAL_SAVE_WITH_NAME( Cd ) & RK_SERIAL_SAVE_WITH_NAME( Dd );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& aA, unsigned int ) {
-    ReaK::named_object::load( aA, ReaK::named_object::getStaticObjectType()->TypeVersion() );
-    aA& RK_SERIAL_LOAD_WITH_NAME( dt ) & RK_SERIAL_LOAD_WITH_NAME( Ad ) & RK_SERIAL_LOAD_WITH_NAME( Bd )
-      & RK_SERIAL_LOAD_WITH_NAME( Cd ) & RK_SERIAL_LOAD_WITH_NAME( Dd );
-  };
+  virtual void save(ReaK::serialization::oarchive& aA, unsigned int) const {
+    ReaK::named_object::save(
+        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+    aA& RK_SERIAL_SAVE_WITH_NAME(dt) & RK_SERIAL_SAVE_WITH_NAME(Ad) &
+        RK_SERIAL_SAVE_WITH_NAME(Bd) & RK_SERIAL_SAVE_WITH_NAME(Cd) &
+        RK_SERIAL_SAVE_WITH_NAME(Dd);
+  }
+  virtual void load(ReaK::serialization::iarchive& aA, unsigned int) {
+    ReaK::named_object::load(
+        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+    aA& RK_SERIAL_LOAD_WITH_NAME(dt) & RK_SERIAL_LOAD_WITH_NAME(Ad) &
+        RK_SERIAL_LOAD_WITH_NAME(Bd) & RK_SERIAL_LOAD_WITH_NAME(Cd) &
+        RK_SERIAL_LOAD_WITH_NAME(Dd);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2300005, 1, "discretized_lti_sys", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2300005, 1, "discretized_lti_sys",
+                              named_object)
 };
-};
-};
+
+}  // namespace ReaK::ctrl
 
 #endif

@@ -35,14 +35,10 @@
 #include <ReaK/core/base/defs.hpp>
 
 #include <algorithm>
-#include <iterator>
 #include <functional>
+#include <iterator>
 
-namespace ReaK {
-
-/** This is the namespace for all ReaK sorting algorithms implementations. */
-namespace sorting {
-
+namespace ReaK::sorting {
 
 /**
  * This function performs a comb sort on a given range of elements, and with the
@@ -53,21 +49,25 @@ namespace sorting {
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template < typename ForwardIter, typename Compare >
-void comb_sort( ForwardIter first, ForwardIter last, Compare comp ) {
-  std::size_t gap = std::distance( first, last );
+template <typename ForwardIter, typename Compare>
+void comb_sort(ForwardIter first, ForwardIter last, Compare comp) {
+  std::size_t gap = std::distance(first, last);
   bool swapped = true;
-  while( ( gap > 1 ) || swapped ) {
-    if( gap > 1 )
-      gap = ( gap * 4 ) / 5;
+  while ((gap > 1) || swapped) {
+    if (gap > 1) {
+      gap = (gap * 4) / 5;
+    }
     swapped = false;
     ForwardIter current_next = first;
-    std::advance( current_next, gap );
-    for( ForwardIter current = first; current_next != last; ++current, ++current_next )
-      if( comp( *current_next, *current ) && ( swapped = true ) )
-        std::iter_swap( current, current_next );
-  };
-};
+    std::advance(current_next, gap);
+    for (ForwardIter current = first; current_next != last;
+         ++current, ++current_next) {
+      if (comp(*current_next, *current) && (swapped = true)) {
+        std::iter_swap(current, current_next);
+      }
+    }
+  }
+}
 
 /**
  * This function performs a comb sort on a given range of elements, and by using the
@@ -76,11 +76,11 @@ void comb_sort( ForwardIter first, ForwardIter last, Compare comp ) {
  * \param first The start of the range to be sorted.
  * \param last One element past the end of the range to be sorted.
  */
-template < typename ForwardIter >
-inline void comb_sort( ForwardIter first, ForwardIter last ) {
-  comb_sort( first, last, std::less< typename std::iterator_traits< ForwardIter >::value_type >() );
-};
-};
-};
+template <typename ForwardIter>
+inline void comb_sort(ForwardIter first, ForwardIter last) {
+  comb_sort(first, last, std::less<>());
+}
 
-#endif
+}  // namespace ReaK::sorting
+
+#endif  // REAK_COMB_SORT_HPP

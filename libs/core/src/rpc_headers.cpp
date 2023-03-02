@@ -21,81 +21,94 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cmath>
 
 #include <ReaK/core/rpc/detail/rpc_headers.hpp>
 #include <ReaK/core/rpc/rpc_exceptions.hpp>
 
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 #include <stdexcept>
 
-namespace ReaK {
+namespace ReaK::rpc::detail {
 
-namespace rpc {
+static const std::array<const char*, rpc_header_type_count>
+    rpc_header_type_to_str = {"CALL", "RETURN", "EXCEPTION", "UNRECOGNIZED",
+                              "STARTPORTSERVER"};
 
-namespace detail {
-
-const char* rpc_header_type_to_str[] = {"CALL", "RETURN", "EXCEPTION", "UNRECOGNIZED", "STARTPORTSERVER"};
-
-std::string generate_rpc_header( rpc_header_type h, msg_format fmt, std::size_t msg_size ) {
+std::string generate_rpc_header(rpc_header_type h, msg_format fmt,
+                                std::size_t msg_size) {
   std::stringstream ss;
-  ss << "REAK.RPC " << std::setprecision( 2 ) << rpc_protocol_version << " " << rpc_header_type_to_str[h] << " "
-     << msg_format_to_str[fmt] << " " << msg_size << "\r\n" << std::flush;
+  ss << "REAK.RPC " << std::setprecision(2) << rpc_protocol_version << " "
+     << rpc_header_type_to_str[h] << " " << msg_format_to_str[fmt] << " "
+     << msg_size << "\r\n"
+     << std::flush;
   return ss.str();
-};
+}
 
-std::tuple< rpc_header_type, msg_format, std::size_t > parse_rpc_header( std::istream& hdr_in ) {
+std::tuple<rpc_header_type, msg_format, std::size_t> parse_rpc_header(
+    std::istream& hdr_in) {
 
   std::string hdr_lead;
-  if( !( hdr_in >> hdr_lead ) || ( hdr_lead != "REAK.RPC" ) )
-    throw communication_error( "The header received does not start with 'REAK.RPC!'" );
-
-  double hdr_ver;
-  if( !( hdr_in >> hdr_ver ) || ( hdr_ver > rpc_protocol_version + 0.001 ) )
+  if (!(hdr_in >> hdr_lead) || (hdr_lead != "REAK.RPC")) {
     throw communication_error(
-      "The header received demands a version of ReaK.RPC which is not supported by this implementation!" );
+        "The header received does not start with 'REAK.RPC!'");
+  }
 
-  std::tuple< rpc_header_type, msg_format, std::size_t > result;
+  double hdr_ver = NAN;
+  if (!(hdr_in >> hdr_ver) || (hdr_ver > rpc_protocol_version + 0.001)) {
+    throw communication_error(
+        "The header received demands a version of ReaK.RPC which is not "
+        "supported by this implementation!");
+  }
+
+  std::tuple<rpc_header_type, msg_format, std::size_t> result;
 
   std::string hdr_type;
-  if( !( hdr_in >> hdr_type ) )
-    throw communication_error( "The header received does not have a valid type identifier!" );
-  if( hdr_type == rpc_header_type_to_str[rpc_call] )
-    std::get< 0 >( result ) = rpc_call;
-  else if( hdr_type == rpc_header_type_to_str[rpc_return] )
-    std::get< 0 >( result ) = rpc_return;
-  else if( hdr_type == rpc_header_type_to_str[rpc_exception] )
-    std::get< 0 >( result ) = rpc_exception;
-  else if( hdr_type == rpc_header_type_to_str[rpc_unrecognized] )
-    std::get< 0 >( result ) = rpc_unrecognized;
-  else if( hdr_type == rpc_header_type_to_str[rpc_startportserver] )
-    std::get< 0 >( result ) = rpc_startportserver;
+  if (!(hdr_in >> hdr_type)) {
+    throw communication_error(
+        "The header received does not have a valid type identifier!");
+  }
+  if (hdr_type == rpc_header_type_to_str[rpc_call]) {
+    std::get<0>(result) = rpc_call;
+  } else if (hdr_type == rpc_header_type_to_str[rpc_return]) {
+    std::get<0>(result) = rpc_return;
+  } else if (hdr_type == rpc_header_type_to_str[rpc_exception]) {
+    std::get<0>(result) = rpc_exception;
+  } else if (hdr_type == rpc_header_type_to_str[rpc_unrecognized]) {
+    std::get<0>(result) = rpc_unrecognized;
+  } else if (hdr_type == rpc_header_type_to_str[rpc_startportserver]) {
+    std::get<0>(result) = rpc_startportserver;
+  }
 
   std::string hdr_format;
-  if( !( hdr_in >> hdr_format ) )
-    throw communication_error( "The header received does not have a valid format identifier!" );
-  if( hdr_format == msg_format_to_str[binary_format] )
-    std::get< 1 >( result ) = binary_format;
-  else if( hdr_format == msg_format_to_str[xml_format] )
-    std::get< 1 >( result ) = xml_format;
-  else if( hdr_format == msg_format_to_str[protobuf_format] )
-    std::get< 1 >( result ) = protobuf_format;
+  if (!(hdr_in >> hdr_format)) {
+    throw communication_error(
+        "The header received does not have a valid format identifier!");
+  }
+  if (hdr_format == msg_format_to_str[binary_format]) {
+    std::get<1>(result) = binary_format;
+  } else if (hdr_format == msg_format_to_str[xml_format]) {
+    std::get<1>(result) = xml_format;
+  } else if (hdr_format == msg_format_to_str[protobuf_format]) {
+    std::get<1>(result) = protobuf_format;
+  }
 
-  if( !( hdr_in >> std::get< 2 >( result ) ) )
-    throw communication_error( "The header received does not have a valid format identifier!" );
+  if (!(hdr_in >> std::get<2>(result))) {
+    throw communication_error(
+        "The header received does not have a valid format identifier!");
+  }
 
-  while( true ) {
+  while (true) {
     int p = hdr_in.peek();
-    if( ( p == '\r' ) || ( p == '\n' ) ) {
+    if ((p == '\r') || (p == '\n')) {
       hdr_in.get();
       continue;
-    } else {
-      break;
-    };
-  };
+    }
+    break;
+  }
 
   return result;
-};
-};
-};
-};
+}
+
+}  // namespace ReaK::rpc::detail

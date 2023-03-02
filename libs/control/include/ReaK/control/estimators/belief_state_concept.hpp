@@ -37,47 +37,45 @@
 #ifndef REAK_BELIEF_STATE_CONCEPT_HPP
 #define REAK_BELIEF_STATE_CONCEPT_HPP
 
-#include <boost/concept_check.hpp>
-#include <ReaK/control/systems/state_vector_concept.hpp>
 #include <ReaK/control/systems/state_space_sys_concept.hpp>
+#include <ReaK/control/systems/state_vector_concept.hpp>
+#include <boost/concept_check.hpp>
 #include "covariance_concept.hpp"
 
-namespace ReaK {
-
-namespace ctrl {
+namespace ReaK::ctrl {
 
 /** This namespace includes a tag that tells whether a belief representation is unimodal or multimodal */
 namespace belief_distribution {
 /** This tag tells whether a belief representation is unimodal or multimodal */
 enum tag { unimodal = 1, multimodal };
-};
+}  // namespace belief_distribution
 
 /** This namespace includes a tag that tells whether a belief representation is gaussian or point-based (and possibly
  * other in the future) */
 namespace belief_representation {
 /** This tag tells whether a belief representation is gaussian or point-based (and possibly other in the future) */
 enum tag { gaussian = 1, point_based };
-};
-
+}  // namespace belief_representation
 
 /**
  * This traits class defines the traits that describe a belief-state.
  * \tparam BeliefState The belief-state type for which the traits are sought.
  */
-template < typename BeliefState >
+template <typename BeliefState>
 struct belief_state_traits {
 
   /** The state-vector type, should model StateVectorConcept. */
-  typedef typename BeliefState::state_type state_type;
+  using state_type = typename BeliefState::state_type;
   /** The scalar type which is arithmetically compatible with the state vector. */
-  typedef typename BeliefState::scalar_type scalar_type;
+  using scalar_type = typename BeliefState::scalar_type;
 
   /** This constant defines the distribution tag of the belief-state. */
-  BOOST_STATIC_CONSTANT( belief_distribution::tag, distribution = BeliefState::distribution );
+  static constexpr belief_distribution::tag distribution =
+      BeliefState::distribution;
   /** This constant defines the representation tag of the belief-state. */
-  BOOST_STATIC_CONSTANT( belief_representation::tag, representation = BeliefState::representation );
+  static constexpr belief_representation::tag representation =
+      BeliefState::representation;
 };
-
 
 /**
  * This concept class checks that a belief-state models the required concept as used in ReaK::ctrl.
@@ -88,14 +86,13 @@ struct belief_state_traits {
  *
  * \tparam BeliefState The belief-state type to be tested against the belief-state concept.
  */
-template < typename BeliefState >
+template <typename BeliefState>
 struct BeliefStateConcept {
   BeliefState b;
-  typename belief_state_traits< BeliefState >::state_type v;
+  typename belief_state_traits<BeliefState>::state_type v;
 
-  BOOST_CONCEPT_USAGE( BeliefStateConcept ) { v = b.get_most_likely_state(); };
+  BOOST_CONCEPT_USAGE(BeliefStateConcept) { v = b.get_most_likely_state(); }
 };
-
 
 /**
  * This meta-function evaluates if a belief-state models the BeliefStateConcept. This meta-function
@@ -104,22 +101,24 @@ struct BeliefStateConcept {
  * meta-function to return true.
  * \tparam BeliefState The belief-state type to be tested.
  */
-template < typename BeliefState >
+template <typename BeliefState>
 struct is_belief_state {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_belief_state< BeliefState > type;
+  static constexpr bool value = false;
+  using type = is_belief_state<BeliefState>;
 };
 
+template <typename BeliefState>
+static constexpr bool is_belief_state_v = is_belief_state<BeliefState>::value;
 
 /**
  * This traits class defines the traits that describe a belief-space (topology of belief-states).
  * \tparam BeliefSpace The belief-space type for which the traits are sought.
  */
-template < typename BeliefSpace >
+template <typename BeliefSpace>
 struct belief_space_traits {
 
   /** The state-vector topology type, should model pp::TopologyConcept. */
-  typedef typename BeliefSpace::state_topology state_topology;
+  using state_topology = typename BeliefSpace::state_topology;
 };
 
 /**
@@ -139,23 +138,24 @@ struct belief_space_traits {
  *
  * \tparam BeliefSpace The belief-space type to be tested against the belief-space concept.
  */
-template < typename BeliefSpace >
-struct BeliefSpaceConcept : pp::TopologyConcept< BeliefSpace > {
+template <typename BeliefSpace>
+struct BeliefSpaceConcept : pp::TopologyConcept<BeliefSpace> {
 
-  typedef typename belief_space_traits< BeliefSpace >::state_topology state_space_type;
-  typedef typename pp::topology_traits< BeliefSpace >::point_type belief_state_type;
+  using state_space_type =
+      typename belief_space_traits<BeliefSpace>::state_topology;
+  using belief_state_type =
+      typename pp::topology_traits<BeliefSpace>::point_type;
 
-  BOOST_CONCEPT_ASSERT( ( pp::TopologyConcept< state_space_type > ) );
-  BOOST_CONCEPT_ASSERT( ( BeliefStateConcept< belief_state_type > ) );
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<state_space_type>));
+  BOOST_CONCEPT_ASSERT((BeliefStateConcept<belief_state_type>));
 
   BeliefSpace b_space;
 
-  BOOST_CONCEPT_USAGE( BeliefSpaceConcept ) {
+  BOOST_CONCEPT_USAGE(BeliefSpaceConcept) {
     const state_space_type& s_space = b_space.get_state_topology();
-    RK_UNUSED( s_space );
-  };
+    RK_UNUSED(s_space);
+  }
 };
-
 
 /**
  * This class template defines the traits that a continuous belief-state should have. A
@@ -163,23 +163,22 @@ struct BeliefSpaceConcept : pp::TopologyConcept< BeliefSpace > {
  * (as opposed to discrete).
  * \tparam ContBeliefState
  */
-template < typename ContBeliefState >
+template <typename ContBeliefState>
 struct continuous_belief_state_traits {
 
   /** The state-vector type, should model StateVectorConcept. */
-  typedef typename ContBeliefState::state_type state_type;
+  using state_type = typename ContBeliefState::state_type;
   /** The state-difference type, as defined by state_vector_traits. */
-  typedef typename ContBeliefState::state_difference_type state_difference_type;
+  using state_difference_type = typename ContBeliefState::state_difference_type;
   /** The size type, as defined by state_vector_traits. */
-  typedef typename ContBeliefState::size_type size_type;
+  using size_type = typename ContBeliefState::size_type;
   /** The scalar type which is arithmetically compatible with the state vector. */
-  typedef typename ContBeliefState::scalar_type scalar_type;
+  using scalar_type = typename ContBeliefState::scalar_type;
 
   /** The covariance matrix type which can represent the covariance of the belief-state, should model
    * CovarianceMatrixConcept. */
-  typedef typename ContBeliefState::covariance_type covariance_type;
+  using covariance_type = typename ContBeliefState::covariance_type;
 };
-
 
 /**
  * This concept class checks that a continuous belief-state models the required concept as used in ReaK::ctrl.
@@ -204,24 +203,26 @@ struct continuous_belief_state_traits {
  *
  * \tparam ContBeliefState The continuous belief-state type to be tested against the continuous belief-state concept.
  */
-template < typename ContBeliefState >
-struct ContinuousBeliefStateConcept : BeliefStateConcept< ContBeliefState > {
-  typedef typename continuous_belief_state_traits< ContBeliefState >::state_difference_type state_difference_type;
-  typedef typename continuous_belief_state_traits< ContBeliefState >::covariance_type covariance_type;
+template <typename ContBeliefState>
+struct ContinuousBeliefStateConcept : BeliefStateConcept<ContBeliefState> {
+  using state_difference_type = typename continuous_belief_state_traits<
+      ContBeliefState>::state_difference_type;
+  using covariance_type =
+      typename continuous_belief_state_traits<ContBeliefState>::covariance_type;
 
-  BOOST_CONCEPT_ASSERT( ( CovarianceMatrixConcept< covariance_type, state_difference_type > ) );
+  BOOST_CONCEPT_ASSERT(
+      (CovarianceMatrixConcept<covariance_type, state_difference_type>));
 
-  typename continuous_belief_state_traits< ContBeliefState >::covariance_type c;
+  typename continuous_belief_state_traits<ContBeliefState>::covariance_type c;
 
-  BOOST_CONCEPT_USAGE( ContinuousBeliefStateConcept ) {
+  BOOST_CONCEPT_USAGE(ContinuousBeliefStateConcept) {
     this->v = this->b.get_mean_state();
     this->c = this->b.get_covariance();
 
-    this->b.set_mean_state( this->v );
-    this->b.set_covariance( this->c );
-  };
+    this->b.set_mean_state(this->v);
+    this->b.set_covariance(this->c);
+  }
 };
-
 
 /**
  * This meta-function evaluates if a belief-state models the ContinuousBeliefStateConcept. This meta-function
@@ -230,22 +231,25 @@ struct ContinuousBeliefStateConcept : BeliefStateConcept< ContBeliefState > {
  * meta-function to return true.
  * \tparam BeliefState The continuous belief-state type to be tested.
  */
-template < typename BeliefState >
+template <typename BeliefState>
 struct is_continuous_belief_state {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_continuous_belief_state< BeliefState > type;
+  static constexpr bool value = false;
+  using type = is_continuous_belief_state<BeliefState>;
 };
 
+template <typename BeliefState>
+static constexpr bool is_continuous_belief_state_v =
+    is_continuous_belief_state<BeliefState>::value;
 
 /**
  * This traits class defines the traits that describe a continuous belief-space (topology of continuous belief-states).
  * \tparam ContBeliefSpace The continuous belief-space type for which the traits are sought.
  */
-template < typename ContBeliefSpace >
+template <typename ContBeliefSpace>
 struct continuous_belief_space_traits {
 
   /** The state-vector topology type, should model pp::TopologyConcept. */
-  typedef typename ContBeliefSpace::covariance_topology covariance_topology;
+  using covariance_topology = typename ContBeliefSpace::covariance_topology;
 };
 
 /**
@@ -265,21 +269,23 @@ struct continuous_belief_space_traits {
  *
  * \tparam BeliefSpace The belief-space type to be tested against the belief-space concept.
  */
-template < typename ContBeliefSpace >
-struct ContinuousBeliefSpaceConcept : BeliefSpaceConcept< ContBeliefSpace > {
+template <typename ContBeliefSpace>
+struct ContinuousBeliefSpaceConcept : BeliefSpaceConcept<ContBeliefSpace> {
 
-  typedef typename continuous_belief_space_traits< ContBeliefSpace >::covariance_topology covariance_space_type;
-  typedef typename pp::topology_traits< ContBeliefSpace >::point_type belief_state_type;
+  using covariance_space_type = typename continuous_belief_space_traits<
+      ContBeliefSpace>::covariance_topology;
+  using belief_state_type =
+      typename pp::topology_traits<ContBeliefSpace>::point_type;
 
-  BOOST_CONCEPT_ASSERT( ( pp::TopologyConcept< covariance_space_type > ) );
-  BOOST_CONCEPT_ASSERT( ( ContinuousBeliefStateConcept< belief_state_type > ) );
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<covariance_space_type>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<belief_state_type>));
 
-  BOOST_CONCEPT_USAGE( ContinuousBeliefSpaceConcept ) {
-    const covariance_space_type& c_space = this->b_space.get_covariance_topology();
-    RK_UNUSED( c_space );
-  };
+  BOOST_CONCEPT_USAGE(ContinuousBeliefSpaceConcept) {
+    const covariance_space_type& c_space =
+        this->b_space.get_covariance_topology();
+    RK_UNUSED(c_space);
+  }
 };
-
 
 /**
  * This traits class defines the traits that a belief transfer function should have. A
@@ -287,16 +293,15 @@ struct ContinuousBeliefSpaceConcept : BeliefSpaceConcept< ContBeliefSpace > {
  * time to time.
  * \tparam BeliefTransfer The belief transfer function for which the traits are sought.
  */
-template < typename BeliefTransfer >
+template <typename BeliefTransfer>
 struct belief_transfer_traits {
   /** The state-space system type associated to the transfer function */
-  typedef typename BeliefTransfer::state_space_system state_space_system;
+  using state_space_system = typename BeliefTransfer::state_space_system;
   /** The time type associated to the transfer function */
-  typedef typename BeliefTransfer::time_type time_type;
+  using time_type = typename BeliefTransfer::time_type;
   /** The time-difference type associated to the transfer function */
-  typedef typename BeliefTransfer::time_difference_type time_difference_type;
+  using time_difference_type = typename BeliefTransfer::time_difference_type;
 };
-
 
 /**
  * This concept class defines the requirements for a type to be a belief transfer function type. A
@@ -321,30 +326,32 @@ struct belief_transfer_traits {
  * \tparam BeliefTransfer The belief transfer function type to be checked.
  * \tparam BeliefSpaceType The belief topology type on which the beliefs lie.
  */
-template < typename BeliefTransfer, typename BeliefSpaceType >
+template <typename BeliefTransfer, typename BeliefSpaceType>
 struct BeliefTransferConcept {
-  typedef typename pp::topology_traits< BeliefSpaceType >::point_type BeliefState;
-  typedef typename belief_transfer_traits< BeliefTransfer >::state_space_system StateSpaceSystem;
-  typedef typename belief_transfer_traits< BeliefTransfer >::time_type TimeType;
-  typedef typename belief_transfer_traits< BeliefTransfer >::time_difference_type TimeDiffType;
+  using BeliefState = typename pp::topology_traits<BeliefSpaceType>::point_type;
+  using StateSpaceSystem =
+      typename belief_transfer_traits<BeliefTransfer>::state_space_system;
+  using TimeType = typename belief_transfer_traits<BeliefTransfer>::time_type;
+  using TimeDiffType =
+      typename belief_transfer_traits<BeliefTransfer>::time_difference_type;
 
-  BOOST_CONCEPT_ASSERT( ( BeliefStateConcept< BeliefState > ) );
-  BOOST_CONCEPT_ASSERT( ( BeliefSpaceConcept< BeliefSpaceType > ) );
+  BOOST_CONCEPT_ASSERT((BeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((BeliefSpaceConcept<BeliefSpaceType>));
 
   BeliefTransfer f;
-  typename ss_system_traits< StateSpaceSystem >::input_type u;
-  typename ss_system_traits< StateSpaceSystem >::output_type y;
+  typename ss_system_traits<StateSpaceSystem>::input_type u;
+  typename ss_system_traits<StateSpaceSystem>::output_type y;
   BeliefState b;
   StateSpaceSystem sys;
   BeliefSpaceType belief_space;
   TimeType t;
   TimeDiffType dt;
 
-  BOOST_CONCEPT_USAGE( BeliefTransferConcept ) {
+  BOOST_CONCEPT_USAGE(BeliefTransferConcept) {
     dt = f.get_time_step();
     sys = *f.get_ss_system();
-    b = f.get_next_belief( belief_space, b, t, u, y );
-  };
+    b = f.get_next_belief(belief_space, b, t, u, y);
+  }
 };
 
 /**
@@ -354,12 +361,15 @@ struct BeliefTransferConcept {
  * meta-function to return true.
  * \tparam BeliefTransfer The belief transfer function type to be tested.
  */
-template < typename BeliefTransfer >
+template <typename BeliefTransfer>
 struct is_belief_transfer {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_belief_transfer< BeliefTransfer > type;
+  static constexpr bool value = false;
+  using type = is_belief_transfer<BeliefTransfer>;
 };
 
+template <typename BeliefTransfer>
+static constexpr bool is_belief_transfer_v =
+    is_belief_transfer<BeliefTransfer>::value;
 
 /**
  * This concept class defines the requirements for a type to be a belief predictor function type. A
@@ -388,14 +398,18 @@ struct is_belief_transfer {
  * \tparam BeliefPredictor The belief predictor function type to be checked.
  * \tparam BeliefSpaceType The belief topology type on which the beliefs lie.
  */
-template < typename BeliefPredictor, typename BeliefSpaceType >
-struct BeliefPredictorConcept : BeliefTransferConcept< BeliefPredictor, BeliefSpaceType > {
+template <typename BeliefPredictor, typename BeliefSpaceType>
+struct BeliefPredictorConcept
+    : BeliefTransferConcept<BeliefPredictor, BeliefSpaceType> {
 
-  BOOST_CONCEPT_USAGE( BeliefPredictorConcept ) {
-    this->b = this->f.predict_belief( this->belief_space, this->b, this->t, this->u );
-    this->b = this->f.prediction_to_ML_belief( this->belief_space, this->b, this->t, this->u );
-    this->b = this->f.predict_ML_belief( this->belief_space, this->b, this->t, this->u );
-  };
+  BOOST_CONCEPT_USAGE(BeliefPredictorConcept) {
+    this->b =
+        this->f.predict_belief(this->belief_space, this->b, this->t, this->u);
+    this->b = this->f.prediction_to_ML_belief(this->belief_space, this->b,
+                                              this->t, this->u);
+    this->b = this->f.predict_ML_belief(this->belief_space, this->b, this->t,
+                                        this->u);
+  }
 };
 
 /**
@@ -405,12 +419,16 @@ struct BeliefPredictorConcept : BeliefTransferConcept< BeliefPredictor, BeliefSp
  * meta-function to return true.
  * \tparam BeliefTransfer The belief predictor function type to be tested.
  */
-template < typename BeliefPredictor >
+template <typename BeliefPredictor>
 struct is_belief_predictor {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_belief_predictor< BeliefPredictor > type;
+  static constexpr bool value = false;
+  using type = is_belief_predictor<BeliefPredictor>;
 };
-};
-};
+
+template <typename BeliefPredictor>
+static constexpr bool is_belief_predictor_v =
+    is_belief_predictor<BeliefPredictor>::value;
+
+}  // namespace ReaK::ctrl
 
 #endif

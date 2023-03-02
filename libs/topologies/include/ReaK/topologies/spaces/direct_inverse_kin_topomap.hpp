@@ -35,15 +35,11 @@
 #ifndef REAK_DIRECT_INVERSE_KIN_TOPOMAP_HPP
 #define REAK_DIRECT_INVERSE_KIN_TOPOMAP_HPP
 
-
 #include <ReaK/core/base/defs.hpp>
 
 #include <ReaK/mbd/models/inverse_kinematics_model.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class template implements topological mapping between a joint-space of one
@@ -53,10 +49,10 @@ namespace pp {
  * \tparam DKMapType The direct-kinematics topological map type.
  * \tparam IKMapType The inverse-kinematics topological map type.
  */
-template < typename DKMapType, typename IKMapType >
+template <typename DKMapType, typename IKMapType>
 class manip_dk_ik_map : public shared_object {
-public:
-  typedef manip_dk_ik_map< DKMapType, IKMapType > self;
+ public:
+  using self = manip_dk_ik_map<DKMapType, IKMapType>;
 
   DKMapType dk_map;
   IKMapType ik_map;
@@ -66,8 +62,9 @@ public:
    * \param aDKMap The direct-kinematics topological map.
    * \param aIKMap The inverse-kinematics topological map.
    */
-  manip_dk_ik_map( const DKMapType& aDKMap = DKMapType(), const IKMapType& aIKMap = IKMapType() )
-      : dk_map( aDKMap ), ik_map( aIKMap ){};
+  manip_dk_ik_map(const DKMapType& aDKMap = DKMapType(),
+                  const IKMapType& aIKMap = IKMapType())
+      : dk_map(aDKMap), ik_map(aIKMap) {}
 
   /**
    * This function template performs a inverse kinematics calculation on the
@@ -80,55 +77,62 @@ public:
    * \param space_out The output space, i.e. the joint-space.
    * \return A point in the output space, i.e. the joint coordinates.
    */
-  template < typename PointType, typename InSpace, typename OutSpace >
-  typename topology_traits< OutSpace >::point_type map_to_space( const PointType& pt, const InSpace& space_in,
-                                                                 const OutSpace& space_out ) const {
+  template <typename PointType, typename InSpace, typename OutSpace>
+  typename topology_traits<OutSpace>::point_type map_to_space(
+      const PointType& pt, const InSpace& space_in,
+      const OutSpace& space_out) const {
 
-    dk_map.apply_to_model( pt, space_in );
+    dk_map.apply_to_model(pt, space_in);
 
     // go through the dependent frames of each model to mate them together.
     std::size_t depgen_count = dk_map.model->getDependentCoordsCount();
-    if( depgen_count > ik_map.model->getDependentCoordsCount() )
+    if (depgen_count > ik_map.model->getDependentCoordsCount()) {
       depgen_count = ik_map.model->getDependentCoordsCount();
-    for( std::size_t i = 0; i < depgen_count; ++i )
-      *( ik_map.model->getDependentCoord( i )->mFrame ) = *( dk_map.model->getDependentCoord( i )->mFrame );
+    }
+    for (std::size_t i = 0; i < depgen_count; ++i) {
+      *(ik_map.model->getDependentCoord(i)->mFrame) =
+          *(dk_map.model->getDependentCoord(i)->mFrame);
+    }
 
     std::size_t dep2d_count = dk_map.model->getDependentFrames2DCount();
-    if( dep2d_count > ik_map.model->getDependentFrames2DCount() )
+    if (dep2d_count > ik_map.model->getDependentFrames2DCount()) {
       dep2d_count = ik_map.model->getDependentFrames2DCount();
-    for( std::size_t i = 0; i < dep2d_count; ++i ) {
-      shared_ptr< frame_2D< double > > EE_frame = ik_map.model->getDependentFrame2D( i )->mFrame;
-      *EE_frame = *( dk_map.model->getDependentFrame2D( i )->mFrame );
+    }
+    for (std::size_t i = 0; i < dep2d_count; ++i) {
+      std::shared_ptr<frame_2D<double>> EE_frame =
+          ik_map.model->getDependentFrame2D(i)->mFrame;
+      *EE_frame = *(dk_map.model->getDependentFrame2D(i)->mFrame);
     };
 
     std::size_t dep3d_count = dk_map.model->getDependentFrames3DCount();
-    if( dep3d_count > ik_map.model->getDependentFrames3DCount() )
+    if (dep3d_count > ik_map.model->getDependentFrames3DCount())
       dep3d_count = ik_map.model->getDependentFrames3DCount();
-    for( std::size_t i = 0; i < dep3d_count; ++i ) {
-      shared_ptr< frame_3D< double > > EE_frame = ik_map.model->getDependentFrame3D( i )->mFrame;
-      *EE_frame = *( dk_map.model->getDependentFrame3D( i )->mFrame );
+    for (std::size_t i = 0; i < dep3d_count; ++i) {
+      std::shared_ptr<frame_3D<double>> EE_frame =
+          ik_map.model->getDependentFrame3D(i)->mFrame;
+      *EE_frame = *(dk_map.model->getDependentFrame3D(i)->mFrame);
     };
 
-    return ik_map.extract_from_model( space_out );
-  };
-
+    return ik_map.extract_from_model(space_out);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( dk_map ) & RK_SERIAL_SAVE_WITH_NAME( ik_map );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( dk_map ) & RK_SERIAL_LOAD_WITH_NAME( ik_map );
-  };
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(dk_map) & RK_SERIAL_SAVE_WITH_NAME(ik_map);
+  }
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(dk_map) & RK_SERIAL_LOAD_WITH_NAME(ik_map);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2400018, 1, "manip_dk_ik_map", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400018, 1, "manip_dk_ik_map",
+                              shared_object)
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

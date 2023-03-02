@@ -54,14 +54,10 @@
 #include "metric_space_concept.hpp"
 
 #include <boost/concept_check.hpp>
-#include <boost/utility/enable_if.hpp>
+#include <type_traits>
 
 /** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Path-Planning */
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This tag-type is used to identify (during a "get" call) that the proper distance-metric object is
@@ -69,25 +65,30 @@ namespace pp {
  */
 enum proper_metric_t { proper_metric };
 
-
 /**
  * This meta-function gets the type of the proper metric associated to a metric-space and its distance metric.
  * \tparam MetricSpace The topology type for which the proper metric type is sought.
  */
-template < typename MetricSpace >
+template <typename MetricSpace>
 struct get_proper_metric {
-  typedef typename metric_space_traits< MetricSpace >::distance_metric_type type;
+  using type = typename metric_space_traits<MetricSpace>::distance_metric_type;
 };
+
+template <typename MetricSpace>
+using get_proper_metric_t = typename get_proper_metric<MetricSpace>::type;
 
 /**
  * This meta-function turns a distance-metric type to a proper distance metric type.
  * \tparam DistanceMetric The distance-metric type for which the proper metric type is sought.
  */
-template < typename DistanceMetric >
+template <typename DistanceMetric>
 struct get_proper_metric_from_metric {
-  typedef DistanceMetric type;
+  using type = DistanceMetric;
 };
 
+template <typename DistanceMetric>
+using get_proper_metric_from_metric_t =
+    typename get_proper_metric_from_metric<DistanceMetric>::type;
 
 /**
  * This concept defines the requirements to fulfill in order to model a proper metric-space
@@ -101,25 +102,25 @@ struct get_proper_metric_from_metric {
  *
  * \tparam MetricSpace The topology type to be checked for this concept.
  */
-template < typename MetricSpace >
+template <typename MetricSpace>
 struct ProperMetricSpaceConcept {
-  typename get_proper_metric< MetricSpace >::type pdist;
+  get_proper_metric_t<MetricSpace> pdist;
   MetricSpace space;
 
-  BOOST_CONCEPT_ASSERT( ( MetricSpaceConcept< MetricSpace > ) );
-  BOOST_CONCEPT_ASSERT( ( DistanceMetricConcept< typename get_proper_metric< MetricSpace >::type, MetricSpace > ) );
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<MetricSpace>));
+  BOOST_CONCEPT_ASSERT(
+      (DistanceMetricConcept<get_proper_metric_t<MetricSpace>, MetricSpace>));
 
-  BOOST_CONCEPT_USAGE( ProperMetricSpaceConcept ) { pdist = get( proper_metric, space ); };
+  BOOST_CONCEPT_USAGE(ProperMetricSpaceConcept) {
+    pdist = get(proper_metric, space);
+  }
 };
 
-
-template < typename MetricSpace >
-typename boost::lazy_enable_if< is_metric_space< MetricSpace >, get_proper_metric< MetricSpace > >::type
-  get( proper_metric_t, const MetricSpace& space ) {
-  typedef typename get_proper_metric< MetricSpace >::type ResultType;
-  return ResultType( get( distance_metric, space ) );
-};
-
+template <typename MetricSpace>
+auto get(proper_metric_t /*unused*/, const MetricSpace& space) {
+  static_assert(is_metric_space_v<MetricSpace>);
+  return get_proper_metric_t<MetricSpace>{get(distance_metric, space)};
+}
 
 /**
  * This class is the default proper distance metric functor which models the DistanceMetricConcept.
@@ -129,10 +130,10 @@ typename boost::lazy_enable_if< is_metric_space< MetricSpace >, get_proper_metri
  */
 struct default_proper_metric : public serializable {
 
-  default_proper_metric(){};
+  default_proper_metric() = default;
 
-  template < typename TopologyOrMetric >
-  default_proper_metric( const TopologyOrMetric& ){};
+  template <typename TopologyOrMetric>
+  explicit default_proper_metric(const TopologyOrMetric& /*unused*/) {}
 
   /**
    * This function returns the distance between two points on a topology.
@@ -143,10 +144,10 @@ struct default_proper_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The distance between two points on a topology.
    */
-  template < typename Point, typename Topology >
-  double operator()( const Point& a, const Point& b, const Topology& s ) const {
-    return s.proper_distance( a, b );
-  };
+  template <typename Point, typename Topology>
+  double operator()(const Point& a, const Point& b, const Topology& s) const {
+    return s.proper_distance(a, b);
+  }
   /**
    * This function returns the norm of a difference between two points on a topology.
    * \tparam PointDiff The point-difference-type.
@@ -155,24 +156,24 @@ struct default_proper_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The norm of the difference between two points on a topology.
    */
-  template < typename PointDiff, typename Topology >
-  double operator()( const PointDiff& a, const Topology& s ) const {
-    return s.proper_norm( a );
-  };
-
+  template <typename PointDiff, typename Topology>
+  double operator()(const PointDiff& a, const Topology& s) const {
+    return s.proper_norm(a);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( default_proper_metric, 0xC241000E, 1, "default_proper_metric", serializable )
-};
-};
+  RK_RTTI_MAKE_ABSTRACT_1BASE(default_proper_metric, 0xC241000E, 1,
+                              "default_proper_metric", serializable)
 };
 
+}  // namespace ReaK::pp
 
 #endif

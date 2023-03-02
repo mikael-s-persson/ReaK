@@ -39,11 +39,9 @@
 #include "kte_map.hpp"
 
 #include <ReaK/math/kinetostatics/kinetostatics.hpp>
+#include <utility>
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class implements a spring model on a generalized coordinate system.The model of the spring is a basic linear,
@@ -52,76 +50,85 @@ namespace kte {
  * distance between the anchors, offsetted by the rest-length of the spring.
  */
 class spring_gen : public kte_map {
-private:
-  shared_ptr< gen_coord< double > > mAnchor1; ///< Holds the first generalized coordinate.
-  shared_ptr< gen_coord< double > > mAnchor2; ///< Holds the second generalized coordinate.
-  double mRestLength;                         ///< Holds the rest-length of the spring.
-  double mStiffness;                          ///< Holds the stiffness of the spring.
+ private:
+  std::shared_ptr<gen_coord<double>>
+      mAnchor1;  ///< Holds the first generalized coordinate.
+  std::shared_ptr<gen_coord<double>>
+      mAnchor2;        ///< Holds the second generalized coordinate.
+  double mRestLength;  ///< Holds the rest-length of the spring.
+  double mStiffness;   ///< Holds the stiffness of the spring.
   double
-    mSaturation; ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
+      mSaturation;  ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
 
-public:
+ public:
   /**
    * Sets the first anchor frame of the spring.
    * \param aPtr The new first anchor frame of the spring.
    */
-  void setAnchor1( const shared_ptr< gen_coord< double > >& aPtr ) { mAnchor1 = aPtr; };
+  void setAnchor1(const std::shared_ptr<gen_coord<double>>& aPtr) {
+    mAnchor1 = aPtr;
+  }
   /**
    * Returns a pointer to the first anchor frame of the spring.
    * \return A pointer to the first anchor frame of the spring.
    */
-  shared_ptr< gen_coord< double > > Anchor1() const { return mAnchor1; };
+  std::shared_ptr<gen_coord<double>> Anchor1() const { return mAnchor1; }
 
   /**
    * Sets the second anchor frame of the spring.
    * \param aPtr The new second anchor frame of the spring.
    */
-  void setAnchor2( const shared_ptr< gen_coord< double > >& aPtr ) { mAnchor2 = aPtr; };
+  void setAnchor2(const std::shared_ptr<gen_coord<double>>& aPtr) {
+    mAnchor2 = aPtr;
+  }
   /**
    * Returns a pointer to the second anchor frame of the spring.
    * \return A pointer to the second anchor frame of the spring.
    */
-  shared_ptr< gen_coord< double > > Anchor2() const { return mAnchor2; };
-
+  std::shared_ptr<gen_coord<double>> Anchor2() const { return mAnchor2; }
 
   /**
    * Sets the rest-length of the spring.
    * \param aValue The new rest-length of the spring.
    */
-  void setRestLength( double aValue ) { mRestLength = aValue; };
+  void setRestLength(double aValue) { mRestLength = aValue; }
   /**
    * Returns the rest-length of the spring.
    * \return The rest-length of the spring.
    */
-  double RestLength() const { return mRestLength; };
+  double RestLength() const { return mRestLength; }
 
   /**
    * Sets the stiffness value of the spring.
    * \param aValue The new stiffness value of the spring.
    */
-  void setStiffness( double aValue ) { mStiffness = aValue; };
+  void setStiffness(double aValue) { mStiffness = aValue; }
   /**
    * Returns the stiffness value of the spring.
    * \return The stiffness value of the spring.
    */
-  double Stiffness() const { return mStiffness; };
+  double Stiffness() const { return mStiffness; }
 
   /**
    * Sets the saturation force of the spring (0 implies no saturation at all).
    * \param aValue The new saturation force of the spring (0 implies no saturation at all).
    */
-  void setSaturation( double aValue ) { mSaturation = aValue; };
+  void setSaturation(double aValue) { mSaturation = aValue; }
   /**
    * Returns the value of the saturation force of the spring (0 implies no saturation at all).
    * \return The value of the saturation force of the spring (0 implies no saturation at all).
    */
-  double Saturation() const { return mSaturation; };
+  double Saturation() const { return mSaturation; }
 
   /**
    * Default constructor.
    */
-  spring_gen( const std::string& aName = "" )
-      : kte_map( aName ), mAnchor1(), mAnchor2(), mRestLength( 0.0 ), mStiffness( 0.0 ), mSaturation( 0.0 ){};
+  explicit spring_gen(const std::string& aName = "")
+      : kte_map(aName),
+
+        mRestLength(0.0),
+        mStiffness(0.0),
+        mSaturation(0.0) {}
 
   /**
    * Parametrized constructor.
@@ -133,41 +140,50 @@ public:
    * generalized coord.).
    * \param aSaturation saturation force of the spring, default 0 will disable saturation.
    */
-  spring_gen( const std::string& aName, const shared_ptr< gen_coord< double > >& aAnchor1,
-              const shared_ptr< gen_coord< double > >& aAnchor2, double aRestLength, double aStiffness,
-              double aSaturation = 0.0 )
-      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mRestLength( aRestLength ),
-        mStiffness( aStiffness ), mSaturation( aSaturation ){};
+  spring_gen(const std::string& aName,
+             std::shared_ptr<gen_coord<double>> aAnchor1,
+             std::shared_ptr<gen_coord<double>> aAnchor2, double aRestLength,
+             double aStiffness, double aSaturation = 0.0)
+      : kte_map(aName),
+        mAnchor1(std::move(aAnchor1)),
+        mAnchor2(std::move(aAnchor2)),
+        mRestLength(aRestLength),
+        mStiffness(aStiffness),
+        mSaturation(aSaturation) {}
 
   /**
    * Default destructor.
    */
-  virtual ~spring_gen(){};
+  ~spring_gen() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor1) & RK_SERIAL_SAVE_WITH_NAME(mAnchor2) &
+        RK_SERIAL_SAVE_WITH_NAME(mRestLength) &
+        RK_SERIAL_SAVE_WITH_NAME(mStiffness) &
+        RK_SERIAL_SAVE_WITH_NAME(mSaturation);
+  }
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 )
-      & RK_SERIAL_SAVE_WITH_NAME( mRestLength ) & RK_SERIAL_SAVE_WITH_NAME( mStiffness )
-      & RK_SERIAL_SAVE_WITH_NAME( mSaturation );
-  };
+  void load(ReaK::serialization::iarchive& A, unsigned int Version) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor1) & RK_SERIAL_LOAD_WITH_NAME(mAnchor2) &
+        RK_SERIAL_LOAD_WITH_NAME(mRestLength) &
+        RK_SERIAL_LOAD_WITH_NAME(mStiffness) &
+        RK_SERIAL_LOAD_WITH_NAME(mSaturation);
+  }
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int Version ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 )
-      & RK_SERIAL_LOAD_WITH_NAME( mRestLength ) & RK_SERIAL_LOAD_WITH_NAME( mStiffness )
-      & RK_SERIAL_LOAD_WITH_NAME( mSaturation );
-  };
-
-  RK_RTTI_MAKE_CONCRETE_1BASE( spring_gen, 0xC210000D, 1, "spring_gen", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(spring_gen, 0xC210000D, 1, "spring_gen", kte_map)
 };
 
 /**
@@ -176,76 +192,83 @@ public:
  * distance between the anchors, offsetted by the rest-length of the spring.
  */
 class spring_2D : public kte_map {
-private:
-  shared_ptr< frame_2D< double > > mAnchor1; ///< Holds the first 2D frame.
-  shared_ptr< frame_2D< double > > mAnchor2; ///< Holds the second 2D frame.
-  double mRestLength;                        ///< Holds the rest-length of the spring.
-  double mStiffness;                         ///< Holds the stiffness of the spring.
+ private:
+  std::shared_ptr<frame_2D<double>> mAnchor1;  ///< Holds the first 2D frame.
+  std::shared_ptr<frame_2D<double>> mAnchor2;  ///< Holds the second 2D frame.
+  double mRestLength;  ///< Holds the rest-length of the spring.
+  double mStiffness;   ///< Holds the stiffness of the spring.
   double
-    mSaturation; ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
+      mSaturation;  ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
 
-public:
+ public:
   /**
    * Sets the first anchor frame of the spring.
    * \param aPtr The new first anchor frame of the spring.
    */
-  void setAnchor1( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor1 = aPtr; };
+  void setAnchor1(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mAnchor1 = aPtr;
+  }
   /**
    * Returns a pointer to the first anchor frame of the spring.
    * \return A pointer to the first anchor frame of the spring.
    */
-  shared_ptr< frame_2D< double > > Anchor1() const { return mAnchor1; };
+  std::shared_ptr<frame_2D<double>> Anchor1() const { return mAnchor1; }
 
   /**
    * Sets the second anchor frame of the spring.
    * \param aPtr The new second anchor frame of the spring.
    */
-  void setAnchor2( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor2 = aPtr; };
+  void setAnchor2(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mAnchor2 = aPtr;
+  }
   /**
    * Returns a pointer to the second anchor frame of the spring.
    * \return A pointer to the second anchor frame of the spring.
    */
-  shared_ptr< frame_2D< double > > Anchor2() const { return mAnchor2; };
-
+  std::shared_ptr<frame_2D<double>> Anchor2() const { return mAnchor2; }
 
   /**
    * Sets the rest-length of the spring.
    * \param aValue The new rest-length of the spring.
    */
-  void setRestLength( double aValue ) { mRestLength = aValue; };
+  void setRestLength(double aValue) { mRestLength = aValue; }
   /**
    * Returns the rest-length of the spring.
    * \return The rest-length of the spring.
    */
-  double RestLength() const { return mRestLength; };
+  double RestLength() const { return mRestLength; }
 
   /**
    * Sets the stiffness value of the spring.
    * \param aValue The new stiffness value of the spring.
    */
-  void setStiffness( double aValue ) { mStiffness = aValue; };
+  void setStiffness(double aValue) { mStiffness = aValue; }
   /**
    * Returns the stiffness value of the spring.
    * \return The stiffness value of the spring.
    */
-  double Stiffness() const { return mStiffness; };
+  double Stiffness() const { return mStiffness; }
 
   /**
    * Sets the saturation force of the spring (0 implies no saturation at all).
    * \param aValue The new saturation force of the spring (0 implies no saturation at all).
    */
-  void setSaturation( double aValue ) { mSaturation = aValue; };
+  void setSaturation(double aValue) { mSaturation = aValue; }
   /**
    * Returns the value of the saturation force of the spring (0 implies no saturation at all).
    * \return The value of the saturation force of the spring (0 implies no saturation at all).
    */
-  double Saturation() const { return mSaturation; };
+  double Saturation() const { return mSaturation; }
 
   /**
    * Default constructor.
    */
-  spring_2D( const std::string& aName = "" )
-      : kte_map( aName ), mAnchor1(), mAnchor2(), mRestLength( 0.0 ), mStiffness( 0.0 ), mSaturation( 0.0 ){};
+  explicit spring_2D(const std::string& aName = "")
+      : kte_map(aName),
+
+        mRestLength(0.0),
+        mStiffness(0.0),
+        mSaturation(0.0) {}
 
   /**
    * Parametrized constructor.
@@ -256,40 +279,50 @@ public:
    * \param aStiffness stiffness coefficient (in N/m).
    * \param aSaturation saturation force of the spring, default 0 will disable saturation.
    */
-  spring_2D( const std::string& aName, const shared_ptr< frame_2D< double > >& aAnchor1,
-             const shared_ptr< frame_2D< double > >& aAnchor2, double aRestLength, double aStiffness,
-             double aSaturation = 0.0 )
-      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mRestLength( aRestLength ),
-        mStiffness( aStiffness ), mSaturation( aSaturation ){};
+  spring_2D(const std::string& aName,
+            std::shared_ptr<frame_2D<double>> aAnchor1,
+            std::shared_ptr<frame_2D<double>> aAnchor2, double aRestLength,
+            double aStiffness, double aSaturation = 0.0)
+      : kte_map(aName),
+        mAnchor1(std::move(aAnchor1)),
+        mAnchor2(std::move(aAnchor2)),
+        mRestLength(aRestLength),
+        mStiffness(aStiffness),
+        mSaturation(aSaturation) {}
 
   /**
    * Default destructor.
    */
-  virtual ~spring_2D(){};
+  ~spring_2D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 )
-      & RK_SERIAL_SAVE_WITH_NAME( mRestLength ) & RK_SERIAL_SAVE_WITH_NAME( mStiffness )
-      & RK_SERIAL_SAVE_WITH_NAME( mSaturation );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor1) & RK_SERIAL_SAVE_WITH_NAME(mAnchor2) &
+        RK_SERIAL_SAVE_WITH_NAME(mRestLength) &
+        RK_SERIAL_SAVE_WITH_NAME(mStiffness) &
+        RK_SERIAL_SAVE_WITH_NAME(mSaturation);
+  }
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int Version ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 )
-      & RK_SERIAL_LOAD_WITH_NAME( mRestLength ) & RK_SERIAL_LOAD_WITH_NAME( mStiffness )
-      & RK_SERIAL_LOAD_WITH_NAME( mSaturation );
-  };
+  void load(ReaK::serialization::iarchive& A, unsigned int Version) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor1) & RK_SERIAL_LOAD_WITH_NAME(mAnchor2) &
+        RK_SERIAL_LOAD_WITH_NAME(mRestLength) &
+        RK_SERIAL_LOAD_WITH_NAME(mStiffness) &
+        RK_SERIAL_LOAD_WITH_NAME(mSaturation);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( spring_2D, 0xC210000E, 1, "spring_2D", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(spring_2D, 0xC210000E, 1, "spring_2D", kte_map)
 };
 
 /**
@@ -298,76 +331,83 @@ public:
  * distance between the anchors, offsetted by the rest-length of the spring.
  */
 class spring_3D : public kte_map {
-private:
-  shared_ptr< frame_3D< double > > mAnchor1; ///< Holds the first 3D frame.
-  shared_ptr< frame_3D< double > > mAnchor2; ///< Holds the second 3D frame.
-  double mRestLength;                        ///< Holds the rest-length of the spring.
-  double mStiffness;                         ///< Holds the stiffness of the spring.
+ private:
+  std::shared_ptr<frame_3D<double>> mAnchor1;  ///< Holds the first 3D frame.
+  std::shared_ptr<frame_3D<double>> mAnchor2;  ///< Holds the second 3D frame.
+  double mRestLength;  ///< Holds the rest-length of the spring.
+  double mStiffness;   ///< Holds the stiffness of the spring.
   double
-    mSaturation; ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
+      mSaturation;  ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
 
-public:
+ public:
   /**
    * Sets the first anchor frame of the spring.
    * \param aPtr The new first anchor frame of the spring.
    */
-  void setAnchor1( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor1 = aPtr; };
+  void setAnchor1(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mAnchor1 = aPtr;
+  }
   /**
    * Returns a pointer to the first anchor frame of the spring.
    * \return A pointer to the first anchor frame of the spring.
    */
-  shared_ptr< frame_3D< double > > Anchor1() const { return mAnchor1; };
+  std::shared_ptr<frame_3D<double>> Anchor1() const { return mAnchor1; }
 
   /**
    * Sets the second anchor frame of the spring.
    * \param aPtr The new second anchor frame of the spring.
    */
-  void setAnchor2( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor2 = aPtr; };
+  void setAnchor2(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mAnchor2 = aPtr;
+  }
   /**
    * Returns a pointer to the second anchor frame of the spring.
    * \return A pointer to the second anchor frame of the spring.
    */
-  shared_ptr< frame_3D< double > > Anchor2() const { return mAnchor2; };
-
+  std::shared_ptr<frame_3D<double>> Anchor2() const { return mAnchor2; }
 
   /**
    * Sets the rest-length of the spring.
    * \param aValue The new rest-length of the spring.
    */
-  void setRestLength( double aValue ) { mRestLength = aValue; };
+  void setRestLength(double aValue) { mRestLength = aValue; }
   /**
    * Returns the rest-length of the spring.
    * \return The rest-length of the spring.
    */
-  double RestLength() const { return mRestLength; };
+  double RestLength() const { return mRestLength; }
 
   /**
    * Sets the stiffness value of the spring.
    * \param aValue The new stiffness value of the spring.
    */
-  void setStiffness( double aValue ) { mStiffness = aValue; };
+  void setStiffness(double aValue) { mStiffness = aValue; }
   /**
    * Returns the stiffness value of the spring.
    * \return The stiffness value of the spring.
    */
-  double Stiffness() const { return mStiffness; };
+  double Stiffness() const { return mStiffness; }
 
   /**
    * Sets the saturation force of the spring (0 implies no saturation at all).
    * \param aValue The new saturation force of the spring (0 implies no saturation at all).
    */
-  void setSaturation( double aValue ) { mSaturation = aValue; };
+  void setSaturation(double aValue) { mSaturation = aValue; }
   /**
    * Returns the value of the saturation force of the spring (0 implies no saturation at all).
    * \return The value of the saturation force of the spring (0 implies no saturation at all).
    */
-  double Saturation() const { return mSaturation; };
+  double Saturation() const { return mSaturation; }
 
   /**
    * Default constructor.
    */
-  spring_3D( const std::string& aName = "" )
-      : kte_map( aName ), mAnchor1(), mAnchor2(), mRestLength( 0.0 ), mStiffness( 0.0 ), mSaturation( 0.0 ){};
+  explicit spring_3D(const std::string& aName = "")
+      : kte_map(aName),
+
+        mRestLength(0.0),
+        mStiffness(0.0),
+        mSaturation(0.0) {}
 
   /**
    * Parametrized constructor.
@@ -378,42 +418,52 @@ public:
    * \param aStiffness stiffness coefficient (in N/m).
    * \param aSaturation saturation force of the spring, default 0 will disable saturation.
    */
-  spring_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aAnchor1,
-             const shared_ptr< frame_3D< double > >& aAnchor2, double aRestLength, double aStiffness,
-             double aSaturation = 0.0 )
-      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mRestLength( aRestLength ),
-        mStiffness( aStiffness ), mSaturation( aSaturation ){};
+  spring_3D(const std::string& aName,
+            std::shared_ptr<frame_3D<double>> aAnchor1,
+            std::shared_ptr<frame_3D<double>> aAnchor2, double aRestLength,
+            double aStiffness, double aSaturation = 0.0)
+      : kte_map(aName),
+        mAnchor1(std::move(aAnchor1)),
+        mAnchor2(std::move(aAnchor2)),
+        mRestLength(aRestLength),
+        mStiffness(aStiffness),
+        mSaturation(aSaturation) {}
 
   /**
    * Default destructor.
    */
-  virtual ~spring_3D(){};
+  ~spring_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 )
-      & RK_SERIAL_SAVE_WITH_NAME( mRestLength ) & RK_SERIAL_SAVE_WITH_NAME( mStiffness )
-      & RK_SERIAL_SAVE_WITH_NAME( mSaturation );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor1) & RK_SERIAL_SAVE_WITH_NAME(mAnchor2) &
+        RK_SERIAL_SAVE_WITH_NAME(mRestLength) &
+        RK_SERIAL_SAVE_WITH_NAME(mStiffness) &
+        RK_SERIAL_SAVE_WITH_NAME(mSaturation);
+  }
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int Version ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 )
-      & RK_SERIAL_LOAD_WITH_NAME( mRestLength ) & RK_SERIAL_LOAD_WITH_NAME( mStiffness )
-      & RK_SERIAL_LOAD_WITH_NAME( mSaturation );
-  };
+  void load(ReaK::serialization::iarchive& A, unsigned int Version) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor1) & RK_SERIAL_LOAD_WITH_NAME(mAnchor2) &
+        RK_SERIAL_LOAD_WITH_NAME(mRestLength) &
+        RK_SERIAL_LOAD_WITH_NAME(mStiffness) &
+        RK_SERIAL_LOAD_WITH_NAME(mSaturation);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( spring_3D, 0xC210000F, 1, "spring_3D", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(spring_3D, 0xC210000F, 1, "spring_3D", kte_map)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

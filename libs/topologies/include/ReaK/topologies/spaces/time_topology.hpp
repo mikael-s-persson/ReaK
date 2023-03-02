@@ -44,9 +44,7 @@
 
 #include <cmath>
 
-namespace ReaK {
-
-namespace pp {
+namespace ReaK::pp {
 
 /**
  * This class implements an infinite time-topology. Since the space is
@@ -55,15 +53,17 @@ namespace pp {
  * the functions required to provide the full model of a MetricSpaceConcept.
  */
 class time_topology : public named_object {
-public:
-  typedef double point_type;
-  typedef double point_difference_type;
+ public:
+  using point_type = double;
+  using point_difference_type = double;
 
-  typedef default_distance_metric distance_metric_type;
+  using distance_metric_type = default_distance_metric;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 1 );
+  static constexpr std::size_t dimensions = 1;
 
-  time_topology( const std::string& aName = "time_topology" ) : named_object() { setName( aName ); };
+  explicit time_topology(const std::string& aName = "time_topology") {
+    setName(aName);
+  }
 
   /*************************************************************************
    *                             TopologyConcept
@@ -72,17 +72,23 @@ public:
   /**
    * Returns the difference between two points (a - b).
    */
-  point_difference_type difference( const point_type& a, const point_type& b ) const { return a - b; };
+  point_difference_type difference(const point_type& a,
+                                   const point_type& b) const {
+    return a - b;
+  }
 
   /**
    * Returns the addition of a point-difference to a point.
    */
-  point_type adjust( const point_type& a, const point_difference_type& delta ) const { return a + delta; };
+  point_type adjust(const point_type& a,
+                    const point_difference_type& delta) const {
+    return a + delta;
+  }
 
   /**
    * Returns the origin of the space.
    */
-  point_type origin() const { return 0.0; };
+  point_type origin() const { return 0.0; }
 
   /*************************************************************************
   *                             MetricSpaceConcept
@@ -91,26 +97,26 @@ public:
   /**
    * Returns the distance between two points.
    */
-  double distance( const point_type& a, const point_type& b ) const {
-    using std::fabs;
-    return fabs( b - a );
-  };
+  double distance(const point_type& a, const point_type& b) const {
+    using std::abs;
+    return abs(b - a);
+  }
 
   /**
    * Returns the norm of the difference between two points.
    */
-  double norm( const point_difference_type& delta ) const {
-    using std::fabs;
-    return fabs( delta );
-  };
+  double norm(const point_difference_type& delta) const {
+    using std::abs;
+    return abs(delta);
+  }
 
   /**
    * Returns the volume of the difference between two points.
    */
-  double volume( const point_difference_type& delta ) const {
-    using std::fabs;
-    return fabs( delta );
-  };
+  double volume(const point_difference_type& delta) const {
+    using std::abs;
+    return abs(delta);
+  }
 
   /*************************************************************************
   *                             LieGroupConcept
@@ -119,60 +125,63 @@ public:
   /**
    * Returns a point which is at a fraction between two points a to b.
    */
-  point_type move_position_toward( const point_type& a, double fraction, const point_type& b ) const {
-    return a + ( b - a ) * fraction;
-  };
+  point_type move_position_toward(const point_type& a, double fraction,
+                                  const point_type& b) const {
+    return a + (b - a) * fraction;
+  }
 
   /**
    * Returns a point which is at a backward fraction between two points a to b.
    */
-  point_type move_position_back_to( const point_type& a, double fraction, const point_type& b ) const {
-    return b + ( a - b ) * fraction;
-  };
+  point_type move_position_back_to(const point_type& a, double fraction,
+                                   const point_type& b) const {
+    return b + (a - b) * fraction;
+  }
 
   /**
    * Returns the norm of the difference between two points.
    */
-  point_type pointwise_min( const point_type& a, const point_type& b ) const {
-    BOOST_USING_STD_MIN();
-    return min BOOST_PREVENT_MACRO_SUBSTITUTION( a, b );
-  };
+  point_type pointwise_min(const point_type& a, const point_type& b) const {
+    return std::min(a, b);
+  }
 
   /**
    * Returns the norm of the difference between two points.
    */
-  point_type pointwise_max( const point_type& a, const point_type& b ) const {
-    BOOST_USING_STD_MAX();
-    return max BOOST_PREVENT_MACRO_SUBSTITUTION( a, b );
-  };
+  point_type pointwise_max(const point_type& a, const point_type& b) const {
+    return std::max(a, b);
+  }
 
   /**
    * Tests if a given point is within the boundary of this space.
    */
-  virtual bool is_in_bounds( const point_type& a ) const { return true; };
-
+  virtual bool is_in_bounds(const point_type& a) const { return true; }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    ReaK::named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    ReaK::named_object::save(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    ReaK::named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    ReaK::named_object::load(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( time_topology, 0xC2400002, 1, "time_topology", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(time_topology, 0xC2400002, 1, "time_topology",
+                              named_object)
 };
 
 template <>
-struct is_metric_space< time_topology > : boost::mpl::true_ {};
+struct is_metric_space<time_topology> : std::true_type {};
 
 template <>
-struct is_reversible_space< time_topology > : boost::mpl::true_ {};
-};
-};
+struct is_reversible_space<time_topology> : std::true_type {};
+
+}  // namespace ReaK::pp
 
 #endif

@@ -23,23 +23,23 @@
 
 #include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
 
-namespace ReaK {
+namespace ReaK::geom {
 
-namespace geom {
+coord_arrows_3D::coord_arrows_3D(
+    const std::string& aName, const std::shared_ptr<pose_3D<double>>& aAnchor,
+    const pose_3D<double>& aPose, double aArrowLength)
+    : geometry_3D(aName, aAnchor, aPose), mArrowLength(aArrowLength) {}
 
+void coord_arrows_3D::save(ReaK::serialization::oarchive& A,
+                           unsigned int /*unused*/) const {
+  geometry_3D::save(A, geometry_3D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_SAVE_WITH_NAME(mArrowLength);
+}
 
-coord_arrows_3D::coord_arrows_3D( const std::string& aName, const shared_ptr< pose_3D< double > >& aAnchor,
-                                  const pose_3D< double >& aPose, double aArrowLength )
-    : geometry_3D( aName, aAnchor, aPose ), mArrowLength( aArrowLength ){};
+void coord_arrows_3D::load(ReaK::serialization::iarchive& A,
+                           unsigned int /*unused*/) {
+  geometry_3D::load(A, geometry_3D::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_LOAD_WITH_NAME(mArrowLength);
+}
 
-void RK_CALL coord_arrows_3D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
-  geometry_3D::save( A, geometry_3D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_SAVE_WITH_NAME( mArrowLength );
-};
-
-void RK_CALL coord_arrows_3D::load( ReaK::serialization::iarchive& A, unsigned int ) {
-  geometry_3D::load( A, geometry_3D::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_LOAD_WITH_NAME( mArrowLength );
-};
-};
-};
+}  // namespace ReaK::geom

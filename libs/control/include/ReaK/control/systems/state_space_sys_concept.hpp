@@ -41,45 +41,39 @@
 
 #include <boost/concept_check.hpp>
 
-
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Control */
-namespace ctrl {
+namespace ReaK::ctrl {
 
 /**
  * This class template is the traits class that defines the traits that a
  * state-space system should have.
  * \tparam SSSystem The state-space system type for which the traits are sought.
  */
-template < typename SSSystem >
+template <typename SSSystem>
 struct ss_system_traits {
   /** This type is the state-vector type, i.e., a descriptor of the state. */
-  typedef typename SSSystem::point_type point_type;
+  using point_type = typename SSSystem::point_type;
   /** This type is the state-difference type, i.e., a descriptor of the difference between states. */
-  typedef typename SSSystem::point_difference_type point_difference_type;
+  using point_difference_type = typename SSSystem::point_difference_type;
   /** This type is the state-derivative type, i.e., a descriptor of the state's derivative. */
-  typedef typename SSSystem::point_derivative_type point_derivative_type;
+  using point_derivative_type = typename SSSystem::point_derivative_type;
 
   /** This type is the time type. */
-  typedef typename SSSystem::time_type time_type;
+  using time_type = typename SSSystem::time_type;
   /** This type is the time-difference type. */
-  typedef typename SSSystem::time_difference_type time_difference_type;
+  using time_difference_type = typename SSSystem::time_difference_type;
 
   /** This type is the input type, i.e., a descriptor of the system's input. */
-  typedef typename SSSystem::input_type input_type;
+  using input_type = typename SSSystem::input_type;
   /** This type is the output type, i.e., a descriptor of the system's output. */
-  typedef typename SSSystem::output_type output_type;
+  using output_type = typename SSSystem::output_type;
 
   /** This constant describes the dimensions of the state-space (0 if not known at compile-time). */
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = SSSystem::dimensions );
+  static constexpr std::size_t dimensions = SSSystem::dimensions;
   /** This constant describes the dimensions of the input vector (0 if not known at compile-time). */
-  BOOST_STATIC_CONSTANT( std::size_t, input_dimensions = SSSystem::input_dimensions );
+  static constexpr std::size_t input_dimensions = SSSystem::input_dimensions;
   /** This constant describes the dimensions of the output vector (0 if not known at compile-time). */
-  BOOST_STATIC_CONSTANT( std::size_t, output_dimensions = SSSystem::output_dimensions );
+  static constexpr std::size_t output_dimensions = SSSystem::output_dimensions;
 };
-
 
 /**
  * This class template defines the concept for a state-space system as used in the ReaK::ctrl
@@ -112,35 +106,35 @@ struct ss_system_traits {
  * \tparam SSSystem The state-space system type which is tested for modeling the state-space system concept.
  * \tparam StateSpaceType The state-space topology on which this state-space system should operate.
  */
-template < typename SSSystem, typename StateSpaceType >
+template <typename SSSystem, typename StateSpaceType>
 struct SSSystemConcept {
   SSSystem sys;
   StateSpaceType state_space;
-  typename ss_system_traits< SSSystem >::point_type p;
-  typename ss_system_traits< SSSystem >::point_difference_type dp;
-  typename ss_system_traits< SSSystem >::point_derivative_type dp_dt;
-  typename ss_system_traits< SSSystem >::time_type t;
-  typename ss_system_traits< SSSystem >::time_difference_type dt;
-  typename ss_system_traits< SSSystem >::input_type u;
-  typename ss_system_traits< SSSystem >::output_type y;
+  typename ss_system_traits<SSSystem>::point_type p;
+  typename ss_system_traits<SSSystem>::point_difference_type dp;
+  typename ss_system_traits<SSSystem>::point_derivative_type dp_dt;
+  typename ss_system_traits<SSSystem>::time_type t;
+  typename ss_system_traits<SSSystem>::time_difference_type dt;
+  typename ss_system_traits<SSSystem>::input_type u;
+  typename ss_system_traits<SSSystem>::output_type y;
 
-  BOOST_CONCEPT_ASSERT( ( pp::TopologyConcept< StateSpaceType > ) );
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
 
-  BOOST_CONCEPT_USAGE( SSSystemConcept ) {
+  BOOST_CONCEPT_USAGE(SSSystemConcept) {
     dp = -dp;
     t = t + dt;
-    dp = dp_dt * dt; // state-space system requirements
-    dp_dt = sys.get_state_derivative( state_space, p, u, t );
-    y = sys.get_output( state_space, p, u, t );
+    dp = dp_dt * dt;  // state-space system requirements
+    dp_dt = sys.get_state_derivative(state_space, p, u, t);
+    y = sys.get_output(state_space, p, u, t);
     std::size_t s = sys.get_state_dimensions();
-    RK_UNUSED( s );
+    RK_UNUSED(s);
     std::size_t i = sys.get_input_dimensions();
-    RK_UNUSED( i );
+    RK_UNUSED(i);
     std::size_t o = sys.get_output_dimensions();
-    RK_UNUSED( o );
-  };
+    RK_UNUSED(o);
+  }
 };
-};
-};
+
+}  // namespace ReaK::ctrl
 
 #endif

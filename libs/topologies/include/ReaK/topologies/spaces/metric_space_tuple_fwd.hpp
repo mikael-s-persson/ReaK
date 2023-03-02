@@ -39,108 +39,125 @@
 #include "metric_space_concept.hpp"
 #include "reversible_space_concept.hpp"
 
-#include "tuple_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
+#include "tuple_distance_metrics.hpp"
 
-#include <boost/mpl/bool_fwd.hpp>
-#include <boost/mpl/and.hpp>
+#include <type_traits>
 
-namespace ReaK {
-
-namespace pp {
+namespace ReaK::pp {
 
 namespace detail {
 
-template < std::size_t Size, typename SpaceTuple >
+template <std::size_t Size, typename SpaceTuple>
 struct is_metric_symmetric_tuple_impl;
 
-template < typename SpaceTuple >
-struct is_metric_symmetric_tuple_impl< 0, SpaceTuple > : boost::mpl::true_ {};
+template <typename SpaceTuple>
+struct is_metric_symmetric_tuple_impl<0, SpaceTuple> : std::true_type {};
 
-template < std::size_t Size, typename SpaceTuple >
+template <std::size_t Size, typename SpaceTuple>
 struct is_metric_symmetric_tuple_impl
-  : boost::mpl::and_< is_metric_symmetric_tuple_impl< Size - 1, SpaceTuple >,
-                      is_metric_symmetric< typename arithmetic_tuple_element< Size - 1, SpaceTuple >::type > > {};
+    : std::integral_constant<
+          bool, is_metric_symmetric_tuple_impl<Size - 1, SpaceTuple>::value &&
+                    is_metric_symmetric_v<
+                        arithmetic_tuple_element_t<Size - 1, SpaceTuple>>> {};
 
-template < typename SpaceTuple >
+template <typename SpaceTuple>
 struct is_metric_symmetric_tuple
-  : is_metric_symmetric_tuple_impl< arithmetic_tuple_size< SpaceTuple >::type::value, SpaceTuple > {};
+    : is_metric_symmetric_tuple_impl<arithmetic_tuple_size_v<SpaceTuple>,
+                                     SpaceTuple> {};
 
+template <typename SpaceTuple>
+static constexpr bool is_metric_symmetric_tuple_v =
+    is_metric_symmetric_tuple<SpaceTuple>::value;
 
-template < std::size_t Size, typename SpaceTuple >
+template <std::size_t Size, typename SpaceTuple>
 struct is_reversible_space_tuple_impl;
 
-template < typename SpaceTuple >
-struct is_reversible_space_tuple_impl< 0, SpaceTuple > : boost::mpl::true_ {};
+template <typename SpaceTuple>
+struct is_reversible_space_tuple_impl<0, SpaceTuple> : std::true_type {};
 
-template < std::size_t Size, typename SpaceTuple >
+template <std::size_t Size, typename SpaceTuple>
 struct is_reversible_space_tuple_impl
-  : boost::mpl::and_< is_reversible_space_tuple_impl< Size - 1, SpaceTuple >,
-                      is_reversible_space< typename arithmetic_tuple_element< Size - 1, SpaceTuple >::type > > {};
+    : std::integral_constant<
+          bool, is_reversible_space_tuple_impl<Size - 1, SpaceTuple>::value &&
+                    is_reversible_space_v<
+                        arithmetic_tuple_element_t<Size - 1, SpaceTuple>>> {};
 
-template < typename SpaceTuple >
+template <typename SpaceTuple>
 struct is_reversible_space_tuple
-  : is_reversible_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::type::value, SpaceTuple > {};
-};
+    : is_reversible_space_tuple_impl<arithmetic_tuple_size_v<SpaceTuple>,
+                                     SpaceTuple> {};
 
+template <typename SpaceTuple>
+static constexpr bool is_reversible_space_tuple_v =
+    is_reversible_space_tuple<SpaceTuple>::value;
 
-template < typename SpaceTuple, typename TupleDistanceMetric = manhattan_tuple_distance >
+}  // namespace detail
+
+template <typename SpaceTuple,
+          typename TupleDistanceMetric = manhattan_tuple_distance>
 class metric_space_tuple;
 
+template <typename SpaceTuple, typename TupleDistanceMetric>
+struct is_metric_space<metric_space_tuple<SpaceTuple, TupleDistanceMetric>>
+    : std::true_type {};
 
-template < typename SpaceTuple, typename TupleDistanceMetric >
-struct is_metric_space< metric_space_tuple< SpaceTuple, TupleDistanceMetric > > : boost::mpl::true_ {};
+template <typename SpaceTuple, typename TupleDistanceMetric>
+struct is_reversible_space<metric_space_tuple<SpaceTuple, TupleDistanceMetric>>
+    : detail::is_reversible_space_tuple<SpaceTuple> {};
 
-template < typename SpaceTuple, typename TupleDistanceMetric >
-struct is_reversible_space< metric_space_tuple< SpaceTuple, TupleDistanceMetric > >
-  : detail::is_reversible_space_tuple< SpaceTuple > {};
+template <typename SpaceTuple, typename TupleDistanceMetric>
+struct is_point_distribution<
+    metric_space_tuple<SpaceTuple, TupleDistanceMetric>> : std::true_type {};
 
-template < typename SpaceTuple, typename TupleDistanceMetric >
-struct is_point_distribution< metric_space_tuple< SpaceTuple, TupleDistanceMetric > > : boost::mpl::true_ {};
+template <typename SpaceTuple, typename TupleDistanceMetric>
+struct is_metric_symmetric<metric_space_tuple<SpaceTuple, TupleDistanceMetric>>
+    : std::integral_constant<
+          bool, is_metric_symmetric_v<TupleDistanceMetric> &&
+                    detail::is_metric_symmetric_tuple_v<SpaceTuple>> {};
 
-template < typename SpaceTuple, typename TupleDistanceMetric >
-struct is_metric_symmetric< metric_space_tuple< SpaceTuple, TupleDistanceMetric > >
-  : boost::mpl::and_< is_metric_symmetric< TupleDistanceMetric >, detail::is_metric_symmetric_tuple< SpaceTuple > > {};
-
-
-template < typename SpaceType, std::size_t N, typename TupleDistanceMetric = manhattan_tuple_distance >
+template <typename SpaceType, std::size_t N,
+          typename TupleDistanceMetric = manhattan_tuple_distance>
 struct metric_space_array;
-};
-};
 
+}  // namespace ReaK::pp
 
 namespace ReaK {
 
+/* Specialization, see general template docs. */
+template <typename SpaceTuple, typename TupleDistanceMetric>
+struct arithmetic_tuple_size<
+    pp::metric_space_tuple<SpaceTuple, TupleDistanceMetric>>
+    : arithmetic_tuple_size<SpaceTuple> {};
 
 /* Specialization, see general template docs. */
-template < typename SpaceTuple, typename TupleDistanceMetric >
-struct arithmetic_tuple_size< pp::metric_space_tuple< SpaceTuple, TupleDistanceMetric > >
-  : arithmetic_tuple_size< SpaceTuple > {};
-
-
-/* Specialization, see general template docs. */
-template < int Idx, typename SpaceTuple, typename TupleDistanceMetric >
-struct arithmetic_tuple_element< Idx, pp::metric_space_tuple< SpaceTuple, TupleDistanceMetric > > {
-  typedef typename arithmetic_tuple_element< Idx, SpaceTuple >::type type;
+template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
+struct arithmetic_tuple_element<
+    Idx, pp::metric_space_tuple<SpaceTuple, TupleDistanceMetric>> {
+  using type = arithmetic_tuple_element_t<Idx, SpaceTuple>;
 };
 
 /* Specialization, see general template docs. */
-template < int Idx, typename SpaceTuple, typename TupleDistanceMetric >
-struct arithmetic_tuple_element< Idx, const pp::metric_space_tuple< SpaceTuple, TupleDistanceMetric > > {
-  typedef typename arithmetic_tuple_element< Idx, const SpaceTuple >::type type;
+template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
+struct arithmetic_tuple_element<
+    Idx, const pp::metric_space_tuple<SpaceTuple, TupleDistanceMetric>> {
+  using type = arithmetic_tuple_element_t<Idx, const SpaceTuple>;
 };
 
 /* Specialization, see general template docs. */
-template < int Idx, typename SpaceTuple, typename TupleDistanceMetric >
-struct arithmetic_tuple_element< Idx, volatile pp::metric_space_tuple< SpaceTuple, TupleDistanceMetric > > {
-  typedef typename arithmetic_tuple_element< Idx, volatile SpaceTuple >::type type;
+template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
+struct arithmetic_tuple_element<
+    Idx, volatile pp::metric_space_tuple<SpaceTuple, TupleDistanceMetric>> {
+  using type = arithmetic_tuple_element_t<Idx, volatile SpaceTuple>;
 };
 
 /* Specialization, see general template docs. */
-template < int Idx, typename SpaceTuple, typename TupleDistanceMetric >
-struct arithmetic_tuple_element< Idx, const volatile pp::metric_space_tuple< SpaceTuple, TupleDistanceMetric > > {
-  typedef typename arithmetic_tuple_element< Idx, const volatile SpaceTuple >::type type;
+template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
+struct arithmetic_tuple_element<Idx, const volatile pp::metric_space_tuple<
+                                         SpaceTuple, TupleDistanceMetric>> {
+  using type = arithmetic_tuple_element_t<Idx, const volatile SpaceTuple>;
 };
-};
+
+}  // namespace ReaK
 
 #endif

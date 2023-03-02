@@ -39,11 +39,7 @@
 
 #include "optim_exceptions.hpp"
 
-namespace ReaK {
-
-
-namespace optim {
-
+namespace ReaK::optim {
 
 /**
  * Check the weight-jacobian of basis nonlinear functions in input_count variables
@@ -75,62 +71,71 @@ namespace optim {
  *         (or Jacobian) at this coordinate is incorrect. Intermediate values give a log-scale of the
  *         goodness of the gradient at the coordinate in question.
  */
-template < typename Function, typename Vector1, typename Vector2, typename Matrix >
-Vector2 check_jacobian_consistency( Function f, const Vector1& x, const Vector2& y, const Matrix& Jac,
-                                    typename vect_traits< Vector1 >::value_type tol
-                                    = typename vect_traits< Vector1 >::value_type( 1e-6 ) ) {
-  typedef typename vect_traits< Vector1 >::value_type ValueType;
-  typedef typename vect_traits< Vector1 >::size_type SizeType;
+template <typename Function, typename Vector1, typename Vector2,
+          typename Matrix>
+Vector2 check_jacobian_consistency(
+    Function f, const Vector1& x, const Vector2& y, const Matrix& Jac,
+    vect_value_type_t<Vector1> tol = vect_value_type_t<Vector1>(1e-6)) {
+  using ValueType = vect_value_type_t<Vector1>;
+  using std::abs;
   using std::log10;
-  using std::fabs;
 
   ValueType factor = 100.0;
   ValueType tol_sqr = tol * tol;
 
-  SizeType N = x.size();
-  SizeType M = y.size();
+  int N = x.size();
+  int M = y.size();
 
   /* compute pp */
   Vector1 x1 = x;
-  for( SizeType j = 0; j < N; ++j ) {
-    ValueType temp = tol * fabs( x[j] );
-    if( temp < tol )
+  for (int j = 0; j < N; ++j) {
+    ValueType temp = tol * abs(x[j]);
+    if (temp < tol) {
       temp = tol;
+    }
     x1[j] += temp;
-  };
+  }
 
   /* compute fvecp=func(pp) */
-  Vector2 y1 = f( x1 );
+  Vector2 y1 = f(x1);
 
   ValueType epsf = factor * tol_sqr;
-  ValueType epslog = log10( tol );
+  ValueType epslog = log10(tol);
 
   Vector2 err = y;
-  for( SizeType i = 0; i < M; ++i )
-    err[i] = ValueType( 0.0 );
+  for (int i = 0; i < M; ++i) {
+    err[i] = ValueType(0.0);
+  }
 
-  for( SizeType j = 0; j < N; ++j ) {
-    ValueType temp = fabs( x[j] );
-    if( temp < tol )
-      temp = ValueType( 1.0 );
+  for (int j = 0; j < N; ++j) {
+    ValueType temp = abs(x[j]);
+    if (temp < tol) {
+      temp = ValueType(1.0);
+    }
 
-    for( SizeType i = 0; i < M; ++i )
-      err[i] += temp * Jac( i, j );
-  };
+    for (int i = 0; i < M; ++i) {
+      err[i] += temp * Jac(i, j);
+    }
+  }
 
-  for( SizeType i = 0; i < M; ++i ) {
-    ValueType temp( 1.0 );
-    if( ( fabs( y[i] ) < tol_sqr ) && ( fabs( y1[i] ) < tol_sqr ) && ( fabs( y1[i] - y[i] ) >= epsf * fabs( y[i] ) ) )
-      temp = tol * fabs( ( y1[i] - y[i] ) / tol - err[i] ) / ( fabs( y[i] ) + fabs( y1[i] ) );
-    err[i] = ValueType( 1.0 );
-    if( ( temp > tol * tol ) && ( temp < tol ) )
-      err[i] = ( log10( temp ) - epslog ) / epslog;
-    if( temp >= tol )
-      err[i] = ValueType( 0.0 );
-  };
+  for (int i = 0; i < M; ++i) {
+    ValueType temp(1.0);
+    if ((abs(y[i]) < tol_sqr) && (abs(y1[i]) < tol_sqr) &&
+        (abs(y1[i] - y[i]) >= epsf * abs(y[i]))) {
+      temp =
+          tol * abs((y1[i] - y[i]) / tol - err[i]) / (abs(y[i]) + abs(y1[i]));
+    }
+    err[i] = ValueType(1.0);
+    if ((temp > tol * tol) && (temp < tol)) {
+      err[i] = (log10(temp) - epslog) / epslog;
+    }
+    if (temp >= tol) {
+      err[i] = ValueType(0.0);
+    }
+  }
 
   return err;
-};
+}
 
 /**
  * This function computes in C the covariance matrix corresponding to a least
@@ -159,25 +164,25 @@ Vector2 check_jacobian_consistency( Function f, const Vector1& x, const Vector2&
  * \return The numerical rank of JtJ (a zero value is an error).
  *
  */
-template < typename Matrix1, typename Matrix2 >
-typename mat_traits< Matrix2 >::size_type compute_covariance( const Matrix1& JtJ, Matrix2& C,
-                                                              typename mat_traits< Matrix2 >::value_type sumsq,
-                                                              typename mat_traits< Matrix2 >::size_type N ) {
-  typedef typename mat_traits< Matrix2 >::value_type ValueType;
-  typedef typename mat_traits< Matrix2 >::size_type SizeType;
+template <typename Matrix1, typename Matrix2>
+mat_size_type_t<Matrix2> compute_covariance(const Matrix1& JtJ, Matrix2& C,
+                                            mat_value_type_t<Matrix2> sumsq,
+                                            mat_size_type_t<Matrix2> N) {
+  using ValueType = mat_value_type_t<Matrix2>;
 
-  mat< ValueType, mat_structure::square > U, V;
-  mat< ValueType, mat_structure::diagonal > E;
-  decompose_SVD( JtJ, U, E, V );
-  SizeType rnk = numrank_SVD( E );
-  pseudoinvert_SVD( U, E, V, C );
+  mat<ValueType, mat_structure::square> U, V;
+  mat<ValueType, mat_structure::diagonal> E;
+  decompose_SVD(JtJ, U, E, V);
+  int rnk = numrank_SVD(E);
+  pseudoinvert_SVD(U, E, V, C);
 
-  if( rnk )
-    C *= sumsq / ValueType( N - rnk );
+  if (rnk) {
+    C *= sumsq / ValueType(N - rnk);
+  }
 
   return rnk;
-};
-};
-};
+}
+
+}  // namespace ReaK::optim
 
 #endif

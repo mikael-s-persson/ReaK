@@ -42,32 +42,30 @@
 
 #include <boost/concept_check.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class defines the OOP interface for a path in a topology.
  * \tparam Topology The topology type on which the points and the path can reside, should model the MetricSpaceConcept.
  */
-template < typename Topology >
+template <typename Topology>
 class path_base : public named_object {
-public:
-  BOOST_CONCEPT_ASSERT( ( MetricSpaceConcept< Topology > ) );
+ public:
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
 
-  typedef Topology topology;
-  typedef typename topology_traits< topology >::point_type point_type;
-  typedef path_base< Topology > self;
+  using topology = Topology;
+  using point_type = typename topology_traits<topology>::point_type;
+  using self = path_base<Topology>;
 
-
-public:
+ public:
   /**
    * Constructs the path from a space, assumes the start and end are at the origin
    * of the space.
    * \param aName The name for this object.
    */
-  explicit path_base( const std::string& aName = "" ) : named_object() { setName( aName ); };
+  explicit path_base(const std::string& aName = "") : named_object() {
+    setName(aName);
+  }
 
   /**
    * Computes the travel distance between two points, if traveling along the path.
@@ -75,7 +73,8 @@ public:
    * \param b The second point.
    * \return The travel distance between two points if traveling along the path.
    */
-  virtual double travel_distance( const point_type& a, const point_type& b ) const = 0;
+  virtual double travel_distance(const point_type& a,
+                                 const point_type& b) const = 0;
 
   /**
    * Computes the point that is a distance away from a point on the path.
@@ -83,7 +82,7 @@ public:
    * \param d The distance to move away from the point.
    * \return The point that is a distance away from the given point.
    */
-  virtual point_type move_away_from( const point_type& a, double d ) const = 0;
+  virtual point_type move_away_from(const point_type& a, double d) const = 0;
 
   /**
    * Returns the starting point of the trajectory.
@@ -101,17 +100,17 @@ public:
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC244000C, 1, "path_base", named_object )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC244000C, 1, "path_base", named_object)
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

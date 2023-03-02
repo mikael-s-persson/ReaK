@@ -22,38 +22,38 @@
  */
 
 #include <ReaK/geometry/shapes/geometry_2D.hpp>
+#include <utility>
 
-namespace ReaK {
+namespace ReaK::geom {
 
-namespace geom {
-
-
-void geometry_2D::setAnchor( const shared_ptr< pose_2D< double > >& aAnchor ) {
+void geometry_2D::setAnchor(const std::shared_ptr<pose_2D<double>>& aAnchor) {
   mAnchor = aAnchor;
   mPose.Parent = mAnchor;
-};
+}
 
-void geometry_2D::setPose( const pose_2D< double >& aPose ) {
+void geometry_2D::setPose(const pose_2D<double>& aPose) {
   mPose = aPose;
   mPose.Parent = mAnchor;
-};
+}
 
-geometry_2D::geometry_2D( const std::string& aName, const shared_ptr< pose_2D< double > >& aAnchor,
-                          const pose_2D< double >& aPose )
-    : named_object(), mAnchor( aAnchor ), mPose( aPose ) {
+geometry_2D::geometry_2D(const std::string& aName,
+                         std::shared_ptr<pose_2D<double>> aAnchor,
+                         const pose_2D<double>& aPose)
+    : mAnchor(std::move(aAnchor)), mPose(aPose) {
   mPose.Parent = mAnchor;
-  this->setName( aName );
-};
+  this->setName(aName);
+}
 
+void geometry_2D::save(ReaK::serialization::oarchive& A,
+                       unsigned int /*unused*/) const {
+  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_SAVE_WITH_NAME(mAnchor) & RK_SERIAL_SAVE_WITH_NAME(mPose);
+}
 
-void RK_CALL geometry_2D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
-  named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_SAVE_WITH_NAME( mAnchor ) & RK_SERIAL_SAVE_WITH_NAME( mPose );
-};
+void geometry_2D::load(ReaK::serialization::iarchive& A,
+                       unsigned int /*unused*/) {
+  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  A& RK_SERIAL_LOAD_WITH_NAME(mAnchor) & RK_SERIAL_LOAD_WITH_NAME(mPose);
+}
 
-void RK_CALL geometry_2D::load( ReaK::serialization::iarchive& A, unsigned int ) {
-  named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  A& RK_SERIAL_LOAD_WITH_NAME( mAnchor ) & RK_SERIAL_LOAD_WITH_NAME( mPose );
-};
-};
-};
+}  // namespace ReaK::geom

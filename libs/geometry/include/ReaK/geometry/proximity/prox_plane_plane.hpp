@@ -36,43 +36,44 @@
 
 #include <ReaK/geometry/shapes/plane.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
+void compute_proximity_of_point(const plane& aPlane,
+                                const pose_3D<double>& aPlGblPose,
+                                const vect<double, 3>& aPoint,
+                                vect<double, 3>& aPointRec, double& aDistance);
 
-
-void compute_proximity_of_point( const plane& aPlane, const pose_3D< double >& aPlGblPose,
-                                 const vect< double, 3 >& aPoint, vect< double, 3 >& aPointRec, double& aDistance );
-
-proximity_record_3D compute_proximity( const plane& aPlane1, const shape_3D_precompute_pack& aPack1,
-                                       const plane& aPlane2, const shape_3D_precompute_pack& aPack2 );
+proximity_record_3D compute_proximity(const plane& aPlane1,
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const plane& aPlane2,
+                                      const shape_3D_precompute_pack& aPack2);
 
 /**
  * This class is for proximity queries between two planes.
  */
 class prox_plane_plane : public proximity_finder_3D {
-protected:
+ protected:
   const plane* mPlane1;
   const plane* mPlane2;
 
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_3D computeProximity( const shape_3D_precompute_pack& aPack1,
-                                                const shape_3D_precompute_pack& aPack2 );
+  proximity_record_3D computeProximity(
+      const shape_3D_precompute_pack& aPack1,
+      const shape_3D_precompute_pack& aPack2) override;
 
   /**
    * Default constructor.
    * \param aPlane1 The first plane involved in the proximity query.
    * \param aPlane2 The second plane involved in the proximity query.
    */
-  prox_plane_plane( const plane* aPlane1 = nullptr, const plane* aPlane2 = nullptr );
+  explicit prox_plane_plane(const plane* aPlane1 = nullptr,
+                            const plane* aPlane2 = nullptr);
 
   /** Destructor. */
-  virtual ~prox_plane_plane(){};
+  ~prox_plane_plane() override = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

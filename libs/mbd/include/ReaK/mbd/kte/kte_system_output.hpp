@@ -38,11 +38,7 @@
 
 #include <vector>
 
-
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class is a base class for system outputs of a KTE model. A system output
@@ -50,16 +46,19 @@ namespace kte {
  * when using a KTE model into a state-space system definition.
  */
 class system_output : public virtual named_object {
-public:
+ public:
   /**
    * Constructs a system input class with the given name.
    */
-  system_output( const std::string& aName = "" ) { this->setName( aName ); };
+  explicit system_output(const std::string& aName = "") {
+    this->setName(aName);
+  }
 
   /**
    * Destructor.
    */
-  virtual ~system_output(){};
+  ~system_output() override = default;
+  ;
 
   /**
    * Returns the number of output variables provided by this system output.
@@ -72,19 +71,23 @@ public:
    * \param i The index of the output variable.
    * \return The variable at index i.
    */
-  virtual double getOutput( unsigned int i ) const = 0;
+  virtual double getOutput(unsigned int i) const = 0;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    ReaK::named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    ReaK::named_object::save(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    ReaK::named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    ReaK::named_object::load(
+        A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( system_output, 0xC2100034, 1, "system_output", named_object )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(system_output, 0xC2100034, 1, "system_output",
+                              named_object)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

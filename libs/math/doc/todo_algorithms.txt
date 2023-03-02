@@ -1,50 +1,46 @@
 
-Equation solving:
- - Broyden's Method (Nocedal)
- - Newton-Raphson (p67)
- - Newton-Gauss (p71)
+Equation solving : -Broyden's Method (Nocedal) - Newton - Raphson(p67) - Newton
+                   -
+                   Gauss(p71)
 
-Linear optimization:
- - Damped Least-Square
- - Weighted Least-Square
+                       Linear optimization : -Damped Least
+                                             -
+                                             Square
+                                             -
+                                             Weighted Least
+                                             -
+                                             Square
 
-General non-linear optimization:
-  Direct methods:
-   - Nelder-Mead Simplex Method (p86)
-  Gradient methods:
-   - BFGS (p95)
-   - LBFGS (Nocedal)
-   - LBFGS-Box (Nocedal)
-   - Levenberg-Marquardt (Nocedal)
+                                             General non
+                                             -
+                                             linear optimization
+    : Direct methods : -Nelder
+                       -
+                       Mead Simplex Method(p86)
+Gradient methods : -BFGS(p95) - LBFGS(Nocedal) - LBFGS - Box(Nocedal) -
+                   Levenberg
+                   -
+                   Marquardt(Nocedal)
 
-Special optimization algorithms:
-  Linear Programming:
-   - Simplex Method (Nocedal)
-   - Dual-Primal Method (Nocedal)
-  Quadratic programming:
-   - Conjugate gradient (p80)
-   - Interior Point Method (Nocedal)
-   - Active Set Method (Nocedal)
-  Integer Programming:
-   - Dijkstra Algorithm
-   - A*
+                       Special optimization algorithms : Linear Programming
+    : -Simplex Method(Nocedal) -
+      Dual
+      -
+      Primal Method(Nocedal)
+Quadratic programming : -Conjugate gradient(p80) -
+                        Interior Point Method(Nocedal) -
+                        Active Set Method(Nocedal)
+Integer Programming : -Dijkstra Algorithm -
+                      A*
 
-Classification:
- - Decision-tree
- - Logistics Regression
- - Adaboost
- - SVM
+                          Classification : -Decision -
+                                           tree -
+                                           Logistics Regression -
+                                           Adaboost -
+                                           SVM
 
-Neural-Networks:
- - Back-propagation (gradient descent)
- - Reinforcement Learning
-
-
-
-
-
-
-
-
-
-
+                                               Neural -
+                                           Networks
+    : -Back -
+      propagation(gradient descent) -
+      Reinforcement Learning

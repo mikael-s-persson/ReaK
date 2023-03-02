@@ -35,104 +35,109 @@
 
 #include "archiver.hpp"
 
+#include <map>
 #include <stack>
 #include <string>
 #include <utility>
-#include <map>
 
-namespace ReaK {
-
-namespace serialization {
+namespace ReaK::serialization {
 
 class serializable_obj_scheme;
 class type_scheme;
 
-std::map< std::string, shared_ptr< type_scheme > >& get_global_schemes();
+std::map<std::string, std::shared_ptr<type_scheme>>& get_global_schemes();
 
 /**
  * Protobuf scheme constructor.
  */
 class scheme_builder : public oarchive {
-private:
-  std::stack< shared_ptr< serializable_obj_scheme > > field_stack;
-  std::stack< std::pair< std::string, std::string > > value_name_stack;
+ private:
+  std::stack<std::shared_ptr<serializable_obj_scheme>> field_stack;
+  std::stack<std::pair<std::string, std::string>> value_name_stack;
 
-protected:
-  template < typename T >
-  void save_primitive( const std::string& aName );
+ protected:
+  template <typename T>
+  void save_primitive(const std::string& aName);
 
-  virtual oarchive& RK_CALL
-    saveToNewArchive_impl( const serializable_shared_pointer& Item, const std::string& FileName );
+  oarchive& saveToNewArchive_impl(const serializable_shared_pointer& Item,
+                                  const std::string& FileName) override;
 
-  virtual oarchive& RK_CALL
-    saveToNewArchiveNamed_impl( const std::pair< std::string, const serializable_shared_pointer& >& Item,
-                                const std::string& FileName );
+  oarchive& saveToNewArchiveNamed_impl(
+      const std::pair<std::string, const serializable_shared_pointer&>& Item,
+      const std::string& FileName) override;
 
-  virtual oarchive& RK_CALL save_serializable_ptr( const serializable_shared_pointer& Item );
+  oarchive& save_serializable_ptr(
+      const serializable_shared_pointer& Item) override;
 
-  virtual oarchive& RK_CALL
-    save_serializable_ptr( const std::pair< std::string, const serializable_shared_pointer& >& Item );
+  oarchive& save_serializable_ptr(
+      const std::pair<std::string, const serializable_shared_pointer&>& Item)
+      override;
 
-  virtual oarchive& RK_CALL save_serializable( const serializable& Item );
+  oarchive& save_serializable(const serializable& Item) override;
 
-  virtual oarchive& RK_CALL save_serializable( const std::pair< std::string, const serializable& >& Item );
+  oarchive& save_serializable(
+      const std::pair<std::string, const serializable&>& Item) override;
 
-  virtual oarchive& RK_CALL save_char( char i );
+  oarchive& save_char(char i) override;
 
-  virtual oarchive& RK_CALL save_char( const std::pair< std::string, char >& i );
+  oarchive& save_char(const std::pair<std::string, char>& i) override;
 
-  virtual oarchive& RK_CALL save_unsigned_char( unsigned char u );
+  oarchive& save_unsigned_char(unsigned char u) override;
 
-  virtual oarchive& RK_CALL save_unsigned_char( const std::pair< std::string, unsigned char >& u );
+  oarchive& save_unsigned_char(
+      const std::pair<std::string, unsigned char>& u) override;
 
-  virtual oarchive& RK_CALL save_int( std::ptrdiff_t i );
+  oarchive& save_int(std::ptrdiff_t i) override;
 
-  virtual oarchive& RK_CALL save_int( const std::pair< std::string, std::ptrdiff_t >& i );
+  oarchive& save_int(const std::pair<std::string, std::ptrdiff_t>& i) override;
 
-  virtual oarchive& RK_CALL save_unsigned_int( std::size_t u );
+  oarchive& save_unsigned_int(std::size_t u) override;
 
-  virtual oarchive& RK_CALL save_unsigned_int( const std::pair< std::string, std::size_t >& u );
+  oarchive& save_unsigned_int(
+      const std::pair<std::string, std::size_t>& u) override;
 
-  virtual oarchive& RK_CALL save_float( float f );
+  oarchive& save_float(float f) override;
 
-  virtual oarchive& RK_CALL save_float( const std::pair< std::string, float >& f );
+  oarchive& save_float(const std::pair<std::string, float>& f) override;
 
-  virtual oarchive& RK_CALL save_double( double d );
+  oarchive& save_double(double d) override;
 
-  virtual oarchive& RK_CALL save_double( const std::pair< std::string, double >& d );
+  oarchive& save_double(const std::pair<std::string, double>& d) override;
 
-  virtual oarchive& RK_CALL save_bool( bool b );
+  oarchive& save_bool(bool b) override;
 
-  virtual oarchive& RK_CALL save_bool( const std::pair< std::string, bool >& b );
+  oarchive& save_bool(const std::pair<std::string, bool>& b) override;
 
-  virtual oarchive& RK_CALL save_string( const std::string& s );
+  oarchive& save_string(const std::string& s) override;
 
-  virtual oarchive& RK_CALL save_string( const std::pair< std::string, const std::string& >& s );
+  oarchive& save_string(
+      const std::pair<std::string, const std::string&>& s) override;
 
-  virtual void RK_CALL signal_polymorphic_field( const std::string& aBaseTypeName, const unsigned int* aTypeID,
-                                                 const std::string& aFieldName );
+  void signal_polymorphic_field(const std::string& aBaseTypeName,
+                                const unsigned int* aTypeID,
+                                const std::string& aFieldName) override;
 
-  virtual void RK_CALL start_repeated_field( const std::string& aTypeName );
+  void start_repeated_field(const std::string& aTypeName) override;
 
-  virtual void RK_CALL start_repeated_field( const std::string& aTypeName, const std::string& s );
+  void start_repeated_field(const std::string& aTypeName,
+                            const std::string& aName) override;
 
-  virtual void RK_CALL finish_repeated_field();
+  void finish_repeated_field() override;
 
-  virtual void RK_CALL start_repeated_pair( const std::string& aTypeName1, const std::string& aTypeName2 );
+  void start_repeated_pair(const std::string& aTypeName1,
+                           const std::string& aTypeName2) override;
 
-  virtual void RK_CALL
-    start_repeated_pair( const std::string& aTypeName1, const std::string& aTypeName2, const std::string& s );
+  void start_repeated_pair(const std::string& aTypeName1,
+                           const std::string& aTypeName2,
+                           const std::string& aName) override;
 
-  virtual void RK_CALL finish_repeated_pair();
+  void finish_repeated_pair() override;
 
-public:
+ public:
   scheme_builder();
-  virtual ~scheme_builder();
+  ~scheme_builder() override;
 };
 
-
-}; // serialization
-
-}; // ReaK
+}  // namespace ReaK::serialization
 
 #endif

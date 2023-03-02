@@ -38,41 +38,38 @@
 #include "proximity_finder_2D.hpp"
 #include "proximity_finder_3D.hpp"
 
+#include <utility>
 #include <vector>
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
+namespace ReaK::geom {
 
 /** This class defines a proximity-query model for 2D shapes. */
 class proxy_query_model_2D : public named_object {
-private:
-  struct variant_shape_cache; // forward-decl
+ private:
+  struct variant_shape_cache;  // forward-decl
   variant_shape_cache* mShapeCache;
-  std::vector< shape_2D_precompute_pack > mPreComputePacks;
+  std::vector<shape_2D_precompute_pack> mPreComputePacks;
 
-  proxy_query_model_2D( const proxy_query_model_2D& );
-  proxy_query_model_2D& operator=( const proxy_query_model_2D& );
+ public:
+  proxy_query_model_2D(const proxy_query_model_2D&) = delete;
+  proxy_query_model_2D& operator=(const proxy_query_model_2D&) = delete;
 
-public:
   friend class proxy_query_pair_2D;
 
-  const shape_2D& getShape( std::size_t i ) const;
+  const shape_2D& getShape(std::size_t i) const;
   std::size_t getShapeCount() const;
 
   /**
    * Default constructor.
    */
-  proxy_query_model_2D( const std::string& aName = "" );
+  explicit proxy_query_model_2D(const std::string& aName = "");
 
   /**
    * Default destructor.
    */
-  virtual ~proxy_query_model_2D();
+  ~proxy_query_model_2D() override;
 
-  proxy_query_model_2D& addShape( const shared_ptr< shape_2D >& aShape );
+  proxy_query_model_2D& addShape(const std::shared_ptr<shape_2D>& aShape);
 
   void doPrecomputePass();
 
@@ -80,92 +77,97 @@ public:
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( proxy_query_model_2D, 0xC320001A, 1, "proxy_query_model_2D", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(proxy_query_model_2D, 0xC320001A, 1,
+                              "proxy_query_model_2D", named_object)
 };
-
 
 /** This class defines a proximity-query pair for 2D models. */
 class proxy_query_pair_2D : public named_object {
-protected:
-  shared_ptr< proxy_query_model_2D > mModel1;
-  shared_ptr< proxy_query_model_2D > mModel2;
+ protected:
+  std::shared_ptr<proxy_query_model_2D> mModel1;
+  std::shared_ptr<proxy_query_model_2D> mModel2;
 
-public:
-  void setModelPair( const shared_ptr< proxy_query_model_2D >& aModel1,
-                     const shared_ptr< proxy_query_model_2D >& aModel2 ) {
+ public:
+  void setModelPair(const std::shared_ptr<proxy_query_model_2D>& aModel1,
+                    const std::shared_ptr<proxy_query_model_2D>& aModel2) {
     mModel1 = aModel1;
     mModel2 = aModel2;
-  };
+  }
 
   /**
    * Default constructor.
    */
-  proxy_query_pair_2D( const std::string& aName = "",
-                       const shared_ptr< proxy_query_model_2D >& aModel1 = shared_ptr< proxy_query_model_2D >(),
-                       const shared_ptr< proxy_query_model_2D >& aModel2 = shared_ptr< proxy_query_model_2D >() )
-      : named_object(), mModel1( aModel1 ), mModel2( aModel2 ) {
-    this->setName( aName );
-  };
+  explicit proxy_query_pair_2D(const std::string& aName = "",
+                               std::shared_ptr<proxy_query_model_2D> aModel1 =
+                                   std::shared_ptr<proxy_query_model_2D>(),
+                               std::shared_ptr<proxy_query_model_2D> aModel2 =
+                                   std::shared_ptr<proxy_query_model_2D>())
+      : mModel1(std::move(aModel1)), mModel2(std::move(aModel2)) {
+    this->setName(aName);
+  }
 
   /**
    * Default destructor.
    */
-  virtual ~proxy_query_pair_2D(){};
+  ~proxy_query_pair_2D() override = default;
 
   virtual proximity_record_2D findMinimumDistance() const;
 
-  virtual bool gatherCollisionPoints( std::vector< proximity_record_2D >& aOutput ) const;
-
+  virtual bool gatherCollisionPoints(
+      std::vector<proximity_record_2D>& aOutput) const;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mModel1 ) & RK_SERIAL_SAVE_WITH_NAME( mModel2 );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mModel1) & RK_SERIAL_SAVE_WITH_NAME(mModel2);
+  }
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mModel1 ) & RK_SERIAL_LOAD_WITH_NAME( mModel2 );
-  };
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mModel1) & RK_SERIAL_LOAD_WITH_NAME(mModel2);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( proxy_query_pair_2D, 0xC320001C, 1, "proxy_query_pair_2D", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(proxy_query_pair_2D, 0xC320001C, 1,
+                              "proxy_query_pair_2D", named_object)
 };
-
 
 /** This class defines a colored model for 3D geometries. */
 class proxy_query_model_3D : public named_object {
-private:
-  struct variant_shape_cache; // forward-decl
+ private:
+  struct variant_shape_cache;  // forward-decl
   variant_shape_cache* mShapeCache;
-  std::vector< shape_3D_precompute_pack > mPreComputePacks;
+  std::vector<shape_3D_precompute_pack> mPreComputePacks;
 
-  proxy_query_model_3D( const proxy_query_model_3D& );
-  proxy_query_model_3D& operator=( const proxy_query_model_3D& );
+ public:
+  proxy_query_model_3D(const proxy_query_model_3D&) = delete;
+  proxy_query_model_3D& operator=(const proxy_query_model_3D&) = delete;
 
-public:
   friend class proxy_query_pair_3D;
 
-  const shape_3D& getShape( std::size_t i ) const;
+  const shape_3D& getShape(std::size_t i) const;
   std::size_t getShapeCount() const;
 
   /**
    * Default constructor.
    */
-  proxy_query_model_3D( const std::string& aName = "" );
+  explicit proxy_query_model_3D(const std::string& aName = "");
 
   /**
    * Default destructor.
    */
-  virtual ~proxy_query_model_3D();
+  ~proxy_query_model_3D() override;
 
-  proxy_query_model_3D& addShape( const shared_ptr< shape_3D >& aShape );
+  proxy_query_model_3D& addShape(const std::shared_ptr<shape_3D>& aShape);
 
   void doPrecomputePass();
 
@@ -173,64 +175,70 @@ public:
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( proxy_query_model_3D, 0xC320001B, 1, "proxy_query_model_3D", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(proxy_query_model_3D, 0xC320001B, 1,
+                              "proxy_query_model_3D", named_object)
 };
-
 
 /** This class defines a proximity-query pair for 2D models. */
 class proxy_query_pair_3D : public named_object {
-protected:
-  shared_ptr< proxy_query_model_3D > mModel1;
-  shared_ptr< proxy_query_model_3D > mModel2;
+ protected:
+  std::shared_ptr<proxy_query_model_3D> mModel1;
+  std::shared_ptr<proxy_query_model_3D> mModel2;
 
-public:
-  void setModelPair( const shared_ptr< proxy_query_model_3D >& aModel1,
-                     const shared_ptr< proxy_query_model_3D >& aModel2 ) {
+ public:
+  void setModelPair(const std::shared_ptr<proxy_query_model_3D>& aModel1,
+                    const std::shared_ptr<proxy_query_model_3D>& aModel2) {
     mModel1 = aModel1;
     mModel2 = aModel2;
-  };
+  }
 
   /**
    * Default constructor.
    */
-  proxy_query_pair_3D( const std::string& aName = "",
-                       const shared_ptr< proxy_query_model_3D >& aModel1 = shared_ptr< proxy_query_model_3D >(),
-                       const shared_ptr< proxy_query_model_3D >& aModel2 = shared_ptr< proxy_query_model_3D >() )
-      : named_object(), mModel1( aModel1 ), mModel2( aModel2 ) {
-    this->setName( aName );
-  };
+  explicit proxy_query_pair_3D(const std::string& aName = "",
+                               std::shared_ptr<proxy_query_model_3D> aModel1 =
+                                   std::shared_ptr<proxy_query_model_3D>(),
+                               std::shared_ptr<proxy_query_model_3D> aModel2 =
+                                   std::shared_ptr<proxy_query_model_3D>())
+      : mModel1(std::move(aModel1)), mModel2(std::move(aModel2)) {
+    this->setName(aName);
+  }
 
   /**
    * Default destructor.
    */
-  virtual ~proxy_query_pair_3D(){};
+  ~proxy_query_pair_3D() override = default;
 
   virtual proximity_record_3D findMinimumDistance() const;
 
-  virtual bool gatherCollisionPoints( std::vector< proximity_record_3D >& aOutput ) const;
-
+  virtual bool gatherCollisionPoints(
+      std::vector<proximity_record_3D>& aOutput) const;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mModel1 ) & RK_SERIAL_SAVE_WITH_NAME( mModel2 );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mModel1) & RK_SERIAL_SAVE_WITH_NAME(mModel2);
+  }
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mModel1 ) & RK_SERIAL_LOAD_WITH_NAME( mModel2 );
-  };
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
+    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mModel1) & RK_SERIAL_LOAD_WITH_NAME(mModel2);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( proxy_query_pair_3D, 0xC320001D, 1, "proxy_query_pair_3D", named_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(proxy_query_pair_3D, 0xC320001D, 1,
+                              "proxy_query_pair_3D", named_object)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

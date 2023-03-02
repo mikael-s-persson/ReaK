@@ -36,40 +36,39 @@
 
 #include <ReaK/geometry/shapes/sphere.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
-
-proximity_record_3D compute_proximity( const sphere& aSphere1, const shape_3D_precompute_pack& aPack1,
-                                       const sphere& aSphere2, const shape_3D_precompute_pack& aPack2 );
+proximity_record_3D compute_proximity(const sphere& aSphere1,
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const sphere& aSphere2,
+                                      const shape_3D_precompute_pack& aPack2);
 
 /**
  * This class is for proximity queries between spheres.
  */
 class prox_sphere_sphere : public proximity_finder_3D {
-protected:
+ protected:
   const sphere* mSphere1;
   const sphere* mSphere2;
 
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_3D computeProximity( const shape_3D_precompute_pack& aPack1,
-                                                const shape_3D_precompute_pack& aPack2 );
+  proximity_record_3D computeProximity(
+      const shape_3D_precompute_pack& aPack1,
+      const shape_3D_precompute_pack& aPack2) override;
 
   /**
    * Default constructor.
    * \param aSphere1 The first sphere involved in the proximity query.
    * \param aSphere2 The second sphere involved in the proximity query.
    */
-  prox_sphere_sphere( const sphere* aSphere1 = nullptr, const sphere* aSphere2 = nullptr );
+  explicit prox_sphere_sphere(const sphere* aSphere1 = nullptr,
+                              const sphere* aSphere2 = nullptr);
 
   /** Destructor. */
-  virtual ~prox_sphere_sphere(){};
+  ~prox_sphere_sphere() override = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

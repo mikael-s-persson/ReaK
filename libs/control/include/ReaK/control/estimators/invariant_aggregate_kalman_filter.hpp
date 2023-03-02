@@ -24,115 +24,129 @@
 #ifndef REAK_INVARIANT_AGGREGATE_KALMAN_FILTER_HPP
 #define REAK_INVARIANT_AGGREGATE_KALMAN_FILTER_HPP
 
-#include <ReaK/math/lin_alg/vect_concepts.hpp>
 #include <ReaK/math/lin_alg/mat_alg.hpp>
 #include <ReaK/math/lin_alg/mat_cholesky.hpp>
 #include <ReaK/math/lin_alg/mat_star_product.hpp>
+#include <ReaK/math/lin_alg/vect_concepts.hpp>
 
-#include "belief_state_concept.hpp"
 #include <ReaK/control/systems/discrete_linear_sss_concept.hpp>
 #include <ReaK/control/systems/invariant_system_concept.hpp>
+#include "belief_state_concept.hpp"
 #include "covariance_concept.hpp"
 
-#include <boost/utility/enable_if.hpp>
-#include <boost/static_assert.hpp>
-
+#include <type_traits>
 
 namespace ReaK {
 
 namespace ctrl {
 
-
-template < typename InvariantSystem, typename BeliefState, typename SystemNoiseCovariance,
-           typename MeasurementNoiseCovariance >
-typename boost::enable_if_c< is_continuous_belief_state< BeliefState >::value&&(
-                               belief_state_traits< BeliefState >::representation == belief_representation::gaussian )
-                             && ( belief_state_traits< BeliefState >::distribution == belief_distribution::unimodal ),
-                             void >::type
-  invariant_aggregate_kf_step(
-    const InvariantSystem& sys, BeliefState& b, const discrete_sss_traits< InvariantSystem >::input_type& b_u,
-    const discrete_sss_traits< InvariantSystem >::output_type& b_z,
-    typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits< BeliefState >::
-                                                                                     covariance_type >::matrix_type >::
-                                value_type >::type& ScSm,
-    typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits< BeliefState >::
-                                                                                     covariance_type >::matrix_type >::
-                                value_type >::type& Sc,
-    typename discrete_sss_traits< InvariantSystem >::time_type t = 0 ) {
+template <typename InvariantSystem, typename BeliefState,
+          typename SystemNoiseCovariance, typename MeasurementNoiseCovariance>
+void invariant_aggregate_kf_step(
+    const InvariantSystem& sys, BeliefState& b,
+    const discrete_sss_traits<InvariantSystem>::input_type& b_u,
+    const discrete_sss_traits<InvariantSystem>::output_type& b_z,
+    hamiltonian_mat_t<mat_value_type_t<
+        typename covariance_mat_traits<typename continuous_belief_state_traits<
+            BeliefState>::covariance_type>::matrix_type>>& ScSm,
+    hamiltonian_mat_t<mat_value_type_t<
+        typename covariance_mat_traits<typename continuous_belief_state_traits<
+            BeliefState>::covariance_type>::matrix_type>>& Sc,
+    typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
   // here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  typedef typename discrete_sss_traits< InvariantSystem >::point_type StateType;
-  typedef typename discrete_sss_traits< InvariantSystem >::input_type InputType;
-  typedef typename discrete_sss_traits< InvariantSystem >::output_type OutputType;
-  typedef typename continuous_belief_state_traits< BeliefState >::covariance_type CovType;
-  typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
-  typedef typename mat_traits< MatType >::value_type ValueType;
-  typedef typename mat_traits< MatType >::size_type SizeType;
+  using StateType = typename discrete_sss_traits<InvariantSystem>::point_type;
+  using InputType = typename discrete_sss_traits<InvariantSystem>::input_type;
+  using OutputType = typename discrete_sss_traits<InvariantSystem>::output_type;
+  using CovType =
+      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+  using MatType = typename covariance_mat_traits<CovType>::matrix_type;
+  using ValueType = mat_value_type_t<MatType>;
 
-  BOOST_CONCEPT_ASSERT( (InvariantDiscreteSystemConcept< InvariantSystem >));
-  BOOST_CONCEPT_ASSERT( (ContinuousBeliefStateConcept< BeliefState >));
-  BOOST_CONCEPT_ASSERT( (CovarianceMatrixConcept< SystemNoiseCovariance, InputType >));
-  BOOST_CONCEPT_ASSERT( (CovarianceMatrixConcept< MeasurementNoiseCovariance, OutputType >));
+  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT(
+      (CovarianceMatrixConcept<SystemNoiseCovariance, InputType>));
+  BOOST_CONCEPT_ASSERT(
+      (CovarianceMatrixConcept<MeasurementNoiseCovariance, OutputType>));
+  static_assert(is_continuous_belief_state_v<BeliefState>);
+  static_assert(belief_state_traits<BeliefState>::representation ==
+                belief_representation::gaussian);
+  static_assert(belief_state_traits<BeliefState>::distribution ==
+                belief_distribution::unimodal);
 
-  typename discrete_linear_sss_traits< InvariantSystem >::matrixA_type A;
-  typename discrete_linear_sss_traits< InvariantSystem >::matrixB_type B;
-  typename discrete_linear_sss_traits< InvariantSystem >::matrixC_type C;
-  typename discrete_linear_sss_traits< InvariantSystem >::matrixD_type D;
+  typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type A;
+  typename discrete_linear_sss_traits<InvariantSystem>::matrixB_type B;
+  typename discrete_linear_sss_traits<InvariantSystem>::matrixC_type C;
+  typename discrete_linear_sss_traits<InvariantSystem>::matrixD_type D;
 
-  typedef typename hamiltonian_mat< ValueType >::type HamilMat;
-  typedef typename hamiltonian_mat< ValueType >::upper HamilMatUp;
-  typedef typename hamiltonian_mat< ValueType >::lower HamilMatLo;
-  typedef typename hamiltonian_mat< ValueType >::upper_left HamilMatUL;
-  typedef typename hamiltonian_mat< ValueType >::upper_right HamilMatUR;
-  typedef typename hamiltonian_mat< ValueType >::lower_left HamilMatLL;
-  typedef typename hamiltonian_mat< ValueType >::lower_right HamilMatLR;
+  using HamilMat = typename hamiltonian_mat<ValueType>::type;
+  using HamilMatUp = typename hamiltonian_mat<ValueType>::upper;
+  using HamilMatLo = typename hamiltonian_mat<ValueType>::lower;
+  using HamilMatUL = typename hamiltonian_mat<ValueType>::upper_left;
+  using HamilMatUR = typename hamiltonian_mat<ValueType>::upper_right;
+  using HamilMatLL = typename hamiltonian_mat<ValueType>::lower_left;
+  using HamilMatLR = typename hamiltonian_mat<ValueType>::lower_right;
 
-  typedef typename invariant_system_traits< InvariantSystem >::invariant_frame_type InvFrameType;
-  typedef typename invariant_system_traits< InvariantSystem >::invariant_error_type InvErrorType;
-  typedef typename invariant_system_traits< InvariantDiscreteSystem >::invariant_correction_type InvCorrType;
+  using InvFrameType =
+      typename invariant_system_traits<InvariantSystem>::invariant_frame_type;
+  using InvErrorType =
+      typename invariant_system_traits<InvariantSystem>::invariant_error_type;
+  using InvCorrType = typename invariant_system_traits<
+      InvariantDiscreteSystem>::invariant_correction_type;
 
   StateType x = b.get_mean_state();
   MatType P = b.get_covariance().get_matrix();
-  sys.get_linear_blocks( A, B, C, D, t, x, b_u.get_mean_state() );
-  SizeType N = A.get_col_count();
+  sys.get_linear_blocks(A, B, C, D, t, x, b_u.get_mean_state());
+  int N = A.get_col_count();
 
-  x = sys.get_next_state( x, u, t );
-  P = ( A * P * transpose_view( A ) ) + b_u.get_covariance().get_matrix();
+  x = sys.get_next_state(x, u, t);
+  P = (A * P * transpose_view(A)) + b_u.get_covariance().get_matrix();
 
-  InvErrorType e = sys.get_output_error( x, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step() );
-  InvFrameType W
-    = sys.get_invariant_prior_frame( b.get_mean_state(), x, b_u.get_mean_state(), t + sys.get_time_step() );
+  InvErrorType e = sys.get_output_error(
+      x, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step());
+  InvFrameType W = sys.get_invariant_prior_frame(
+      b.get_mean_state(), x, b_u.get_mean_state(), t + sys.get_time_step());
 
-  mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S = CP * transpose_view( C ) + b_z.get_covariance().get_matrix();
-  linsolve_Cholesky( S, CP );
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_view( CP );
+  mat<ValueType, mat_structure::rectangular, mat_alignment::column_major> CP =
+      C * P;
+  mat<ValueType, mat_structure::symmetric> S =
+      CP * transpose_view(C) + b_z.get_covariance().get_matrix();
+  linsolve_Cholesky(S, CP);
+  mat<ValueType, mat_structure::rectangular, mat_alignment::row_major> K =
+      transpose_view(CP);
 
-  b.set_mean_state(
-    sys.apply_correction( x, from_vect< InvCorrType >( W * K * e ), b_u.get_mean_state(), t + sys.get_time_step() ) );
-  W = sys.get_invariant_posterior_frame( x_prior, b.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step() )
-      * W;
-  InvFrameType Wt = InvFrameType( transpose_view( W ) );
-  b.set_covariance( CovType( MatType( W * ( mat< ValueType, mat_structure::identity >( K.get_row_count() ) - K * C ) * P
-                                      * transpose_view( W ) ) ) );
+  b.set_mean_state(sys.apply_correction(x, from_vect<InvCorrType>(W * K * e),
+                                        b_u.get_mean_state(),
+                                        t + sys.get_time_step()));
+  W = sys.get_invariant_posterior_frame(x_prior, b.get_mean_state(),
+                                        b_u.get_mean_state(),
+                                        t + sys.get_time_step()) *
+      W;
+  InvFrameType Wt = InvFrameType(transpose_view(W));
+  b.set_covariance(CovType(MatType(
+      W * (mat<ValueType, mat_structure::identity>(K.get_row_count()) - K * C) *
+      P * transpose_view(W))));
 
   // TODO Apply the W transform somehow.
 
   HamilMat Sc_tmp(
-    HamilMatUp( HamilMatUL( A ), HamilMatUR( b_u.get_covariance().get_matrix() ) ),
-    HamilMatLo( HamilMatLL( mat< ValueType, mat_structure::nil >( N ) ), HamilMatLR( transpose_view( A ) ) ) );
+      HamilMatUp(HamilMatUL(A), HamilMatUR(b_u.get_covariance().get_matrix())),
+      HamilMatLo(HamilMatLL(mat<ValueType, mat_structure::nil>(N)),
+                 HamilMatLR(transpose_view(A))));
 
-  swap( Sc, Sc_tmp );
-  HamilMat ScSm_tmp(
-    star_product( Sc, HamilMatUp( HamilMatUL( mat< ValueType, mat_structure::identity >( N ) ),
-                                  HamilMatUR( mat< ValueType, mat_structure::nil >( N ) ) ),
-                  HamilMatLo( HamilMatLL( transpose_view( C ) * b_z.get_covariance().get_inverse_matrix() * C ),
-                              HamilMatLR( mat< ValueType, mat_structure::identity >( N ) ) ) ) );
-  swap( ScSm, ScSm_tmp );
-};
-};
-};
+  swap(Sc, Sc_tmp);
+  HamilMat ScSm_tmp(star_product(
+      Sc,
+      HamilMatUp(HamilMatUL(mat<ValueType, mat_structure::identity>(N)),
+                 HamilMatUR(mat<ValueType, mat_structure::nil>(N))),
+      HamilMatLo(HamilMatLL(transpose_view(C) *
+                            b_z.get_covariance().get_inverse_matrix() * C),
+                 HamilMatLR(mat<ValueType, mat_structure::identity>(N)))));
+  swap(ScSm, ScSm_tmp);
+}
 
+}  // namespace ReaK::ctrl
 
 #endif

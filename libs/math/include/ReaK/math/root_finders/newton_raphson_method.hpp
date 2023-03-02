@@ -32,18 +32,16 @@
 #ifndef REAK_NEWTON_RAPHSON_METHOD_HPP
 #define REAK_NEWTON_RAPHSON_METHOD_HPP
 
-#include <limits>
 #include <cmath>
+#include <limits>
 
 #include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
 
 namespace ReaK {
 
-
 /*************************************************************************
                         Newton-Raphson Root Finding Method
 *************************************************************************/
-
 
 /**
  * This function template performs a Newton-Raphson search for the root of a function. This assumes
@@ -59,32 +57,37 @@ namespace ReaK {
  * \throw maximum_iteration If the maximum number of iterations is reached before convergence.
  * \throw singularity_error If a stationary point is reached.
  */
-template < typename T, typename RootedFunction, typename DerivativeFunction >
-void newton_raphson_method( T& x, RootedFunction f, DerivativeFunction df,
-                            const T& tol = std::numeric_limits< T >::epsilon(), std::size_t max_iter = 50 ) {
-  using std::fabs;
+template <typename T, typename RootedFunction, typename DerivativeFunction>
+void newton_raphson_method(T& x, RootedFunction f, DerivativeFunction df,
+                           const T& tol = std::numeric_limits<T>::epsilon(),
+                           std::size_t max_iter = 50) {
+  using std::abs;
 
-  T y_value = f( x );
-  T yp_value = df( x );
+  T y_value = f(x);
+  T yp_value = df(x);
   std::size_t i = 0;
 
-  while( fabs( yp_value ) > tol ) {
+  while (abs(yp_value) > tol) {
 
     x = x - y_value / yp_value;
 
-    y_value = f( x );
+    y_value = f(x);
 
-    if( fabs( y_value ) < tol )
+    if (abs(y_value) < tol) {
       return;
+    }
 
-    yp_value = df( x );
+    yp_value = df(x);
 
-    if( ++i > max_iter )
-      throw maximum_iteration( max_iter );
-  };
+    if (++i > max_iter) {
+      throw maximum_iteration(max_iter);
+    }
+  }
 
-  throw singularity_error( "Newton-Raphson method failed due to a stationary point!" );
-};
-};
+  throw singularity_error(
+      "Newton-Raphson method failed due to a stationary point!");
+}
+
+}  // namespace ReaK
 
 #endif

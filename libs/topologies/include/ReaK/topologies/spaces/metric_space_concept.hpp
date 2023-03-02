@@ -39,41 +39,42 @@
 
 #include <ReaK/core/base/serializable.hpp>
 
-#include <cmath>
 #include <boost/concept_check.hpp>
-#include <boost/utility/enable_if.hpp>
+#include <cmath>
+#include <type_traits>
 
 /** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Path-Planning */
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This traits class defines the types and constants associated to a topology.
  * \tparam Topology The topology type for which the topology traits are sought.
  */
-template < typename Topology >
+template <typename Topology>
 struct topology_traits {
   /** The type that describes a point in the space. */
-  typedef typename Topology::point_type point_type;
+  using point_type = typename Topology::point_type;
   /** The type that describes a difference between points in the space. */
-  typedef typename Topology::point_difference_type point_difference_type;
+  using point_difference_type = typename Topology::point_difference_type;
 
   /** The dimensions of the space (0 if unknown at compile-time). */
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = Topology::dimensions );
+  static constexpr std::size_t dimensions = Topology::dimensions;
 };
 
-template < typename Topology >
+template <typename Topology>
 struct topology_point_type {
-  typedef typename topology_traits< Topology >::point_type type;
+  using type = typename topology_traits<Topology>::point_type;
 };
+template <typename Topology>
+using topology_point_type_t = typename topology_point_type<Topology>::type;
 
-template < typename Topology >
+template <typename Topology>
 struct topology_point_difference_type {
-  typedef typename topology_traits< Topology >::point_difference_type type;
+  using type = typename topology_traits<Topology>::point_difference_type;
 };
+template <typename Topology>
+using topology_point_difference_type_t =
+    typename topology_point_difference_type<Topology>::type;
 
 /**
  * This concept defines the requirements to fulfill in order to model a topology
@@ -90,19 +91,18 @@ struct topology_point_difference_type {
  *
  * \tparam Topology The topology type to be checked for this concept.
  */
-template < typename Topology >
+template <typename Topology>
 struct TopologyConcept {
-  typename topology_traits< Topology >::point_type p1, p2;
-  typename topology_traits< Topology >::point_difference_type dp;
+  topology_point_type_t<Topology> p1, p2;
+  topology_point_difference_type_t<Topology> dp;
   Topology space;
 
-  BOOST_CONCEPT_USAGE( TopologyConcept ) {
-    dp = space.difference( p1, p2 );
+  BOOST_CONCEPT_USAGE(TopologyConcept) {
+    dp = space.difference(p1, p2);
     p1 = space.origin();
-    p1 = space.adjust( p1, dp );
-  };
+    p1 = space.adjust(p1, dp);
+  }
 };
-
 
 /**
  * This concept defines the requirements to fulfill in order to model a Lie Group
@@ -123,30 +123,29 @@ struct TopologyConcept {
  *
  * \tparam LieGroup The Lie Group type to be checked for this concept.
  */
-template < typename LieGroup >
+template <typename LieGroup>
 struct LieGroupConcept {
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< LieGroup > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<LieGroup>));
 
-  typename topology_traits< LieGroup >::point_difference_type dp;
+  topology_point_difference_type_t<LieGroup> dp1;
+  topology_point_difference_type_t<LieGroup> dp2;
   double d;
 
-  BOOST_CONCEPT_USAGE( LieGroupConcept ) {
-    dp = d * dp + dp - dp;
-    dp = -dp;
-    dp -= dp;
-    dp += dp;
-    dp *= d;
-  };
+  BOOST_CONCEPT_USAGE(LieGroupConcept) {
+    dp1 = d * dp2 + dp2 - dp2;
+    dp1 = -dp2;
+    dp1 -= dp2;
+    dp1 += dp2;
+    dp1 *= d;
+  }
 };
-
 
 /**
  * This tag-type is used to identify (during a "get" call) that the distance-metric object is
  * to be fetched.
  */
 enum distance_metric_t { distance_metric };
-
 
 /**
  * This concept defines the requirements to fulfill in order to model a distance-metric
@@ -169,35 +168,38 @@ enum distance_metric_t { distance_metric };
  * \tparam DistanceMetric The distance metric type to be checked for this concept.
  * \tparam Topology The topology to which the distance metric should apply.
  */
-template < typename DistanceMetric, typename Topology >
+template <typename DistanceMetric, typename Topology>
 struct DistanceMetricConcept {
   DistanceMetric dist;
   Topology space;
-  typename topology_traits< Topology >::point_type p1, p2;
-  typename topology_traits< Topology >::point_difference_type dp;
+  topology_point_type_t<Topology> p1, p2;
+  topology_point_difference_type_t<Topology> dp;
   double d;
 
-  BOOST_CONCEPT_USAGE( DistanceMetricConcept ) {
-    d = dist( p1, p2, space );
-    d = dist( dp, space );
-  };
+  BOOST_CONCEPT_USAGE(DistanceMetricConcept) {
+    d = dist(p1, p2, space);
+    d = dist(dp, space);
+  }
 };
-
 
 /**
  * This traits class defines the types and constants associated to a metric-space.
  * \tparam MetricSpace The topology type for which the metric-space traits are sought.
  */
-template < typename MetricSpace >
+template <typename MetricSpace>
 struct metric_space_traits {
   /** The type that describes the distance-metric type for the space. */
-  typedef typename MetricSpace::distance_metric_type distance_metric_type;
+  using distance_metric_type = typename MetricSpace::distance_metric_type;
 };
 
-template < typename MetricSpace >
+template <typename MetricSpace>
 struct metric_space_distance_metric {
-  typedef typename metric_space_traits< MetricSpace >::distance_metric_type type;
+  using type = typename metric_space_traits<MetricSpace>::distance_metric_type;
 };
+
+template <typename MetricSpace>
+using metric_space_distance_metric_t =
+    typename metric_space_distance_metric<MetricSpace>::type;
 
 /**
  * This concept defines the requirements to fulfill in order to model a metric-space
@@ -213,29 +215,37 @@ struct metric_space_distance_metric {
  *
  * \tparam MetricSpace The topology type to be checked for this concept.
  */
-template < typename MetricSpace >
+template <typename MetricSpace>
 struct MetricSpaceConcept {
-  typename topology_traits< MetricSpace >::point_type p1, p2;
-  typename metric_space_traits< MetricSpace >::distance_metric_type dist;
+  topology_point_type_t<MetricSpace> p1, p2;
+  metric_space_distance_metric_t<MetricSpace> dist;
   MetricSpace space;
   double d;
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< MetricSpace > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<MetricSpace>));
   BOOST_CONCEPT_ASSERT(
-    ( DistanceMetricConcept< typename metric_space_traits< MetricSpace >::distance_metric_type, MetricSpace > ) );
+      (DistanceMetricConcept<
+          typename metric_space_traits<MetricSpace>::distance_metric_type,
+          MetricSpace>));
 
-  BOOST_CONCEPT_USAGE( MetricSpaceConcept ) {
-    dist = get( distance_metric, space );
-    p1 = space.move_position_toward( p1, d, p2 );
-  };
+  BOOST_CONCEPT_USAGE(MetricSpaceConcept) {
+    dist = get(distance_metric, space);
+    p1 = space.move_position_toward(p1, d, p2);
+  }
 };
 
-template < typename MetricSpace >
-struct is_metric_space : boost::mpl::false_ {};
+template <typename MetricSpace>
+struct is_metric_space : std::false_type {};
 
-template < typename MetricSpace >
-struct is_metric_symmetric : boost::mpl::true_ {};
+template <typename MetricSpace>
+static constexpr bool is_metric_space_v = is_metric_space<MetricSpace>::value;
 
+template <typename MetricSpace>
+struct is_metric_symmetric : std::true_type {};
+
+template <typename MetricSpace>
+static constexpr bool is_metric_symmetric_v =
+    is_metric_symmetric<MetricSpace>::value;
 
 /**
  * This class is the default distance metric functor which models the DistanceMetricConcept.
@@ -245,10 +255,10 @@ struct is_metric_symmetric : boost::mpl::true_ {};
  */
 struct default_distance_metric : public serializable {
 
-  default_distance_metric(){};
+  default_distance_metric() = default;
 
-  template < typename Topology >
-  default_distance_metric( const Topology& ){};
+  template <typename Topology>
+  explicit default_distance_metric(const Topology& /*unused*/) {}
 
   /**
    * This function returns the distance between two points on a topology.
@@ -259,10 +269,11 @@ struct default_distance_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The distance between two points on a topology.
    */
-  template < typename Point, typename Topology >
-  double operator()( const Point& a, const Point& b, const Topology& s ) const {
-    return s.distance( a, b );
-  };
+  template <typename Point, typename Topology>
+  double operator()(const Point& a, const Point& b, const Topology& s) const {
+    return s.distance(a, b);
+  }
+
   /**
    * This function returns the norm of a difference between two points on a topology.
    * \tparam PointDiff The point-difference-type.
@@ -271,31 +282,29 @@ struct default_distance_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The norm of the difference between two points on a topology.
    */
-  template < typename PointDiff, typename Topology >
-  double operator()( const PointDiff& a, const Topology& s ) const {
-    return s.norm( a );
-  };
-
+  template <typename PointDiff, typename Topology>
+  double operator()(const PointDiff& a, const Topology& s) const {
+    return s.norm(a);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( default_distance_metric, 0xC2410000, 1, "default_distance_metric", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(default_distance_metric, 0xC2410000, 1,
+                              "default_distance_metric", serializable)
 };
 
-
-template < typename MetricSpace >
-typename boost::lazy_enable_if< is_metric_space< MetricSpace >, metric_space_distance_metric< MetricSpace > >::type
-  get( distance_metric_t, const MetricSpace& s ) {
-  typedef typename metric_space_traits< MetricSpace >::distance_metric_type result_type;
-  return result_type( s );
-};
-
+template <typename MetricSpace>
+auto get(distance_metric_t /*unused*/, const MetricSpace& s) {
+  static_assert(is_metric_space_v<MetricSpace>);
+  return metric_space_distance_metric_t<MetricSpace>{s};
+}
 
 /**
  * This class is the default distance metric functor which models the DistanceMetricConcept.
@@ -303,13 +312,14 @@ typename boost::lazy_enable_if< is_metric_space< MetricSpace >, metric_space_dis
  * given topology (assuming it models the MetricSpaceConcept).
  * \note Do not use this distance metric to define a topology, because it will be cyclic (infinite recursion).
  */
-template < typename DistanceMetric >
+template <typename DistanceMetric>
 struct symmetrized_metric : public serializable {
-  typedef symmetrized_metric< DistanceMetric > self;
+  using self = symmetrized_metric<DistanceMetric>;
 
   DistanceMetric unsym_distance;
 
-  symmetrized_metric( DistanceMetric aUnsymDistance = DistanceMetric() ) : unsym_distance( aUnsymDistance ){};
+  explicit symmetrized_metric(DistanceMetric aUnsymDistance = DistanceMetric())
+      : unsym_distance(aUnsymDistance) {}
 
   /**
    * This function returns the distance between two points on a topology.
@@ -320,12 +330,12 @@ struct symmetrized_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The distance between two points on a topology.
    */
-  template < typename Point, typename Topology >
-  double operator()( const Point& a, const Point& b, const Topology& s ) const {
-    double d_left = unsym_distance( a, b, s );
-    double d_right = unsym_distance( b, a, s );
-    return ( d_left < d_right ? d_left : d_right );
-  };
+  template <typename Point, typename Topology>
+  double operator()(const Point& a, const Point& b, const Topology& s) const {
+    double d_left = unsym_distance(a, b, s);
+    double d_right = unsym_distance(b, a, s);
+    return (d_left < d_right ? d_left : d_right);
+  }
   /**
    * This function returns the norm of a difference between two points on a topology.
    * \tparam PointDiff The point-difference-type.
@@ -334,53 +344,55 @@ struct symmetrized_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The norm of the difference between two points on a topology.
    */
-  template < typename PointDiff, typename Topology >
-  double operator()( const PointDiff& a, const Topology& s ) const {
-    return unsym_distance( a, s );
-  };
-
+  template <typename PointDiff, typename Topology>
+  double operator()(const PointDiff& a, const Topology& s) const {
+    return unsym_distance(a, s);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    A& RK_SERIAL_SAVE_WITH_NAME( unsym_distance );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    A& RK_SERIAL_SAVE_WITH_NAME(unsym_distance);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    A& RK_SERIAL_LOAD_WITH_NAME( unsym_distance );
-  };
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
+    A& RK_SERIAL_LOAD_WITH_NAME(unsym_distance);
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC241000B, 1, "symmetrized_metric", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC241000B, 1, "symmetrized_metric",
+                              serializable)
 };
-
 
 enum unsymmetrized_metric_t { unsymmetrized_metric };
 
-
-template < typename DistanceMetric >
+template <typename DistanceMetric>
 struct unsymmetrize {
-  typedef DistanceMetric type;
+  using type = DistanceMetric;
 };
 
-template < typename DistanceMetric >
-struct unsymmetrize< symmetrized_metric< DistanceMetric > > {
-  typedef DistanceMetric type;
+template <typename DistanceMetric>
+using unsymmetrize_t = typename unsymmetrize<DistanceMetric>::type;
+
+template <typename DistanceMetric>
+struct unsymmetrize<symmetrized_metric<DistanceMetric>> {
+  using type = DistanceMetric;
 };
 
-
-template < typename DistanceMetric >
-const DistanceMetric& get( unsymmetrized_metric_t, const DistanceMetric& d ) {
+template <typename DistanceMetric>
+const DistanceMetric& get(unsymmetrized_metric_t /*unused*/,
+                          const DistanceMetric& d) {
   return d;
-};
+}
 
-template < typename DistanceMetric >
-DistanceMetric get( unsymmetrized_metric_t, const symmetrized_metric< DistanceMetric >& d ) {
+template <typename DistanceMetric>
+DistanceMetric get(unsymmetrized_metric_t /*unused*/,
+                   const symmetrized_metric<DistanceMetric>& d) {
   return d.unsym_distance;
-};
-};
-};
+}
 
+}  // namespace ReaK::pp
 
 #endif

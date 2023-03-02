@@ -43,6 +43,8 @@
 
 #include "vect_alg.hpp"
 
+#include <type_traits>
+
 namespace ReaK {
 
 /**
@@ -52,38 +54,39 @@ namespace ReaK {
  * Models: ReadableVectorConcept and WritableVectorConcept (if the matrix is writable)
  * \tparam Matrix A matrix type.
  */
-template < typename Matrix >
+template <typename Matrix>
 class mat_row_slice {
-public:
-  typedef mat_row_slice< Matrix > self;
-  typedef typename mat_traits< Matrix >::allocator_type allocator_type;
+ public:
+  using self = mat_row_slice<Matrix>;
+  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
-  typedef typename mat_traits< Matrix >::value_type value_type;
+  using value_type = mat_value_type_t<Matrix>;
 
-  typedef typename mat_traits< Matrix >::reference reference;
-  typedef typename mat_traits< Matrix >::const_reference const_reference;
-  typedef typename mat_traits< Matrix >::pointer pointer;
-  typedef typename mat_traits< Matrix >::const_pointer const_pointer;
+  using reference = typename mat_traits<Matrix>::reference;
+  using const_reference = typename mat_traits<Matrix>::const_reference;
+  using pointer = typename mat_traits<Matrix>::pointer;
+  using const_pointer = typename mat_traits<Matrix>::const_pointer;
 
-  typedef typename mat_traits< Matrix >::row_iterator iterator;
-  typedef typename mat_traits< Matrix >::const_row_iterator const_iterator;
+  using iterator = typename mat_traits<Matrix>::row_iterator;
+  using const_iterator = typename mat_traits<Matrix>::const_row_iterator;
 
-  typedef typename mat_traits< Matrix >::size_type size_type;
-  typedef typename mat_traits< Matrix >::difference_type difference_type;
+  using size_type = mat_size_type_t<Matrix>;
+  using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 0 );
+  static constexpr std::size_t dimensions = 0;
 
-private:
-  Matrix* m;          ///< Holds the reference to the matrix object.
-  size_type offset;   ///< Holds the offset from the start of the column.
-  size_type colIndex; ///< Holds the index of column of the slice.
-  size_type count;    ///< Holds the number of elements of the column to take.
-public:
+ private:
+  Matrix* m;           ///< Holds the reference to the matrix object.
+  size_type offset;    ///< Holds the offset from the start of the column.
+  size_type colIndex;  ///< Holds the index of column of the slice.
+  size_type count;     ///< Holds the number of elements of the column to take.
+ public:
   /**
    * Constructs the row-slice from a matrix M, taking the entire first column.
    * \param aM The matrix from which to take the slice.
    */
-  mat_row_slice( Matrix& aM ) : m( &aM ), offset( 0 ), colIndex( 0 ), count( aM.get_row_count() ){};
+  explicit mat_row_slice(Matrix& aM)
+      : m(&aM), offset(0), colIndex(0), count(aM.get_row_count()) {}
 
   /**
    * Constructs the row-slice from a matrix M, taking the aColIndex column
@@ -93,113 +96,131 @@ public:
    * \param aOffset The offset into the column used for the slice.
    * \param aCount The number of elements to take in the slice.
    */
-  mat_row_slice( Matrix& aM, size_type aColIndex, size_type aOffset, size_type aCount )
-      : m( &aM ), offset( aOffset ), colIndex( aColIndex ), count( aCount ){};
+  mat_row_slice(Matrix& aM, size_type aColIndex, size_type aOffset,
+                size_type aCount)
+      : m(&aM), offset(aOffset), colIndex(aColIndex), count(aCount) {}
 
   /**
    * Standard copy-constructor (shallow).
    */
-  mat_row_slice( const self& rhs ) : m( rhs.m ), offset( rhs.offset ), colIndex( rhs.colIndex ), count( rhs.count ){};
-
+  mat_row_slice(const self& rhs)
+      : m(rhs.m),
+        offset(rhs.offset),
+        colIndex(rhs.colIndex),
+        count(rhs.count) {}
 
   /**
    * Standard swap function (shallow)
    */
-  friend void swap( self& lhs, self& rhs ) throw() {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
-    swap( lhs.m, rhs.m );
-    swap( lhs.offset, rhs.offset );
-    swap( lhs.colIndex, rhs.colIndex );
-    swap( lhs.count, rhs.count );
-    return;
-  };
+    swap(lhs.m, rhs.m);
+    swap(lhs.offset, rhs.offset);
+    swap(lhs.colIndex, rhs.colIndex);
+    swap(lhs.count, rhs.count);
+  }
 
   /**
    * Standard assignment operator for any readable vector type.
    * \tparam Vector A readable vector type.
    */
-  template < typename Vector >
-  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator=( const Vector& v ) {
-    if( v.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
-      ( *m )( offset + i, colIndex ) = v[i];
+  template <typename Vector>
+  self& operator=(const Vector& v) {
+    static_assert(is_readable_vector_v<Vector>);
+    if (v.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
+      (*m)(offset + i, colIndex) = v[i];
+    }
     return *this;
-  };
+  }
 
   /**
    * Standard assignment operator for any readable vector type.
    * \tparam Vector A readable vector type.
    */
-  template < typename Vector >
-  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator+=( const Vector& v ) {
-    if( v.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
-      ( *m )( offset + i, colIndex ) += v[i];
+  template <typename Vector>
+  self& operator+=(const Vector& v) {
+    static_assert(is_readable_vector_v<Vector>);
+    if (v.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
+      (*m)(offset + i, colIndex) += v[i];
+    }
     return *this;
-  };
+  }
 
   /**
    * Standard assignment operator for any readable vector type.
    * \tparam Vector A readable vector type.
    */
-  template < typename Vector >
-  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator-=( const Vector& v ) {
-    if( v.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
-      ( *m )( offset + i, colIndex ) -= v[i];
+  template <typename Vector>
+  self& operator-=(const Vector& v) {
+    static_assert(is_readable_vector_v<Vector>);
+    if (v.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
+      (*m)(offset + i, colIndex) -= v[i];
+    }
     return *this;
-  };
+  }
 
   /**
    * Returns the size of the vector.
    */
-  size_type size() const { return count; };
+  size_type size() const { return count; }
   /**
    * Returns the max-size of the vector.
    */
-  size_type max_size() const { return count; };
+  size_type max_size() const { return count; }
   /**
    * Returns the capacity of the vector.
    */
-  size_type capacity() const { return count; };
+  size_type capacity() const { return count; }
   /**
    * Resizes the vector.
    * \param sz The new size for the vector.
    * \param c The value to fill any additional elements to the vector.
    */
-  void resize( size_type sz, const_reference c = value_type() ) const {
-    RK_UNUSED( sz );
-    RK_UNUSED( c );
-  };
+  void resize(size_type sz, const_reference c = value_type()) const {
+    RK_UNUSED(sz);
+    RK_UNUSED(c);
+  }
   /**
    * Checks whether the vector is empty.
    */
-  bool empty() const { return false; };
+  bool empty() const { return false; }
   /**
    * Reserve a certain amount of capacity for future additions.
    * \param sz The new capacity for the vector.
    */
-  void reserve( size_type sz ) const { RK_UNUSED( sz ); };
+  void reserve(size_type sz) const { RK_UNUSED(sz); }
 
   /**
    * Returns an iterator to the first element of the vector.
    */
-  iterator begin() { return m->first_row( m->first_col() + colIndex ) + offset; };
+  iterator begin() { return m->first_row(m->first_col() + colIndex) + offset; }
   /**
    * Returns an const-iterator to the first element of the vector.
    */
-  const_iterator begin() const { return m->first_row( m->first_col() + colIndex ) + offset; };
+  const_iterator begin() const {
+    return m->first_row(m->first_col() + colIndex) + offset;
+  }
   /**
    * Returns an iterator to the one-passed-last element of the vector.
    */
-  iterator end() { return m->first_row( m->first_col() + colIndex ) + offset + count; };
+  iterator end() {
+    return m->first_row(m->first_col() + colIndex) + offset + count;
+  }
   /**
    * Returns an const-iterator to the one-passed-last element of the vector.
    */
-  const_iterator end() const { return m->first_row( m->first_col() + colIndex ) + offset + count; };
+  const_iterator end() const {
+    return m->first_row(m->first_col() + colIndex) + offset + count;
+  }
 
   /*******************************************************************************
                            Accessors and Methods
@@ -209,78 +230,76 @@ public:
    * Array indexing operator, accessor for read/write.
    * \test PASSED
    */
-  reference operator[]( size_type i ) { return ( *m )( offset + i, colIndex ); };
+  reference operator[](int i) { return (*m)(offset + i, colIndex); }
 
   /**
    * Array indexing operator, accessor for read only.
    * \test PASSED
    */
-  const_reference operator[]( size_type i ) const { return ( *m )( offset + i, colIndex ); };
+  const_reference operator[](int i) const { return (*m)(offset + i, colIndex); }
 
   /**
    * Sub-vector operator, accessor for read/write.
    * \test PASSED
    */
-  vect_ref_view< self > operator[]( const std::pair< size_type, size_type >& r ) { return sub( *this )[r]; };
+  vect_ref_view<self> operator[](const std::pair<int, int>& r) {
+    return sub(*this)[r];
+  }
 
   /**
    * Sub-vector operator, accessor for read only.
    * \test PASSED
    */
-  vect_const_ref_view< self > operator[]( const std::pair< size_type, size_type >& r ) const {
-    return sub( *this )[r];
-  };
+  vect_const_ref_view<self> operator[](const std::pair<int, int>& r) const {
+    return sub(*this)[r];
+  }
 
   /**
    * Array indexing operator, accessor for read/write.
    * \test PASSED
    */
-  reference operator()( size_type i ) { return ( *m )( offset + i, colIndex ); };
+  reference operator()(int i) { return (*m)(offset + i, colIndex); }
 
   /**
    * Array indexing operator, accessor for read only.
    * \test PASSED
    */
-  const_reference operator()( size_type i ) const { return ( *m )( offset + i, colIndex ); };
+  const_reference operator()(int i) const { return (*m)(offset + i, colIndex); }
 
   /**
    * Returns the allocator object of the underlying container.
    */
-  allocator_type get_allocator() const { return m->get_allocator(); };
+  allocator_type get_allocator() const { return m->get_allocator(); }
 };
 
-
-template < typename Matrix >
-struct is_readable_vector< mat_row_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_readable_vector< mat_row_slice< Matrix > > type;
+template <typename Matrix>
+struct is_readable_vector<mat_row_slice<Matrix>> {
+  static constexpr bool value = true;
+  using type = is_readable_vector<mat_row_slice<Matrix>>;
 };
 
-template < typename Matrix >
-struct is_writable_vector< mat_row_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = is_fully_writable_matrix< Matrix >::value );
-  typedef is_writable_vector< mat_row_slice< Matrix > > type;
+template <typename Matrix>
+struct is_writable_vector<mat_row_slice<Matrix>> {
+  static constexpr bool value = is_fully_writable_matrix_v<Matrix>;
+  using type = is_writable_vector<mat_row_slice<Matrix>>;
 };
 
-template < typename Matrix >
-struct is_resizable_vector< mat_row_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_resizable_vector< mat_row_slice< Matrix > > type;
+template <typename Matrix>
+struct is_resizable_vector<mat_row_slice<Matrix>> {
+  static constexpr bool value = false;
+  using type = is_resizable_vector<mat_row_slice<Matrix>>;
 };
 
-
-template < typename Matrix >
-struct has_allocator_vector< mat_row_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = has_allocator_matrix< Matrix >::value );
-  typedef has_allocator_vector< mat_row_slice< Matrix > > type;
+template <typename Matrix>
+struct has_allocator_vector<mat_row_slice<Matrix>> {
+  static constexpr bool value = has_allocator_matrix<Matrix>::value;
+  using type = has_allocator_vector<mat_row_slice<Matrix>>;
 };
 
-
-template < typename Matrix >
-struct vect_copy< mat_row_slice< Matrix > > {
-  typedef vect_n< typename vect_traits< mat_row_slice< Matrix > >::value_type > type;
+template <typename Matrix>
+struct vect_copy<mat_row_slice<Matrix>> {
+  using type = vect_n<vect_value_type_t<mat_row_slice<Matrix>>>;
 };
-
 
 /**
  * This class template can be used to view a column of a matrix as a const-vector (i.e. a row-slice). It
@@ -289,44 +308,45 @@ struct vect_copy< mat_row_slice< Matrix > > {
  * Models: ReadableVectorConcept
  * \tparam Matrix A matrix type.
  */
-template < typename Matrix >
+template <typename Matrix>
 class mat_const_row_slice {
-public:
-  typedef mat_const_row_slice< Matrix > self;
-  typedef typename mat_traits< Matrix >::allocator_type allocator_type;
+ public:
+  using self = mat_const_row_slice<Matrix>;
+  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
-  typedef typename mat_traits< Matrix >::value_type value_type;
+  using value_type = mat_value_type_t<Matrix>;
 
-  typedef typename mat_traits< Matrix >::reference reference;
-  typedef typename mat_traits< Matrix >::const_reference const_reference;
-  typedef typename mat_traits< Matrix >::pointer pointer;
-  typedef typename mat_traits< Matrix >::const_pointer const_pointer;
+  using reference = typename mat_traits<Matrix>::reference;
+  using const_reference = typename mat_traits<Matrix>::const_reference;
+  using pointer = typename mat_traits<Matrix>::pointer;
+  using const_pointer = typename mat_traits<Matrix>::const_pointer;
 
-  typedef typename mat_traits< Matrix >::row_iterator iterator;
-  typedef typename mat_traits< Matrix >::const_row_iterator const_iterator;
+  using iterator = typename mat_traits<Matrix>::row_iterator;
+  using const_iterator = typename mat_traits<Matrix>::const_row_iterator;
 
-  typedef typename mat_traits< Matrix >::size_type size_type;
-  typedef typename mat_traits< Matrix >::difference_type difference_type;
+  using size_type = mat_size_type_t<Matrix>;
+  using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 0 );
+  static constexpr std::size_t dimensions = 0;
 
-private:
-  const Matrix* m;    ///< Holds the reference to the matrix object.
-  size_type offset;   ///< Holds the offset from the start of the column.
-  size_type colIndex; ///< Holds the index of column of the slice.
-  size_type count;    ///< Holds the number of elements of the column to take.
+ private:
+  const Matrix* m;     ///< Holds the reference to the matrix object.
+  size_type offset;    ///< Holds the offset from the start of the column.
+  size_type colIndex;  ///< Holds the index of column of the slice.
+  size_type count;     ///< Holds the number of elements of the column to take.
 
-  self& operator=( const self& ); // non-assignable.
+  self& operator=(const self&);  // non-assignable.
 
-  mat_const_row_slice( Matrix&& );
-  mat_const_row_slice( Matrix&&, size_type, size_type, size_type );
+  explicit mat_const_row_slice(Matrix&&);
+  mat_const_row_slice(Matrix&&, size_type, size_type, size_type);
 
-public:
+ public:
   /**
    * Constructs the row-slice from a matrix M, taking the entire first column.
    * \param aM The matrix from which to take the slice.
    */
-  mat_const_row_slice( const Matrix& aM ) : m( &aM ), offset( 0 ), colIndex( 0 ), count( aM.get_row_count() ){};
+  explicit mat_const_row_slice(const Matrix& aM)
+      : m(&aM), offset(0), colIndex(0), count(aM.get_row_count()) {}
 
   /**
    * Constructs the row-slice from a matrix M, taking the aColIndex column
@@ -336,64 +356,70 @@ public:
    * \param aOffset The offset into the column used for the slice.
    * \param aCount The number of elements to take in the slice.
    */
-  mat_const_row_slice( const Matrix& aM, size_type aColIndex, size_type aOffset, size_type aCount )
-      : m( &aM ), offset( aOffset ), colIndex( aColIndex ), count( aCount ){};
+  mat_const_row_slice(const Matrix& aM, size_type aColIndex, size_type aOffset,
+                      size_type aCount)
+      : m(&aM), offset(aOffset), colIndex(aColIndex), count(aCount) {}
 
   /**
    * Standard copy-constructor (shallow).
    */
-  mat_const_row_slice( const self& rhs )
-      : m( rhs.m ), offset( rhs.offset ), colIndex( rhs.colIndex ), count( rhs.count ){};
-
+  mat_const_row_slice(const self& rhs)
+      : m(rhs.m),
+        offset(rhs.offset),
+        colIndex(rhs.colIndex),
+        count(rhs.count) {}
 
   /**
    * Standard swap function (shallow)
    */
-  friend void swap( self& lhs, self& rhs ) throw() {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
-    swap( lhs.m, rhs.m );
-    swap( lhs.offset, rhs.offset );
-    swap( lhs.colIndex, rhs.colIndex );
-    swap( lhs.count, rhs.count );
-    return;
-  };
+    swap(lhs.m, rhs.m);
+    swap(lhs.offset, rhs.offset);
+    swap(lhs.colIndex, rhs.colIndex);
+    swap(lhs.count, rhs.count);
+  }
 
   /**
    * Returns the size of the vector.
    */
-  size_type size() const { return count; };
+  size_type size() const { return count; }
   /**
    * Returns the max-size of the vector.
    */
-  size_type max_size() const { return count; };
+  size_type max_size() const { return count; }
   /**
    * Returns the capacity of the vector.
    */
-  size_type capacity() const { return count; };
+  size_type capacity() const { return count; }
   /**
    * Resizes the vector.
    * \param sz The new size for the vector.
    * \param c The value to fill any additional elements to the vector.
    */
-  void resize( size_type sz, const_reference c = value_type() ) const {};
+  void resize(size_type sz, const_reference c = value_type()) const {}
   /**
    * Checks whether the vector is empty.
    */
-  bool empty() const { return false; };
+  bool empty() const { return false; }
   /**
    * Reserve a certain amount of capacity for future additions.
    * \param sz The new capacity for the vector.
    */
-  void reserve( size_type sz ) const {};
+  void reserve(size_type sz) const {}
 
   /**
    * Returns an const-iterator to the first element of the vector.
    */
-  const_iterator begin() const { return m->first_row( m->first_col() + colIndex ) + offset; };
+  const_iterator begin() const {
+    return m->first_row(m->first_col() + colIndex) + offset;
+  }
   /**
    * Returns an const-iterator to the one-passed-last element of the vector.
    */
-  const_iterator end() const { return m->first_row( m->first_col() + colIndex ) + offset + count; };
+  const_iterator end() const {
+    return m->first_row(m->first_col() + colIndex) + offset + count;
+  }
 
   /*******************************************************************************
                            Accessors and Methods
@@ -403,60 +429,56 @@ public:
    * Array indexing operator, accessor for read only.
    * \test PASSED
    */
-  const_reference operator[]( size_type i ) const { return ( *m )( offset + i, colIndex ); };
+  const_reference operator[](int i) const { return (*m)(offset + i, colIndex); }
 
   /**
    * Sub-vector operator, accessor for read only.
    * \test PASSED
    */
-  vect_const_ref_view< self > operator[]( const std::pair< size_type, size_type >& r ) const {
-    return sub( *this )[r];
-  };
+  vect_const_ref_view<self> operator[](const std::pair<int, int>& r) const {
+    return sub(*this)[r];
+  }
 
   /**
    * Array indexing operator, accessor for read only.
    * \test PASSED
    */
-  const_reference operator()( size_type i ) const { return ( *m )( offset + i, colIndex ); };
+  const_reference operator()(int i) const { return (*m)(offset + i, colIndex); }
 
   /**
    * Returns the allocator object of the underlying container.
    */
-  allocator_type get_allocator() const { return m->get_allocator(); };
+  allocator_type get_allocator() const { return m->get_allocator(); }
 };
 
-
-template < typename Matrix >
-struct is_readable_vector< mat_const_row_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_readable_vector< mat_const_row_slice< Matrix > > type;
+template <typename Matrix>
+struct is_readable_vector<mat_const_row_slice<Matrix>> {
+  static constexpr bool value = true;
+  using type = is_readable_vector<mat_const_row_slice<Matrix>>;
 };
 
-template < typename Matrix >
-struct is_writable_vector< mat_const_row_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_writable_vector< mat_const_row_slice< Matrix > > type;
+template <typename Matrix>
+struct is_writable_vector<mat_const_row_slice<Matrix>> {
+  static constexpr bool value = false;
+  using type = is_writable_vector<mat_const_row_slice<Matrix>>;
 };
 
-template < typename Matrix >
-struct is_resizable_vector< mat_const_row_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_resizable_vector< mat_const_row_slice< Matrix > > type;
+template <typename Matrix>
+struct is_resizable_vector<mat_const_row_slice<Matrix>> {
+  static constexpr bool value = false;
+  using type = is_resizable_vector<mat_const_row_slice<Matrix>>;
 };
 
-
-template < typename Matrix >
-struct has_allocator_vector< mat_const_row_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = has_allocator_matrix< Matrix >::value );
-  typedef has_allocator_vector< mat_const_row_slice< Matrix > > type;
+template <typename Matrix>
+struct has_allocator_vector<mat_const_row_slice<Matrix>> {
+  static constexpr bool value = has_allocator_matrix<Matrix>::value;
+  using type = has_allocator_vector<mat_const_row_slice<Matrix>>;
 };
 
-
-template < typename Matrix >
-struct vect_copy< mat_const_row_slice< Matrix > > {
-  typedef vect_n< typename vect_traits< mat_const_row_slice< Matrix > >::value_type > type;
+template <typename Matrix>
+struct vect_copy<mat_const_row_slice<Matrix>> {
+  using type = vect_n<vect_value_type_t<mat_const_row_slice<Matrix>>>;
 };
-
 
 /**
  * This class template can be used to view a row of a matrix as a vector (i.e. a column-slice). It
@@ -465,38 +487,39 @@ struct vect_copy< mat_const_row_slice< Matrix > > {
  * Models: ReadableVectorConcept and WritableVectorConcept (if the matrix is writable)
  * \tparam Matrix A matrix type.
  */
-template < typename Matrix >
+template <typename Matrix>
 class mat_col_slice {
-public:
-  typedef mat_col_slice< Matrix > self;
-  typedef typename mat_traits< Matrix >::allocator_type allocator_type;
+ public:
+  using self = mat_col_slice<Matrix>;
+  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
-  typedef typename mat_traits< Matrix >::value_type value_type;
+  using value_type = mat_value_type_t<Matrix>;
 
-  typedef typename mat_traits< Matrix >::reference reference;
-  typedef typename mat_traits< Matrix >::const_reference const_reference;
-  typedef typename mat_traits< Matrix >::pointer pointer;
-  typedef typename mat_traits< Matrix >::const_pointer const_pointer;
+  using reference = typename mat_traits<Matrix>::reference;
+  using const_reference = typename mat_traits<Matrix>::const_reference;
+  using pointer = typename mat_traits<Matrix>::pointer;
+  using const_pointer = typename mat_traits<Matrix>::const_pointer;
 
-  typedef typename mat_traits< Matrix >::col_iterator iterator;
-  typedef typename mat_traits< Matrix >::const_col_iterator const_iterator;
+  using iterator = typename mat_traits<Matrix>::col_iterator;
+  using const_iterator = typename mat_traits<Matrix>::const_col_iterator;
 
-  typedef typename mat_traits< Matrix >::size_type size_type;
-  typedef typename mat_traits< Matrix >::difference_type difference_type;
+  using size_type = mat_size_type_t<Matrix>;
+  using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 0 );
+  static constexpr std::size_t dimensions = 0;
 
-private:
-  Matrix* m;          ///< Holds the reference to the matrix object.
-  size_type offset;   ///< Holds the offset from the start of the row.
-  size_type rowIndex; ///< Holds the index of row of the slice.
-  size_type count;    ///< Holds the number of elements of the row to take.
-public:
+ private:
+  Matrix* m;           ///< Holds the reference to the matrix object.
+  size_type offset;    ///< Holds the offset from the start of the row.
+  size_type rowIndex;  ///< Holds the index of row of the slice.
+  size_type count;     ///< Holds the number of elements of the row to take.
+ public:
   /**
    * Constructs the column-slice from a matrix M, taking the entire first row.
    * \param aM The matrix from which to take the slice.
    */
-  mat_col_slice( Matrix& aM ) : m( &aM ), offset( 0 ), rowIndex( 0 ), count( aM.get_col_count() ){};
+  explicit mat_col_slice(Matrix& aM)
+      : m(&aM), offset(0), rowIndex(0), count(aM.get_col_count()) {}
 
   /**
    * Constructs the column-slice from a matrix M, taking the aRowIndex row
@@ -506,111 +529,128 @@ public:
    * \param aOffset The offset into the row used for the slice.
    * \param aCount The number of elements to take in the slice.
    */
-  mat_col_slice( Matrix& aM, size_type aRowIndex, size_type aOffset, size_type aCount )
-      : m( &aM ), offset( aOffset ), rowIndex( aRowIndex ), count( aCount ){};
+  mat_col_slice(Matrix& aM, size_type aRowIndex, size_type aOffset,
+                size_type aCount)
+      : m(&aM), offset(aOffset), rowIndex(aRowIndex), count(aCount) {}
 
   /**
    * Standard copy-constructor (shallow).
    */
-  mat_col_slice( const self& rhs ) : m( rhs.m ), offset( rhs.offset ), rowIndex( rhs.rowIndex ), count( rhs.count ){};
-
+  mat_col_slice(const self& rhs)
+      : m(rhs.m),
+        offset(rhs.offset),
+        rowIndex(rhs.rowIndex),
+        count(rhs.count) {}
 
   /**
    * Standard swap function (shallow)
    */
-  friend void swap( self& lhs, self& rhs ) throw() {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
-    swap( lhs.m, rhs.m );
-    swap( lhs.offset, rhs.offset );
-    swap( lhs.rowIndex, rhs.rowIndex );
-    swap( lhs.count, rhs.count );
-    return;
-  };
+    swap(lhs.m, rhs.m);
+    swap(lhs.offset, rhs.offset);
+    swap(lhs.rowIndex, rhs.rowIndex);
+    swap(lhs.count, rhs.count);
+  }
 
   /**
    * Standard assignment operator for any readable vector type.
    * \tparam Vector A readable vector type.
    */
-  template < typename Vector >
-  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator=( const Vector& v ) {
-    if( v.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
-      ( *m )( rowIndex, offset + i ) = v[i];
+  template <typename Vector>
+  self& operator=(const Vector& v) {
+    static_assert(is_readable_vector_v<Vector>);
+    if (v.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
+      (*m)(rowIndex, offset + i) = v[i];
+    }
     return *this;
-  };
+  }
 
   /**
    * Standard assignment operator for any readable vector type.
    * \tparam Vector A readable vector type.
    */
-  template < typename Vector >
-  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator+=( const Vector& v ) {
-    if( v.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
-      ( *m )( rowIndex, offset + i ) += v[i];
+  template <typename Vector>
+  self& operator+=(const Vector& v) {
+    static_assert(is_readable_vector_v<Vector>);
+    if (v.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
+      (*m)(rowIndex, offset + i) += v[i];
+    }
     return *this;
-  };
+  }
 
   /**
    * Standard assignment operator for any readable vector type.
    * \tparam Vector A readable vector type.
    */
-  template < typename Vector >
-  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator-=( const Vector& v ) {
-    if( v.size() != count )
-      throw std::range_error( "Vector dimensions mismatch." );
-    for( size_type i = 0; i < count; ++i )
-      ( *m )( rowIndex, offset + i ) -= v[i];
+  template <typename Vector>
+  self& operator-=(const Vector& v) {
+    static_assert(is_readable_vector_v<Vector>);
+    if (v.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (size_type i = 0; i < count; ++i) {
+      (*m)(rowIndex, offset + i) -= v[i];
+    }
     return *this;
-  };
-
+  }
 
   /**
    * Returns the size of the vector.
    */
-  size_type size() const { return count; };
+  size_type size() const { return count; }
   /**
    * Returns the max-size of the vector.
    */
-  size_type max_size() const { return count; };
+  size_type max_size() const { return count; }
   /**
    * Returns the capacity of the vector.
    */
-  size_type capacity() const { return count; };
+  size_type capacity() const { return count; }
   /**
    * Resizes the vector.
    * \param sz The new size for the vector.
    * \param c The value to fill any additional elements to the vector.
    */
-  void resize( size_type sz, const_reference c = value_type() ) const {};
+  void resize(size_type sz, const_reference c = value_type()) const {}
   /**
    * Checks whether the vector is empty.
    */
-  bool empty() const { return false; };
+  bool empty() const { return false; }
   /**
    * Reserve a certain amount of capacity for future additions.
    * \param sz The new capacity for the vector.
    */
-  void reserve( size_type sz ) const {};
+  void reserve(size_type sz) const {}
 
   /**
    * Returns an iterator to the first element of the vector.
    */
-  iterator begin() { return m->first_col( m->first_row() + rowIndex ) + offset; };
+  iterator begin() { return m->first_col(m->first_row() + rowIndex) + offset; }
   /**
    * Returns an const-iterator to the first element of the vector.
    */
-  const_iterator begin() const { return m->first_col( m->first_row() + rowIndex ) + offset; };
+  const_iterator begin() const {
+    return m->first_col(m->first_row() + rowIndex) + offset;
+  }
   /**
    * Returns an iterator to the one-passed-last element of the vector.
    */
-  iterator end() { return m->first_col( m->first_row() + rowIndex ) + offset + count; };
+  iterator end() {
+    return m->first_col(m->first_row() + rowIndex) + offset + count;
+  }
   /**
    * Returns an const-iterator to the one-passed-last element of the vector.
    */
-  const_iterator end() const { return m->first_col( m->first_row() + rowIndex ) + offset + count; };
+  const_iterator end() const {
+    return m->first_col(m->first_row() + rowIndex) + offset + count;
+  }
 
   /*******************************************************************************
                            Accessors and Methods
@@ -620,78 +660,76 @@ public:
    * Array indexing operator, accessor for read/write.
    * \test PASSED
    */
-  reference operator[]( size_type i ) { return ( *m )( rowIndex, offset + i ); };
+  reference operator[](int i) { return (*m)(rowIndex, offset + i); }
 
   /**
    * Array indexing operator, accessor for read only.
    * \test PASSED
    */
-  const_reference operator[]( size_type i ) const { return ( *m )( rowIndex, offset + i ); };
+  const_reference operator[](int i) const { return (*m)(rowIndex, offset + i); }
 
   /**
    * Sub-vector operator, accessor for read/write.
    * \test PASSED
    */
-  vect_ref_view< self > operator[]( const std::pair< size_type, size_type >& r ) { return sub( *this )[r]; };
+  vect_ref_view<self> operator[](const std::pair<int, int>& r) {
+    return sub(*this)[r];
+  }
 
   /**
    * Sub-vector operator, accessor for read only.
    * \test PASSED
    */
-  vect_const_ref_view< self > operator[]( const std::pair< size_type, size_type >& r ) const {
-    return sub( *this )[r];
-  };
+  vect_const_ref_view<self> operator[](const std::pair<int, int>& r) const {
+    return sub(*this)[r];
+  }
 
   /**
    * Array indexing operator, accessor for read/write.
    * \test PASSED
    */
-  reference operator()( size_type i ) { return ( *m )( rowIndex, offset + i ); };
+  reference operator()(int i) { return (*m)(rowIndex, offset + i); }
 
   /**
    * Array indexing operator, accessor for read only.
    * \test PASSED
    */
-  const_reference operator()( size_type i ) const { return ( *m )( rowIndex, offset + i ); };
+  const_reference operator()(int i) const { return (*m)(rowIndex, offset + i); }
 
   /**
    * Returns the allocator object of the underlying container.
    */
-  allocator_type get_allocator() const { return m->get_allocator(); };
+  allocator_type get_allocator() const { return m->get_allocator(); }
 };
 
-
-template < typename Matrix >
-struct is_readable_vector< mat_col_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_readable_vector< mat_col_slice< Matrix > > type;
+template <typename Matrix>
+struct is_readable_vector<mat_col_slice<Matrix>> {
+  static constexpr bool value = true;
+  using type = is_readable_vector<mat_col_slice<Matrix>>;
 };
 
-template < typename Matrix >
-struct is_writable_vector< mat_col_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = is_fully_writable_matrix< Matrix >::value );
-  typedef is_writable_vector< mat_col_slice< Matrix > > type;
+template <typename Matrix>
+struct is_writable_vector<mat_col_slice<Matrix>> {
+  static constexpr bool value = is_fully_writable_matrix_v<Matrix>;
+  using type = is_writable_vector<mat_col_slice<Matrix>>;
 };
 
-template < typename Matrix >
-struct is_resizable_vector< mat_col_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_resizable_vector< mat_col_slice< Matrix > > type;
+template <typename Matrix>
+struct is_resizable_vector<mat_col_slice<Matrix>> {
+  static constexpr bool value = false;
+  using type = is_resizable_vector<mat_col_slice<Matrix>>;
 };
 
-
-template < typename Matrix >
-struct has_allocator_vector< mat_col_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = has_allocator_matrix< Matrix >::value );
-  typedef has_allocator_vector< mat_col_slice< Matrix > > type;
+template <typename Matrix>
+struct has_allocator_vector<mat_col_slice<Matrix>> {
+  static constexpr bool value = has_allocator_matrix<Matrix>::value;
+  using type = has_allocator_vector<mat_col_slice<Matrix>>;
 };
 
-
-template < typename Matrix >
-struct vect_copy< mat_col_slice< Matrix > > {
-  typedef vect_n< typename vect_traits< mat_col_slice< Matrix > >::value_type > type;
+template <typename Matrix>
+struct vect_copy<mat_col_slice<Matrix>> {
+  using type = vect_n<vect_value_type_t<mat_col_slice<Matrix>>>;
 };
-
 
 /**
  * This class template can be used to view a row of a matrix as a vector (i.e. a column-slice). It
@@ -700,44 +738,45 @@ struct vect_copy< mat_col_slice< Matrix > > {
  * Models: ReadableVectorConcept
  * \tparam Matrix A matrix type.
  */
-template < typename Matrix >
+template <typename Matrix>
 class mat_const_col_slice {
-public:
-  typedef mat_const_col_slice< Matrix > self;
-  typedef typename mat_traits< Matrix >::allocator_type allocator_type;
+ public:
+  using self = mat_const_col_slice<Matrix>;
+  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
-  typedef typename mat_traits< Matrix >::value_type value_type;
+  using value_type = mat_value_type_t<Matrix>;
 
-  typedef typename mat_traits< Matrix >::reference reference;
-  typedef typename mat_traits< Matrix >::const_reference const_reference;
-  typedef typename mat_traits< Matrix >::pointer pointer;
-  typedef typename mat_traits< Matrix >::const_pointer const_pointer;
+  using reference = typename mat_traits<Matrix>::reference;
+  using const_reference = typename mat_traits<Matrix>::const_reference;
+  using pointer = typename mat_traits<Matrix>::pointer;
+  using const_pointer = typename mat_traits<Matrix>::const_pointer;
 
-  typedef typename mat_traits< Matrix >::col_iterator iterator;
-  typedef typename mat_traits< Matrix >::const_col_iterator const_iterator;
+  using iterator = typename mat_traits<Matrix>::col_iterator;
+  using const_iterator = typename mat_traits<Matrix>::const_col_iterator;
 
-  typedef typename mat_traits< Matrix >::size_type size_type;
-  typedef typename mat_traits< Matrix >::difference_type difference_type;
+  using size_type = mat_size_type_t<Matrix>;
+  using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 0 );
+  static constexpr std::size_t dimensions = 0;
 
-private:
-  const Matrix* m;    ///< Holds the reference to the matrix object.
-  size_type offset;   ///< Holds the offset from the start of the row.
-  size_type rowIndex; ///< Holds the index of row of the slice.
-  size_type count;    ///< Holds the number of elements of the row to take.
+ private:
+  const Matrix* m;     ///< Holds the reference to the matrix object.
+  size_type offset;    ///< Holds the offset from the start of the row.
+  size_type rowIndex;  ///< Holds the index of row of the slice.
+  size_type count;     ///< Holds the number of elements of the row to take.
 
-  self& operator=( const self& ); // non-assignable.
+  self& operator=(const self&);  // non-assignable.
 
-  mat_const_col_slice( Matrix&& );
-  mat_const_col_slice( Matrix&&, size_type, size_type, size_type );
+  explicit mat_const_col_slice(Matrix&&);
+  mat_const_col_slice(Matrix&&, size_type, size_type, size_type);
 
-public:
+ public:
   /**
    * Constructs the column-slice from a matrix M, taking the entire first row.
    * \param aM The matrix from which to take the slice.
    */
-  mat_const_col_slice( const Matrix& aM ) : m( &aM ), offset( 0 ), rowIndex( 0 ), count( aM.get_col_count() ){};
+  explicit mat_const_col_slice(const Matrix& aM)
+      : m(&aM), offset(0), rowIndex(0), count(aM.get_col_count()) {}
 
   /**
    * Constructs the column-slice from a matrix M, taking the aRowIndex row
@@ -747,65 +786,70 @@ public:
    * \param aOffset The offset into the row used for the slice.
    * \param aCount The number of elements to take in the slice.
    */
-  mat_const_col_slice( const Matrix& aM, size_type aRowIndex, size_type aOffset, size_type aCount )
-      : m( &aM ), offset( aOffset ), rowIndex( aRowIndex ), count( aCount ){};
+  mat_const_col_slice(const Matrix& aM, size_type aRowIndex, size_type aOffset,
+                      size_type aCount)
+      : m(&aM), offset(aOffset), rowIndex(aRowIndex), count(aCount) {}
 
   /**
    * Standard copy-constructor (shallow).
    */
-  mat_const_col_slice( const self& rhs )
-      : m( rhs.m ), offset( rhs.offset ), rowIndex( rhs.rowIndex ), count( rhs.count ){};
-
+  mat_const_col_slice(const self& rhs)
+      : m(rhs.m),
+        offset(rhs.offset),
+        rowIndex(rhs.rowIndex),
+        count(rhs.count) {}
 
   /**
    * Standard swap function (shallow)
    */
-  friend void swap( self& lhs, self& rhs ) throw() {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
-    swap( lhs.m, rhs.m );
-    swap( lhs.offset, rhs.offset );
-    swap( lhs.rowIndex, rhs.rowIndex );
-    swap( lhs.count, rhs.count );
-    return;
-  };
-
+    swap(lhs.m, rhs.m);
+    swap(lhs.offset, rhs.offset);
+    swap(lhs.rowIndex, rhs.rowIndex);
+    swap(lhs.count, rhs.count);
+  }
 
   /**
    * Returns the size of the vector.
    */
-  size_type size() const { return count; };
+  size_type size() const { return count; }
   /**
    * Returns the max-size of the vector.
    */
-  size_type max_size() const { return count; };
+  size_type max_size() const { return count; }
   /**
    * Returns the capacity of the vector.
    */
-  size_type capacity() const { return count; };
+  size_type capacity() const { return count; }
   /**
    * Resizes the vector.
    * \param sz The new size for the vector.
    * \param c The value to fill any additional elements to the vector.
    */
-  void resize( size_type sz, const_reference c = value_type() ) const {};
+  void resize(size_type sz, const_reference c = value_type()) const {}
   /**
    * Checks whether the vector is empty.
    */
-  bool empty() const { return false; };
+  bool empty() const { return false; }
   /**
    * Reserve a certain amount of capacity for future additions.
    * \param sz The new capacity for the vector.
    */
-  void reserve( size_type sz ) const {};
+  void reserve(size_type sz) const {}
 
   /**
    * Returns an const-iterator to the first element of the vector.
    */
-  const_iterator begin() const { return m->first_col( m->first_row() + rowIndex ) + offset; };
+  const_iterator begin() const {
+    return m->first_col(m->first_row() + rowIndex) + offset;
+  }
   /**
    * Returns an const-iterator to the one-passed-last element of the vector.
    */
-  const_iterator end() const { return m->first_col( m->first_row() + rowIndex ) + offset + count; };
+  const_iterator end() const {
+    return m->first_col(m->first_row() + rowIndex) + offset + count;
+  }
 
   /*******************************************************************************
                            Accessors and Methods
@@ -815,87 +859,92 @@ public:
    * Array indexing operator, accessor for read only.
    * \test PASSED
    */
-  const_reference operator[]( size_type i ) const { return ( *m )( rowIndex, offset + i ); };
+  const_reference operator[](size_type i) const {
+    return (*m)(rowIndex, offset + i);
+  }
 
   /**
    * Sub-vector operator, accessor for read only.
    * \test PASSED
    */
-  vect_const_ref_view< self > operator[]( const std::pair< size_type, size_type >& r ) const {
-    return sub( *this )[r];
-  };
+  vect_const_ref_view<self> operator[](
+      const std::pair<size_type, size_type>& r) const {
+    return sub(*this)[r];
+  }
 
   /**
    * Array indexing operator, accessor for read only.
    * \test PASSED
    */
-  const_reference operator()( size_type i ) const { return ( *m )( rowIndex, offset + i ); };
+  const_reference operator()(size_type i) const {
+    return (*m)(rowIndex, offset + i);
+  }
 
   /**
    * Returns the allocator object of the underlying container.
    */
-  allocator_type get_allocator() const { return m->get_allocator(); };
+  allocator_type get_allocator() const { return m->get_allocator(); }
 };
 
-
-template < typename Matrix >
-struct is_readable_vector< mat_const_col_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_readable_vector< mat_const_col_slice< Matrix > > type;
+template <typename Matrix>
+struct is_readable_vector<mat_const_col_slice<Matrix>> {
+  static constexpr bool value = true;
+  using type = is_readable_vector<mat_const_col_slice<Matrix>>;
 };
 
-template < typename Matrix >
-struct is_writable_vector< mat_const_col_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_writable_vector< mat_const_col_slice< Matrix > > type;
+template <typename Matrix>
+struct is_writable_vector<mat_const_col_slice<Matrix>> {
+  static constexpr bool value = false;
+  using type = is_writable_vector<mat_const_col_slice<Matrix>>;
 };
 
-template < typename Matrix >
-struct is_resizable_vector< mat_const_col_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_resizable_vector< mat_const_col_slice< Matrix > > type;
+template <typename Matrix>
+struct is_resizable_vector<mat_const_col_slice<Matrix>> {
+  static constexpr bool value = false;
+  using type = is_resizable_vector<mat_const_col_slice<Matrix>>;
 };
 
-
-template < typename Matrix >
-struct has_allocator_vector< mat_const_col_slice< Matrix > > {
-  BOOST_STATIC_CONSTANT( bool, value = has_allocator_matrix< Matrix >::value );
-  typedef has_allocator_vector< mat_const_col_slice< Matrix > > type;
+template <typename Matrix>
+struct has_allocator_vector<mat_const_col_slice<Matrix>> {
+  static constexpr bool value = has_allocator_matrix<Matrix>::value;
+  using type = has_allocator_vector<mat_const_col_slice<Matrix>>;
 };
 
-
-template < typename Matrix >
-struct vect_copy< mat_const_col_slice< Matrix > > {
-  typedef vect_n< typename vect_traits< mat_const_col_slice< Matrix > >::value_type > type;
+template <typename Matrix>
+struct vect_copy<mat_const_col_slice<Matrix>> {
+  using type = vect_n<vect_value_type_t<mat_const_col_slice<Matrix>>>;
 };
 
-
-template < typename Matrix >
+template <typename Matrix>
 struct mat_slice_factory {
-  typedef typename mat_traits< Matrix >::size_type size_type;
+  using size_type = mat_size_type_t<Matrix>;
 
   Matrix& m;
-  mat_slice_factory( Matrix& aM ) : m( aM ){};
-  mat_col_slice< Matrix > operator()( size_type row, const std::pair< size_type, size_type >& cols ) {
-    return mat_col_slice< Matrix >( m, row, cols.first, cols.second - cols.first );
-  };
-  mat_row_slice< Matrix > operator()( const std::pair< size_type, size_type >& rows, size_type col ) {
-    return mat_row_slice< Matrix >( m, col, rows.first, rows.second - rows.first );
-  };
+  explicit mat_slice_factory(Matrix& aM) : m(aM) {}
+  mat_col_slice<Matrix> operator()(int row, const std::pair<int, int>& cols) {
+    return mat_col_slice<Matrix>(m, row, cols.first, cols.second - cols.first);
+  }
+  mat_row_slice<Matrix> operator()(const std::pair<int, int>& rows, int col) {
+    return mat_row_slice<Matrix>(m, col, rows.first, rows.second - rows.first);
+  }
 };
 
-template < typename Matrix >
+template <typename Matrix>
 struct mat_const_slice_factory {
-  typedef typename mat_traits< Matrix >::size_type size_type;
+  using size_type = mat_size_type_t<Matrix>;
 
   const Matrix& m;
-  mat_const_slice_factory( const Matrix& aM ) : m( aM ){};
-  mat_const_col_slice< Matrix > operator()( size_type row, const std::pair< size_type, size_type >& cols ) {
-    return mat_const_col_slice< Matrix >( m, row, cols.first, cols.second - cols.first );
-  };
-  mat_const_row_slice< Matrix > operator()( const std::pair< size_type, size_type >& rows, size_type col ) {
-    return mat_const_row_slice< Matrix >( m, col, rows.first, rows.second - rows.first );
-  };
+  explicit mat_const_slice_factory(const Matrix& aM) : m(aM) {}
+  mat_const_col_slice<Matrix> operator()(int row,
+                                         const std::pair<int, int>& cols) {
+    return mat_const_col_slice<Matrix>(m, row, cols.first,
+                                       cols.second - cols.first);
+  }
+  mat_const_row_slice<Matrix> operator()(const std::pair<int, int>& rows,
+                                         int col) {
+    return mat_const_row_slice<Matrix>(m, col, rows.first,
+                                       rows.second - rows.first);
+  }
 };
 
 /**
@@ -908,10 +957,11 @@ struct mat_const_slice_factory {
  * \param M the matrix to slice.
  * \return A factory class to create a slice from a row or column range and a row or column index.
  */
-template < typename Matrix >
-typename boost::enable_if< is_readable_matrix< Matrix >, mat_slice_factory< Matrix > >::type slice( Matrix& M ) {
-  return mat_slice_factory< Matrix >( M );
-};
+template <typename Matrix>
+std::enable_if_t<is_readable_matrix_v<Matrix>, mat_slice_factory<Matrix>> slice(
+    Matrix& M) {
+  return mat_slice_factory<Matrix>(M);
+}
 
 /**
  * This function template prepares a matrix to be sliced via an intermediate factor class.
@@ -923,11 +973,11 @@ typename boost::enable_if< is_readable_matrix< Matrix >, mat_slice_factory< Matr
  * \param M the matrix to slice.
  * \return A factory class to create a slice from a row or column range and a row or column index.
  */
-template < typename Matrix >
-typename boost::enable_if< is_readable_matrix< Matrix >, mat_const_slice_factory< Matrix > >::type
-  slice( const Matrix& M ) {
-  return mat_const_slice_factory< Matrix >( M );
-};
-};
+template <typename Matrix>
+std::enable_if_t<is_readable_matrix_v<Matrix>, mat_const_slice_factory<Matrix>>
+slice(const Matrix& M) {
+  return mat_const_slice_factory<Matrix>(M);
+}
+}  // namespace ReaK
 
 #endif

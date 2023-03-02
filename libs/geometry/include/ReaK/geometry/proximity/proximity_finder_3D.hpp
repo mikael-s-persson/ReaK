@@ -37,29 +37,25 @@
 
 #include "proximity_record_3D.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
+namespace ReaK::geom {
 
 /**
  * This class is the base-class for a proximity query with 3D shapes.
  */
 class proximity_finder_3D {
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_3D computeProximity( const shape_3D_precompute_pack& aPack1,
-                                                const shape_3D_precompute_pack& aPack2 ) = 0;
+  virtual proximity_record_3D computeProximity(
+      const shape_3D_precompute_pack& aPack1,
+      const shape_3D_precompute_pack& aPack2) = 0;
 
   /** Default constructor. */
-  proximity_finder_3D(){};
+  proximity_finder_3D() = default;
 
   /** Destructor. */
-  virtual ~proximity_finder_3D(){};
+  virtual ~proximity_finder_3D() = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

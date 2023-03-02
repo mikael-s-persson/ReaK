@@ -37,43 +37,44 @@
 #include <ReaK/math/lin_alg/mat_alg.hpp>
 #include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
 
-namespace ReaK {
+#include <type_traits>
 
-
-namespace optim {
-
+namespace ReaK::optim {
 
 namespace detail {
 
-template < typename T, typename Vector >
-T fletcher_reeves_beta_impl( const Vector& dx, const Vector& dx_prev, const Vector& ) {
-  return ( dx * dx ) / ( dx_prev * dx_prev );
-};
+template <typename T, typename Vector>
+T fletcher_reeves_beta_impl(const Vector& dx, const Vector& dx_prev,
+                            const Vector&) {
+  return (dx * dx) / (dx_prev * dx_prev);
+}
 
-template < typename T, typename Vector >
-T polak_ribiere_beta_impl( const Vector& dx, const Vector& dx_prev, const Vector& ) {
-  return ( dx * ( dx - dx_prev ) ) / ( dx_prev * dx_prev );
-};
+template <typename T, typename Vector>
+T polak_ribiere_beta_impl(const Vector& dx, const Vector& dx_prev,
+                          const Vector&) {
+  return (dx * (dx - dx_prev)) / (dx_prev * dx_prev);
+}
 
-template < typename T, typename Vector >
-T hestenes_stiefel_beta_impl( const Vector& dx, const Vector& dx_prev, const Vector& ) {
+template <typename T, typename Vector>
+T hestenes_stiefel_beta_impl(const Vector& dx, const Vector& dx_prev,
+                             const Vector&) {
   Vector tmp = dx - dx_prev;
-  return ( dx * tmp ) / ( dx_prev * tmp );
-};
+  return (dx * tmp) / (dx_prev * tmp);
+}
 
+template <typename T, typename Vector>
+T dai_yuan_beta_impl(const Vector& dx, const Vector& dx_prev, const Vector& p) {
+  return (dx * dx) / (p * (dx - dx_prev));
+}
 
-template < typename T, typename Vector >
-T dai_yuan_beta_impl( const Vector& dx, const Vector& dx_prev, const Vector& p ) {
-  return ( dx * dx ) / ( p * ( dx - dx_prev ) );
-};
-
-template < typename T, typename Vector >
-T hager_zhang_beta_impl( const Vector& dx, const Vector& dx_prev, const Vector& p ) {
+template <typename T, typename Vector>
+T hager_zhang_beta_impl(const Vector& dx, const Vector& dx_prev,
+                        const Vector& p) {
   Vector tmp = dx - dx_prev;
   T denom = tmp * p;
-  return ( ( tmp - ( T( 2.0 ) * ( tmp * tmp ) / denom ) * p ) * dx ) * ( T( 1.0 ) / denom );
-};
-};
+  return ((tmp - (T(2.0) * (tmp * tmp) / denom) * p) * dx) * (T(1.0) / denom);
+}
+}  // namespace detail
 
 /**
  * This functor class can be used to compute the Fletcher-Reeves beta-value for the
@@ -83,36 +84,22 @@ T hager_zhang_beta_impl( const Vector& dx, const Vector& dx_prev, const Vector& 
 struct fletcher_reeves_beta {
 
   /**
-   * This overload computes the FR-beta value for the given delta-x and previous delta-x
-   * vectors.
-   * \tparam Vector A readable vector type.
-   * \param dx The current delta-x vector.
-   * \param dx_prev The previous delta-x vector.
-   * \param p The search direction vector.
+   * This computes the FR-beta value for the given delta-x and previous delta-x.
+   * \param dx The current delta-x.
+   * \param dx_prev The previous delta-x.
+   * \param p The search direction.
    * \return The FR-beta value.
    */
-  template < typename Vector >
-  typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_value_type< Vector > >::type
-    operator()( const Vector& dx, const Vector& dx_prev, const Vector& p ) const {
-    return detail::fletcher_reeves_beta_impl< typename vect_traits< Vector >::value_type >( dx, dx_prev, p );
-  };
-
-  /**
-   * This overload computes the FR-beta value for the given delta-x and previous delta-x
-   * scalars.
-   * \tparam T A scalar type.
-   * \param dx The current delta-x value.
-   * \param dx_prev The previous delta-x value.
-   * \param p The search direction vector.
-   * \return The FR-beta value.
-   */
-  template < typename T >
-  typename boost::disable_if< is_readable_vector< T >, T >::type operator()( const T& dx, const T& dx_prev,
-                                                                             const T& p ) const {
-    return detail::fletcher_reeves_beta_impl< T >( dx, dx_prev, p );
-  };
+  template <typename T>
+  auto operator()(const T& dx, const T& dx_prev, const T& p) const {
+    if constexpr (is_readable_vector_v<T>) {
+      return detail::fletcher_reeves_beta_impl<vect_value_type_t<T>>(
+          dx, dx_prev, p);
+    } else {
+      return detail::fletcher_reeves_beta_impl<T>(dx, dx_prev, p);
+    }
+  }
 };
-
 
 /**
  * This functor class can be used to compute the Polak-Ribiere beta-value for the
@@ -120,36 +107,22 @@ struct fletcher_reeves_beta {
  * TEST PASSED
  */
 struct polak_ribiere_beta {
-
   /**
-   * This overload computes the PR-beta value for the given delta-x and previous delta-x
-   * vectors.
-   * \tparam Vector A readable vector type.
-   * \param dx The current delta-x vector.
-   * \param dx_prev The previous delta-x vector.
+   * This computes the PR-beta value for the given delta-x and previous delta-x.
+   * \param dx The current delta-x.
+   * \param dx_prev The previous delta-x.
    * \return The PR-beta value.
    */
-  template < typename Vector >
-  typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_value_type< Vector > >::type
-    operator()( const Vector& dx, const Vector& dx_prev, const Vector& p ) const {
-    return detail::polak_ribiere_beta_impl< typename vect_traits< Vector >::value_type >( dx, dx_prev, p );
-  };
-
-  /**
-   * This overload computes the PR-beta value for the given delta-x and previous delta-x
-   * scalars.
-   * \tparam T A scalar type.
-   * \param dx The current delta-x value.
-   * \param dx_prev The previous delta-x value.
-   * \return The PR-beta value.
-   */
-  template < typename T >
-  typename boost::disable_if< is_readable_vector< T >, T >::type operator()( const T& dx, const T& dx_prev,
-                                                                             const T& p ) const {
-    return detail::polak_ribiere_beta_impl< T >( dx, dx_prev, p );
-  };
+  template <typename T>
+  auto operator()(const T& dx, const T& dx_prev, const T& p) const {
+    if constexpr (is_readable_vector_v<T>) {
+      return detail::polak_ribiere_beta_impl<vect_value_type_t<T>>(dx, dx_prev,
+                                                                   p);
+    } else {
+      return detail::polak_ribiere_beta_impl<T>(dx, dx_prev, p);
+    }
+  }
 };
-
 
 /**
  * This functor class can be used to compute the Hestenes-Stiefel beta-value for the
@@ -157,36 +130,22 @@ struct polak_ribiere_beta {
  * TEST PASSED
  */
 struct hestenes_stiefel_beta {
-
   /**
-   * This overload computes the HS-beta value for the given delta-x and previous delta-x
-   * vectors.
-   * \tparam Vector A readable vector type.
-   * \param dx The current delta-x vector.
-   * \param dx_prev The previous delta-x vector.
+   * This computes the HS-beta value for the given delta-x and previous delta-x.
+   * \param dx The current delta-x.
+   * \param dx_prev The previous delta-x.
    * \return The HS-beta value.
    */
-  template < typename Vector >
-  typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_value_type< Vector > >::type
-    operator()( const Vector& dx, const Vector& dx_prev, const Vector& p ) const {
-    return detail::hestenes_stiefel_beta_impl< typename vect_traits< Vector >::value_type >( dx, dx_prev, p );
-  };
-
-  /**
-   * This overload computes the HS-beta value for the given delta-x and previous delta-x
-   * scalars.
-   * \tparam T A scalar type.
-   * \param dx The current delta-x value.
-   * \param dx_prev The previous delta-x value.
-   * \return The HS-beta value.
-   */
-  template < typename T >
-  typename boost::disable_if< is_readable_vector< T >, T >::type operator()( const T& dx, const T& dx_prev,
-                                                                             const T& p ) const {
-    return detail::hestenes_stiefel_beta_impl< T >( dx, dx_prev, p );
-  };
+  template <typename T>
+  auto operator()(const T& dx, const T& dx_prev, const T& p) const {
+    if constexpr (is_readable_vector_v<T>) {
+      return detail::hestenes_stiefel_beta_impl<vect_value_type_t<T>>(
+          dx, dx_prev, p);
+    } else {
+      return detail::hestenes_stiefel_beta_impl<T>(dx, dx_prev, p);
+    }
+  }
 };
-
 
 /**
  * This functor class can be used to compute the Dai-Yuan beta-value for the
@@ -194,38 +153,22 @@ struct hestenes_stiefel_beta {
  * TEST PASSED
  */
 struct dai_yuan_beta {
-
   /**
-   * This overload computes the DY-beta value for the given delta-x and previous delta-x
-   * vectors.
-   * \tparam Vector A readable vector type.
-   * \param dx The current delta-x vector.
-   * \param dx_prev The previous delta-x vector.
-   * \param p The search direction vector.
+   * This computes the DY-beta value for the given delta-x and previous delta-x.
+   * \param dx The current delta-x.
+   * \param dx_prev The previous delta-x.
+   * \param p The search direction.
    * \return The DY-beta value.
    */
-  template < typename Vector >
-  typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_value_type< Vector > >::type
-    operator()( const Vector& dx, const Vector& dx_prev, const Vector& p ) const {
-    return detail::dai_yuan_beta_impl< typename vect_traits< Vector >::value_type >( dx, dx_prev, p );
-  };
-
-  /**
-   * This overload computes the DY-beta value for the given delta-x and previous delta-x
-   * scalars.
-   * \tparam T A scalar type.
-   * \param dx The current delta-x value.
-   * \param dx_prev The previous delta-x value.
-   * \param p The search direction vector.
-   * \return The DY-beta value.
-   */
-  template < typename T >
-  typename boost::disable_if< is_readable_vector< T >, T >::type operator()( const T& dx, const T& dx_prev,
-                                                                             const T& p ) const {
-    return detail::dai_yuan_beta_impl< T >( dx, dx_prev, p );
-  };
+  template <typename T>
+  auto operator()(const T& dx, const T& dx_prev, const T& p) const {
+    if constexpr (is_readable_vector_v<T>) {
+      return detail::dai_yuan_beta_impl<vect_value_type_t<T>>(dx, dx_prev, p);
+    } else {
+      return detail::dai_yuan_beta_impl<T>(dx, dx_prev, p);
+    }
+  }
 };
-
 
 /**
  * This functor class can be used to compute the Hager-Zhang beta-value for the
@@ -233,22 +176,6 @@ struct dai_yuan_beta {
  * TEST PASSED
  */
 struct hager_zhang_beta {
-
-  /**
-   * This overload computes the HZ-beta value for the given delta-x and previous delta-x
-   * vectors.
-   * \tparam Vector A readable vector type.
-   * \param dx The current delta-x vector.
-   * \param dx_prev The previous delta-x vector.
-   * \param p The search direction vector.
-   * \return The HZ-beta value.
-   */
-  template < typename Vector >
-  typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_value_type< Vector > >::type
-    operator()( const Vector& dx, const Vector& dx_prev, const Vector& p ) const {
-    return detail::hager_zhang_beta_impl< typename vect_traits< Vector >::value_type >( dx, dx_prev, p );
-  };
-
   /**
    * This overload computes the HZ-beta value for the given delta-x and previous delta-x
    * scalars.
@@ -258,13 +185,16 @@ struct hager_zhang_beta {
    * \param p The search direction vector.
    * \return The HZ-beta value.
    */
-  template < typename T >
-  typename boost::disable_if< is_readable_vector< T >, T >::type operator()( const T& dx, const T& dx_prev,
-                                                                             const T& p ) const {
-    return detail::hager_zhang_beta_impl< T >( dx, dx_prev, p );
-  };
+  template <typename T>
+  auto operator()(const T& dx, const T& dx_prev, const T& p) const {
+    if constexpr (is_readable_vector_v<T>) {
+      return detail::hager_zhang_beta_impl<vect_value_type_t<T>>(dx, dx_prev,
+                                                                 p);
+    } else {
+      return detail::hager_zhang_beta_impl<T>(dx, dx_prev, p);
+    }
+  }
 };
-
 
 /**
  * This function performs an iterative linear conjugate gradient method. This algorithm should find
@@ -281,12 +211,13 @@ struct hager_zhang_beta {
  * \param max_iter The maximum number of iterations to perform.
  * \param abs_tol The tolerance to be acheived by the residual error in the equation.
  */
-template < typename Vector, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >, is_readable_matrix< Matrix > >, void >::type
-  linear_conj_grad_method( const Vector& b, const Matrix& A, Vector& x, unsigned int max_iter = 100,
-                           typename vect_traits< Vector >::value_type abs_tol
-                           = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
-  typedef typename vect_traits< Vector >::value_type ValueType;
+template <typename Vector, typename Matrix>
+void linear_conj_grad_method(
+    const Vector& b, const Matrix& A, Vector& x, unsigned int max_iter = 100,
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6)) {
+  static_assert(is_writable_vector_v<Vector>);
+  static_assert(is_readable_matrix_v<Matrix>);
+  using ValueType = vect_value_type_t<Vector>;
   using std::sqrt;
 
   Vector r = b - A * x;
@@ -294,23 +225,24 @@ typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >, is_re
   Vector p = r;
   Vector Ap = A * p;
   unsigned int k = 0;
-  while( true ) {
-    ValueType alpha = rr / ( p * Ap );
+  while (true) {
+    ValueType alpha = rr / (p * Ap);
     ValueType beta = 1.0 / rr;
     x += alpha * p;
-    if( ++k > max_iter )
-      throw maximum_iteration( max_iter );
+    if (++k > max_iter) {
+      throw maximum_iteration(max_iter);
+    }
     r -= alpha * Ap;
     rr = r * r;
-    if( sqrt( rr ) < abs_tol )
+    if (sqrt(rr) < abs_tol) {
       break;
+    }
     beta *= rr;
     p *= beta;
     p += r;
     Ap = A * p;
-  };
-};
-
+  }
+}
 
 /**
  * This function performs an iterative linear conjugate gradient method with preconditionning. This
@@ -331,12 +263,14 @@ typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >, is_re
  * \param max_iter The maximum number of iterations to perform.
  * \param abs_tol The tolerance to be acheived by the residual error in the equation.
  */
-template < typename Vector, typename Matrix >
-typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >, is_readable_matrix< Matrix > >, void >::type
-  linear_conj_grad_method( const Vector& b, const Matrix& A, const Matrix& M_inv, Vector& x,
-                           unsigned int max_iter = 100, typename vect_traits< Vector >::value_type abs_tol
-                                                        = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
-  typedef typename vect_traits< Vector >::value_type ValueType;
+template <typename Vector, typename Matrix>
+void linear_conj_grad_method(
+    const Vector& b, const Matrix& A, const Matrix& M_inv, Vector& x,
+    unsigned int max_iter = 100,
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6)) {
+  static_assert(is_writable_vector_v<Vector>);
+  static_assert(is_readable_matrix_v<Matrix>);
+  using ValueType = vect_value_type_t<Vector>;
   using std::sqrt;
 
   Vector r = b - A * x;
@@ -345,24 +279,25 @@ typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >, is_re
   Vector p = z;
   Vector Ap = A * p;
   unsigned int k = 0;
-  while( true ) {
-    ValueType alpha = zr / ( p * Ap );
+  while (true) {
+    ValueType alpha = zr / (p * Ap);
     ValueType beta = 1.0 / zr;
     x += alpha * p;
     r -= alpha * Ap;
     z = M_inv * r;
     zr = z * r;
-    if( ++k > max_iter )
-      throw maximum_iteration( max_iter );
-    if( sqrt( zr ) < abs_tol )
+    if (++k > max_iter) {
+      throw maximum_iteration(max_iter);
+    }
+    if (sqrt(zr) < abs_tol) {
       break;
+    }
     beta *= zr;
     p *= beta;
     p += z;
     Ap = A * p;
-  };
-};
-
+  }
+}
 
 /**
  * This function performs a non-linear conjugate gradient method to find the minimum of a cost function.
@@ -388,42 +323,42 @@ typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >, is_re
  * the search direction).
  * \param abs_tol The tolerance at which to stop the algorithm.
  */
-template < typename Function, typename GradFunction, typename Vector, typename BetaCalculator, typename LineSearcher >
-void non_linear_conj_grad_method( Function f, GradFunction df, Vector& x, unsigned int max_iter,
-                                  BetaCalculator get_beta, LineSearcher get_alpha,
-                                  typename vect_traits< Vector >::value_type abs_tol
-                                  = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
-  typedef typename vect_traits< Vector >::value_type ValueType;
+template <typename Function, typename GradFunction, typename Vector,
+          typename BetaCalculator, typename LineSearcher>
+void non_linear_conj_grad_method(
+    Function f, GradFunction df, Vector& x, unsigned int max_iter,
+    BetaCalculator get_beta, LineSearcher get_alpha,
+    vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6)) {
+  typedef vect_value_type_t<Vector> ValueType;
   using std::sqrt;
 
-  Vector dx = -df( x );
+  Vector dx = -df(x);
   Vector Dx = dx;
   Vector dx_prev = dx;
-  ValueType alpha = ValueType( 1.0 );
-  ValueType beta = ValueType( 1.0 );
-  ValueType adfp_prev = ValueType( -1.0 );
+  ValueType alpha = ValueType(1.0);
+  ValueType beta = ValueType(1.0);
+  ValueType adfp_prev = ValueType(-1.0);
   unsigned int k = 0;
 
-  while( norm_2( Dx ) > abs_tol ) {
+  while (norm_2(Dx) > abs_tol) {
     ValueType alpha_0 = adfp_prev;
-    adfp_prev = ( Dx * dx );
+    adfp_prev = (Dx * dx);
     alpha_0 /= adfp_prev;
-    alpha = get_alpha( f, df, ValueType( 0.0 ), alpha_0, x, Dx, abs_tol );
+    alpha = get_alpha(f, df, ValueType(0.0), alpha_0, x, Dx, abs_tol);
     adfp_prev *= alpha;
     x += alpha * Dx;
-    if( ++k > max_iter )
-      throw maximum_iteration( max_iter );
+    if (++k > max_iter)
+      throw maximum_iteration(max_iter);
     dx_prev = dx;
-    dx = -df( x );
-    beta = get_beta( dx, dx_prev, Dx );
-    if( beta < ValueType( 0.0 ) )
-      beta = ValueType( 0.0 );
+    dx = -df(x);
+    beta = get_beta(dx, dx_prev, Dx);
+    if (beta < ValueType(0.0))
+      beta = ValueType(0.0);
     Dx *= beta;
     Dx += dx;
-  };
-};
-};
-};
+  }
+}
 
+}  // namespace ReaK::optim
 
 #endif

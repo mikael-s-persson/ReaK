@@ -40,7 +40,21 @@
 #include "mat_alg.hpp"
 #include "mat_num_exceptions.hpp"
 
+#include <type_traits>
+
 namespace ReaK {
+
+// Forward declarations.
+template <typename T>
+class givens_rot_matrix;
+
+template <typename Matrix, typename T>
+void givens_rot_prod(const givens_rot_matrix<T>& G, Matrix& A, int j = 0,
+                     int k = 1);
+
+template <typename Matrix, typename T>
+void givens_rot_prod(Matrix& A, const givens_rot_matrix<T>& G, int j = 0,
+                     int k = 1);
 
 /**
  * This class represents a Givens rotation as a 2x2 rotation matrix. It can be constructed
@@ -60,57 +74,57 @@ namespace ReaK {
  *
  * \tparam T The value-type of the elements of the matrix.
  */
-template < typename T >
+template <typename T>
 class givens_rot_matrix {
-public:
-  typedef givens_rot_matrix< T > self;
-  typedef T value_type;
-  typedef std::size_t size_type;
-  typedef std::ptrdiff_t difference_type;
-  typedef void allocator_type;
+ public:
+  using self = givens_rot_matrix<T>;
+  using value_type = T;
+  using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
+  using allocator_type = void;
 
-  typedef T* pointer;
-  typedef const T* const_pointer;
-  typedef T& reference;
-  typedef const T& const_reference;
-  typedef T* iterator;
-  typedef const T* const_iterator;
+  using pointer = T*;
+  using const_pointer = const T*;
+  using reference = T&;
+  using const_reference = const T&;
+  using iterator = T*;
+  using const_iterator = const T*;
 
-  typedef void col_iterator;
-  typedef void const_col_iterator;
-  typedef void row_iterator;
-  typedef void const_row_iterator;
+  using col_iterator = void;
+  using const_col_iterator = void;
+  using row_iterator = void;
+  using const_row_iterator = void;
 
-  BOOST_STATIC_CONSTANT( std::size_t, static_row_count = 0 );
-  BOOST_STATIC_CONSTANT( std::size_t, static_col_count = 0 );
-  BOOST_STATIC_CONSTANT( mat_alignment::tag, alignment = mat_alignment::column_major );
-  BOOST_STATIC_CONSTANT( mat_structure::tag, structure = mat_structure::orthogonal );
+  static constexpr std::size_t static_row_count = 0;
+  static constexpr std::size_t static_col_count = 0;
+  static constexpr mat_alignment::tag alignment = mat_alignment::column_major;
+  static constexpr mat_structure::tag structure = mat_structure::orthogonal;
 
-  value_type c; ///< Holds the cosine of the angle of rotation.
-  value_type s; ///< Holds the sine of the angle of rotation.
+  value_type c;  ///< Holds the cosine of the angle of rotation.
+  value_type s;  ///< Holds the sine of the angle of rotation.
 
-private:
-  void calculate_givens( const value_type& NumTol ) {
-    using std::fabs;
+ private:
+  void calculate_givens(const value_type& NumTol) {
+    using std::abs;
     using std::sqrt;
-    if( fabs( s ) < NumTol * fabs( c ) ) {
-      c = value_type( 1.0 );
-      s = value_type( 0.0 );
+    if (abs(s) < NumTol * abs(c)) {
+      c = value_type(1.0);
+      s = value_type(0.0);
       return;
-    };
+    }
 
-    if( fabs( c ) < fabs( s ) ) {
+    if (abs(c) < abs(s)) {
       value_type tau = -c / s;
-      s = value_type( 1.0 ) / sqrt( value_type( 1.0 ) + tau * tau );
+      s = value_type(1.0) / sqrt(value_type(1.0) + tau * tau);
       c = s * tau;
     } else {
       value_type tau = -s / c;
-      c = value_type( 1.0 ) / sqrt( value_type( 1.0 ) + tau * tau );
+      c = value_type(1.0) / sqrt(value_type(1.0) + tau * tau);
       s = c * tau;
-    };
-  };
+    }
+  }
 
-public:
+ public:
   /**
    * Set the Givens rotation by providing the two components of a column-vector (aA,aB) such that the
    * resulting Givens rotation G has the effect of zero-ing the second element: G * (a, b) = (r, 0)
@@ -119,16 +133,17 @@ public:
    * \param aB The second component of the vector.
    * \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
    */
-  void set( const value_type& aA, const value_type& aB, const value_type& NumTol = value_type( 1E-8 ) ) {
+  void set(const value_type& aA, const value_type& aB,
+           const value_type& NumTol = value_type(1E-8)) {
     c = aA;
     s = aB;
-    calculate_givens( NumTol );
-  };
+    calculate_givens(NumTol);
+  }
 
   /**
    * Default constructor.
    */
-  givens_rot_matrix() : c( 1.0 ), s( 0.0 ){};
+  givens_rot_matrix() : c(1.0), s(0.0) {}
 
   /**
    * Constructs the Givens rotation by providing the two components of a column-vector (aA,aB) such that the
@@ -138,11 +153,11 @@ public:
    * \param aB The second component of the vector.
    * \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
    */
-  explicit givens_rot_matrix( const value_type& aA, const value_type& aB,
-                              const value_type& NumTol = value_type( 1E-8 ) )
-      : c( aA ), s( aB ) {
-    calculate_givens( NumTol );
-  };
+  explicit givens_rot_matrix(const value_type& aA, const value_type& aB,
+                             const value_type& NumTol = value_type(1E-8))
+      : c(aA), s(aB) {
+    calculate_givens(NumTol);
+  }
 
   // Default copy-constructor and assignment operators are correct.
 
@@ -151,26 +166,28 @@ public:
    * \return number of rows of the matrix.
    * \test PASSED
    */
-  size_type get_row_count() const { return 2; };
+  size_type get_row_count() const { return 2; }
   /**
    * Gets the column-count (number of columns) of the matrix.
    * \return number of columns of the matrix.
    * \test PASSED
    */
-  size_type get_col_count() const { return 2; };
+  size_type get_col_count() const { return 2; }
 
   /**
    * Gets the row-count and column-count of the matrix, as a std::pair of values.
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair< size_type, size_type > size() const throw() { return std::make_pair( 2, 2 ); };
+  std::pair<size_type, size_type> size() const throw() {
+    return std::make_pair(2, 2);
+  }
 
   /**
    * Returns the allocator object of the underlying container, which is none at all in this case.
    * \return the allocator object of the underlying container, which is none at all in this case.
    */
-  allocator_type get_allocator() const { return; };
+  allocator_type get_allocator() const { return; }
 
   /**
    * Matrix indexing accessor for read-only access.
@@ -179,87 +196,105 @@ public:
    * \return the element at the given position.
    * \test PASSED
    */
-  value_type operator()( size_type i, size_type j ) const { return ( i == j ? c : ( i < j ? -s : s ) ); };
+  value_type operator()(size_type i, size_type j) const {
+    return (i == j ? c : (i < j ? -s : s));
+  }
+
+  template <typename Matrix>
+  friend Matrix operator*(const Matrix& A, const self& G) {
+    static_assert(is_fully_writable_matrix_v<Matrix>);
+    Matrix result(A);
+    givens_rot_prod(result, G);
+    return result;
+  }
+
+  template <typename Matrix>
+  friend Matrix operator*(const self& G, const Matrix& A) {
+    static_assert(is_fully_writable_matrix_v<Matrix>);
+    Matrix result(A);
+    givens_rot_prod(G, result);
+    return result;
+  }
 
   /**
    * Transposes the matrix M.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
-  friend self transpose( self M ) {
+  friend self transpose(self M) {
     M.s = -M.s;
     return M;
-  };
+  }
   /**
    * Transposes the matrix M.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
-  friend self transpose_move( self M ) {
+  friend self transpose_move(self M) {
     M.s = -M.s;
     return M;
-  };
+  }
   /**
    * Returns the trace of the matrix M.
    * \param M The matrix.
    * \return The trace of M.
    */
-  friend value_type trace( const self& M ) { return M.c + M.c; };
+  friend value_type trace(const self& M) { return M.c + M.c; }
 };
 
-
-template < typename T >
-struct is_readable_matrix< givens_rot_matrix< T > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_readable_matrix< givens_rot_matrix< T > > type;
+template <typename T>
+struct is_readable_matrix<givens_rot_matrix<T>> {
+  static constexpr bool value = true;
+  using type = is_readable_matrix<givens_rot_matrix<T>>;
 };
 
-template < typename T >
-struct is_writable_matrix< givens_rot_matrix< T > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_writable_matrix< givens_rot_matrix< T > > type;
+template <typename T>
+struct is_writable_matrix<givens_rot_matrix<T>> {
+  static constexpr bool value = false;
+  using type = is_writable_matrix<givens_rot_matrix<T>>;
 };
 
-template < typename T >
-struct is_resizable_matrix< givens_rot_matrix< T > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_resizable_matrix< givens_rot_matrix< T > > type;
+template <typename T>
+struct is_resizable_matrix<givens_rot_matrix<T>> {
+  static constexpr bool value = false;
+  using type = is_resizable_matrix<givens_rot_matrix<T>>;
 };
 
-template < typename T >
-struct has_allocator_matrix< givens_rot_matrix< T > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef has_allocator_matrix< givens_rot_matrix< T > > type;
+template <typename T>
+struct has_allocator_matrix<givens_rot_matrix<T>> {
+  static constexpr bool value = false;
+  using type = has_allocator_matrix<givens_rot_matrix<T>>;
 };
 
-template < typename T >
-struct mat_product_priority< givens_rot_matrix< T > > {
-  BOOST_STATIC_CONSTANT( std::size_t, value = detail::product_priority< mat_structure::diagonal >::value + 1 );
+template <typename T>
+struct mat_product_priority<givens_rot_matrix<T>> {
+  static constexpr std::size_t value =
+      detail::product_priority<mat_structure::diagonal>::value + 1;
 };
 
-template < typename T >
-struct mat_addition_priority< givens_rot_matrix< T > > {
-  BOOST_STATIC_CONSTANT( std::size_t, value = detail::addition_priority< mat_structure::square >::value );
+template <typename T>
+struct mat_addition_priority<givens_rot_matrix<T>> {
+  static constexpr std::size_t value =
+      detail::addition_priority<mat_structure::square>::value;
 };
 
-template < typename T >
-struct is_square_matrix< givens_rot_matrix< T > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_square_matrix< givens_rot_matrix< T > > type;
+template <typename T>
+struct is_square_matrix<givens_rot_matrix<T>> {
+  static constexpr bool value = true;
+  using type = is_square_matrix<givens_rot_matrix<T>>;
 };
 
-template < typename T >
-struct is_symmetric_matrix< givens_rot_matrix< T > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_symmetric_matrix< givens_rot_matrix< T > > type;
+template <typename T>
+struct is_symmetric_matrix<givens_rot_matrix<T>> {
+  static constexpr bool value = false;
+  using type = is_symmetric_matrix<givens_rot_matrix<T>>;
 };
 
-template < typename T >
-struct is_diagonal_matrix< givens_rot_matrix< T > > {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_diagonal_matrix< givens_rot_matrix< T > > type;
+template <typename T>
+struct is_diagonal_matrix<givens_rot_matrix<T>> {
+  static constexpr bool value = false;
+  using type = is_diagonal_matrix<givens_rot_matrix<T>>;
 };
-
 
 /**
  * This function template allows for efficient post-multiplication of a matrix with a
@@ -272,24 +307,22 @@ struct is_diagonal_matrix< givens_rot_matrix< T > > {
  * \param j The first column of A affected by the rotation (default 0).
  * \param k The second column of A affector by the rotation (default 1).
  */
-template < typename Matrix, typename T >
-typename boost::enable_if< is_fully_writable_matrix< Matrix >, void >::type
-  givens_rot_prod( Matrix& A, const givens_rot_matrix< T >& G, typename mat_traits< Matrix >::size_type j = 0,
-                   typename mat_traits< Matrix >::size_type k = 1 ) {
-  typedef typename mat_traits< Matrix >::value_type ValueType;
-  typedef typename mat_traits< Matrix >::size_type SizeType;
-  using std::fabs;
+template <typename Matrix, typename T>
+void givens_rot_prod(Matrix& A, const givens_rot_matrix<T>& G, int j, int k) {
+  static_assert(is_fully_writable_matrix_v<Matrix>);
+  using ValueType = mat_value_type_t<Matrix>;
+  using std::abs;
 
-  if( fabs( G.s ) < std::numeric_limits< typename givens_rot_matrix< T >::value_type >::epsilon() )
+  if (abs(G.s) < std::numeric_limits<ValueType>::epsilon()) {
     return;
-  for( SizeType i = 0; i < A.get_row_count(); ++i ) {
-    ValueType t0 = A( i, j );
-    ValueType t1 = A( i, k );
-    A( i, j ) = G.c * t0 + G.s * t1;
-    A( i, k ) = G.c * t1 - G.s * t0;
-  };
-  return;
-};
+  }
+  for (int i = 0; i < A.get_row_count(); ++i) {
+    ValueType t0 = A(i, j);
+    ValueType t1 = A(i, k);
+    A(i, j) = G.c * t0 + G.s * t1;
+    A(i, k) = G.c * t1 - G.s * t0;
+  }
+}
 
 /**
  * This function template allows for efficient pre-multiplication of a matrix with a
@@ -302,42 +335,22 @@ typename boost::enable_if< is_fully_writable_matrix< Matrix >, void >::type
  * \param j The first row of A affected by the rotation (default 0).
  * \param k The second row of A affector by the rotation (default 1).
  */
-template < typename Matrix, typename T >
-typename boost::enable_if< is_fully_writable_matrix< Matrix >, void >::type
-  givens_rot_prod( const givens_rot_matrix< T >& G, Matrix& A, typename mat_traits< Matrix >::size_type j = 0,
-                   typename mat_traits< Matrix >::size_type k = 1 ) {
-  typedef typename mat_traits< Matrix >::value_type ValueType;
-  typedef typename mat_traits< Matrix >::size_type SizeType;
-  using std::fabs;
+template <typename Matrix, typename T>
+void givens_rot_prod(const givens_rot_matrix<T>& G, Matrix& A, int j, int k) {
+  static_assert(is_fully_writable_matrix_v<Matrix>);
+  using ValueType = mat_value_type_t<Matrix>;
+  using std::abs;
 
-  if( fabs( G.s ) < std::numeric_limits< typename givens_rot_matrix< T >::value_type >::epsilon() )
+  if (abs(G.s) < std::numeric_limits<ValueType>::epsilon()) {
     return;
-  for( SizeType i = 0; i < A.get_col_count(); ++i ) {
-    ValueType t0 = A( j, i );
-    ValueType t1 = A( k, i );
-    A( j, i ) = G.c * t0 - G.s * t1;
-    A( k, i ) = G.s * t0 + G.c * t1;
-  };
-
-  return;
-};
-
-
-template < typename Matrix, typename Vector >
-typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
-  operator*( const Matrix& A, const givens_rot_matrix< Vector >& G ) {
-  Matrix result( A );
-  givens_rot_prod( result, G );
-  return result;
-};
-
-template < typename Matrix, typename Vector >
-typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
-  operator*( const givens_rot_matrix< Vector >& G, const Matrix& A ) {
-  Matrix result( A );
-  givens_rot_prod( G, result );
-  return result;
-};
-};
+  }
+  for (int i = 0; i < A.get_col_count(); ++i) {
+    ValueType t0 = A(j, i);
+    ValueType t1 = A(k, i);
+    A(j, i) = G.c * t0 - G.s * t1;
+    A(k, i) = G.s * t0 + G.c * t1;
+  }
+}
+}  // namespace ReaK
 
 #endif

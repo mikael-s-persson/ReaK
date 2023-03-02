@@ -23,79 +23,84 @@
 
 #include <ReaK/mbd/kte/joint_friction.hpp>
 
-namespace ReaK {
+namespace ReaK::kte {
 
-namespace kte {
-
-
-void joint_dry_microslip_gen::doMotion( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( !mAnchor )
+void joint_dry_microslip_gen::doMotion(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if (!mAnchor) {
     return;
+  }
 
-  if( ( aFlag == store_kinematics ) && ( aStorage ) ) {
-    if( !( aStorage->gen_coord_mapping[mAnchor] ) )
-      aStorage->gen_coord_mapping[mAnchor]
-        = shared_ptr< gen_coord< double > >( new gen_coord< double >( ( *mAnchor ) ), scoped_deleter() );
-    else
-      ( *( aStorage->gen_coord_mapping[mAnchor] ) ) = ( *mAnchor );
-  };
-};
+  if ((aFlag == store_kinematics) && (aStorage)) {
+    if (!(aStorage->gen_coord_mapping[mAnchor])) {
+      aStorage->gen_coord_mapping[mAnchor] =
+          std::make_shared<gen_coord<double>>(*mAnchor);
+    } else {
+      (*(aStorage->gen_coord_mapping[mAnchor])) = (*mAnchor);
+    }
+  }
+}
 
-void joint_dry_microslip_gen::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  RK_UNUSED( aFlag );
-  RK_UNUSED( aStorage );
-  if( !mAnchor )
+void joint_dry_microslip_gen::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  RK_UNUSED(aFlag);
+  RK_UNUSED(aStorage);
+  if (!mAnchor) {
     return;
+  }
 
-  using std::fabs;
+  using std::abs;
 
-  double tmp_speed = fabs( mAnchor->q_dot );
+  double tmp_speed = abs(mAnchor->q_dot);
 
-  if( tmp_speed <= mStictionVelocity ) {
+  if (tmp_speed <= mStictionVelocity) {
     mAnchor->f -= mAnchor->q_dot * mStictionCoef / mStictionVelocity;
-  } else if( tmp_speed < mSlipVelocity ) {
-    mAnchor->f -= ( mAnchor->q_dot > 0.0 ? 1.0 : -1.0 )
-                  * ( mStictionCoef
-                      + ( mSlipCoef - mStictionCoef ) * ( tmp_speed - mStictionVelocity )
-                        / ( mSlipVelocity - mStictionVelocity ) );
+  } else if (tmp_speed < mSlipVelocity) {
+    mAnchor->f -= (mAnchor->q_dot > 0.0 ? 1.0 : -1.0) *
+                  (mStictionCoef + (mSlipCoef - mStictionCoef) *
+                                       (tmp_speed - mStictionVelocity) /
+                                       (mSlipVelocity - mStictionVelocity));
   } else {
-    mAnchor->f -= ( mAnchor->q_dot > 0.0 ? 1.0 : -1.0 ) * mSlipCoef;
-  };
-};
-
+    mAnchor->f -= (mAnchor->q_dot > 0.0 ? 1.0 : -1.0) * mSlipCoef;
+  }
+}
 
 void joint_dry_microslip_gen::clearForce() {
-  if( mAnchor )
+  if (mAnchor) {
     mAnchor->f = 0.0;
-};
+  }
+}
 
-
-void joint_viscosity_gen::doMotion( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( !mAnchor )
+void joint_viscosity_gen::doMotion(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if (!mAnchor) {
     return;
+  }
 
-  if( ( aFlag == store_kinematics ) && ( aStorage ) ) {
-    if( !( aStorage->gen_coord_mapping[mAnchor] ) )
-      aStorage->gen_coord_mapping[mAnchor]
-        = shared_ptr< gen_coord< double > >( new gen_coord< double >( ( *mAnchor ) ), scoped_deleter() );
-    else
-      ( *( aStorage->gen_coord_mapping[mAnchor] ) ) = ( *mAnchor );
-  };
-};
+  if ((aFlag == store_kinematics) && (aStorage)) {
+    if (!(aStorage->gen_coord_mapping[mAnchor])) {
+      aStorage->gen_coord_mapping[mAnchor] =
+          std::make_shared<gen_coord<double>>(*mAnchor);
+    } else {
+      (*(aStorage->gen_coord_mapping[mAnchor])) = (*mAnchor);
+    }
+  }
+}
 
-void joint_viscosity_gen::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  RK_UNUSED( aFlag );
-  RK_UNUSED( aStorage );
-  if( !mAnchor )
+void joint_viscosity_gen::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  RK_UNUSED(aFlag);
+  RK_UNUSED(aStorage);
+  if (!mAnchor) {
     return;
+  }
 
   mAnchor->f -= mAnchor->q_dot * mViscosity;
-};
-
+}
 
 void joint_viscosity_gen::clearForce() {
-  if( mAnchor )
+  if (mAnchor) {
     mAnchor->f = 0.0;
-};
-};
-};
+  }
+}
+}  // namespace ReaK::kte

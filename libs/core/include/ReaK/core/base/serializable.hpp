@@ -35,6 +35,8 @@
 #include "defs.hpp"
 #include "typed_object.hpp"
 
+#include <type_traits>
+
 #include <ReaK/core/serialization/archiver.hpp>
 
 namespace ReaK {
@@ -43,15 +45,15 @@ namespace ReaK {
  * This class is the interface to be implemented in order to make a class serializable, i.e.
  * saved and loaded from a serial archive. The idea is to save and load all data in the
  * exact same order, with care for version number as well. All primitive types, STL arrays
- * (map and vector) and any other object of the ReaK platform or shared_ptr to them are
+ * (map and vector) and any other object of the ReaK platform or std::shared_ptr to them are
  * in principle serializable as well, requiring very little effort by the programmer of a
  * new class to implement the save() and load() methods (simply stacking the data members
  * onto the input/output archive is all that is required really, see classes in the control
  * branch for examples).
  */
 class serializable : public typed_object {
-public:
-  virtual ~serializable(){};
+ public:
+  ~serializable() override = default;
 
   /**
    * This method saves the content of the object to a serial archive of any type.
@@ -61,10 +63,10 @@ public:
    * \param A any type of output archive.
    * \param Version the version of this object that is to be saved (always the latest version).
    */
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int Version ) const {
-    RK_UNUSED( A );
-    RK_UNUSED( Version );
-  };
+  virtual void save(serialization::oarchive& A, unsigned int Version) const {
+    RK_UNUSED(A);
+    RK_UNUSED(Version);
+  }
 
   /**
    * This method loads the content of the object from a serial archive of any type.
@@ -75,83 +77,15 @@ public:
    * \param Version the version of this object that was saved (it is the user's responsability to maintain backward
    *compatibility as much as desired).
    */
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int Version ) {
-    RK_UNUSED( A );
-    RK_UNUSED( Version );
-  };
+  virtual void load(serialization::iarchive& A, unsigned int Version) {
+    RK_UNUSED(A);
+    RK_UNUSED(Version);
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( serializable, 0x80000000, 1, "serializable", typed_object )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(serializable, 0x80000000, 1, "serializable",
+                              typed_object)
 };
 
-/**
- * This class can be used to make any class (WrappedClass) appear like a serializable object without 
- * requiring any inheritance on that class. However, it is the user's responsability to assign the 
- * class' meta-data either through the RK_RTTI_REGISTER_CLASS_ID macro or through a manual definition 
- * of the rtti::get_type_id and rtti::get_type_info traits.
- */
-template <typename WrappedClass>
-class fake_serializable : public serializable {
-private:
-  WrappedClass* p_obj;
-  
-  typedef boost::remove_cv<WrappedClass>::type decayed_wrapped_type;
-  
-public:
-  
-  explicit fake_serializable(WrappedClass* aPObj) BOOST_NOEXCEPT : p_obj(aPObj) {};
-  
-  /*******************************************************************************
-                     ReaK's RTTI and Serialization interfaces
-  *******************************************************************************/
-
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int aVersion) const {
-    serialize(A, *p_obj, aVersion);
-  };
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int aVersion) {
-    deserialize(A, *p_obj, aVersion);
-  };
-
-  RK_RTTI_REGISTER_CLASS_1BASE( decayed_wrapped_type, 1, serializable );
-  
-};
-
-namespace serialization {
-
-template < typename T >
-struct get_fake_serializable_version {
-  BOOST_STATIC_CONSTANT(unsigned int, value = 1);
-};
-
-template < typename T >
-typename boost::disable_if< boost::is_convertible< T&, serializable& >, 
-iarchive& >::type operator>>( iarchive& in, T& t ) {
-  fake_serializable< T, get_fake_serializable_version<T>::value > fs(&m);
-  return in >> fs;
-};
-
-template < typename T >
-typename boost::disable_if< boost::is_convertible< T&, serializable& >, 
-iarchive& >::type operator&( iarchive& in, const std::pair< std::string, T& >& m ) {
-  fake_serializable< T, get_fake_serializable_version<T>::value > fs(&(m.second));
-  return in & std::pair< std::string, serializable& >(m.first, fs);
-};
-
-template < typename T >
-typename boost::disable_if< boost::is_convertible< T&, serializable& >, 
-oarchive& >::type operator<<( oarchive& out, const T& t ) {
-  fake_serializable< const T, get_fake_serializable_version<T>::value > fs(&t);
-  return out << fs;
-};
-
-template < typename T >
-typename boost::disable_if< boost::is_convertible< T&, serializable& >, 
-oarchive& >::type operator&( oarchive& out, const std::pair< std::string, const T& >& t ) {
-  fake_serializable< const T, get_fake_serializable_version<T>::value > fs(&(t.second));
-  return out & std::pair< std::string, const serializable& >(t.first, fs);
-};
-
-};
-
-};
+}  // namespace ReaK
 
 #endif

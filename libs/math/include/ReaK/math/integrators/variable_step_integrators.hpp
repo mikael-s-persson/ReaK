@@ -46,13 +46,11 @@
 #ifndef REAK_VARIABLE_STEP_INTEGRATORS_HPP
 #define REAK_VARIABLE_STEP_INTEGRATORS_HPP
 
-
 #include "integrator.hpp"
 
 #include <cmath>
 
 namespace ReaK {
-
 
 /**
  * This class template implements at Runge-Kutta-Fehlberg integrator of order 4-5. This is a variable-step,
@@ -62,16 +60,17 @@ namespace ReaK {
  * Also basic verification of the integration parameters is done and might throw the ReaK::impossible_integration
  * exception.
  */
-template < class T >
-class fehlberg45_integrator : public variable_step_integrator< T > {
-protected:
-public:
-  virtual void RK_CALL integrate( double aEndTime );
+template <class T>
+class fehlberg45_integrator : public variable_step_integrator<T> {
+ protected:
+ public:
+  void integrate(double aEndTime) override;
 
   /**
    * Default constructor.
    */
-  fehlberg45_integrator( const std::string& aName = "" ) : variable_step_integrator< T >( aName ){};
+  explicit fehlberg45_integrator(const std::string& aName = "")
+      : variable_step_integrator<T>(aName) {}
 
   /**
    * Parametrized constructor.
@@ -87,29 +86,34 @@ public:
    * control.
    * \param aTolerance The desired relative error of the integrated state values.
    */
-  fehlberg45_integrator( const std::string& aName, const ReaK::vect_n< T >& aState, double aStartTime,
-                         double aInitialStepSize, const weak_ptr< state_rate_function< T > >& aGetStateRate,
-                         double aMaxStepSize, double aMinStepSize, double aTolerance )
-      : variable_step_integrator< T >( aName, aState, aStartTime, aInitialStepSize, aGetStateRate, aMaxStepSize,
-                                       aMinStepSize, aTolerance ){};
+  fehlberg45_integrator(
+      const std::string& aName, const ReaK::vect_n<T>& aState,
+      double aStartTime, double aInitialStepSize,
+      const std::weak_ptr<state_rate_function<T>>& aGetStateRate,
+      double aMaxStepSize, double aMinStepSize, double aTolerance)
+      : variable_step_integrator<T>(aName, aState, aStartTime, aInitialStepSize,
+                                    aGetStateRate, aMaxStepSize, aMinStepSize,
+                                    aTolerance) {}
   /**
    * Default destructor.
    */
-  virtual ~fehlberg45_integrator(){};
+  ~fehlberg45_integrator() override = default;
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    variable_step_integrator< T >::save( A, variable_step_integrator< T >::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    variable_step_integrator< T >::load( A, variable_step_integrator< T >::getStaticObjectType()->TypeVersion() );
-  };
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    variable_step_integrator<T>::save(
+        A, variable_step_integrator<T>::getStaticObjectType()->TypeVersion());
+  }
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    variable_step_integrator<T>::load(
+        A, variable_step_integrator<T>::getStaticObjectType()->TypeVersion());
+  }
 
-  typedef fehlberg45_integrator< T > self;
-  typedef variable_step_integrator< T > base;
+  using self = fehlberg45_integrator<T>;
+  using base = variable_step_integrator<T>;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2220001, 1, "fehlberg45_integrator", base )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2220001, 1, "fehlberg45_integrator",
+                              base)
 };
-
 
 //----------CFEHLBERG45-----------------------------------------------------
 
@@ -125,120 +129,154 @@ public:
      O(h^6)|  16/135       0            6656/12825   28561/56430 -9/50         2/55
 */
 
-template < class T >
-void RK_CALL fehlberg45_integrator< T >::integrate( double aEndTime ) {
-  using std::fabs;
+template <class T>
+void fehlberg45_integrator<T>::integrate(double aEndTime) {
+  using std::abs;
   using std::pow;
 
-  if( ( integrator< T >::mGetStateRate.expired() ) || ( integrator< T >::mState.q.size() == 0 )
-      || ( integrator< T >::mStepSize == 0.0 )
-      || ( ( integrator< T >::mStepSize > 0.0 ) && ( integrator< T >::mTime > aEndTime ) )
-      || ( ( integrator< T >::mStepSize < 0.0 ) && ( aEndTime > integrator< T >::mTime ) )
-      || ( variable_step_integrator< T >::mTolerance <= 0.0 )
-      || ( variable_step_integrator< T >::mMinStepSize > variable_step_integrator< T >::mMaxStepSize ) )
-    throw impossible_integration( integrator< T >::mTime, aEndTime, integrator< T >::mStepSize );
+  if ((integrator<T>::mGetStateRate.expired()) ||
+      (integrator<T>::mState.q.size() == 0) ||
+      (integrator<T>::mStepSize == 0.0) ||
+      ((integrator<T>::mStepSize > 0.0) && (integrator<T>::mTime > aEndTime)) ||
+      ((integrator<T>::mStepSize < 0.0) && (aEndTime > integrator<T>::mTime)) ||
+      (variable_step_integrator<T>::mTolerance <= 0.0) ||
+      (variable_step_integrator<T>::mMinStepSize >
+       variable_step_integrator<T>::mMaxStepSize)) {
+    throw impossible_integration(integrator<T>::mTime, aEndTime,
+                                 integrator<T>::mStepSize);
+  }
 
-  shared_ptr< state_rate_function< T > > func_ptr = integrator< T >::mGetStateRate.lock();
-  if( !func_ptr )
-    throw impossible_integration( integrator< T >::mTime, aEndTime, integrator< T >::mStepSize );
+  std::shared_ptr<state_rate_function<T>> func_ptr =
+      integrator<T>::mGetStateRate.lock();
+  if (!func_ptr) {
+    throw impossible_integration(integrator<T>::mTime, aEndTime,
+                                 integrator<T>::mStepSize);
+  }
 
-  vect_n< T > prevY( integrator< T >::mState.q.size() );
-  vect_n< T > k1( integrator< T >::mState.q.size() );
-  vect_n< T > k2( integrator< T >::mState.q.size() );
-  vect_n< T > k3( integrator< T >::mState.q.size() );
-  vect_n< T > k4( integrator< T >::mState.q.size() );
-  vect_n< T > k5( integrator< T >::mState.q.size() );
-  vect_n< T > k6( integrator< T >::mState.q.size() );
+  vect_n<T> prevY(integrator<T>::mState.q.size());
+  vect_n<T> k1(integrator<T>::mState.q.size());
+  vect_n<T> k2(integrator<T>::mState.q.size());
+  vect_n<T> k3(integrator<T>::mState.q.size());
+  vect_n<T> k4(integrator<T>::mState.q.size());
+  vect_n<T> k5(integrator<T>::mState.q.size());
+  vect_n<T> k6(integrator<T>::mState.q.size());
   double R, Rmax;
   int worst_DOF;
 
-  func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
+  func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                             integrator<T>::mStateRate);
 
-  while( ( ( integrator< T >::mStepSize > 0.0 ) && ( integrator< T >::mTime < aEndTime ) )
-         || ( ( integrator< T >::mStepSize < 0.0 ) && ( integrator< T >::mTime > aEndTime ) ) ) {
+  while (
+      ((integrator<T>::mStepSize > 0.0) && (integrator<T>::mTime < aEndTime)) ||
+      ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime > aEndTime))) {
 
-    prevY = integrator< T >::mState;
-    integrator< T >::mState += ( k1 = integrator< T >::mStateRate * T( integrator< T >::mStepSize ) ) * T( 0.25 );
+    prevY = integrator<T>::mState;
+    integrator<T>::mState +=
+        (k1 = integrator<T>::mStateRate * T(integrator<T>::mStepSize)) *
+        T(0.25);
 
-    integrator< T >::mTime += integrator< T >::mStepSize * 0.25;
-    func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-    integrator< T >::mState
-      = prevY
-        + ( k1* T( 3.0 ) + ( k2 = integrator< T >::mStateRate * T( integrator< T >::mStepSize ) ) * T( 9.0 ) )
-          / T( 32.0 );
+    integrator<T>::mTime += integrator<T>::mStepSize * 0.25;
+    func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                               integrator<T>::mStateRate);
+    integrator<T>::mState =
+        prevY + (k1 * T(3.0) + (k2 = integrator<T>::mStateRate *
+                                     T(integrator<T>::mStepSize)) *
+                                   T(9.0)) /
+                    T(32.0);
 
+    integrator<T>::mTime += integrator<T>::mStepSize * 0.125;
+    func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                               integrator<T>::mStateRate);
+    integrator<T>::mState =
+        prevY +
+        (k1 * T(1932.0) - k2 * T(7200.0) +
+         (k3 = integrator<T>::mStateRate * T(integrator<T>::mStepSize)) *
+             T(7296.0)) /
+            T(2197.0);
 
-    integrator< T >::mTime += integrator< T >::mStepSize * 0.125;
-    func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-    integrator< T >::mState
-      = prevY
-        + ( k1* T( 1932.0 ) - k2* T( 7200.0 )
-            + ( k3 = integrator< T >::mStateRate * T( integrator< T >::mStepSize ) ) * T( 7296.0 ) ) / T( 2197.0 );
+    integrator<T>::mTime += 57.0 * integrator<T>::mStepSize / 104.0;
+    func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                               integrator<T>::mStateRate);
+    integrator<T>::mState =
+        prevY + k1 * T(439.0 / 216.0) - k2 * T(8.0) + k3 * T(3680.0 / 513.0) -
+        (k4 = integrator<T>::mStateRate * T(integrator<T>::mStepSize)) *
+            T(845.0 / 4104.0);
 
-    integrator< T >::mTime += 57.0 * integrator< T >::mStepSize / 104.0;
-    func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-    integrator< T >::mState = prevY + k1* T( 439.0 / 216.0 ) - k2* T( 8.0 ) + k3* T( 3680.0 / 513.0 )
-                              - ( k4 = integrator< T >::mStateRate * T( integrator< T >::mStepSize ) )
-                                * T( 845.0 / 4104.0 );
+    integrator<T>::mTime += integrator<T>::mStepSize / 13.0;
+    func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                               integrator<T>::mStateRate);
+    integrator<T>::mState =
+        prevY - k1 * T(8.0 / 27.0) + k2 * T(2.0) - k3 * T(3544.0 / 2565.0) +
+        k4 * T(1859.0 / 4104.0) -
+        (k5 = integrator<T>::mStateRate * T(integrator<T>::mStepSize)) *
+            T(11.0 / 40.0);
 
-    integrator< T >::mTime += integrator< T >::mStepSize / 13.0;
-    func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-    integrator< T >::mState
-      = prevY - k1* T( 8.0 / 27.0 ) + k2* T( 2.0 ) - k3* T( 3544.0 / 2565.0 ) + k4* T( 1859.0 / 4104.0 )
-        - ( k5 = integrator< T >::mStateRate * T( integrator< T >::mStepSize ) ) * T( 11.0 / 40.0 );
-
-    integrator< T >::mTime -= integrator< T >::mStepSize * 0.5;
-    func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-    k6 = integrator< T >::mStateRate * T( integrator< T >::mStepSize );
+    integrator<T>::mTime -= integrator<T>::mStepSize * 0.5;
+    func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                               integrator<T>::mStateRate);
+    k6 = integrator<T>::mStateRate * T(integrator<T>::mStepSize);
 
     Rmax = 0.0;
     worst_DOF = 0;
-    for( unsigned int i = 0; i < integrator< T >::mState.q.size(); ++i ) {
-      R = fabs( ( k1.q[i] / T( 360.0 ) - T( 128.0 ) * k3.q[i] / T( 4275.0 ) - T( 2197.0 ) * k4.q[i] / T( 75240.0 )
-                  + k5.q[i] / T( 50.0 ) + T( 2.0 ) * k6.q[i] / T( 55.0 ) ) / integrator< T >::mStepSize );
-      if( R > Rmax ) {
+    for (unsigned int i = 0; i < integrator<T>::mState.q.size(); ++i) {
+      R = abs((k1.q[i] / T(360.0) - T(128.0) * k3.q[i] / T(4275.0) -
+               T(2197.0) * k4.q[i] / T(75240.0) + k5.q[i] / T(50.0) +
+               T(2.0) * k6.q[i] / T(55.0)) /
+              integrator<T>::mStepSize);
+      if (R > Rmax) {
         Rmax = R;
         worst_DOF = i;
-      };
-    };
+      }
+    }
 
-    if( ( Rmax > variable_step_integrator< T >::mTolerance )
-        && ( fabs( integrator< T >::mStepSize ) > variable_step_integrator< T >::mMinStepSize ) ) {
-      if( fabs( integrator< T >::mStepSize ) <= variable_step_integrator< T >::mMinStepSize )
-        throw untolerable_integration( variable_step_integrator< T >::mTolerance, Rmax, worst_DOF,
-                                       integrator< T >::mStepSize, integrator< T >::mTime );
+    if ((Rmax > variable_step_integrator<T>::mTolerance) &&
+        (abs(integrator<T>::mStepSize) >
+         variable_step_integrator<T>::mMinStepSize)) {
+      if (abs(integrator<T>::mStepSize) <=
+          variable_step_integrator<T>::mMinStepSize) {
+        throw untolerable_integration(variable_step_integrator<T>::mTolerance,
+                                      Rmax, worst_DOF, integrator<T>::mStepSize,
+                                      integrator<T>::mTime);
+      }
 
-      integrator< T >::mTime -= integrator< T >::mStepSize * 0.5;
-      integrator< T >::mState = prevY;
-      func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-      R = 0.84 * pow( variable_step_integrator< T >::mTolerance / Rmax, 0.25 );
-      if( R < 0.1 )
-        integrator< T >::mStepSize *= 0.1;
-      else
-        integrator< T >::mStepSize *= R;
+      integrator<T>::mTime -= integrator<T>::mStepSize * 0.5;
+      integrator<T>::mState = prevY;
+      func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                                 integrator<T>::mStateRate);
+      R = 0.84 * pow(variable_step_integrator<T>::mTolerance / Rmax, 0.25);
+      if (R < 0.1) {
+        integrator<T>::mStepSize *= 0.1;
+      } else {
+        integrator<T>::mStepSize *= R;
+      }
     } else {
-      integrator< T >::mTime += integrator< T >::mStepSize * 0.5;
-      integrator< T >::mState = prevY + k1 * T( 25.0 / 216.0 ) + k3 * T( 1408.0 / 2565.0 ) + k4 * T( 2197.0 / 4104.0 )
-                                - k5 * T( 0.2 );
-      func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
+      integrator<T>::mTime += integrator<T>::mStepSize * 0.5;
+      integrator<T>::mState = prevY + k1 * T(25.0 / 216.0) +
+                              k3 * T(1408.0 / 2565.0) +
+                              k4 * T(2197.0 / 4104.0) - k5 * T(0.2);
+      func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                                 integrator<T>::mStateRate);
 
-      R = 0.84 * pow( variable_step_integrator< T >::mTolerance / Rmax, 0.25 );
-      if( R >= 4.0 )
-        integrator< T >::mStepSize *= 4.0;
-      else if( R > 1.0 )
-        integrator< T >::mStepSize *= R;
-      // if(((integrator<T>::mStepSize > 0.0) && (integrator<T>::mTime + integrator<T>::mStepSize > aEndTime)) ||
-      // ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime + integrator<T>::mStepSize < aEndTime)))
-      // integrator<T>::mStepSize = aEndTime - integrator<T>::mTime;
-    };
+      R = 0.84 * pow(variable_step_integrator<T>::mTolerance / Rmax, 0.25);
+      if (R >= 4.0) {
+        integrator<T>::mStepSize *= 4.0;
+      } else if (R > 1.0) {
+        integrator<T>::mStepSize *= R;
+      }
+    }
 
-    if( fabs( integrator< T >::mStepSize ) < variable_step_integrator< T >::mMinStepSize )
-      integrator< T >::mStepSize *= fabs( variable_step_integrator< T >::mMinStepSize / integrator< T >::mStepSize );
-    if( fabs( integrator< T >::mStepSize ) > variable_step_integrator< T >::mMaxStepSize )
-      integrator< T >::mStepSize *= fabs( variable_step_integrator< T >::mMaxStepSize / integrator< T >::mStepSize );
-  };
-};
-
+    if (abs(integrator<T>::mStepSize) <
+        variable_step_integrator<T>::mMinStepSize) {
+      integrator<T>::mStepSize *= abs(
+          variable_step_integrator<T>::mMinStepSize / integrator<T>::mStepSize);
+    }
+    if (abs(integrator<T>::mStepSize) >
+        variable_step_integrator<T>::mMaxStepSize) {
+      integrator<T>::mStepSize *= abs(
+          variable_step_integrator<T>::mMaxStepSize / integrator<T>::mStepSize);
+    }
+  }
+}
 
 /**
  * This class template implements at Dormand-Prince integrator of order 4-5. This is a variable-step,
@@ -249,16 +287,17 @@ void RK_CALL fehlberg45_integrator< T >::integrate( double aEndTime ) {
  * required tolerance without lowering the time-step below the acceptable minimum. Also basic verification of
  * the integration parameters is done and might throw the ReaK::impossible_integration exception.
  */
-template < class T >
-class dormand_prince45_integrator : public variable_step_integrator< T > {
-protected:
-public:
-  virtual void RK_CALL integrate( double aEndTime );
+template <class T>
+class dormand_prince45_integrator : public variable_step_integrator<T> {
+ protected:
+ public:
+  void integrate(double aEndTime) override;
 
   /**
    * Default constructor.
    */
-  dormand_prince45_integrator( const std::string& aName = "" ) : variable_step_integrator< T >( aName ){};
+  explicit dormand_prince45_integrator(const std::string& aName = "")
+      : variable_step_integrator<T>(aName) {}
 
   /**
    * Parametrized constructor.
@@ -274,29 +313,34 @@ public:
    * control.
    * \param aTolerance The desired relative error of the integrated state values.
    */
-  dormand_prince45_integrator( const std::string& aName, const ReaK::vect_n< T >& aState, double aStartTime,
-                               double aInitialStepSize, const weak_ptr< state_rate_function< T > > aGetStateRate,
-                               double aMaxStepSize, double aMinStepSize, double aTolerance )
-      : variable_step_integrator< T >( aName, aState, aStartTime, aInitialStepSize, aGetStateRate, aMaxStepSize,
-                                       aMinStepSize, aTolerance ){};
+  dormand_prince45_integrator(
+      const std::string& aName, const ReaK::vect_n<T>& aState,
+      double aStartTime, double aInitialStepSize,
+      const std::weak_ptr<state_rate_function<T>> aGetStateRate,
+      double aMaxStepSize, double aMinStepSize, double aTolerance)
+      : variable_step_integrator<T>(aName, aState, aStartTime, aInitialStepSize,
+                                    aGetStateRate, aMaxStepSize, aMinStepSize,
+                                    aTolerance) {}
   /**
    * Default destructor.
    */
-  virtual ~dormand_prince45_integrator(){};
+  ~dormand_prince45_integrator() override = default;
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    variable_step_integrator< T >::save( A, variable_step_integrator< T >::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    variable_step_integrator< T >::load( A, variable_step_integrator< T >::getStaticObjectType()->TypeVersion() );
-  };
+  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+    variable_step_integrator<T>::save(
+        A, variable_step_integrator<T>::getStaticObjectType()->TypeVersion());
+  }
+  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+    variable_step_integrator<T>::load(
+        A, variable_step_integrator<T>::getStaticObjectType()->TypeVersion());
+  }
 
-  typedef dormand_prince45_integrator< T > self;
-  typedef variable_step_integrator< T > base;
+  using self = dormand_prince45_integrator<T>;
+  using base = variable_step_integrator<T>;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2220002, 1, "dormand_prince45_integrator", base )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2220002, 1,
+                              "dormand_prince45_integrator", base)
 };
-
 
 //----------CDORMANDPRINCE45-----------------------------------------------------
 
@@ -313,207 +357,161 @@ public:
      O(h^5)|  35/384         0              500/1113       125/192       -2187/6784      11/84          0
 */
 
-template < class T >
-void RK_CALL dormand_prince45_integrator< T >::integrate( double aEndTime ) {
-  using std::fabs;
+template <class T>
+void dormand_prince45_integrator<T>::integrate(double aEndTime) {
+  using std::abs;
   using std::pow;
 
-  if( ( integrator< T >::mGetStateRate.expired() ) || ( integrator< T >::mState.q.size() == 0 )
-      || ( integrator< T >::mStepSize == 0.0 )
-      || ( ( integrator< T >::mStepSize > 0.0 ) && ( integrator< T >::mTime > aEndTime ) )
-      || ( ( integrator< T >::mStepSize < 0.0 ) && ( aEndTime > integrator< T >::mTime ) )
-      || ( variable_step_integrator< T >::mTolerance <= 0.0 )
-      || ( variable_step_integrator< T >::mMinStepSize > variable_step_integrator< T >::mMaxStepSize ) )
-    throw impossible_integration( integrator< T >::mTime, aEndTime, integrator< T >::mStepSize );
+  if ((integrator<T>::mGetStateRate.expired()) ||
+      (integrator<T>::mState.q.size() == 0) ||
+      (integrator<T>::mStepSize == 0.0) ||
+      ((integrator<T>::mStepSize > 0.0) && (integrator<T>::mTime > aEndTime)) ||
+      ((integrator<T>::mStepSize < 0.0) && (aEndTime > integrator<T>::mTime)) ||
+      (variable_step_integrator<T>::mTolerance <= 0.0) ||
+      (variable_step_integrator<T>::mMinStepSize >
+       variable_step_integrator<T>::mMaxStepSize)) {
+    throw impossible_integration(integrator<T>::mTime, aEndTime,
+                                 integrator<T>::mStepSize);
+  }
 
-  shared_ptr< state_rate_function< T > > func_ptr = integrator< T >::mGetStateRate.lock();
-  if( !func_ptr )
-    throw impossible_integration( integrator< T >::mTime, aEndTime, integrator< T >::mStepSize );
-  vect_n< T > prevY( integrator< T >::mState.q.size() );
-  vect_n< T > k1( integrator< T >::mState.q.size() );
-  vect_n< T > k2( integrator< T >::mState.q.size() );
-  vect_n< T > k3( integrator< T >::mState.q.size() );
-  vect_n< T > k4( integrator< T >::mState.q.size() );
-  vect_n< T > k5( integrator< T >::mState.q.size() );
-  vect_n< T > k6( integrator< T >::mState.q.size() );
-  vect_n< T > k7( integrator< T >::mState.q.size() );
+  std::shared_ptr<state_rate_function<T>> func_ptr =
+      integrator<T>::mGetStateRate.lock();
+  if (!func_ptr) {
+    throw impossible_integration(integrator<T>::mTime, aEndTime,
+                                 integrator<T>::mStepSize);
+  }
+  vect_n<T> prevY(integrator<T>::mState.q.size());
+  vect_n<T> k1(integrator<T>::mState.q.size());
+  vect_n<T> k2(integrator<T>::mState.q.size());
+  vect_n<T> k3(integrator<T>::mState.q.size());
+  vect_n<T> k4(integrator<T>::mState.q.size());
+  vect_n<T> k5(integrator<T>::mState.q.size());
+  vect_n<T> k6(integrator<T>::mState.q.size());
+  vect_n<T> k7(integrator<T>::mState.q.size());
   double R, Rmax;
   int worst_DOF;
 
-  func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
+  func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                             integrator<T>::mStateRate);
 
-  while( ( ( integrator< T >::mStepSize > 0.0 ) && ( integrator< T >::mTime < aEndTime ) )
-         || ( ( integrator< T >::mStepSize < 0.0 ) && ( integrator< T >::mTime > aEndTime ) ) ) {
+  while (
+      ((integrator<T>::mStepSize > 0.0) && (integrator<T>::mTime < aEndTime)) ||
+      ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime > aEndTime))) {
 
-    prevY = integrator< T >::mState;
-    integrator< T >::mState += ( k1 = integrator< T >::mStateRate * T( integrator< T >::mStepSize ) ) / T( 5.0 );
+    prevY = integrator<T>::mState;
+    integrator<T>::mState +=
+        (k1 = integrator<T>::mStateRate * T(integrator<T>::mStepSize)) / T(5.0);
 
-    integrator< T >::mTime += integrator< T >::mStepSize / 5.0;
-    func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-    integrator< T >::mState
-      = prevY
-        + ( k1* T( 3.0 ) + ( k2 = integrator< T >::mStateRate * T( integrator< T >::mStepSize ) ) * T( 9.0 ) )
-          / T( 40.0 );
+    integrator<T>::mTime += integrator<T>::mStepSize / 5.0;
+    func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                               integrator<T>::mStateRate);
+    integrator<T>::mState =
+        prevY + (k1 * T(3.0) + (k2 = integrator<T>::mStateRate *
+                                     T(integrator<T>::mStepSize)) *
+                                   T(9.0)) /
+                    T(40.0);
 
-    integrator< T >::mTime += integrator< T >::mStepSize / 10.0;
-    func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-    integrator< T >::mState = prevY + k1* T( 44.0 / 45.0 ) - k2* T( 56.0 / 15.0 )
-                              + ( k3 = integrator< T >::mStateRate * T( integrator< T >::mStepSize ) )
-                                * T( 32.0 / 9.0 );
+    integrator<T>::mTime += integrator<T>::mStepSize / 10.0;
+    func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                               integrator<T>::mStateRate);
+    integrator<T>::mState =
+        prevY + k1 * T(44.0 / 45.0) - k2 * T(56.0 / 15.0) +
+        (k3 = integrator<T>::mStateRate * T(integrator<T>::mStepSize)) *
+            T(32.0 / 9.0);
 
-    integrator< T >::mTime += integrator< T >::mStepSize / 2.0;
-    func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-    integrator< T >::mState = prevY + k1* T( 19372.0 / 6561.0 ) - k2* T( 25360.0 / 2187.0 ) + k3* T( 64448.0 / 6561.0 )
-                              - ( k4 = integrator< T >::mStateRate * T( integrator< T >::mStepSize ) )
-                                * T( 212.0 / 729.0 );
+    integrator<T>::mTime += integrator<T>::mStepSize / 2.0;
+    func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                               integrator<T>::mStateRate);
+    integrator<T>::mState =
+        prevY + k1 * T(19372.0 / 6561.0) - k2 * T(25360.0 / 2187.0) +
+        k3 * T(64448.0 / 6561.0) -
+        (k4 = integrator<T>::mStateRate * T(integrator<T>::mStepSize)) *
+            T(212.0 / 729.0);
 
-    integrator< T >::mTime += 4.0 * integrator< T >::mStepSize / 45.0;
-    func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-    integrator< T >::mState
-      = prevY + k1* T( 9017.0 / 3168.0 ) - k2* T( 355.0 / 33.0 ) - k3* T( 46732.0 / 5247.0 ) + k4* T( 49.0 / 176.0 )
-        - ( k5 = integrator< T >::mStateRate * T( integrator< T >::mStepSize ) ) * T( 5103.0 / 18656.0 );
+    integrator<T>::mTime += 4.0 * integrator<T>::mStepSize / 45.0;
+    func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                               integrator<T>::mStateRate);
+    integrator<T>::mState =
+        prevY + k1 * T(9017.0 / 3168.0) - k2 * T(355.0 / 33.0) -
+        k3 * T(46732.0 / 5247.0) + k4 * T(49.0 / 176.0) -
+        (k5 = integrator<T>::mStateRate * T(integrator<T>::mStepSize)) *
+            T(5103.0 / 18656.0);
 
-    integrator< T >::mTime += integrator< T >::mStepSize / 9.0;
-    func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-    integrator< T >::mState
-      = prevY + k1* T( 35.0 / 384.0 ) + k3* T( 500.0 / 1113.0 ) + k4* T( 125.0 / 192.0 ) - k5* T( 2187.0 / 6784.0 )
-        + ( k6 = integrator< T >::mStateRate * T( integrator< T >::mStepSize ) ) * T( 11.0 / 84.0 );
+    integrator<T>::mTime += integrator<T>::mStepSize / 9.0;
+    func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                               integrator<T>::mStateRate);
+    integrator<T>::mState =
+        prevY + k1 * T(35.0 / 384.0) + k3 * T(500.0 / 1113.0) +
+        k4 * T(125.0 / 192.0) - k5 * T(2187.0 / 6784.0) +
+        (k6 = integrator<T>::mStateRate * T(integrator<T>::mStepSize)) *
+            T(11.0 / 84.0);
 
-    func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-    k7 = integrator< T >::mStateRate * T( integrator< T >::mStepSize );
+    func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                               integrator<T>::mStateRate);
+    k7 = integrator<T>::mStateRate * T(integrator<T>::mStepSize);
 
     Rmax = 0.0;
     worst_DOF = 0;
-    for( unsigned int i = 0; i < integrator< T >::mState.q.size(); ++i ) {
-      R = fabs( ( k1.q[i] * T( 5170.0 / 57600.0 ) + k3.q[i] * T( 7571.0 / 16695.0 ) + k4.q[i] * T( 393.0 / 640.0 )
-                  - k5.q[i] * T( 92097.0 / 339200.0 ) + k6.q[i] * T( 187.0 / 2100.0 ) - k7.q[i] * T( 39.0 / 40.0 ) )
-                / T( integrator< T >::mStepSize ) );
-      if( R > Rmax ) {
+    for (unsigned int i = 0; i < integrator<T>::mState.q.size(); ++i) {
+      R = abs((k1.q[i] * T(5170.0 / 57600.0) + k3.q[i] * T(7571.0 / 16695.0) +
+               k4.q[i] * T(393.0 / 640.0) - k5.q[i] * T(92097.0 / 339200.0) +
+               k6.q[i] * T(187.0 / 2100.0) - k7.q[i] * T(39.0 / 40.0)) /
+              T(integrator<T>::mStepSize));
+      if (R > Rmax) {
         Rmax = R;
         worst_DOF = i;
-      };
-    };
+      }
+    }
 
-    if( ( Rmax > variable_step_integrator< T >::mTolerance )
-        && ( fabs( integrator< T >::mStepSize ) > variable_step_integrator< T >::mMinStepSize ) ) {
-      if( fabs( integrator< T >::mStepSize ) <= variable_step_integrator< T >::mMinStepSize )
-        throw untolerable_integration( variable_step_integrator< T >::mTolerance, Rmax, worst_DOF,
-                                       integrator< T >::mStepSize, integrator< T >::mTime );
+    if ((Rmax > variable_step_integrator<T>::mTolerance) &&
+        (abs(integrator<T>::mStepSize) >
+         variable_step_integrator<T>::mMinStepSize)) {
+      if (abs(integrator<T>::mStepSize) <=
+          variable_step_integrator<T>::mMinStepSize) {
+        throw untolerable_integration(variable_step_integrator<T>::mTolerance,
+                                      Rmax, worst_DOF, integrator<T>::mStepSize,
+                                      integrator<T>::mTime);
+      }
 
-      integrator< T >::mTime -= integrator< T >::mStepSize;
-      integrator< T >::mState = prevY;
-      func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
-      R = 0.84 * pow( variable_step_integrator< T >::mTolerance / Rmax, 0.25 );
-      if( R < 0.1 )
-        integrator< T >::mStepSize *= 0.1;
-      else
-        integrator< T >::mStepSize *= R;
+      integrator<T>::mTime -= integrator<T>::mStepSize;
+      integrator<T>::mState = prevY;
+      func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                                 integrator<T>::mStateRate);
+      R = 0.84 * pow(variable_step_integrator<T>::mTolerance / Rmax, 0.25);
+      if (R < 0.1) {
+        integrator<T>::mStepSize *= 0.1;
+      } else {
+        integrator<T>::mStepSize *= R;
+      }
     } else {
-      integrator< T >::mState = prevY + k1 * T( 5170.0 / 57600.0 ) + k3 * T( 7571.0 / 16695.0 )
-                                + k4 * T( 393.0 / 640.0 ) - k5 * T( 92097.0 / 339200.0 ) + k6 * T( 187.0 / 2100.0 )
-                                + k7 / T( 40.0 );
-      func_ptr->computeStateRate( integrator< T >::mTime, integrator< T >::mState, integrator< T >::mStateRate );
+      integrator<T>::mState = prevY + k1 * T(5170.0 / 57600.0) +
+                              k3 * T(7571.0 / 16695.0) + k4 * T(393.0 / 640.0) -
+                              k5 * T(92097.0 / 339200.0) +
+                              k6 * T(187.0 / 2100.0) + k7 / T(40.0);
+      func_ptr->computeStateRate(integrator<T>::mTime, integrator<T>::mState,
+                                 integrator<T>::mStateRate);
 
-      R = 0.84 * pow( variable_step_integrator< T >::mTolerance / Rmax, 0.25 );
-      if( R >= 4.0 )
-        integrator< T >::mStepSize *= 4.0;
-      else if( R > 1.0 )
-        integrator< T >::mStepSize *= R;
-      // if(((integrator<T>::mStepSize > 0.0) && (integrator<T>::mTime + integrator<T>::mStepSize > aEndTime)) ||
-      // ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime + integrator<T>::mStepSize < aEndTime)))
-      // integrator<T>::mStepSize = aEndTime - integrator<T>::mTime;
-    };
+      R = 0.84 * pow(variable_step_integrator<T>::mTolerance / Rmax, 0.25);
+      if (R >= 4.0) {
+        integrator<T>::mStepSize *= 4.0;
+      } else if (R > 1.0) {
+        integrator<T>::mStepSize *= R;
+      }
+    }
 
-    if( fabs( integrator< T >::mStepSize ) < variable_step_integrator< T >::mMinStepSize )
-      integrator< T >::mStepSize *= fabs( variable_step_integrator< T >::mMinStepSize / integrator< T >::mStepSize );
-    if( fabs( integrator< T >::mStepSize ) > variable_step_integrator< T >::mMaxStepSize )
-      integrator< T >::mStepSize *= fabs( variable_step_integrator< T >::mMaxStepSize / integrator< T >::mStepSize );
-  };
-};
+    if (abs(integrator<T>::mStepSize) <
+        variable_step_integrator<T>::mMinStepSize) {
+      integrator<T>::mStepSize *= abs(
+          variable_step_integrator<T>::mMinStepSize / integrator<T>::mStepSize);
+    }
+    if (abs(integrator<T>::mStepSize) >
+        variable_step_integrator<T>::mMaxStepSize) {
+      integrator<T>::mStepSize *= abs(
+          variable_step_integrator<T>::mMaxStepSize / integrator<T>::mStepSize);
+    }
+  }
+}
 
-
-/*
-template <class T>
-class CAdamsBMVar : public IVarStepIntegrator<T> {
-  protected:
-
-  public:
-    virtual unsigned int GetChunkID() { return T::GetChunkID() | CHUNKID_CADAMSBMVAR; };
-
-    virtual int Integrate();
-
-    unsigned int Corrections;
-    unsigned int Order;
-
-    virtual unsigned int size() { return IVarStepIntegrator<T>::size() + 2*sizeof(unsigned int); };
-    virtual bool WriteBuffer(void** Buf, unsigned int* Count) {
-      RETURNNOTIFYWARNING(!IVarStepIntegrator<T>::WriteBuffer(Buf,Count),"Cannot Write CADAMSBMVAR:IVARSTEPINTEGRATOR
-Buffer!",false);
-
-      RETURNNOTIFYWARNING(!((GlobalWriteBuffer(Corrections,Buf,Count)) && (GlobalWriteBuffer(Order,Buf,Count))),"Cannot
-Write CADAMSBMVAR Buffer!",false);
-
-      return true;
-    };
-    virtual bool ReadBuffer(void** Buf, unsigned int* Count) {
-      RETURNNOTIFYWARNING(!IVarStepIntegrator<T>::ReadBuffer(Buf,Count),"Cannot Read CADAMSBMVAR:IVARSTEPINTEGRATOR
-Buffer!",false);
-
-      RETURNNOTIFYWARNING(!((GlobalReadBuffer(&Corrections,Buf,Count)) && (GlobalReadBuffer(&Order,Buf,Count))),"Cannot
-Read CADAMSBMVAR Buffer!",false);
-
-      return true;
-    };
-
-    __fastcall CAdamsBMVar() : IVarStepIntegrator<T>() { Corrections = 1; Order = 3; return; };
-    virtual __fastcall ~CAdamsBMVar() {
-      if (RKRoot != nullptr) RKRoot->MsgQueue->Push(new IMessage(MSGID_WARNING | MSGID_W_NOTIFY,"$DEL: Adams-BM
-Variable-Step Integrator Deleted",1,this,RKRoot->MCB_ObjectDeleted));
-      return;
-    };
-};
-
-template <class T>
-class CBDFVar : public IVarStepIntegrator<T> {
-  protected:
-
-  public:
-    virtual unsigned int GetChunkID() { return T::GetChunkID() | CHUNKID_CBDFVAR; };
-
-    virtual int Integrate();
-
-    unsigned int Order;
-    T NewtonTolerance;
-
-    virtual unsigned int size() { return IVarStepIntegrator<T>::size() + sizeof(unsigned int) + T::size(); };
-    virtual bool WriteBuffer(void** Buf, unsigned int* Count) {
-      RETURNNOTIFYWARNING(!IVarStepIntegrator<T>::WriteBuffer(Buf,Count),"Cannot Write CBDFVAR:IVARSTEPINTEGRATOR
-Buffer!",false);
-
-      RETURNNOTIFYWARNING(!((GlobalWriteBuffer(&Order,Buf,Count)) && (NewtonTolerance.WriteBuffer(Buf,Count))),"Cannot
-Write CBDFVAR Buffer!",false);
-
-      return true;
-    };
-    virtual bool ReadBuffer(void** Buf, unsigned int* Count) {
-      RETURNNOTIFYWARNING(!IVarStepIntegrator<T>::ReadBuffer(Buf,Count),"Cannot Read CBDFVAR:IVARSTEPINTEGRATOR
-Buffer!",false);
-
-      RETURNNOTIFYWARNING(!((GlobalReadBuffer(&Order,Buf,Count)) && (NewtonTolerance.ReadBuffer(Buf,Count))),"Cannot
-Read CBDFVAR Buffer!",false);
-
-      return true;
-    };
-
-    __fastcall CBDFVar() : IVarStepIntegrator<T>() { NewtonTolerance = T(0.0001); Order = 3; return; };
-    virtual __fastcall ~CBDFVar() {
-      if (RKRoot != nullptr) RKRoot->MsgQueue->Push(new IMessage(MSGID_WARNING | MSGID_W_NOTIFY,"$DEL: BDF Variable-Step
-Integrator Deleted",1,this,RKRoot->MCB_ObjectDeleted));
-      return;
-    };
-};*/
-};
+}  // namespace ReaK
 
 #endif
-
-//------------------------------------------------------------------------------

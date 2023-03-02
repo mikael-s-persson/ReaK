@@ -23,13 +23,8 @@
 
 #include <ReaK/geometry/proximity/prox_fundamentals_2D.hpp>
 
+namespace ReaK::geom {
 
-/** Main namespace for ReaK */
-namespace ReaK {
+void some_dummy_function_prox_fundamentals_2D_CPP() {}
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
-void some_dummy_function_prox_fundamentals_2D_CPP(){};
-};
-};
+}  // namespace ReaK::geom

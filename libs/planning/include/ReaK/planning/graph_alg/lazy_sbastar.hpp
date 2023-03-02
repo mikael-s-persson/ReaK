@@ -51,11 +51,6 @@
 
 #include "sbastar_search.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Graph */
-namespace graph {};
-};
+namespace ReaK::graph {}  // namespace ReaK::graph
 
 #endif

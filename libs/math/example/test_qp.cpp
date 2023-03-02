@@ -32,8 +32,8 @@
 
 #include <ReaK/math/lin_alg/mat_svd_method.hpp>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
 #ifndef M_PI
 #define M_PI 3.14159265359
@@ -41,43 +41,46 @@
 
 using namespace ReaK;
 
-
 int main() {
 
-  std::vector< mat< double, mat_structure::symmetric > > Gs;
-  std::vector< mat< double, mat_structure::rectangular > > As;
-  std::vector< vect_n< double > > bs;
-  std::vector< vect_n< double > > cs;
-  std::vector< vect_n< double > > xs;
+  std::vector<mat<double, mat_structure::symmetric>> Gs;
+  std::vector<mat<double, mat_structure::rectangular>> As;
+  std::vector<vect_n<double>> bs;
+  std::vector<vect_n<double>> cs;
+  std::vector<vect_n<double>> xs;
 
-  Gs.push_back( mat< double, mat_structure::symmetric >( 4.0, 1.5, 5.0, 8.0, 2.0, 12.0 ) );
-  cs.push_back( vect_n< double >( 1.0, 1.0, 0.5 ) );
-  bs.push_back( vect_n< double >( 1, 0.0 ) );
-  mat< double, mat_structure::rectangular > A( 1, 3 );
-  A( 0, 0 ) = -2.0;
-  A( 0, 1 ) = 1.0;
-  A( 0, 2 ) = 4.0;
-  As.push_back( A );
-  xs.push_back( vect_n< double >( 1.0, 1.0, 1.0 ) );
+  Gs.push_back(
+      mat<double, mat_structure::symmetric>(4.0, 1.5, 5.0, 8.0, 2.0, 12.0));
+  cs.push_back(vect_n<double>(1.0, 1.0, 0.5));
+  bs.push_back(vect_n<double>(1, 0.0));
+  mat<double, mat_structure::rectangular> A(1, 3);
+  A(0, 0) = -2.0;
+  A(0, 1) = 1.0;
+  A(0, 2) = 4.0;
+  As.push_back(A);
+  xs.push_back(vect_n<double>(1.0, 1.0, 1.0));
 
-  Gs.push_back( mat< double, mat_structure::symmetric >( 6.0, 2.0, 1.0, 5.0, 2.0, 4.0 ) );
-  cs.push_back( vect_n< double >( -8.0, -3.0, -3.0 ) );
-  bs.push_back( vect_n< double >( vect< double, 2 >( 3.0, 0.0 ) ) );
-  A = mat< double, mat_structure::rectangular >( 2, 3 );
-  A( 0, 0 ) = 1.0;
-  A( 0, 1 ) = 0.0;
-  A( 0, 2 ) = 1.0;
-  A( 1, 0 ) = 0.0;
-  A( 1, 1 ) = 1.0;
-  A( 1, 2 ) = 1.0;
-  As.push_back( A );
-  xs.push_back( vect_n< double >( 1.0, 1.0, 1.0 ) );
+  Gs.push_back(
+      mat<double, mat_structure::symmetric>(6.0, 2.0, 1.0, 5.0, 2.0, 4.0));
+  cs.push_back(vect_n<double>(-8.0, -3.0, -3.0));
+  bs.push_back(vect_n<double>(vect<double, 2>(3.0, 0.0)));
+  A = mat<double, mat_structure::rectangular>(2, 3);
+  A(0, 0) = 1.0;
+  A(0, 1) = 0.0;
+  A(0, 2) = 1.0;
+  A(1, 0) = 0.0;
+  A(1, 1) = 1.0;
+  A(1, 2) = 1.0;
+  As.push_back(A);
+  xs.push_back(vect_n<double>(1.0, 1.0, 1.0));
 
-  vect_n< double > x;
-  for( std::size_t i = 0; i < Gs.size(); ++i ) {
-    std::cout << "****************************************************************************************"
+  vect_n<double> x;
+  for (std::size_t i = 0; i < Gs.size(); ++i) {
+    std::cout << "*************************************************************"
+                 "***************************"
               << std::endl;
-    std::cout << "Solving the quadratic problem #" << i << " with:" << std::endl;
+    std::cout << "Solving the quadratic problem #" << i
+              << " with:" << std::endl;
     std::cout << "  G = " << Gs[i] << std::endl;
     std::cout << "  c = " << cs[i] << std::endl;
     std::cout << "  A = " << As[i] << std::endl;
@@ -85,52 +88,73 @@ int main() {
 
     x = xs[i];
     try {
-      optim::null_space_QP_method( As[i], bs[i], Gs[i], cs[i], x, 1e-8 );
+      optim::null_space_QP_method(As[i], bs[i], Gs[i], cs[i], x, 1e-8);
       std::cout << "  Null-Space QP method gives:\n"
-                << "    x = " << x << " with |Ax - b| = " << norm_2( As[i] * x - bs[i] ) << "\n"
-                << "    and with xGx + cx = " << ( 0.5 * ( x * Gs[i] ) * x + cs[i] * x )
-                << " so A(Gx + c) = " << ( As[i] * ( Gs[i] * x + cs[i] ) ) << std::endl;
-    } catch( std::exception& e ) {
-      std::cout << "  Null-Space QP method failed with error: " << e.what() << std::endl << "    x = " << x
-                << " with |Ax - b| = " << norm_2( As[i] * x - bs[i] ) << "\n"
-                << "    and with xGx + cx = " << ( 0.5 * ( x * Gs[i] ) * x + cs[i] * x )
-                << " so A(Gx + c) = " << ( As[i] * ( Gs[i] * x + cs[i] ) ) << std::endl;
+                << "    x = " << x
+                << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
+                << "    and with xGx + cx = "
+                << (0.5 * (x * Gs[i]) * x + cs[i] * x)
+                << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i]))
+                << std::endl;
+    } catch (std::exception& e) {
+      std::cout << "  Null-Space QP method failed with error: " << e.what()
+                << std::endl
+                << "    x = " << x
+                << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
+                << "    and with xGx + cx = "
+                << (0.5 * (x * Gs[i]) * x + cs[i] * x)
+                << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i]))
+                << std::endl;
     };
 
     x = xs[i];
     try {
-      optim::projected_CG_method( As[i], bs[i], Gs[i], cs[i], x, 100, 1e-8 );
+      optim::projected_CG_method(As[i], bs[i], Gs[i], cs[i], x, 100, 1e-8);
       std::cout << "  Projected CG method gives:\n"
-                << "    x = " << x << " with |Ax - b| = " << norm_2( As[i] * x - bs[i] ) << "\n"
-                << "    and with xGx + cx = " << ( 0.5 * ( x * Gs[i] ) * x + cs[i] * x )
-                << " so A(Gx + c) = " << ( As[i] * ( Gs[i] * x + cs[i] ) ) << std::endl;
-    } catch( std::exception& e ) {
-      std::cout << "  Projected CG method failed with error: " << e.what() << std::endl << "    x = " << x
-                << " with |Ax - b| = " << norm_2( As[i] * x - bs[i] ) << "\n"
-                << "    and with xGx + cx = " << ( 0.5 * ( x * Gs[i] ) * x + cs[i] * x )
-                << " so A(Gx + c) = " << ( As[i] * ( Gs[i] * x + cs[i] ) ) << std::endl;
+                << "    x = " << x
+                << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
+                << "    and with xGx + cx = "
+                << (0.5 * (x * Gs[i]) * x + cs[i] * x)
+                << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i]))
+                << std::endl;
+    } catch (std::exception& e) {
+      std::cout << "  Projected CG method failed with error: " << e.what()
+                << std::endl
+                << "    x = " << x
+                << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
+                << "    and with xGx + cx = "
+                << (0.5 * (x * Gs[i]) * x + cs[i] * x)
+                << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i]))
+                << std::endl;
     };
 
     x = xs[i];
     try {
-      optim::mehrotra_QP_method( mat< double, mat_structure::rectangular >( 0, 3 ), vect_n< double >( 0 ), Gs[i], cs[i],
-                                 As[i], bs[i], x, 100, 1e-8 );
+      optim::mehrotra_QP_method(mat<double, mat_structure::rectangular>(0, 3),
+                                vect_n<double>(0), Gs[i], cs[i], As[i], bs[i],
+                                x, 100, 1e-8);
       std::cout << "  Mehrotra QP method gives:\n"
-                << "    x = " << x << " with |Ax - b| = " << norm_2( As[i] * x - bs[i] ) << "\n"
-                << "    and with xGx + cx = " << ( 0.5 * ( x * Gs[i] ) * x + cs[i] * x )
-                << " so A(Gx + c) = " << ( As[i] * ( Gs[i] * x + cs[i] ) ) << std::endl;
-    } catch( std::exception& e ) {
-      std::cout << "  Mehrotra QP method failed with error: " << e.what() << std::endl << "    x = " << x
-                << " with |Ax - b| = " << norm_2( As[i] * x - bs[i] ) << "\n"
-                << "    and with xGx + cx = " << ( 0.5 * ( x * Gs[i] ) * x + cs[i] * x )
-                << " so A(Gx + c) = " << ( As[i] * ( Gs[i] * x + cs[i] ) ) << std::endl;
+                << "    x = " << x
+                << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
+                << "    and with xGx + cx = "
+                << (0.5 * (x * Gs[i]) * x + cs[i] * x)
+                << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i]))
+                << std::endl;
+    } catch (std::exception& e) {
+      std::cout << "  Mehrotra QP method failed with error: " << e.what()
+                << std::endl
+                << "    x = " << x
+                << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
+                << "    and with xGx + cx = "
+                << (0.5 * (x * Gs[i]) * x + cs[i] * x)
+                << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i]))
+                << std::endl;
     };
 
-
-    std::cout << "****************************************************************************************"
+    std::cout << "*************************************************************"
+                 "***************************"
               << std::endl;
   };
-
 
   return 0;
 };

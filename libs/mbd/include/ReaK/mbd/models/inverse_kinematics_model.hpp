@@ -38,10 +38,7 @@
 #include <ReaK/mbd/kte/jacobian_joint_map.hpp>
 #include "direct_kinematics_model.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This base-class represents a class that can be used to compute the inverse kinematics
@@ -52,16 +49,17 @@ namespace kte {
  * on the joint states of a kinematic chain.
  */
 class inverse_kinematics_model : public direct_kinematics_model {
-public:
+ public:
   /**
    * Default constructor.
    */
-  inverse_kinematics_model( const std::string& aName = "" ) : direct_kinematics_model( aName ){};
+  explicit inverse_kinematics_model(const std::string& aName = "")
+      : direct_kinematics_model(aName) {}
 
   /**
    * Default destructor.
    */
-  virtual ~inverse_kinematics_model(){};
+  ~inverse_kinematics_model() override = default;
 
   /**
    * This function performs the inverse-kinematics computation. In other words, prior to
@@ -69,7 +67,7 @@ public:
    * Then, this function is called and will fill the joint coordinates with the necessary
    * values to obtained the desired motion on the dependent coordinates (e.g., end-effector).
    */
-  virtual void doInverseMotion(){};
+  virtual void doInverseMotion() {}
 
   /**
    * Set all the dependent positions of the manipulator to a vector of concatenated dependent positions.
@@ -82,7 +80,7 @@ public:
    * the position (and orientation) of the 3D dependent frames.
    * \param aDepPositions All the dependent positions concatenated into one vector.
    */
-  virtual void setDependentPositions( const vect_n< double >& aDepPositions ){};
+  virtual void setDependentPositions(const vect_n<double>& aDepPositions) {}
 
   /**
    * Set all the dependent velocities of the manipulator to a vector of concatenated dependent velocities.
@@ -95,7 +93,7 @@ public:
    * the velocity (and ang. vel.) of the 3D dependent frames.
    * \param aDepVelocities All the dependent velocities concatenated into one vector.
    */
-  virtual void setDependentVelocities( const vect_n< double >& aDepVelocities ){};
+  virtual void setDependentVelocities(const vect_n<double>& aDepVelocities) {}
 
   /**
    * Set all the dependent accelerations of the manipulator to a vector of concatenated dependent accelerations.
@@ -108,21 +106,25 @@ public:
    * the acceleration (and ang. acc.) of the 3D dependent frames.
    * \param aDepAccelerations All the dependent accelerations concatenated into one vector.
    */
-  virtual void setDependentAccelerations( const vect_n< double >& aDepAccelerations ){};
+  virtual void setDependentAccelerations(
+      const vect_n<double>& aDepAccelerations) {}
 
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    direct_kinematics_model::save(
+        A, direct_kinematics_model::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    direct_kinematics_model::save( A, direct_kinematics_model::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    direct_kinematics_model::load(
+        A, direct_kinematics_model::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    direct_kinematics_model::load( A, direct_kinematics_model::getStaticObjectType()->TypeVersion() );
-  };
-
-  RK_RTTI_MAKE_CONCRETE_1BASE( inverse_kinematics_model, 0xC2100050, 1, "inverse_kinematics_model",
-                               direct_kinematics_model )
+  RK_RTTI_MAKE_CONCRETE_1BASE(inverse_kinematics_model, 0xC2100050, 1,
+                              "inverse_kinematics_model",
+                              direct_kinematics_model)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

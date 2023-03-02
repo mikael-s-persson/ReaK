@@ -36,14 +36,13 @@
 #include <ReaK/core/base/serializable.hpp>
 
 #include <cmath>
+#include <type_traits>
+
 #include <ReaK/math/lin_alg/vect_concepts.hpp>
 
 #include "metric_space_concept.hpp"
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class is a Manhattan distance metric functor which models the DistanceMetricConcept.
@@ -53,10 +52,10 @@ namespace pp {
  */
 struct manhattan_distance_metric : public serializable {
 
-  manhattan_distance_metric(){};
+  manhattan_distance_metric() = default;
 
-  template < typename Topology >
-  manhattan_distance_metric( const Topology& ){};
+  template <typename Topology>
+  explicit manhattan_distance_metric(const Topology& /*unused*/) {}
 
   /**
    * This function returns the norm of a difference between two points on a topology.
@@ -65,16 +64,16 @@ struct manhattan_distance_metric : public serializable {
    * \param a The point-difference.
    * \return The norm of the difference between two points on a topology.
    */
-  template < typename PointDiff, typename Topology >
-  typename boost::enable_if< ReaK::is_readable_vector< PointDiff >, double >::type operator()( const PointDiff& a,
-                                                                                               const Topology& ) const {
-    typedef typename ReaK::vect_traits< PointDiff >::size_type SizeType;
-    using std::fabs;
+  template <typename PointDiff, typename Topology>
+  double operator()(const PointDiff& a, const Topology& /*unused*/) const {
+    static_assert(is_readable_vector_v<PointDiff>);
+    using std::abs;
     double result = 0.0;
-    for( SizeType i = 0; i < a.size(); ++i )
-      result += fabs( a[i] );
+    for (int i = 0; i < a.size(); ++i) {
+      result += abs(a[i]);
+    }
     return result;
-  };
+  }
 
   /**
    * This function returns the distance between two points on a topology.
@@ -85,24 +84,25 @@ struct manhattan_distance_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The distance between two points on a topology.
    */
-  template < typename Point, typename Topology >
-  double operator()( const Point& a, const Point& b, const Topology& s ) const {
-    return this->operator()( s.difference( a, b ), s );
-  };
+  template <typename Point, typename Topology>
+  double operator()(const Point& a, const Point& b, const Topology& s) const {
+    return this->operator()(s.difference(a, b), s);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( manhattan_distance_metric, 0xC2410001, 1, "manhattan_distance_metric", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(manhattan_distance_metric, 0xC2410001, 1,
+                              "manhattan_distance_metric", serializable)
 };
 
-typedef manhattan_distance_metric norm1_distance_metric;
-
+using norm1_distance_metric = manhattan_distance_metric;
 
 /**
  * This class is a Euclidean distance metric functor which models the DistanceMetricConcept.
@@ -112,10 +112,10 @@ typedef manhattan_distance_metric norm1_distance_metric;
  */
 struct euclidean_distance_metric : public serializable {
 
-  euclidean_distance_metric(){};
+  euclidean_distance_metric() = default;
 
-  template < typename Topology >
-  euclidean_distance_metric( const Topology& ){};
+  template <typename Topology>
+  explicit euclidean_distance_metric(const Topology& /*unused*/) {}
 
   /**
    * This function returns the norm of a difference between two points on a topology.
@@ -124,17 +124,16 @@ struct euclidean_distance_metric : public serializable {
    * \param a The point-difference.
    * \return The norm of the difference between two points on a topology.
    */
-  template < typename PointDiff, typename Topology >
-  typename boost::enable_if< ReaK::is_readable_vector< PointDiff >, double >::type operator()( const PointDiff& a,
-                                                                                               const Topology& ) const {
-    typedef typename ReaK::vect_traits< PointDiff >::size_type SizeType;
-    typedef typename ReaK::vect_traits< PointDiff >::value_type ValueType;
-    ValueType result = ValueType( 0 );
-    for( SizeType i = 0; i < a.size(); ++i )
+  template <typename PointDiff, typename Topology>
+  double operator()(const PointDiff& a, const Topology& /*unused*/) const {
+    static_assert(is_readable_vector_v<PointDiff>);
+    double result = 0.0;
+    for (int i = 0; i < a.size(); ++i) {
       result += a[i] * a[i];
+    }
     using std::sqrt;
-    return sqrt( result );
-  };
+    return sqrt(result);
+  }
 
   /**
    * This function returns the distance between two points on a topology.
@@ -145,24 +144,25 @@ struct euclidean_distance_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The distance between two points on a topology.
    */
-  template < typename Point, typename Topology >
-  double operator()( const Point& a, const Point& b, const Topology& s ) const {
-    return this->operator()( s.difference( a, b ), s );
-  };
+  template <typename Point, typename Topology>
+  double operator()(const Point& a, const Point& b, const Topology& s) const {
+    return this->operator()(s.difference(a, b), s);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( euclidean_distance_metric, 0xC2410002, 1, "euclidean_distance_metric", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(euclidean_distance_metric, 0xC2410002, 1,
+                              "euclidean_distance_metric", serializable)
 };
 
-typedef euclidean_distance_metric norm2_distance_metric;
-
+using norm2_distance_metric = euclidean_distance_metric;
 
 /**
  * This class is a Infinity-norm distance metric functor which models the DistanceMetricConcept.
@@ -172,10 +172,10 @@ typedef euclidean_distance_metric norm2_distance_metric;
  */
 struct inf_norm_distance_metric : public serializable {
 
-  inf_norm_distance_metric(){};
+  inf_norm_distance_metric() = default;
 
-  template < typename Topology >
-  inf_norm_distance_metric( const Topology& ){};
+  template <typename Topology>
+  explicit inf_norm_distance_metric(const Topology& /*unused*/) {}
 
   /**
    * This function returns the norm of a difference between two points on a topology.
@@ -184,18 +184,18 @@ struct inf_norm_distance_metric : public serializable {
    * \param a The point-difference.
    * \return The norm of the difference between two points on a topology.
    */
-  template < typename PointDiff, typename Topology >
-  typename boost::enable_if< ReaK::is_readable_vector< PointDiff >, double >::type operator()( const PointDiff& a,
-                                                                                               const Topology& ) const {
-    typedef typename ReaK::vect_traits< PointDiff >::size_type SizeType;
-    using std::fabs;
+  template <typename PointDiff, typename Topology>
+  double operator()(const PointDiff& a, const Topology& /*unused*/) const {
+    static_assert(is_readable_vector_v<PointDiff>);
+    using std::abs;
     double result = 0.0;
-    for( SizeType i = 0; i < a.size(); ++i ) {
-      if( result < fabs( a[i] ) )
-        result = fabs( a[i] );
-    };
+    for (int i = 0; i < a.size(); ++i) {
+      if (result < abs(a[i])) {
+        result = abs(a[i]);
+      }
+    }
     return result;
-  };
+  }
 
   /**
    * This function returns the distance between two points on a topology.
@@ -206,22 +206,23 @@ struct inf_norm_distance_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The distance between two points on a topology.
    */
-  template < typename Point, typename Topology >
-  double operator()( const Point& a, const Point& b, const Topology& s ) const {
-    return this->operator()( s.difference( a, b ), s );
-  };
+  template <typename Point, typename Topology>
+  double operator()(const Point& a, const Point& b, const Topology& s) const {
+    return this->operator()(s.difference(a, b), s);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( inf_norm_distance_metric, 0xC2410003, 1, "inf_norm_distance_metric", serializable )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(inf_norm_distance_metric, 0xC2410003, 1,
+                              "inf_norm_distance_metric", serializable)
 };
-
 
 /**
  * This class is a Euclidean distance metric functor which models the DistanceMetricConcept.
@@ -233,11 +234,11 @@ struct p_norm_distance_metric : public serializable {
 
   int p_value;
 
-  p_norm_distance_metric( int aP = 2 ) : p_value( aP ){};
+  explicit p_norm_distance_metric(int aP = 2) : p_value(aP) {}
 
-  template < typename Topology >
-  p_norm_distance_metric( const Topology&, int aP = 2 )
-      : p_value( aP ){};
+  template <typename Topology>
+  explicit p_norm_distance_metric(const Topology& /*unused*/, int aP = 2)
+      : p_value(aP) {}
 
   /**
    * This function returns the norm of a difference between two points on a topology.
@@ -246,17 +247,17 @@ struct p_norm_distance_metric : public serializable {
    * \param a The point-difference.
    * \return The norm of the difference between two points on a topology.
    */
-  template < typename PointDiff, typename Topology >
-  typename boost::enable_if< ReaK::is_readable_vector< PointDiff >, double >::type operator()( const PointDiff& a,
-                                                                                               const Topology& ) const {
-    typedef typename ReaK::vect_traits< PointDiff >::size_type SizeType;
+  template <typename PointDiff, typename Topology>
+  double operator()(const PointDiff& a, const Topology& /*unused*/) const {
+    static_assert(is_readable_vector_v<PointDiff>);
+    using std::abs;
     using std::pow;
-    using std::fabs;
     double result = 0.0;
-    for( SizeType i = 0; i < a.size(); ++i )
-      result += pow( fabs( a[i] ), p_value );
-    return pow( result, 1.0 / p_value );
-  };
+    for (int i = 0; i < a.size(); ++i) {
+      result += pow(abs(a[i]), p_value);
+    }
+    return pow(result, 1.0 / p_value);
+  }
 
   /**
    * This function returns the distance between two points on a topology.
@@ -267,25 +268,28 @@ struct p_norm_distance_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The distance between two points on a topology.
    */
-  template < typename Point, typename Topology >
-  double operator()( const Point& a, const Point& b, const Topology& s ) const {
-    return this->operator()( s.difference( a, b ), s );
-  };
+  template <typename Point, typename Topology>
+  double operator()(const Point& a, const Point& b, const Topology& s) const {
+    return this->operator()(s.difference(a, b), s);
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    A& RK_SERIAL_SAVE_WITH_NAME( p_value );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    A& RK_SERIAL_SAVE_WITH_NAME(p_value);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) { A& RK_SERIAL_LOAD_WITH_NAME( p_value ); };
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
+    A& RK_SERIAL_LOAD_WITH_NAME(p_value);
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( p_norm_distance_metric, 0xC2410004, 1, "p_norm_distance_metric", serializable )
-};
-};
+  RK_RTTI_MAKE_ABSTRACT_1BASE(p_norm_distance_metric, 0xC2410004, 1,
+                              "p_norm_distance_metric", serializable)
 };
 
+}  // namespace ReaK::pp
 
 #endif

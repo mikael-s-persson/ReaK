@@ -36,65 +36,55 @@
 #include <ReaK/core/base/named_object.hpp>
 
 #include <ReaK/topologies/spaces/Ndof_spaces.hpp>
-#include <ReaK/topologies/spaces/manip_free_workspace.hpp>
 #include <ReaK/topologies/spaces/manip_free_dynamic_workspace.hpp>
+#include <ReaK/topologies/spaces/manip_free_workspace.hpp>
 
 #include <ReaK/planning/path_planning/rrt_path_planner.hpp>
 
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
-namespace ReaK {
-
-namespace pp {
+namespace ReaK::pp {
 
 // extern template class rrt_planner<WORKSPACE>;
 
+#define RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(NDOF) \
+  extern template class rrt_planner<                              \
+      manip_quasi_static_env<Ndof_rl_space_t<double, NDOF, 0>>>;  \
+  extern template class rrt_planner<                              \
+      manip_quasi_static_env<Ndof_rl_space_t<double, NDOF, 1>>>;  \
+  extern template class rrt_planner<                              \
+      manip_quasi_static_env<Ndof_rl_space_t<double, NDOF, 2>>>;
 
-#define RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( NDOF )                                               \
-  extern template class rrt_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 0 >::type > >; \
-  extern template class rrt_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 1 >::type > >; \
-  extern template class rrt_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 2 >::type > >;
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(0)
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(1)
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(2)
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(3)
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(4)
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(5)
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(6)
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(7)
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(8)
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(9)
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(10)
 
+#define RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(NDOF) \
+  extern template class rrt_planner<                               \
+      manip_dynamic_env<Ndof_rl_space_t<double, NDOF, 0>>>;        \
+  extern template class rrt_planner<                               \
+      manip_dynamic_env<Ndof_rl_space_t<double, NDOF, 1>>>;        \
+  extern template class rrt_planner<                               \
+      manip_dynamic_env<Ndof_rl_space_t<double, NDOF, 2>>>;
 
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 0 )
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 1 )
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 2 )
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 3 )
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 4 )
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 5 )
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 6 )
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 7 )
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 8 )
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 9 )
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 10 )
+RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(0)
+RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(1)
+RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(2)
+RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(3)
+RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(4)
+RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(5)
+RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(6)
+RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(7)
+RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(8)
+RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(9)
+RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(10)
 
-
-#define RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( NDOF )                                         \
-  extern template class rrt_planner< manip_dynamic_env< typename Ndof_rl_space< double, NDOF, 0 >::type > >; \
-  extern template class rrt_planner< manip_dynamic_env< typename Ndof_rl_space< double, NDOF, 1 >::type > >; \
-  extern template class rrt_planner< manip_dynamic_env< typename Ndof_rl_space< double, NDOF, 2 >::type > >;
-
-
-RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 0 )
-RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 1 )
-RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 2 )
-RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 3 )
-RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 4 )
-RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 5 )
-RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 6 )
-RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 7 )
-RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 8 )
-RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 9 )
-RK_RRT_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 10 )
-};
-};
-
-#else
-
-#include <ReaK/planning/path_planning/rrt_path_planner.tpp>
-
-#endif
-
+}  // namespace ReaK::pp
 
 #endif

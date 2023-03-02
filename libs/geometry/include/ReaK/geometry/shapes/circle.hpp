@@ -34,35 +34,30 @@
 
 #include "shape_2D.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
+namespace ReaK::geom {
 
 /** This class represents a circle. */
 class circle : public shape_2D {
-protected:
+ protected:
   double mRadius;
 
-public:
+ public:
   /**
    * This function returns the maximum radius of the shape (radius of the circle that bounds the shape).
    * \return The maximum radius of the shape.
    */
-  virtual double getBoundingRadius() const;
+  double getBoundingRadius() const override;
 
   /**
    * This function returns the radius of the circle.
    * \return The radius of the circle.
    */
-  double getRadius() const { return mRadius; };
+  double getRadius() const { return mRadius; }
   /**
    * This function sets the radius of the circle.
    * \param aRadius The new radius for the circle.
    */
-  void setRadius( double aRadius ) { mRadius = aRadius; };
+  void setRadius(double aRadius) { mRadius = aRadius; }
 
   /**
    * Default constructor.
@@ -71,27 +66,29 @@ public:
    * \param aPose The pose of the geometry (relative to the anchor).
    * \param aRadius The radius of the circle.
    */
-  circle( const std::string& aName = "",
-          const shared_ptr< pose_2D< double > >& aAnchor = shared_ptr< pose_2D< double > >(),
-          const pose_2D< double >& aPose = pose_2D< double >(), double aRadius = 1.0 );
+  explicit circle(const std::string& aName = "",
+                  const std::shared_ptr<pose_2D<double>>& aAnchor =
+                      std::shared_ptr<pose_2D<double>>(),
+                  const pose_2D<double>& aPose = pose_2D<double>(),
+                  double aRadius = 1.0);
 
   /**
    * Default destructor.
    */
-  virtual ~circle(){};
-
+  ~circle() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( circle, 0xC310000C, 1, "circle", shape_2D )
+  RK_RTTI_MAKE_CONCRETE_1BASE(circle, 0xC310000C, 1, "circle", shape_2D)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

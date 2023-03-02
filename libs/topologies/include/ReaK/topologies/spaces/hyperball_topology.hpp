@@ -33,22 +33,21 @@
 #ifndef REAK_HYPERBALL_TOPOLOGY_HPP
 #define REAK_HYPERBALL_TOPOLOGY_HPP
 
-
 #include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
 #include <ReaK/core/base/global_rng.hpp>
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/math/lin_alg/vect_alg.hpp>
 #include <ReaK/math/lin_alg/vect_concepts.hpp>
 #include "metric_space_concept.hpp"
 
-#include "vector_topology.hpp"
 #include "default_random_sampler.hpp"
+#include "vector_topology.hpp"
 
 #include <cmath>
+#include <random>
+#include <type_traits>
 
-
-namespace ReaK {
-
-namespace pp {
+namespace ReaK::pp {
 
 /**
  * This library provides classes that define a hyper-ball vector-topology. A hyper-ball vector-topology is
@@ -57,27 +56,30 @@ namespace pp {
  * the SphereBoundedSpaceConcept, and the PointDistributionConcept.
  * \tparam Vector The vector-type for the topology, should model an Arithmetic concept and WritableVectorConcept.
  */
-template < typename Vector >
-class hyperball_topology : public vector_topology< Vector > {
-public:
-  typedef hyperball_topology< Vector > self;
+template <typename Vector>
+class hyperball_topology : public vector_topology<Vector> {
+ public:
+  using self = hyperball_topology<Vector>;
 
-  typedef Vector point_type;
-  typedef Vector point_difference_type;
+  using point_type = Vector;
+  using point_difference_type = Vector;
 
-  typedef default_distance_metric distance_metric_type;
-  typedef default_random_sampler random_sampler_type;
+  using distance_metric_type = default_distance_metric;
+  using random_sampler_type = default_random_sampler;
 
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = vect_traits< Vector >::dimensions );
+  static constexpr std::size_t dimensions = vect_traits<Vector>::dimensions;
 
-protected:
+ protected:
   point_type center_point;
   double radius_value;
 
-public:
-  hyperball_topology( const std::string& aName = "hyperball_topology", const point_type& aOrigin = point_type(),
-                      double aRadius = 1.0 )
-      : vector_topology< Vector >( aName ), center_point( aOrigin ), radius_value( aRadius ){};
+ public:
+  explicit hyperball_topology(const std::string& aName = "hyperball_topology",
+                              const point_type& aOrigin = point_type(),
+                              double aRadius = 1.0)
+      : vector_topology<Vector>(aName),
+        center_point(aOrigin),
+        radius_value(aRadius) {}
 
   /*************************************************************************
    *                             MetricSpaceConcept
@@ -86,14 +88,16 @@ public:
   /**
    * Returns the distance between two points.
    */
-  double distance( const point_type& a, const point_type& b ) const { return this->norm( this->difference( b, a ) ); }
+  double distance(const point_type& a, const point_type& b) const {
+    return this->norm(this->difference(b, a));
+  }
 
   /**
    * Returns the norm of the difference between two points.
    */
-  double norm( const point_difference_type& delta ) const {
+  double norm(const point_difference_type& delta) const {
     using std::sqrt;
-    double result = sqrt( delta * delta );
+    double result = sqrt(delta * delta);
     return result;
   }
 
@@ -105,27 +109,28 @@ public:
    * Generates a random point in the space, uniformly distributed.
    */
   point_type random_point() const {
+    using std::pow;
     using std::sqrt;
 
-    point_difference_type dp = this->difference( center_point, center_point );
-    if( dp.size() == 0 )
+    auto dp = this->difference(center_point, center_point);
+    if (dp.size() == 0) {
       return center_point;
+    }
 
-    double radial_dim_correction = double( dp.size() );
+    auto radial_dim_correction = double(dp.size());
 
-    boost::variate_generator< global_rng_type&,
-                              boost::normal_distribution< typename vect_traits< point_difference_type >::value_type > >
-      var_rnd( get_global_rng(),
-               boost::normal_distribution< typename vect_traits< point_difference_type >::value_type >() );
+    global_rng_type& rng = get_global_rng();
+    std::normal_distribution<std::decay_t<decltype(dp[0])>> var_rnd;
+    for (int i = 0; i < dp.size(); ++i) {
+      dp[i] = var_rnd(rng);
+    }
 
-    for( typename vect_traits< point_difference_type >::size_type i = 0; i < dp.size(); ++i )
-      dp[i] = var_rnd();
+    std::uniform_real_distribution<double> uniform_rng;
+    double factor = pow(uniform_rng(rng), 1.0 / radial_dim_correction) *
+                    radius_value / sqrt(dp * dp);
 
-    double factor = std::pow( boost::uniform_01< global_rng_type&, double >( get_global_rng() )(),
-                              1.0 / radial_dim_correction ) * radius_value / sqrt( dp * dp );
-
-    return this->adjust( center_point, factor * dp );
-  };
+    return this->adjust(center_point, factor * dp);
+  }
 
   /*************************************************************************
    *                             BoundedSpaceConcept
@@ -134,37 +139,39 @@ public:
   /**
    * Takes a point and clips it to within this hyperball space.
    */
-  void bring_point_in_bounds( point_type& a ) const { a = this->adjust( a, this->get_diff_to_boundary( a ) ); };
+  void bring_point_in_bounds(point_type& a) const {
+    a = this->adjust(a, this->get_diff_to_boundary(a));
+  }
 
   /**
    * Returns the distance to the boundary of the space.
    */
-  double distance_from_boundary( const point_type& a ) const {
-    using std::fabs;
-    point_difference_type c2a = this->difference( a, center_point );
-    return fabs( radius_value - this->norm( c2a ) );
-  };
+  double distance_from_boundary(const point_type& a) const {
+    using std::abs;
+    auto c2a = this->difference(a, center_point);
+    return abs(radius_value - this->norm(c2a));
+  }
 
   /**
    * Returns the difference to the closest boundary.
    */
-  point_difference_type get_diff_to_boundary( const point_type& a ) const {
-    point_difference_type c2a = this->difference( a, center_point );
-    return ( radius_value - this->norm( c2a ) ) * c2a;
-  };
+  point_difference_type get_diff_to_boundary(const point_type& a) const {
+    auto c2a = this->difference(a, center_point);
+    return (radius_value - this->norm(c2a)) * c2a;
+  }
 
   /**
    * Tests if a given point is within the boundary of this space.
    */
-  bool is_in_bounds( const point_type& a ) const {
-    point_difference_type c2a = this->difference( a, center_point );
-    return radius_value >= this->norm( c2a );
-  };
+  bool is_in_bounds(const point_type& a) const override {
+    auto c2a = this->difference(a, center_point);
+    return radius_value >= this->norm(c2a);
+  }
 
   /**
    * Returns the origin of the space (the lower-limit).
    */
-  point_type origin() const { return center_point; };
+  point_type origin() const override { return center_point; }
 
   /*************************************************************************
    *                             SphereBoundedSpaceConcept
@@ -173,55 +180,46 @@ public:
   /**
    * Returns the radius of the space.
    */
-  double get_radius() const { return radius_value; };
-
+  double get_radius() const { return radius_value; }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    ReaK::named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( center_point ) & RK_SERIAL_SAVE_WITH_NAME( radius_value );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    ReaK::named_object::save(
+        A, named_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(center_point) &
+        RK_SERIAL_SAVE_WITH_NAME(radius_value);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    ReaK::named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( center_point ) & RK_SERIAL_LOAD_WITH_NAME( radius_value );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    ReaK::named_object::load(
+        A, named_object::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(center_point) &
+        RK_SERIAL_LOAD_WITH_NAME(radius_value);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2400008, 1, "hyperball_topology", vector_topology< Vector > )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400008, 1, "hyperball_topology",
+                              vector_topology<Vector>)
 };
 
-template < typename Vector >
-struct is_metric_space< hyperball_topology< Vector > > : boost::mpl::true_ {};
+template <typename Vector>
+struct is_metric_space<hyperball_topology<Vector>> : std::true_type {};
 
-template < typename Vector >
-struct is_reversible_space< hyperball_topology< Vector > > : boost::mpl::true_ {};
+template <typename Vector>
+struct is_reversible_space<hyperball_topology<Vector>> : std::true_type {};
 
-template < typename Vector >
-struct is_point_distribution< hyperball_topology< Vector > > : boost::mpl::true_ {};
-};
-};
+template <typename Vector>
+struct is_point_distribution<hyperball_topology<Vector>> : std::true_type {};
 
+extern template class hyperball_topology<vect<double, 2>>;
+extern template class hyperball_topology<vect<double, 3>>;
+extern template class hyperball_topology<vect<double, 4>>;
+extern template class hyperball_topology<vect<double, 6>>;
+extern template class hyperball_topology<vect_n<double>>;
 
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
-#include <ReaK/math/lin_alg/vect_alg.hpp>
-
-namespace ReaK {
-
-namespace pp {
-
-extern template class hyperball_topology< vect< double, 2 > >;
-extern template class hyperball_topology< vect< double, 3 > >;
-extern template class hyperball_topology< vect< double, 4 > >;
-extern template class hyperball_topology< vect< double, 6 > >;
-extern template class hyperball_topology< vect_n< double > >;
-};
-};
-
-#endif
-
+}  // namespace ReaK::pp
 
 #endif

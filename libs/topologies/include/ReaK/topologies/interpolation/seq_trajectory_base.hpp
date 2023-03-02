@@ -41,172 +41,190 @@
 
 #include <boost/concept_check.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class defines the OOP interface for a sequential trajectory in a temporal topology.
  * \tparam Topology The temporal topology type on which the points and the sequential trajectory can reside, should
  * model the TemporalSpaceConcept.
  */
-template < typename Topology >
+template <typename Topology>
 class seq_trajectory_base : public named_object {
-public:
-  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< Topology > ) );
+ public:
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
 
-  typedef Topology topology;
-  typedef typename topology_traits< topology >::point_type point_type;
-  typedef seq_trajectory_base< Topology > self;
+  using topology = Topology;
+  using point_type = typename topology_traits<topology>::point_type;
+  using self = seq_trajectory_base<Topology>;
 
-protected:
+ protected:
   struct point_time_iterator_impl {
 
     virtual ~point_time_iterator_impl(){};
 
-    virtual void move_by_time( double t ) = 0;
+    virtual void move_by_time(double t) = 0;
 
-    virtual bool is_equal_to( const point_time_iterator_impl* rhs ) const = 0;
+    virtual bool is_equal_to(const point_time_iterator_impl* rhs) const = 0;
 
     virtual point_type get_point() const = 0;
 
     virtual point_time_iterator_impl* clone() const = 0;
   };
 
-
   struct point_fraction_iterator_impl {
 
     virtual ~point_fraction_iterator_impl(){};
 
-    virtual void move_by_fraction( double f ) = 0;
+    virtual void move_by_fraction(double f) = 0;
 
-    virtual bool is_equal_to( const point_fraction_iterator_impl* rhs ) const = 0;
+    virtual bool is_equal_to(const point_fraction_iterator_impl* rhs) const = 0;
 
     virtual point_type get_point() const = 0;
 
     virtual point_fraction_iterator_impl* clone() const = 0;
   };
 
-
-public:
+ public:
   class point_time_iterator {
-  private:
+   private:
     point_time_iterator_impl* p_impl;
 
-  public:
-    point_time_iterator( point_time_iterator_impl* aPImpl = nullptr ) : p_impl( aPImpl ){};
+   public:
+    point_time_iterator(point_time_iterator_impl* aPImpl = nullptr)
+        : p_impl(aPImpl) {}
 
-    point_time_iterator( const point_time_iterator& rhs ) : p_impl( rhs.p_impl->clone() ){};
-    point_time_iterator( point_time_iterator&& rhs ) : p_impl( rhs.p_impl ) { rhs.p_impl = nullptr; };
-    friend void swap( point_time_iterator& rhs, point_time_iterator& lhs ) { std::swap( rhs.p_impl, lhs.p_impl ); };
-    point_time_iterator& operator=( point_time_iterator rhs ) {
-      swap( *this, rhs );
+    point_time_iterator(const point_time_iterator& rhs)
+        : p_impl(rhs.p_impl->clone()) {}
+    point_time_iterator(point_time_iterator&& rhs) : p_impl(rhs.p_impl) {
+      rhs.p_impl = nullptr;
+    }
+    friend void swap(point_time_iterator& rhs, point_time_iterator& lhs) {
+      std::swap(rhs.p_impl, lhs.p_impl);
+    }
+    point_time_iterator& operator=(point_time_iterator rhs) {
+      swap(*this, rhs);
       return *this;
-    };
-    ~point_time_iterator() { delete p_impl; };
+    }
+    ~point_time_iterator() { delete p_impl; }
 
-    friend point_time_iterator operator+( point_time_iterator lhs, double rhs ) {
-      lhs.p_impl->move_by_time( rhs );
+    friend point_time_iterator operator+(point_time_iterator lhs, double rhs) {
+      lhs.p_impl->move_by_time(rhs);
       return lhs;
-    };
+    }
 
-    friend point_time_iterator operator+( double lhs, point_time_iterator rhs ) {
-      rhs.p_impl->move_by_time( lhs );
+    friend point_time_iterator operator+(double lhs, point_time_iterator rhs) {
+      rhs.p_impl->move_by_time(lhs);
       return rhs;
-    };
+    }
 
-    friend point_time_iterator& operator+=( point_time_iterator& lhs, double rhs ) {
-      lhs.p_impl->move_by_time( rhs );
+    friend point_time_iterator& operator+=(point_time_iterator& lhs,
+                                           double rhs) {
+      lhs.p_impl->move_by_time(rhs);
       return lhs;
-    };
+    }
 
-    friend point_time_iterator operator-( point_time_iterator lhs, double rhs ) {
-      lhs.p_impl->move_by_time( -rhs );
+    friend point_time_iterator operator-(point_time_iterator lhs, double rhs) {
+      lhs.p_impl->move_by_time(-rhs);
       return lhs;
-    };
+    }
 
-    friend point_time_iterator& operator-=( point_time_iterator& lhs, double rhs ) {
-      lhs.p_impl->move_by_time( -rhs );
+    friend point_time_iterator& operator-=(point_time_iterator& lhs,
+                                           double rhs) {
+      lhs.p_impl->move_by_time(-rhs);
       return lhs;
-    };
+    }
 
-    friend bool operator==( const point_time_iterator& lhs, const point_time_iterator& rhs ) {
-      return lhs.p_impl->is_equal_to( rhs.p_impl );
-    };
+    friend bool operator==(const point_time_iterator& lhs,
+                           const point_time_iterator& rhs) {
+      return lhs.p_impl->is_equal_to(rhs.p_impl);
+    }
 
-    friend bool operator!=( const point_time_iterator& lhs, const point_time_iterator& rhs ) {
-      return !( lhs.p_impl->is_equal_to( rhs.p_impl ) );
-    };
+    friend bool operator!=(const point_time_iterator& lhs,
+                           const point_time_iterator& rhs) {
+      return !(lhs.p_impl->is_equal_to(rhs.p_impl));
+    }
 
-    point_type operator*() const { return p_impl->get_point(); };
+    point_type operator*() const { return p_impl->get_point(); }
   };
-
 
   class point_fraction_iterator {
-  private:
+   private:
     point_fraction_iterator_impl* p_impl;
 
-  public:
-    point_fraction_iterator( point_fraction_iterator_impl* aPImpl = nullptr ) : p_impl( aPImpl ){};
+   public:
+    point_fraction_iterator(point_fraction_iterator_impl* aPImpl = nullptr)
+        : p_impl(aPImpl) {}
 
-    point_fraction_iterator( const point_fraction_iterator& rhs ) : p_impl( rhs.p_impl->clone() ){};
-    point_fraction_iterator( point_fraction_iterator&& rhs ) : p_impl( rhs.p_impl ) { rhs.p_impl = nullptr; };
-    friend void swap( point_fraction_iterator& rhs, point_fraction_iterator& lhs ) {
-      std::swap( rhs.p_impl, lhs.p_impl );
-    };
-    point_fraction_iterator& operator=( point_fraction_iterator rhs ) {
-      swap( *this, rhs );
+    point_fraction_iterator(const point_fraction_iterator& rhs)
+        : p_impl(rhs.p_impl->clone()) {}
+    point_fraction_iterator(point_fraction_iterator&& rhs)
+        : p_impl(rhs.p_impl) {
+      rhs.p_impl = nullptr;
+    }
+    friend void swap(point_fraction_iterator& rhs,
+                     point_fraction_iterator& lhs) {
+      std::swap(rhs.p_impl, lhs.p_impl);
+    }
+    point_fraction_iterator& operator=(point_fraction_iterator rhs) {
+      swap(*this, rhs);
       return *this;
-    };
-    ~point_fraction_iterator() { delete p_impl; };
+    }
+    ~point_fraction_iterator() { delete p_impl; }
 
-    friend point_fraction_iterator operator+( point_fraction_iterator lhs, double rhs ) {
-      lhs.p_impl->move_by_fraction( rhs );
+    friend point_fraction_iterator operator+(point_fraction_iterator lhs,
+                                             double rhs) {
+      lhs.p_impl->move_by_fraction(rhs);
       return lhs;
-    };
+    }
 
-    friend point_fraction_iterator operator+( double lhs, point_fraction_iterator rhs ) {
-      rhs.p_impl->move_by_fraction( lhs );
+    friend point_fraction_iterator operator+(double lhs,
+                                             point_fraction_iterator rhs) {
+      rhs.p_impl->move_by_fraction(lhs);
       return rhs;
-    };
+    }
 
-    friend point_fraction_iterator& operator+=( point_fraction_iterator& lhs, double rhs ) {
-      lhs.p_impl->move_by_fraction( rhs );
+    friend point_fraction_iterator& operator+=(point_fraction_iterator& lhs,
+                                               double rhs) {
+      lhs.p_impl->move_by_fraction(rhs);
       return lhs;
-    };
+    }
 
-    friend point_fraction_iterator operator-( point_fraction_iterator lhs, double rhs ) {
-      lhs.p_impl->move_by_fraction( -rhs );
+    friend point_fraction_iterator operator-(point_fraction_iterator lhs,
+                                             double rhs) {
+      lhs.p_impl->move_by_fraction(-rhs);
       return lhs;
-    };
+    }
 
-    friend point_fraction_iterator& operator-=( point_fraction_iterator& lhs, double rhs ) {
-      lhs.p_impl->move_by_fraction( -rhs );
+    friend point_fraction_iterator& operator-=(point_fraction_iterator& lhs,
+                                               double rhs) {
+      lhs.p_impl->move_by_fraction(-rhs);
       return lhs;
-    };
+    }
 
-    friend bool operator==( const point_fraction_iterator& lhs, const point_fraction_iterator& rhs ) {
-      return lhs.p_impl->is_equal_to( rhs.p_impl );
-    };
+    friend bool operator==(const point_fraction_iterator& lhs,
+                           const point_fraction_iterator& rhs) {
+      return lhs.p_impl->is_equal_to(rhs.p_impl);
+    }
 
-    friend bool operator!=( const point_fraction_iterator& lhs, const point_fraction_iterator& rhs ) {
-      return !( lhs.p_impl->is_equal_to( rhs.p_impl ) );
-    };
+    friend bool operator!=(const point_fraction_iterator& lhs,
+                           const point_fraction_iterator& rhs) {
+      return !(lhs.p_impl->is_equal_to(rhs.p_impl));
+    }
 
-    point_type operator*() const { return p_impl->get_point(); };
+    point_type operator*() const { return p_impl->get_point(); }
   };
 
-
-public:
+ public:
   /**
    * Constructs the trajectory from a space, assumes the start and end are at the origin
    * of the space.
    * \param aName The name for this object.
    */
-  explicit seq_trajectory_base( const std::string& aName = "" ) : named_object() { setName( aName ); };
+  explicit seq_trajectory_base(const std::string& aName = "") : named_object() {
+    setName(aName);
+  }
 
-  virtual ~seq_trajectory_base(){};
+  virtual ~seq_trajectory_base() {}
 
   /**
    * Returns the starting time-iterator along the path.
@@ -238,23 +256,25 @@ public:
    * \param b The second point.
    * \return The travel distance between two points if traveling along the path.
    */
-  virtual double travel_distance( const point_type& a, const point_type& b ) const = 0;
+  virtual double travel_distance(const point_type& a,
+                                 const point_type& b) const = 0;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
+  void load(serialization::iarchive& A, unsigned int) override {
+    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC2440014, 1, "seq_trajectory_base", named_object )
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2440014, 1, "seq_trajectory_base",
+                              named_object)
 };
-};
-};
+
+}  // namespace ReaK::pp
 
 #endif

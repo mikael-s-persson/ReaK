@@ -43,123 +43,127 @@
 
 #include <vector>
 
-namespace ReaK {
-
-
-namespace optim {
-
+namespace ReaK::optim {
 
 namespace detail {
 
-
-template < typename Matrix, typename Vector, typename T >
-void simplex_method_loop_impl( const Matrix& A, Matrix& B, const Vector& c, Vector& c_B, Vector& x, const Vector& l,
-                               const Vector& u, std::vector< typename vect_traits< Vector >::size_type >& i_b,
-                               std::vector< typename vect_traits< Vector >::size_type >& i_n, T tol ) {
-  typedef typename vect_traits< Vector >::value_type ValueType;
-  typedef typename vect_traits< Vector >::size_type SizeType;
+template <typename Matrix, typename Vector, typename T>
+void simplex_method_loop_impl(const Matrix& A, Matrix& B, const Vector& c,
+                              Vector& c_B, Vector& x, const Vector& l,
+                              const Vector& u, std::vector<int>& i_b,
+                              std::vector<int>& i_n, T tol) {
+  using ValueType = vect_value_type_t<Vector>;
   using std::swap;
 
-  SizeType N = i_n.size();
-  SizeType M = A.get_row_count();
+  int N = i_n.size();
+  int M = A.get_row_count();
 
-  Matrix B_Q( M, M );
-  Matrix B_R( M, M );
-  decompose_QR( B, B_Q, B_R, tol );
+  Matrix B_Q(M, M);
+  Matrix B_R(M, M);
+  decompose_QR(B, B_Q, B_R, tol);
 
-  while( true ) {
+  while (true) {
     // Step 1
     Vector y = c_B * B_Q;
-    mat_vect_adaptor< Vector > y_mat( y );
-    ReaK::detail::backsub_R_impl( B_R, y_mat, tol );
+    mat_vect_adaptor<Vector> y_mat(y);
+    ReaK::detail::backsub_R_impl(B_R, y_mat, tol);
 
     // Step 2
     ValueType sum;
-    SizeType enter_var = N;
-    for( SizeType i = 0; i < N; ++i ) {
-      sum = y * slice( A )( range( SizeType( 0 ), M ), i_n[i] );
-      if( ( ( sum < c[i_n[i]] ) && ( x[i_n[i]] < u[i_n[i]] ) )
-          || ( ( sum > c[i_n[i]] ) && ( x[i_n[i]] > l[i_n[i]] ) ) ) {
+    int enter_var = N;
+    for (int i = 0; i < N; ++i) {
+      sum = y * slice(A)(range(int(0), M), i_n[i]);
+      if (((sum < c[i_n[i]]) && (x[i_n[i]] < u[i_n[i]])) ||
+          ((sum > c[i_n[i]]) && (x[i_n[i]] > l[i_n[i]]))) {
         enter_var = i;
         break;
-      };
-    };
-    if( enter_var == N )
+      }
+    }
+    if (enter_var == N) {
       return;
+    }
     // Step 3
-    y = slice( A )( range( SizeType( 0 ), M ), i_n[enter_var] );
+    y = slice(A)(range(int(0), M), i_n[enter_var]);
     y = y * B_Q;
-    ReaK::detail::backsub_R_impl( B_R, y_mat, tol );
+    ReaK::detail::backsub_R_impl(B_R, y_mat, tol);
     // Step 4
-    if( sum < c[i_n[enter_var]] ) {
-      ValueType t_max = std::numeric_limits< ValueType >::infinity();
-      SizeType leave_var = 0;
-      for( SizeType i = 0; i < M; ++i ) {
-        if( y[i] > 0.0 ) {
-          if( t_max * y[i] > x[i_b[i]] - l[i_b[i]] ) {
-            t_max = ( x[i_b[i]] - l[i_b[i]] ) / y[i];
+    if (sum < c[i_n[enter_var]]) {
+      ValueType t_max = std::numeric_limits<ValueType>::infinity();
+      int leave_var = 0;
+      for (int i = 0; i < M; ++i) {
+        if (y[i] > 0.0) {
+          if (t_max * y[i] > x[i_b[i]] - l[i_b[i]]) {
+            t_max = (x[i_b[i]] - l[i_b[i]]) / y[i];
             leave_var = i;
-          };
-        } else if( y[i] < 0.0 ) {
-          if( t_max * y[i] < x[i_b[i]] - u[i_b[i]] ) {
-            t_max = ( x[i_b[i]] - u[i_b[i]] ) / y[i];
+          }
+        } else if (y[i] < 0.0) {
+          if (t_max * y[i] < x[i_b[i]] - u[i_b[i]]) {
+            t_max = (x[i_b[i]] - u[i_b[i]]) / y[i];
             leave_var = i;
-          };
-        };
-      };
-      if( t_max > u[i_n[enter_var]] - x[i_n[enter_var]] ) {
+          }
+        }
+      }
+      if (t_max > u[i_n[enter_var]] - x[i_n[enter_var]]) {
         t_max = u[i_n[enter_var]] - x[i_n[enter_var]];
         x[i_n[enter_var]] = u[i_n[enter_var]];
-        for( SizeType i = 0; i < M; ++i )
+        for (int i = 0; i < M; ++i) {
           x[i_b[i]] -= t_max * y[i];
+        }
         continue;
-      } else if( t_max != std::numeric_limits< ValueType >::infinity() ) {
+      } else if (t_max != std::numeric_limits<ValueType>::infinity()) {
         x[i_n[enter_var]] += t_max;
-        for( SizeType i = 0; i < M; ++i )
+        for (int i = 0; i < M; ++i) {
           x[i_b[i]] -= t_max * y[i];
-        slice( B )( range( SizeType( 0 ), M ), leave_var ) = slice( A )( range( SizeType( 0 ), M ), i_n[enter_var] );
-        decompose_QR( B, B_Q, B_R, tol );
+        }
+        slice(B)(range(0, M), leave_var) =
+            slice(A)(range(0, M), i_n[enter_var]);
+        decompose_QR(B, B_Q, B_R, tol);
         c_B[leave_var] = c[i_n[enter_var]];
-        swap( i_b[leave_var], i_n[enter_var] );
-      } else
-        throw unbounded_problem( "Simplex method failed due to an unbounded search domain!" );
-    } else if( sum > c[i_n[enter_var]] ) {
-      ValueType t_max = std::numeric_limits< ValueType >::infinity();
-      SizeType leave_var = 0;
-      for( SizeType i = 0; i < M; ++i ) {
-        if( y[i] > 0.0 ) {
-          if( t_max * y[i] > u[i_b[i]] - x[i_b[i]] ) {
-            t_max = ( u[i_b[i]] - x[i_b[i]] ) / y[i];
+        swap(i_b[leave_var], i_n[enter_var]);
+      } else {
+        throw unbounded_problem(
+            "Simplex method failed due to an unbounded search domain!");
+      }
+    } else if (sum > c[i_n[enter_var]]) {
+      ValueType t_max = std::numeric_limits<ValueType>::infinity();
+      int leave_var = 0;
+      for (int i = 0; i < M; ++i) {
+        if (y[i] > 0.0) {
+          if (t_max * y[i] > u[i_b[i]] - x[i_b[i]]) {
+            t_max = (u[i_b[i]] - x[i_b[i]]) / y[i];
             leave_var = i;
-          };
-        } else if( y[i] < 0.0 ) {
-          if( t_max * y[i] < l[i_b[i]] - x[i_b[i]] ) {
-            t_max = ( l[i_b[i]] - x[i_b[i]] ) / y[i];
+          }
+        } else if (y[i] < 0.0) {
+          if (t_max * y[i] < l[i_b[i]] - x[i_b[i]]) {
+            t_max = (l[i_b[i]] - x[i_b[i]]) / y[i];
             leave_var = i;
-          };
-        };
-      };
-      if( t_max > x[i_n[enter_var]] - l[i_n[enter_var]] ) {
+          }
+        }
+      }
+      if (t_max > x[i_n[enter_var]] - l[i_n[enter_var]]) {
         t_max = x[i_n[enter_var]] - l[i_n[enter_var]];
         x[i_n[enter_var]] = l[i_n[enter_var]];
-        for( SizeType i = 0; i < M; ++i )
+        for (int i = 0; i < M; ++i) {
           x[i_b[i]] += t_max * y[i];
+        }
         continue;
-      } else if( t_max != std::numeric_limits< ValueType >::infinity() ) {
+      } else if (t_max != std::numeric_limits<ValueType>::infinity()) {
         x[i_n[enter_var]] -= t_max;
-        for( SizeType i = 0; i < M; ++i )
+        for (int i = 0; i < M; ++i) {
           x[i_b[i]] += t_max * y[i];
-        slice( B )( range( SizeType( 0 ), M ), leave_var ) = slice( A )( range( SizeType( 0 ), M ), i_n[enter_var] );
-        decompose_QR( B, B_Q, B_R, tol );
+        }
+        slice(B)(range(0, M), leave_var) =
+            slice(A)(range(0, M), i_n[enter_var]);
+        decompose_QR(B, B_Q, B_R, tol);
         c_B[leave_var] = c[i_n[enter_var]];
-        swap( i_b[leave_var], i_n[enter_var] );
+        swap(i_b[leave_var], i_n[enter_var]);
       } else
-        throw unbounded_problem( "Simplex method failed due to an unbounded search domain!" );
-    };
-  };
-};
-};
-
+        throw unbounded_problem(
+            "Simplex method failed due to an unbounded search domain!");
+    }
+  }
+}
+}  // namespace detail
 
 /**
  * This function is an implementation of the general two-phase revised simplex
@@ -187,165 +191,179 @@ void simplex_method_loop_impl( const Matrix& A, Matrix& B, const Vector& c, Vect
  *
  * \author Mikael Persson
  */
-template < typename Matrix, typename Vector >
-void simplex_method( const Matrix& A, const Vector& b, const Vector& c, Vector& x0, const Vector& l, const Vector& u,
-                     typename vect_traits< Vector >::value_type tol
-                     = std::numeric_limits< typename vect_traits< Vector >::value_type >::epsilon() ) {
-  typedef typename vect_traits< Vector >::value_type ValueType;
-  typedef typename vect_traits< Vector >::size_type SizeType;
+template <typename Matrix, typename Vector>
+void simplex_method(
+    const Matrix& A, const Vector& b, const Vector& c, Vector& x0,
+    const Vector& l, const Vector& u,
+    vect_value_type_t<Vector> tol =
+        std::numeric_limits<vect_value_type_t<Vector>>::epsilon()) {
+  using ValueType = vect_value_type_t<Vector>;
+  using std::abs;
   using std::swap;
-  using std::fabs;
 
-  SizeType N = c.size();
-  SizeType M = b.size();
+  int N = c.size();
+  int M = b.size();
 
-  Vector x( N + M );
-  std::copy( x0.begin(), x0.end(), x.begin() );
+  Vector x(N + M);
+  std::copy(x0.begin(), x0.end(), x.begin());
 
   Vector b_G = b;
 
-  Vector c_G( N + M, 0.0 );
-  Vector c_B( M );
+  Vector c_G(N + M, 0.0);
+  Vector c_B(M);
 
-  Vector l_G( N + M );
-  Vector u_G( N + M );
-  std::copy( l.begin(), l.end(), l_G.begin() );
-  std::copy( u.begin(), u.end(), u_G.begin() );
+  Vector l_G(N + M);
+  Vector u_G(N + M);
+  std::copy(l.begin(), l.end(), l_G.begin());
+  std::copy(u.begin(), u.end(), u_G.begin());
 
-  Matrix A_G( M, N + M );
-  sub( A_G )( range( SizeType( 0 ), M ), range( SizeType( 0 ), N ) ) = A;
-  sub( A_G )( range( SizeType( 0 ), M ), range( N, N + M ) ) = mat< ValueType, mat_structure::identity >( M );
+  Matrix A_G(M, N + M);
+  sub(A_G)(range(0, M), range(0, N)) = A;
+  sub(A_G)(range(0, M), range(N, N + M)) =
+      mat<ValueType, mat_structure::identity>(M);
 
-  Matrix B = Matrix( mat< ValueType, mat_structure::identity >( M ) );
-  Matrix B_Q = Matrix( mat< ValueType, mat_structure::identity >( M ) );
-  Matrix B_R = Matrix( mat< ValueType, mat_structure::identity >( M ) );
+  Matrix B = Matrix(mat<ValueType, mat_structure::identity>(M));
+  Matrix B_Q = Matrix(mat<ValueType, mat_structure::identity>(M));
+  Matrix B_R = Matrix(mat<ValueType, mat_structure::identity>(M));
 
-  std::vector< SizeType > i_b( M );
-  for( SizeType i = 0; i < M; ++i )
+  std::vector<int> i_b(M);
+  for (int i = 0; i < M; ++i) {
     i_b[i] = i + N;
-  std::vector< SizeType > i_n( N );
-  for( SizeType i = 0; i < N; ++i )
+  }
+  std::vector<int> i_n(N);
+  for (int i = 0; i < N; ++i) {
     i_n[i] = i;
+  }
 
-  for( SizeType i = 0; i < N; ++i ) {
-    if( x[i] < l[i] )
+  for (int i = 0; i < N; ++i) {
+    if (x[i] < l[i]) {
       x[i] = l[i];
-    if( x[i] > u[i] )
+    }
+    if (x[i] > u[i]) {
       x[i] = u[i];
-  };
+    }
+  }
 
   bool FeasibleStart = true;
-  for( SizeType i = 0; i < M; ++i ) {
+  for (int i = 0; i < M; ++i) {
     x[N + i] = b_G[i];
-    for( SizeType j = 0; j < N; ++j )
-      x[N + i] -= A( i, j ) * x[j];
-    if( FeasibleStart )
-      FeasibleStart = ( fabs( x[N + i] ) < tol );
-    if( x[N + i] >= 0.0 ) {
+    for (int j = 0; j < N; ++j) {
+      x[N + i] -= A(i, j) * x[j];
+    }
+    if (FeasibleStart) {
+      FeasibleStart = (abs(x[N + i]) < tol);
+    }
+    if (x[N + i] >= 0.0) {
       l_G[N + i] = 0.0;
-      u_G[N + i] = std::numeric_limits< ValueType >::infinity();
+      u_G[N + i] = std::numeric_limits<ValueType>::infinity();
     } else {
-      l_G[N + i] = -std::numeric_limits< ValueType >::infinity();
+      l_G[N + i] = -std::numeric_limits<ValueType>::infinity();
       u_G[N + i] = 0.0;
-    };
+    }
     c_G[N + i] = -1.0;
     c_B[i] = -1.0;
-  };
+  }
 
-  if( !FeasibleStart ) {
+  if (!FeasibleStart) {
     // First-Phase
-    detail::simplex_method_loop_impl( A_G, B, c_G, c_B, x, l_G, u_G, i_b, i_n, tol );
+    detail::simplex_method_loop_impl(A_G, B, c_G, c_B, x, l_G, u_G, i_b, i_n,
+                                     tol);
 
     // Did the first phase succeed?
-    for( SizeType i = 0; i < M; ++i )
-      if( fabs( x[N + i] ) > tol )
-        throw infeasible_problem( "Simplex method failed due to an empty search domain! No feasible solution exists!" );
-  };
+    for (int i = 0; i < M; ++i) {
+      if (abs(x[N + i]) > tol) {
+        throw infeasible_problem(
+            "Simplex method failed due to an empty search domain! No feasible "
+            "solution exists!");
+      }
+    }
+  }
 
   // Getting Rid of the Artificial Variables
-  decompose_QR( B, B_Q, B_R, tol );
-  for( SizeType i = 0; i < M; ++i ) {
-    if( i_b[i] >= N ) {
+  decompose_QR(B, B_Q, B_R, tol);
+  for (int i = 0; i < M; ++i) {
+    if (i_b[i] >= N) {
       Vector y;
-      y = slice( A_G )( range( SizeType( 0 ), M ), i_b[i] );
+      y = slice(A_G)(range(0, M), i_b[i]);
       y = y * B_Q;
-      mat_vect_adaptor< Vector > y_mat( y );
-      ReaK::detail::backsub_R_impl( B_R, y_mat, tol );
-      for( SizeType j = 0; j < N; ++j ) {
-        ValueType sum = y * slice( A_G )( range( SizeType( 0 ), M ), i_n[j] );
-        if( ( sum != 0.0 ) && ( i_n[j] < N ) ) {
-          slice( B )( range( SizeType( 0 ), M ), i ) = slice( A_G )( range( SizeType( 0 ), M ), i_n[j] );
-          swap( i_b[i], i_n[j] );
+      mat_vect_adaptor<Vector> y_mat(y);
+      ReaK::detail::backsub_R_impl(B_R, y_mat, tol);
+      for (int j = 0; j < N; ++j) {
+        ValueType sum = y * slice(A_G)(range(0, M), i_n[j]);
+        if ((sum != 0.0) && (i_n[j] < N)) {
+          slice(B)(range(0, M), i) = slice(A_G)(range(0, M), i_n[j]);
+          swap(i_b[i], i_n[j]);
           break;
-        };
-      };
-      decompose_QR( B, B_Q, B_R, tol );
-    };
-  };
+        }
+      }
+      decompose_QR(B, B_Q, B_R, tol);
+    }
+  }
   // Getting Rid of the Redundant equations
-  SizeType RedundantCount = 0;
-  for( SizeType i = 0; i < M; ++i ) {
-    if( i_b[i] >= N ) {
+  int RedundantCount = 0;
+  for (int i = 0; i < M; ++i) {
+    if (i_b[i] >= N) {
       // Must Delete Redundant Equation
       ++RedundantCount;
       --M;
-      Matrix tempA( M, N );
-      Matrix tempB( M, M );
-      Vector tempb( M );
+      Matrix tempA(M, N);
+      Matrix tempB(M, M);
+      Vector tempb(M);
 
-      tempB = ( ( sub( B )( range( SizeType( 0 ), i_b[i] - N ), range( SizeType( 0 ), i ) )
-                  & sub( B )( range( SizeType( 0 ), i_b[i] - N ), range( i + 1, M + 1 ) ) )
-                | ( sub( B )( range( i_b[i] - N + 1, M + 1 ), range( SizeType( 0 ), i ) )
-                    & sub( B )( range( i_b[i] - N + 1, M + 1 ), range( i + 1, M + 1 ) ) ) );
+      tempB = ((sub(B)(range(0, i_b[i] - N), range(0, i)) &
+                sub(B)(range(0, i_b[i] - N), range(i + 1, M + 1))) |
+               (sub(B)(range(i_b[i] - N + 1, M + 1), range(0, i)) &
+                sub(B)(range(i_b[i] - N + 1, M + 1), range(i + 1, M + 1))));
 
-      tempA = ( ( sub( A_G )( range( SizeType( 0 ), i_b[i] - N ), range( SizeType( 0 ), N ) ) )
-                | ( sub( A_G )( range( i_b[i] - N + 1, M + 1 ), range( SizeType( 0 ), N ) ) ) );
+      tempA = ((sub(A_G)(range(0, i_b[i] - N), range(0, N))) |
+               (sub(A_G)(range(i_b[i] - N + 1, M + 1), range(0, N))));
 
-      std::copy( b_G.begin(), b_G.begin() + i_b[i] - N, tempb.begin() );
-      std::copy( b_G.begin() + i_b[i] - N + 1, b_G.end(), tempb.begin() + i_b[i] - N );
-      swap( tempb, b_G );
-      swap( tempA, A_G );
-      swap( tempB, B );
-    };
-  };
-  decompose_QR( B, B_Q, B_R, tol );
+      std::copy(b_G.begin(), b_G.begin() + i_b[i] - N, tempb.begin());
+      std::copy(b_G.begin() + i_b[i] - N + 1, b_G.end(),
+                tempb.begin() + i_b[i] - N);
+      swap(tempb, b_G);
+      swap(tempA, A_G);
+      swap(tempB, B);
+    }
+  }
+  decompose_QR(B, B_Q, B_R, tol);
 
   // Prepare the variables for the second phase
   {
-    x.resize( N );
+    x.resize(N);
 
-    c_B.resize( M );
-    for( SizeType i = 0; i < M; ++i )
+    c_B.resize(M);
+    for (int i = 0; i < M; ++i) {
       c_B[i] = c[i_b[i]];
+    }
 
-    std::vector< SizeType > tempIB( M );
-    std::vector< SizeType > tempIN( N - M );
+    std::vector<int> tempIB(M);
+    std::vector<int> tempIN(N - M);
     {
-      SizeType j = 0;
-      for( SizeType i = 0; i < M + RedundantCount; ++i ) {
-        if( i_b[i] < N ) {
+      int j = 0;
+      for (int i = 0; i < M + RedundantCount; ++i) {
+        if (i_b[i] < N) {
           tempIB[j] = i_b[i];
           ++j;
-        };
-      };
+        }
+      }
       j = 0;
-      for( SizeType i = 0; i < N; ++i ) {
-        if( i_n[i] < N ) {
+      for (int i = 0; i < N; ++i) {
+        if (i_n[i] < N) {
           tempIN[j] = i_n[i];
           j++;
-        };
-      };
-    };
-    i_b.swap( tempIB );
-    i_n.swap( tempIN );
-  };
+        }
+      }
+    }
+    i_b.swap(tempIB);
+    i_n.swap(tempIN);
+  }
 
-  detail::simplex_method_loop_impl( A_G, B, c, c_B, x, l, u, i_b, i_n, tol );
+  detail::simplex_method_loop_impl(A_G, B, c, c_B, x, l, u, i_b, i_n, tol);
 
   x0 = x;
-};
-};
-};
+}
 
+}  // namespace ReaK::optim
 
 #endif

@@ -20,30 +20,9 @@
  *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include <ReaK/core/base/defs.hpp>
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
 #include <ReaK/topologies/spaces/line_topology.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
-template class line_topology< double >;
-template class line_segment_topology< double >;
-};
-};
-
-#else
-
-namespace ReaK {
-
-namespace pp {
-
-void dummy_line_topology_externs_1_symbol(){};
-};
-};
-
-#endif
+namespace ReaK::pp {
+template class line_topology<double>;
+template class line_segment_topology<double>;
+}  // namespace ReaK::pp

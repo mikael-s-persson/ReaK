@@ -33,21 +33,18 @@
 #define REAK_MANIP_DYNAMICS_MODEL_HPP
 
 #include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
 #include <ReaK/math/integrators/integrator.hpp>
-#include <ReaK/mbd/kte/mass_matrix_calculator.hpp>
+#include <ReaK/math/kinetostatics/kinetostatics.hpp>
 #include <ReaK/mbd/kte/kte_system_input.hpp>
 #include <ReaK/mbd/kte/kte_system_output.hpp>
+#include <ReaK/mbd/kte/mass_matrix_calculator.hpp>
 
-#include "manip_kinematics_model.hpp"
 #include "inverse_dynamics_model.hpp"
+#include "manip_kinematics_model.hpp"
 
 #include <vector>
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class stores the required information to represent the dynamics model of a manipulator.
@@ -61,103 +58,116 @@ namespace kte {
  */
 class manipulator_dynamics_model : public manipulator_kinematics_model,
                                    public inverse_dynamics_model,
-                                   public state_rate_function_with_io< double > {
-protected:
-  mass_matrix_calc mMassCalc; ///< Holds the model's mass-matrix calculator.
+                                   public state_rate_function_with_io<double> {
+ protected:
+  mass_matrix_calc mMassCalc;  ///< Holds the model's mass-matrix calculator.
 
-  std::vector< shared_ptr< system_input > >
-    mInputs; ///< Holds the list of system input objects that are part of the KTE model.
-  std::vector< shared_ptr< system_output > >
-    mOutputs; ///< Holds the list of system output objects that are part of the KTE model.
+  std::vector<std::shared_ptr<system_input>>
+      mInputs;  ///< Holds the list of system input objects that are part of the KTE model.
+  std::vector<std::shared_ptr<system_output>>
+      mOutputs;  ///< Holds the list of system output objects that are part of the KTE model.
 
-
-public:
+ public:
   using manipulator_kinematics_model::operator<<;
 
   /**
    * Default constructor.
    */
-  manipulator_dynamics_model( const std::string& aName = "" )
-      : manipulator_kinematics_model( aName ), inverse_dynamics_model( aName ), mMassCalc( aName + "_mass_calc" ){};
+  explicit manipulator_dynamics_model(const std::string& aName = "")
+      : manipulator_kinematics_model(aName),
+        inverse_dynamics_model(aName),
+        mMassCalc(aName + "_mass_calc") {}
 
   /**
    * Default destructor.
    */
-  virtual ~manipulator_dynamics_model(){};
+  ~manipulator_dynamics_model() override = default;
 
   /**
    * Gets the manipulator KTE mass-matrix calculator used by this object.
    * \return The manipulator KTE mass-matrix calculator used by this object.
    */
-  const mass_matrix_calc& getMassCalc() const { return mMassCalc; };
+  const mass_matrix_calc& getMassCalc() const { return mMassCalc; }
 
   /**
    * Add a system generalized coordinate.
    * \param aCoord a system generalized coordinate to add.
    * \return reference to this.
    */
-  virtual manipulator_kinematics_model& operator<<( const shared_ptr< gen_coord< double > >& aCoord );
+  manipulator_kinematics_model& operator<<(
+      const std::shared_ptr<gen_coord<double>>& aCoord) override;
 
   /**
    * Add a system 2D frame.
    * \param aFrame2D a system 2D frame to add.
    * \return reference to this.
    */
-  virtual manipulator_kinematics_model& operator<<( const shared_ptr< frame_2D< double > >& aFrame2D );
+  manipulator_kinematics_model& operator<<(
+      const std::shared_ptr<frame_2D<double>>& aFrame2D) override;
 
   /**
    * Add a system 3D frame.
    * \param aFrame3D a system 3D frame to add.
    * \return reference to this.
    */
-  virtual manipulator_kinematics_model& operator<<( const shared_ptr< frame_3D< double > >& aFrame3D );
+  manipulator_kinematics_model& operator<<(
+      const std::shared_ptr<frame_3D<double>>& aFrame3D) override;
 
   /**
    * Add a generalized inertial element.
    * \param aInertiaGen a generalized inertial element to add.
    * \return reference to this.
    */
-  virtual manipulator_dynamics_model& operator<<( const shared_ptr< inertia_gen >& aInertiaGen );
+  virtual manipulator_dynamics_model& operator<<(
+      const std::shared_ptr<inertia_gen>& aInertiaGen);
 
   /**
    * Add a 2D inertial element.
    * \param aInertia2D a 2D inertial element to add.
    * \return reference to this.
    */
-  virtual manipulator_dynamics_model& operator<<( const shared_ptr< inertia_2D >& aInertia2D );
+  virtual manipulator_dynamics_model& operator<<(
+      const std::shared_ptr<inertia_2D>& aInertia2D);
 
   /**
    * Add a 3D inertial element.
    * \param aInertia3D a 3D inertial element to add.
    * \return reference to this.
    */
-  virtual manipulator_dynamics_model& operator<<( const shared_ptr< inertia_3D >& aInertia3D );
+  virtual manipulator_dynamics_model& operator<<(
+      const std::shared_ptr<inertia_3D>& aInertia3D);
 
   /**
    * Add a system input.
    * \param aInput A KTE system input to add.
    * \return reference to this.
    */
-  virtual manipulator_dynamics_model& operator<<( const shared_ptr< system_input >& aInput );
+  virtual manipulator_dynamics_model& operator<<(
+      const std::shared_ptr<system_input>& aInput);
 
   /**
    * Add a system output.
    * \param aOutput A KTE system output to add.
    * \return reference to this.
    */
-  virtual manipulator_dynamics_model& operator<<( const shared_ptr< system_output >& aOutput );
+  virtual manipulator_dynamics_model& operator<<(
+      const std::shared_ptr<system_output>& aOutput);
 
   /**
    * Get the total number of state values for all the joint frames concatenated.
    * \return The total number of state values for all the joint frames concatenated.
    */
-  std::size_t getJointStatesCount() const { return getJointPositionsCount() + getJointVelocitiesCount(); };
+  std::size_t getJointStatesCount() const override {
+    return getJointPositionsCount() + getJointVelocitiesCount();
+  }
 
   /**
    * Get the total number of state values for all the dependent frames concatenated.
    * \return The total number of state values for all the dependent frames concatenated.
    */
-  std::size_t getDependentStatesCount() const { return getDependentPositionsCount() + getDependentVelocitiesCount(); };
+  std::size_t getDependentStatesCount() const {
+    return getDependentPositionsCount() + getDependentVelocitiesCount();
+  }
 
   /**
    * Get the total number of KTE system inputs, if all concatenated in one vector.
@@ -165,10 +175,11 @@ public:
    */
   std::size_t getInputsCount() const {
     std::size_t result = 0;
-    for( std::vector< shared_ptr< system_input > >::const_iterator it = mInputs.begin(); it != mInputs.end(); ++it )
-      result += ( *it )->getInputCount();
+    for (const auto& mInput : mInputs) {
+      result += mInput->getInputCount();
+    }
     return result;
-  };
+  }
 
   /**
    * Get the total number of KTE system outputs, if all concatenated in one vector.
@@ -176,11 +187,11 @@ public:
    */
   std::size_t getOutputsCount() const {
     std::size_t result = 0;
-    for( std::vector< shared_ptr< system_output > >::const_iterator it = mOutputs.begin(); it != mOutputs.end(); ++it )
-      result += ( *it )->getOutputCount();
+    for (const auto& mOutput : mOutputs) {
+      result += mOutput->getOutputCount();
+    }
     return result;
-  };
-
+  }
 
   /**
    * Obtain a vector that contains all the joint states concatenated into one vector.
@@ -192,7 +203,7 @@ public:
    * are the states (and angular states) of the 3D frame joints.
    * \return All the joint states concatenated into one vector.
    */
-  vect_n< double > getJointStates() const;
+  vect_n<double> getJointStates() const override;
 
   /**
    * Set all the joint states of the manipulator to a vector of concatenated joint-states.
@@ -204,7 +215,7 @@ public:
    * are the states (and angular states) of the 3D frame joints.
    * \param aJointAccelerations All the joint states concatenated into one vector.
    */
-  void setJointStates( const vect_n< double >& aJointStates );
+  void setJointStates(const vect_n<double>& aJointStates) override;
 
   /**
    * This function computes the output-vector corresponding to a state vector.
@@ -213,22 +224,22 @@ public:
    * \param aState current state vector
    * \param aOutput holds, as output, the output-vector
    */
-  virtual void RK_CALL
-    computeOutput( double aTime, const ReaK::vect_n< double >& aState, ReaK::vect_n< double >& aOutput );
+  void computeOutput(double aTime, const ReaK::vect_n<double>& aState,
+                     ReaK::vect_n<double>& aOutput) override;
 
   /**
    * This function sets the input-vector.
    *
    * \param aInput current input-vector
    */
-  virtual void RK_CALL setInput( const ReaK::vect_n< double >& aInput );
+  void setInput(const ReaK::vect_n<double>& aInput) override;
 
   /**
    * This function gets the currently set input-vector for the system.
    *
    * \return The currently set input-vector for the system.
    */
-  vect_n< double > getInput() const;
+  vect_n<double> getInput() const;
 
   /**
    * Computes the time-derivative of the state-vector of all the joints concatenated into one vector.
@@ -237,8 +248,8 @@ public:
    * \param aState current state vector
    * \param aStateRate holds, as output, the time-derivative of the state vector
    */
-  virtual void RK_CALL
-    computeStateRate( double aTime, const ReaK::vect_n< double >& aState, ReaK::vect_n< double >& aStateRate );
+  void computeStateRate(double aTime, const ReaK::vect_n<double>& aState,
+                        ReaK::vect_n<double>& aStateRate) override;
 
   /**
    * Obtain a vector that contains all the dependent states concatenated into one vector.
@@ -251,38 +262,44 @@ public:
    * are the states of the 3D dependent frames.
    * \return All the dependent states concatenated into one vector.
    */
-  vect_n< double > getDependentStates() const;
+  vect_n<double> getDependentStates() const;
 
-  void doMotion( kte_pass_flag aFlag = nothing,
-                 const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mModel )
-      mModel->doMotion( aFlag, aStorage );
-  };
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override {
+    if (mModel) {
+      mModel->doMotion(aFlag, aStorage);
+    }
+  }
 
-  void doForce( kte_pass_flag aFlag = nothing,
-                const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
-    if( mModel )
-      mModel->doForce( aFlag, aStorage );
-  };
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override {
+    if (mModel) {
+      mModel->doForce(aFlag, aStorage);
+    }
+  }
 
-  void clearForce() {
-    if( mModel )
+  void clearForce() override {
+    if (mModel) {
       mModel->clearForce();
-  };
+    }
+  }
 
   /**
    * Get the mass matrix for the system.
    * \param M stores, as output, the calculated system's mass-matrix.
    */
-  void getMassMatrix( mat< double, mat_structure::symmetric >& M );
+  void getMassMatrix(mat<double, mat_structure::symmetric>& M) override;
 
   /**
    * Get the mass matrix for the system and its time-derivative.
    * \param M stores, as output, the calculated system's mass-matrix.
    * \param M_dot stores, as output, the calculated time-derivative of the system's mass matrix.
    */
-  void getMassMatrixAndDerivative( mat< double, mat_structure::symmetric >& M,
-                                   mat< double, mat_structure::square >& M_dot );
+  void getMassMatrixAndDerivative(
+      mat<double, mat_structure::symmetric>& M,
+      mat<double, mat_structure::square>& M_dot) override;
 
   /**
    * Get the twist-shaping matrix, the block-diagonal, link mass-matrix, and the time-derivative of the twist-shaping
@@ -291,26 +308,34 @@ public:
    * \param Mcm stores, as output, the calculated block-diagonal, link mass matrix.
    * \param Tcm_dot storse, as output, the calculated time-derivative of the system's twist-shaping matrix.
    */
-  void get_TMT_TdMT( mat< double, mat_structure::rectangular >& Tcm, mat< double, mat_structure::symmetric >& Mcm,
-                     mat< double, mat_structure::rectangular >& Tcm_dot );
+  void get_TMT_TdMT(mat<double, mat_structure::rectangular>& Tcm,
+                    mat<double, mat_structure::symmetric>& Mcm,
+                    mat<double, mat_structure::rectangular>& Tcm_dot) override;
 
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    manipulator_kinematics_model::save(
+        A, manipulator_kinematics_model::getStaticObjectType()->TypeVersion());
+    state_rate_function<double>::save(
+        A, state_rate_function<double>::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mMassCalc);
+  }
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    manipulator_kinematics_model::save( A, manipulator_kinematics_model::getStaticObjectType()->TypeVersion() );
-    state_rate_function< double >::save( A, state_rate_function< double >::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mMassCalc );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    manipulator_kinematics_model::load(
+        A, manipulator_kinematics_model::getStaticObjectType()->TypeVersion());
+    state_rate_function<double>::load(
+        A, state_rate_function<double>::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mMassCalc);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    manipulator_kinematics_model::load( A, manipulator_kinematics_model::getStaticObjectType()->TypeVersion() );
-    state_rate_function< double >::load( A, state_rate_function< double >::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mMassCalc );
-  };
-
-  RK_RTTI_MAKE_CONCRETE_3BASE( manipulator_dynamics_model, 0xC210004E, 1, "manipulator_dynamics_model",
-                               manipulator_kinematics_model, inverse_dynamics_model, state_rate_function< double > )
+  RK_RTTI_MAKE_CONCRETE_3BASE(manipulator_dynamics_model, 0xC210004E, 1,
+                              "manipulator_dynamics_model",
+                              manipulator_kinematics_model,
+                              inverse_dynamics_model,
+                              state_rate_function<double>)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

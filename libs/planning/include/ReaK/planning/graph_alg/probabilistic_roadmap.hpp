@@ -47,11 +47,11 @@
 #ifndef REAK_PROBABILISTIC_ROADMAP_HPP
 #define REAK_PROBABILISTIC_ROADMAP_HPP
 
-#include <utility>
-#include <boost/tuple/tuple.hpp>
-#include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/detail/d_ary_heap.hpp>
+#include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
+#include <tuple>
+#include <utility>
 
 #include <ReaK/core/base/global_rng.hpp>
 
@@ -61,122 +61,126 @@
 // BGL-Extra includes:
 #include <boost/graph/more_property_maps.hpp>
 
+#include <set>
 #include "prm_connector.hpp"
 #include "sbmp_visitor_concepts.hpp"
-#include <set>
+#include "simple_graph_traits.hpp"
 
-
-namespace ReaK {
-
-namespace graph {
-
+namespace ReaK::graph {
 
 namespace detail {
 namespace {
 
-
-template < typename PRMVisitor, typename UpdatableQueue, typename IndexInHeapMap, typename PositionMap,
-           typename CCRootMap >
+template <typename PRMVisitor, typename UpdatableQueue, typename IndexInHeapMap,
+          typename PositionMap, typename CCRootMap>
 struct prm_conn_visitor {
 
-  typedef typename boost::property_traits< PositionMap >::value_type PositionValue;
-  typedef typename boost::property_traits< CCRootMap >::value_type CCRootValue;
+  using PositionValue = property_value_t<PositionMap>;
+  using CCRootValue = property_value_t<CCRootMap>;
 
-  prm_conn_visitor( PRMVisitor vis, UpdatableQueue& Q, IndexInHeapMap index_in_heap, PositionMap pos, CCRootMap cc_root,
-                    std::set< CCRootValue >& cc_set )
-      : m_vis( vis ), m_Q( Q ), m_index_in_heap( index_in_heap ), m_position( pos ), m_cc_root( cc_root ),
-        m_cc_set( cc_set ){};
+  prm_conn_visitor(PRMVisitor vis, UpdatableQueue& Q,
+                   IndexInHeapMap index_in_heap, PositionMap pos,
+                   CCRootMap cc_root, std::set<CCRootValue>& cc_set)
+      : m_vis(vis),
+        m_Q(Q),
+        m_index_in_heap(index_in_heap),
+        m_position(pos),
+        m_cc_root(cc_root),
+        m_cc_set(cc_set) {}
 
-  template < class Graph >
-  typename boost::graph_traits< Graph >::vertex_descriptor create_vertex( const PositionValue& p, Graph& g ) const {
-    typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
-    typedef typename Graph::vertex_bundled VertexProp;
+  template <class Graph>
+  auto create_vertex(const PositionValue& p, Graph& g) const {
+    using Vertex = graph_vertex_t<Graph>;
+    using VertexProp = graph_vertex_bundle_t<Graph>;
 
     VertexProp up;
-    put( m_position, up, p );
-    Vertex u = add_vertex( std::move( up ), g );
-    put( m_cc_root, u, u );
-    m_cc_set.insert( u );
-    m_vis.vertex_added( u, g );
-    put( m_index_in_heap, u, static_cast< std::size_t >( -1 ) );
-
+    put(m_position, up, p);
+    Vertex u = add_vertex(std::move(up), g);
+    put(m_cc_root, u, u);
+    m_cc_set.insert(u);
+    m_vis.vertex_added(u, g);
+    put(m_index_in_heap, u, static_cast<std::size_t>(-1));
     return u;
-  };
+  }
 
-  template < typename Vertex, typename Graph >
-  void shortcut_cc_root( Vertex u, Graph& g ) const {
-    std::stack< Vertex > u_trace;
-    u_trace.push( u );
-    while( get( m_cc_root, u ) != u ) {
-      u = get( m_cc_root, u );
-      u_trace.push( u );
-    };
-    while( !u_trace.empty() ) {
-      put( m_cc_root, u_trace.top(), u );
+  template <typename Vertex, typename Graph>
+  void shortcut_cc_root(Vertex u, Graph& g) const {
+    std::stack<Vertex> u_trace;
+    u_trace.push(u);
+    while (get(m_cc_root, u) != u) {
+      u = get(m_cc_root, u);
+      u_trace.push(u);
+    }
+    while (!u_trace.empty()) {
+      put(m_cc_root, u_trace.top(), u);
       u_trace.pop();
-    };
-  };
+    }
+  }
 
-  template < typename Edge, typename Graph >
-  void edge_added( Edge e, Graph& g ) const {
-    typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
+  template <typename Edge, typename Graph>
+  void edge_added(Edge e, Graph& g) const {
+    using Vertex = graph_vertex_t<Graph>;
 
-    m_vis.edge_added( e, g );
+    m_vis.edge_added(e, g);
 
-    Vertex u = source( e, g );
-    Vertex v = target( e, g );
-    shortcut_cc_root( u, g );
-    shortcut_cc_root( v, g );
-    if( get( m_cc_root, v ) != get( m_cc_root, u ) ) {
-      Vertex r1 = get( m_cc_root, u );
-      Vertex r2 = get( m_cc_root, v );
-      put( m_cc_root, r2, r1 );
-      put( m_cc_root, v, r1 );
-      m_cc_set.erase( r2 );
+    Vertex u = source(e, g);
+    Vertex v = target(e, g);
+    shortcut_cc_root(u, g);
+    shortcut_cc_root(v, g);
+    if (get(m_cc_root, v) != get(m_cc_root, u)) {
+      Vertex r1 = get(m_cc_root, u);
+      Vertex r2 = get(m_cc_root, v);
+      put(m_cc_root, r2, r1);
+      put(m_cc_root, v, r1);
+      m_cc_set.erase(r2);
 
-      if( m_cc_set.size() < 2 )
-        m_vis.publish_path( g );
-    };
-  };
+      if (m_cc_set.size() < 2) {
+        m_vis.publish_path(g);
+      }
+    }
+  }
 
-  template < typename Vertex, typename Graph >
-  void travel_explored( Vertex u, Vertex v, Graph& g ) const {
-    m_vis.travel_explored( u, v, g );
-  };
+  template <typename Vertex, typename Graph>
+  void travel_explored(Vertex u, Vertex v, Graph& g) const {
+    m_vis.travel_explored(u, v, g);
+  }
 
-  template < typename Vertex, typename Graph >
-  void travel_succeeded( Vertex u, Vertex v, Graph& g ) const {
-    m_vis.travel_succeeded( u, v, g );
-  };
+  template <typename Vertex, typename Graph>
+  void travel_succeeded(Vertex u, Vertex v, Graph& g) const {
+    m_vis.travel_succeeded(u, v, g);
+  }
 
-  template < typename Vertex, typename Graph >
-  void travel_failed( Vertex u, Vertex v, Graph& g ) const {
-    m_vis.travel_failed( u, v, g );
-  };
+  template <typename Vertex, typename Graph>
+  void travel_failed(Vertex u, Vertex v, Graph& g) const {
+    m_vis.travel_failed(u, v, g);
+  }
 
-  template < typename Vertex, typename Graph >
-  void requeue_vertex( Vertex u, Graph& g ) const {
-    m_vis.affected_vertex( u, g );
-    m_Q.push_or_update( u );
-  };
-  template < typename Vertex, typename Graph >
-  void affected_vertex( Vertex u, Graph& g ) const {
-    requeue_vertex( u, g );
-  }; // same function, different name.
+  template <typename Vertex, typename Graph>
+  void requeue_vertex(Vertex u, Graph& g) const {
+    m_vis.affected_vertex(u, g);
+    m_Q.push_or_update(u);
+  }
+  template <typename Vertex, typename Graph>
+  void affected_vertex(Vertex u, Graph& g) const {
+    // same function, different name.
+    requeue_vertex(u, g);
+  }
 
-  bool keep_going() const { return m_vis.keep_going(); };
+  bool keep_going() const { return m_vis.keep_going(); }
 
-  template < typename Vertex, typename Graph >
-  std::pair< bool, typename Graph::edge_bundled > can_be_connected( Vertex u, Vertex v, Graph& g ) const {
-    return m_vis.can_be_connected( u, v, g );
-  };
+  template <typename Vertex, typename Graph>
+  auto can_be_connected(Vertex u, Vertex v, Graph& g) const {
+    return m_vis.can_be_connected(u, v, g);
+  }
 
-  template < typename Vertex, typename Graph >
-  boost::tuple< PositionValue, bool, typename Graph::edge_bundled > random_walk( Vertex u, Graph& g ) const {
-    return m_vis.random_walk( u, g );
-  };
+  template <typename Vertex, typename Graph>
+  auto random_walk(Vertex u, Graph& g) const {
+    return m_vis.random_walk(u, g);
+  }
 
-  bool is_position_free( const PositionValue& p ) const { return m_vis.is_position_free( p ); };
+  bool is_position_free(const PositionValue& p) const {
+    return m_vis.is_position_free(p);
+  }
 
   PRMVisitor m_vis;
   UpdatableQueue& m_Q;
@@ -185,53 +189,52 @@ struct prm_conn_visitor {
   PositionMap m_position;
   CCRootMap m_cc_root;
 
-  std::set< CCRootValue >& m_cc_set;
+  std::set<CCRootValue>& m_cc_set;
 };
 
+template <typename Graph, typename Topology, typename PRMConnVisitor,
+          typename PositionMap, typename RandomSampler, typename MutableQueue,
+          typename NodeConnector, typename NcSelector>
+inline void generate_prm_impl(Graph& g, const Topology& super_space,
+                              PRMConnVisitor& vis, PositionMap position,
+                              RandomSampler get_sample, MutableQueue Q,
+                              NodeConnector connect_vertex,
+                              const NcSelector& select_neighborhood,
+                              double expand_probability) {
+  using EdgeProp = graph_edge_bundle_t<Graph>;
 
-template < typename Graph, typename Topology, typename PRMConnVisitor, typename PositionMap, typename RandomSampler,
-           typename MutableQueue, typename NodeConnector, typename NcSelector >
-inline void generate_prm_impl( Graph& g, const Topology& super_space, PRMConnVisitor& vis, PositionMap position,
-                               RandomSampler get_sample, MutableQueue Q, NodeConnector connect_vertex,
-                               const NcSelector& select_neighborhood, double expand_probability ) {
-  typedef typename boost::property_traits< PositionMap >::value_type PositionValue;
-  typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
-  typedef typename Graph::edge_bundled EdgeProp;
+  std::uniform_real_distribution<double> unit_dist{};
 
-  while( vis.keep_going() ) {
+  while (vis.keep_going()) {
+    // Generate random-number between 0 and 1.
+    double rand_value = unit_dist(ReaK::get_global_rng());
 
-    double rand_value = boost::uniform_01< ReaK::global_rng_type&, double >(
-      ReaK::get_global_rng() )(); // generate random-number between 0 and 1.
-
-    if( rand_value > expand_probability ) {
+    if (rand_value > expand_probability) {
       // Construction node:
+      auto p_rnd = get_sample(super_space);
+      while (!vis.is_position_free(p_rnd)) {
+        p_rnd = get_sample(super_space);
+      }
       EdgeProp ep;
-      PositionValue p_rnd = get_sample( super_space );
-      while( !vis.is_position_free( p_rnd ) )
-        p_rnd = get_sample( super_space );
-
-      connect_vertex( p_rnd, boost::graph_traits< Graph >::null_vertex(), ep, g, super_space, vis, position,
-                      select_neighborhood );
-
+      connect_vertex(p_rnd, boost::graph_traits<Graph>::null_vertex(), ep, g,
+                     super_space, vis, position, select_neighborhood);
     } else {
       // Expansion node:
       // use the priority queue to get the vertices that need expansion.
-      Vertex v = Q.top();
-      PositionValue p_rnd;
-      bool expanding_worked;
-      EdgeProp ep;
-      boost::tie( p_rnd, expanding_worked, ep ) = vis.random_walk( v, g );
-
-      if( expanding_worked )
-        connect_vertex( p_rnd, v, ep, g, super_space, vis, position, select_neighborhood );
-      else
-        Q.pop(); // if one cannot expand from this vertex, then leave it out of future attempts.
-    };
-  };
-};
-};
-}; // detail
-
+      auto v = Q.top();
+      auto [p_rnd, expanding_worked, ep] = vis.random_walk(v, g);
+      if (expanding_worked) {
+        connect_vertex(p_rnd, v, ep, g, super_space, vis, position,
+                       select_neighborhood);
+      } else {
+        // if one cannot expand from this vertex, then leave it out of future attempts.
+        Q.pop();
+      }
+    }
+  }
+}
+}  // namespace
+}  // namespace detail
 
 /**
  * This function is the basic PRM algorithm (as of "Geraerts and Overmars, 2002"). Note that
@@ -271,85 +274,94 @@ inline void generate_prm_impl( Graph& g, const Topology& super_space, PRMConnVis
  * \param expand_probability The probability (between 0 and 1) that an expansion will be
  *        performed as opposed to a general sampling from the free-space.
  */
-template < typename Graph, typename Topology, typename PRMVisitor, typename PositionMap, typename RandomSampler,
-           typename DensityMap, typename NcSelector >
-inline void generate_prm( Graph& g, const Topology& super_space, PRMVisitor vis, PositionMap position,
-                          RandomSampler get_sample, DensityMap density, const NcSelector& select_neighborhood,
-                          double expand_probability ) {
-  BOOST_CONCEPT_ASSERT( (PRMVisitorConcept< PRMVisitor, Graph, Topology >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::MetricSpaceConcept< Topology >)); // for the distance-metric.
-  BOOST_CONCEPT_ASSERT( (boost::VertexListGraphConcept< Graph >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::RandomSamplerConcept< RandomSampler, Topology >));
+template <typename Graph, typename Topology, typename PRMVisitor,
+          typename PositionMap, typename RandomSampler, typename DensityMap,
+          typename NcSelector>
+inline void generate_prm(Graph& g, const Topology& super_space, PRMVisitor vis,
+                         PositionMap position, RandomSampler get_sample,
+                         DensityMap density,
+                         const NcSelector& select_neighborhood,
+                         double expand_probability) {
+  BOOST_CONCEPT_ASSERT((PRMVisitorConcept<PRMVisitor, Graph, Topology>));
+  BOOST_CONCEPT_ASSERT(
+      (ReaK::pp::MetricSpaceConcept<Topology>));  // for the distance-metric.
+  BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
+  BOOST_CONCEPT_ASSERT(
+      (ReaK::pp::RandomSamplerConcept<RandomSampler, Topology>));
 
-  typedef typename boost::property_traits< PositionMap >::value_type PositionValue;
-  typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
-  typedef typename Graph::vertex_bundled VertexProp;
+  using Vertex = graph_vertex_t<Graph>;
+  using VertexProp = graph_vertex_bundle_t<Graph>;
 
-  typedef boost::vector_property_map< Vertex > CCRootMap;
+  using CCRootMap = boost::vector_property_map<Vertex>;
   CCRootMap cc_root;
-  std::set< Vertex > cc_set;
+  std::set<Vertex> cc_set;
 
-  typedef boost::vector_property_map< std::size_t > IndexInHeapMap;
+  using IndexInHeapMap = boost::vector_property_map<std::size_t>;
   IndexInHeapMap index_in_heap;
 
-  typedef boost::composite_property_map< DensityMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > >
-    GraphDensityMap;
-  GraphDensityMap g_density
-    = GraphDensityMap( density, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >( &g ) );
+  using GraphDensityMap = boost::composite_property_map<
+      DensityMap,
+      boost::whole_bundle_property_map<Graph, boost::vertex_bundle_t>>;
+  GraphDensityMap g_density = GraphDensityMap(
+      density,
+      boost::whole_bundle_property_map<Graph, boost::vertex_bundle_t>(&g));
 
-  typedef boost::d_ary_heap_indirect< Vertex, 4, IndexInHeapMap, GraphDensityMap, std::less< double > > MutableQueue;
-  MutableQueue Q( g_density, index_in_heap, std::less< double >() ); // priority queue holding the "expandable"
-                                                                     // vertices.
+  // priority queue holding the "expandable" vertices.
+  using MutableQueue = boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap,
+                                                  GraphDensityMap, std::less<>>;
+  MutableQueue Q(g_density, index_in_heap, std::less<>());
 
-  if( num_vertices( g ) == 0 ) {
-    PositionValue p = get_sample( super_space );
-    while( !vis.is_position_free( p ) )
-      p = get_sample( super_space );
+  if (num_vertices(g) == 0) {
+    auto p = get_sample(super_space);
+    while (!vis.is_position_free(p)) {
+      p = get_sample(super_space);
+    }
     VertexProp up;
-    put( position, up, p );
-    Vertex u = add_vertex( std::move( up ), g );
-    put( cc_root, u, u );
-    vis.vertex_added( u, g );
-    cc_set.insert( u );
+    put(position, up, p);
+    Vertex u = add_vertex(std::move(up), g);
+    put(cc_root, u, u);
+    vis.vertex_added(u, g);
+    cc_set.insert(u);
   } else {
+    for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
+      vis.affected_vertex(*ui, g);
+      Q.push(*ui);
+      put(cc_root, *ui, *ui);
+    }
 
-    typename boost::graph_traits< Graph >::vertex_iterator ui, ui_end;
-    for( boost::tie( ui, ui_end ) = vertices( g ); ui != ui_end; ++ui ) {
-      vis.affected_vertex( *ui, g );
-      Q.push( *ui );
-      put( cc_root, *ui, *ui );
-    };
-
-    for( boost::tie( ui, ui_end ) = vertices( g ); ui != ui_end; ++ui ) {
-      if( get( cc_root, *ui ) != *ui )
+    for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
+      if (get(cc_root, *ui) != *ui) {
         continue;
-      cc_set.insert( *ui );
-      std::stack< Vertex > u_trace;
-      u_trace.push( *ui );
-      while( !u_trace.empty() ) {
+      }
+      cc_set.insert(*ui);
+      std::stack<Vertex> u_trace;
+      u_trace.push(*ui);
+      while (!u_trace.empty()) {
         Vertex v = u_trace.top();
         u_trace.pop();
-        if( get( cc_root, v ) == *ui )
+        if (get(cc_root, v) == *ui) {
           continue;
-        put( cc_root, v, *ui );
-        typename boost::graph_traits< Graph >::out_edge_iterator ei, ei_end;
-        for( boost::tie( ei, ei_end ) = out_edges( v, g ); ei != ei_end; ++ei ) {
-          if( target( *ei, g ) == v )
-            u_trace.push( source( *ei, g ) );
-          else
-            u_trace.push( target( *ei, g ) );
-        };
-      };
-    };
-  };
+        }
+        put(cc_root, v, *ui);
+        for (auto [ei, ei_end] = out_edges(v, g); ei != ei_end; ++ei) {
+          if (target(*ei, g) == v) {
+            u_trace.push(source(*ei, g));
+          } else {
+            u_trace.push(target(*ei, g));
+          }
+        }
+      }
+    }
+  }
 
-  detail::prm_conn_visitor< PRMVisitor, MutableQueue, IndexInHeapMap, PositionMap, CCRootMap > prm_conn_vis(
-    vis, Q, index_in_heap, position, cc_root, cc_set );
+  detail::prm_conn_visitor prm_conn_vis(vis, Q, index_in_heap, position,
+                                        cc_root, cc_set);
 
-  detail::generate_prm_impl( g, super_space, prm_conn_vis, position, get_sample, Q, prm_node_connector(),
-                             select_neighborhood, expand_probability );
-};
-};
-};
+  detail::generate_prm_impl(g, super_space, prm_conn_vis, position, get_sample,
+                            Q, prm_node_connector(), select_neighborhood,
+                            expand_probability);
+}
+
+}  // namespace ReaK::graph
 
 #endif

@@ -36,44 +36,44 @@
 
 #include <ReaK/geometry/shapes/rectangle.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
+namespace ReaK::geom {
 
-/** Main namespace for ReaK.Geometry */
-namespace geom {
+void compute_proximity_of_point(const rectangle& aRectangle,
+                                const pose_2D<double>& aRecGblPose,
+                                const vect<double, 2>& aPoint,
+                                vect<double, 2>& aPointRec, double& aDistance);
 
-
-void compute_proximity_of_point( const rectangle& aRectangle, const pose_2D< double >& aRecGblPose,
-                                 const vect< double, 2 >& aPoint, vect< double, 2 >& aPointRec, double& aDistance );
-
-proximity_record_2D compute_proximity( const rectangle& aRectangle1, const shape_2D_precompute_pack& aPack1,
-                                       const rectangle& aRectangle2, const shape_2D_precompute_pack& aPack2 );
-
+proximity_record_2D compute_proximity(const rectangle& aRectangle1,
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const rectangle& aRectangle2,
+                                      const shape_2D_precompute_pack& aPack2);
 
 /**
  * This class is for proximity queries between two rectangles.
  */
 class prox_rectangle_rectangle : public proximity_finder_2D {
-protected:
+ protected:
   const rectangle* mRectangle1;
   const rectangle* mRectangle2;
 
-public:
+ public:
   /** This function performs the proximity query on its associated shapes. */
-  virtual proximity_record_2D computeProximity( const shape_2D_precompute_pack& aPack1,
-                                                const shape_2D_precompute_pack& aPack2 );
+  proximity_record_2D computeProximity(
+      const shape_2D_precompute_pack& aPack1,
+      const shape_2D_precompute_pack& aPack2) override;
 
   /**
    * Default constructor.
    * \param aRectangle1 The first rectangle involved in the proximity query.
    * \param aRectangle2 The second rectangle involved in the proximity query.
    */
-  prox_rectangle_rectangle( const rectangle* aRectangle1 = nullptr, const rectangle* aRectangle2 = nullptr );
+  explicit prox_rectangle_rectangle(const rectangle* aRectangle1 = nullptr,
+                                    const rectangle* aRectangle2 = nullptr);
 
   /** Destructor. */
-  virtual ~prox_rectangle_rectangle(){};
+  ~prox_rectangle_rectangle() override = default;
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

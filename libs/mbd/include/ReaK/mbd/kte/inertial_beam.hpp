@@ -35,62 +35,68 @@
 #ifndef REAK_INERTIAL_BEAM_HPP
 #define REAK_INERTIAL_BEAM_HPP
 
-#include "kte_map.hpp"
 #include <ReaK/math/kinetostatics/kinetostatics.hpp>
+#include <utility>
+#include "kte_map.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class implements the inertial forces of a 2D beam member between two end-points (anchors).
  * The inertia is conveniently modelled as two lumped end-masses.
  */
 class inertial_beam_2D : public kte_map {
-private:
-  shared_ptr< frame_2D< double > > mAnchor1; ///< Holds the first end of the beam.
-  shared_ptr< frame_2D< double > > mAnchor2; ///< Holds the second end of the beam.
-  double mMass;                              ///< Holds the total mass of the beam, half of which is lumped at each end.
+ private:
+  std::shared_ptr<frame_2D<double>>
+      mAnchor1;  ///< Holds the first end of the beam.
+  std::shared_ptr<frame_2D<double>>
+      mAnchor2;  ///< Holds the second end of the beam.
+  double
+      mMass;  ///< Holds the total mass of the beam, half of which is lumped at each end.
 
-public:
+ public:
   /**
    * Sets the first anchor frame of the inertial beam.
    * \param aPtr A pointer to the new first anchor frame of the inertial beam.
    */
-  void setAnchor1( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor1 = aPtr; };
+  void setAnchor1(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mAnchor1 = aPtr;
+  }
   /**
    * Returns a const-reference to the first anchor frame of the inertial beam.
    * \return A const-reference to the first anchor frame of the inertial beam.
    */
-  shared_ptr< frame_2D< double > > Anchor1() const { return mAnchor1; };
+  std::shared_ptr<frame_2D<double>> Anchor1() const { return mAnchor1; }
 
   /**
    * Sets the first anchor frame of the inertial beam.
    * \param aPtr A pointer to the new first anchor frame of the inertial beam.
    */
-  void setAnchor2( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor2 = aPtr; };
+  void setAnchor2(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mAnchor2 = aPtr;
+  }
   /**
    * Returns a const-reference to the second anchor frame of the inertial beam.
    * \return A const-reference to the second anchor frame of the inertial beam.
    */
-  shared_ptr< frame_2D< double > > Anchor2() const { return mAnchor2; };
+  std::shared_ptr<frame_2D<double>> Anchor2() const { return mAnchor2; }
 
   /**
    * Sets the mass of the inertial beam.
    * \param aValue The new mass of the inertial beam.
    */
-  void setMass( double aValue ) { mMass = aValue; };
+  void setMass(double aValue) { mMass = aValue; }
   /**
    * Returns the mass of the inertial beam.
    * \return The mass of the inertial beam.
    */
-  double Mass() const { return mMass; };
+  double Mass() const { return mMass; }
 
   /**
    * Default constructor.
    */
-  inertial_beam_2D( const std::string& aName = "" ) : kte_map( aName ), mAnchor1(), mAnchor2(), mMass( 0.0 ){};
+  explicit inertial_beam_2D(const std::string& aName = "")
+      : kte_map(aName), mMass(0.0) {}
 
   /**
    * Parametrized constructor.
@@ -99,34 +105,44 @@ public:
    * \param aAnchor2 the second end of the beam.
    * \param aMass the total mass of the beam, half of which is lumped at each end.
    */
-  inertial_beam_2D( const std::string& aName, const shared_ptr< frame_2D< double > >& aAnchor1,
-                    const shared_ptr< frame_2D< double > >& aAnchor2, double aMass )
-      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mMass( aMass ){};
+  inertial_beam_2D(const std::string& aName,
+                   std::shared_ptr<frame_2D<double>> aAnchor1,
+                   std::shared_ptr<frame_2D<double>> aAnchor2, double aMass)
+      : kte_map(aName),
+        mAnchor1(std::move(aAnchor1)),
+        mAnchor2(std::move(aAnchor2)),
+        mMass(aMass) {}
 
   /**
    * Default destructor.
    */
-  virtual ~inertial_beam_2D(){};
+  ~inertial_beam_2D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 ) & RK_SERIAL_SAVE_WITH_NAME( mMass );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor1) & RK_SERIAL_SAVE_WITH_NAME(mAnchor2) &
+        RK_SERIAL_SAVE_WITH_NAME(mMass);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 ) & RK_SERIAL_LOAD_WITH_NAME( mMass );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor1) & RK_SERIAL_LOAD_WITH_NAME(mAnchor2) &
+        RK_SERIAL_LOAD_WITH_NAME(mMass);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( inertial_beam_2D, 0xC210001E, 1, "inertial_beam_2D", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(inertial_beam_2D, 0xC210001E, 1,
+                              "inertial_beam_2D", kte_map)
 };
 
 /**
@@ -134,49 +150,57 @@ public:
  * The inertia is conveniently modelled as two lumped end-masses.
  */
 class inertial_beam_3D : public kte_map {
-private:
-  shared_ptr< frame_3D< double > > mAnchor1; ///< Holds the first end of the beam.
-  shared_ptr< frame_3D< double > > mAnchor2; ///< Holds the second end of the beam.
-  double mMass;                              ///< Holds the total mass of the beam, half of which is lumped at each end.
+ private:
+  std::shared_ptr<frame_3D<double>>
+      mAnchor1;  ///< Holds the first end of the beam.
+  std::shared_ptr<frame_3D<double>>
+      mAnchor2;  ///< Holds the second end of the beam.
+  double
+      mMass;  ///< Holds the total mass of the beam, half of which is lumped at each end.
 
-public:
+ public:
   /**
    * Sets the first anchor frame of the inertial beam.
    * \param aPtr A pointer to the new first anchor frame of the inertial beam.
    */
-  void setAnchor1( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor1 = aPtr; };
+  void setAnchor1(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mAnchor1 = aPtr;
+  }
   /**
    * Returns a const-reference to the first anchor frame of the inertial beam.
    * \return A const-reference to the first anchor frame of the inertial beam.
    */
-  shared_ptr< frame_3D< double > > Anchor1() const { return mAnchor1; };
+  std::shared_ptr<frame_3D<double>> Anchor1() const { return mAnchor1; }
 
   /**
    * Sets the first anchor frame of the inertial beam.
    * \param aPtr A pointer to the new first anchor frame of the inertial beam.
    */
-  void setAnchor2( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor2 = aPtr; };
+  void setAnchor2(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mAnchor2 = aPtr;
+  }
   /**
    * Returns a const-reference to the second anchor frame of the inertial beam.
    * \return A const-reference to the second anchor frame of the inertial beam.
    */
-  shared_ptr< frame_3D< double > > Anchor2() const { return mAnchor2; };
+  std::shared_ptr<frame_3D<double>> Anchor2() const { return mAnchor2; }
 
   /**
    * Sets the mass of the inertial beam.
    * \param aValue The new mass of the inertial beam.
    */
-  void setMass( double aValue ) { mMass = aValue; };
+  void setMass(double aValue) { mMass = aValue; }
   /**
    * Returns the mass of the inertial beam.
    * \return The mass of the inertial beam.
    */
-  double Mass() const { return mMass; };
+  double Mass() const { return mMass; }
 
   /**
    * Default constructor.
    */
-  inertial_beam_3D( const std::string& aName = "" ) : kte_map( aName ), mAnchor1(), mAnchor2(), mMass( 0.0 ){};
+  explicit inertial_beam_3D(const std::string& aName = "")
+      : kte_map(aName), mMass(0.0) {}
 
   /**
    * Parametrized constructor.
@@ -185,37 +209,46 @@ public:
    * \param aAnchor2 the second end of the beam.
    * \param aMass the total mass of the beam, half of which is lumped at each end.
    */
-  inertial_beam_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aAnchor1,
-                    const shared_ptr< frame_3D< double > >& aAnchor2, double aMass )
-      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mMass( aMass ){};
+  inertial_beam_3D(const std::string& aName,
+                   std::shared_ptr<frame_3D<double>> aAnchor1,
+                   std::shared_ptr<frame_3D<double>> aAnchor2, double aMass)
+      : kte_map(aName),
+        mAnchor1(std::move(aAnchor1)),
+        mAnchor2(std::move(aAnchor2)),
+        mMass(aMass) {}
 
   /**
    * Default destructor.
    */
-  virtual ~inertial_beam_3D(){};
+  ~inertial_beam_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 ) & RK_SERIAL_SAVE_WITH_NAME( mMass );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor1) & RK_SERIAL_SAVE_WITH_NAME(mAnchor2) &
+        RK_SERIAL_SAVE_WITH_NAME(mMass);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 ) & RK_SERIAL_LOAD_WITH_NAME( mMass );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor1) & RK_SERIAL_LOAD_WITH_NAME(mAnchor2) &
+        RK_SERIAL_LOAD_WITH_NAME(mMass);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( inertial_beam_3D, 0xC210001F, 1, "inertial_beam_3D", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(inertial_beam_3D, 0xC210001F, 1,
+                              "inertial_beam_3D", kte_map)
 };
-};
-};
 
+}  // namespace ReaK::kte
 
 #endif

@@ -10,12 +10,10 @@ if(QT_FOUND)
   
 endif()
 
-if(_COMPILER_SUPPORTS_CXX11)
-  add_executable(test_rpc_calls "test_rpc_calls.cpp")
-  ReaK_setup_target(test_rpc_calls)
-  target_link_libraries(test_rpc_calls reak_core)
+add_executable(test_rpc_calls "test_rpc_calls.cpp")
+ReaK_setup_target(test_rpc_calls)
+target_link_libraries(test_rpc_calls reak_core)
 
-  add_executable(test_rpc_sv "test_rpc_sv.cpp")
-  ReaK_setup_target(test_rpc_sv)
-  target_link_libraries(test_rpc_sv reak_core)
-endif()
+add_executable(test_rpc_sv "test_rpc_sv.cpp")
+ReaK_setup_target(test_rpc_sv)
+target_link_libraries(test_rpc_sv reak_core)

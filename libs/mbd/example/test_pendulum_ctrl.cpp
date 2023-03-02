@@ -35,30 +35,29 @@
 #include "subarc/sa_signal.hpp"
 
 #include <ReaK/core/base/rk_typed_primitives.hpp>
-#include <ReaK/mbd/kte/spring.hpp>
 #include <ReaK/mbd/kte/damper.hpp>
+#include <ReaK/mbd/kte/spring.hpp>
 
-#include <ReaK/core/base/thread_incl.hpp>
+#include <thread>
 
 using namespace kte;
 using namespace ReaK;
 using namespace serialization;
 using namespace sa;
 
-
 class pendulum_simulation_node : public node {
-private:
-  shared_ptr< signal< double > > input_force;
-  shared_ptr< signal< double > > output_angle;
-  shared_ptr< signal< double > > output_velocity;
+ private:
+  std::shared_ptr<signal<double>> input_force;
+  std::shared_ptr<signal<double>> output_angle;
+  std::shared_ptr<signal<double>> output_velocity;
 
-  shared_ptr< gen_coord< double > > joint_coord;
+  std::shared_ptr<gen_coord<double>> joint_coord;
   kte_map_chain pendulum;
   double sim_time;
   recorder::ascii_recorder output_rec;
   bool& is_done;
 
-protected:
+ protected:
   virtual void process() {
 
     double f_ext = input_force->getLast();
@@ -76,35 +75,43 @@ protected:
     double f_nl_in = joint_coord->f;
 
     f_nl_in = f_nl - f_nl_in;
-    if( fabs( f_nl_in ) < 1E-10 )
+    if (abs(f_nl_in) < 1E-10) {
       joint_coord->q_ddot = 0.0;
-    else
-      joint_coord->q_ddot = ( f_nl + f_ext ) / f_nl_in;
+    } else {
+      joint_coord->q_ddot = (f_nl + f_ext) / f_nl_in;
+    }
 
-    output_rec << sim_time << joint_coord->q << joint_coord->q_dot << joint_coord->q_ddot << f_nl << f_ext
+    output_rec << sim_time << joint_coord->q << joint_coord->q_dot
+               << joint_coord->q_ddot << f_nl << f_ext
                << recorder::data_recorder::end_value_row;
 
     joint_coord->q += joint_coord->q_dot * 0.001;
     joint_coord->q_dot += joint_coord->q_ddot * 0.001;
     sim_time += 0.001;
-    ReaKaux::this_thread::yield();
+    std::this_thread::yield();
 
-    if( sim_time > 20.0 )
+    if (sim_time > 20.0) {
       is_done = true;
+    }
 
     std::cout << "\r" << sim_time;
     std::cout.flush();
 
-    output_angle->setValue( joint_coord->q );
-    output_velocity->setValue( joint_coord->q_dot );
-  };
+    output_angle->setValue(joint_coord->q);
+    output_velocity->setValue(joint_coord->q_dot);
+  }
 
-public:
-  pendulum_simulation_node( bool& aIsDone )
-      : input_force(), output_angle( new signal< double >( "joint_angle" ) ),
-        output_velocity( new signal< double >( "joint_velocity" ) ), joint_coord(), pendulum(), sim_time( 0.0 ),
-        output_rec( "pendulum_ctrl_results.ssvdat" ), is_done( aIsDone ) {
-    xml_iarchive pendulum_arc( "pendulum.xml" );
+ public:
+  pendulum_simulation_node(bool& aIsDone)
+      : input_force(),
+        output_angle(new signal<double>("joint_angle")),
+        output_velocity(new signal<double>("joint_velocity")),
+        joint_coord(),
+        pendulum(),
+        sim_time(0.0),
+        output_rec("pendulum_ctrl_results.ssvdat"),
+        is_done(aIsDone) {
+    xml_iarchive pendulum_arc("pendulum.xml");
     iarchive& arc_ref = pendulum_arc;
     arc_ref >> joint_coord >> pendulum;
 
@@ -114,48 +121,53 @@ public:
                << "qdd"
                << "f_nl"
                << "f_ext" << recorder::data_recorder::end_name_row;
-  };
+  }
 
-  virtual ~pendulum_simulation_node() { output_rec << recorder::data_recorder::close; };
+  virtual ~pendulum_simulation_node() {
+    output_rec << recorder::data_recorder::close;
+  }
 
-  virtual bool connectTo( shared_ptr< node > aNode ) {
-    weak_ptr< named_object > tmp = aNode->getOutputSignal( "joint_torque" );
-    if( tmp.expired() )
+  virtual bool connectTo(std::shared_ptr<node> aNode) {
+    std::weak_ptr<named_object> tmp = aNode->getOutputSignal("joint_torque");
+    if (tmp.expired()) {
       return true;
-    else if( input_force = rtti::rk_dynamic_ptr_cast< signal< double > >( tmp.lock() ) )
+    } else if (input_force =
+                   rtti::rk_dynamic_ptr_cast<signal<double>>(tmp.lock())) {
       return true;
-    else
-      return false;
-  };
+    }
+    return false;
+  }
 
-  virtual bool isConnected() { return input_force; };
+  virtual bool isConnected() { return input_force; }
 
-  virtual weak_ptr< named_object > getOutputSignal( const std::string& aSignalName ) const {
-    if( aSignalName == "joint_angle" )
+  virtual std::weak_ptr<named_object> getOutputSignal(
+      const std::string& aSignalName) const {
+    if (aSignalName == "joint_angle") {
       return output_angle;
-    if( aSignalName == "joint_velocity" )
+    }
+    if (aSignalName == "joint_velocity") {
       return output_velocity;
-    return weak_ptr< named_object >();
-  };
+    }
+    return std::weak_ptr<named_object>();
+  }
 };
 
-
 class pendulum_control_node : public node {
-protected:
-  shared_ptr< signal< double > > output_force;
-  shared_ptr< signal< double > > input_angle;
-  shared_ptr< signal< double > > input_velocity;
+ protected:
+  std::shared_ptr<signal<double>> output_force;
+  std::shared_ptr<signal<double>> input_angle;
+  std::shared_ptr<signal<double>> input_velocity;
 
-  shared_ptr< gen_coord< double > > joint_coord;
+  std::shared_ptr<gen_coord<double>> joint_coord;
   kte_map_chain pendulum;
 
   double set_angle;
   const bool& is_done;
 
-
   virtual void process() {
 
-    double prop_err = sin( set_angle ) * cos( joint_coord->q ) - cos( set_angle ) * cos( joint_coord->q );
+    double prop_err = sin(set_angle) * cos(joint_coord->q) -
+                      cos(set_angle) * cos(joint_coord->q);
 
     joint_coord->q_ddot = prop_err * 16.0 - joint_coord->q_dot * 8.0;
 
@@ -163,49 +175,59 @@ protected:
     pendulum.clearForce();
     pendulum.doForce();
 
-    output_force->setValue( -joint_coord->f );
+    output_force->setValue(-joint_coord->f);
 
     const unsigned int& w_a = input_angle->waitingListForNext();
     const unsigned int& w_v = input_velocity->waitingListForNext();
-    while( ( w_a ) && ( w_v ) && ( !is_done ) )
-      ReaKaux::this_thread::yield();
+    while ((w_a) && (w_v) && (!is_done)) {
+      std::this_thread::yield();
+    }
     joint_coord->q = input_angle->getLast();
     joint_coord->q_dot = input_velocity->getLast();
-  };
+  }
 
-public:
-  pendulum_control_node( double aSetAngle, const bool& aIsDone )
-      : output_force( new signal< double >( "joint_torque" ) ), input_angle(), input_velocity(), joint_coord(),
-        pendulum(), set_angle( aSetAngle ), is_done( aIsDone ) {
-    xml_iarchive pendulum_arc( "pendulum.xml" );
+ public:
+  pendulum_control_node(double aSetAngle, const bool& aIsDone)
+      : output_force(new signal<double>("joint_torque")),
+        input_angle(),
+        input_velocity(),
+        joint_coord(),
+        pendulum(),
+        set_angle(aSetAngle),
+        is_done(aIsDone) {
+    xml_iarchive pendulum_arc("pendulum.xml");
     iarchive& arc_ref = pendulum_arc;
     arc_ref >> joint_coord >> pendulum;
-  };
+  }
 
-  virtual ~pendulum_control_node(){};
+  virtual ~pendulum_control_node() {}
 
-  virtual bool connectTo( shared_ptr< node > aNode ) {
-    weak_ptr< named_object > tmp = aNode->getOutputSignal( "joint_angle" );
-    if( !tmp.expired() )
-      input_angle = rtti::rk_dynamic_ptr_cast< signal< double > >( tmp.lock() );
-    tmp = aNode->getOutputSignal( "joint_velocity" );
-    if( !tmp.expired() )
-      input_velocity = rtti::rk_dynamic_ptr_cast< signal< double > >( tmp.lock() );
+  virtual bool connectTo(std::shared_ptr<node> aNode) {
+    std::weak_ptr<named_object> tmp = aNode->getOutputSignal("joint_angle");
+    if (!tmp.expired()) {
+      input_angle = rtti::rk_dynamic_ptr_cast<signal<double>>(tmp.lock());
+    }
+    tmp = aNode->getOutputSignal("joint_velocity");
+    if (!tmp.expired()) {
+      input_velocity = rtti::rk_dynamic_ptr_cast<signal<double>>(tmp.lock());
+    }
     return true;
-  };
+  }
 
-  virtual bool isConnected() { return ( ( input_angle ) && ( input_velocity ) ); };
+  virtual bool isConnected() { return ((input_angle) && (input_velocity)); }
 
-  virtual weak_ptr< named_object > getOutputSignal( const std::string& aSignalName ) const {
-    if( aSignalName == "joint_torque" )
+  virtual std::weak_ptr<named_object> getOutputSignal(
+      const std::string& aSignalName) const {
+    if (aSignalName == "joint_torque") {
       return output_force;
-    return weak_ptr< named_object >();
-  };
+    }
+    return std::weak_ptr<named_object>();
+  }
 };
 
 class pendulum_vmc_node : public pendulum_control_node {
-protected:
-  shared_ptr< frame_2D< double > > end_frame;
+ protected:
+  std::shared_ptr<frame_2D<double>> end_frame;
 
   kte_map_chain spring_damper_system;
 
@@ -218,62 +240,61 @@ protected:
     spring_damper_system.doForce();
     pendulum.doForce();
 
-
-    output_force->setValue( -joint_coord->f );
+    output_force->setValue(-joint_coord->f);
 
     const unsigned int& w_a = input_angle->waitingListForNext();
     const unsigned int& w_v = input_velocity->waitingListForNext();
-    while( ( w_a ) && ( w_v ) && ( !is_done ) )
-      ReaKaux::this_thread::yield();
+    while ((w_a) && (w_v) && (!is_done)) {
+      std::this_thread::yield();
+    }
     joint_coord->q = input_angle->getLast();
     joint_coord->q_dot = input_velocity->getLast();
-  };
+  }
 
-public:
-  pendulum_vmc_node( double aSetAngle, const bool& aIsDone )
-      : pendulum_control_node( aSetAngle, aIsDone ), end_frame(), spring_damper_system( "spring_damper_system" ) {
-    xml_iarchive pendulum_arc( "pendulum.xml" );
+ public:
+  pendulum_vmc_node(double aSetAngle, const bool& aIsDone)
+      : pendulum_control_node(aSetAngle, aIsDone),
+        end_frame(),
+        spring_damper_system("spring_damper_system") {
+    xml_iarchive pendulum_arc("pendulum.xml");
     iarchive& arc_ref = pendulum_arc;
     arc_ref >> joint_coord >> pendulum >> end_frame;
 
-    shared_ptr< frame_2D< double > > fixed_anchor(
-      new frame_2D< double >( weak_ptr< pose_2D< double > >(), vect< double, 2 >( 0.0, 0.51 ), rot_mat_2D< double >(),
-                              vect< double, 2 >( 0.0, 0.0 ), 0.0, vect< double, 2 >( 0.0, 9.81 ), 0.0,
-                              vect< double, 2 >( 0.0, 0.0 ), 0.0 ),
-      scoped_deleter() );
-    spring_damper_system << shared_ptr< spring_2D >(
-                              new spring_2D( "vmc_spring", end_frame, fixed_anchor, 0.01, -16.0 ), scoped_deleter() )
-                         << shared_ptr< damper_2D >( new damper_2D( "vmc_damper", end_frame, fixed_anchor, -8.0 ),
-                                                     scoped_deleter() );
-    // spring_damper_system << shared_ptr< spring_2D>(new
-    // spring_2D("vmc_spring",end_frame,fixed_anchor,0.01,-20.0),scoped_deleter())
-    //                     << shared_ptr< damper_2D>(new
-    //                     damper_2D("vmc_damper",end_frame,fixed_anchor,-15.0),scoped_deleter());
+    auto fixed_anchor = std::make_shared<frame_2D<double>>(
+        std::weak_ptr<pose_2D<double>>(), vect<double, 2>(0.0, 0.51),
+        rot_mat_2D<double>(), vect<double, 2>(0.0, 0.0), 0.0,
+        vect<double, 2>(0.0, 9.81), 0.0, vect<double, 2>(0.0, 0.0), 0.0);
+    spring_damper_system << std::make_shared<spring_2D>("vmc_spring", end_frame,
+                                                        fixed_anchor, 0.01,
+                                                        -16.0)
+                         << std::make_shared<damper_2D>("vmc_damper", end_frame,
+                                                        fixed_anchor, -8.0);
+    // spring_damper_system << std::make_shared< spring_2D>("vmc_spring",end_frame,fixed_anchor,0.01,-20.0)
+    //                     << std::make_shared< damper_2D>("vmc_damper",end_frame,fixed_anchor,-15.0);
   };
 
   virtual ~pendulum_vmc_node(){};
 };
 
-
 int main() {
-
 
   root_node test_on_sim;
 
   bool done_flag;
-  // shared_ptr<node> ctrl_node(new pendulum_vmc_node(M_PI * 0.5,done_flag));
-  shared_ptr< node > ctrl_node( new pendulum_control_node( M_PI * 0.5, done_flag ) );
-  shared_ptr< node > sim_node( new pendulum_simulation_node( done_flag ) );
+  // auto ctrl_node = std::make_shared<pendulum_vmc_node>(M_PI * 0.5, done_flag);
+  auto ctrl_node =
+      std::make_shared<pendulum_control_node>(M_PI * 0.5, done_flag);
+  auto sim_node = std::make_shared<pendulum_simulation_node>(done_flag);
 
-  ctrl_node->connectTo( sim_node );
-  sim_node->connectTo( ctrl_node );
+  ctrl_node->connectTo(sim_node);
+  sim_node->connectTo(ctrl_node);
 
   test_on_sim << sim_node << ctrl_node;
 
   test_on_sim.start();
 
-  while( !done_flag )
-    ReaKaux::this_thread::yield();
+  while (!done_flag)
+    std::this_thread::yield();
 
   test_on_sim.stop();
 };

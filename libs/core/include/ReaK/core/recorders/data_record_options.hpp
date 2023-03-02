@@ -40,11 +40,7 @@
 #include <string>
 
 /** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK's Data Recorders and Extractors */
-namespace recorder {
-
+namespace ReaK::recorder {
 
 /**
  * This class stores a number of options related to data-streaming with either data-recorders
@@ -63,14 +59,14 @@ struct data_stream_options {
     udp_stream,
     raw_udp_stream,
     vector_stream
-  } kind; ///< Stores the kind of stream (format) to use.
+  } kind{space_separated};  ///< Stores the kind of stream (format) to use.
 
   /**
    * This function returns the file-extension for the data-stream file (if it's a file-based stream).
    * \return The file-extension for the data-stream file (if it's a file-based stream).
    */
   std::string get_extension() const {
-    switch( kind ) {
+    switch (kind) {
       case binary:
         return "bin";
       case space_separated:
@@ -81,58 +77,59 @@ struct data_stream_options {
         return "csv";
       default:
         return "";
-    };
-  };
+    }
+  }
 
   /// Stores the file-name (or the ip:port name) for the stream.
   std::string file_name;
 
   /// Stores the names to put on a recorder or to keep from an extractor, will be ignored if empty.
-  mutable std::vector< std::string > names;
+  mutable std::vector<std::string> names;
 
   /**
    * This function adds a name to the 'names' vector.
    * \param aName The name to be added to the 'names' vector.
    * \return A reference to this object.
    */
-  data_stream_options& add_name( const std::string& aName ) {
-    names.push_back( aName );
+  data_stream_options& add_name(const std::string& aName) {
+    names.push_back(aName);
     return *this;
-  };
+  }
 
   /// Stores the name of time-sync column for when streaming is paced with time.
   std::string time_sync_name;
 
   /// Stores the frequency (Hz) of data flushes, if 0, then data is sent / received immediately.
-  unsigned int flush_rate;
+  unsigned int flush_rate{50};
 
   /// Stores the desired average size of the data buffer, if 0, then data is sent / received immediately without
   /// buffering.
-  unsigned int buffer_size;
+  unsigned int buffer_size{500};
 
   void set_unbuffered() {
     flush_rate = 0;
     buffer_size = 0;
-  };
-  void set_buffered( unsigned int aFlushRate = 50, unsigned int aBufferSize = 500 ) {
+  }
+  void set_buffered(unsigned int aFlushRate = 50,
+                    unsigned int aBufferSize = 500) {
     flush_rate = aFlushRate;
     buffer_size = aBufferSize;
-  };
+  }
 
   std::string get_URI() const;
-  void set_from_URI( const std::string& aURI );
+  void set_from_URI(const std::string& aURI);
 
   /**
    * Default constructor.
    */
-  data_stream_options() : kind( space_separated ), flush_rate( 50 ), buffer_size( 500 ){};
+  data_stream_options() = default;
 
   /**
    * This function creates a data-recorder from the options that were set in
    * this options object.
    * \return A data-recorder corresponding to the options that were set in this object.
    */
-  shared_ptr< data_recorder > create_recorder() const;
+  std::shared_ptr<data_recorder> create_recorder() const;
 
   /**
    * This function creates a data-extractor (with a list of names of columns from it)
@@ -140,21 +137,22 @@ struct data_stream_options {
    * \return A data-extractor (with a list of names of columns from it) corresponding to
    *         the options that were set in this object.
    */
-  std::pair< shared_ptr< data_extractor >, std::vector< std::string > > create_extractor() const;
+  std::pair<std::shared_ptr<data_extractor>, std::vector<std::string>>
+  create_extractor() const;
 
   /**
    * Loads all the configurations from the given file-name (ReaK archive).
    * \param aFileName The file-name of the ReaK archive from which to load all the configurations.
    */
-  void load_all_configs( const std::string& aFileName );
+  void load_all_configs(const std::string& aFileName);
 
   /**
    * Saves all the configurations to the given file-name (ReaK archive).
    * \param aFileName The file-name of the ReaK archive to which to save all the configurations.
    */
-  void save_all_configs( const std::string& aFileName ) const;
-};
-};
+  void save_all_configs(const std::string& aFileName) const;
 };
 
-#endif // RK_DATA_RECORD_PO_HPP
+}  // namespace ReaK::recorder
+
+#endif  // REAK_DATA_RECORD_OPTIONS_HPP

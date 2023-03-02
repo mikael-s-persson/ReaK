@@ -45,20 +45,15 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 
-#include <ReaK/control/systems/state_space_sys_concept.hpp>
-#include <ReaK/control/systems/linear_ss_system_concept.hpp>
-#include <ReaK/control/systems/discrete_sss_concept.hpp>
-#include <ReaK/control/systems/discrete_linear_sss_concept.hpp>
 #include <ReaK/control/controller/ss_controller_concept.hpp>
+#include <ReaK/control/systems/discrete_linear_sss_concept.hpp>
+#include <ReaK/control/systems/discrete_sss_concept.hpp>
+#include <ReaK/control/systems/linear_ss_system_concept.hpp>
+#include <ReaK/control/systems/state_space_sys_concept.hpp>
 
 #include <boost/concept_check.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Control */
-namespace ctrl {
-
+namespace ReaK::ctrl {
 
 /**
  * This class template defines the concept for a continuous-time state-observer as used in the ReaK::ctrl
@@ -81,15 +76,17 @@ namespace ctrl {
  * \tparam PlantSystem The state-space plant system type for which the observer is for.
  * \tparam Statefulness A type specifying the statefulness required of the state-observer (see Stateless or Stateful).
  */
-template < typename ObserverSystem, typename PlantSystem, typename Statefulness >
+template <typename ObserverSystem, typename PlantSystem, typename Statefulness>
 struct CTSSObserverConcept {
   ObserverSystem obs_sys;
   Statefulness statefulness_constraint;
-  typename ss_system_traits< ObserverSystem >::time_type t;
-  typename ss_system_traits< PlantSystem >::output_type u;
-  typename ss_system_traits< PlantSystem >::point_type y;
+  typename ss_system_traits<ObserverSystem>::time_type t;
+  typename ss_system_traits<PlantSystem>::output_type u;
+  typename ss_system_traits<PlantSystem>::point_type y;
 
-  BOOST_CONCEPT_USAGE( CTSSObserverConcept ) { statefulness_constraint.ct_constraints( obs_sys, y, u, t ); };
+  BOOST_CONCEPT_USAGE(CTSSObserverConcept) {
+    statefulness_constraint.ct_constraints(obs_sys, y, u, t);
+  }
 };
 
 /**
@@ -113,17 +110,19 @@ struct CTSSObserverConcept {
  * \tparam PlantSystem The state-space plant system type for which the observer is for.
  * \tparam Statefulness A type specifying the statefulness required of the state-observer (see Stateless or Stateful).
  */
-template < typename ObserverSystem, typename PlantSystem, typename Statefulness >
+template <typename ObserverSystem, typename PlantSystem, typename Statefulness>
 struct DTSSObserverConcept {
   ObserverSystem obs_sys;
   Statefulness statefulness_constraint;
-  typename discrete_sss_traits< ObserverSystem >::time_type t;
-  typename discrete_sss_traits< PlantSystem >::output_type u;
-  typename discrete_sss_traits< PlantSystem >::point_type y;
+  typename discrete_sss_traits<ObserverSystem>::time_type t;
+  typename discrete_sss_traits<PlantSystem>::output_type u;
+  typename discrete_sss_traits<PlantSystem>::point_type y;
 
-  BOOST_CONCEPT_USAGE( DTSSObserverConcept ) { statefulness_constraint.dt_constraints( obs_sys, y, u, t ); };
+  BOOST_CONCEPT_USAGE(DTSSObserverConcept) {
+    statefulness_constraint.dt_constraints(obs_sys, y, u, t);
+  }
 };
-};
-};
+
+}  // namespace ReaK::ctrl
 
 #endif

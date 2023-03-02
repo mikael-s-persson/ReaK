@@ -37,170 +37,162 @@
 
 namespace ReaK {
 
-
 /**
  * This class holds the kinematic and dynamic values for a generalized coordinate.
  */
-template < typename T >
+template <typename T>
 class gen_coord : public shared_object {
-public:
-  typedef gen_coord< T > self;
-  typedef T value_type;
+ public:
+  using self = gen_coord<T>;
+  using value_type = T;
 
-  typedef T* pointer;
-  typedef const T* const_pointer;
-  typedef T& reference;
-  typedef const T& const_reference;
+  using pointer = T*;
+  using const_pointer = const T*;
+  using reference = T&;
+  using const_reference = const T&;
 
-  value_type q;      ///< Position value of the generalized coordinate.
-  value_type q_dot;  ///< Velocity value of the generalized coordinate.
-  value_type q_ddot; ///< Acceleration value of the generalized coordinate.
-  value_type f;      ///< Force value of the generalized coordinate.
+  value_type q;       ///< Position value of the generalized coordinate.
+  value_type q_dot;   ///< Velocity value of the generalized coordinate.
+  value_type q_ddot;  ///< Acceleration value of the generalized coordinate.
+  value_type f;       ///< Force value of the generalized coordinate.
 
   /**
    * Default constructor, all is set to zero.
    */
-  gen_coord() : shared_object(), q( 0.0 ), q_dot( 0.0 ), q_ddot( 0.0 ), f( 0.0 ){};
+  gen_coord() : shared_object(), q(0.0), q_dot(0.0), q_ddot(0.0), f(0.0) {}
 
   /**
    * Parametrized constructor, all is set to corresponding parameters.
    */
-  gen_coord( const_reference Q, const_reference Q_dot, const_reference Q_ddot, const_reference F )
-      : shared_object(), q( Q ), q_dot( Q_dot ), q_ddot( Q_ddot ), f( F ){};
+  gen_coord(const_reference Q, const_reference Q_dot, const_reference Q_ddot,
+            const_reference F)
+      : shared_object(), q(Q), q_dot(Q_dot), q_ddot(Q_ddot), f(F) {}
 
   /**
    * Default virtual destructor.
    */
-  virtual ~gen_coord(){};
+  ~gen_coord() override = default;
 
   /**
    * Add Q to the position value.
    */
-  self& add_Q( const_reference Q ) {
+  self& add_Q(const_reference Q) {
     q += Q;
     return *this;
-  };
+  }
 
   /**
    * Add Q_dot to the velocity value.
    */
-  self& add_Q_dot( const_reference Q_dot ) {
+  self& add_Q_dot(const_reference Q_dot) {
     q_dot += Q_dot;
     return *this;
-  };
+  }
 
   /**
    * Add Q_ddot to the acceleration value.
    */
-  self& add_Q_ddot( const_reference Q_ddot ) {
+  self& add_Q_ddot(const_reference Q_ddot) {
     q_ddot += Q_ddot;
     return *this;
-  };
+  }
 
   /**
    * Add F to the force value.
    */
-  self& add_F( const_reference F ) {
+  self& add_F(const_reference F) {
     f += F;
     return *this;
-  };
+  }
 
   /**
    * Addition operator.
    */
-  friend self operator+( const self& G1, const self& G2 ) {
-    return self( G1.q + G2.q, G1.q_dot + G2.q_dot, G1.q_ddot + G2.q_ddot, G1.f + G2.f );
-  };
+  friend self operator+(const self& G1, const self& G2) {
+    return self(G1.q + G2.q, G1.q_dot + G2.q_dot, G1.q_ddot + G2.q_ddot,
+                G1.f + G2.f);
+  }
 
   /**
    * Substraction operator.
    */
-  friend self operator-( const self& G1, const self& G2 ) {
-    return self( G1.q - G2.q, G1.q_dot - G2.q_dot, G1.q_ddot - G2.q_ddot, G1.f - G2.f );
-  };
+  friend self operator-(const self& G1, const self& G2) {
+    return self(G1.q - G2.q, G1.q_dot - G2.q_dot, G1.q_ddot - G2.q_ddot,
+                G1.f - G2.f);
+  }
 
   /**
    * Negation operator.
    */
-  self operator-() const { return self( -q, -q_dot, -q_ddot, -f ); };
+  self operator-() const { return self(-q, -q_dot, -q_ddot, -f); }
 
   /**
    * Addition-assignment operator.
    */
-  self& operator+=( const self& G ) {
+  self& operator+=(const self& G) {
     q += G.q;
     q_dot += G.q_dot;
     q_ddot += G.q_ddot;
     f += G.f;
     return *this;
-  };
+  }
 
   /**
    * Substraction-assignment operator.
    */
-  self& operator-=( const self& G ) {
+  self& operator-=(const self& G) {
     q -= G.q;
     q_dot -= G.q_dot;
     q_ddot -= G.q_ddot;
     f -= G.f;
     return *this;
-  };
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    A& RK_SERIAL_SAVE_WITH_NAME( q ) & RK_SERIAL_SAVE_WITH_NAME( q_dot ) & RK_SERIAL_SAVE_WITH_NAME( q_ddot )
-      & RK_SERIAL_SAVE_WITH_NAME( f );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    A& RK_SERIAL_LOAD_WITH_NAME( q ) & RK_SERIAL_LOAD_WITH_NAME( q_dot ) & RK_SERIAL_LOAD_WITH_NAME( q_ddot )
-      & RK_SERIAL_LOAD_WITH_NAME( f );
-  };
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
+    A& RK_SERIAL_SAVE_WITH_NAME(q) & RK_SERIAL_SAVE_WITH_NAME(q_dot) &
+        RK_SERIAL_SAVE_WITH_NAME(q_ddot) & RK_SERIAL_SAVE_WITH_NAME(f);
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
+    A& RK_SERIAL_LOAD_WITH_NAME(q) & RK_SERIAL_LOAD_WITH_NAME(q_dot) &
+        RK_SERIAL_LOAD_WITH_NAME(q_ddot) & RK_SERIAL_LOAD_WITH_NAME(f);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0x0000000F, 1, "gen_coord", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0x0000000F, 1, "gen_coord", shared_object)
 };
 
-template < typename T >
-gen_coord< T > gen_coord_pos( const T& value ) {
-  return gen_coord< T >( value, 0, 0, 0 );
-};
+template <typename T>
+gen_coord<T> gen_coord_pos(const T& value) {
+  return gen_coord<T>(value, 0, 0, 0);
+}
 
-template < typename T >
-gen_coord< T > gen_coord_vel( const T& value ) {
-  return gen_coord< T >( 0, value, 0, 0 );
-};
+template <typename T>
+gen_coord<T> gen_coord_vel(const T& value) {
+  return gen_coord<T>(0, value, 0, 0);
+}
 
-template < typename T >
-gen_coord< T > gen_coord_acc( const T& value ) {
-  return gen_coord< T >( 0, 0, value, 0 );
-};
+template <typename T>
+gen_coord<T> gen_coord_acc(const T& value) {
+  return gen_coord<T>(0, 0, value, 0);
+}
 
-template < typename T >
-gen_coord< T > gen_coord_force( const T& value ) {
-  return gen_coord< T >( 0, 0, 0, value );
-};
+template <typename T>
+gen_coord<T> gen_coord_force(const T& value) {
+  return gen_coord<T>(0, 0, 0, value);
+}
 
-
-template < typename T >
-std::ostream& operator<<( std::ostream& out, const gen_coord< T >& g ) {
-  out << "(q = " << g.q << "; q_dot = " << g.q_dot << "; q_ddot = " << g.q_ddot << "; f = " << g.f << ")";
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const gen_coord<T>& g) {
+  out << "(q = " << g.q << "; q_dot = " << g.q_dot << "; q_ddot = " << g.q_ddot
+      << "; f = " << g.f << ")";
   return out;
-};
+}
 
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
-
-extern template class gen_coord< double >;
-extern template std::ostream& operator<<( std::ostream& out, const gen_coord< double >& g );
-
-
-extern template class gen_coord< float >;
-extern template std::ostream& operator<<( std::ostream& out, const gen_coord< float >& g );
-
-#endif
-};
-
+}  // namespace ReaK
 
 #endif

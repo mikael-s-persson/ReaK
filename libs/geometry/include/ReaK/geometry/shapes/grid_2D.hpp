@@ -34,41 +34,40 @@
 
 #include "geometry_2D.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
+namespace ReaK::geom {
 
 /** This class is a class for a 2D grid to be rendered. */
 class grid_2D : public geometry_2D {
-protected:
-  vect< double, 2 > mDimensions;
-  vect< std::size_t, 2 > mSquareCounts;
+ protected:
+  vect<double, 2> mDimensions;
+  vect<std::size_t, 2> mSquareCounts;
 
-public:
+ public:
   /**
    * This function returns the dimensions of the grid.
    * \return The dimensions of the grid.
    */
-  const vect< double, 2 >& getDimensions() const { return mDimensions; };
+  const vect<double, 2>& getDimensions() const { return mDimensions; }
   /**
    * This function sets the new dimensions of the grid.
    * \param aDimensions The new dimensions of the grid.
    */
-  void setDimensions( const vect< double, 2 >& aDimensions ) { mDimensions = aDimensions; };
+  void setDimensions(const vect<double, 2>& aDimensions) {
+    mDimensions = aDimensions;
+  }
 
   /**
    * This function returns the square-counts of the grid.
    * \return The square-counts.
    */
-  const vect< std::size_t, 2 >& getSquareCounts() const { return mSquareCounts; };
+  const vect<std::size_t, 2>& getSquareCounts() const { return mSquareCounts; }
   /**
    * This function sets the new square-counts of the grid.
    * \param aSquareCounts The new square-counts.
    */
-  void setSquareCounts( const vect< std::size_t, 2 >& aSquareCounts ) { mSquareCounts = aSquareCounts; };
+  void setSquareCounts(const vect<std::size_t, 2>& aSquareCounts) {
+    mSquareCounts = aSquareCounts;
+  }
 
   /**
    * Default constructor.
@@ -78,29 +77,31 @@ public:
    * \param aDimensions The dimensions.
    * \param aSquareCounts The square-counts.
    */
-  grid_2D( const std::string& aName = "",
-           const shared_ptr< pose_2D< double > >& aAnchor = shared_ptr< pose_2D< double > >(),
-           const pose_2D< double >& aPose = pose_2D< double >(),
-           const vect< double, 2 >& aDimensions = ( vect< double, 2 >() ),
-           const vect< std::size_t, 2 >& aSquareCounts = ( vect< std::size_t, 2 >( 10, 10 ) ) );
+  explicit grid_2D(const std::string& aName = "",
+                   const std::shared_ptr<pose_2D<double>>& aAnchor =
+                       std::shared_ptr<pose_2D<double>>(),
+                   const pose_2D<double>& aPose = pose_2D<double>(),
+                   const vect<double, 2>& aDimensions = (vect<double, 2>()),
+                   const vect<std::size_t, 2>& aSquareCounts =
+                       (vect<std::size_t, 2>(10, 10)));
 
   /**
    * Default destructor.
    */
-  virtual ~grid_2D(){};
-
+  ~grid_2D() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( grid_2D, 0xC3100006, 1, "grid_2D", geometry_2D )
+  RK_RTTI_MAKE_CONCRETE_1BASE(grid_2D, 0xC3100006, 1, "grid_2D", geometry_2D)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

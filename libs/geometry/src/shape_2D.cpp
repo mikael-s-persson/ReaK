@@ -23,30 +23,27 @@
 
 #include <ReaK/geometry/shapes/shape_2D.hpp>
 
-namespace ReaK {
+namespace ReaK::geom {
 
-namespace geom {
+shape_2D::shape_2D(const std::string& aName,
+                   const std::shared_ptr<pose_2D<double>>& aAnchor,
+                   const pose_2D<double>& aPose)
+    : geometry_2D(aName, aAnchor, aPose) {}
 
+void shape_2D::save(ReaK::serialization::oarchive& A,
+                    unsigned int /*unused*/) const {
+  geometry_2D::save(A, geometry_2D::getStaticObjectType()->TypeVersion());
+}
 
-shape_2D::shape_2D( const std::string& aName, const shared_ptr< pose_2D< double > >& aAnchor,
-                    const pose_2D< double >& aPose )
-    : geometry_2D( aName, aAnchor, aPose ){};
-
-
-void RK_CALL shape_2D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
-  geometry_2D::save( A, geometry_2D::getStaticObjectType()->TypeVersion() );
-};
-
-void RK_CALL shape_2D::load( ReaK::serialization::iarchive& A, unsigned int ) {
-  geometry_2D::load( A, geometry_2D::getStaticObjectType()->TypeVersion() );
-};
-
+void shape_2D::load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) {
+  geometry_2D::load(A, geometry_2D::getStaticObjectType()->TypeVersion());
+}
 
 shape_2D_precompute_pack shape_2D::createPrecomputePack() const {
   shape_2D_precompute_pack result;
   result.parent = this;
   result.global_pose = mPose.getGlobalPose();
   return result;
-};
-};
-};
+}
+
+}  // namespace ReaK::geom

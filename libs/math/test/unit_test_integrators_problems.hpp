@@ -28,47 +28,46 @@
 
 #include "integrator.hpp"
 
-
 namespace ReaK {
 
-
-template < typename T >
-class iv_problem : public state_rate_function< T > {
-public:
+template <typename T>
+class iv_problem : public state_rate_function<T> {
+ public:
   virtual ~iv_problem(){};
 
   virtual double getInitialTime() const = 0;
-  virtual vect_n< T > getInitialValue() const = 0;
+  virtual vect_n<T> getInitialValue() const = 0;
   virtual double getFinalTime() const = 0;
-  virtual vect_n< T > getFinalValue() const = 0;
+  virtual vect_n<T> getFinalValue() const = 0;
 
-  typedef iv_problem< T > self;
-  typedef state_rate_function< T > base_type;
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC22FFFF0, 1, "iv_problem", base_type )
+  typedef iv_problem<T> self;
+  typedef state_rate_function<T> base_type;
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC22FFFF0, 1, "iv_problem", base_type)
 };
 
-
-template < class T >
-class HIRES_iv_problem : public iv_problem< T > {
-public:
+template <class T>
+class HIRES_iv_problem : public iv_problem<T> {
+ public:
   virtual ~HIRES_iv_problem(){};
 
-  virtual void RK_CALL computeStateRate( double, const ReaK::vect_n< T >& aState, ReaK::vect_n< T >& aStateRate ) {
-    aStateRate[0] = -1.71 * aState[0] + 0.43 * aState[1] + 8.32 * aState[2] + 0.0007;
+  virtual void computeStateRate(double, const ReaK::vect_n<T>& aState,
+                                ReaK::vect_n<T>& aStateRate) {
+    aStateRate[0] =
+        -1.71 * aState[0] + 0.43 * aState[1] + 8.32 * aState[2] + 0.0007;
     aStateRate[1] = 1.71 * aState[0] - 8.75 * aState[1];
     aStateRate[2] = -10.03 * aState[2] + 0.43 * aState[3] + 0.035 * aState[4];
     aStateRate[3] = 8.32 * aState[1] + 1.71 * aState[2] - 1.12 * aState[3];
     aStateRate[4] = -1.745 * aState[4] + 0.43 * aState[5] + 0.43 * aState[6];
-    aStateRate[5] = -280.0 * aState[5] * aState[7] + 0.69 * aState[3] + 1.71 * aState[4] - 0.43 * aState[5]
-                    + 0.69 * aState[6];
+    aStateRate[5] = -280.0 * aState[5] * aState[7] + 0.69 * aState[3] +
+                    1.71 * aState[4] - 0.43 * aState[5] + 0.69 * aState[6];
     aStateRate[6] = 280.0 * aState[5] * aState[7] - 1.81 * aState[6];
     aStateRate[7] = -280.0 * aState[5] * aState[7] + 1.81 * aState[6];
   };
 
   virtual double getInitialTime() const { return 0.0; };
 
-  virtual vect_n< T > getInitialValue() const {
-    vect_n< T > result( 8 );
+  virtual vect_n<T> getInitialValue() const {
+    vect_n<T> result(8);
     result[0] = 1.0;
     result[1] = 0.0;
     result[2] = 0.0;
@@ -82,8 +81,8 @@ public:
 
   virtual double getFinalTime() const { return 321.8122; };
 
-  virtual vect_n< T > getFinalValue() const {
-    vect_n< T > result( 8 );
+  virtual vect_n<T> getFinalValue() const {
+    vect_n<T> result(8);
     result[0] = 0.7371312573325668e-3;
     result[1] = 0.1442485726316185e-3;
     result[2] = 0.5888729740967575e-4;
@@ -95,19 +94,19 @@ public:
     return result;
   };
 
-
-  typedef HIRES_iv_problem< T > self;
-  typedef iv_problem< T > base_type;
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC22FFFF1, 1, "HIRES_iv_problem", base_type )
+  typedef HIRES_iv_problem<T> self;
+  typedef iv_problem<T> base_type;
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC22FFFF1, 1, "HIRES_iv_problem",
+                              base_type)
 };
 
-
-template < class T >
-class Pollution_iv_problem : public iv_problem< T > {
-public:
+template <class T>
+class Pollution_iv_problem : public iv_problem<T> {
+ public:
   virtual ~Pollution_iv_problem(){};
 
-  virtual void RK_CALL computeStateRate( double, const ReaK::vect_n< T >& aState, ReaK::vect_n< T >& aStateRate ) {
+  virtual void computeStateRate(double, const ReaK::vect_n<T>& aState,
+                                ReaK::vect_n<T>& aStateRate) {
     const T k1 = 0.35;
     const T k2 = 0.266e2;
     const T k3 = 0.123e5;
@@ -134,7 +133,7 @@ public:
     const T k24 = 0.178e4;
     const T k25 = 0.312e1;
 
-    vect_n< T > r( 25 );
+    vect_n<T> r(25);
     r[0] = k1 * aState[0];
     r[1] = k2 * aState[1] * aState[3];
     r[2] = k3 * aState[4] * aState[1];
@@ -161,7 +160,8 @@ public:
     r[23] = k24 * aState[18] * aState[0];
     r[24] = k25 * aState[19];
 
-    aStateRate[0] = -r[0] - r[9] - r[13] - r[22] - r[23] + r[1] + r[2] + r[8] + r[10] + r[11] + r[21] + r[24];
+    aStateRate[0] = -r[0] - r[9] - r[13] - r[22] - r[23] + r[1] + r[2] + r[8] +
+                    r[10] + r[11] + r[21] + r[24];
     aStateRate[1] = -r[1] - r[2] - r[8] - r[11] + r[0] + r[20];
     aStateRate[2] = -r[14] + r[0] + r[16] + r[18] + r[21];
     aStateRate[3] = -r[1] - r[15] - r[16] - r[22] + r[14];
@@ -185,8 +185,8 @@ public:
 
   virtual double getInitialTime() const { return 0.0; };
 
-  virtual vect_n< T > getInitialValue() const {
-    vect_n< T > result( 20 );
+  virtual vect_n<T> getInitialValue() const {
+    vect_n<T> result(20);
     result[0] = 0.0;
     result[1] = 0.2;
     result[2] = 0.0;
@@ -212,8 +212,8 @@ public:
 
   virtual double getFinalTime() const { return 60.0; };
 
-  virtual vect_n< T > getFinalValue() const {
-    vect_n< T > result( 20 );
+  virtual vect_n<T> getFinalValue() const {
+    vect_n<T> result(20);
     result[0] = 0.5646255480022769e-01;
     result[1] = 0.1342484130422339;
     result[2] = 0.4139734331099427e-08;
@@ -237,22 +237,21 @@ public:
     return result;
   };
 
-
-  typedef Pollution_iv_problem< T > self;
-  typedef iv_problem< T > base_type;
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC22FFFF2, 1, "Pollution_iv_problem", base_type )
+  typedef Pollution_iv_problem<T> self;
+  typedef iv_problem<T> base_type;
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC22FFFF2, 1, "Pollution_iv_problem",
+                              base_type)
 };
 
-
-template < class T >
-class RingModulator_iv_problem : public iv_problem< T > {
-public:
+template <class T>
+class RingModulator_iv_problem : public iv_problem<T> {
+ public:
   virtual ~RingModulator_iv_problem(){};
 
-  virtual void RK_CALL
-    computeStateRate( double aTime, const ReaK::vect_n< T >& aState, ReaK::vect_n< T >& aStateRate ) {
-    using std::sin;
+  virtual void computeStateRate(double aTime, const ReaK::vect_n<T>& aState,
+                                ReaK::vect_n<T>& aStateRate) {
     using std::exp;
+    using std::sin;
 
     const T c = 1.6e-8;
     const T cs = 2.0e-12;
@@ -272,43 +271,47 @@ public:
     const T delta = 17.7493332;
     const T pi = 3.141592653589793238462643383;
 
-    T uin1 = 0.5 * sin( 2.0e3 * pi * aTime );
-    T uin2 = 2.0 * sin( 2.0e4 * pi * aTime );
+    T uin1 = 0.5 * sin(2.0e3 * pi * aTime);
+    T uin2 = 2.0 * sin(2.0e4 * pi * aTime);
     T ud1 = aState[2] - aState[4] - aState[6] - uin2;
     T ud2 = -aState[3] + aState[5] - aState[6] - uin2;
     T ud3 = aState[3] + aState[4] + aState[6] + uin2;
     T ud4 = -aState[2] - aState[5] + aState[6] + uin2;
 
-    T qud1 = gamma * ( exp( delta * ud1 ) - 1.0 );
-    T qud2 = gamma * ( exp( delta * ud2 ) - 1.0 );
-    T qud3 = gamma * ( exp( delta * ud3 ) - 1.0 );
-    T qud4 = gamma * ( exp( delta * ud4 ) - 1.0 );
+    T qud1 = gamma * (exp(delta * ud1) - 1.0);
+    T qud2 = gamma * (exp(delta * ud2) - 1.0);
+    T qud3 = gamma * (exp(delta * ud3) - 1.0);
+    T qud4 = gamma * (exp(delta * ud4) - 1.0);
 
-    aStateRate[0] = ( aState[7] - 0.5 * aState[9] + 0.5 * aState[10] + aState[13] - aState[0] / r ) / c;
-    aStateRate[1] = ( aState[8] - 0.5 * aState[11] + 0.5 * aState[12] + aState[14] - aState[1] / r ) / c;
-    aStateRate[2] = ( aState[9] - qud1 + qud4 ) / cs;
-    aStateRate[3] = ( -aState[10] + qud2 - qud3 ) / cs;
-    aStateRate[4] = ( aState[11] + qud1 - qud3 ) / cs;
-    aStateRate[5] = ( -aState[12] - qud2 + qud4 ) / cs;
-    aStateRate[6] = ( -aState[6] / rp + qud1 + qud2 - qud3 - qud4 ) / cp;
+    aStateRate[0] = (aState[7] - 0.5 * aState[9] + 0.5 * aState[10] +
+                     aState[13] - aState[0] / r) /
+                    c;
+    aStateRate[1] = (aState[8] - 0.5 * aState[11] + 0.5 * aState[12] +
+                     aState[14] - aState[1] / r) /
+                    c;
+    aStateRate[2] = (aState[9] - qud1 + qud4) / cs;
+    aStateRate[3] = (-aState[10] + qud2 - qud3) / cs;
+    aStateRate[4] = (aState[11] + qud1 - qud3) / cs;
+    aStateRate[5] = (-aState[12] - qud2 + qud4) / cs;
+    aStateRate[6] = (-aState[6] / rp + qud1 + qud2 - qud3 - qud4) / cp;
     aStateRate[7] = -aState[0] / lh;
     aStateRate[8] = -aState[1] / lh;
-    aStateRate[9] = ( 0.5 * aState[0] - aState[2] - rg2 * aState[9] ) / ls2;
-    aStateRate[10] = ( -0.5 * aState[0] + aState[3] - rg3 * aState[10] ) / ls3;
-    aStateRate[11] = ( 0.5 * aState[1] - aState[4] - rg2 * aState[11] ) / ls2;
-    aStateRate[12] = ( -0.5 * aState[1] + aState[5] - rg3 * aState[12] ) / ls3;
-    aStateRate[13] = ( -aState[0] + uin1 - ( ri + rg1 ) * aState[13] ) / ls1;
-    aStateRate[14] = ( -aState[1] - ( rc + rg1 ) * aState[14] ) / ls1;
+    aStateRate[9] = (0.5 * aState[0] - aState[2] - rg2 * aState[9]) / ls2;
+    aStateRate[10] = (-0.5 * aState[0] + aState[3] - rg3 * aState[10]) / ls3;
+    aStateRate[11] = (0.5 * aState[1] - aState[4] - rg2 * aState[11]) / ls2;
+    aStateRate[12] = (-0.5 * aState[1] + aState[5] - rg3 * aState[12]) / ls3;
+    aStateRate[13] = (-aState[0] + uin1 - (ri + rg1) * aState[13]) / ls1;
+    aStateRate[14] = (-aState[1] - (rc + rg1) * aState[14]) / ls1;
   };
 
   virtual double getInitialTime() const { return 0.0; };
 
-  virtual vect_n< T > getInitialValue() const { return vect_n< T >( 15, T( 0.0 ) ); };
+  virtual vect_n<T> getInitialValue() const { return vect_n<T>(15, T(0.0)); };
 
   virtual double getFinalTime() const { return 1.0e-3; };
 
-  virtual vect_n< T > getFinalValue() const {
-    vect_n< T > result( 15 );
+  virtual vect_n<T> getFinalValue() const {
+    vect_n<T> result(15);
     result[0] = -0.2339057358486745e-1;
     result[1] = -0.7367485485540825e-2;
     result[2] = 0.2582956709291169;
@@ -327,46 +330,48 @@ public:
     return result;
   };
 
-
-  typedef RingModulator_iv_problem< T > self;
-  typedef iv_problem< T > base_type;
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC22FFFF3, 1, "RingModulator_iv_problem", base_type )
+  typedef RingModulator_iv_problem<T> self;
+  typedef iv_problem<T> base_type;
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC22FFFF3, 1, "RingModulator_iv_problem",
+                              base_type)
 };
 
-
-template < class T >
-class AkzoNobel_iv_problem : public iv_problem< T > {
-public:
+template <class T>
+class AkzoNobel_iv_problem : public iv_problem<T> {
+ public:
   virtual ~AkzoNobel_iv_problem(){};
 
-  virtual void RK_CALL
-    computeStateRate( double aTime, const ReaK::vect_n< T >& aState, ReaK::vect_n< T >& aStateRate ) {
+  virtual void computeStateRate(double aTime, const ReaK::vect_n<T>& aState,
+                                ReaK::vect_n<T>& aStateRate) {
     const T k = 100.0;
     const T c = 4.0;
 
     const std::size_t N = 200;
-    const T dzeta = 1.0 / T( N );
+    const T dzeta = 1.0 / T(N);
     const T dzeta2 = dzeta * dzeta;
-    T dum = ( dzeta - 1.0 ) * ( dzeta - 1.0 ) / c;
-    T alpha = 2.0 * ( dzeta - 1.0 ) * dum / c;
+    T dum = (dzeta - 1.0) * (dzeta - 1.0) / c;
+    T alpha = 2.0 * (dzeta - 1.0) * dum / c;
     T beta = dum * dum;
 
     T phi = 0.0;
-    if( aTime < 5.0 )
+    if (aTime < 5.0)
       phi = 2.0;
 
-    aStateRate[0] = ( phi - 2.0 * aState[0] + aState[2] ) * beta / dzeta2
-                    + alpha * ( aState[2] - phi ) / ( 2.0 * dzeta ) - k * aState[0] * aState[1];
+    aStateRate[0] = (phi - 2.0 * aState[0] + aState[2]) * beta / dzeta2 +
+                    alpha * (aState[2] - phi) / (2.0 * dzeta) -
+                    k * aState[0] * aState[1];
     aStateRate[1] = -k * aState[0] * aState[1];
 
-    for( std::size_t j = 1; j < N - 1; ++j ) {
+    for (std::size_t j = 1; j < N - 1; ++j) {
       T zeta = j * dzeta;
-      dum = ( zeta - 1.0 ) * ( zeta - 1.0 ) / c;
-      alpha = 2.0 * ( zeta - 1.0 ) * dum / c;
+      dum = (zeta - 1.0) * (zeta - 1.0) / c;
+      alpha = 2.0 * (zeta - 1.0) * dum / c;
       beta = dum * dum;
       std::size_t i = 2 * j;
-      aStateRate[i] = ( aState[i - 2] - 2.0 * aState[i] + aState[i + 2] ) * beta / dzeta2
-                      + alpha * ( aState[i + 2] - aState[i - 2] ) / ( 2.0 * dzeta ) - k * aState[i] * aState[i + 1];
+      aStateRate[i] =
+          (aState[i - 2] - 2.0 * aState[i] + aState[i + 2]) * beta / dzeta2 +
+          alpha * (aState[i + 2] - aState[i - 2]) / (2.0 * dzeta) -
+          k * aState[i] * aState[i + 1];
       ++i;
       aStateRate[i] = -k * aState[i] * aState[i - 1];
     };
@@ -377,10 +382,10 @@ public:
 
   virtual double getInitialTime() const { return 0.0; };
 
-  virtual vect_n< T > getInitialValue() const {
-    vect_n< T > result( 400 );
+  virtual vect_n<T> getInitialValue() const {
+    vect_n<T> result(400);
 
-    for( std::size_t i = 0; i < 200; ++i ) {
+    for (std::size_t i = 0; i < 200; ++i) {
       result[2 * i] = 0.0;
       result[2 * i + 1] = 1.0;
     };
@@ -390,8 +395,8 @@ public:
 
   virtual double getFinalTime() const { return 20.0; };
 
-  virtual vect_n< T > getFinalValue() const {
-    vect_n< T > result( 400 );
+  virtual vect_n<T> getFinalValue() const {
+    vect_n<T> result(400);
     result[0] = 0.5113983840919909e-005;
     result[1] = 0.1925112884312553e-143;
     result[2] = 0.1027858770570419e-004;
@@ -795,45 +800,46 @@ public:
     return result;
   };
 
-
-  typedef AkzoNobel_iv_problem< T > self;
-  typedef iv_problem< T > base_type;
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC22FFFF4, 1, "AkzoNobel_iv_problem", base_type )
+  typedef AkzoNobel_iv_problem<T> self;
+  typedef iv_problem<T> base_type;
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC22FFFF4, 1, "AkzoNobel_iv_problem",
+                              base_type)
 };
 
-
-template < class T >
-class Pleiades_iv_problem : public iv_problem< T > {
-public:
+template <class T>
+class Pleiades_iv_problem : public iv_problem<T> {
+ public:
   virtual ~Pleiades_iv_problem(){};
 
-  virtual void RK_CALL computeStateRate( double aTime, const vect_n< T >& aState, vect_n< T >& aStateRate ) {
+  virtual void computeStateRate(double aTime, const vect_n<T>& aState,
+                                vect_n<T>& aStateRate) {
     using std::pow;
 
-    for( std::size_t i = 0; i < 7; ++i ) {
+    for (std::size_t i = 0; i < 7; ++i) {
       T sumx = 0.0;
       T sumy = 0.0;
-      for( std::size_t j = 0; j < 7; ++j ) {
-        T rij = ( aState[i] - aState[j] ) * ( aState[i] - aState[j] )
-                + ( aState[i + 7] - aState[j + 7] ) * ( aState[i + 7] - aState[j + 7] );
-        T rij32 = pow( rij, 1.5 );
-        if( j != i ) {
-          sumx += j * ( aState[j] - aState[i] ) / rij32;
-          sumy += j * ( aState[j + 7] - aState[i + 7] ) / rij32;
+      for (std::size_t j = 0; j < 7; ++j) {
+        T rij =
+            (aState[i] - aState[j]) * (aState[i] - aState[j]) +
+            (aState[i + 7] - aState[j + 7]) * (aState[i + 7] - aState[j + 7]);
+        T rij32 = pow(rij, 1.5);
+        if (j != i) {
+          sumx += j * (aState[j] - aState[i]) / rij32;
+          sumy += j * (aState[j + 7] - aState[i + 7]) / rij32;
         };
       };
       aStateRate[i + 14] = sumx;
       aStateRate[i + 21] = sumy;
     };
 
-    for( std::size_t i = 0; i < 14; ++i )
+    for (std::size_t i = 0; i < 14; ++i)
       aStateRate[i] = aState[i + 14];
   };
 
   virtual double getInitialTime() const { return 0.0; };
 
-  virtual vect_n< T > getInitialValue() const {
-    vect_n< T > result( 28 );
+  virtual vect_n<T> getInitialValue() const {
+    vect_n<T> result(28);
 
     result[0] = 3.0;
     result[1] = 3.0;
@@ -869,8 +875,8 @@ public:
 
   virtual double getFinalTime() const { return 3.0; };
 
-  virtual vect_n< T > getFinalValue() const {
-    vect_n< T > result( 28 );
+  virtual vect_n<T> getFinalValue() const {
+    vect_n<T> result(28);
     result[0] = 0.3706139143970502;
     result[1] = 0.3237284092057233e1;
     result[2] = -0.3222559032418324e1;
@@ -902,28 +908,29 @@ public:
     return result;
   };
 
-
-  typedef Pleiades_iv_problem< T > self;
-  typedef iv_problem< T > base_type;
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC22FFFF5, 1, "Pleiades_iv_problem", base_type )
+  typedef Pleiades_iv_problem<T> self;
+  typedef iv_problem<T> base_type;
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC22FFFF5, 1, "Pleiades_iv_problem",
+                              base_type)
 };
 
-
-template < class T >
-class VanDerPol_iv_problem : public iv_problem< T > {
-public:
+template <class T>
+class VanDerPol_iv_problem : public iv_problem<T> {
+ public:
   virtual ~VanDerPol_iv_problem(){};
 
-  virtual void RK_CALL computeStateRate( double aTime, const vect_n< T >& aState, vect_n< T >& aStateRate ) {
+  virtual void computeStateRate(double aTime, const vect_n<T>& aState,
+                                vect_n<T>& aStateRate) {
 
     aStateRate[0] = aState[1];
-    aStateRate[1] = ( ( 1.0 - aState[0] * aState[0] ) * aState[1] - aState[0] ) / 1.0e-6;
+    aStateRate[1] =
+        ((1.0 - aState[0] * aState[0]) * aState[1] - aState[0]) / 1.0e-6;
   };
 
   virtual double getInitialTime() const { return 0.0; };
 
-  virtual vect_n< T > getInitialValue() const {
-    vect_n< T > result( 2 );
+  virtual vect_n<T> getInitialValue() const {
+    vect_n<T> result(2);
 
     result[0] = 2.0;
     result[1] = 0.0;
@@ -933,8 +940,8 @@ public:
 
   virtual double getFinalTime() const { return 2.0; };
 
-  virtual vect_n< T > getFinalValue() const {
-    vect_n< T > result( 2 );
+  virtual vect_n<T> getFinalValue() const {
+    vect_n<T> result(2);
 
     result[0] = 0.1706167732170483e1;
     result[1] = -0.8928097010247975;
@@ -942,28 +949,29 @@ public:
     return result;
   };
 
-
-  typedef VanDerPol_iv_problem< T > self;
-  typedef iv_problem< T > base_type;
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC22FFFF6, 1, "VanDerPol_iv_problem", base_type )
+  typedef VanDerPol_iv_problem<T> self;
+  typedef iv_problem<T> base_type;
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC22FFFF6, 1, "VanDerPol_iv_problem",
+                              base_type)
 };
 
-
-template < class T >
-class VanDerPolMod_iv_problem : public iv_problem< T > {
-public:
+template <class T>
+class VanDerPolMod_iv_problem : public iv_problem<T> {
+ public:
   virtual ~VanDerPolMod_iv_problem(){};
 
-  virtual void RK_CALL computeStateRate( double aTime, const vect_n< T >& aState, vect_n< T >& aStateRate ) {
+  virtual void computeStateRate(double aTime, const vect_n<T>& aState,
+                                vect_n<T>& aStateRate) {
 
     aStateRate[0] = aState[1];
-    aStateRate[1] = 1.0e3 * ( 1.0 - aState[0] * aState[0] ) * aState[1] - aState[0];
+    aStateRate[1] =
+        1.0e3 * (1.0 - aState[0] * aState[0]) * aState[1] - aState[0];
   };
 
   virtual double getInitialTime() const { return 0.0; };
 
-  virtual vect_n< T > getInitialValue() const {
-    vect_n< T > result( 2 );
+  virtual vect_n<T> getInitialValue() const {
+    vect_n<T> result(2);
 
     result[0] = 2.0;
     result[1] = 0.0;
@@ -973,8 +981,8 @@ public:
 
   virtual double getFinalTime() const { return 2.0e3; };
 
-  virtual vect_n< T > getFinalValue() const {
-    vect_n< T > result( 2 );
+  virtual vect_n<T> getFinalValue() const {
+    vect_n<T> result(2);
 
     result[0] = 0.1706167732170469e1;
     result[1] = -0.8928097010248125e-3;
@@ -982,29 +990,31 @@ public:
     return result;
   };
 
-
-  typedef VanDerPolMod_iv_problem< T > self;
-  typedef iv_problem< T > base_type;
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC22FFFF7, 1, "VanDerPolMod_iv_problem", base_type )
+  typedef VanDerPolMod_iv_problem<T> self;
+  typedef iv_problem<T> base_type;
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC22FFFF7, 1, "VanDerPolMod_iv_problem",
+                              base_type)
 };
 
-
-template < class T >
-class Orego_iv_problem : public iv_problem< T > {
-public:
+template <class T>
+class Orego_iv_problem : public iv_problem<T> {
+ public:
   virtual ~Orego_iv_problem(){};
 
-  virtual void RK_CALL computeStateRate( double aTime, const vect_n< T >& aState, vect_n< T >& aStateRate ) {
+  virtual void computeStateRate(double aTime, const vect_n<T>& aState,
+                                vect_n<T>& aStateRate) {
 
-    aStateRate[0] = 77.27 * ( aState[1] + aState[0] * ( 1.0 - 8.375e-6 * aState[0] - aState[1] ) );
-    aStateRate[1] = ( aState[2] - ( 1.0 + aState[0] ) * aState[1] ) / 77.27;
-    aStateRate[2] = 0.161 * ( aState[0] - aState[2] );
+    aStateRate[0] =
+        77.27 *
+        (aState[1] + aState[0] * (1.0 - 8.375e-6 * aState[0] - aState[1]));
+    aStateRate[1] = (aState[2] - (1.0 + aState[0]) * aState[1]) / 77.27;
+    aStateRate[2] = 0.161 * (aState[0] - aState[2]);
   };
 
   virtual double getInitialTime() const { return 0.0; };
 
-  virtual vect_n< T > getInitialValue() const {
-    vect_n< T > result( 3 );
+  virtual vect_n<T> getInitialValue() const {
+    vect_n<T> result(3);
 
     result[0] = 1.0;
     result[1] = 2.0;
@@ -1015,8 +1025,8 @@ public:
 
   virtual double getFinalTime() const { return 360.0; };
 
-  virtual vect_n< T > getFinalValue() const {
-    vect_n< T > result( 3 );
+  virtual vect_n<T> getFinalValue() const {
+    vect_n<T> result(3);
 
     result[0] = 0.1000814870318523e1;
     result[1] = 0.1228178521549917e4;
@@ -1025,29 +1035,30 @@ public:
     return result;
   };
 
-
-  typedef Orego_iv_problem< T > self;
-  typedef iv_problem< T > base_type;
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC22FFFF8, 1, "Orego_iv_problem", base_type )
+  typedef Orego_iv_problem<T> self;
+  typedef iv_problem<T> base_type;
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC22FFFF8, 1, "Orego_iv_problem",
+                              base_type)
 };
 
-
-template < class T >
-class Rober_iv_problem : public iv_problem< T > {
-public:
+template <class T>
+class Rober_iv_problem : public iv_problem<T> {
+ public:
   virtual ~Rober_iv_problem(){};
 
-  virtual void RK_CALL computeStateRate( double aTime, const vect_n< T >& aState, vect_n< T >& aStateRate ) {
+  virtual void computeStateRate(double aTime, const vect_n<T>& aState,
+                                vect_n<T>& aStateRate) {
 
     aStateRate[0] = -0.04 * aState[0] + 1.0e4 * aState[1] * aState[2];
-    aStateRate[1] = 0.04 * aState[0] - 1.0e4 * aState[1] * aState[2] - 3.0e7 * aState[1] * aState[1];
+    aStateRate[1] = 0.04 * aState[0] - 1.0e4 * aState[1] * aState[2] -
+                    3.0e7 * aState[1] * aState[1];
     aStateRate[2] = 3.0e7 * aState[1] * aState[1];
   };
 
   virtual double getInitialTime() const { return 0.0; };
 
-  virtual vect_n< T > getInitialValue() const {
-    vect_n< T > result( 3 );
+  virtual vect_n<T> getInitialValue() const {
+    vect_n<T> result(3);
 
     result[0] = 1.0;
     result[1] = 0.0;
@@ -1058,8 +1069,8 @@ public:
 
   virtual double getFinalTime() const { return 1.0e11; };
 
-  virtual vect_n< T > getFinalValue() const {
-    vect_n< T > result( 3 );
+  virtual vect_n<T> getFinalValue() const {
+    vect_n<T> result(3);
 
     result[0] = 0.2083340149701255e-7;
     result[1] = 0.8333360770334713e-13;
@@ -1068,19 +1079,19 @@ public:
     return result;
   };
 
-
-  typedef Rober_iv_problem< T > self;
-  typedef iv_problem< T > base_type;
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC22FFFF9, 1, "Rober_iv_problem", base_type )
+  typedef Rober_iv_problem<T> self;
+  typedef iv_problem<T> base_type;
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC22FFFF9, 1, "Rober_iv_problem",
+                              base_type)
 };
 
-
-template < class T >
-class E5_iv_problem : public iv_problem< T > {
-public:
+template <class T>
+class E5_iv_problem : public iv_problem<T> {
+ public:
   virtual ~E5_iv_problem(){};
 
-  virtual void RK_CALL computeStateRate( double aTime, const vect_n< T >& aState, vect_n< T >& aStateRate ) {
+  virtual void computeStateRate(double aTime, const vect_n<T>& aState,
+                                vect_n<T>& aStateRate) {
 
     T prod1 = 7.89e-10 * aState[0];
     T prod2 = 1.1e7 * aState[0] * aState[2];
@@ -1094,8 +1105,8 @@ public:
 
   virtual double getInitialTime() const { return 0.0; };
 
-  virtual vect_n< T > getInitialValue() const {
-    vect_n< T > result( 4 );
+  virtual vect_n<T> getInitialValue() const {
+    vect_n<T> result(4);
 
     result[0] = 1.76e-3;
     result[1] = 0.0;
@@ -1107,8 +1118,8 @@ public:
 
   virtual double getFinalTime() const { return 1.0e13; };
 
-  virtual vect_n< T > getFinalValue() const {
-    vect_n< T > result( 4 );
+  virtual vect_n<T> getFinalValue() const {
+    vect_n<T> result(4);
 
     result[0] = 0.1152903278711829e-290;
     result[1] = 0.8867655517642120e-22;
@@ -1118,11 +1129,10 @@ public:
     return result;
   };
 
-
-  typedef E5_iv_problem< T > self;
-  typedef iv_problem< T > base_type;
-  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC22FFFFA, 1, "E5_iv_problem", base_type )
+  typedef E5_iv_problem<T> self;
+  typedef iv_problem<T> base_type;
+  RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC22FFFFA, 1, "E5_iv_problem", base_type)
 };
-};
+};  // namespace ReaK
 
 #endif

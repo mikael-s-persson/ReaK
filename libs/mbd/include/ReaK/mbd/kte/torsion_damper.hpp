@@ -39,57 +39,60 @@
 #include "kte_map.hpp"
 
 #include <ReaK/math/kinetostatics/kinetostatics.hpp>
+#include <utility>
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /** This class defines a torsion damper acting between two 2D frames. */
 class torsion_damper_2D : public kte_map {
-private:
-  shared_ptr< frame_2D< double > > mAnchor1; ///< Holds the first 2D frame.
-  shared_ptr< frame_2D< double > > mAnchor2; ///< Holds the second 2D frame.
-  double mDamping;                           ///< The damping coefficient (in Nms/rad).
+ private:
+  std::shared_ptr<frame_2D<double>> mAnchor1;  ///< Holds the first 2D frame.
+  std::shared_ptr<frame_2D<double>> mAnchor2;  ///< Holds the second 2D frame.
+  double mDamping;  ///< The damping coefficient (in Nms/rad).
 
-public:
+ public:
   /**
    * Sets the first anchor frame of the torsion damper.
    * \param aPtr The new first anchor frame of the torsion damper.
    */
-  void setAnchor1( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor1 = aPtr; };
+  void setAnchor1(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mAnchor1 = aPtr;
+  }
   /**
    * Returns the first anchor frame of the torsion damper.
    * \return The first anchor frame of the torsion damper.
    */
-  shared_ptr< frame_2D< double > > Anchor1() const { return mAnchor1; };
+  std::shared_ptr<frame_2D<double>> Anchor1() const { return mAnchor1; }
 
   /**
    * Sets the second anchor frame of the torsion damper.
    * \param aPtr The new second anchor frame of the torsion damper.
    */
-  void setAnchor2( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor2 = aPtr; };
+  void setAnchor2(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mAnchor2 = aPtr;
+  }
   /**
    * Returns the second anchor frame of the torsion damper.
    * \return The second anchor frame of the torsion damper.
    */
-  shared_ptr< frame_2D< double > > Anchor2() const { return mAnchor2; };
+  std::shared_ptr<frame_2D<double>> Anchor2() const { return mAnchor2; }
 
   /**
    * Sets the damping factor of the torsion damper.
    * \param aValue The new damping factor of the torsion damper.
    */
-  void setDamping( double aValue ) { mDamping = aValue; };
+  void setDamping(double aValue) { mDamping = aValue; }
   /**
    * Returns the damping factor of the torsion damper.
    * \return The damping factor of the torsion damper.
    */
-  double Damping() const { return mDamping; };
+  double Damping() const { return mDamping; }
 
   /**
    * Default constructor.
    */
-  torsion_damper_2D( const std::string& aName = "" ) : kte_map( aName ), mAnchor1(), mAnchor2(), mDamping( 0.0 ){};
+  explicit torsion_damper_2D(const std::string& aName = "")
+      : kte_map(aName), mDamping(0.0) {}
 
   /**
    * Parametrized constructor.
@@ -98,83 +101,96 @@ public:
    * \param aAnchor2 second attach point of the damper.
    * \param aDamping damping coefficient (in Nms/rad).
    */
-  torsion_damper_2D( const std::string& aName, const shared_ptr< frame_2D< double > >& aAnchor1,
-                     const shared_ptr< frame_2D< double > >& aAnchor2, double aDamping )
-      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mDamping( aDamping ){};
+  torsion_damper_2D(const std::string& aName,
+                    std::shared_ptr<frame_2D<double>> aAnchor1,
+                    std::shared_ptr<frame_2D<double>> aAnchor2, double aDamping)
+      : kte_map(aName),
+        mAnchor1(std::move(aAnchor1)),
+        mAnchor2(std::move(aAnchor2)),
+        mDamping(aDamping) {}
 
   /**
    * Default destructor.
    */
-  virtual ~torsion_damper_2D(){};
+  ~torsion_damper_2D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 )
-      & RK_SERIAL_SAVE_WITH_NAME( mDamping );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor1) & RK_SERIAL_SAVE_WITH_NAME(mAnchor2) &
+        RK_SERIAL_SAVE_WITH_NAME(mDamping);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 )
-      & RK_SERIAL_LOAD_WITH_NAME( mDamping );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor1) & RK_SERIAL_LOAD_WITH_NAME(mAnchor2) &
+        RK_SERIAL_LOAD_WITH_NAME(mDamping);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( torsion_damper_2D, 0xC210002E, 1, "torsion_damper_2D", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(torsion_damper_2D, 0xC210002E, 1,
+                              "torsion_damper_2D", kte_map)
 };
 
 /** This class defines a torsion damper acting between two 3D frames. */
 class torsion_damper_3D : public kte_map {
-private:
-  shared_ptr< frame_3D< double > > mAnchor1; ///< Holds the first 3D frame.
-  shared_ptr< frame_3D< double > > mAnchor2; ///< Holds the second 3D frame.
-  double mDamping;                           ///< The damping coefficient (in Nms/rad).
+ private:
+  std::shared_ptr<frame_3D<double>> mAnchor1;  ///< Holds the first 3D frame.
+  std::shared_ptr<frame_3D<double>> mAnchor2;  ///< Holds the second 3D frame.
+  double mDamping;  ///< The damping coefficient (in Nms/rad).
 
-public:
+ public:
   /**
    * Sets the first anchor frame of the torsion damper.
    * \param aPtr The new first anchor frame of the torsion damper.
    */
-  void setAnchor1( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor1 = aPtr; };
+  void setAnchor1(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mAnchor1 = aPtr;
+  }
   /**
    * Returns the first anchor frame of the torsion damper.
    * \return The first anchor frame of the torsion damper.
    */
-  shared_ptr< frame_3D< double > > Anchor1() const { return mAnchor1; };
+  std::shared_ptr<frame_3D<double>> Anchor1() const { return mAnchor1; }
 
   /**
    * Sets the second anchor frame of the torsion damper.
    * \param aPtr The new second anchor frame of the torsion damper.
    */
-  void setAnchor2( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor2 = aPtr; };
+  void setAnchor2(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mAnchor2 = aPtr;
+  }
   /**
    * Returns the second anchor frame of the torsion damper.
    * \return The second anchor frame of the torsion damper.
    */
-  shared_ptr< frame_3D< double > > Anchor2() const { return mAnchor2; };
+  std::shared_ptr<frame_3D<double>> Anchor2() const { return mAnchor2; }
 
   /**
    * Sets the damping factor of the torsion damper.
    * \param aValue The new damping factor of the torsion damper.
    */
-  void setDamping( double aValue ) { mDamping = aValue; };
+  void setDamping(double aValue) { mDamping = aValue; }
   /**
    * Returns the damping factor of the torsion damper.
    * \return The damping factor of the torsion damper.
    */
-  double Damping() const { return mDamping; };
+  double Damping() const { return mDamping; }
 
   /**
    * Default constructor.
    */
-  torsion_damper_3D( const std::string& aName = "" ) : kte_map( aName ), mAnchor1(), mAnchor2(), mDamping( 0.0 ){};
+  explicit torsion_damper_3D(const std::string& aName = "")
+      : kte_map(aName), mDamping(0.0) {}
 
   /**
    * Parametrized constructor.
@@ -183,38 +199,46 @@ public:
    * \param aAnchor2 second attach point of the damper.
    * \param aDamping damping coefficient (in Nms/rad).
    */
-  torsion_damper_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aAnchor1,
-                     const shared_ptr< frame_3D< double > >& aAnchor2, double aDamping )
-      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mDamping( aDamping ){};
+  torsion_damper_3D(const std::string& aName,
+                    std::shared_ptr<frame_3D<double>> aAnchor1,
+                    std::shared_ptr<frame_3D<double>> aAnchor2, double aDamping)
+      : kte_map(aName),
+        mAnchor1(std::move(aAnchor1)),
+        mAnchor2(std::move(aAnchor2)),
+        mDamping(aDamping) {}
 
   /**
    * Default destructor.
    */
-  virtual ~torsion_damper_3D(){};
+  ~torsion_damper_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 )
-      & RK_SERIAL_SAVE_WITH_NAME( mDamping );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mAnchor1) & RK_SERIAL_SAVE_WITH_NAME(mAnchor2) &
+        RK_SERIAL_SAVE_WITH_NAME(mDamping);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 )
-      & RK_SERIAL_LOAD_WITH_NAME( mDamping );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mAnchor1) & RK_SERIAL_LOAD_WITH_NAME(mAnchor2) &
+        RK_SERIAL_LOAD_WITH_NAME(mDamping);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( torsion_damper_3D, 0xC210002F, 1, "torsion_damper_3D", kte_map )
+  RK_RTTI_MAKE_CONCRETE_1BASE(torsion_damper_3D, 0xC210002F, 1,
+                              "torsion_damper_3D", kte_map)
 };
-};
-};
+
+}  // namespace ReaK::kte
 
 #endif

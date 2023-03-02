@@ -36,16 +36,13 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include "spatial_path_concept.hpp"
 #include <ReaK/topologies/spaces/temporal_space_concept.hpp>
+#include "spatial_path_concept.hpp"
 #include "spatial_trajectory_concept.hpp"
 
 #include <boost/concept_check.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This concept represents a predicted trajectory, as used in ReaK::pp. This concept
@@ -70,16 +67,16 @@ namespace pp {
  * \tparam PredictedTrajectory The trajectory type to be checked for compliance to this concept.
  * \tparam Topology The temporal-topology type that can contain the trajectory.
  */
-template < typename PredictedTrajectory, typename Topology >
-struct PredictedTrajectoryConcept : public SpatialTrajectoryConcept< PredictedTrajectory, Topology > {
+template <typename PredictedTrajectory, typename Topology>
+struct PredictedTrajectoryConcept
+    : public SpatialTrajectoryConcept<PredictedTrajectory, Topology> {
 
-  BOOST_CONCEPT_USAGE( PredictedTrajectoryConcept ) {
-    this->p.set_initial_point( this->pt );
-    this->p.set_initial_point( this->w_p );
-  };
-};
-};
+  BOOST_CONCEPT_USAGE(PredictedTrajectoryConcept) {
+    this->p.set_initial_point(this->pt);
+    this->p.set_initial_point(this->w_p);
+  }
 };
 
+}  // namespace ReaK::pp
 
 #endif

@@ -34,76 +34,86 @@
 #ifndef REAK_FREE_JOINTS_HPP
 #define REAK_FREE_JOINTS_HPP
 
-
-#include "reacting_kte.hpp"
 #include <ReaK/math/kinetostatics/motion_jacobians.hpp>
+#include <utility>
+#include "reacting_kte.hpp"
 
-namespace ReaK {
-
-namespace kte {
-
+namespace ReaK::kte {
 
 /**
  * This class implements a free joint in 2D space. A 2D frame is used to represent the
  * joint's motion between a base coordinate frame to an end coordinate frame.
  */
 class free_joint_2D : public reacting_kte_2D {
-protected:
-  shared_ptr< frame_2D< double > > mCoord; ///< The coordinate frame representing the joint's motion.
-  shared_ptr< frame_2D< double > > mBase;  ///< The coordinate frame at the base of the joint.
-  shared_ptr< frame_2D< double > > mEnd;   ///< The coordinate frame just after the joint transformations are applied.
+ protected:
+  std::shared_ptr<frame_2D<double>>
+      mCoord;  ///< The coordinate frame representing the joint's motion.
+  std::shared_ptr<frame_2D<double>>
+      mBase;  ///< The coordinate frame at the base of the joint.
+  std::shared_ptr<frame_2D<double>>
+      mEnd;  ///< The coordinate frame just after the joint transformations are applied.
 
-  shared_ptr< jacobian_2D_2D< double > > mJacobian; ///< The Jacobian frame produced by this joint.
+  std::shared_ptr<jacobian_2D_2D<double>>
+      mJacobian;  ///< The Jacobian frame produced by this joint.
 
-public:
+ public:
   /**
    * Sets the joint's space coordinate.
    * \param aPtr The new joint's space coordinate.
    */
-  void setCoord( const shared_ptr< frame_2D< double > >& aPtr ) { mCoord = aPtr; };
+  void setCoord(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mCoord = aPtr;
+  }
   /**
    * Returns the joint's space coordinate.
    * \return The joint's space coordinate.
    */
-  shared_ptr< frame_2D< double > > Coord() const { return mCoord; };
+  std::shared_ptr<frame_2D<double>> Coord() const { return mCoord; }
 
   /**
    * Sets the joint's base frame.
    * \param aPtr The new joint's base frame.
    */
-  void setBaseFrame( const shared_ptr< frame_2D< double > >& aPtr ) { mBase = aPtr; };
+  void setBaseFrame(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mBase = aPtr;
+  }
   /**
    * Returns the joint's base frame.
    * \return The joint's base frame.
    */
-  shared_ptr< frame_2D< double > > BaseFrame() const { return mBase; };
+  std::shared_ptr<frame_2D<double>> BaseFrame() const { return mBase; }
 
   /**
    * Sets the joint's output frame.
    * \param aPtr The new joint's output frame.
    */
-  void setEndFrame( const shared_ptr< frame_2D< double > >& aPtr ) { mEnd = aPtr; };
+  void setEndFrame(const std::shared_ptr<frame_2D<double>>& aPtr) {
+    mEnd = aPtr;
+  }
   /**
    * Returns the joint's output frame.
    * \return The joint's output frame.
    */
-  shared_ptr< frame_2D< double > > EndFrame() const { return mEnd; };
+  std::shared_ptr<frame_2D<double>> EndFrame() const { return mEnd; }
 
   /**
    * Sets the joint's Jacobian.
    * \param aPtr The new joint's Jacobian.
    */
-  void setJacobian( const shared_ptr< jacobian_2D_2D< double > >& aPtr ) { mJacobian = aPtr; };
+  void setJacobian(const std::shared_ptr<jacobian_2D_2D<double>>& aPtr) {
+    mJacobian = aPtr;
+  }
   /**
    * Returns the joint's Jacobian.
    * \return The joint's Jacobian.
    */
-  shared_ptr< jacobian_2D_2D< double > > Jacobian() const { return mJacobian; };
+  std::shared_ptr<jacobian_2D_2D<double>> Jacobian() const { return mJacobian; }
 
   /**
    * Default constructor.
    */
-  free_joint_2D( const std::string& aName = "" ) : reacting_kte_2D( aName ), mCoord(), mBase(), mEnd(), mJacobian(){};
+  explicit free_joint_2D(const std::string& aName = "")
+      : reacting_kte_2D(aName) {}
 
   /**
    * Parametrized constructor.
@@ -114,39 +124,51 @@ public:
    * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the
    * Jacobian frame's calculation.
    */
-  free_joint_2D( const std::string& aName, const shared_ptr< frame_2D< double > >& aCoord,
-                 const shared_ptr< frame_2D< double > >& aBase, const shared_ptr< frame_2D< double > >& aEnd,
-                 const shared_ptr< jacobian_2D_2D< double > >& aJacobian = shared_ptr< jacobian_2D_2D< double > >() )
-      : reacting_kte_2D( aName ), mCoord( aCoord ), mBase( aBase ), mEnd( aEnd ), mJacobian( aJacobian ){};
+  free_joint_2D(const std::string& aName,
+                std::shared_ptr<frame_2D<double>> aCoord,
+                std::shared_ptr<frame_2D<double>> aBase,
+                std::shared_ptr<frame_2D<double>> aEnd,
+                std::shared_ptr<jacobian_2D_2D<double>> aJacobian =
+                    std::shared_ptr<jacobian_2D_2D<double>>())
+      : reacting_kte_2D(aName),
+        mCoord(std::move(aCoord)),
+        mBase(std::move(aBase)),
+        mEnd(std::move(aEnd)),
+        mJacobian(std::move(aJacobian)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~free_joint_2D(){};
+  ~free_joint_2D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void applyReactionForce( vect< double, 2 > aForce, double aTorque );
+  void applyReactionForce(vect<double, 2> aForce, double aTorque) override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int Version ) const {
-    reacting_kte_2D::save( A, reacting_kte_2D::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mCoord ) & RK_SERIAL_SAVE_WITH_NAME( mBase ) & RK_SERIAL_SAVE_WITH_NAME( mEnd )
-      & RK_SERIAL_SAVE_WITH_NAME( mJacobian );
-  };
+  void save(serialization::oarchive& A, unsigned int Version) const override {
+    reacting_kte_2D::save(
+        A, reacting_kte_2D::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mCoord) & RK_SERIAL_SAVE_WITH_NAME(mBase) &
+        RK_SERIAL_SAVE_WITH_NAME(mEnd) & RK_SERIAL_SAVE_WITH_NAME(mJacobian);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int Version ) {
-    reacting_kte_2D::load( A, reacting_kte_2D::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mCoord ) & RK_SERIAL_LOAD_WITH_NAME( mBase ) & RK_SERIAL_LOAD_WITH_NAME( mEnd )
-      & RK_SERIAL_LOAD_WITH_NAME( mJacobian );
-  };
+  void load(serialization::iarchive& A, unsigned int Version) override {
+    reacting_kte_2D::load(
+        A, reacting_kte_2D::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mCoord) & RK_SERIAL_LOAD_WITH_NAME(mBase) &
+        RK_SERIAL_LOAD_WITH_NAME(mEnd) & RK_SERIAL_LOAD_WITH_NAME(mJacobian);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( free_joint_2D, 0xC2100041, 1, "free_joint_2D", reacting_kte_2D )
+  RK_RTTI_MAKE_CONCRETE_1BASE(free_joint_2D, 0xC2100041, 1, "free_joint_2D",
+                              reacting_kte_2D)
 };
 
 /**
@@ -154,62 +176,75 @@ public:
  * joint's motion between a base coordinate frame to an end coordinate frame.
  */
 class free_joint_3D : public reacting_kte_3D {
-protected:
-  shared_ptr< frame_3D< double > > mCoord; ///< The coordinate frame representing the joint's motion.
-  shared_ptr< frame_3D< double > > mBase;  ///< The coordinate frame at the base of the joint.
-  shared_ptr< frame_3D< double > > mEnd;   ///< The coordinate frame just after the joint transformations are applied.
+ protected:
+  std::shared_ptr<frame_3D<double>>
+      mCoord;  ///< The coordinate frame representing the joint's motion.
+  std::shared_ptr<frame_3D<double>>
+      mBase;  ///< The coordinate frame at the base of the joint.
+  std::shared_ptr<frame_3D<double>>
+      mEnd;  ///< The coordinate frame just after the joint transformations are applied.
 
-  shared_ptr< jacobian_3D_3D< double > > mJacobian; ///< The Jacobian frame produced by this joint.
+  std::shared_ptr<jacobian_3D_3D<double>>
+      mJacobian;  ///< The Jacobian frame produced by this joint.
 
-public:
+ public:
   /**
    * Sets the joint's space coordinate.
    * \param aPtr The new joint's space coordinate.
    */
-  void setCoord( const shared_ptr< frame_3D< double > >& aPtr ) { mCoord = aPtr; };
+  void setCoord(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mCoord = aPtr;
+  }
   /**
    * Returns the joint's space coordinate.
    * \return The joint's space coordinate.
    */
-  shared_ptr< frame_3D< double > > Coord() const { return mCoord; };
+  std::shared_ptr<frame_3D<double>> Coord() const { return mCoord; }
 
   /**
    * Sets the joint's base frame.
    * \param aPtr The new joint's base frame.
    */
-  void setBaseFrame( const shared_ptr< frame_3D< double > >& aPtr ) { mBase = aPtr; };
+  void setBaseFrame(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mBase = aPtr;
+  }
   /**
    * Returns the joint's base frame.
    * \return The joint's base frame.
    */
-  shared_ptr< frame_3D< double > > BaseFrame() const { return mBase; };
+  std::shared_ptr<frame_3D<double>> BaseFrame() const { return mBase; }
 
   /**
    * Sets the joint's output frame.
    * \param aPtr The new joint's output frame.
    */
-  void setEndFrame( const shared_ptr< frame_3D< double > >& aPtr ) { mEnd = aPtr; };
+  void setEndFrame(const std::shared_ptr<frame_3D<double>>& aPtr) {
+    mEnd = aPtr;
+  }
   /**
    * Returns the joint's output frame.
    * \return The joint's output frame.
    */
-  shared_ptr< frame_3D< double > > EndFrame() const { return mEnd; };
+  std::shared_ptr<frame_3D<double>> EndFrame() const { return mEnd; }
 
   /**
    * Sets the joint's Jacobian.
    * \param aPtr The new joint's Jacobian.
    */
-  void setJacobian( const shared_ptr< jacobian_3D_3D< double > >& aPtr ) { mJacobian = aPtr; };
+  void setJacobian(const std::shared_ptr<jacobian_3D_3D<double>>& aPtr) {
+    mJacobian = aPtr;
+  }
   /**
    * Returns the joint's Jacobian.
    * \return The joint's Jacobian.
    */
-  shared_ptr< jacobian_3D_3D< double > > Jacobian() const { return mJacobian; };
+  std::shared_ptr<jacobian_3D_3D<double>> Jacobian() const { return mJacobian; }
 
   /**
    * Default constructor.
    */
-  free_joint_3D( const std::string& aName = "" ) : reacting_kte_3D( aName ), mCoord(), mBase(), mEnd(), mJacobian(){};
+  explicit free_joint_3D(const std::string& aName = "")
+      : reacting_kte_3D(aName) {}
 
   /**
    * Parametrized constructor.
@@ -220,42 +255,55 @@ public:
    * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the
    * Jacobian frame's calculation.
    */
-  free_joint_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aCoord,
-                 const shared_ptr< frame_3D< double > >& aBase, const shared_ptr< frame_3D< double > >& aEnd,
-                 const shared_ptr< jacobian_3D_3D< double > >& aJacobian = shared_ptr< jacobian_3D_3D< double > >() )
-      : reacting_kte_3D( aName ), mCoord( aCoord ), mBase( aBase ), mEnd( aEnd ), mJacobian( aJacobian ){};
+  free_joint_3D(const std::string& aName,
+                std::shared_ptr<frame_3D<double>> aCoord,
+                std::shared_ptr<frame_3D<double>> aBase,
+                std::shared_ptr<frame_3D<double>> aEnd,
+                std::shared_ptr<jacobian_3D_3D<double>> aJacobian =
+                    std::shared_ptr<jacobian_3D_3D<double>>())
+      : reacting_kte_3D(aName),
+        mCoord(std::move(aCoord)),
+        mBase(std::move(aBase)),
+        mEnd(std::move(aEnd)),
+        mJacobian(std::move(aJacobian)) {}
 
   /**
    * Default destructor.
    */
-  virtual ~free_joint_3D(){};
+  ~free_joint_3D() override = default;
 
-  virtual void doMotion( kte_pass_flag aFlag = nothing,
-                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doMotion(kte_pass_flag aFlag = nothing,
+                const std::shared_ptr<frame_storage>& aStorage =
+                    std::shared_ptr<frame_storage>()) override;
 
-  virtual void doForce( kte_pass_flag aFlag = nothing,
-                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+  void doForce(kte_pass_flag aFlag = nothing,
+               const std::shared_ptr<frame_storage>& aStorage =
+                   std::shared_ptr<frame_storage>()) override;
 
-  virtual void clearForce();
+  void clearForce() override;
 
-  virtual void applyReactionForce( vect< double, 3 > aForce, vect< double, 3 > aTorque );
+  void applyReactionForce(vect<double, 3> aForce,
+                          vect<double, 3> aTorque) override;
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    reacting_kte_3D::save( A, reacting_kte_3D::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_SAVE_WITH_NAME( mCoord ) & RK_SERIAL_SAVE_WITH_NAME( mBase ) & RK_SERIAL_SAVE_WITH_NAME( mEnd )
-      & RK_SERIAL_SAVE_WITH_NAME( mJacobian );
-  };
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
+    reacting_kte_3D::save(
+        A, reacting_kte_3D::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_SAVE_WITH_NAME(mCoord) & RK_SERIAL_SAVE_WITH_NAME(mBase) &
+        RK_SERIAL_SAVE_WITH_NAME(mEnd) & RK_SERIAL_SAVE_WITH_NAME(mJacobian);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    reacting_kte_3D::load( A, reacting_kte_3D::getStaticObjectType()->TypeVersion() );
-    A& RK_SERIAL_LOAD_WITH_NAME( mCoord ) & RK_SERIAL_LOAD_WITH_NAME( mBase ) & RK_SERIAL_LOAD_WITH_NAME( mEnd )
-      & RK_SERIAL_LOAD_WITH_NAME( mJacobian );
-  };
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
+    reacting_kte_3D::load(
+        A, reacting_kte_3D::getStaticObjectType()->TypeVersion());
+    A& RK_SERIAL_LOAD_WITH_NAME(mCoord) & RK_SERIAL_LOAD_WITH_NAME(mBase) &
+        RK_SERIAL_LOAD_WITH_NAME(mEnd) & RK_SERIAL_LOAD_WITH_NAME(mJacobian);
+  }
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( free_joint_3D, 0xC2100042, 1, "free_joint_3D", reacting_kte_3D )
+  RK_RTTI_MAKE_CONCRETE_1BASE(free_joint_3D, 0xC2100042, 1, "free_joint_3D",
+                              reacting_kte_3D)
 };
-};
-};
 
+}  // namespace ReaK::kte
 
 #endif

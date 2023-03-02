@@ -36,43 +36,41 @@
 
 #include <ReaK/math/lin_alg/vect_alg.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
+namespace ReaK::geom {
 
 /**
  * This class stores the data which results from a proximity query with 2D shapes.
  */
 class proximity_record_2D : public shared_object {
-public:
+ public:
   /** Holds the closest point (in global coordinates) on the first shape involved in the proximity query. */
-  vect< double, 2 > mPoint1;
+  vect<double, 2> mPoint1;
   /** Holds the closest point (in global coordinates) on the second shape involved in the proximity query. */
-  vect< double, 2 > mPoint2;
+  vect<double, 2> mPoint2;
 
   /** Holds the distance between the shapes, a negative value denotes penetration. */
   double mDistance;
 
   /** Default constructor. */
-  proximity_record_2D() : mPoint1(), mPoint2(), mDistance( std::numeric_limits< double >::infinity() ){};
+  proximity_record_2D() : mDistance(std::numeric_limits<double>::infinity()) {}
 
   /** Destructor. */
-  virtual ~proximity_record_2D(){};
-
+  ~proximity_record_2D() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( proximity_record_2D, 0xC3200001, 1, "proximity_record_2D", shared_object )
+  RK_RTTI_MAKE_CONCRETE_1BASE(proximity_record_2D, 0xC3200001, 1,
+                              "proximity_record_2D", shared_object)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif

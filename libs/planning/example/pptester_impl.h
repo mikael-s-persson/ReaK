@@ -24,78 +24,62 @@
 #ifndef REAK_PPTESTER_IMPL_H
 #define REAK_PPTESTER_IMPL_H
 
-#include "base/thread_incl.hpp"
+#include <thread>
 
-#include "ui_pptester.h"
 #include "ui_ppresultview.h"
+#include "ui_pptester.h"
 #include "ui_rrtproperties.h"
 
-#include <vector>
 #include <opencv/highgui.h>
+#include <vector>
 
 #include <QGraphicsPixmapItem>
 #include "graph_alg/rrt_test_world.hpp"
 
 class PPTestWindow : public QMainWindow, private Ui::PPTestWindow {
-    Q_OBJECT
-  
-  public:
-    PPTestWindow( QWidget * parent = 0, Qt::WindowFlags flags = 0 );
-    ~PPTestWindow();
-    
-  private slots:
-    
-    void loadWorldMap();
-    void loadPathPlanner();
-    void launchPlayerStage();
-    void startRobot();
-    void stopRobot();
-    void startPlanner();
-    void stopPlanner();
-    void setPlannerProperties();
-    void closeTestScenario();
-    void saveResults();
-    void acceptRRTProperties();
-    
-  private:
-    std::vector< Ui::PPResultView* > result_tabs_views;
-    std::vector< QGraphicsPixmapItem* > result_tabs_pixmaps;
-    std::vector< std::string > result_names;
-    std::vector< QWidget* > result_tabs_widgets;
-        
-    cv::Mat world_map_cvimage;
-    QGraphicsPixmapItem* world_map_pixmap;
-    QGraphicsScene* world_map_scene;
-    
-    QDialog rrt_prop_diag;
-    Ui::RRTProperties rrt_prop;
-    
-    std::list<rrt_test_world::pixel_coord> best_path;
-    bool robot_running;
-    ReaKaux::thread* robot_exec_thread;
-    
-    void updateWorldMap(const cv::Mat& aImage, unsigned int aProgress);
-    
-    void showResultMap(const cv::Mat& aImage, unsigned int aProgress, unsigned int aSolutionID, double aTotalDist);
-    
-    void executePath();
-  
+  Q_OBJECT
+
+ public:
+  PPTestWindow(QWidget* parent = 0, Qt::WindowFlags flags = 0);
+  ~PPTestWindow();
+
+ private slots:
+
+  void loadWorldMap();
+  void loadPathPlanner();
+  void launchPlayerStage();
+  void startRobot();
+  void stopRobot();
+  void startPlanner();
+  void stopPlanner();
+  void setPlannerProperties();
+  void closeTestScenario();
+  void saveResults();
+  void acceptRRTProperties();
+
+ private:
+  std::vector<Ui::PPResultView*> result_tabs_views;
+  std::vector<QGraphicsPixmapItem*> result_tabs_pixmaps;
+  std::vector<std::string> result_names;
+  std::vector<QWidget*> result_tabs_widgets;
+
+  cv::Mat world_map_cvimage;
+  QGraphicsPixmapItem* world_map_pixmap;
+  QGraphicsScene* world_map_scene;
+
+  QDialog rrt_prop_diag;
+  Ui::RRTProperties rrt_prop;
+
+  std::list<rrt_test_world::pixel_coord> best_path;
+  bool robot_running;
+  std::thread* robot_exec_thread;
+
+  void updateWorldMap(const cv::Mat& aImage, unsigned int aProgress);
+
+  void showResultMap(const cv::Mat& aImage, unsigned int aProgress,
+                     unsigned int aSolutionID, double aTotalDist);
+
+  void executePath();
 };
 
-
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

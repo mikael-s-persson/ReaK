@@ -34,11 +34,11 @@
 
 #include <ReaK/core/base/defs.hpp>
 
+#include "so_register_type.hpp"
 #include "so_type.hpp"
 #include "so_type_repo.hpp"
-#include "so_register_type.hpp"
 
-#include "typed_primitives.hpp"
 #include "typed_containers.hpp"
+#include "typed_primitives.hpp"
 
-#endif
+#endif  // REAK_RTTI_ALL_HEADERS_HPP

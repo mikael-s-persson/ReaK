@@ -21,26 +21,22 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <ReaK/core/base/defs.hpp>
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 #include <ReaK/planning/path_planning/rrtstar_manip_planners.hpp>
 #include <ReaK/planning/path_planning/rrtstar_path_planner.tpp>
 
-namespace ReaK {
+namespace ReaK::pp {
 
-namespace pp {
+#define RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(NDOF) \
+  template class rrtstar_planner<                                          \
+      manip_quasi_static_env<Ndof_rl_space_t<double, NDOF, 0>>>;           \
+  template class rrtstar_planner<                                          \
+      manip_quasi_static_env<Ndof_rl_space_t<double, NDOF, 1>>>;           \
+  template class rrtstar_planner<                                          \
+      manip_quasi_static_env<Ndof_rl_space_t<double, NDOF, 2>>>;
 
-
-#define RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES( NDOF )                                   \
-  template class rrtstar_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 0 >::type > >; \
-  template class rrtstar_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 1 >::type > >; \
-  template class rrtstar_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 2 >::type > >;
-
-
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES( RK_PLANNERS_DIM )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(RK_PLANNERS_DIM)
 
 // RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(0)
 // RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(1)
@@ -53,19 +49,5 @@ RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES( RK_PLANNERS_DIM )
 // RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(8)
 // RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(9)
 // RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(10)
-};
-};
 
-#else
-
-namespace ReaK {
-
-namespace pp {
-
-#define CONCAT_NAMES( X, Y ) X##Y
-
-void CONCAT_NAMES( dummy_rrtstar_manip_planners_static_externs_symbol_, RK_PLANNERS_DIM )(){};
-};
-};
-
-#endif
+}  // namespace ReaK::pp

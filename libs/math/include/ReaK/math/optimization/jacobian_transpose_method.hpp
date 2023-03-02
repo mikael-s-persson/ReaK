@@ -40,55 +40,52 @@
 
 #include "limit_functions.hpp"
 
-
-namespace ReaK {
-
-
-namespace optim {
-
+namespace ReaK::optim {
 
 namespace detail {
 
-
-template < typename Function, typename GradFunction, typename InputVector, typename OutputVector,
-           typename LimitFunction >
-void jacobian_transpose_nllsq_impl( Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y,
-                                    unsigned int max_iter, LimitFunction impose_limits,
-                                    typename vect_traits< InputVector >::value_type abs_tol
-                                    = typename vect_traits< InputVector >::value_type( 1e-6 ),
-                                    typename vect_traits< InputVector >::value_type abs_grad_tol
-                                    = typename vect_traits< InputVector >::value_type( 1e-6 ) ) {
-  typedef typename vect_traits< InputVector >::value_type ValueType;
+template <typename Function, typename GradFunction, typename InputVector,
+          typename OutputVector, typename LimitFunction>
+void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac,
+                                   InputVector& x, const OutputVector& y,
+                                   unsigned int max_iter,
+                                   LimitFunction impose_limits,
+                                   vect_value_type_t<InputVector> abs_tol =
+                                       vect_value_type_t<InputVector>(1e-6),
+                                   vect_value_type_t<InputVector> abs_grad_tol =
+                                       vect_value_type_t<InputVector>(1e-6)) {
+  typedef vect_value_type_t<InputVector> ValueType;
+  using std::abs;
   using std::sqrt;
-  using std::fabs;
 
   OutputVector y_approx = y;
   OutputVector r = y;
-  mat< ValueType, mat_structure::rectangular > J( y.size(), x.size() );
+  mat<ValueType, mat_structure::rectangular> J(y.size(), x.size());
   InputVector e = x;
   e -= x;
   OutputVector Je = y;
   unsigned int iter = 0;
   do {
-    if( ++iter > max_iter )
-      throw maximum_iteration( max_iter );
+    if (++iter > max_iter) {
+      throw maximum_iteration(max_iter);
+    }
     x += e;
-    y_approx = f( x );
+    y_approx = f(x);
     r = y;
     r -= y_approx;
-    fill_jac( J, x, y_approx );
+    fill_jac(J, x, y_approx);
     e = r * J;
     Je = J * e;
     ValueType alpha = Je * Je;
-    if( alpha < abs_grad_tol )
+    if (alpha < abs_grad_tol) {
       return;
-    alpha = ( r * Je ) / alpha;
+    }
+    alpha = (r * Je) / alpha;
     e *= alpha;
-    impose_limits( x, e );
-  } while( norm_2( e ) > abs_tol );
-};
-};
-
+    impose_limits(x, e);
+  } while (norm_2(e) > abs_tol);
+}
+}  // namespace detail
 
 /**
  * This function finds the non-linear least-square solution to a vector function. This method performs
@@ -107,14 +104,18 @@ void jacobian_transpose_nllsq_impl( Function f, GradFunction fill_jac, InputVect
  * \param abs_tol The tolerance on the norm of the step size.
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
-template < typename Function, typename GradFunction, typename InputVector, typename OutputVector >
-void jacobian_transpose_nllsq( Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y,
-                               unsigned int max_iter = 100, typename vect_traits< InputVector >::value_type abs_tol
-                                                            = typename vect_traits< InputVector >::value_type( 1e-6 ),
-                               typename vect_traits< InputVector >::value_type abs_grad_tol
-                               = typename vect_traits< InputVector >::value_type( 1e-6 ) ) {
-  detail::jacobian_transpose_nllsq_impl( f, fill_jac, x, y, max_iter, no_limit_functor(), abs_tol, abs_grad_tol );
-};
+template <typename Function, typename GradFunction, typename InputVector,
+          typename OutputVector>
+void jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x,
+                              const OutputVector& y,
+                              unsigned int max_iter = 100,
+                              vect_value_type_t<InputVector> abs_tol =
+                                  vect_value_type_t<InputVector>(1e-6),
+                              vect_value_type_t<InputVector> abs_grad_tol =
+                                  vect_value_type_t<InputVector>(1e-6)) {
+  detail::jacobian_transpose_nllsq_impl(
+      f, fill_jac, x, y, max_iter, no_limit_functor(), abs_tol, abs_grad_tol);
+}
 
 /**
  * This function finds the non-linear least-square solution to a vector function with
@@ -137,18 +138,19 @@ void jacobian_transpose_nllsq( Function f, GradFunction fill_jac, InputVector& x
  * \param abs_tol The tolerance on the norm of the step size.
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
-template < typename Function, typename GradFunction, typename InputVector, typename OutputVector,
-           typename LimitFunction >
-void limited_jacobian_transpose_nllsq( Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y,
-                                       unsigned int max_iter, LimitFunction impose_limits,
-                                       typename vect_traits< InputVector >::value_type abs_tol
-                                       = typename vect_traits< InputVector >::value_type( 1e-6 ),
-                                       typename vect_traits< InputVector >::value_type abs_grad_tol
-                                       = typename vect_traits< InputVector >::value_type( 1e-6 ) ) {
-  detail::jacobian_transpose_nllsq_impl( f, fill_jac, x, y, max_iter, impose_limits, abs_tol, abs_grad_tol );
-};
-};
-};
+template <typename Function, typename GradFunction, typename InputVector,
+          typename OutputVector, typename LimitFunction>
+void limited_jacobian_transpose_nllsq(
+    Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y,
+    unsigned int max_iter, LimitFunction impose_limits,
+    vect_value_type_t<InputVector> abs_tol =
+        vect_value_type_t<InputVector>(1e-6),
+    vect_value_type_t<InputVector> abs_grad_tol =
+        vect_value_type_t<InputVector>(1e-6)) {
+  detail::jacobian_transpose_nllsq_impl(f, fill_jac, x, y, max_iter,
+                                        impose_limits, abs_tol, abs_grad_tol);
+}
 
+}  // namespace ReaK::optim
 
 #endif

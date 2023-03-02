@@ -29,23 +29,25 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef REAK_RPC_VERSION_HPP
 #define REAK_RPC_VERSION_HPP
 
+#include <array>
 #include <string>
 
-namespace ReaK {
-
-namespace rpc {
+namespace ReaK::rpc {
 
 extern const double rpc_protocol_version;
 
-enum msg_format { binary_format = 0, xml_format, protobuf_format };
-
-extern const char* msg_format_to_str[];
+enum msg_format {
+  binary_format = 0,
+  xml_format,
+  protobuf_format,
+  msg_format_count
 };
-};
 
+extern const std::array<const char*, msg_format_count> msg_format_to_str;
 
-#endif
+}  // namespace ReaK::rpc
+
+#endif  // REAK_RPC_VERSION_HPP

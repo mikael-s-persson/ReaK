@@ -41,144 +41,99 @@
 #ifndef REAK_RR_GRAPH_HPP
 #define REAK_RR_GRAPH_HPP
 
-#include <utility>
-#include <vector>
-#include <iterator>
-#include <boost/tuple/tuple.hpp>
-#include <boost/utility/enable_if.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
+#include <iterator>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 #include <ReaK/topologies/spaces/random_sampler_concept.hpp>
 
-#include "sbmp_visitor_concepts.hpp"
 #include "node_generators.hpp"
+#include "sbmp_visitor_concepts.hpp"
+#include "simple_graph_traits.hpp"
 
 namespace ReaK {
 
 namespace graph {
 
-
 namespace detail {
 namespace {
 
-template < typename Graph, typename Topology, typename RRGVisitor, typename PositionMap, typename NodeGenerator,
-           typename NcSelector >
-inline typename boost::enable_if< boost::is_undirected_graph< Graph > >::type
-  generate_rrg_loop( Graph& g, const Topology& space, RRGVisitor vis, PositionMap position,
-                     NodeGenerator node_generator_func, NcSelector select_neighborhood,
-                     unsigned int max_vertex_count ) {
-  typedef typename boost::property_traits< PositionMap >::value_type PositionValue;
-  typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
-  typedef typename boost::graph_traits< Graph >::edge_descriptor Edge;
-  typedef typename Graph::vertex_bundled VertexProp;
-  typedef typename Graph::edge_bundled EdgeProp;
+template <typename Graph, typename Topology, typename RRGVisitor,
+          typename PositionMap, typename NodeGenerator, typename NcSelector>
+void generate_rrg_loop(Graph& g, const Topology& space, RRGVisitor vis,
+                       PositionMap position, NodeGenerator node_generator_func,
+                       NcSelector select_neighborhood,
+                       unsigned int max_vertex_count) {
+  using Vertex = graph_vertex_t<Graph>;
   using std::back_inserter;
 
-  while( ( num_vertices( g ) < max_vertex_count ) && ( vis.keep_going() ) ) {
+  while ((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
 
-    PositionValue p_new;
-    Vertex x_near;
-    EdgeProp eprop;
-    boost::tie( x_near, p_new, eprop )
-      = node_generator_func( g, vis, boost::bundle_prop_to_vertex_prop( position, g ) );
+    auto [x_near, p_new, eprop] = node_generator_func(
+        g, vis, boost::bundle_prop_to_vertex_prop(position, g));
 
-    std::vector< Vertex > Nc;
-    select_neighborhood( p_new, back_inserter( Nc ), g, space, boost::bundle_prop_to_vertex_prop( position, g ) );
+    std::vector<Vertex> Pred, Succ;
+    if constexpr (boost::is_undirected_graph<Graph>::value) {
+      select_neighborhood(p_new, back_inserter(Pred), g, space,
+                          boost::bundle_prop_to_vertex_prop(position, g));
+    } else {
+      select_neighborhood(p_new, std::back_inserter(Pred),
+                          std::back_inserter(Succ), g, space,
+                          boost::bundle_prop_to_vertex_prop(position, g));
+    }
 
-    VertexProp xp_new;
-    put( position, xp_new, p_new );
-    Vertex x_new = add_vertex( std::move( xp_new ), g );
-    vis.vertex_added( x_new, g );
+    graph_vertex_bundle_t<Graph> xp_new;
+    put(position, xp_new, p_new);
+    Vertex x_new = add_vertex(std::move(xp_new), g);
+    vis.vertex_added(x_new, g);
 
-    std::pair< Edge, bool > ep = add_edge( x_near, x_new, std::move( eprop ), g );
-    if( ep.second )
-      vis.edge_added( ep.first, g );
+    {
+      auto [e_new, e_new_exists] = add_edge(x_near, x_new, std::move(eprop), g);
+      if (e_new_exists) {
+        vis.edge_added(e_new, g);
+      }
+    }
 
-    for( typename std::vector< Vertex >::const_iterator it = Nc.begin(); it != Nc.end(); ++it ) {
-      if( *it == x_near )
+    for (Vertex u : Pred) {
+      if (u == x_near) {
         continue;
+      }
 
-      EdgeProp eprop2;
-      bool can_connect;
-      boost::tie( can_connect, eprop2 ) = vis.can_be_connected( *it, x_new, g );
-      if( !can_connect )
+      auto [can_connect, eprop_new] = vis.can_be_connected(u, x_new, g);
+      if (!can_connect) {
         continue;
+      }
 
-      ep = add_edge( *it, x_new, std::move( eprop2 ), g );
-      if( ep.second )
-        vis.edge_added( ep.first, g );
-    };
-  };
-};
+      auto [e_new, e_new_exists] = add_edge(u, x_new, std::move(eprop_new), g);
+      if (e_new_exists) {
+        vis.edge_added(e_new, g);
+      }
+    }
 
+    if constexpr (!boost::is_undirected_graph<Graph>::value) {
+      for (Vertex u : Succ) {
+        auto [can_connect, eprop_new] = vis.can_be_connected(x_new, u, g);
+        if (!can_connect) {
+          continue;
+        }
 
-template < typename Graph, typename Topology, typename RRGVisitor, typename PositionMap, typename NodeGenerator,
-           typename NcSelector >
-inline typename boost::enable_if< boost::is_directed_graph< Graph > >::type
-  generate_rrg_loop( Graph& g, const Topology& space, RRGVisitor vis, PositionMap position,
-                     NodeGenerator node_generator_func, NcSelector select_neighborhood,
-                     unsigned int max_vertex_count ) {
-  typedef typename boost::property_traits< PositionMap >::value_type PositionValue;
-  typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
-  typedef typename boost::graph_traits< Graph >::edge_descriptor Edge;
-  typedef typename Graph::vertex_bundled VertexProp;
-  typedef typename Graph::edge_bundled EdgeProp;
-  using std::back_inserter;
+        auto [e_new, e_new_exists] =
+            add_edge(x_new, u, std::move(eprop_new), g);
+        if (e_new_exists) {
+          vis.edge_added(e_new, g);
+        }
+      }
+    }
+  }
+}
 
-  while( ( num_vertices( g ) < max_vertex_count ) && ( vis.keep_going() ) ) {
-
-    PositionValue p_new;
-    Vertex x_near;
-    EdgeProp eprop;
-    boost::tie( x_near, p_new, eprop )
-      = node_generator_func( g, vis, boost::bundle_prop_to_vertex_prop( position, g ) );
-
-    std::vector< Vertex > Pred, Succ;
-    select_neighborhood( p_new, std::back_inserter( Pred ), std::back_inserter( Succ ), g, space,
-                         boost::bundle_prop_to_vertex_prop( position, g ) );
-
-    VertexProp xp_new;
-    put( position, xp_new, p_new );
-    Vertex x_new = add_vertex( std::move( xp_new ), g );
-    vis.vertex_added( x_new, g );
-
-    std::pair< Edge, bool > ep = add_edge( x_near, x_new, std::move( eprop ), g );
-    if( ep.second )
-      vis.edge_added( ep.first, g );
-
-    for( typename std::vector< Vertex >::iterator it = Pred.begin(); it != Pred.end(); ++it ) {
-      if( *it == x_near )
-        continue;
-
-      EdgeProp eprop2;
-      bool can_connect;
-      boost::tie( can_connect, eprop2 ) = vis.can_be_connected( *it, x_new, g );
-      if( !can_connect )
-        continue;
-
-      ep = add_edge( *it, x_new, std::move( eprop2 ), g );
-      if( ep.second )
-        vis.edge_added( ep.first, g );
-    };
-
-    for( typename std::vector< Vertex >::iterator it = Succ.begin(); it != Succ.end(); ++it ) {
-      EdgeProp eprop2;
-      bool can_connect;
-      boost::tie( can_connect, eprop2 ) = vis.can_be_connected( x_new, *it, g );
-      if( !can_connect )
-        continue;
-
-      ep = add_edge( x_new, *it, std::move( eprop2 ), g );
-      if( ep.second )
-        vis.edge_added( ep.first, g );
-    };
-  };
-};
-};
-}; // detail
-
+}  // namespace
+}  // namespace detail
 
 /**
   * This function template is the unidirectional version of the RRG algorithm (refer to rr_graph.hpp dox).
@@ -210,34 +165,35 @@ inline typename boost::enable_if< boost::is_directed_graph< Graph > >::type
   *        should stop regardless of whether the resulting tree is satisfactory or not.
   *
   */
-template < typename Graph, typename Topology, typename RRGVisitor, typename PositionMap, typename RandomSampler,
-           typename NcSelector >
-inline void generate_rrg( Graph& g, const Topology& space, RRGVisitor vis, PositionMap position,
-                          RandomSampler get_sample, NcSelector select_neighborhood, unsigned int max_vertex_count ) {
-  BOOST_CONCEPT_ASSERT( (RRGVisitorConcept< RRGVisitor, Graph, Topology >));
-  BOOST_CONCEPT_ASSERT( (ReaK::pp::RandomSamplerConcept< RandomSampler, Topology >));
+template <typename Graph, typename Topology, typename RRGVisitor,
+          typename PositionMap, typename RandomSampler, typename NcSelector>
+inline void generate_rrg(Graph& g, const Topology& space, RRGVisitor vis,
+                         PositionMap position, RandomSampler get_sample,
+                         NcSelector select_neighborhood,
+                         unsigned int max_vertex_count) {
+  BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRGVisitor, Graph, Topology>));
+  BOOST_CONCEPT_ASSERT(
+      (ReaK::pp::RandomSamplerConcept<RandomSampler, Topology>));
 
-  typedef typename boost::property_traits< PositionMap >::value_type PositionValue;
-  typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
-  typedef typename Graph::vertex_bundled VertexProp;
+  if (num_vertices(g) == 0) {
+    auto p = get_sample(space);
+    while (!vis.is_position_free(p)) {
+      p = get_sample(space);
+    }
 
-  if( num_vertices( g ) == 0 ) {
-    PositionValue p = get_sample( space );
-    while( !vis.is_position_free( p ) )
-      p = get_sample( space );
+    graph_vertex_bundle_t<Graph> up;
+    put(position, up, p);
+    auto u = add_vertex(std::move(up), g);
+    vis.vertex_added(u, g);
+  }
 
-    VertexProp up;
-    put( position, up, p );
-    Vertex u = add_vertex( std::move( up ), g );
-    vis.vertex_added( u, g );
-  };
+  detail::generate_rrg_loop(
+      g, space, vis, position,
+      rrg_node_generator<Topology, RandomSampler, NcSelector>(
+          &space, get_sample, select_neighborhood),
+      select_neighborhood, max_vertex_count);
+}
 
-  detail::generate_rrg_loop( g, space, vis, position, rrg_node_generator< Topology, RandomSampler, NcSelector >(
-                                                        &space, get_sample, select_neighborhood ),
-                             select_neighborhood, max_vertex_count );
-};
-};
-};
-
+}  // namespace ReaK::graph
 
 #endif

@@ -35,7 +35,6 @@
 #ifndef REAK_JOINT_SPACE_TOPOLOGIES_HPP
 #define REAK_JOINT_SPACE_TOPOLOGIES_HPP
 
-
 #include <ReaK/core/base/defs.hpp>
 
 #include "differentiable_space.hpp"
@@ -44,23 +43,28 @@
 
 #include "line_topology.hpp"
 
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
 #include <ReaK/math/kinetostatics/gen_coord.hpp>
+#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
 
 namespace ReaK {
 
 namespace pp {
-
 
 /**
  * This meta-function defines the type for a 0th order single-joint space (a zero-differentiable space).
  * \tparam T The value type for the topology.
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
-template < typename T, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
 struct joint_space_0th_order {
-  typedef differentiable_space< time_topology, arithmetic_tuple< line_segment_topology< T > >, DistanceMetric > type;
+  using type = differentiable_space<time_topology,
+                                    arithmetic_tuple<line_segment_topology<T>>,
+                                    DistanceMetric>;
 };
+
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+using joint_space_0th_order_t =
+    typename joint_space_0th_order<T, DistanceMetric>::type;
 
 /**
  * This meta-function defines the type for a 0th order multi-joint space (a zero-differentiable space).
@@ -68,22 +72,34 @@ struct joint_space_0th_order {
  * \tparam N The number of degrees of freedom of the joint space.
  * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
  */
-template < typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
 struct Ndof_0th_order_space {
-  typedef typename metric_space_array< typename joint_space_0th_order< T >::type, N, DistanceMetric >::type type;
+  using type =
+      metric_space_array_t<joint_space_0th_order_t<T>, N, DistanceMetric>;
 };
+
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
+using Ndof_0th_order_space_t =
+    typename Ndof_0th_order_space<T, N, DistanceMetric>::type;
 
 /**
  * This meta-function defines the type for a 1st order single-joint space.
  * \tparam T The value type for the topology.
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
-template < typename T, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
 struct joint_space_1st_order {
-  typedef differentiable_space< time_topology,
-                                arithmetic_tuple< line_segment_topology< T >, line_segment_topology< T > >,
-                                DistanceMetric > type;
+  using type = differentiable_space<
+      time_topology,
+      arithmetic_tuple<line_segment_topology<T>, line_segment_topology<T>>,
+      DistanceMetric>;
 };
+
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+using joint_space_1st_order_t =
+    typename joint_space_1st_order<T, DistanceMetric>::type;
 
 /**
  * This meta-function defines the type for a 1st order multi-joint space (a once-differentiable space).
@@ -91,23 +107,35 @@ struct joint_space_1st_order {
  * \tparam N The number of degrees of freedom of the joint space.
  * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
  */
-template < typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
 struct Ndof_1st_order_space {
-  typedef typename metric_space_array< typename joint_space_1st_order< T >::type, N, DistanceMetric >::type type;
+  using type =
+      metric_space_array_t<joint_space_1st_order_t<T>, N, DistanceMetric>;
 };
 
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
+using Ndof_1st_order_space_t =
+    typename Ndof_1st_order_space<T, N, DistanceMetric>::type;
 
 /**
  * This meta-function defines the type for a 2nd order single-joint space.
  * \tparam T The value type for the topology.
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
-template < typename T, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
 struct joint_space_2nd_order {
-  typedef differentiable_space< time_topology, arithmetic_tuple< line_segment_topology< T >, line_segment_topology< T >,
-                                                                 line_segment_topology< T > >,
-                                DistanceMetric > type;
+  using type = differentiable_space<
+      time_topology,
+      arithmetic_tuple<line_segment_topology<T>, line_segment_topology<T>,
+                       line_segment_topology<T>>,
+      DistanceMetric>;
 };
+
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+using joint_space_2nd_order_t =
+    typename joint_space_2nd_order<T, DistanceMetric>::type;
 
 /**
  * This meta-function defines the type for a 2nd order multi-joint space (a once-differentiable space).
@@ -115,41 +143,58 @@ struct joint_space_2nd_order {
  * \tparam N The number of degrees of freedom of the joint space.
  * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
  */
-template < typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
 struct Ndof_2nd_order_space {
-  typedef typename metric_space_array< typename joint_space_2nd_order< T >::type, N, DistanceMetric >::type type;
+  using type =
+      metric_space_array_t<joint_space_2nd_order_t<T>, N, DistanceMetric>;
 };
 
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
+using Ndof_2nd_order_space_t =
+    typename Ndof_2nd_order_space<T, N, DistanceMetric>::type;
 
-template < typename JointSpace >
-struct is_normal_joint_space : boost::mpl::false_ {};
+template <typename JointSpace>
+struct is_normal_joint_space : std::false_type {};
 
+template <typename JointSpace>
+static constexpr bool is_normal_joint_space_v =
+    is_normal_joint_space<JointSpace>::value;
 
-template < typename T, typename DistanceMetric >
-struct is_normal_joint_space< differentiable_space< time_topology, arithmetic_tuple< line_segment_topology< T > >,
-                                                    DistanceMetric > > : boost::mpl::true_ {};
+template <typename T, typename DistanceMetric>
+struct is_normal_joint_space<differentiable_space<
+    time_topology, arithmetic_tuple<line_segment_topology<T>>, DistanceMetric>>
+    : std::true_type {};
 
-template < typename T, typename DistanceMetric >
-struct is_normal_joint_space< differentiable_space< time_topology, arithmetic_tuple< line_segment_topology< T >,
-                                                                                     line_segment_topology< T > >,
-                                                    DistanceMetric > > : boost::mpl::true_ {};
+template <typename T, typename DistanceMetric>
+struct is_normal_joint_space<differentiable_space<
+    time_topology,
+    arithmetic_tuple<line_segment_topology<T>, line_segment_topology<T>>,
+    DistanceMetric>> : std::true_type {};
 
-template < typename T, typename DistanceMetric >
-struct is_normal_joint_space< differentiable_space< time_topology, arithmetic_tuple< line_segment_topology< T >,
-                                                                                     line_segment_topology< T >,
-                                                                                     line_segment_topology< T > >,
-                                                    DistanceMetric > > : boost::mpl::true_ {};
-
+template <typename T, typename DistanceMetric>
+struct is_normal_joint_space<differentiable_space<
+    time_topology,
+    arithmetic_tuple<line_segment_topology<T>, line_segment_topology<T>,
+                     line_segment_topology<T>>,
+    DistanceMetric>> : std::true_type {};
 
 /**
  * This meta-function defines the type for a rate-limited 0th order single-joint space (a zero-differentiable space).
  * \tparam T The value type for the topology.
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
-template < typename T, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
 struct rl_joint_space_0th_order {
-  typedef reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology< T > >, DistanceMetric > type;
+  using type = reach_time_diff_space<time_topology,
+                                     arithmetic_tuple<line_segment_topology<T>>,
+                                     DistanceMetric>;
 };
+
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+using rl_joint_space_0th_order_t =
+    typename rl_joint_space_0th_order<T, DistanceMetric>::type;
 
 /**
  * This meta-function defines the type for a 0th order multi-joint rate-limited space (a zero-differentiable space).
@@ -157,22 +202,34 @@ struct rl_joint_space_0th_order {
  * \tparam N The number of degrees of freedom of the joint space.
  * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
  */
-template < typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
 struct Ndof_0th_order_rl_space {
-  typedef typename metric_space_array< typename rl_joint_space_0th_order< T >::type, N, DistanceMetric >::type type;
+  using type =
+      metric_space_array_t<rl_joint_space_0th_order_t<T>, N, DistanceMetric>;
 };
+
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
+using Ndof_0th_order_rl_space_t =
+    typename Ndof_0th_order_rl_space<T, N, DistanceMetric>::type;
 
 /**
  * This meta-function defines the type for a rate-limited 1st order single-joint space.
  * \tparam T The value type for the topology.
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
-template < typename T, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
 struct rl_joint_space_1st_order {
-  typedef reach_time_diff_space< time_topology,
-                                 arithmetic_tuple< line_segment_topology< T >, line_segment_topology< T > >,
-                                 DistanceMetric > type;
+  using type = reach_time_diff_space<
+      time_topology,
+      arithmetic_tuple<line_segment_topology<T>, line_segment_topology<T>>,
+      DistanceMetric>;
 };
+
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+using rl_joint_space_1st_order_t =
+    typename rl_joint_space_1st_order<T, DistanceMetric>::type;
 
 /**
  * This meta-function defines the type for a 1st order multi-joint rate-limited space (a once-differentiable space).
@@ -180,23 +237,35 @@ struct rl_joint_space_1st_order {
  * \tparam N The number of degrees of freedom of the joint space.
  * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
  */
-template < typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
 struct Ndof_1st_order_rl_space {
-  typedef typename metric_space_array< typename rl_joint_space_1st_order< T >::type, N, DistanceMetric >::type type;
+  using type =
+      metric_space_array_t<rl_joint_space_1st_order_t<T>, N, DistanceMetric>;
 };
+
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
+using Ndof_1st_order_rl_space_t =
+    typename Ndof_1st_order_rl_space<T, N, DistanceMetric>::type;
 
 /**
  * This meta-function defines the type for a rate-limited 2nd order single-joint space.
  * \tparam T The value type for the topology.
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
-template < typename T, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
 struct rl_joint_space_2nd_order {
-  typedef reach_time_diff_space< time_topology,
-                                 arithmetic_tuple< line_segment_topology< T >, line_segment_topology< T >,
-                                                   line_segment_topology< T > >,
-                                 DistanceMetric > type;
+  using type = reach_time_diff_space<
+      time_topology,
+      arithmetic_tuple<line_segment_topology<T>, line_segment_topology<T>,
+                       line_segment_topology<T>>,
+      DistanceMetric>;
 };
+
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+using rl_joint_space_2nd_order_t =
+    typename rl_joint_space_2nd_order<T, DistanceMetric>::type;
 
 /**
  * This meta-function defines the type for a 2nd order multi-joint rate-limited space (a twice-differentiable space).
@@ -204,135 +273,140 @@ struct rl_joint_space_2nd_order {
  * \tparam N The number of degrees of freedom of the joint space.
  * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
  */
-template < typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance >
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
 struct Ndof_2nd_order_rl_space {
-  typedef typename metric_space_array< typename rl_joint_space_2nd_order< T >::type, N, DistanceMetric >::type type;
+  using type =
+      metric_space_array_t<rl_joint_space_2nd_order_t<T>, N, DistanceMetric>;
 };
 
+template <typename T, std::size_t N,
+          typename DistanceMetric = euclidean_tuple_distance>
+using Ndof_2nd_order_rl_space_t =
+    typename Ndof_2nd_order_rl_space<T, N, DistanceMetric>::type;
 
-template < typename JointSpace >
-struct is_rate_limited_joint_space : boost::mpl::false_ {};
+template <typename JointSpace>
+struct is_rate_limited_joint_space : std::false_type {};
 
+template <typename JointSpace>
+static constexpr bool is_rate_limited_joint_space_v =
+    is_rate_limited_joint_space<JointSpace>::value;
 
-template < typename T, typename DistanceMetric >
-struct is_rate_limited_joint_space< reach_time_diff_space< time_topology,
-                                                           arithmetic_tuple< line_segment_topology< T > >,
-                                                           DistanceMetric > > : boost::mpl::true_ {};
+template <typename T, typename DistanceMetric>
+struct is_rate_limited_joint_space<reach_time_diff_space<
+    time_topology, arithmetic_tuple<line_segment_topology<T>>, DistanceMetric>>
+    : std::true_type {};
 
-template < typename T, typename DistanceMetric >
-struct is_rate_limited_joint_space< reach_time_diff_space< time_topology,
-                                                           arithmetic_tuple< line_segment_topology< T >,
-                                                                             line_segment_topology< T > >,
-                                                           DistanceMetric > > : boost::mpl::true_ {};
+template <typename T, typename DistanceMetric>
+struct is_rate_limited_joint_space<reach_time_diff_space<
+    time_topology,
+    arithmetic_tuple<line_segment_topology<T>, line_segment_topology<T>>,
+    DistanceMetric>> : std::true_type {};
 
-template < typename T, typename DistanceMetric >
-struct is_rate_limited_joint_space< reach_time_diff_space< time_topology,
-                                                           arithmetic_tuple< line_segment_topology< T >,
-                                                                             line_segment_topology< T >,
-                                                                             line_segment_topology< T > >,
-                                                           DistanceMetric > > : boost::mpl::true_ {};
-};
+template <typename T, typename DistanceMetric>
+struct is_rate_limited_joint_space<reach_time_diff_space<
+    time_topology,
+    arithmetic_tuple<line_segment_topology<T>, line_segment_topology<T>,
+                     line_segment_topology<T>>,
+    DistanceMetric>> : std::true_type {};
 
+}  // namespace pp
 
-template < typename T >
-gen_coord< T > get_gen_coord( const arithmetic_tuple< T, T, T >& pt ) {
-  return gen_coord< T >( get< 0 >( pt ), get< 1 >( pt ), get< 2 >( pt ), 0.0 );
-};
+template <typename T>
+gen_coord<T> get_gen_coord(const arithmetic_tuple<T, T, T>& pt) {
+  return gen_coord<T>(get<0>(pt), get<1>(pt), get<2>(pt), 0.0);
+}
 
-template < typename T >
-gen_coord< T > get_gen_coord( const arithmetic_tuple< T, T >& pt ) {
-  return gen_coord< T >( get< 0 >( pt ), get< 1 >( pt ), 0.0, 0.0 );
-};
+template <typename T>
+gen_coord<T> get_gen_coord(const arithmetic_tuple<T, T>& pt) {
+  return gen_coord<T>(get<0>(pt), get<1>(pt), 0.0, 0.0);
+}
 
-template < typename T >
-gen_coord< T > get_gen_coord( const arithmetic_tuple< T >& pt ) {
-  return gen_coord< T >( get< 0 >( pt ), 0.0, 0.0, 0.0 );
-};
+template <typename T>
+gen_coord<T> get_gen_coord(const arithmetic_tuple<T>& pt) {
+  return gen_coord<T>(get<0>(pt), 0.0, 0.0, 0.0);
+}
 
-template < typename T >
-void set_gen_coord( arithmetic_tuple< T, T, T >& pt, const gen_coord< T >& p ) {
-  get< 0 >( pt ) = p.q;
-  get< 1 >( pt ) = p.q_dot;
-  get< 2 >( pt ) = p.q_ddot;
-};
+template <typename T>
+void set_gen_coord(arithmetic_tuple<T, T, T>& pt, const gen_coord<T>& p) {
+  get<0>(pt) = p.q;
+  get<1>(pt) = p.q_dot;
+  get<2>(pt) = p.q_ddot;
+}
 
-template < typename T >
-void set_gen_coord( arithmetic_tuple< T, T >& pt, const gen_coord< T >& p ) {
-  get< 0 >( pt ) = p.q;
-  get< 1 >( pt ) = p.q_dot;
-};
+template <typename T>
+void set_gen_coord(arithmetic_tuple<T, T>& pt, const gen_coord<T>& p) {
+  get<0>(pt) = p.q;
+  get<1>(pt) = p.q_dot;
+}
 
-template < typename T >
-void set_gen_coord( arithmetic_tuple< T >& pt, const gen_coord< T >& p ) {
-  get< 0 >( pt ) = p.q;
-};
+template <typename T>
+void set_gen_coord(arithmetic_tuple<T>& pt, const gen_coord<T>& p) {
+  get<0>(pt) = p.q;
+}
 
+template <typename T>
+const T& get_position(const arithmetic_tuple<T, T, T>& pt) {
+  return get<0>(pt);
+}
 
-template < typename T >
-const T& get_position( const arithmetic_tuple< T, T, T >& pt ) {
-  return get< 0 >( pt );
-};
+template <typename T>
+const T& get_position(const arithmetic_tuple<T, T>& pt) {
+  return get<0>(pt);
+}
 
-template < typename T >
-const T& get_position( const arithmetic_tuple< T, T >& pt ) {
-  return get< 0 >( pt );
-};
+template <typename T>
+const T& get_position(const arithmetic_tuple<T>& pt) {
+  return get<0>(pt);
+}
 
-template < typename T >
-const T& get_position( const arithmetic_tuple< T >& pt ) {
-  return get< 0 >( pt );
-};
+template <typename T>
+void set_position(arithmetic_tuple<T, T, T>& pt, const T& p) {
+  get<0>(pt) = p;
+}
 
-template < typename T >
-void set_position( arithmetic_tuple< T, T, T >& pt, const T& p ) {
-  get< 0 >( pt ) = p;
-};
+template <typename T>
+void set_position(arithmetic_tuple<T, T>& pt, const T& p) {
+  get<0>(pt) = p;
+}
 
-template < typename T >
-void set_position( arithmetic_tuple< T, T >& pt, const T& p ) {
-  get< 0 >( pt ) = p;
-};
+template <typename T>
+void set_position(arithmetic_tuple<T>& pt, const T& p) {
+  get<0>(pt) = p;
+}
 
-template < typename T >
-void set_position( arithmetic_tuple< T >& pt, const T& p ) {
-  get< 0 >( pt ) = p;
-};
+template <typename T>
+const T& get_velocity(const arithmetic_tuple<T, T, T>& pt) {
+  return get<1>(pt);
+}
 
+template <typename T>
+const T& get_velocity(const arithmetic_tuple<T, T>& pt) {
+  return get<1>(pt);
+}
 
-template < typename T >
-const T& get_velocity( const arithmetic_tuple< T, T, T >& pt ) {
-  return get< 1 >( pt );
-};
+template <typename T>
+void set_velocity(arithmetic_tuple<T, T, T>& pt, const T& p) {
+  get<1>(pt) = p;
+}
 
-template < typename T >
-const T& get_velocity( const arithmetic_tuple< T, T >& pt ) {
-  return get< 1 >( pt );
-};
+template <typename T>
+void set_velocity(arithmetic_tuple<T, T>& pt, const T& p) {
+  get<1>(pt) = p;
+}
 
-template < typename T >
-void set_velocity( arithmetic_tuple< T, T, T >& pt, const T& p ) {
-  get< 1 >( pt ) = p;
-};
+template <typename T>
+const T& get_acceleration(const arithmetic_tuple<T, T, T>& pt) {
+  return get<2>(pt);
+}
 
-template < typename T >
-void set_velocity( arithmetic_tuple< T, T >& pt, const T& p ) {
-  get< 1 >( pt ) = p;
-};
+template <typename T>
+void set_acceleration(arithmetic_tuple<T, T, T>& pt, const T& p) {
+  get<2>(pt) = p;
+}
 
-
-template < typename T >
-const T& get_acceleration( const arithmetic_tuple< T, T, T >& pt ) {
-  return get< 2 >( pt );
-};
-
-template < typename T >
-void set_acceleration( arithmetic_tuple< T, T, T >& pt, const T& p ) {
-  get< 2 >( pt ) = p;
-};
-};
-
+}  // namespace ReaK
 
 #include "joint_space_topologies_ext.hpp"
-
 
 #endif

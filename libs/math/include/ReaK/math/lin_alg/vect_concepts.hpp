@@ -37,8 +37,8 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include "vect_traits.hpp"
 #include <vector>
+#include "vect_traits.hpp"
 
 #include <boost/concept_check.hpp>
 
@@ -62,23 +62,23 @@ namespace ReaK {
  *
  * \tparam Vector The vector type.
  */
-template < typename Vector >
+template <typename Vector>
 struct ReadableVectorConcept {
   Vector v;
 
-  typename vect_traits< Vector >::size_type s;
-  typename vect_traits< Vector >::value_type cr;
+  typename vect_traits<Vector>::size_type s;
+  vect_value_type_t<Vector> cr;
 
-  typename vect_traits< Vector >::const_iterator it;
+  typename vect_traits<Vector>::const_iterator it;
 
   void constraints() {
-    cr = v[0]; // can be indexed and given an rvalue
+    cr = v[0];  // can be indexed and given an rvalue
     s = v.size();
     it = v.begin();
     ++it;
-    bool b = ( it != v.end() );
-    RK_UNUSED( b );
-  };
+    bool b = (it != v.end());
+    RK_UNUSED(b);
+  }
 };
 
 /**
@@ -88,18 +88,20 @@ struct ReadableVectorConcept {
  * in a false value, and the implementer of a vector class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new vector class.
  */
-template < typename Vector >
+template <typename Vector>
 struct is_readable_vector {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_readable_vector< Vector > type;
+  static constexpr bool value = false;
+  using type = is_readable_vector<Vector>;
 };
 
-template < typename T >
-struct is_readable_vector< std::vector< T > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_readable_vector< std::vector< T > > type;
-};
+template <typename Vector>
+static constexpr bool is_readable_vector_v = is_readable_vector<Vector>::value;
 
+template <typename T>
+struct is_readable_vector<std::vector<T>> {
+  static constexpr bool value = true;
+  using type = is_readable_vector<std::vector<T>>;
+};
 
 /**
  * This concept class defines what makes a vector a writable vector, that is,
@@ -111,16 +113,16 @@ struct is_readable_vector< std::vector< T > > {
  *
  * \tparam Vector The vector type.
  */
-template < typename Vector >
-struct WritableVectorConcept : ReadableVectorConcept< Vector > { // must also be readable.
+template <typename Vector>
+struct WritableVectorConcept
+    : ReadableVectorConcept<Vector> {  // must also be readable.
 
-  typename vect_traits< Vector >::value_type r;
+  vect_value_type_t<Vector> r;
 
   void constraints() {
-    this->v[0] = r; // can be indexed and given an lvalue
-  };
+    this->v[0] = r;  // can be indexed and given an lvalue
+  }
 };
-
 
 /**
  * This meta-function evaluates whether a Vector class fulfills the WritableVectorConcept,
@@ -129,18 +131,20 @@ struct WritableVectorConcept : ReadableVectorConcept< Vector > { // must also be
  * in a false value, and the implementer of a vector class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new vector class.
  */
-template < typename Vector >
+template <typename Vector>
 struct is_writable_vector {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_writable_vector< Vector > type;
+  static constexpr bool value = false;
+  using type = is_writable_vector<Vector>;
 };
 
-template < typename T >
-struct is_writable_vector< std::vector< T > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_writable_vector< std::vector< T > > type;
-};
+template <typename Vector>
+static constexpr bool is_writable_vector_v = is_writable_vector<Vector>::value;
 
+template <typename T>
+struct is_writable_vector<std::vector<T>> {
+  static constexpr bool value = true;
+  using type = is_writable_vector<std::vector<T>>;
+};
 
 /**
  * This concept class defines what makes a vector a resizable vector, that is,
@@ -152,15 +156,14 @@ struct is_writable_vector< std::vector< T > > {
  *
  * \tparam Vector The vector type.
  */
-template < typename Vector >
+template <typename Vector>
 struct ResizableVectorConcept {
   Vector v;
 
-  typename vect_traits< Vector >::size_type sz;
+  typename vect_traits<Vector>::size_type sz;
 
-  BOOST_CONCEPT_USAGE( ResizableVectorConcept ) { v.resize( sz ); };
+  BOOST_CONCEPT_USAGE(ResizableVectorConcept) { v.resize(sz); };
 };
-
 
 /**
  * This meta-function evaluates whether a Vector class fulfills the ResizableVectorConcept,
@@ -169,18 +172,21 @@ struct ResizableVectorConcept {
  * in a false value, and the implementer of a vector class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new vector class.
  */
-template < typename Vector >
+template <typename Vector>
 struct is_resizable_vector {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_resizable_vector< Vector > type;
+  static constexpr bool value = false;
+  using type = is_resizable_vector<Vector>;
 };
 
-template < typename T >
-struct is_resizable_vector< std::vector< T > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_resizable_vector< std::vector< T > > type;
-};
+template <typename Vector>
+static constexpr bool is_resizable_vector_v =
+    is_resizable_vector<Vector>::value;
 
+template <typename T>
+struct is_resizable_vector<std::vector<T>> {
+  static constexpr bool value = true;
+  using type = is_resizable_vector<std::vector<T>>;
+};
 
 /**
  * This concept class defines what makes a vector a resizable vector, that is,
@@ -192,13 +198,13 @@ struct is_resizable_vector< std::vector< T > > {
  *
  * \tparam Vector The vector type.
  */
-template < typename Vector >
-struct DynAllocVectorConcept : ResizableVectorConcept< Vector > {
+template <typename Vector>
+struct DynAllocVectorConcept : ResizableVectorConcept<Vector> {
   Vector v;
 
-  typename vect_traits< Vector >::allocator_type al;
+  typename vect_traits<Vector>::allocator_type al;
 
-  BOOST_CONCEPT_USAGE( DynAllocVectorConcept ) { al = v.get_allocator(); };
+  BOOST_CONCEPT_USAGE(DynAllocVectorConcept) { al = v.get_allocator(); };
 };
 
 /**
@@ -208,19 +214,22 @@ struct DynAllocVectorConcept : ResizableVectorConcept< Vector > {
  * in a false value, and the implementer of a vector class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new vector class.
  */
-template < typename Vector >
+template <typename Vector>
 struct has_allocator_vector {
-  BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef has_allocator_vector< Vector > type;
+  static constexpr bool value = false;
+  using type = has_allocator_vector<Vector>;
 };
 
+template <typename Vector>
+static constexpr bool has_allocator_vector_v =
+    has_allocator_vector<Vector>::value;
 
-template < typename T >
-struct has_allocator_vector< std::vector< T > > {
-  BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef has_allocator_vector< std::vector< T > > type;
-};
+template <typename T>
+struct has_allocator_vector<std::vector<T>> {
+  static constexpr bool value = true;
+  using type = has_allocator_vector<std::vector<T>>;
 };
 
+}  // namespace ReaK
 
 #endif

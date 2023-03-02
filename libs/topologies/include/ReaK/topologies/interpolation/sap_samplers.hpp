@@ -34,36 +34,33 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
 #include <ReaK/topologies/spaces/bounded_space_concept.hpp>
 #include <ReaK/topologies/spaces/prob_distribution_concept.hpp>
 #include <ReaK/topologies/spaces/rate_limited_spaces.hpp>
+#include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
 #include <ReaK/topologies/spaces/time_topology.hpp>
 
 #include "sustained_acceleration_pulse.hpp"
 
 #include <boost/concept_check.hpp>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This functor class is a random-sampler based on the rate-limited motions of a SAP interpolation
  * between points within a bounded tangent-bundle.
  * \tparam TimeSpaceType The time topology type against which the interpolation is done.
  */
-template < typename TimeSpaceType = time_topology >
+template <typename TimeSpaceType = time_topology>
 struct sap_rate_limited_sampler : public serializable {
 
-  typedef sap_rate_limited_sampler< TimeSpaceType > self;
+  using self = sap_rate_limited_sampler<TimeSpaceType>;
 
-  shared_ptr< TimeSpaceType > t_space;
+  std::shared_ptr<TimeSpaceType> t_space;
 
-  sap_rate_limited_sampler( const shared_ptr< TimeSpaceType >& aTimeSpace
-                            = shared_ptr< TimeSpaceType >( new TimeSpaceType() ) )
-      : t_space( aTimeSpace ){};
+  sap_rate_limited_sampler(const std::shared_ptr<TimeSpaceType>& aTimeSpace =
+                               std::make_shared<TimeSpaceType>())
+      : t_space(aTimeSpace) {}
 
   /**
    * This function returns a random sample-point on a topology.
@@ -71,41 +68,43 @@ struct sap_rate_limited_sampler : public serializable {
    * \param s The topology or space on which the sample-point lies.
    * \return A random sample-point on the topology.
    */
-  template < typename Topology >
-  typename topology_traits< Topology >::point_type operator()( const Topology& s ) const {
-    BOOST_CONCEPT_ASSERT( (TopologyConcept< Topology >));
-    BOOST_CONCEPT_ASSERT( (PointDistributionConcept< Topology >));
-    BOOST_CONCEPT_ASSERT( (TangentBundleConcept< Topology, 2, TimeSpaceType >));
+  template <typename Topology>
+  topology_point_type_t<Topology> operator()(const Topology& s) const {
+    BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((PointDistributionConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((TangentBundleConcept<Topology, 2, TimeSpaceType>));
 
-    typedef typename topology_traits< Topology >::point_type PointType;
+    using PointType = topology_point_type_t<Topology>;
 
-    const typename point_distribution_traits< Topology >::random_sampler_type& get_sample = get( random_sampler, s );
+    const auto& get_sample = get(random_sampler, s);
 
-    while( true ) {
-      PointType pt = get_sample( s );
-      get< 2 >( pt ) = get_space< 2 >( s, *t_space )
-                         .origin(); // the acceleration value should always be 0 in SAP interpolation end-points.
+    while (true) {
+      PointType pt = get_sample(s);
+      get<2>(pt) =
+          get_space<2>(s, *t_space)
+              .origin();  // the acceleration value should always be 0 in SAP interpolation end-points.
 
-      if( sap_is_in_bounds< Topology, TimeSpaceType >( pt, s, *t_space ) )
+      if (sap_is_in_bounds<Topology, TimeSpaceType>(pt, s, *t_space))
         return pt;
-    };
-  };
-
+    }
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
-    A& RK_SERIAL_SAVE_WITH_NAME( t_space );
-  };
+  void save(serialization::oarchive& A, unsigned int) const override {
+    A& RK_SERIAL_SAVE_WITH_NAME(t_space);
+  }
 
-  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) { A& RK_SERIAL_LOAD_WITH_NAME( t_space ); };
+  void load(serialization::iarchive& A, unsigned int) override {
+    A& RK_SERIAL_LOAD_WITH_NAME(t_space);
+  }
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE( self, 0xC2450002, 1, "sap_rate_limited_sampler", serializable )
-};
-};
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2450002, 1, "sap_rate_limited_sampler",
+                              serializable)
 };
 
+}  // namespace ReaK::pp
 
 #endif

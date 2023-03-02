@@ -50,243 +50,263 @@
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"
 
+#include "any_knn_synchro.hpp"
+#include "any_motion_graphs.hpp"
+#include "density_plan_visitors.hpp"
 #include "p2p_planning_query.hpp"
 #include "path_planner_options.hpp"
-#include "any_motion_graphs.hpp"
 #include "planning_visitors.hpp"
-#include "any_knn_synchro.hpp"
-#include "density_plan_visitors.hpp"
 
 #include <ReaK/core/base/misc_math.hpp>
 
 #include <stack>
 
-namespace ReaK {
-
-namespace pp {
-
+namespace ReaK::pp {
 
 /**
  * This class template is used by the FADPRM path-planner as the visitor object needed to
  * collaborate with the FADPRM algorithms to generate the motion-graph and path-planning solutions.
  * This class template models the FADPRMVisitorConcept.
  */
-template < typename FreeSpaceType >
-struct fadprm_planner_visitor : density_plan_visitor< FreeSpaceType, prm_density_calculator > {
-  typedef density_plan_visitor< FreeSpaceType, prm_density_calculator > base_type;
-  typedef fadprm_planner_visitor< FreeSpaceType > self;
+template <typename FreeSpaceType>
+struct fadprm_planner_visitor
+    : density_plan_visitor<FreeSpaceType, prm_density_calculator> {
+  using base_type = density_plan_visitor<FreeSpaceType, prm_density_calculator>;
+  using self = fadprm_planner_visitor<FreeSpaceType>;
 
-  typedef typename base_type::planner_base_type planner_base_type;
-  typedef typename base_type::query_type query_type;
+  using planner_base_type = typename base_type::planner_base_type;
+  using query_type = typename base_type::query_type;
 
-  fadprm_planner_visitor( planner_base_type* aPlanner, query_type* aQuery = NULL, any_knn_synchro* aNNSynchro = NULL,
-                          boost::any aStartNode = boost::any(), boost::any aGoalNode = boost::any(),
-                          double aDensityCutoff = 0.0 )
-      : base_type( aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode, aDensityCutoff ){};
+  explicit fadprm_planner_visitor(planner_base_type* aPlanner,
+                                  query_type* aQuery = nullptr,
+                                  any_knn_synchro* aNNSynchro = nullptr,
+                                  std::any aStartNode = std::any(),
+                                  std::any aGoalNode = std::any(),
+                                  double aDensityCutoff = 0.0)
+      : base_type(aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode,
+                  aDensityCutoff){}
 
   // AD* visitor functions:
 
-  template < typename EdgeIter, typename Graph >
-  std::pair< double, EdgeIter > detect_edge_change( EdgeIter ei, const Graph& ) const {
-    return std::pair< double, EdgeIter >( 0.0, ei );
-  };
+  template <typename EdgeIter, typename Graph>
+  std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei,
+                                                 const Graph&) const {
+    return {0.0, ei};
+  }
 };
 
-
-template < typename FreeSpaceType >
-void fadprm_planner< FreeSpaceType >::solve_planning_query( planning_query< FreeSpaceType >& aQuery ) {
+template <typename FreeSpaceType>
+void fadprm_planner<FreeSpaceType>::solve_planning_query(
+    planning_query<FreeSpaceType>& aQuery) {
 
   this->reset_internal_state();
 
-  typedef typename subspace_traits< FreeSpaceType >::super_space_type SuperSpace;
-  typedef typename topology_traits< SuperSpace >::point_type PointType;
+  using SuperSpace = typename subspace_traits<FreeSpaceType>::super_space_type;
+  using PointType = topology_point_type_t<SuperSpace>;
 
-  typedef dense_mg_vertex< astar_mg_vertex< FreeSpaceType > > VertexProp;
-  typedef optimal_mg_edge< FreeSpaceType > EdgeProp;
+  using VertexProp = dense_mg_vertex<astar_mg_vertex<FreeSpaceType>>;
+  using EdgeProp = optimal_mg_edge<FreeSpaceType>;
 
-  typedef typename motion_segment_directionality< FreeSpaceType >::type DirectionalityTag;
+  using DirectionalityTag = typename motion_segment_directionality<FreeSpaceType>::type;
 
-  typedef mg_vertex_data< FreeSpaceType > BasicVertexProp;
+  using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
-  typedef boost::data_member_property_map< PointType, VertexProp > PositionMap;
-  PositionMap pos_map = PositionMap( &VertexProp::position );
+  using PositionMap = boost::data_member_property_map<PointType, VertexProp>;
+  PositionMap pos_map = PositionMap(&VertexProp::position);
 
-  // typedef boost::data_member_property_map<double, VertexProp > DensityMap;
-  // DensityMap dens_map = DensityMap(&VertexProp::density);
+  double space_dim = double(this->get_space_dimensionality());
+  double space_Lc = aQuery.get_heuristic_to_goal(aQuery.get_start_position());
 
-  double space_dim = double( this->get_space_dimensionality() );
-  double space_Lc = aQuery.get_heuristic_to_goal( aQuery.get_start_position() );
+  std::shared_ptr<const SuperSpace> sup_space_ptr(
+      &(this->m_space->get_super_space()), null_deleter());
 
-  shared_ptr< const SuperSpace > sup_space_ptr( &( this->m_space->get_super_space() ), null_deleter() );
+  fadprm_planner_visitor<FreeSpaceType> vis(this, &aQuery);
 
-  fadprm_planner_visitor< FreeSpaceType > vis( this, &aQuery );
-
-  path_planning_p2p_query< FreeSpaceType >* p2p_query_ptr
-    = reinterpret_cast< path_planning_p2p_query< FreeSpaceType >* >(
-      aQuery.castTo( path_planning_p2p_query< FreeSpaceType >::getStaticObjectType() ) );
-
+  path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr =
+      reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
+          path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
 
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#define RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL                                                             \
-  VertexProp vp_start;                                                                                          \
-  vp_start.position = aQuery.get_start_position();                                                              \
-  Vertex start_node = add_vertex( std::move( vp_start ), motion_graph );                                        \
-  motion_graph[start_node].density = 0.0;                                                                       \
-  motion_graph[start_node].heuristic_value = aQuery.get_heuristic_to_goal( motion_graph[start_node].position ); \
-  motion_graph[start_node].distance_accum = 0.0;                                                                \
-  motion_graph[start_node].predecessor = start_node;                                                            \
-  vis.m_start_node = boost::any( start_node );                                                                  \
-  if( p2p_query_ptr ) {                                                                                         \
-    VertexProp vp_goal;                                                                                         \
-    vp_goal.position = p2p_query_ptr->goal_pos;                                                                 \
-    Vertex goal_node = add_vertex( std::move( vp_goal ), motion_graph );                                        \
-    motion_graph[goal_node].density = 0.0;                                                                      \
-    motion_graph[goal_node].heuristic_value = 0.0;                                                              \
-    motion_graph[goal_node].distance_accum = std::numeric_limits< double >::infinity();                         \
-    motion_graph[goal_node].predecessor = goal_node;                                                            \
-    vis.m_goal_node = boost::any( goal_node );                                                                  \
-  };
+#define RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL                    \
+  VertexProp vp_start;                                                 \
+  vp_start.position = aQuery.get_start_position();                     \
+  Vertex start_node = add_vertex(std::move(vp_start), motion_graph);   \
+  motion_graph[start_node].density = 0.0;                              \
+  motion_graph[start_node].heuristic_value =                           \
+      aQuery.get_heuristic_to_goal(motion_graph[start_node].position); \
+  motion_graph[start_node].distance_accum = 0.0;                       \
+  motion_graph[start_node].predecessor = start_node;                   \
+  vis.m_start_node = std::any(start_node);                             \
+  if (p2p_query_ptr) {                                                 \
+    VertexProp vp_goal;                                                \
+    vp_goal.position = p2p_query_ptr->goal_pos;                        \
+    Vertex goal_node = add_vertex(std::move(vp_goal), motion_graph);   \
+    motion_graph[goal_node].density = 0.0;                             \
+    motion_graph[goal_node].heuristic_value = 0.0;                     \
+    motion_graph[goal_node].distance_accum =                           \
+        std::numeric_limits<double>::infinity();                       \
+    motion_graph[goal_node].predecessor = goal_node;                   \
+    vis.m_goal_node = std::any(goal_node);                             \
+  }
 
 #else
 
-#define RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL                                                             \
-  VertexProp vp_start;                                                                                          \
-  vp_start.position = aQuery.get_start_position();                                                              \
-  Vertex start_node = add_vertex( vp_start, motion_graph );                                                     \
-  motion_graph[start_node].density = 0.0;                                                                       \
-  motion_graph[start_node].heuristic_value = aQuery.get_heuristic_to_goal( motion_graph[start_node].position ); \
-  motion_graph[start_node].distance_accum = 0.0;                                                                \
-  motion_graph[start_node].predecessor = start_node;                                                            \
-  vis.m_start_node = boost::any( start_node );                                                                  \
-  if( p2p_query_ptr ) {                                                                                         \
-    VertexProp vp_goal;                                                                                         \
-    vp_goal.position = p2p_query_ptr->goal_pos;                                                                 \
-    Vertex goal_node = add_vertex( vp_goal, motion_graph );                                                     \
-    motion_graph[goal_node].density = 0.0;                                                                      \
-    motion_graph[goal_node].heuristic_value = 0.0;                                                              \
-    motion_graph[goal_node].distance_accum = std::numeric_limits< double >::infinity();                         \
-    motion_graph[goal_node].predecessor = goal_node;                                                            \
-    vis.m_goal_node = boost::any( goal_node );                                                                  \
-  };
+#define RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL                    \
+  VertexProp vp_start;                                                 \
+  vp_start.position = aQuery.get_start_position();                     \
+  Vertex start_node = add_vertex(vp_start, motion_graph);              \
+  motion_graph[start_node].density = 0.0;                              \
+  motion_graph[start_node].heuristic_value =                           \
+      aQuery.get_heuristic_to_goal(motion_graph[start_node].position); \
+  motion_graph[start_node].distance_accum = 0.0;                       \
+  motion_graph[start_node].predecessor = start_node;                   \
+  vis.m_start_node = std::any(start_node);                             \
+  if (p2p_query_ptr) {                                                 \
+    VertexProp vp_goal;                                                \
+    vp_goal.position = p2p_query_ptr->goal_pos;                        \
+    Vertex goal_node = add_vertex(vp_goal, motion_graph);              \
+    motion_graph[goal_node].density = 0.0;                             \
+    motion_graph[goal_node].heuristic_value = 0.0;                     \
+    motion_graph[goal_node].distance_accum =                           \
+        std::numeric_limits<double>::infinity();                       \
+    motion_graph[goal_node].predecessor = goal_node;                   \
+    vis.m_goal_node = std::any(goal_node);                             \
+  }
 
 #endif
 
+#define RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)         \
+  using GraphPositionMap = typename boost::property_map<MotionGraphType,      \
+      PointType BasicVertexProp::*>::type;                                    \
+  using SpacePartType = dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, \
+      random_vp_chooser, TREE_STORAGE>;                                       \
+  SpacePartType space_part(motion_graph, sup_space_ptr,                       \
+                           get(&BasicVertexProp::position, motion_graph));    \
+                                                                              \
+  using NNFinderType = multi_dvp_tree_search<MotionGraphType, SpacePartType>; \
+  NNFinderType nn_finder;                                                     \
+  nn_finder.graph_tree_map[&motion_graph] = &space_part;                      \
+                                                                              \
+  type_erased_knn_synchro<MotionGraphType, NNFinderType> NN_synchro(          \
+      nn_finder);                                                             \
+  vis.m_nn_synchro = &NN_synchro;                                             \
+                                                                              \
+  ReaK::graph::star_neighborhood<NNFinderType> nc_selector(                   \
+      nn_finder, space_dim, 3.0 * space_Lc);
 
-#define RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO( ARITY, TREE_STORAGE )                                           \
-  typedef typename boost::property_map< MotionGraphType, PointType BasicVertexProp::* >::type GraphPositionMap;   \
-  typedef dvp_tree< Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE > SpacePartType; \
-  SpacePartType space_part( motion_graph, sup_space_ptr, get( &BasicVertexProp::position, motion_graph ) );       \
-                                                                                                                  \
-  typedef multi_dvp_tree_search< MotionGraphType, SpacePartType > NNFinderType;                                   \
-  NNFinderType nn_finder;                                                                                         \
-  nn_finder.graph_tree_map[&motion_graph] = &space_part;                                                          \
-                                                                                                                  \
-  type_erased_knn_synchro< MotionGraphType, NNFinderType > NN_synchro( nn_finder );                               \
-  vis.m_nn_synchro = &NN_synchro;                                                                                 \
-                                                                                                                  \
-  ReaK::graph::star_neighborhood< NNFinderType > nc_selector( nn_finder, space_dim, 3.0 * space_Lc );
+#define RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(ARITY, TREE_STORAGE)          \
+  using ALTGraph = dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace,        \
+      PositionMap, ARITY, random_vp_chooser, TREE_STORAGE, boost::vecBC,       \
+      DirectionalityTag, boost::listBC>;                                       \
+  using MotionGraphType = typename ALTGraph::adj_list_type;                    \
+  using Vertex = graph::graph_vertex_t<MotionGraphType>;                       \
+                                                                               \
+  ALTGraph space_part(sup_space_ptr, pos_map);                                 \
+  MotionGraphType motion_graph = space_part.get_adjacency_list();              \
+                                                                               \
+  using NNFinderType = multi_dvp_tree_search<MotionGraphType, ALTGraph>;       \
+  NNFinderType nn_finder;                                                      \
+  nn_finder.graph_tree_map[&motion_graph] = &space_part;                       \
+                                                                               \
+  any_knn_synchro NN_synchro;                                                  \
+  vis.m_nn_synchro = &NN_synchro;                                              \
+                                                                               \
+  ReaK::graph::star_neighborhood<NNFinderType> nc_selector(                    \
+      nn_finder, space_dim, 3.0 * space_Lc);
 
-//   ReaK::graph::fixed_neighborhood< NNFinderType > nc_selector(nn_finder, 10, this->get_sampling_radius());
+#define RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION         \
+  ReaK::graph::generate_fadprm(                                      \
+      motion_graph, start_node, *(this->m_space),                    \
+      get(&VertexProp::heuristic_value, motion_graph), vis,          \
+      get(&VertexProp::predecessor, motion_graph),                   \
+      get(&VertexProp::distance_accum, motion_graph),                \
+      get(&VertexProp::key_value, motion_graph),                     \
+      get(&EdgeProp::weight, motion_graph),                          \
+      get(&VertexProp::density, motion_graph), pos_map, nc_selector, \
+      get(&VertexProp::astar_color, motion_graph),                   \
+      this->m_initial_relaxation);
 
+  if ((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) ==
+      ADJ_LIST_MOTION_GRAPH) {
 
-#define RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO( ARITY, TREE_STORAGE )                                              \
-  typedef dvp_adjacency_list< VertexProp, EdgeProp, SuperSpace, PositionMap, ARITY, random_vp_chooser, TREE_STORAGE, \
-                              boost::vecBC, DirectionalityTag, boost::listBC > ALTGraph;                             \
-  typedef typename ALTGraph::adj_list_type MotionGraphType;                                                          \
-  typedef typename boost::graph_traits< MotionGraphType >::vertex_descriptor Vertex;                                 \
-                                                                                                                     \
-  ALTGraph space_part( sup_space_ptr, pos_map );                                                                     \
-  MotionGraphType motion_graph = space_part.get_adjacency_list();                                                    \
-                                                                                                                     \
-  typedef multi_dvp_tree_search< MotionGraphType, ALTGraph > NNFinderType;                                           \
-  NNFinderType nn_finder;                                                                                            \
-  nn_finder.graph_tree_map[&motion_graph] = &space_part;                                                             \
-                                                                                                                     \
-  any_knn_synchro NN_synchro;                                                                                        \
-  vis.m_nn_synchro = &NN_synchro;                                                                                    \
-                                                                                                                     \
-  ReaK::graph::star_neighborhood< NNFinderType > nc_selector( nn_finder, space_dim, 3.0 * space_Lc );
-
-//   ReaK::graph::fixed_neighborhood< NNFinderType > nc_selector(nn_finder, 10, this->get_sampling_radius());
-
-
-#define RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION                                                        \
-  ReaK::graph::generate_fadprm(                                                                                     \
-    motion_graph, start_node, *( this->m_space ), get( &VertexProp::heuristic_value, motion_graph ), vis,           \
-    get( &VertexProp::predecessor, motion_graph ), get( &VertexProp::distance_accum, motion_graph ),                \
-    get( &VertexProp::key_value, motion_graph ), get( &EdgeProp::weight, motion_graph ),                            \
-    get( &VertexProp::density, motion_graph ), pos_map, nc_selector, get( &VertexProp::astar_color, motion_graph ), \
-    this->m_initial_relaxation );
-
-
-  if( ( this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK ) == ADJ_LIST_MOTION_GRAPH ) {
-
-    typedef boost::adjacency_list_BC< boost::vecBC, boost::vecBC, DirectionalityTag, VertexProp, EdgeProp >
-      MotionGraphType;
-    typedef typename boost::graph_traits< MotionGraphType >::vertex_descriptor Vertex;
+    using MotionGraphType = boost::adjacency_list_BC<boost::vecBC,
+        boost::vecBC, DirectionalityTag, VertexProp, EdgeProp>;
+    using Vertex = graph::graph_vertex_t<MotionGraphType>;
 
     MotionGraphType motion_graph;
 
     RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL
 
-    if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == LINEAR_SEARCH_KNN ) {
+    if ((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
 
-      typedef linear_neighbor_search< MotionGraphType > NNFinderType;
+      using NNFinderType = linear_neighbor_search<MotionGraphType>;
       NNFinderType nn_finder;
 
-      ReaK::graph::star_neighborhood< NNFinderType > nc_selector( nn_finder, space_dim, 3.0 * space_Lc );
-      //       ReaK::graph::fixed_neighborhood< NNFinderType > nc_selector(nn_finder, 10, this->get_sampling_radius());
+      ReaK::graph::star_neighborhood<NNFinderType> nc_selector(
+          nn_finder, space_dim, 3.0 * space_Lc);
 
       any_knn_synchro NN_synchro;
       vis.m_nn_synchro = &NN_synchro;
 
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
 
-    } else if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_BF2_TREE_KNN ) {
+    } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
+               DVP_BF2_TREE_KNN) {
 
-      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage< 2 >)
+      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(2,
+                                               boost::bfl_d_ary_tree_storage<2>)
 
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
 
-    } else if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_BF4_TREE_KNN ) {
+    } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
+               DVP_BF4_TREE_KNN) {
 
-      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage< 4 >)
+      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(4,
+                                               boost::bfl_d_ary_tree_storage<4>)
 
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
 
 #ifdef RK_PLANNERS_ENABLE_VEBL_TREE
 
-    } else if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_COB2_TREE_KNN ) {
+    } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
+               DVP_COB2_TREE_KNN) {
 
-      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage< 2 >)
+      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(
+          2, boost::vebl_d_ary_tree_storage<2>)
 
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
 
-    } else if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_COB4_TREE_KNN ) {
+    } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
+               DVP_COB4_TREE_KNN) {
 
-      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage< 4 >)
+      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(
+          4, boost::vebl_d_ary_tree_storage<4>)
 
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
 
 #endif
-    };
+    }
 
 #ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
 
-  } else if( ( this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK ) == DVP_ADJ_LIST_MOTION_GRAPH ) {
+  } else if ((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) ==
+             DVP_ADJ_LIST_MOTION_GRAPH) {
 
-    if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_BF2_TREE_KNN ) {
+    if ((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
 
-      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage< 2 >)
+      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(2,
+                                               boost::bfl_d_ary_tree_storage<2>)
 
       RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL
 
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
 
-    } else if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_BF4_TREE_KNN ) {
+    } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
+               DVP_BF4_TREE_KNN) {
 
-      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage< 4 >)
+      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(4,
+                                               boost::bfl_d_ary_tree_storage<4>)
 
       RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL
 
@@ -294,34 +314,38 @@ void fadprm_planner< FreeSpaceType >::solve_planning_query( planning_query< Free
 
 #ifdef RK_PLANNERS_ENABLE_VEBL_TREE
 
-    } else if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_COB2_TREE_KNN ) {
+    } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
+               DVP_COB2_TREE_KNN) {
 
-      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage< 2 >)
+      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(
+          2, boost::vebl_d_ary_tree_storage<2>)
 
       RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL
 
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
 
-    } else if( ( this->m_data_structure_flags & KNN_METHOD_MASK ) == DVP_COB4_TREE_KNN ) {
+    } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
+               DVP_COB4_TREE_KNN) {
 
-      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage< 4 >)
+      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(
+          4, boost::vebl_d_ary_tree_storage<4>)
 
       RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL
 
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
 
 #endif
-    };
+    }
 
 #endif
-  };
+  }
 
 #undef RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL
 #undef RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO
 #undef RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO
 #undef RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
-};
-};
-};
+}
+
+}  // namespace ReaK::pp
 
 #endif

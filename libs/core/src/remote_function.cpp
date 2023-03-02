@@ -21,34 +21,35 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <ReaK/core/rpc/detail/remote_function.hpp>
 
 #include <ReaK/core/rpc/rpc_server.hpp>
-#include <ReaK/core/base/thread_incl.hpp>
+#include <future>
+#include <thread>
+#include <utility>
 
-namespace ReaK {
+namespace ReaK::rpc::detail {
 
-namespace rpc {
+remote_function::remote_function(std::string aName) : name(std::move(aName)) {}
 
-namespace detail {
+remote_function::~remote_function() = default;
 
+void remote_function::publish() {
+  server::instance().publish_function(this);
+}
 
-remote_function::remote_function( const std::string& aName ) : name( aName ){};
+void remote_function::unpublish() {
+  server::instance().unpublish_function(this);
+}
 
-remote_function::~remote_function(){};
+call_preparations remote_function::prepare_for_call() {
+  return server::instance().prepare_call(this);
+}
 
-void remote_function::publish() { server::instance().publish_function( this ); };
-
-void remote_function::unpublish() { server::instance().unpublish_function( this ); };
-
-
-call_preparations remote_function::prepare_for_call() { return server::instance().prepare_call( this ); };
-
-call_results remote_function::do_remote_call( call_preparations&& pre_data ) {
-  ReaKaux::future< call_results > fp_ari = server::instance().make_remote_call( this, std::move( pre_data ) );
+call_results remote_function::do_remote_call(call_preparations&& pre_data) {
+  std::future<call_results> fp_ari =
+      server::instance().make_remote_call(this, std::move(pre_data));
   return fp_ari.get();
-};
-};
-};
-};
+}
+
+}  // namespace ReaK::rpc::detail

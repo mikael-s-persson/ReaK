@@ -21,63 +21,64 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <ReaK/mbd/kte/plane_point_mindist.hpp>
 
-namespace ReaK {
+namespace ReaK::kte {
 
-namespace kte {
-
-
-void plane_point_mindist_3D::doMotion( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mBase ) || ( !mEnd ) )
+void plane_point_mindist_3D::doMotion(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mBase) || (!mEnd)) {
     return;
+  }
 
   mEnd->Parent = mBase->Parent;
-  mEnd->Position = mBase->Position - ( mBase->Position * mNormal + mOrigin ) * mNormal;
-  mEnd->Velocity = mBase->Velocity - ( mBase->Velocity * mNormal ) * mNormal;
-  mEnd->Acceleration = mBase->Acceleration - ( mBase->Acceleration * mNormal ) * mNormal;
+  mEnd->Position =
+      mBase->Position - (mBase->Position * mNormal + mOrigin) * mNormal;
+  mEnd->Velocity = mBase->Velocity - (mBase->Velocity * mNormal) * mNormal;
+  mEnd->Acceleration =
+      mBase->Acceleration - (mBase->Acceleration * mNormal) * mNormal;
   mEnd->Quat = mBase->Quat;
   mEnd->AngVelocity = mBase->AngVelocity;
   mEnd->AngAcceleration = mBase->AngAcceleration;
 
-  if( ( aFlag == store_kinematics ) && ( aStorage ) ) {
-    if( !( aStorage->frame_3D_mapping[mBase] ) )
-      aStorage->frame_3D_mapping[mBase]
-        = shared_ptr< frame_3D< double > >( new frame_3D< double >( ( *mBase ) ), scoped_deleter() );
-    else
-      ( *( aStorage->frame_3D_mapping[mBase] ) ) = ( *mBase );
-    if( !( aStorage->frame_3D_mapping[mEnd] ) )
-      aStorage->frame_3D_mapping[mEnd]
-        = shared_ptr< frame_3D< double > >( new frame_3D< double >( ( *mEnd ) ), scoped_deleter() );
-    else
-      ( *( aStorage->frame_3D_mapping[mEnd] ) ) = ( *mEnd );
-  };
-};
+  if ((aFlag == store_kinematics) && (aStorage)) {
+    if (!(aStorage->frame_3D_mapping[mBase])) {
+      aStorage->frame_3D_mapping[mBase] =
+          std::make_shared<frame_3D<double>>(*mBase);
+    } else {
+      (*(aStorage->frame_3D_mapping[mBase])) = (*mBase);
+    }
+    if (!(aStorage->frame_3D_mapping[mEnd])) {
+      aStorage->frame_3D_mapping[mEnd] =
+          std::make_shared<frame_3D<double>>(*mEnd);
+    } else {
+      (*(aStorage->frame_3D_mapping[mEnd])) = (*mEnd);
+    }
+  }
+}
 
-void plane_point_mindist_3D::doForce( kte_pass_flag aFlag, const shared_ptr< frame_storage >& aStorage ) {
-  if( ( !mBase ) || ( !mEnd ) )
+void plane_point_mindist_3D::doForce(
+    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
+  if ((!mBase) || (!mEnd)) {
     return;
+  }
 
-
-  if( ( aFlag == store_dynamics ) && ( aStorage ) ) {
-    if( aStorage->frame_3D_mapping[mEnd] ) {
+  if ((aFlag == store_dynamics) && (aStorage)) {
+    if (aStorage->frame_3D_mapping[mEnd]) {
       aStorage->frame_3D_mapping[mEnd]->Force = mEnd->Force;
       aStorage->frame_3D_mapping[mEnd]->Torque = mEnd->Torque;
-    };
-  };
-};
-
+    }
+  }
+}
 
 void plane_point_mindist_3D::clearForce() {
-  if( mEnd ) {
-    mEnd->Force = vect< double, 3 >();
-    mEnd->Torque = vect< double, 3 >();
-  };
-  if( mBase ) {
-    mBase->Force = vect< double, 3 >();
-    mBase->Torque = vect< double, 3 >();
-  };
-};
-};
-};
+  if (mEnd) {
+    mEnd->Force = vect<double, 3>();
+    mEnd->Torque = vect<double, 3>();
+  }
+  if (mBase) {
+    mBase->Force = vect<double, 3>();
+    mBase->Torque = vect<double, 3>();
+  }
+}
+}  // namespace ReaK::kte

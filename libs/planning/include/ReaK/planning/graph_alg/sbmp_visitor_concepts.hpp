@@ -37,12 +37,9 @@
 #include <boost/property_map/property_map.hpp>
 
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
+#include "simple_graph_traits.hpp"
 
-
-namespace ReaK {
-
-namespace graph {
-
+namespace ReaK::graph {
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to
@@ -64,30 +61,30 @@ namespace graph {
   * \tparam Visitor The visitor class to be checked for modeling this concept.
   * \tparam Graph The graph on which the visitor class is required to work with.
   */
-template < typename Visitor, typename Graph >
+template <typename Visitor, typename Graph>
 struct SBMPVisitorConcept {
   Visitor vis;
   Graph g;
-  typename boost::graph_traits< Graph >::vertex_descriptor u;
-  typename boost::graph_traits< Graph >::edge_descriptor e;
+  graph_vertex_t<Graph> u;
+  graph_edge_t<Graph> e;
   bool b;
 
-  BOOST_CONCEPT_USAGE( SBMPVisitorConcept ) {
-    vis.vertex_added( u, g );
-    vis.edge_added( e, g );
+  BOOST_CONCEPT_USAGE(SBMPVisitorConcept) {
+    vis.vertex_added(u, g);
+    vis.edge_added(e, g);
     b = vis.keep_going();
-  };
+  }
 };
 
 /**
   * This class is simply an archetype visitor for SBMPVisitorConcept.
   */
 struct sbmp_visitor_archetype {
-  template < typename Vertex, typename Graph >
-  void vertex_added( Vertex, Graph& ) const {};
-  template < typename Edge, typename Graph >
-  void edge_added( Edge, Graph& ) const {};
-  bool keep_going() const { return true; };
+  template <typename Vertex, typename Graph>
+  void vertex_added(Vertex /*unused*/, Graph& /*unused*/) const {}
+  template <typename Edge, typename Graph>
+  void edge_added(Edge /*unused*/, Graph& /*unused*/) const {}
+  bool keep_going() const { return true; }
 };
 
 /**
@@ -106,19 +103,20 @@ struct sbmp_visitor_archetype {
   * \tparam Visitor The visitor class to be checked for modeling this concept.
   * \tparam Graph The graph on which the visitor class is required to work with.
   */
-template < typename Visitor, typename Graph >
-struct SBMPPruningVisitorConcept : SBMPVisitorConcept< Visitor, Graph > {
-  BOOST_CONCEPT_USAGE( SBMPPruningVisitorConcept ) { this->vis.vertex_to_be_removed( this->u, this->g ); };
+template <typename Visitor, typename Graph>
+struct SBMPPruningVisitorConcept : SBMPVisitorConcept<Visitor, Graph> {
+  BOOST_CONCEPT_USAGE(SBMPPruningVisitorConcept) {
+    this->vis.vertex_to_be_removed(this->u, this->g);
+  }
 };
 
 /**
   * This class is simply an archetype visitor for SBMPPruningVisitorConcept.
   */
 struct sbmp_pruning_visitor_archetype : sbmp_visitor_archetype {
-  template < typename Vertex, typename Graph >
-  void vertex_to_be_removed( Vertex, Graph& ) const {};
+  template <typename Vertex, typename Graph>
+  void vertex_to_be_removed(Vertex /*unused*/, Graph& /*unused*/) const {}
 };
-
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to
@@ -137,21 +135,21 @@ struct sbmp_pruning_visitor_archetype : sbmp_visitor_archetype {
   * \tparam Visitor The visitor class to be checked for modeling this concept.
   * \tparam Graph The graph on which the visitor class is required to work with.
   */
-template < typename Visitor, typename Graph >
-struct SBMPJoiningVisitorConcept : SBMPVisitorConcept< Visitor, Graph > {
-  BOOST_CONCEPT_USAGE( SBMPJoiningVisitorConcept ) {
-    this->vis.joining_vertex_found( this->u, this->u, this->g, this->g );
-  };
+template <typename Visitor, typename Graph>
+struct SBMPJoiningVisitorConcept : SBMPVisitorConcept<Visitor, Graph> {
+  BOOST_CONCEPT_USAGE(SBMPJoiningVisitorConcept) {
+    this->vis.joining_vertex_found(this->u, this->u, this->g, this->g);
+  }
 };
 
 /**
   * This class is simply an archetype visitor for SBMPJoiningVisitorConcept.
   */
 struct sbmp_joining_visitor_archetype : sbmp_visitor_archetype {
-  template < typename Vertex, typename Graph >
-  void joining_vertex_found( Vertex, Vertex, Graph&, Graph& ) const {};
+  template <typename Vertex, typename Graph>
+  void joining_vertex_found(Vertex /*unused*/, Vertex /*unused*/,
+                            Graph& /*unused*/, Graph& /*unused*/) const {}
 };
-
 
 /**
   * This concept class defines what is required of a class to serve as a node-creator for a motion-planning
@@ -168,26 +166,27 @@ struct sbmp_joining_visitor_archetype : sbmp_visitor_archetype {
   * \tparam Graph The graph on which the visitor class is required to work with.
   * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
   */
-template < typename Visitor, typename Graph, typename Topology >
+template <typename Visitor, typename Graph, typename Topology>
 struct NodeCreatorVisitorConcept {
   Visitor vis;
   Graph g;
-  typename boost::graph_traits< Graph >::vertex_descriptor u;
-  typename ReaK::pp::topology_traits< Topology >::point_type p;
+  graph_vertex_t<Graph> u;
+  ReaK::pp::topology_point_type_t<Topology> p;
 
-  BOOST_CONCEPT_USAGE( NodeCreatorVisitorConcept ) { u = vis.create_vertex( p, g ); };
+  BOOST_CONCEPT_USAGE(NodeCreatorVisitorConcept) {
+    u = vis.create_vertex(p, g);
+  }
 };
 
 /**
   * This class is simply an archetype visitor for NodeCreatorVisitorConcept.
   */
 struct node_creator_visitor_archetype {
-  template < typename Position, typename Graph >
-  typename boost::graph_traits< Graph >::vertex_descriptor create_vertex( const Position&, Graph& ) const {
-    return boost::graph_traits< Graph >::null_vertex();
-  };
+  template <typename Position, typename Graph>
+  auto create_vertex(const Position& /*unused*/, Graph& /*unused*/) const {
+    return boost::graph_traits<Graph>::null_vertex();
+  }
 };
-
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to a motion-planning
@@ -206,28 +205,28 @@ struct node_creator_visitor_archetype {
   * \tparam Graph The graph on which the visitor class is required to work with.
   * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
   */
-template < typename Visitor, typename Graph, typename Topology >
+template <typename Visitor, typename Graph, typename Topology>
 struct NodePullingVisitorConcept {
   Visitor vis;
   Graph g;
   bool b;
-  typename boost::graph_traits< Graph >::vertex_descriptor u;
-  typename ReaK::pp::topology_traits< Topology >::point_type p;
-  typename Graph::edge_bundled ep;
+  graph_vertex_t<Graph> u;
+  ReaK::pp::topology_point_type_t<Topology> p;
+  graph_edge_bundle_t<Graph> ep;
 
-  BOOST_CONCEPT_USAGE( NodePullingVisitorConcept ) { boost::tie( p, b, ep ) = vis.steer_towards_position( p, u, g ); };
+  BOOST_CONCEPT_USAGE(NodePullingVisitorConcept) {
+    std::tie(p, b, ep) = vis.steer_towards_position(p, u, g);
+  }
 };
 
 /**
   * This class is simply an archetype visitor for NodePullingVisitorConcept.
   */
 struct node_pulling_visitor_archetype {
-  template < typename Position, typename Vertex, typename Graph >
-  boost::tuple< Position, bool, typename Graph::edge_bundled > steer_towards_position( const Position& p, Vertex,
-                                                                                       Graph& ) const {
-    typedef typename Graph::edge_bundled EdgeProp;
-    return boost::tuple< Position, bool, EdgeProp >( p, false, EdgeProp() );
-  };
+  template <typename Position, typename Vertex, typename Graph>
+  auto steer_towards_position(const Position& p, Vertex u, Graph& g) const {
+    return std::tuple(p, false, graph_edge_bundle_t<Graph>());
+  }
 };
 
 /**
@@ -247,32 +246,29 @@ struct node_pulling_visitor_archetype {
   * \tparam Graph The graph on which the visitor class is required to work with.
   * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
   */
-template < typename Visitor, typename Graph, typename Topology >
+template <typename Visitor, typename Graph, typename Topology>
 struct NodeBackPullingVisitorConcept {
   Visitor vis;
   Graph g;
   bool b;
-  typename boost::graph_traits< Graph >::vertex_descriptor u;
-  typename ReaK::pp::topology_traits< Topology >::point_type p;
-  typename Graph::edge_bundled ep;
+  graph_vertex_t<Graph> u;
+  ReaK::pp::topology_point_type_t<Topology> p;
+  graph_edge_bundle_t<Graph> ep;
 
-  BOOST_CONCEPT_USAGE( NodeBackPullingVisitorConcept ) {
-    boost::tie( p, b, ep ) = vis.steer_back_to_position( p, u, g );
-  };
+  BOOST_CONCEPT_USAGE(NodeBackPullingVisitorConcept) {
+    std::tie(p, b, ep) = vis.steer_back_to_position(p, u, g);
+  }
 };
 
 /**
   * This class is simply an archetype visitor for NodeBackPullingVisitorConcept.
   */
 struct node_back_pulling_visitor_archetype {
-  template < typename Position, typename Vertex, typename Graph >
-  boost::tuple< Position, bool, typename Graph::edge_bundled > steer_back_to_position( const Position& p, Vertex,
-                                                                                       Graph& ) const {
-    typedef typename Graph::edge_bundled EdgeProp;
-    return boost::tuple< Position, bool, EdgeProp >( p, false, EdgeProp() );
-  };
+  template <typename Position, typename Vertex, typename Graph>
+  auto steer_back_to_position(const Position& p, Vertex u, Graph& g) const {
+    return std::tuple(p, false, graph_edge_bundle_t<Graph>());
+  }
 };
-
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to a motion-planning
@@ -292,31 +288,31 @@ struct node_back_pulling_visitor_archetype {
   * \tparam Graph The graph on which the visitor class is required to work with.
   * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
   */
-template < typename Visitor, typename Graph, typename Topology >
+template <typename Visitor, typename Graph, typename Topology>
 struct NodePushingVisitorConcept {
   Visitor vis;
   Graph g;
   bool b;
-  typename boost::graph_traits< Graph >::vertex_descriptor u;
-  typename ReaK::pp::topology_traits< Topology >::point_type p;
-  typename Graph::edge_bundled ep;
+  graph_vertex_t<Graph> u;
+  ReaK::pp::topology_point_type_t<Topology> p;
+  graph_edge_bundle_t<Graph> ep;
 
-  BOOST_CONCEPT_USAGE( NodePushingVisitorConcept ) { boost::tie( p, b, ep ) = vis.random_walk( u, g ); };
+  BOOST_CONCEPT_USAGE(NodePushingVisitorConcept) {
+    std::tie(p, b, ep) = vis.random_walk(u, g);
+  }
 };
 
 /**
   * This class is simply an archetype visitor for NodePushingVisitorConcept.
   */
-template < typename Topology >
+template <typename Topology>
 struct node_pushing_visitor_archetype {
-  typedef typename ReaK::pp::topology_traits< Topology >::point_type PointType;
-  template < typename Vertex, typename Graph >
-  boost::tuple< PointType, bool, typename Graph::edge_bundled > random_walk( Vertex, Graph& ) const {
-    typedef typename Graph::edge_bundled EdgeProp;
-    return boost::tuple< PointType, bool, EdgeProp >( PointType(), false, EdgeProp() );
-  };
+  using PointType = ReaK::pp::topology_point_type_t<Topology>;
+  template <typename Vertex, typename Graph>
+  auto random_walk(Vertex u, Graph& g) const {
+    return std::tuple(PointType(), false, graph_edge_bundle_t<Graph>());
+  }
 };
-
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to a motion-planning
@@ -336,31 +332,31 @@ struct node_pushing_visitor_archetype {
   * \tparam Graph The graph on which the visitor class is required to work with.
   * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
   */
-template < typename Visitor, typename Graph, typename Topology >
+template <typename Visitor, typename Graph, typename Topology>
 struct NodeBackPushingVisitorConcept {
   Visitor vis;
   Graph g;
   bool b;
-  typename boost::graph_traits< Graph >::vertex_descriptor u;
-  typename ReaK::pp::topology_traits< Topology >::point_type p;
-  typename Graph::edge_bundled ep;
+  graph_vertex_t<Graph> u;
+  ReaK::pp::topology_point_type_t<Topology> p;
+  graph_edge_bundle_t<Graph> ep;
 
-  BOOST_CONCEPT_USAGE( NodeBackPushingVisitorConcept ) { boost::tie( p, b, ep ) = vis.random_back_walk( u, g ); };
+  BOOST_CONCEPT_USAGE(NodeBackPushingVisitorConcept) {
+    std::tie(p, b, ep) = vis.random_back_walk(u, g);
+  }
 };
 
 /**
   * This class is simply an archetype visitor for NodeBackPushingVisitorConcept.
   */
-template < typename Topology >
+template <typename Topology>
 struct node_back_pushing_visitor_archetype {
-  typedef typename ReaK::pp::topology_traits< Topology >::point_type PointType;
-  template < typename Vertex, typename Graph >
-  boost::tuple< PointType, bool, typename Graph::edge_bundled > random_back_walk( Vertex, Graph& ) const {
-    typedef typename Graph::edge_bundled EdgeProp;
-    return boost::tuple< PointType, bool, EdgeProp >( PointType(), false, EdgeProp() );
-  };
+  using PointType = ReaK::pp::topology_point_type_t<Topology>;
+  template <typename Vertex, typename Graph>
+  auto random_back_walk(Vertex u, Graph& g) const {
+    return std::tuple(PointType(), false, graph_edge_bundle_t<Graph>());
+  }
 };
-
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to a motion-planning
@@ -379,28 +375,28 @@ struct node_back_pushing_visitor_archetype {
   * \tparam Visitor The visitor class to be checked for modeling this concept.
   * \tparam Graph The graph on which the visitor class is required to work with.
   */
-template < typename Visitor, typename Graph >
+template <typename Visitor, typename Graph>
 struct NodeReConnectVisitorConcept {
   Visitor vis;
   Graph g;
   bool b;
-  typename boost::graph_traits< Graph >::vertex_descriptor u, v;
-  typename Graph::edge_bundled ep;
+  graph_vertex_t<Graph> u, v;
+  graph_edge_bundle_t<Graph> ep;
 
-  BOOST_CONCEPT_USAGE( NodeReConnectVisitorConcept ) { boost::tie( b, ep ) = vis.can_be_connected( u, v, g ); };
+  BOOST_CONCEPT_USAGE(NodeReConnectVisitorConcept) {
+    std::tie(b, ep) = vis.can_be_connected(u, v, g);
+  }
 };
 
 /**
   * This class is simply an archetype visitor for NodeReConnectVisitorConcept.
   */
 struct node_reconnect_visitor_archetype {
-  template < typename Vertex, typename Graph >
-  std::pair< bool, typename Graph::edge_bundled > can_be_connected( Vertex, Vertex, Graph& ) const {
-    typedef typename Graph::edge_bundled EdgeProp;
-    return std::pair< bool, EdgeProp >( false, EdgeProp() );
-  };
+  template <typename Vertex, typename Graph>
+  auto can_be_connected(Vertex u, Vertex /*unused*/, Graph& g) const {
+    return std::pair(false, graph_edge_bundle_t<Graph>());
+  }
 };
-
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to a motion-planning
@@ -428,34 +424,33 @@ struct node_reconnect_visitor_archetype {
   * \tparam Visitor The visitor class to be checked for modeling this concept.
   * \tparam Graph The graph on which the visitor class is required to work with.
   */
-template < typename Visitor, typename Graph >
+template <typename Visitor, typename Graph>
 struct NeighborhoodTrackingVisitorConcept {
   Visitor vis;
   Graph g;
-  typename boost::graph_traits< Graph >::vertex_descriptor u, v;
+  graph_vertex_t<Graph> u, v;
 
-  BOOST_CONCEPT_USAGE( NeighborhoodTrackingVisitorConcept ) {
-    vis.travel_explored( u, v, g );
-    vis.travel_succeeded( u, v, g );
-    vis.travel_failed( u, v, g );
-    vis.affected_vertex( u, g );
-  };
+  BOOST_CONCEPT_USAGE(NeighborhoodTrackingVisitorConcept) {
+    vis.travel_explored(u, v, g);
+    vis.travel_succeeded(u, v, g);
+    vis.travel_failed(u, v, g);
+    vis.affected_vertex(u, g);
+  }
 };
 
 /**
   * This class is simply an archetype visitor for NeighborhoodTrackingVisitorConcept.
   */
 struct neighborhood_tracking_visitor_archetype {
-  template < typename Vertex, typename Graph >
-  void travel_explored( Vertex, Vertex, Graph& ) const {};
-  template < typename Vertex, typename Graph >
-  void travel_succeeded( Vertex, Vertex, Graph& ) const {};
-  template < typename Vertex, typename Graph >
-  void travel_failed( Vertex, Vertex, Graph& ) const {};
-  template < typename Vertex, typename Graph >
-  void affected_vertex( Vertex, Graph& ) const {};
+  template <typename Vertex, typename Graph>
+  void travel_explored(Vertex, Vertex, Graph&) const {}
+  template <typename Vertex, typename Graph>
+  void travel_succeeded(Vertex, Vertex, Graph&) const {}
+  template <typename Vertex, typename Graph>
+  void travel_failed(Vertex, Vertex, Graph&) const {}
+  template <typename Vertex, typename Graph>
+  void affected_vertex(Vertex, Graph&) const {}
 };
-
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to check collision of
@@ -469,25 +464,26 @@ struct neighborhood_tracking_visitor_archetype {
   * \tparam Visitor The visitor class to be checked for modeling this concept.
   * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
   */
-template < typename Visitor, typename Topology >
+template <typename Visitor, typename Topology>
 struct CollisionCheckingVisitorConcept {
   Visitor vis;
   bool b;
-  typename ReaK::pp::topology_traits< Topology >::point_type p;
+  ReaK::pp::topology_point_type_t<Topology> p;
 
-  BOOST_CONCEPT_USAGE( CollisionCheckingVisitorConcept ) { b = vis.is_position_free( p ); };
+  BOOST_CONCEPT_USAGE(CollisionCheckingVisitorConcept) {
+    b = vis.is_position_free(p);
+  }
 };
 
 /**
   * This class is simply an archetype visitor for CollisionCheckingVisitorConcept.
   */
 struct collision_checking_visitor_archetype {
-  template < typename Position >
-  bool is_position_free( const Position& ) const {
+  template <typename Position>
+  bool is_position_free(const Position&) const {
     return true;
-  };
+  }
 };
-
 
 /**
   * This concept class defines the valid expressions required of a class to be used as a
@@ -519,21 +515,21 @@ struct collision_checking_visitor_archetype {
   * \tparam Visitor The visitor class to be tested for modeling this visitor concept.
   * \tparam Graph The graph type on which the visitor should be able to act.
   */
-template < typename Visitor, typename Graph >
+template <typename Visitor, typename Graph>
 struct NodeExploringVisitorConcept {
 
-  BOOST_CONCEPT_USAGE( NodeExploringVisitorConcept ) {
-    vis.initialize_vertex( u, g );
-    vis.discover_vertex( u, g );
-    vis.examine_vertex( u, g );
-    vis.examine_edge( e, g );
-    b = vis.has_search_potential( u, g );
-    b = vis.should_close( u, g );
+  BOOST_CONCEPT_USAGE(NodeExploringVisitorConcept) {
+    vis.initialize_vertex(u, g);
+    vis.discover_vertex(u, g);
+    vis.examine_vertex(u, g);
+    vis.examine_edge(e, g);
+    b = vis.has_search_potential(u, g);
+    b = vis.should_close(u, g);
   }
   Visitor vis;
   Graph g;
-  typename boost::graph_traits< Graph >::vertex_descriptor u;
-  typename boost::graph_traits< Graph >::edge_descriptor e;
+  graph_vertex_t<Graph> u;
+  graph_edge_t<Graph> e;
   bool b;
 };
 
@@ -542,29 +538,28 @@ struct NodeExploringVisitorConcept {
   */
 struct node_exploring_visitor_archetype {
 
-  template < typename Vertex, typename Graph >
-  void initialize_vertex( Vertex, const Graph& ) const {};
+  template <typename Vertex, typename Graph>
+  void initialize_vertex(Vertex, const Graph&) const {}
 
-  template < typename Vertex, typename Graph >
-  void discover_vertex( Vertex, const Graph& ) const {};
+  template <typename Vertex, typename Graph>
+  void discover_vertex(Vertex, const Graph&) const {}
 
-  template < typename Vertex, typename Graph >
-  void examine_vertex( Vertex, const Graph& ) const {};
+  template <typename Vertex, typename Graph>
+  void examine_vertex(Vertex, const Graph&) const {}
 
-  template < typename Edge, typename Graph >
-  void examine_edge( Edge, const Graph& ) const {};
+  template <typename Edge, typename Graph>
+  void examine_edge(Edge, const Graph&) const {}
 
-  template < typename Vertex, typename Graph >
-  bool has_search_potential( Vertex, const Graph& ) const {
+  template <typename Vertex, typename Graph>
+  bool has_search_potential(Vertex, const Graph&) const {
     return true;
-  };
+  }
 
-  template < typename Vertex, typename Graph >
-  bool should_close( Vertex, const Graph& ) const {
+  template <typename Vertex, typename Graph>
+  bool should_close(Vertex, const Graph&) const {
     return false;
-  };
+  }
 };
-
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to the RRT algorithm.
@@ -577,13 +572,13 @@ struct node_exploring_visitor_archetype {
   * \tparam Graph The graph on which the visitor class is required to work with.
   * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
   */
-template < typename Visitor, typename Graph, typename Topology >
-struct RRTVisitorConcept : SBMPVisitorConcept< Visitor, Graph > {
+template <typename Visitor, typename Graph, typename Topology>
+struct RRTVisitorConcept : SBMPVisitorConcept<Visitor, Graph> {
 
-  BOOST_CONCEPT_ASSERT( ( NodePullingVisitorConcept< Visitor, Graph, Topology > ) );
-  BOOST_CONCEPT_ASSERT( ( CollisionCheckingVisitorConcept< Visitor, Topology > ) );
+  BOOST_CONCEPT_ASSERT((NodePullingVisitorConcept<Visitor, Graph, Topology>));
+  BOOST_CONCEPT_ASSERT((CollisionCheckingVisitorConcept<Visitor, Topology>));
 
-  BOOST_CONCEPT_USAGE( RRTVisitorConcept ){};
+  BOOST_CONCEPT_USAGE(RRTVisitorConcept) {}
 };
 
 /**
@@ -592,7 +587,6 @@ struct RRTVisitorConcept : SBMPVisitorConcept< Visitor, Graph > {
 struct rrt_visitor_archetype : sbmp_visitor_archetype,
                                node_pulling_visitor_archetype,
                                collision_checking_visitor_archetype {};
-
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to the Bi-RRT algorithm.
@@ -605,18 +599,18 @@ struct rrt_visitor_archetype : sbmp_visitor_archetype,
   * \tparam Graph The graph on which the visitor class is required to work with.
   * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
   */
-template < typename Visitor, typename Graph, typename Topology >
-struct BiRRTVisitorConcept : RRTVisitorConcept< Visitor, Graph, Topology >,
-                             SBMPJoiningVisitorConcept< Visitor, Graph > {
+template <typename Visitor, typename Graph, typename Topology>
+struct BiRRTVisitorConcept : RRTVisitorConcept<Visitor, Graph, Topology>,
+                             SBMPJoiningVisitorConcept<Visitor, Graph> {
 
-  BOOST_CONCEPT_USAGE( BiRRTVisitorConcept ){};
+  BOOST_CONCEPT_USAGE(BiRRTVisitorConcept) {}
 };
 
 /**
   * This class is simply an archetype visitor for the Bi-RRT algorithm.
   */
-struct birrt_visitor_archetype : rrt_visitor_archetype, sbmp_joining_visitor_archetype {};
-
+struct birrt_visitor_archetype : rrt_visitor_archetype,
+                                 sbmp_joining_visitor_archetype {};
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to the PRM algorithm.
@@ -630,27 +624,26 @@ struct birrt_visitor_archetype : rrt_visitor_archetype, sbmp_joining_visitor_arc
   * \tparam Graph The graph on which the visitor class is required to work with.
   * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
   */
-template < typename Visitor, typename Graph, typename Topology >
-struct PRMVisitorConcept : SBMPVisitorConcept< Visitor, Graph > {
+template <typename Visitor, typename Graph, typename Topology>
+struct PRMVisitorConcept : SBMPVisitorConcept<Visitor, Graph> {
 
-  BOOST_CONCEPT_ASSERT( ( NodePushingVisitorConcept< Visitor, Graph, Topology > ) );
-  BOOST_CONCEPT_ASSERT( ( NodeReConnectVisitorConcept< Visitor, Graph > ) );
-  BOOST_CONCEPT_ASSERT( ( NeighborhoodTrackingVisitorConcept< Visitor, Graph > ) );
-  BOOST_CONCEPT_ASSERT( ( CollisionCheckingVisitorConcept< Visitor, Topology > ) );
+  BOOST_CONCEPT_ASSERT((NodePushingVisitorConcept<Visitor, Graph, Topology>));
+  BOOST_CONCEPT_ASSERT((NodeReConnectVisitorConcept<Visitor, Graph>));
+  BOOST_CONCEPT_ASSERT((NeighborhoodTrackingVisitorConcept<Visitor, Graph>));
+  BOOST_CONCEPT_ASSERT((CollisionCheckingVisitorConcept<Visitor, Topology>));
 
-  BOOST_CONCEPT_USAGE( PRMVisitorConcept ){};
+  BOOST_CONCEPT_USAGE(PRMVisitorConcept) {}
 };
 
 /**
   * This class is simply an archetype visitor for the PRM algorithm.
   */
-template < typename Topology >
+template <typename Topology>
 struct prm_visitor_archetype : sbmp_visitor_archetype,
-                               node_pushing_visitor_archetype< Topology >,
+                               node_pushing_visitor_archetype<Topology>,
                                node_reconnect_visitor_archetype,
                                neighborhood_tracking_visitor_archetype,
                                collision_checking_visitor_archetype {};
-
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to the RRG algorithm.
@@ -663,18 +656,19 @@ struct prm_visitor_archetype : sbmp_visitor_archetype,
   * \tparam Graph The graph on which the visitor class is required to work with.
   * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
   */
-template < typename Visitor, typename Graph, typename Topology >
-struct RRGVisitorConcept : RRTVisitorConcept< Visitor, Graph, Topology > {
+template <typename Visitor, typename Graph, typename Topology>
+struct RRGVisitorConcept : RRTVisitorConcept<Visitor, Graph, Topology> {
 
-  BOOST_CONCEPT_ASSERT( ( NodeReConnectVisitorConcept< Visitor, Graph > ) );
+  BOOST_CONCEPT_ASSERT((NodeReConnectVisitorConcept<Visitor, Graph>));
 
-  BOOST_CONCEPT_USAGE( RRGVisitorConcept ){};
+  BOOST_CONCEPT_USAGE(RRGVisitorConcept) {}
 };
 
 /**
   * This class is simply an archetype visitor for RRGVisitorConcept.
   */
-struct rrg_visitor_archetype : rrt_visitor_archetype, node_reconnect_visitor_archetype {};
+struct rrg_visitor_archetype : rrt_visitor_archetype,
+                               node_reconnect_visitor_archetype {};
 
 /**
   * This concept class defines what is required of a class to serve as a visitor to the bi-directional RRG algorithm.
@@ -687,19 +681,20 @@ struct rrg_visitor_archetype : rrt_visitor_archetype, node_reconnect_visitor_arc
   * \tparam Graph The graph on which the visitor class is required to work with.
   * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
   */
-template < typename Visitor, typename Graph, typename Topology >
-struct RRGBidirVisitorConcept : RRGVisitorConcept< Visitor, Graph, Topology > {
+template <typename Visitor, typename Graph, typename Topology>
+struct RRGBidirVisitorConcept : RRGVisitorConcept<Visitor, Graph, Topology> {
 
-  BOOST_CONCEPT_ASSERT( ( NodeBackPullingVisitorConcept< Visitor, Graph, Topology > ) );
+  BOOST_CONCEPT_ASSERT(
+      (NodeBackPullingVisitorConcept<Visitor, Graph, Topology>));
 
-  BOOST_CONCEPT_USAGE( RRGBidirVisitorConcept ){};
+  BOOST_CONCEPT_USAGE(RRGBidirVisitorConcept) {}
 };
 
 /**
   * This class is simply an archetype visitor for RRGBidirVisitorConcept.
   */
-struct rrg_bidir_visitor_archetype : rrg_visitor_archetype, node_back_pulling_visitor_archetype {};
-
+struct rrg_bidir_visitor_archetype : rrg_visitor_archetype,
+                                     node_back_pulling_visitor_archetype {};
 
 /**
   * This concept class defines the valid expressions required of a class to be used as a visitor
@@ -714,25 +709,27 @@ struct rrg_bidir_visitor_archetype : rrg_visitor_archetype, node_back_pulling_vi
   * \tparam Graph The graph type on which the visitor should be able to act.
   * \tparam Topology The topology type on which the visitor class is required to work with.
   */
-template < typename ConnectorVisitor, typename Graph, typename Topology >
+template <typename ConnectorVisitor, typename Graph, typename Topology>
 struct MotionGraphConnectorVisitorConcept {
 
-  BOOST_CONCEPT_ASSERT( ( SBMPVisitorConcept< ConnectorVisitor, Graph > ) );
-  BOOST_CONCEPT_ASSERT( ( NodeCreatorVisitorConcept< ConnectorVisitor, Graph, Topology > ) );
-  BOOST_CONCEPT_ASSERT( ( NodeReConnectVisitorConcept< ConnectorVisitor, Graph > ) );
-  BOOST_CONCEPT_ASSERT( ( NeighborhoodTrackingVisitorConcept< ConnectorVisitor, Graph > ) );
+  BOOST_CONCEPT_ASSERT((SBMPVisitorConcept<ConnectorVisitor, Graph>));
+  BOOST_CONCEPT_ASSERT(
+      (NodeCreatorVisitorConcept<ConnectorVisitor, Graph, Topology>));
+  BOOST_CONCEPT_ASSERT((NodeReConnectVisitorConcept<ConnectorVisitor, Graph>));
+  BOOST_CONCEPT_ASSERT(
+      (NeighborhoodTrackingVisitorConcept<ConnectorVisitor, Graph>));
 
-  BOOST_CONCEPT_USAGE( MotionGraphConnectorVisitorConcept ){};
+  BOOST_CONCEPT_USAGE(MotionGraphConnectorVisitorConcept) {}
 };
 
 /**
   * This class is simply an archetype visitor for MotionGraphConnectorVisitorConcept.
   */
-struct mg_connector_visitor_archetype : sbmp_visitor_archetype,
-                                        node_creator_visitor_archetype,
-                                        node_reconnect_visitor_archetype,
-                                        neighborhood_tracking_visitor_archetype {};
-
+struct mg_connector_visitor_archetype
+    : sbmp_visitor_archetype,
+      node_creator_visitor_archetype,
+      node_reconnect_visitor_archetype,
+      neighborhood_tracking_visitor_archetype {};
 
 /**
   * This concept class defines the valid expressions required of a class to be used as an anytime-heuristic
@@ -746,9 +743,11 @@ struct mg_connector_visitor_archetype : sbmp_visitor_archetype,
   * \tparam Visitor The visitor class to be tested for modeling this visitor concept.
   * \tparam Graph The graph type on which the visitor should be able to act.
   */
-template < typename Visitor, typename Graph >
+template <typename Visitor, typename Graph>
 struct AnytimeHeuristicVisitorConcept {
-  BOOST_CONCEPT_USAGE( AnytimeHeuristicVisitorConcept ) { d = vis.adjust_relaxation( d, g ); }
+  BOOST_CONCEPT_USAGE(AnytimeHeuristicVisitorConcept) {
+    d = vis.adjust_relaxation(d, g);
+  }
   Visitor vis;
   Graph g;
   double d;
@@ -758,13 +757,12 @@ struct AnytimeHeuristicVisitorConcept {
   * This class is simply an archetype visitor for AnytimeHeuristicVisitorConcept.
   */
 struct anytime_heuristic_visitor_archetype {
-  template < typename Graph >
-  double adjust_relaxation( double d, Graph& ) const {
+  template <typename Graph>
+  double adjust_relaxation(double d, Graph&) const {
     return d;
-  };
-};
-};
+  }
 };
 
+}  // namespace ReaK::graph
 
 #endif

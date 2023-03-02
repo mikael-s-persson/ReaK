@@ -24,10 +24,9 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/math/lin_alg/mat_alg.hpp>
 
-#include <iostream>
-#include <fstream>
 #include <cstdio>
-
+#include <fstream>
+#include <iostream>
 
 /*
  * This program is just a little test program that is used temporarily to test little
@@ -39,11 +38,11 @@
 int main() {
   using namespace ReaK;
 
-  mat< double, mat_structure::rectangular > m( 2, 2 );
-  m( 0, 0 ) = 1.0;
-  m( 0, 1 ) = 0.0;
-  m( 1, 0 ) = 0.0;
-  m( 1, 1 ) = 1.0;
+  mat<double, mat_structure::rectangular> m(2, 2);
+  m(0, 0) = 1.0;
+  m(0, 1) = 0.0;
+  m(1, 0) = 0.0;
+  m(1, 1) = 1.0;
 
   std::cout << m << std::endl;
 

@@ -35,16 +35,12 @@
 #ifndef REAK_ADAPTIVE_STAR_NEIGHBORHOOD_HPP
 #define REAK_ADAPTIVE_STAR_NEIGHBORHOOD_HPP
 
-
 #include <ReaK/core/base/misc_math.hpp>
 
-#include <limits>
 #include <boost/property_map/property_map.hpp>
+#include <limits>
 
-namespace ReaK {
-
-namespace graph {
-
+namespace ReaK::graph {
 
 /**
  * This functor template applied the "star" neighborhood function to the nearest neighbor queries.
@@ -56,7 +52,7 @@ namespace graph {
  * length of the cloud of samples.
  * \tparam NNFinder The functor type of the underlying K-nearest neighbor finder (or predecessor / successor finder).
  */
-template < typename NNFinder >
+template <typename NNFinder>
 struct adaptive_star_nbhd {
 
   NNFinder find_neighbors;
@@ -69,9 +65,11 @@ struct adaptive_star_nbhd {
    * \param aFindNeighbors The functor to perform the underlying K-nearest neighbor search (or pred / succ search).
    * \param aCSpaceDimensions The number of dimensions of the free-space (e.g., 3 for R^3).
    */
-  adaptive_star_nbhd( NNFinder aFindNeighbors, double aCSpaceDimensions )
-      : find_neighbors( aFindNeighbors ), c_space_dimensions( aCSpaceDimensions ), next_logN_value( 1 ),
-        gamma_value( std::numeric_limits< double >::infinity() ){};
+  adaptive_star_nbhd(NNFinder aFindNeighbors, double aCSpaceDimensions)
+      : find_neighbors(aFindNeighbors),
+        c_space_dimensions(aCSpaceDimensions),
+        next_logN_value(1),
+        gamma_value(std::numeric_limits<double>::infinity()) {}
 
   /**
    * This function fills the output iterator (like a back-inserter) with the neighborhood of the given
@@ -88,19 +86,23 @@ struct adaptive_star_nbhd {
    * \param free_space The topology representing the free-space of the positions.
    * \param position The position-map object which can retrieve the positions associated to each vertex of the graph.
    */
-  template < typename OutputIterator, typename Graph, typename Topology, typename PositionMap >
-  void operator()( const typename boost::property_traits< PositionMap >::value_type& p, OutputIterator output_first,
-                   Graph& g, const Topology& free_space, PositionMap position ) const {
+  template <typename OutputIterator, typename Graph, typename Topology,
+            typename PositionMap>
+  void operator()(const property_value_t<PositionMap>& p,
+                  OutputIterator output_first, Graph& g,
+                  const Topology& free_space, PositionMap position) const {
     using std::pow;
-    std::size_t N = num_vertices( g );
-    std::size_t log_N = math::highest_set_bit( N ) + 1;
-    if( log_N > next_logN_value ) {
+    std::size_t N = num_vertices(g);
+    std::size_t log_N = math::highest_set_bit(N) + 1;
+    if (log_N > next_logN_value) {
       next_logN_value = log_N;
-      gamma_value = 3.0 * find_neighbors.get_characteristic_size( g, free_space, position );
-    };
-    find_neighbors( p, output_first, g, free_space, position, 4 * log_N,
-                    gamma_value * pow( log_N / double( N ), 1.0 / c_space_dimensions ) );
-  };
+      gamma_value =
+          3.0 * find_neighbors.get_characteristic_size(g, free_space, position);
+    }
+    find_neighbors(
+        p, output_first, g, free_space, position, 4 * log_N,
+        gamma_value * pow(log_N / double(N), 1.0 / c_space_dimensions));
+  }
 
   /**
    * This function fills the output iterators (like a back-inserters) with the neighborhood of the given
@@ -122,22 +124,26 @@ struct adaptive_star_nbhd {
    * \param free_space The topology representing the free-space of the positions.
    * \param position The position-map object which can retrieve the positions associated to each vertex of the graph.
    */
-  template < typename PredIterator, typename SuccIterator, typename Graph, typename Topology, typename PositionMap >
-  void operator()( const typename boost::property_traits< PositionMap >::value_type& p, PredIterator pred_first,
-                   SuccIterator succ_first, Graph& g, const Topology& free_space, PositionMap position ) const {
-    using std::pow;
+  template <typename PredIterator, typename SuccIterator, typename Graph,
+            typename Topology, typename PositionMap>
+  void operator()(const property_value_t<PositionMap>& p,
+                  PredIterator pred_first, SuccIterator succ_first, Graph& g,
+                  const Topology& free_space, PositionMap position) const {
     using std::log2;
-    std::size_t N = num_vertices( g );
-    std::size_t log_N = math::highest_set_bit( N ) + 1;
-    if( log_N > next_logN_value ) {
+    using std::pow;
+    std::size_t N = num_vertices(g);
+    std::size_t log_N = math::highest_set_bit(N) + 1;
+    if (log_N > next_logN_value) {
       next_logN_value = log_N;
-      gamma_value = 3.0 * find_neighbors.get_characteristic_size( g, free_space, position );
-    };
-    find_neighbors( p, pred_first, succ_first, g, free_space, position, 4 * log_N,
-                    gamma_value * pow( log_N / double( N ), 1.0 / c_space_dimensions ) );
-  };
+      gamma_value =
+          3.0 * find_neighbors.get_characteristic_size(g, free_space, position);
+    }
+    find_neighbors(
+        p, pred_first, succ_first, g, free_space, position, 4 * log_N,
+        gamma_value * pow(log_N / double(N), 1.0 / c_space_dimensions));
+  }
 };
-};
-};
+
+}  // namespace ReaK::graph
 
 #endif

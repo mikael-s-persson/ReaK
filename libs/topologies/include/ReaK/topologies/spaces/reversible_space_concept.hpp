@@ -39,52 +39,50 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include <cmath>
 #include <boost/concept_check.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <cmath>
+#include <tuple>
 
 #include "metric_space_concept.hpp"
 #include "steerable_space_concept.hpp"
 
 /** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Path-Planning */
-namespace pp {
+namespace ReaK::pp {
 
 namespace detail {
 
-template < bool IsMetric >
+template <bool IsMetric>
 struct move_backwards_concept_tester {
-  template < typename Space, typename PointType >
-  static void test( const Space&, const PointType&, PointType& ){};
+  template <typename Space, typename PointType>
+  static void test(const Space& /*unused*/, const PointType& /*unused*/,
+                   PointType& /*unused*/) {}
 };
 
 template <>
-struct move_backwards_concept_tester< true > {
-  template < typename Space, typename PointType >
-  static void test( const Space& s, const PointType& p1, PointType& p2 ) {
-    p2 = s.move_position_back_to( p1, 1.0, p1 );
-  };
+struct move_backwards_concept_tester<true> {
+  template <typename Space, typename PointType>
+  static void test(const Space& s, const PointType& p1, PointType& p2) {
+    p2 = s.move_position_back_to(p1, 1.0, p1);
+  }
 };
 
-template < bool IsSteerable >
+template <bool IsSteerable>
 struct steer_backwards_concept_tester {
-  template < typename Space, typename PointType >
-  static void test( const Space&, const PointType&, PointType& ){};
+  template <typename Space, typename PointType>
+  static void test(const Space& /*unused*/, const PointType& /*unused*/,
+                   PointType& /*unused*/) {}
 };
 
 template <>
-struct steer_backwards_concept_tester< true > {
-  template < typename Space, typename PointType >
-  static void test( const Space& s, const PointType& p1, PointType& p2 ) {
-    typename steerable_space_traits< Space >::steer_record_type st_rec;
-    boost::tie( p2, st_rec ) = s.steer_position_back_to( p1, 1.0, p1 );
-  };
-};
+struct steer_backwards_concept_tester<true> {
+  template <typename Space, typename PointType>
+  static void test(const Space& s, const PointType& p1, PointType& p2) {
+    steerable_space_steer_record_t<Space> st_rec;
+    std::tie(p2, st_rec) = s.steer_position_back_to(p1, 1.0, p1);
+  }
 };
 
+}  // namespace detail
 
 /**
  * This concept defines the requirements to fulfill in order to model a reversible-space
@@ -103,24 +101,28 @@ struct steer_backwards_concept_tester< true > {
  *
  * \tparam ReversibleSpace The topology type to be checked for this concept.
  */
-template < typename ReversibleSpace >
+template <typename ReversibleSpace>
 struct ReversibleSpaceConcept {
-  typename topology_traits< ReversibleSpace >::point_type p1, p2;
+  typename topology_traits<ReversibleSpace>::point_type p1, p2;
   ReversibleSpace space;
 
-  BOOST_CONCEPT_ASSERT( ( TopologyConcept< ReversibleSpace > ) );
+  BOOST_CONCEPT_ASSERT((TopologyConcept<ReversibleSpace>));
 
-  BOOST_CONCEPT_USAGE( ReversibleSpaceConcept ) {
-    detail::move_backwards_concept_tester< is_metric_space< ReversibleSpace >::type::value >::test( space, p1, p2 );
-    detail::steer_backwards_concept_tester< is_steerable_space< ReversibleSpace >::type::value >::test( space, p1, p2 );
-  };
+  BOOST_CONCEPT_USAGE(ReversibleSpaceConcept) {
+    detail::move_backwards_concept_tester<
+        is_metric_space_v<ReversibleSpace>>::test(space, p1, p2);
+    detail::steer_backwards_concept_tester<
+        is_steerable_space_v<ReversibleSpace>>::test(space, p1, p2);
+  }
 };
 
+template <typename ReversibleSpace>
+struct is_reversible_space : std::false_type {};
 
-template < typename ReversibleSpace >
-struct is_reversible_space : boost::mpl::false_ {};
-};
-};
+template <typename ReversibleSpace>
+static constexpr bool is_reversible_space_v =
+    is_reversible_space<ReversibleSpace>::value;
 
+}  // namespace ReaK::pp
 
 #endif

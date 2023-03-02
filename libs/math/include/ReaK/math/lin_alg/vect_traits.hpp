@@ -40,51 +40,65 @@ namespace ReaK {
  * This trait class defines all the traits of a vector in the ReaK library.
  * \tparam Vector A vector type.
  */
-template < typename Vector >
+template <typename Vector>
 struct vect_traits {
   /** The type of the elements of the vector. */
-  typedef typename Vector::value_type value_type;
+  using value_type = typename Vector::value_type;
   /** The type of a reference to an element of the vector. */
-  typedef typename Vector::reference reference;
+  using reference = typename Vector::reference;
   /** The type of a const-reference to an element of the vector. */
-  typedef typename Vector::const_reference const_reference;
+  using const_reference = typename Vector::const_reference;
   /** The type of a pointer to an element of the vector. */
-  typedef typename Vector::pointer pointer;
+  using pointer = typename Vector::pointer;
   /** The type of a const-pointer to an element of the vector. */
-  typedef typename Vector::const_pointer const_pointer;
+  using const_pointer = typename Vector::const_pointer;
   /** The type of the allocator used by the vector (void if none). */
-  typedef typename Vector::allocator_type allocator_type;
+  using allocator_type = typename Vector::allocator_type;
 
   /** The type of a iterator through the vector. */
-  typedef typename Vector::iterator iterator;
+  using iterator = typename Vector::iterator;
   /** The type of a const-iterator through the vector. */
-  typedef typename Vector::const_iterator const_iterator;
+  using const_iterator = typename Vector::const_iterator;
 
   /** The type to describe the size of the vector or an index to it. */
-  typedef typename Vector::size_type size_type;
+  using size_type = typename Vector::size_type;
   /** The type to describe the difference between two indices. */
-  typedef typename Vector::difference_type difference_type;
+  using difference_type = typename Vector::difference_type;
 
   /** The dimension of the vector (0 if not known at compile-time). */
-  BOOST_STATIC_CONSTANT( std::size_t, dimensions = Vector::dimensions );
+  static constexpr std::size_t dimensions = Vector::dimensions;
 };
 
-template < typename Vector >
+template <typename Vector, typename = void>
 struct vect_value_type {
-  typedef typename vect_traits< Vector >::value_type type;
+  using type = double;
 };
+
+// Only get value type without relying on vect_traits.
+template <typename Vector>
+struct vect_value_type<Vector,
+                       std::void_t<decltype(std::declval<Vector>()[0])>> {
+  using type =
+      std::decay_t<decltype(std::declval<std::add_const_t<Vector>>()[0])>;
+};
+
+template <typename Vector>
+using vect_value_type_t = typename vect_value_type<Vector>::type;
 
 /**
  * This meta-function provides the vector type needed as a destination type for a
  * copy (deep-copy) of a given vector type.
  * \tparam Vector A vector type.
  */
-template < typename Vector >
+template <typename Vector>
 struct vect_copy {
   /** The type of a copy of the given vector type. */
-  typedef Vector type;
-};
+  using type = Vector;
 };
 
+template <typename Vector>
+using vect_copy_t = typename vect_copy<Vector>::type;
+
+}  // namespace ReaK
 
 #endif

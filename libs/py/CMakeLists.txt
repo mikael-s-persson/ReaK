@@ -44,28 +44,6 @@ else()
   message(FATAL_ERROR "The ReaK python bindings module requires the presence of the ReaK.mbd module!")
 endif()
 
-find_package(PythonLibs)
-if(PYTHONLIBS_FOUND)
-  
-  set(original_Boost_FOUND ${Boost_FOUND})
-  find_package(Boost 1.48 COMPONENTS python)
-  if(Boost_FOUND)
-    
-    include_directories(BEFORE SYSTEM ${PYTHON_INCLUDE_DIRS})
-    
-    set(REAK_CURRENT_MODULE py)
-    set(REAK_CURRENT_MODULE_TITLE "ReaK Library - Python Bindings")
-    set(REAK_CURRENT_MODULE_DESCRIPTION "A set Python bindings for the all ReaK libraries.")
-    
-    ReaK_add_current_module()
-    
-  endif()
-  set(Boost_FOUND ${original_Boost_FOUND})
-  
-else()
-  message(WARNING "The ReaK python bindings module requires the presence of the python libraries!")
-endif()
-
 
 
 

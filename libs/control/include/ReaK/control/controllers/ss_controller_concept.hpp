@@ -44,18 +44,14 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 
-#include <ReaK/control/systems/state_space_sys_concept.hpp>
-#include <ReaK/control/systems/linear_ss_system_concept.hpp>
-#include <ReaK/control/systems/discrete_sss_concept.hpp>
 #include <ReaK/control/systems/discrete_linear_sss_concept.hpp>
+#include <ReaK/control/systems/discrete_sss_concept.hpp>
+#include <ReaK/control/systems/linear_ss_system_concept.hpp>
+#include <ReaK/control/systems/state_space_sys_concept.hpp>
 
 #include <boost/concept_check.hpp>
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Control */
-namespace ctrl {
+namespace ReaK::ctrl {
 
 /**
  * This class is a constraint specifier for the controller concept classes. This class template
@@ -72,27 +68,28 @@ namespace ctrl {
  *
  * \tparam StateSpaceType The type of the state-space for the controller (or system in general).
  */
-template < typename StateSpaceType >
+template <typename StateSpaceType>
 struct Stateful {
   StateSpaceType state_space;
 
-  typename pp::topology_traits< StateSpaceType >::point_type p;
+  typename pp::topology_traits<StateSpaceType>::point_type p;
 
-  BOOST_CONCEPT_ASSERT( ( pp::TopologyConcept< StateSpaceType > ) );
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
 
-  template < typename System, typename Output, typename Input, typename Time >
-  void ct_constraints( const System& sys, Output& y, const Input& u, const Time& t ) {
-    BOOST_CONCEPT_ASSERT( (SSSystemConcept< System, StateSpaceType >));
-    y = sys.get_output( state_space, p, u, t );
-  };
+  template <typename System, typename Output, typename Input, typename Time>
+  void ct_constraints(const System& sys, Output& y, const Input& u,
+                      const Time& t) {
+    BOOST_CONCEPT_ASSERT((SSSystemConcept<System, StateSpaceType>));
+    y = sys.get_output(state_space, p, u, t);
+  }
 
-  template < typename System, typename Output, typename Input, typename Time >
-  void dt_constraints( const System& sys, Output& y, const Input& u, const Time& t ) {
-    BOOST_CONCEPT_ASSERT( (DiscreteSSSConcept< System, StateSpaceType >));
-    y = sys.get_output( state_space, p, u, t );
-  };
+  template <typename System, typename Output, typename Input, typename Time>
+  void dt_constraints(const System& sys, Output& y, const Input& u,
+                      const Time& t) {
+    BOOST_CONCEPT_ASSERT((DiscreteSSSConcept<System, StateSpaceType>));
+    y = sys.get_output(state_space, p, u, t);
+  }
 };
-
 
 /**
  * This class is a constraint specifier for the controller concept classes. This class template
@@ -105,17 +102,18 @@ struct Stateful {
  *time.
  */
 struct Stateless {
-  template < typename System, typename Output, typename Input, typename Time >
-  void ct_constraints( const System& sys, Output& y, const Input& u, const Time& t ) {
-    y = sys.get_output( u, t );
-  };
+  template <typename System, typename Output, typename Input, typename Time>
+  void ct_constraints(const System& sys, Output& y, const Input& u,
+                      const Time& t) {
+    y = sys.get_output(u, t);
+  }
 
-  template < typename System, typename Output, typename Input, typename Time >
-  void dt_constraints( const System& sys, Output& y, const Input& u, const Time& t ) {
-    y = sys.get_output( u, t );
-  };
+  template <typename System, typename Output, typename Input, typename Time>
+  void dt_constraints(const System& sys, Output& y, const Input& u,
+                      const Time& t) {
+    y = sys.get_output(u, t);
+  }
 };
-
 
 /**
  * This class template defines the concept for a continuous-time state-space controller as used in the ReaK::ctrl
@@ -139,15 +137,17 @@ struct Stateless {
  * \tparam Statefulness A type specifying the statefulness required of the state-space controller (see Stateless or
  *Stateful).
  */
-template < typename CtrlSystem, typename PlantSystem, typename Statefulness >
+template <typename CtrlSystem, typename PlantSystem, typename Statefulness>
 struct CTSSControllerConcept {
   CtrlSystem ctrl_sys;
   Statefulness statefulness_constraint;
-  typename ss_system_traits< CtrlSystem >::time_type t;
-  typename ss_system_traits< PlantSystem >::point_type u;
-  typename ss_system_traits< PlantSystem >::input_type y;
+  typename ss_system_traits<CtrlSystem>::time_type t;
+  typename ss_system_traits<PlantSystem>::point_type u;
+  typename ss_system_traits<PlantSystem>::input_type y;
 
-  BOOST_CONCEPT_USAGE( CTSSControllerConcept ) { statefulness_constraint.ct_constraints( ctrl_sys, y, u, t ); };
+  BOOST_CONCEPT_USAGE(CTSSControllerConcept) {
+    statefulness_constraint.ct_constraints(ctrl_sys, y, u, t);
+  }
 };
 
 /**
@@ -172,17 +172,19 @@ struct CTSSControllerConcept {
  * \tparam Statefulness A type specifying the statefulness required of the state-space controller (see Stateless or
  *Stateful).
  */
-template < typename CtrlSystem, typename PlantSystem, typename Statefulness >
+template <typename CtrlSystem, typename PlantSystem, typename Statefulness>
 struct DTSSControllerConcept {
   CtrlSystem ctrl_sys;
   Statefulness statefulness_constraint;
-  typename discrete_sss_traits< CtrlSystem >::time_type t;
-  typename discrete_sss_traits< PlantSystem >::point_type u;
-  typename discrete_sss_traits< PlantSystem >::input_type y;
+  typename discrete_sss_traits<CtrlSystem>::time_type t;
+  typename discrete_sss_traits<PlantSystem>::point_type u;
+  typename discrete_sss_traits<PlantSystem>::input_type y;
 
-  BOOST_CONCEPT_USAGE( DTSSControllerConcept ) { statefulness_constraint.dt_constraints( ctrl_sys, y, u, t ); };
+  BOOST_CONCEPT_USAGE(DTSSControllerConcept) {
+    statefulness_constraint.dt_constraints(ctrl_sys, y, u, t);
+  }
 };
-};
-};
+
+}  // namespace ReaK::ctrl
 
 #endif

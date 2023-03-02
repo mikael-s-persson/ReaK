@@ -34,47 +34,42 @@
 
 #include "shape_3D.hpp"
 
-/** Main namespace for ReaK */
-namespace ReaK {
-
-/** Main namespace for ReaK.Geometry */
-namespace geom {
-
+namespace ReaK::geom {
 
 /** This class represents a cylinder aligned along the z-axis of its center pose. */
 class cylinder : public shape_3D {
-protected:
+ protected:
   double mLength;
   double mRadius;
 
-public:
+ public:
   /**
    * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
    * \return The maximum radius of the shape.
    */
-  virtual double getBoundingRadius() const;
+  double getBoundingRadius() const override;
 
   /**
    * This function returns the length of the cylinder.
    * \return The length of the cylinder.
    */
-  double getLength() const { return mLength; };
+  double getLength() const { return mLength; }
   /**
    * This function sets the length of the cylinder.
    * \param aLength The new length of the cylinder.
    */
-  void setLength( double aLength ) { mLength = aLength; };
+  void setLength(double aLength) { mLength = aLength; }
 
   /**
    * This function returns the radius of the cylinder.
    * \return The radius of the cylinder.
    */
-  double getRadius() const { return mRadius; };
+  double getRadius() const { return mRadius; }
   /**
    * This function sets the radius of the cylinder.
    * \param aRadius The new radius of the cylinder.
    */
-  void setRadius( double aRadius ) { mRadius = aRadius; };
+  void setRadius(double aRadius) { mRadius = aRadius; }
 
   /**
    * Default constructor.
@@ -84,27 +79,29 @@ public:
    * \param aLength The length of the cylinder.
    * \param aRadius The radius of the cylinder.
    */
-  cylinder( const std::string& aName = "",
-            const shared_ptr< pose_3D< double > >& aAnchor = shared_ptr< pose_3D< double > >(),
-            const pose_3D< double >& aPose = pose_3D< double >(), double aLength = 1.0, double aRadius = 1.0 );
+  explicit cylinder(const std::string& aName = "",
+                    const std::shared_ptr<pose_3D<double>>& aAnchor =
+                        std::shared_ptr<pose_3D<double>>(),
+                    const pose_3D<double>& aPose = pose_3D<double>(),
+                    double aLength = 1.0, double aRadius = 1.0);
 
   /**
    * Default destructor.
    */
-  virtual ~cylinder(){};
-
+  ~cylinder() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override;
 
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+  void load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) override;
 
-  RK_RTTI_MAKE_CONCRETE_1BASE( cylinder, 0xC3100012, 1, "cylinder", shape_3D )
+  RK_RTTI_MAKE_CONCRETE_1BASE(cylinder, 0xC3100012, 1, "cylinder", shape_3D)
 };
-};
-};
+
+}  // namespace ReaK::geom
 
 #endif
