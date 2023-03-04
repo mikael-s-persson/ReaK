@@ -31,8 +31,8 @@
 #include <ReaK/core/sorting/selection_sort.hpp>
 #include <ReaK/core/sorting/shell_sort.hpp>
 
+#include <array>
 #include <chrono>
-
 #include <cmath>
 #include <ctime>
 #include <fstream>

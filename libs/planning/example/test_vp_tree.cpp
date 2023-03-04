@@ -62,15 +62,12 @@ int main() {
       VertexType, TopologyType,
       boost::property_map<WorldGridType, boost::vertex_position_t>::type, 2>;
 
-  const unsigned int grid_sizes[] = {
+  const std::vector<unsigned int> grid_sizes = {
       100,    200,    300,     400,     500,    800,   1000,  1100,
       1300,   1500,   1700,    1900,    2000,   2200,  2500,  3000,
       3500,   4000,   4500,    5000,    6000,   7000,  8000,  9000,
       10000,  12000,  15000,   20000,   25000,  30000, 50000, 100000,
       200000, 500000, 1000000, 2000000, 5000000};
-
-  //  const unsigned int grid_sizes[] = {50000, 100000, 200000, 500000, 1000000,
-  //                                     2000000, 5000000, 10000000, 20000000};
 
   std::ofstream outFile("test_vp_results/dvp_umap_vecS_6.dat");
   outFile << "N\tVP2\tVP4\t (all times in micro-seconds per query per vertex)"
@@ -142,7 +139,7 @@ int main() {
         lnn_finder(m_space.random_point(),grid,m_space,m_position);
       };
       high_resolution_clock::duration dt = high_resolution_clock::now() - t_start;
-      outFile << "\t" << duration_cast<microseconds>(dt).count() * 0.001 / double(grid_sizes[i]);
+      outFile << "\t" << duration_cast<microseconds>(dt).count() * 0.001 / double(grid_size);
       std::cout << "Linear Search" << std::endl;
     }
     */

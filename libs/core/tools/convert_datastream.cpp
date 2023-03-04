@@ -33,8 +33,8 @@
 #include "absl/flags/parse.h"
 
 namespace ch = std::chrono;
-typedef ch::steady_clock stc;
-typedef ch::high_resolution_clock hrc;
+using stc = ch::steady_clock;
+using hrc = ch::high_resolution_clock;
 
 ABSL_FLAG(
     bool, echo, false,
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
     std::vector<std::string> names_in;
     std::tie(data_in, names_in) = data_in_opt.create_extractor();
 
-    if (data_out_opt.names.size() == 0) {
+    if (data_out_opt.names.empty()) {
       data_out_opt.names = names_in;
     } else {
       names_in = data_out_opt.names;
@@ -79,12 +79,12 @@ int main(int argc, char** argv) {
       (*data_in) >> nvr_in;
       hrc::time_point hrt_1 = hrc::now();
 
-      for (std::size_t i = 0; i < names_in.size(); ++i) {
+      for (auto & i : names_in) {
         try {
-          nvr_out[names_in[i]] = nvr_in[names_in[i]];
+          nvr_out[i] = nvr_in[i];
         } catch (out_of_bounds& e) {
           RK_UNUSED(e);
-          nvr_out[names_in[i]] = 0.0;
+          nvr_out[i] = 0.0;
         }
       }
       if (!data_out_opt.time_sync_name.empty()) {
@@ -108,9 +108,9 @@ int main(int argc, char** argv) {
                     << std::setw(16)
                     << nvr_out[absl::GetFlag(FLAGS_add_relative_time)] << '\n';
         }
-        for (std::size_t i = 0; i < names_in.size(); ++i) {
-          std::cout << names_in[i] << '\t' << std::setw(16)
-                    << nvr_out[names_in[i]] << '\n';
+        for (auto & i : names_in) {
+          std::cout << i << '\t' << std::setw(16)
+                    << nvr_out[i] << '\n';
         }
         std::cout << std::flush;
       }

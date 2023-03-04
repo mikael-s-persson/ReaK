@@ -21,6 +21,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <math.h>
+
 #include <iostream>
 
 using std::ptrdiff_t;
@@ -62,9 +64,9 @@ int main(int argc, char** argv) {
   };
   std::istream& task_src = *task_src_ptr;
 
-  double time_step;
-  double min_time;
-  double max_time;
+  double time_step = NAN;
+  double min_time = NAN;
+  double max_time = NAN;
   task_src >> time_step >> min_time >> max_time;
 
   ReaK::vect<double, 2> max_vel;

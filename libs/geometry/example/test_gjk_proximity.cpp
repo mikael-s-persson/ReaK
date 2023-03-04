@@ -119,7 +119,7 @@ struct proximity_solver {
                    const std::shared_ptr<geom::shape_3D>& aShape2)
       : mShape1(aShape1), mShape2(aShape2) {}
 
-  void operator()() {
+  void operator()() const {
     geom::proximity_record_3D result;
     vect<double, 3> v1;
     vect<double, 3> v2;

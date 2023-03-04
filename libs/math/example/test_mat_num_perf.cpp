@@ -51,7 +51,7 @@ int main() {
                                                  2.0);
     mat<double, mat_structure::symmetric> m_inc(2.0, -1.0, 2.0);
     high_resolution_clock::time_point t1;
-    high_resolution_clock::duration dt[11];
+    std::array<high_resolution_clock::duration, 11> dt;
 
     std::ofstream out_stream;
     out_stream.open("performance_data.dat");

@@ -39,18 +39,18 @@ struct const_ang_vel_sys {
   vect<double, 3> ang_velocity;
 
   explicit const_ang_vel_sys(const vect<double, 3>& aAngVel)
-      : ang_velocity(aAngVel){};
+      : ang_velocity(aAngVel){}
 
   vect<double, 3> operator()(double /*unused*/,
                              const unit_quat<double>& /*unused*/) const {
     return ang_velocity;
-  };
+  }
 
   vect<double, 4> operator()(double /*unused*/,
                              const vect<double, 4>& q) const {
     auto qw = quat<double>(q) * ang_velocity;
-    return vect<double, 4>(0.5 * qw[0], 0.5 * qw[1], 0.5 * qw[2], 0.5 * qw[3]);
-  };
+    return {0.5 * qw[0], 0.5 * qw[1], 0.5 * qw[2], 0.5 * qw[3]};
+  }
 };
 
 struct so3_state {
@@ -59,7 +59,7 @@ struct so3_state {
   explicit so3_state(const unit_quat<double>& aQ = (unit_quat<double>()),
                      const vect<double, 3>& aW = (vect<double, 3>(0.0, 0.0,
                                                                   0.0)))
-      : q(aQ), w(aW){};
+      : q(aQ), w(aW){}
 };
 
 struct so3_state_tangent {
@@ -68,53 +68,53 @@ struct so3_state_tangent {
   explicit so3_state_tangent(
       const vect<double, 3>& aDQ = (vect<double, 3>(0.0, 0.0, 0.0)),
       const vect<double, 3>& aDW = (vect<double, 3>(0.0, 0.0, 0.0)))
-      : dq(aDQ), dw(aDW){};
+      : dq(aDQ), dw(aDW){}
 };
 
 so3_state_tangent operator*(double s, const so3_state_tangent& x) {
   return so3_state_tangent(s * x.dq, s * x.dw);
-};
+}
 
 so3_state_tangent operator*(const so3_state_tangent& x, double s) {
   return so3_state_tangent(s * x.dq, s * x.dw);
-};
+}
 
 so3_state_tangent operator+(const so3_state_tangent& lhs,
                             const so3_state_tangent& rhs) {
   return so3_state_tangent(lhs.dq + rhs.dq, lhs.dw + rhs.dw);
-};
+}
 so3_state_tangent operator-(const so3_state_tangent& lhs,
                             const so3_state_tangent& rhs) {
   return so3_state_tangent(lhs.dq - rhs.dq, lhs.dw - rhs.dw);
-};
+}
 so3_state_tangent operator-(const so3_state_tangent& lhs) {
   return so3_state_tangent(-lhs.dq, -lhs.dw);
-};
+}
 
 so3_state oplus(const so3_state& lhs, const so3_state_tangent& rhs) {
   using lie_group::oplus;
   return so3_state(oplus(lhs.q, rhs.dq), lhs.w + rhs.dw);
-};
+}
 
 so3_state_tangent ominus(const so3_state& lhs, const so3_state& rhs) {
   using lie_group::ominus;
   return so3_state_tangent(ominus(lhs.q, rhs.q), lhs.w - rhs.w);
-};
+}
 
 so3_state_tangent otransport(const so3_state& a, const so3_state_tangent& v,
                              const so3_state& b) {
   unit_quat<double> ab = invert(b.q) * a.q;
   return so3_state_tangent(ab.rotate(v.dq), ab.rotate(v.dw));
-};
+}
 
 so3_state_tangent ocross(const so3_state_tangent& lhs,
                          const so3_state_tangent& rhs) {
   return so3_state_tangent(lhs.dq % rhs.dq);
-};
+}
 
 double norm_2(const so3_state_tangent& x) {
   return norm_2(x.dq) + norm_2(x.dw);
-};
+}
 
 struct const_ang_mom_sys {
   mat<double, mat_structure::symmetric> I;
@@ -124,18 +124,14 @@ struct const_ang_mom_sys {
       const mat<double, mat_structure::symmetric>& aInertiaMoment)
       : I(aInertiaMoment) {
     invert_Cholesky(I, Iinv);
-  };
+  }
 
   so3_state_tangent operator()(double /*unused*/, const so3_state& x) const {
     vect<double, 3> w = x.w;
     vect<double, 3> aacc = Iinv * ((I * w) % w);
 
     return so3_state_tangent(w, aacc);
-    //     vect< double, 3 > v = get_velocity( x );
-    //     return point_derivative_type(
-    //       make_arithmetic_tuple( v, vect< double, 3 >( 0.0, 0.0, 9.81 ) ),
-    //       make_arithmetic_tuple( w, aacc ) );
-  };
+  }
 
   vect<double, 7> operator()(double /*unused*/,
                              const vect<double, 7>& x) const {
@@ -144,9 +140,9 @@ struct const_ang_mom_sys {
     auto qw = q * w;
     auto aacc = Iinv * ((I * w) % w);
 
-    return vect<double, 7>(0.5 * qw[0], 0.5 * qw[1], 0.5 * qw[2], 0.5 * qw[3],
-                           aacc[0], aacc[1], aacc[2]);
-  };
+    return {0.5 * qw[0], 0.5 * qw[1], 0.5 * qw[2], 0.5 * qw[3],
+                           aacc[0], aacc[1], aacc[2]};
+  }
 };
 
 so3_state trapm_rule(so3_state q, const_ang_mom_sys f, double t_start,
@@ -172,11 +168,11 @@ so3_state trapm_rule(so3_state q, const_ang_mom_sys f, double t_start,
         break;
       }
       q.q = oplus(q0_mid, otransport(q.q, (0.5 * dt) * q.w, q0_mid));
-    };
+    }
     t += dt;
-  };
+  }
   return q;
-};
+}
 
 struct compare_quat_lex_less {
   template <typename Vector>
@@ -184,14 +180,14 @@ struct compare_quat_lex_less {
     if (u[i] < v[i]) {
       return true;
     }
-    if (u[i] > v[i])
+    if (u[i] > v[i]) {
       return false;
-    else {
-      if (i == 3)
-        return false;
-      return (*this)(u, v, i + 1);  // tail-call
-    };
-  };
+    }
+    if (i == 3) {
+      return false;
+    }
+    return (*this)(u, v, i + 1);  // tail-call
+  }
 };
 
 inline void save_state_vectors(std::ostream& out, double t, const so3_state& s,
@@ -200,7 +196,7 @@ inline void save_state_vectors(std::ostream& out, double t, const so3_state& s,
       << s.q[3] << " " << s.w[0] << " " << s.w[1] << " " << s.w[2] << " "
       << sv[0] << " " << sv[1] << " " << sv[2] << " " << sv[3] << " " << sv[4]
       << " " << sv[5] << " " << sv[6] << std::endl;
-};
+}
 
 int main() {
   using namespace ReaK;
@@ -220,7 +216,7 @@ int main() {
     , qz_05 * qx_05 * qy_05
 //     , qx_05 * qx_05 * qz_05 * qy_05
     , qz_05 * qx_05 * qx_05 * qz_05 * qy_05
-  };
+  }
   std::vector< vect< double, 4 > > ctrl_pts_v4;
   for( auto q : ctrl_pts ) 
     ctrl_pts_v4.emplace_back( q[0], q[1], q[2], q[3] );
@@ -236,7 +232,7 @@ int main() {
               << " " << q_mid[0] << " " << q_mid[1] << " " << q_mid[2] << " " << q_mid[3] 
               << " " << qv_mid[0] << " " << qv_mid[1] << " " << qv_mid[2] << " " << qv_mid[3] 
               << " " << qv_mid_u[0] << " " << qv_mid_u[1] << " " << qv_mid_u[2] << " " << qv_mid_u[3] << std::endl;
-  };
+  }
 #endif
 
 #if 0
@@ -265,7 +261,7 @@ int main() {
               << qv0[1] << " " << qv0[2] << " " << qv0[3] << " " << qv0_u[0] << " " << qv0_u[1] << " " << qv0_u[2]
               << " " << qv0_u[3] << std::endl;
     qv0 = unit( qv0 ); // with normalization at sample steps.
-  };
+  }
 #endif
 
 #if 0
@@ -369,8 +365,8 @@ int main() {
     sv0_be = sv0_be_u;  // with normalization at sample steps.
     sv0_tr = sv0_tr_u;  // with normalization at sample steps.
     sv0_rk = sv0_rk_u;  // with normalization at sample steps.
-  };
+  }
 #endif
 
   return 0;
-};
+}

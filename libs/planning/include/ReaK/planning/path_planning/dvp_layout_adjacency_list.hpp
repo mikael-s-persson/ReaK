@@ -154,11 +154,11 @@ class dvp_adjacency_list {
   position_map_type m_vp_pos;
   dvp_impl_type m_impl;
 
+ public:
   // non-copyable: (because of shared-state)
   dvp_adjacency_list(const self&) = delete;
   self& operator=(const self&) = delete;
 
- public:
   using adj_list_type = ReaK::graph::alt_graph_view<alt_type>;
   using adj_list_vertex_type = graph::graph_vertex_t<adj_list_type>;
 

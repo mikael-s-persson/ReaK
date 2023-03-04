@@ -64,13 +64,10 @@ int main() {
 
   using WorldGrid2BF = WorldPartition2BF::adj_list_type;
 
-  const unsigned int grid_sizes[] = {
+  const std::vector<unsigned int> grid_sizes = {
       100,  200,  300,  400,  500,   800,   1000,  1100,  1300,  1500,
       1700, 1900, 2000, 2200, 2500,  3000,  3500,  4000,  4500,  5000,
       6000, 7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000, 30000};
-
-  //  const unsigned int grid_sizes[] = {50000, 100000, 200000, 500000, 1000000,
-  //                                     2000000, 5000000, 10000000, 20000000};
 
   std::ofstream outFile("test_vp_results/dvp_adj_list.dat");
   outFile << "N\tVP2\t (all times in micro-seconds per query per vertex)"

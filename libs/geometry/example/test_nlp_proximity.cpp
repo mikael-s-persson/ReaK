@@ -83,7 +83,7 @@ struct proximity_solver {
                    const std::shared_ptr<geom::shape_3D>& aShape2)
       : mShape1(aShape1), mShape2(aShape2){};
 
-  vect<double, 3> operator()() {
+  vect<double, 3> operator()() const {
     vect_n<double> x(0.0, 0.0, 0.0, 0.0);
     vect<double, 3> c1 =
         mShape1->getPose().transformToGlobal(vect<double, 3>(0.0, 0.0, 0.0));

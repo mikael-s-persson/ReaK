@@ -343,9 +343,9 @@ struct sat3D_estimate_result_to_recorder {
       : rec(aRec) {}
 
   void initialize() {}
-  void finalize() { (*rec) << ReaK::recorder::data_recorder::flush; }
+  void finalize() const { (*rec) << ReaK::recorder::data_recorder::flush; }
 
-  void mark_prediction_start(double time) {
+  void mark_prediction_start(double time) const {
     (*rec) << time;
     for (unsigned int i = 1; i < rec->getColCount(); ++i) {
       (*rec) << 0.0;
