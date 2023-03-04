@@ -45,19 +45,19 @@ namespace detail {
 
 template <typename T, typename Vector>
 T fletcher_reeves_beta_impl(const Vector& dx, const Vector& dx_prev,
-                            const Vector&) {
+                            const Vector& /*unused*/) {
   return (dx * dx) / (dx_prev * dx_prev);
 }
 
 template <typename T, typename Vector>
 T polak_ribiere_beta_impl(const Vector& dx, const Vector& dx_prev,
-                          const Vector&) {
+                          const Vector& /*unused*/) {
   return (dx * (dx - dx_prev)) / (dx_prev * dx_prev);
 }
 
 template <typename T, typename Vector>
 T hestenes_stiefel_beta_impl(const Vector& dx, const Vector& dx_prev,
-                             const Vector&) {
+                             const Vector& /*unused*/) {
   Vector tmp = dx - dx_prev;
   return (dx * tmp) / (dx_prev * tmp);
 }
@@ -329,15 +329,15 @@ void non_linear_conj_grad_method(
     Function f, GradFunction df, Vector& x, unsigned int max_iter,
     BetaCalculator get_beta, LineSearcher get_alpha,
     vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6)) {
-  typedef vect_value_type_t<Vector> ValueType;
+  using ValueType = vect_value_type_t<Vector>;
   using std::sqrt;
 
   Vector dx = -df(x);
   Vector Dx = dx;
   Vector dx_prev = dx;
-  ValueType alpha = ValueType(1.0);
-  ValueType beta = ValueType(1.0);
-  ValueType adfp_prev = ValueType(-1.0);
+  auto alpha = ValueType(1.0);
+  auto beta = ValueType(1.0);
+  auto adfp_prev = ValueType(-1.0);
   unsigned int k = 0;
 
   while (norm_2(Dx) > abs_tol) {
@@ -347,13 +347,15 @@ void non_linear_conj_grad_method(
     alpha = get_alpha(f, df, ValueType(0.0), alpha_0, x, Dx, abs_tol);
     adfp_prev *= alpha;
     x += alpha * Dx;
-    if (++k > max_iter)
+    if (++k > max_iter) {
       throw maximum_iteration(max_iter);
+    }
     dx_prev = dx;
     dx = -df(x);
     beta = get_beta(dx, dx_prev, Dx);
-    if (beta < ValueType(0.0))
+    if (beta < ValueType(0.0)) {
       beta = ValueType(0.0);
+    }
     Dx *= beta;
     Dx += dx;
   }

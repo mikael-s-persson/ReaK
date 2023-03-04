@@ -39,31 +39,28 @@ int main() {
 
   using namespace std::chrono;
 
-  typedef ReaK::pp::hyperbox_topology<ReaK::vect<double, 6>> TopologyType;
+  using TopologyType = ReaK::pp::hyperbox_topology<ReaK::vect<double, 6>>;
 
-  typedef TopologyType::point_type PointType;
+  using PointType = TopologyType::point_type;
 
-  typedef boost::property<boost::vertex_position_t, PointType,
-                          boost::no_property>
-      WorldGridVertexProperties;
+  using WorldGridVertexProperties =
+      boost::property<boost::vertex_position_t, PointType, boost::no_property>;
 
-  typedef boost::no_property WorldGridEdgeProperties;
+  using WorldGridEdgeProperties = boost::no_property;
 
-  typedef boost::adjacency_list_BC<
-      boost::vecBC, boost::vecBC, boost::undirectedS, WorldGridVertexProperties,
-      WorldGridEdgeProperties>
-      WorldGridType;
+  using WorldGridType =
+      boost::adjacency_list_BC<boost::vecBC, boost::vecBC, boost::undirectedS,
+                               WorldGridVertexProperties,
+                               WorldGridEdgeProperties>;
 
-  typedef boost::graph_traits<WorldGridType>::vertex_descriptor VertexType;
-  typedef ReaK::pp::dvp_tree<
+  using VertexType = boost::graph_traits<WorldGridType>::vertex_descriptor;
+  using WorldPartition4 = ReaK::pp::dvp_tree<
       VertexType, TopologyType,
-      boost::property_map<WorldGridType, boost::vertex_position_t>::type, 4>
-      WorldPartition4;
+      boost::property_map<WorldGridType, boost::vertex_position_t>::type, 4>;
 
-  typedef ReaK::pp::dvp_tree<
+  using WorldPartition2 = ReaK::pp::dvp_tree<
       VertexType, TopologyType,
-      boost::property_map<WorldGridType, boost::vertex_position_t>::type, 2>
-      WorldPartition2;
+      boost::property_map<WorldGridType, boost::vertex_position_t>::type, 2>;
 
   const unsigned int grid_sizes[] = {
       100,    200,    300,     400,     500,    800,   1000,  1100,
@@ -79,7 +76,7 @@ int main() {
   outFile << "N\tVP2\tVP4\t (all times in micro-seconds per query per vertex)"
           << std::endl;
 
-  for (int i = 0; i < 37; ++i) {
+  for (unsigned int grid_size : grid_sizes) {
     WorldGridType grid;
     TopologyType m_space("",
                          ReaK::vect<double, 6>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
@@ -87,13 +84,13 @@ int main() {
     boost::property_map<WorldGridType, boost::vertex_position_t>::type
         m_position(get(boost::vertex_position, grid));
 
-    for (unsigned int j = 0; j < grid_sizes[i]; ++j) {
+    for (unsigned int j = 0; j < grid_size; ++j) {
       VertexType v = add_vertex(grid);
       put(m_position, v, m_space.random_point());
     };
 
-    outFile << grid_sizes[i];
-    std::cout << "N = " << grid_sizes[i] << std::endl;
+    outFile << grid_size;
+    std::cout << "N = " << grid_size << std::endl;
 
     {
       WorldPartition2 part2_fresh(
@@ -112,7 +109,7 @@ int main() {
           high_resolution_clock::now() - t_start;
       outFile << "\t"
               << duration_cast<microseconds>(dt).count() * 0.001 /
-                     double(grid_sizes[i]);
+                     double(grid_size);
       std::cout << "VP2-fresh" << std::endl;
     };
 
@@ -133,7 +130,7 @@ int main() {
           high_resolution_clock::now() - t_start;
       outFile << "\t"
               << duration_cast<microseconds>(dt).count() * 0.001 /
-                     double(grid_sizes[i]);
+                     double(grid_size);
       std::cout << "VP4-fresh" << std::endl;
     };
 

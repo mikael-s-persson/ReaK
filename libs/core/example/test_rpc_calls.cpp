@@ -8,13 +8,13 @@ using namespace ReaK;
 
 rpc::function<bool(int, double)> foo;
 
-bool some_free_func(int, double) {
+bool some_free_func(int /*unused*/, double /*unused*/) {
   std::cout << "Hello! Free!" << std::endl;
   return true;
 };
 
 struct some_functor {
-  bool operator()(int, double) const {
+  bool operator()(int /*unused*/, double /*unused*/) const {
     std::cout << "Hello! Functor!" << std::endl;
     return false;
   };

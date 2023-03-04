@@ -7,6 +7,7 @@ set(REAK_CORE_SOURCES
   "bin_recorder.cpp"
   "data_record.cpp"
   "data_record_options.cpp"
+  "data_record_po.cpp"
   "network_recorder.cpp"
   "objtree_archiver.cpp"
   "protobuf_archiver.cpp"
@@ -29,4 +30,5 @@ set(REAK_CORE_SOURCES ${REAK_CORE_SOURCES}
 add_library(reak_core STATIC ${REAK_CORE_SOURCES})
 ReaK_setup_static_library(reak_core)
 target_link_libraries(reak_core ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(reak_core absl::strings absl::flags)
 

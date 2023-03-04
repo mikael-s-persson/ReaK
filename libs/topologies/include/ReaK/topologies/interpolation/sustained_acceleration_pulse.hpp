@@ -373,8 +373,9 @@ class sap_interpolator_factory : public serializable {
   double tolerance;
   unsigned int maximum_iterations;
 
-  sap_interpolator_factory(const std::shared_ptr<topology>& aSpace = {},
-                           double aTolerance = 1e-6, unsigned int aMaxIter = 60)
+  explicit sap_interpolator_factory(
+      const std::shared_ptr<topology>& aSpace = {}, double aTolerance = 1e-6,
+      unsigned int aMaxIter = 60)
       : space(aSpace), tolerance(aTolerance), maximum_iterations(aMaxIter) {}
 
   void set_temporal_space(const std::shared_ptr<topology>& aSpace) {
@@ -391,12 +392,13 @@ class sap_interpolator_factory : public serializable {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     A& RK_SERIAL_SAVE_WITH_NAME(space) & RK_SERIAL_SAVE_WITH_NAME(tolerance) &
         RK_SERIAL_SAVE_WITH_NAME(maximum_iterations);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     A& RK_SERIAL_LOAD_WITH_NAME(space) & RK_SERIAL_LOAD_WITH_NAME(tolerance) &
         RK_SERIAL_LOAD_WITH_NAME(maximum_iterations);
   }
@@ -434,7 +436,6 @@ class sap_interp_traj
   using topology = typename base_class_type::topology;
   using distance_metric = typename base_class_type::distance_metric;
 
- public:
   /**
    * Constructs the path from a space, assumes the start and end are at the origin
    * of the space.
@@ -479,12 +480,13 @@ class sap_interp_traj
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_class_type::save(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_class_type::load(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }

@@ -117,21 +117,22 @@ class default_fadprm_visitor {
     return {0.0, ei};
   }
   template <typename Graph>
-  double adjust_relaxation(double old_eps, const Graph&) const {
+  double adjust_relaxation(double old_eps, const Graph& /*unused*/) const {
     return old_eps;
   }
 
   // PRM visitor functions:
   template <typename Vertex, typename Graph>
-  void vertex_added(Vertex, const Graph&) const {}
+  void vertex_added(Vertex /*unused*/, const Graph& /*unused*/) const {}
   template <typename Edge, typename Graph>
-  void edge_added(Edge, const Graph&) const {}
+  void edge_added(Edge /*unused*/, const Graph& /*unused*/) const {}
   template <typename Vertex, typename Graph>
-  std::pair<PointType, bool> random_walk(Vertex, const Graph&) const {
+  std::pair<PointType, bool> random_walk(Vertex /*unused*/,
+                                         const Graph& /*unused*/) const {
     return {PointType(), false};
   }
   template <typename Vertex, typename Graph>
-  void update_density(Vertex, const Graph& g) const {}
+  void update_density(Vertex /*unused*/, const Graph& g) const {}
 
   // Common to both PRM and AD* visitors:
   bool keep_going() const { return true; }
@@ -268,7 +269,8 @@ struct fadprm_bfs_visitor {
   }
 
   template <typename Graph>
-  double adjust_epsilon(double old_eps, double, const Graph& g) const {
+  double adjust_epsilon(double old_eps, double /*unused*/,
+                        const Graph& g) const {
     return m_vis.adjust_relaxation(old_eps, g);
   }
 
@@ -499,8 +501,8 @@ inline void generate_fadprm_no_init(
   detail::adstar_search_loop(
       g, start_vertex, hval, bfs_vis, predecessor, distance, rhs, key_map,
       weight, color, index_in_heap, Q, I, epsilon,
-      std::numeric_limits<double>::infinity(), 0.0, std::less<double>(),
-      std::equal_to<double>(), std::plus<double>(), std::multiplies<double>());
+      std::numeric_limits<double>::infinity(), 0.0, std::less<>(),
+      std::equal_to<>(), std::plus<>(), std::multiplies<>());
 }
 
 /**

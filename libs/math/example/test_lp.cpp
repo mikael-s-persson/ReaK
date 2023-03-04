@@ -55,8 +55,9 @@ int main(int argc, const char** argv) {
 
 #else
 
-  if (argc < 2)
+  if (argc < 2) {
     return 1;
+  }
 
   std::vector<vect_n<double>> probs_c;
   std::vector<mat<double, mat_structure::rectangular>> probs_A;

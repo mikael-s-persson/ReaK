@@ -28,70 +28,67 @@
 #include <fstream>
 #include <iostream>
 
-#define BOOST_TEST_DYN_LINK
+#include "gtest/gtest.h"
 
-#define BOOST_TEST_MODULE mat_alg
-#include <boost/mpl/list.hpp>
-#include <boost/test/test_case_template.hpp>
-#include <boost/test/unit_test.hpp>
+namespace ReaK {
+namespace {
 
-BOOST_AUTO_TEST_CASE(mat_operator_tests) {
-  using namespace ReaK;
+TEST(MatAlg, MatOperatorTests) {
   using std::abs;
 
   mat<double, mat_structure::rectangular> m1234(1.0, 2.0, 3.0, 4.0);
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((abs(m1234(0, 0) - 1.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m1234(0, 1) - 2.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m1234(1, 0) - 3.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m1234(1, 1) - 4.0) < std::numeric_limits<double>::epsilon())));
 
   m1234 = transpose(m1234);
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((abs(m1234(0, 0) - 1.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m1234(0, 1) - 3.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m1234(1, 0) - 2.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m1234(1, 1) - 4.0) < std::numeric_limits<double>::epsilon())));
 
   m1234 = transpose_move(m1234);
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((abs(m1234(0, 0) - 1.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m1234(0, 1) - 2.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m1234(1, 0) - 3.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m1234(1, 1) - 4.0) < std::numeric_limits<double>::epsilon())));
 
   mat<double, mat_structure::rectangular> m_ident(2, 2, true);
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((abs(m_ident(0, 0) - 1.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m_ident(0, 1)) < std::numeric_limits<double>::epsilon()) &&
        (abs(m_ident(1, 0)) < std::numeric_limits<double>::epsilon()) &&
        (abs(m_ident(1, 1) - 1.0) < std::numeric_limits<double>::epsilon())));
 
-  BOOST_CHECK(
+  EXPECT_TRUE(
       (is_identity_mat(m_ident, std::numeric_limits<double>::epsilon())));
 
   mat_identity<double>::type m_ident2(2);
-  BOOST_CHECK(
+  EXPECT_TRUE(
       (is_identity_mat(m_ident2, std::numeric_limits<double>::epsilon())));
 
   mat_null<double>::type m_zeroes(2, 2);
-  BOOST_CHECK((is_null_mat(m_zeroes, std::numeric_limits<double>::epsilon())));
-  BOOST_CHECK((is_null_mat(m_zeroes * m_ident2,
+  EXPECT_TRUE((is_null_mat(m_zeroes, std::numeric_limits<double>::epsilon())));
+  EXPECT_TRUE((is_null_mat(m_zeroes * m_ident2,
                            std::numeric_limits<double>::epsilon())));
-  BOOST_CHECK((is_null_mat(m_ident2 * m_zeroes,
+  EXPECT_TRUE((is_null_mat(m_ident2 * m_zeroes,
                            std::numeric_limits<double>::epsilon())));
-  BOOST_CHECK(
+  EXPECT_TRUE(
       (is_null_mat(m_zeroes * m1234, std::numeric_limits<double>::epsilon())));
-  BOOST_CHECK(
+  EXPECT_TRUE(
       (is_null_mat(m1234 * m_zeroes, std::numeric_limits<double>::epsilon())));
 
   mat<double, mat_structure::rectangular> m1234_inv(-2.0, 1.0, 1.5, -0.5);
 
   //****************  Rectangular vs. Rectangular  **************************
-  BOOST_CHECK((is_identity_mat(m1234_inv * m1234,
+  EXPECT_TRUE((is_identity_mat(m1234_inv * m1234,
                                std::numeric_limits<double>::epsilon())));
 
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((is_identity_mat(0.5 * (m1234_inv * m1234 + m1234_inv * m1234),
                         std::numeric_limits<double>::epsilon())) &&
        (is_identity_mat((m1234_inv * m1234 + m1234_inv * m1234) * 0.5,
@@ -106,9 +103,9 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
   //****************  Square vs. Square  **************************
   mat<double, mat_structure::square> m1234_sqr(1.0, 2.0, 3.0, 4.0);
   mat<double, mat_structure::square> m1234_inv_sqr(-2.0, 1.0, 1.5, -0.5);
-  BOOST_CHECK((is_identity_mat(m1234_inv_sqr * m1234_sqr,
+  EXPECT_TRUE((is_identity_mat(m1234_inv_sqr * m1234_sqr,
                                std::numeric_limits<double>::epsilon())));
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((is_identity_mat(
            0.5 * (m1234_inv_sqr * m1234_sqr + m1234_inv_sqr * m1234_sqr),
            std::numeric_limits<double>::epsilon())) &&
@@ -124,12 +121,12 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
                     std::numeric_limits<double>::epsilon()))));
 
   //****************  Square vs. Rectangular  **************************
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((is_identity_mat(m1234_inv * ((m1234_inv_sqr * m1234_sqr) * m1234),
                         std::numeric_limits<double>::epsilon())) &&
        (is_identity_mat(m1234_inv * (m1234 * (m1234_inv_sqr * m1234_sqr)),
                         std::numeric_limits<double>::epsilon()))));
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((is_identity_mat(0.5 * (m1234 * m1234_inv + (m1234_inv_sqr * m1234_sqr)),
                         std::numeric_limits<double>::epsilon())) &&
        (is_identity_mat(0.5 * ((m1234_inv_sqr * m1234_sqr) + m1234 * m1234_inv),
@@ -144,9 +141,9 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
   //****************  Symmetric vs. Symmetric  **************************
   mat<double, mat_structure::symmetric> m123_sym(1.0, 2.0, 3.0);
   mat<double, mat_structure::symmetric> m123_inv_sym(-3.0, 2.0, -1.0);
-  BOOST_CHECK((is_identity_mat(m123_inv_sym * m123_sym,
+  EXPECT_TRUE((is_identity_mat(m123_inv_sym * m123_sym,
                                std::numeric_limits<double>::epsilon())));
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((is_identity_mat(
            0.5 * (m123_inv_sym * m123_sym + m123_inv_sym * m123_sym),
            std::numeric_limits<double>::epsilon())) &&
@@ -162,11 +159,11 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
                     std::numeric_limits<double>::epsilon()))));
 
   //****************  Symmetric vs. Rectangular  **************************
-  BOOST_CHECK(((is_identity_mat(m1234_inv * ((m123_sym * m123_inv_sym) * m1234),
+  EXPECT_TRUE(((is_identity_mat(m1234_inv * ((m123_sym * m123_inv_sym) * m1234),
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat(m1234_inv * (m1234 * (m123_sym * m123_inv_sym)),
                                 std::numeric_limits<double>::epsilon()))));
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((is_identity_mat(0.5 * (m1234 * m1234_inv + (m123_sym * m123_inv_sym)),
                         std::numeric_limits<double>::epsilon())) &&
        (is_identity_mat(0.5 * ((m123_sym * m123_inv_sym) + m1234 * m1234_inv),
@@ -179,12 +176,12 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
                         std::numeric_limits<double>::epsilon()))));
 
   //****************  Symmetric vs. Square  **************************
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((is_identity_mat(m1234_inv_sqr * ((m123_sym * m123_inv_sym) * m1234_sqr),
                         std::numeric_limits<double>::epsilon())) &&
        (is_identity_mat(m1234_inv_sqr * (m1234_sqr * (m123_sym * m123_inv_sym)),
                         std::numeric_limits<double>::epsilon()))));
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((is_identity_mat(
            0.5 * (m1234_sqr * m1234_inv_sqr + (m123_sym * m123_inv_sym)),
            std::numeric_limits<double>::epsilon())) &&
@@ -200,11 +197,11 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
 
   //****************  Rectangular vs. Diagonal  **************************
   mat<double, mat_structure::diagonal> m_ident_diag(2, 1.0);
-  BOOST_CHECK(((is_identity_mat(m1234_inv * (m_ident_diag * m1234),
+  EXPECT_TRUE(((is_identity_mat(m1234_inv * (m_ident_diag * m1234),
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat(m1234_inv * (m1234 * m_ident_diag),
                                 std::numeric_limits<double>::epsilon()))));
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((is_identity_mat(0.5 * (m1234 * m1234_inv + m_ident_diag),
                         std::numeric_limits<double>::epsilon())) &&
        (is_identity_mat(0.5 * (m_ident_diag + m1234 * m1234_inv),
@@ -216,11 +213,11 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
 
   //****************  Rectangular vs. Scalar  **************************
   mat<double, mat_structure::scalar> m_ident_scalar(2, 1.0);
-  BOOST_CHECK(((is_identity_mat(m1234_inv * (m_ident_scalar * m1234),
+  EXPECT_TRUE(((is_identity_mat(m1234_inv * (m_ident_scalar * m1234),
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat(m1234_inv * (m1234 * m_ident_scalar),
                                 std::numeric_limits<double>::epsilon()))));
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((is_identity_mat(0.5 * (m1234 * m1234_inv + m_ident_scalar),
                         std::numeric_limits<double>::epsilon())) &&
        (is_identity_mat(0.5 * (m_ident_scalar + m1234 * m1234_inv),
@@ -231,11 +228,11 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
                         std::numeric_limits<double>::epsilon()))));
 
   //****************  Rectangular vs. Identity  **************************
-  BOOST_CHECK(((is_identity_mat(m1234_inv * (m_ident2 * m1234),
+  EXPECT_TRUE(((is_identity_mat(m1234_inv * (m_ident2 * m1234),
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat(m1234_inv * (m1234 * m_ident2),
                                 std::numeric_limits<double>::epsilon()))));
-  BOOST_CHECK(((is_identity_mat(0.5 * (m1234 * m1234_inv + m_ident2),
+  EXPECT_TRUE(((is_identity_mat(0.5 * (m1234 * m1234_inv + m_ident2),
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat(0.5 * (m_ident2 + m1234 * m1234_inv),
                                 std::numeric_limits<double>::epsilon())) &&
@@ -245,10 +242,10 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
                                 std::numeric_limits<double>::epsilon()))));
 
   //****************  Rectangular vs. Null  **************************
-  BOOST_CHECK((
+  EXPECT_TRUE((
       (is_null_mat(m1234 * m_zeroes, std::numeric_limits<double>::epsilon())) &&
       (is_null_mat(m_zeroes * m1234, std::numeric_limits<double>::epsilon()))));
-  BOOST_CHECK(((is_identity_mat(m_zeroes - m1234_inv * (-m1234),
+  EXPECT_TRUE(((is_identity_mat(m_zeroes - m1234_inv * (-m1234),
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat(m1234_inv * m1234 - m_zeroes,
                                 std::numeric_limits<double>::epsilon())) &&
@@ -258,11 +255,11 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
                                 std::numeric_limits<double>::epsilon()))));
 
   //****************  Identity vs. Null  **************************
-  BOOST_CHECK(((is_identity_mat((m_zeroes * m_ident2) + m_ident2,
+  EXPECT_TRUE(((is_identity_mat((m_zeroes * m_ident2) + m_ident2,
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat((m_ident2 * m_zeroes) + m_ident2,
                                 std::numeric_limits<double>::epsilon()))));
-  BOOST_CHECK(((is_identity_mat((m_zeroes + m_zeroes) + m_ident2,
+  EXPECT_TRUE(((is_identity_mat((m_zeroes + m_zeroes) + m_ident2,
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat(m_ident2 - (m_zeroes + m_zeroes),
                                 std::numeric_limits<double>::epsilon())) &&
@@ -272,24 +269,24 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
                                 std::numeric_limits<double>::epsilon()))));
 
   //****************  Identity vs. Identity  **************************
-  BOOST_CHECK(((is_identity_mat((m_ident2 + m_ident2) * 0.5,
+  EXPECT_TRUE(((is_identity_mat((m_ident2 + m_ident2) * 0.5,
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat(0.5 * (m_ident2 + m_ident2),
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat(m_ident2 * m_ident2,
                                 std::numeric_limits<double>::epsilon()))));
 
-  BOOST_CHECK(((is_identity_mat((m_ident2 - m_ident2) + m_ident2,
+  EXPECT_TRUE(((is_identity_mat((m_ident2 - m_ident2) + m_ident2,
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat(m_ident2 + (m_ident2 - m_ident2),
                                 std::numeric_limits<double>::epsilon()))));
 
   //****************  Identity vs. Null  **************************
-  BOOST_CHECK(((is_identity_mat((m_zeroes * m_ident2) + m_ident2,
+  EXPECT_TRUE(((is_identity_mat((m_zeroes * m_ident2) + m_ident2,
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat((m_ident2 * m_zeroes) + m_ident2,
                                 std::numeric_limits<double>::epsilon()))));
-  BOOST_CHECK(((is_identity_mat((m_zeroes + m_zeroes) + m_ident2,
+  EXPECT_TRUE(((is_identity_mat((m_zeroes + m_zeroes) + m_ident2,
                                 std::numeric_limits<double>::epsilon())) &&
                (is_identity_mat(m_ident2 - (m_zeroes + m_zeroes),
                                 std::numeric_limits<double>::epsilon())) &&
@@ -299,82 +296,82 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
                                 std::numeric_limits<double>::epsilon()))));
 
   mat<double, mat_structure::rectangular> m4321_orig(4.0, 2.0, 3.0, 1.0);
-  double f4321[] = {4.0, 3.0, 2.0, 1.0};
-  std::vector<double> v4321(f4321, f4321 + 4);
+  std::array<double, 4> f4321 = {4.0, 3.0, 2.0, 1.0};
+  std::vector<double> v4321(f4321.begin(), f4321.end());
   mat<double> m4321(v4321, 2, 2);
-  BOOST_CHECK((
+  EXPECT_TRUE((
       is_null_mat(m4321 - m4321_orig, std::numeric_limits<double>::epsilon())));
 
   mat<double> m4321_cpy(m4321);
-  BOOST_CHECK((is_null_mat(m4321_cpy - m4321_orig,
+  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig,
                            std::numeric_limits<double>::epsilon())));
 
   m4321_cpy = m4321;
-  BOOST_CHECK((is_null_mat(m4321_cpy - m4321_orig,
+  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig,
                            std::numeric_limits<double>::epsilon())));
 
   m4321_cpy += mat<double>(2, 2, true);
-  BOOST_CHECK((is_identity_mat(m4321_cpy - m4321_orig,
+  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig,
                                std::numeric_limits<double>::epsilon())));
 
   m4321_cpy += mat_identity<double>::type(2);
-  BOOST_CHECK((is_identity_mat(m4321_cpy - m4321_orig - mat<double>(2, 2, true),
+  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig - mat<double>(2, 2, true),
                                std::numeric_limits<double>::epsilon())));
 
   m4321_cpy -= mat<double>(2, 2, true);
-  BOOST_CHECK((is_identity_mat(m4321_cpy - m4321_orig,
+  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig,
                                std::numeric_limits<double>::epsilon())));
 
   m4321_cpy -= mat_identity<double>::type(2);
-  BOOST_CHECK((is_null_mat(m4321_cpy - m4321_orig,
+  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig,
                            std::numeric_limits<double>::epsilon())));
 
   m4321_cpy *= 2.0;
-  BOOST_CHECK((is_null_mat(m4321_cpy - m4321_orig - m4321_orig,
+  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig - m4321_orig,
                            std::numeric_limits<double>::epsilon())));
 
   m4321_cpy = m4321_cpy * double(0.5);
-  BOOST_CHECK((is_null_mat(m4321_cpy - m4321_orig,
+  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig,
                            std::numeric_limits<double>::epsilon())));
 
   m4321_cpy = m4321_cpy + mat<double>(2, 2, true);
-  BOOST_CHECK((is_identity_mat(m4321_cpy - m4321_orig,
+  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig,
                                std::numeric_limits<double>::epsilon())));
 
   m4321_cpy = m4321_cpy + mat_identity<double>::type(2);
-  BOOST_CHECK((is_identity_mat(m4321_cpy - m4321_orig - mat<double>(2, 2, true),
+  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig - mat<double>(2, 2, true),
                                std::numeric_limits<double>::epsilon())));
 
   m4321_cpy = m4321_cpy - mat<double>(2, 2, true);
-  BOOST_CHECK((is_identity_mat(m4321_cpy - m4321_orig,
+  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig,
                                std::numeric_limits<double>::epsilon())));
 
   m4321_cpy = m4321_cpy - mat_identity<double>::type(2);
-  BOOST_CHECK((is_null_mat(m4321_cpy - m4321_orig,
+  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig,
                            std::numeric_limits<double>::epsilon())));
-  BOOST_CHECK((is_null_mat((-m4321_cpy) + m4321_orig,
+  EXPECT_TRUE((is_null_mat((-m4321_cpy) + m4321_orig,
                            std::numeric_limits<double>::epsilon())));
 
   m4321_cpy = m4321_cpy * mat_identity<double>::type(2);
-  BOOST_CHECK((is_null_mat(m4321_cpy - m4321_orig,
+  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig,
                            std::numeric_limits<double>::epsilon())));
 
-  BOOST_CHECK((m4321_cpy == m4321));
-  BOOST_CHECK((m4321_cpy != mat<double>(2, 2, true)));
-  BOOST_CHECK((m4321_cpy != mat_identity<double>::type(2)));
+  EXPECT_TRUE((m4321_cpy == m4321));
+  EXPECT_TRUE((m4321_cpy != mat<double>(2, 2, true)));
+  EXPECT_TRUE((m4321_cpy != mat_identity<double>::type(2)));
 
-  BOOST_CHECK((is_null_mat(m4321_cpy - m4321_orig,
+  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig,
                            std::numeric_limits<double>::epsilon())));
   vect_n<double> v85 = m4321_cpy * vect_n<double>(2, 1.0);
-  BOOST_CHECK(((abs(v85[0] - 6.0) < std::numeric_limits<double>::epsilon()) &&
+  EXPECT_TRUE(((abs(v85[0] - 6.0) < std::numeric_limits<double>::epsilon()) &&
                (abs(v85[1] - 4.0) < std::numeric_limits<double>::epsilon())));
   vect_n<double> v104 = vect_n<double>(2, 1.0) * m4321_cpy;
-  BOOST_CHECK(((abs(v104[0] - 7.0) < std::numeric_limits<double>::epsilon()) &&
+  EXPECT_TRUE(((abs(v104[0] - 7.0) < std::numeric_limits<double>::epsilon()) &&
                (abs(v104[1] - 3.0) < std::numeric_limits<double>::epsilon())));
 
   mat<double, mat_structure::rectangular> m_ident3(3, 3, true);
   set_block(m_ident3, m4321_cpy, 1, 1);
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((abs(m_ident3(0, 0) - 1.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m_ident3(0, 1) - 0.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m_ident3(0, 2) - 0.0) < std::numeric_limits<double>::epsilon()) &&
@@ -386,20 +383,20 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
        (abs(m_ident3(2, 2) - 1.0) < std::numeric_limits<double>::epsilon())));
 
   m4321_cpy = get_block(m_ident3, 1, 1, 2, 2);
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((abs(m4321_cpy(0, 0) - 4.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m4321_cpy(0, 1) - 2.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m4321_cpy(1, 0) - 3.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m4321_cpy(1, 1) - 1.0) < std::numeric_limits<double>::epsilon())));
   mat<double, mat_structure::rectangular> m4321_trans((transpose(m4321_cpy)));
-  BOOST_CHECK((
+  EXPECT_TRUE((
       (abs(m4321_trans(0, 0) - 4.0) < std::numeric_limits<double>::epsilon()) &&
       (abs(m4321_trans(0, 1) - 3.0) < std::numeric_limits<double>::epsilon()) &&
       (abs(m4321_trans(1, 0) - 2.0) < std::numeric_limits<double>::epsilon()) &&
       (abs(m4321_trans(1, 1) - 1.0) < std::numeric_limits<double>::epsilon())));
   mat<double, mat_structure::symmetric> m4321_sym =
       mat<double, mat_structure::symmetric>(m4321_cpy);
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((abs(m4321_sym(0, 0) - 4.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m4321_sym(0, 1) - 2.5) < std::numeric_limits<double>::epsilon()) &&
        (abs(m4321_sym(1, 0) - 2.5) < std::numeric_limits<double>::epsilon()) &&
@@ -407,7 +404,7 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
   mat<double, mat_structure::skew_symmetric> m4321_skew =
       mat<double, mat_structure::skew_symmetric>(m4321_cpy);
   const mat<double, mat_structure::skew_symmetric>& m4321_skew_ref = m4321_skew;
-  BOOST_CHECK(((abs(m4321_skew_ref(0, 0) - 0.0) <
+  EXPECT_TRUE(((abs(m4321_skew_ref(0, 0) - 0.0) <
                 std::numeric_limits<double>::epsilon()) &&
                (abs(m4321_skew_ref(0, 1) + 0.5) <
                 std::numeric_limits<double>::epsilon()) &&
@@ -417,7 +414,7 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
                 std::numeric_limits<double>::epsilon())));
   mat<double, mat_structure::rectangular> m4321_twice(
       (double(2.0) * m4321_cpy));
-  BOOST_CHECK((
+  EXPECT_TRUE((
       (abs(m4321_twice(0, 0) - 8.0) < std::numeric_limits<double>::epsilon()) &&
       (abs(m4321_twice(0, 1) - 4.0) < std::numeric_limits<double>::epsilon()) &&
       (abs(m4321_twice(1, 0) - 6.0) < std::numeric_limits<double>::epsilon()) &&
@@ -425,7 +422,7 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
 
   mat<double, mat_structure::diagonal> m123(vect_n<double>(1.0, 2.0, 3.0));
   const mat<double, mat_structure::diagonal>& m123_ref = m123;
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((abs(m123_ref(0, 0) - 1.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m123_ref(1, 1) - 2.0) < std::numeric_limits<double>::epsilon()) &&
        (abs(m123_ref(2, 2) - 3.0) < std::numeric_limits<double>::epsilon()) &&
@@ -439,7 +436,7 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
   mat<double, mat_structure::skew_symmetric> m123_skew =
       mat<double, mat_structure::skew_symmetric>(vect_n<double>(1.0, 2.0, 3.0));
   const mat<double, mat_structure::skew_symmetric>& m123_skew_ref = m123_skew;
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((abs(m123_skew_ref(0, 0)) < std::numeric_limits<double>::epsilon()) &&
        (abs(m123_skew_ref(1, 1)) < std::numeric_limits<double>::epsilon()) &&
        (abs(m123_skew_ref(2, 2)) < std::numeric_limits<double>::epsilon()) &&
@@ -456,3 +453,6 @@ BOOST_AUTO_TEST_CASE(mat_operator_tests) {
        (abs(m123_skew_ref(2, 1) - 1.0) <
         std::numeric_limits<double>::epsilon())));
 };
+
+}  // namespace
+}  // namespace ReaK

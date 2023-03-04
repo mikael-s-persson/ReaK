@@ -233,8 +233,8 @@ T expand_and_zoom_search_impl(Function f, GradFunction df, T& low_bound,
       return x2_value;
     }
     if (x2_grad >= T(0.0)) {
-      expand_and_zoom_zoom_impl(f, df, low_bound, x0_value, x0_grad, x2,
-                                x2_value, x2_grad, x1, x1_value, x1_grad,
+      expand_and_zoom_zoom_impl(f, df, low_bound, x0_value, x0_grad,  // NOLINT
+                                x2, x2_value, x2_grad, x1, x1_value, x1_grad,
                                 up_bound, tol, c1, c2);
       low_bound = x1;
       up_bound = x1;

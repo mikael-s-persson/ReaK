@@ -70,7 +70,7 @@ struct avlbfl_set : public avl_tree_impl<boost::bfl_d_ary_tree<2, T>, Compare,
   /**
     * Creates a AVL-tree set with no elements.
     */
-  explicit avlbfl_set(const allocator_type&) : base_impl_type() {}
+  explicit avlbfl_set(const allocator_type& /*unused*/) : base_impl_type() {}
 
   avlbfl_set() : avlbfl_set(allocator_type()) {}
 
@@ -78,7 +78,7 @@ struct avlbfl_set : public avl_tree_impl<boost::bfl_d_ary_tree<2, T>, Compare,
     * Creates a AVL-tree set with no elements.
     */
   explicit avlbfl_set(const Compare& comp,
-                      const allocator_type& = allocator_type())
+                      const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(comp) {}
 
   /**
@@ -90,7 +90,7 @@ struct avlbfl_set : public avl_tree_impl<boost::bfl_d_ary_tree<2, T>, Compare,
   template <typename InputIterator>
   avlbfl_set(InputIterator aFirst, InputIterator aLast,
              const Compare& comp = Compare(),
-             const allocator_type& = allocator_type())
+             const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aFirst, aLast, comp) {}
 
   /**
@@ -100,7 +100,7 @@ struct avlbfl_set : public avl_tree_impl<boost::bfl_d_ary_tree<2, T>, Compare,
     */
   avlbfl_set(std::initializer_list<value_type> aList,
              const Compare& comp = Compare(),
-             const allocator_type& = allocator_type())
+             const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aList, comp) {}
 };
 
@@ -131,7 +131,8 @@ struct avlbfl_multiset
   /**
     * Creates a AVL-tree multiset with no elements.
     */
-  explicit avlbfl_multiset(const allocator_type&) : base_impl_type() {}
+  explicit avlbfl_multiset(const allocator_type& /*unused*/)
+      : base_impl_type() {}
 
   avlbfl_multiset() : avlbfl_multiset(allocator_type()) {}
 
@@ -139,7 +140,7 @@ struct avlbfl_multiset
     * Creates a AVL-tree multiset with no elements.
     */
   explicit avlbfl_multiset(const Compare& comp,
-                           const allocator_type& = allocator_type())
+                           const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(comp) {}
 
   /**
@@ -151,7 +152,7 @@ struct avlbfl_multiset
   template <typename InputIterator>
   avlbfl_multiset(InputIterator aFirst, InputIterator aLast,
                   const Compare& comp = Compare(),
-                  const allocator_type& = allocator_type())
+                  const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aFirst, aLast, comp) {}
 
   /**
@@ -161,7 +162,7 @@ struct avlbfl_multiset
     */
   avlbfl_multiset(std::initializer_list<value_type> aList,
                   const Compare& comp = Compare(),
-                  const allocator_type& = allocator_type())
+                  const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aList, comp) {}
 };
 
@@ -194,7 +195,7 @@ struct avlbfl_map
   /**
     * Creates a AVL-tree map with no elements.
     */
-  explicit avlbfl_map(const allocator_type&) : base_impl_type() {}
+  explicit avlbfl_map(const allocator_type& /*unused*/) : base_impl_type() {}
 
   avlbfl_map() : avlbfl_map(allocator_type()) {}
 
@@ -202,7 +203,7 @@ struct avlbfl_map
     * Creates a AVL-tree map with no elements.
     */
   explicit avlbfl_map(const Compare& comp,
-                      const allocator_type& = allocator_type())
+                      const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(comp) {}
 
   /**
@@ -214,7 +215,7 @@ struct avlbfl_map
   template <typename InputIterator>
   avlbfl_map(InputIterator aFirst, InputIterator aLast,
              const Compare& comp = Compare(),
-             const allocator_type& = allocator_type())
+             const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aFirst, aLast, comp) {}
 
   /**
@@ -224,7 +225,7 @@ struct avlbfl_map
     */
   avlbfl_map(std::initializer_list<value_type> aList,
              const Compare& comp = Compare(),
-             const allocator_type& = allocator_type())
+             const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aList, comp) {}
 };
 
@@ -257,7 +258,8 @@ struct avlbfl_multimap
   /**
     * Creates a AVL-tree multimap with no elements.
     */
-  explicit avlbfl_multimap(const allocator_type&) : base_impl_type() {}
+  explicit avlbfl_multimap(const allocator_type& /*unused*/)
+      : base_impl_type() {}
 
   avlbfl_multimap() : avlbfl_multimap(allocator_type()) {}
 
@@ -265,7 +267,7 @@ struct avlbfl_multimap
     * Creates a AVL-tree multimap with no elements.
     */
   explicit avlbfl_multimap(const Compare& comp,
-                           const allocator_type& = allocator_type())
+                           const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(comp) {}
 
   /**
@@ -277,7 +279,7 @@ struct avlbfl_multimap
   template <typename InputIterator>
   avlbfl_multimap(InputIterator aFirst, InputIterator aLast,
                   const Compare& comp = Compare(),
-                  const allocator_type& = allocator_type())
+                  const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aFirst, aLast, comp) {}
 
   /**
@@ -287,7 +289,7 @@ struct avlbfl_multimap
     */
   avlbfl_multimap(std::initializer_list<value_type> aList,
                   const Compare& comp = Compare(),
-                  const allocator_type& = allocator_type())
+                  const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aList, comp) {}
 };
 
@@ -317,7 +319,7 @@ struct avlvebl_set : public avl_tree_impl<boost::vebl_d_ary_tree<2, T>, Compare,
   /**
     * Creates a AVL-tree set with no elements.
     */
-  explicit avlvebl_set(const allocator_type&) : base_impl_type() {}
+  explicit avlvebl_set(const allocator_type& /*unused*/) : base_impl_type() {}
 
   avlvebl_set() : avlvebl_set(allocator_type()) {}
 
@@ -325,7 +327,7 @@ struct avlvebl_set : public avl_tree_impl<boost::vebl_d_ary_tree<2, T>, Compare,
     * Creates a AVL-tree set with no elements.
     */
   explicit avlvebl_set(const Compare& comp,
-                       const allocator_type& = allocator_type())
+                       const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(comp) {}
 
   /**
@@ -337,7 +339,7 @@ struct avlvebl_set : public avl_tree_impl<boost::vebl_d_ary_tree<2, T>, Compare,
   template <typename InputIterator>
   avlvebl_set(InputIterator aFirst, InputIterator aLast,
               const Compare& comp = Compare(),
-              const allocator_type& = allocator_type())
+              const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aFirst, aLast, comp) {}
 
   /**
@@ -347,7 +349,7 @@ struct avlvebl_set : public avl_tree_impl<boost::vebl_d_ary_tree<2, T>, Compare,
     */
   avlvebl_set(std::initializer_list<value_type> aList,
               const Compare& comp = Compare(),
-              const allocator_type& = allocator_type())
+              const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aList, comp) {}
 };
 
@@ -378,7 +380,8 @@ struct avlvebl_multiset
   /**
     * Creates a AVL-tree multiset with no elements.
     */
-  explicit avlvebl_multiset(const allocator_type&) : base_impl_type() {}
+  explicit avlvebl_multiset(const allocator_type& /*unused*/)
+      : base_impl_type() {}
 
   avlvebl_multiset() : avlvebl_multiset(allocator_type()) {}
 
@@ -386,7 +389,7 @@ struct avlvebl_multiset
     * Creates a AVL-tree multiset with no elements.
     */
   explicit avlvebl_multiset(const Compare& comp,
-                            const allocator_type& = allocator_type())
+                            const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(comp) {}
 
   /**
@@ -398,7 +401,7 @@ struct avlvebl_multiset
   template <typename InputIterator>
   avlvebl_multiset(InputIterator aFirst, InputIterator aLast,
                    const Compare& comp = Compare(),
-                   const allocator_type& = allocator_type())
+                   const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aFirst, aLast, comp) {}
 
   /**
@@ -408,7 +411,7 @@ struct avlvebl_multiset
     */
   avlvebl_multiset(std::initializer_list<value_type> aList,
                    const Compare& comp = Compare(),
-                   const allocator_type& = allocator_type())
+                   const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aList, comp) {}
 };
 
@@ -441,7 +444,7 @@ struct avlvebl_map
   /**
     * Creates a AVL-tree map with no elements.
     */
-  explicit avlvebl_map(const allocator_type&) : base_impl_type() {}
+  explicit avlvebl_map(const allocator_type& /*unused*/) : base_impl_type() {}
 
   avlvebl_map() : avlvebl_map(allocator_type()) {}
 
@@ -449,7 +452,7 @@ struct avlvebl_map
     * Creates a AVL-tree map with no elements.
     */
   explicit avlvebl_map(const Compare& comp,
-                       const allocator_type& = allocator_type())
+                       const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(comp) {}
 
   /**
@@ -461,7 +464,7 @@ struct avlvebl_map
   template <typename InputIterator>
   avlvebl_map(InputIterator aFirst, InputIterator aLast,
               const Compare& comp = Compare(),
-              const allocator_type& = allocator_type())
+              const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aFirst, aLast, comp) {}
 
   /**
@@ -471,7 +474,7 @@ struct avlvebl_map
     */
   avlvebl_map(std::initializer_list<value_type> aList,
               const Compare& comp = Compare(),
-              const allocator_type& = allocator_type())
+              const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aList, comp) {}
 };
 
@@ -504,7 +507,8 @@ struct avlvebl_multimap
   /**
     * Creates a AVL-tree multimap with no elements.
     */
-  explicit avlvebl_multimap(const allocator_type&) : base_impl_type() {}
+  explicit avlvebl_multimap(const allocator_type& /*unused*/)
+      : base_impl_type() {}
 
   avlvebl_multimap() : avlvebl_multimap(allocator_type()) {}
 
@@ -512,7 +516,7 @@ struct avlvebl_multimap
     * Creates a AVL-tree multimap with no elements.
     */
   explicit avlvebl_multimap(const Compare& comp,
-                            const allocator_type& = allocator_type())
+                            const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(comp) {}
 
   /**
@@ -524,7 +528,7 @@ struct avlvebl_multimap
   template <typename InputIterator>
   avlvebl_multimap(InputIterator aFirst, InputIterator aLast,
                    const Compare& comp = Compare(),
-                   const allocator_type& = allocator_type())
+                   const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aFirst, aLast, comp) {}
 
   /**
@@ -534,7 +538,7 @@ struct avlvebl_multimap
     */
   avlvebl_multimap(std::initializer_list<value_type> aList,
                    const Compare& comp = Compare(),
-                   const allocator_type& = allocator_type())
+                   const allocator_type& /*unused*/ = allocator_type())
       : base_impl_type(aList, comp) {}
 };
 

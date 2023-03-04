@@ -97,12 +97,12 @@ class waypoint_container_base : public shared_object {
     if (!space) {
       return {waypoints.begin(), waypoints.begin()};
     }
-    const_waypoint_descriptor it_end = waypoints.end();
+    auto it_end = waypoints.end();
     if (start == it_end) {
       throw invalid_path("Waypoints exhausted during waypoint query!");
     }
     double d1 = dist(*start, p, *space);
-    const_waypoint_descriptor it2 = start;
+    auto it2 = start;
     ++it2;
     if (it2 == it_end) {
       return {start, start};
@@ -308,7 +308,7 @@ class waypoint_container_base<true, Topology, DistanceMetricBase>
       std::pair<const_waypoint_descriptor, const_waypoint_descriptor>;
 
   const_waypoint_bounds get_waypoint_bounds(double t) const {
-    const_waypoint_descriptor it2 = waypoints.lower_bound(t);
+    auto it2 = waypoints.lower_bound(t);
     if (it2 == waypoints.begin()) {
       return const_waypoint_bounds(it2, it2);
     }
@@ -316,7 +316,7 @@ class waypoint_container_base<true, Topology, DistanceMetricBase>
       return const_waypoint_bounds((++waypoints.rbegin()).base(),
                                    (++waypoints.rbegin()).base());
     }
-    const_waypoint_descriptor it1 = it2;
+    auto it1 = it2;
     --it1;
     return const_waypoint_bounds(it1, it2);
   }
@@ -588,7 +588,7 @@ class waypoint_container_base<true, Topology, DistanceMetricBase>
    * \return The end time of the waypoints.
    */
   double get_end_time() const {
-    const_waypoint_descriptor end = waypoints.end();
+    auto end = waypoints.end();
     --end;
     return end->first;
   }

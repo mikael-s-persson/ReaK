@@ -13,7 +13,8 @@ target_link_libraries(test_dvp_adj_list reak_topologies)
 
 add_executable(test_planners "test_planners.cpp")
 ReaK_setup_target(test_planners)
-target_link_libraries(test_planners reak_topologies)
+target_link_libraries(test_planners reak_planning reak_topologies)
+target_link_libraries(test_planners absl::flags absl::flags_parse)
 
 add_custom_target(test_hidim_planners)
 foreach(HIDIM_COUNTER 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
@@ -21,16 +22,19 @@ foreach(HIDIM_COUNTER 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
   ReaK_setup_target(test_hidim_planners_e${HIDIM_COUNTER})
   set_target_properties(test_hidim_planners_e${HIDIM_COUNTER} PROPERTIES COMPILE_DEFINITIONS "RK_HIDIM_PLANNER_N=${HIDIM_COUNTER}")
   target_link_libraries(test_hidim_planners_e${HIDIM_COUNTER} reak_planning reak_topologies)
+  target_link_libraries(test_hidim_planners_e${HIDIM_COUNTER} absl::flags absl::flags_parse)
   add_dependencies(test_hidim_planners test_hidim_planners_e${HIDIM_COUNTER})
 endforeach(HIDIM_COUNTER)
 
 add_executable(run_CRS_planner "run_CRS_planner.cpp")
 ReaK_setup_target(run_CRS_planner)
 target_link_libraries(run_CRS_planner reak_planning reak_topologies)
+target_link_libraries(run_CRS_planner absl::flags absl::flags_parse)
 
 add_executable(test_MEAQR_knn_methods "test_MEAQR_knn_methods.cpp")
 ReaK_setup_target(test_MEAQR_knn_methods)
 target_link_libraries(test_MEAQR_knn_methods reak_planning reak_control reak_topologies reak_mbd reak_core)
+target_link_libraries(test_MEAQR_knn_methods absl::flags absl::flags_parse)
 
 add_executable(X8_run_planner "X8_run_planner.cpp")
 ReaK_setup_target(X8_run_planner)
@@ -91,6 +95,7 @@ if(COIN3D_FOUND AND QT_FOUND)
   ReaK_setup_target(CRS_planner)
   target_link_libraries(CRS_planner reak_planning_qt reak_control_qt reak_planning reak_mbd_coin)
   target_link_libraries(CRS_planner ${COIN3D_LIBRARIES} ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
+  target_link_libraries(CRS_planner absl::flags absl::flags_parse)
   
 endif()
 

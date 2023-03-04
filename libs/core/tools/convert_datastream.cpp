@@ -29,46 +29,29 @@
 #include <chrono>
 #include <thread>
 
-#include <boost/program_options.hpp>
-
-namespace po = boost::program_options;
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
 
 namespace ch = std::chrono;
 typedef ch::steady_clock stc;
 typedef ch::high_resolution_clock hrc;
 
+ABSL_FLAG(
+    bool, echo, false,
+    "Echo all the output to the terminal (do not use with stdout sreaming).");
+ABSL_FLAG(std::string, add_relative_time, "",
+          "Add a relative timing of the received data to the output stream, as "
+          "first column, with the name given.");
+
 int main(int argc, char** argv) {
   using namespace ReaK;
   using namespace recorder;
 
-  po::options_description generic_options("Generic options");
-  generic_options.add_options()("help,h", "produce this help message.")(
-      "echo",
-      "echo all the output to the terminal (do not use with std-out "
-      "streaming).")("add-rel-time", po::value<std::string>(),
-                     "add a relative timing of the received data to the output "
-                     "stream, as first column, with the name given.");
-
-  po::options_description io_options =
-      get_data_stream_options_po_desc(true, true);
-
-  po::options_description cmdline_options;
-  cmdline_options.add(generic_options).add(io_options);
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
-  po::notify(vm);
-
-  if (vm.count("help")) {
-    std::cout << cmdline_options << std::endl;
-    return 1;
-  };
+  absl::ParseCommandLine(argc, argv);
 
   try {
-    data_stream_options data_in_opt =
-        get_data_stream_options_from_po(vm, false);
-    data_stream_options data_out_opt =
-        get_data_stream_options_from_po(vm, true);
+    data_stream_options data_in_opt = get_data_stream_options_from_flags(false);
+    data_stream_options data_out_opt = get_data_stream_options_from_flags(true);
 
     std::shared_ptr<data_extractor> data_in;
     std::vector<std::string> names_in;
@@ -78,10 +61,11 @@ int main(int argc, char** argv) {
       data_out_opt.names = names_in;
     } else {
       names_in = data_out_opt.names;
-    };
-    if (vm.count("add-rel-time"))
+    }
+    if (!absl::GetFlag(FLAGS_add_relative_time).empty()) {
       data_out_opt.names.insert(data_out_opt.names.begin(),
-                                vm["add-rel-time"].as<std::string>());
+                                absl::GetFlag(FLAGS_add_relative_time));
+    }
     std::shared_ptr<data_recorder> data_out = data_out_opt.create_recorder();
 
     named_value_row nvr_in = data_in->getFreshNamedValueRow();
@@ -101,34 +85,37 @@ int main(int argc, char** argv) {
         } catch (out_of_bounds& e) {
           RK_UNUSED(e);
           nvr_out[names_in[i]] = 0.0;
-        };
-      };
+        }
+      }
       if (!data_out_opt.time_sync_name.empty()) {
-        if (in_time_0 == std::numeric_limits<double>::infinity())
+        if (in_time_0 == std::numeric_limits<double>::infinity()) {
           in_time_0 = nvr_in[data_out_opt.time_sync_name];
+        }
         // wait until the proper time to output the value.
         stc::time_point t_to_reach =
             t_0 + ch::duration_cast<stc::duration>(
                       ch::duration<double, std::ratio<1, 1>>(
                           nvr_in[data_out_opt.time_sync_name] - in_time_0));
         std::this_thread::sleep_until(t_to_reach);
-      } else if (vm.count("add-rel-time")) {
-        nvr_out[vm["add-rel-time"].as<std::string>()] =
+      } else if (!absl::GetFlag(FLAGS_add_relative_time).empty()) {
+        nvr_out[absl::GetFlag(FLAGS_add_relative_time)] =
             ch::duration_cast<ch::duration<double>>(hrt_1 - hrt_0).count();
-      };
-      if (vm.count("echo")) {
+      }
+      if (absl::GetFlag(FLAGS_echo)) {
         std::cout << "\n\n\n\n";
-        if (vm.count("add-rel-time"))
-          std::cout << vm["add-rel-time"].as<std::string>() << '\t'
+        if (!absl::GetFlag(FLAGS_add_relative_time).empty()) {
+          std::cout << absl::GetFlag(FLAGS_add_relative_time) << '\t'
                     << std::setw(16)
-                    << nvr_out[vm["add-rel-time"].as<std::string>()] << '\n';
-        for (std::size_t i = 0; i < names_in.size(); ++i)
+                    << nvr_out[absl::GetFlag(FLAGS_add_relative_time)] << '\n';
+        }
+        for (std::size_t i = 0; i < names_in.size(); ++i) {
           std::cout << names_in[i] << '\t' << std::setw(16)
                     << nvr_out[names_in[i]] << '\n';
+        }
         std::cout << std::flush;
-      };
+      }
       (*data_out) << nvr_out;
-    };
+    }
 
   } catch (std::invalid_argument& e) {
     std::cerr << "Error! Creation of data-streams failed! Invalid argument: "
@@ -136,7 +123,7 @@ int main(int argc, char** argv) {
     return 1;
   } catch (end_of_record& e) {
     RK_UNUSED(e);
-  };
+  }
 
   return 0;
-};
+}

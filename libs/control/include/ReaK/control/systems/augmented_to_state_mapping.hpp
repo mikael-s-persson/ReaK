@@ -55,9 +55,7 @@ struct augmented_to_state_map : public named_object {
 
   using self = augmented_to_state_map;
 
-  augmented_to_state_map() : named_object() {
-    setName("augmented_to_state_map");
-  }
+  augmented_to_state_map() { setName("augmented_to_state_map"); }
 
   /**
    * This function extracts the state from a augmented-state.
@@ -83,10 +81,12 @@ struct augmented_to_state_map : public named_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
     named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
   }
 

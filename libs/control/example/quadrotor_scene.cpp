@@ -21,12 +21,12 @@ int main(int argc, char** argv) {
   using namespace pp;
   using namespace ctrl;
 
-  typedef IHAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
-                         position_only_sampler>
-      IHAQR_space_type;
-  typedef MEAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
-                         position_only_sampler>
-      MEAQR_space_type;
+  using IHAQR_space_type =
+      IHAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
+                     position_only_sampler>;
+  using MEAQR_space_type =
+      MEAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
+                     position_only_sampler>;
 
   std::shared_ptr<quadrotor_system> quad_sys;
   std::shared_ptr<IHAQR_space_type> quad_space;

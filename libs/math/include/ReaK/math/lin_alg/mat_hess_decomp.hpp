@@ -149,8 +149,9 @@ void reduce_HessTri_offset_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 
   for (int j = 0; j + 2 < N; ++j) {
     for (int i = N - 1; i > j + 1; --i) {
-      if (abs(A(i, j)) < absNumTol)
+      if (abs(A(i, j)) < absNumTol) {
         continue;
+      }
 
       G.set(A(row_offset + i - 1, j), A(row_offset + i, j));
 

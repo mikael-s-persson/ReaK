@@ -207,14 +207,15 @@ class MEAQR_sbastar_planner
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(m_init_dens_threshold) &
         RK_SERIAL_SAVE_WITH_NAME(m_init_relaxation) &
         RK_SERIAL_SAVE_WITH_NAME(m_SA_init_temperature);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(m_init_dens_threshold) &
         RK_SERIAL_LOAD_WITH_NAME(m_init_relaxation) &
@@ -251,7 +252,7 @@ struct MEAQR_sbastar_visitor
   using planner_base_type = typename base_type::planner_base_type;
   using query_type = typename base_type::query_type;
 
-  MEAQR_sbastar_visitor(
+  explicit MEAQR_sbastar_visitor(
       planner_base_type* aPlanner, query_type* aQuery = nullptr,
       any_knn_synchro* aNNSynchro = nullptr, std::any aStartNode = std::any(),
       std::any aGoalNode = std::any(), double aDensityCutoff = 0.0,
@@ -299,10 +300,10 @@ struct MEAQR_sbastar_visitor
           this->m_planner->get_steer_progress_tolerance() * target_dist) {
         get<1>(result) = true;
         return result;
-      } else {
-        p_rnd = get_sample(sup_space);
-        dp_rnd = sup_space.difference(p_rnd, sup_space.origin());
       }
+      p_rnd = get_sample(sup_space);
+      dp_rnd = sup_space.difference(p_rnd, sup_space.origin());
+
     } while (++i <= 10);
     get<1>(result) = false;
     return result;
@@ -431,7 +432,7 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
       this, &aQuery, nullptr, std::any(), std::any(),
       this->m_init_dens_threshold);
 
-  path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr =
+  auto* p2p_query_ptr =
       reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
           path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
 

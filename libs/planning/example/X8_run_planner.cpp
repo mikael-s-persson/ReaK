@@ -27,23 +27,24 @@
 
 #include <ReaK/core/serialization/xml_archiver.hpp>
 #include <ReaK/math/optimization/optim_exceptions.hpp>
+#include <memory>
 
 using namespace ReaK;
 using namespace pp;
 using namespace ctrl;
 
-typedef IHAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
-                       position_only_sampler>
-    X8_IHAQR_space_type;
-typedef MEAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
-                       position_only_sampler>
-    X8_MEAQR_space_type;
-typedef IHAQR_topology_with_CD<quadrotor_system::state_space_type,
-                               quadrotor_system, position_only_sampler>
-    X8_IHAQRCD_space_type;
-typedef MEAQR_topology_with_CD<quadrotor_system::state_space_type,
-                               quadrotor_system, position_only_sampler>
-    X8_MEAQRCD_space_type;
+using X8_IHAQR_space_type =
+    IHAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
+                   position_only_sampler>;
+using X8_MEAQR_space_type =
+    MEAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
+                   position_only_sampler>;
+using X8_IHAQRCD_space_type =
+    IHAQR_topology_with_CD<quadrotor_system::state_space_type, quadrotor_system,
+                           position_only_sampler>;
+using X8_MEAQRCD_space_type =
+    MEAQR_topology_with_CD<quadrotor_system::state_space_type, quadrotor_system,
+                           position_only_sampler>;
 
 int main(int argc, char** argv) {
   using namespace ReaK;
@@ -69,7 +70,7 @@ int main(int argc, char** argv) {
   };
 
   std::shared_ptr<kte::UAV_kinematics> builder =
-      std::shared_ptr<kte::UAV_kinematics>(new kte::UAV_kinematics());
+      std::make_shared<kte::UAV_kinematics>();
   std::shared_ptr<kte::kte_map_chain> kin_chain = builder->getKTEChain();
 
   std::shared_ptr<frame_3D<double>> X8_base_frame;
@@ -137,7 +138,8 @@ int main(int argc, char** argv) {
   std::string output_path(argv[4]);
 
   try {
-    quadrotor_system::state_space_type::point_type start_state, goal_state;
+    quadrotor_system::state_space_type::point_type start_state;
+    quadrotor_system::state_space_type::point_type goal_state;
     set_position(start_state, start_position);
     set_position(goal_state, end_position);
 
@@ -164,9 +166,9 @@ int main(int argc, char** argv) {
     path_planning_p2p_query<X8_MEAQRCD_space_type> pp_query(
         "pp_query", X8_MEAQR_space, start_point, goal_point, max_results);
 
-    typedef MEAQR_rrtstar_planner<quadrotor_system::state_space_type,
-                                  quadrotor_system, position_only_sampler>
-        X8_rrtstar_planner_type;
+    using X8_rrtstar_planner_type =
+        MEAQR_rrtstar_planner<quadrotor_system::state_space_type,
+                              quadrotor_system, position_only_sampler>;
     X8_rrtstar_planner_type X8_planner(
         X8_MEAQR_space, max_vertices, prog_interval,
         ADJ_LIST_MOTION_GRAPH | knn_method, UNIDIRECTIONAL_PLANNING, 0.1, 0.05,

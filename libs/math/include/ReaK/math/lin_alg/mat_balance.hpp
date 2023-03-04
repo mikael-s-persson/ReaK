@@ -163,9 +163,11 @@ balance_pencil(Matrix1& A, Matrix2& B, Matrix3& Dl, Matrix4& Dr) {
 
   mat<ValueType, mat_structure::square> M =
       mat<ValueType, mat_structure::square>(N);
-  for (int i = 0; i < N; ++i)
-    for (int j = 0; j < N; ++j)
+  for (int i = 0; i < N; ++i) {
+    for (int j = 0; j < N; ++j) {
       M(i, j) = A(i, j) * A(i, j) + B(i, j) * B(i, j);
+    }
+  }
 
   while (true) {
     int e_min = 0;
@@ -173,9 +175,10 @@ balance_pencil(Matrix1& A, Matrix2& B, Matrix3& Dl, Matrix4& Dr) {
 
     for (int i = 0; i < N; ++i) {
       ValueType sum = ValueType(0.0);
-      for (int j = 0; j < N; ++j)
+      for (int j = 0; j < N; ++j) {
         sum += M(i, j);
-      int e;
+      }
+      int e = 0;
       frexp(sum, &e);
       e = -(e / 2);  // using integer arithmetic
       for (int j = 0; j < N; ++j) {
@@ -184,17 +187,20 @@ balance_pencil(Matrix1& A, Matrix2& B, Matrix3& Dl, Matrix4& Dr) {
         M(i, j) = ldexp(M(i, j), 2 * e);
       }
       Dl(i, i) = ldexp(Dl(i, i), -e);
-      if (e > e_max)
+      if (e > e_max) {
         e_max = e;
-      if (e < e_min)
+      }
+      if (e < e_min) {
         e_min = e;
+      }
     }
 
     for (int i = 0; i < N; ++i) {
       ValueType sum = ValueType(0.0);
-      for (int j = 0; j < N; ++j)
+      for (int j = 0; j < N; ++j) {
         sum += M(j, i);
-      int e;
+      }
+      int e = 0;
       frexp(sum, &e);
       e = -(e / 2);  // using integer arithmetic
       for (int j = 0; j < N; ++j) {
@@ -203,14 +209,17 @@ balance_pencil(Matrix1& A, Matrix2& B, Matrix3& Dl, Matrix4& Dr) {
         M(j, i) = ldexp(M(j, i), 2 * e);
       }
       Dr(i, i) = ldexp(Dr(i, i), e);
-      if (e > e_max)
+      if (e > e_max) {
         e_max = e;
-      if (e < e_min)
+      }
+      if (e < e_min) {
         e_min = e;
+      }
     }
 
-    if (e_max <= e_min + 2)
+    if (e_max <= e_min + 2) {
       break;
+    }
   }
 }
 
@@ -236,9 +245,10 @@ void balance_pencil(Matrix1& A, Matrix2& B, vect_n<int>& Dl, vect_n<int>& Dr) {
   static_assert(is_fully_writable_matrix_v<Matrix2>);
   if ((A.get_row_count() != A.get_col_count()) ||
       (B.get_row_count() != A.get_row_count()) ||
-      (B.get_row_count() != B.get_col_count()))
+      (B.get_row_count() != B.get_col_count())) {
     throw std::range_error(
         "Matrix pencil balancing is only possible on square matrices!");
+  }
 
   using ValueType = mat_value_type_t<Matrix1>;
   using std::frexp;
@@ -251,19 +261,22 @@ void balance_pencil(Matrix1& A, Matrix2& B, vect_n<int>& Dl, vect_n<int>& Dr) {
 
   mat<ValueType, mat_structure::square> M =
       mat<ValueType, mat_structure::square>(N);
-  for (int i = 0; i < N; ++i)
-    for (int j = 0; j < N; ++j)
+  for (int i = 0; i < N; ++i) {
+    for (int j = 0; j < N; ++j) {
       M(i, j) = A(i, j) * A(i, j) + B(i, j) * B(i, j);
+    }
+  }
 
   while (true) {
     int e_min = 0;
     int e_max = 0;
 
     for (int i = 0; i < N; ++i) {
-      ValueType sum = ValueType(0.0);
-      for (int j = 0; j < N; ++j)
+      auto sum = ValueType(0.0);
+      for (int j = 0; j < N; ++j) {
         sum += M(i, j);
-      int e;
+      }
+      int e = 0;
       frexp(sum, &e);
       e = -(e / 2);  // using integer arithmetic
       for (int j = 0; j < N; ++j) {
@@ -272,17 +285,20 @@ void balance_pencil(Matrix1& A, Matrix2& B, vect_n<int>& Dl, vect_n<int>& Dr) {
         M(i, j) = ldexp(M(i, j), 2 * e);
       }
       Dl[i] -= e;
-      if (e > e_max)
+      if (e > e_max) {
         e_max = e;
-      if (e < e_min)
+      }
+      if (e < e_min) {
         e_min = e;
+      }
     }
 
     for (int i = 0; i < N; ++i) {
-      ValueType sum = ValueType(0.0);
-      for (int j = 0; j < N; ++j)
+      auto sum = ValueType(0.0);
+      for (int j = 0; j < N; ++j) {
         sum += M(j, i);
-      int e;
+      }
+      int e = 0;
       frexp(sum, &e);
       e = -(e / 2);  // using integer arithmetic
       for (int j = 0; j < N; ++j) {
@@ -291,14 +307,17 @@ void balance_pencil(Matrix1& A, Matrix2& B, vect_n<int>& Dl, vect_n<int>& Dr) {
         M(j, i) = ldexp(M(j, i), 2 * e);
       }
       Dr[i] += e;
-      if (e > e_max)
+      if (e > e_max) {
         e_max = e;
-      if (e < e_min)
+      }
+      if (e < e_min) {
         e_min = e;
+      }
     }
 
-    if (e_max <= e_min + 2)
+    if (e_max <= e_min + 2) {
       break;
+    }
   }
 }
 

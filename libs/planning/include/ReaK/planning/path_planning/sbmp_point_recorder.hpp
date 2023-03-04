@@ -161,8 +161,8 @@ class sbmp_point_recorder : public shared_object {
               not_initialized_yet = false;
             }
 
-            for (std::size_t i = 0; i < v_s_new.size(); ++i) {
-              rec_out << v_s_new[i];
+            for (double i : v_s_new) {
+              rec_out << i;
             }
             rec_out << recorder::data_recorder::end_value_row;
           }
@@ -184,8 +184,8 @@ class sbmp_point_recorder : public shared_object {
           rec_out << recorder::data_recorder::end_name_row;
           not_initialized_yet = false;
         }
-        for (int i = 0; i < v_s_u.size(); ++i) {
-          rec_out << v_s_u[i];
+        for (double i : v_s_u) {
+          rec_out << i;
         }
         rec_out << recorder::data_recorder::end_value_row;
 
@@ -195,8 +195,8 @@ class sbmp_point_recorder : public shared_object {
               p_v, free_space.get_super_space(), *jt_space);
           v_s_u = to_vect<double>(s_u);
 
-          for (int i = 0; i < v_s_u.size(); ++i) {
-            rec_out << v_s_u[i];
+          for (double i : v_s_u) {
+            rec_out << i;
           }
           rec_out << recorder::data_recorder::end_value_row;
 
@@ -206,8 +206,8 @@ class sbmp_point_recorder : public shared_object {
             auto s_new = map_to_jt_space.map_to_space(
                 p_new, free_space.get_super_space(), *jt_space);
             vect_n<double> v_s_new = to_vect<double>(s_new);
-            for (int i = 0; i < v_s_new.size(); ++i) {
-              rec_out << v_s_new[i];
+            for (double i : v_s_new) {
+              rec_out << i;
             }
             rec_out << recorder::data_recorder::end_value_row;
           }
@@ -267,8 +267,8 @@ class sbmp_point_recorder : public shared_object {
       rec_out << ss2.str();
     }
     rec_out << recorder::data_recorder::end_name_row;
-    for (std::size_t i = 0; i < v_s_u.size(); ++i) {
-      rec_out << v_s_u[i];
+    for (double i : v_s_u) {
+      rec_out << i;
     }
     rec_out << recorder::data_recorder::end_value_row;
 
@@ -278,8 +278,8 @@ class sbmp_point_recorder : public shared_object {
       s_u = map_to_jt_space.map_to_space(u_pt, free_space.get_super_space(),
                                          *jt_space);
       v_s_u = to_vect<double>(s_u);
-      for (std::size_t i = 0; i < v_s_u.size(); ++i) {
-        rec_out << v_s_u[i];
+      for (double i : v_s_u) {
+        rec_out << i;
       }
       rec_out << recorder::data_recorder::end_value_row;
     }
@@ -293,7 +293,8 @@ class sbmp_point_recorder : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(next_reporter);
     if constexpr (!std::is_same_v<JointStateMapping, identity_topo_map>) {
@@ -304,7 +305,7 @@ class sbmp_point_recorder : public shared_object {
         RK_SERIAL_SAVE_WITH_NAME(file_path);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(next_reporter);
     if constexpr (!std::is_same_v<JointStateMapping, identity_topo_map>) {

@@ -72,12 +72,12 @@ struct no_position_caching_policy {
 
   template <typename Graph, typename PointType>
   struct effector {
-    explicit effector(Graph&) {}
+    explicit effector(Graph& /*unused*/) {}
 
     template <typename Vertex, typename Key, typename PositionMap,
               typename KeyMap>
-    void put_vertex(const Vertex& v, const Key& k, const PositionMap&,
-                    const KeyMap& key) const {
+    void put_vertex(const Vertex& v, const Key& k,
+                    const PositionMap& /*unused*/, const KeyMap& key) const {
       put(key, v, k);
     }
 
@@ -141,8 +141,8 @@ struct position_caching_policy {
     }
 
     template <typename Vertex, typename PositionMap, typename KeyMap>
-    PointType get_position(const Vertex& v, const PositionMap&,
-                           const KeyMap&) const {
+    PointType get_position(const Vertex& v, const PositionMap& /*unused*/,
+                           const KeyMap& /*unused*/) const {
       return get(m_cached_position, v);
     }
   };
@@ -414,9 +414,8 @@ class dvp_tree {
     TreeVertex u = m_impl.find_nearest(aPoint);
     if (u != boost::graph_traits<tree_indexer>::null_vertex()) {
       return m_tree[u].k;
-    } else {
-      return Key();
     }
+    return Key();
   }
 
   /**
@@ -425,7 +424,7 @@ class dvp_tree {
    * \return The vertices in the DVP-tree that are nearest predecessor and successor to the given point.
    */
   std::pair<Key, Key> find_nearest_pred_succ(const point_type& aPoint) const {
-    typedef graph::graph_vertex_t<tree_indexer> TreeVertex;
+    using TreeVertex = graph::graph_vertex_t<tree_indexer>;
     auto [u_pred, u_succ] = m_impl.find_nearest_pred_succ(aPoint);
     std::pair<Key, Key> result;
     if (u_pred != boost::graph_traits<tree_indexer>::null_vertex()) {

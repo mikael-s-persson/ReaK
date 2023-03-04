@@ -86,18 +86,17 @@ class discrete_point_path
                               const_waypoint_descriptor b) const {
     // first assume that a is before b:
     double sum = 0.0;
-    const_waypoint_descriptor a_cpy = a;
+    auto a_cpy = a;
     while (a_cpy != b) {
-      const_waypoint_descriptor a_next = a_cpy;
+      auto a_next = a_cpy;
       ++a_next;
       if (a_next == this->waypoints.end()) {
         if (b == this->waypoints.end()) {
           return sum;  // we're done.
-        } else {
-          return travel_distance_impl(
-              b,
-              a);  // this means that b must be before a, so, reverse the computation.
         }
+        return travel_distance_impl(
+            b,
+            a);  // this means that b must be before a, so, reverse the computation.
       }
       sum += get_dist()(*a_cpy, *a_next, get_space());
       a_cpy = a_next;
@@ -115,7 +114,7 @@ class discrete_point_path
 
     double sum = 0.0;
     while (sum < d) {
-      const_waypoint_descriptor a_next = a;
+      auto a_next = a;
       if (go_backwards) {
         if (a == this->waypoints.begin()) {
           return a;
@@ -144,7 +143,7 @@ class discrete_point_path
 
     double sum = 0.0;
     while (sum < d) {
-      const_waypoint_descriptor a_next = a;
+      auto a_next = a;
       if (go_backwards) {
         if (a == this->waypoints.begin()) {
           return a;
@@ -297,7 +296,7 @@ class discrete_point_path
   /**
    * Standard swap function.
    */
-  friend void swap(self& lhs, self& rhs) throw() {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
     swap(static_cast<base_class_type&>(lhs),
          static_cast<base_class_type&>(rhs));
@@ -316,7 +315,7 @@ class discrete_point_path
    * \return The end distance-iterator along the path.
    */
   point_distance_iterator end_distance_travel() const {
-    const_waypoint_descriptor it = this->waypoints.end();
+    auto it = this->waypoints.end();
     --it;
     return point_distance_iterator(this, it);
   }
@@ -334,7 +333,7 @@ class discrete_point_path
    * \return The end fraction-iterator along the path.
    */
   point_fraction_iterator end_fraction_travel() const {
-    const_waypoint_descriptor it = this->waypoints.end();
+    auto it = this->waypoints.end();
     --it;
     return point_fraction_iterator(this, it);
   }
@@ -460,12 +459,13 @@ class discrete_point_path
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_class_type::save(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_class_type::load(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }

@@ -110,7 +110,8 @@ void simplex_method_loop_impl(const Matrix& A, Matrix& B, const Vector& c,
           x[i_b[i]] -= t_max * y[i];
         }
         continue;
-      } else if (t_max != std::numeric_limits<ValueType>::infinity()) {
+      }
+      if (t_max != std::numeric_limits<ValueType>::infinity()) {
         x[i_n[enter_var]] += t_max;
         for (int i = 0; i < M; ++i) {
           x[i_b[i]] -= t_max * y[i];
@@ -147,7 +148,8 @@ void simplex_method_loop_impl(const Matrix& A, Matrix& B, const Vector& c,
           x[i_b[i]] += t_max * y[i];
         }
         continue;
-      } else if (t_max != std::numeric_limits<ValueType>::infinity()) {
+      }
+      if (t_max != std::numeric_limits<ValueType>::infinity()) {
         x[i_n[enter_var]] -= t_max;
         for (int i = 0; i < M; ++i) {
           x[i_b[i]] += t_max * y[i];
@@ -157,9 +159,10 @@ void simplex_method_loop_impl(const Matrix& A, Matrix& B, const Vector& c,
         decompose_QR(B, B_Q, B_R, tol);
         c_B[leave_var] = c[i_n[enter_var]];
         swap(i_b[leave_var], i_n[enter_var]);
-      } else
+      } else {
         throw unbounded_problem(
             "Simplex method failed due to an unbounded search domain!");
+      }
     }
   }
 }

@@ -215,8 +215,10 @@ class any_model_applicator<JointSpace, DKTopoMap, identity_topo_map, JointSpace>
    * \param aDKTopoMap The generic direct-kinematics topological-map object that is used to apply the configuration to
    * the model.
    */
-  explicit any_model_applicator(const DKTopoMap& aDKTopoMap = {})
+  explicit any_model_applicator(const DKTopoMap& aDKTopoMap)
       : dk_topomap(aDKTopoMap) {}
+
+  any_model_applicator() : any_model_applicator(DKTopoMap()) {}
 
   /**
    * This function applies the given configuration / joint-state onto some underlying (proximity-query) model.

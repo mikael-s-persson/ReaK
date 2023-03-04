@@ -79,7 +79,6 @@ class planning_query : public named_object {
 
   using solution_record_ptr = std::shared_ptr<solution_base_type>;
 
- public:
   std::shared_ptr<space_type> space;
 
   /**
@@ -236,12 +235,13 @@ class planning_query : public named_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(space);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(space);
   }

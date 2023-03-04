@@ -29,6 +29,7 @@ target_link_libraries(build_X8_obstacle_courses reak_geom)
 add_executable(build_MD148_lab "build_MD148_lab.cpp")
 ReaK_setup_target(build_MD148_lab)
 target_link_libraries(build_MD148_lab reak_geom)
+target_link_libraries(build_MD148_lab absl::flags absl::flags_parse)
 
 
 

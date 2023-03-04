@@ -73,7 +73,6 @@ class prm_planner : public sample_based_planner<FreeSpaceType> {
   using point_difference_type =
       topology_point_difference_type_t<super_space_type>;
 
- public:
   std::size_t get_motion_graph_kind() const override {
     return ASTAR_MOTION_GRAPH_KIND | DENSE_MOTION_GRAPH_KIND;
   }
@@ -135,11 +134,12 @@ class prm_planner : public sample_based_planner<FreeSpaceType> {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
   }
 

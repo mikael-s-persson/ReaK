@@ -40,7 +40,7 @@ int main() {
 
   rot_mat_3D<double> Airship2IMU(Airship2IMU_raw.data());
 
-  quaternion<double> Airship2IMU_quat = quaternion<double>(Airship2IMU);
+  auto Airship2IMU_quat = quaternion<double>(Airship2IMU);
 
   quaternion<double> IMU_orientation = Airship2IMU_quat;
 
@@ -55,7 +55,7 @@ int main() {
 
   rot_mat_3D<double> Room2Global(Room2Global_raw.data());
 
-  quaternion<double> Room2Global_quat = quaternion<double>(Room2Global);
+  auto Room2Global_quat = quaternion<double>(Room2Global);
 
   quaternion<double> room_orientation = invert(Room2Global_quat);
 

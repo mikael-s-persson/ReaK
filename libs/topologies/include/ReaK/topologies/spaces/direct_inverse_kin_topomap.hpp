@@ -62,8 +62,8 @@ class manip_dk_ik_map : public shared_object {
    * \param aDKMap The direct-kinematics topological map.
    * \param aIKMap The inverse-kinematics topological map.
    */
-  manip_dk_ik_map(const DKMapType& aDKMap = DKMapType(),
-                  const IKMapType& aIKMap = IKMapType())
+  explicit manip_dk_ik_map(const DKMapType& aDKMap = DKMapType(),
+                           const IKMapType& aIKMap = IKMapType())
       : dk_map(aDKMap), ik_map(aIKMap) {}
 
   /**
@@ -105,8 +105,9 @@ class manip_dk_ik_map : public shared_object {
     };
 
     std::size_t dep3d_count = dk_map.model->getDependentFrames3DCount();
-    if (dep3d_count > ik_map.model->getDependentFrames3DCount())
+    if (dep3d_count > ik_map.model->getDependentFrames3DCount()) {
       dep3d_count = ik_map.model->getDependentFrames3DCount();
+    }
     for (std::size_t i = 0; i < dep3d_count; ++i) {
       std::shared_ptr<frame_3D<double>> EE_frame =
           ik_map.model->getDependentFrame3D(i)->mFrame;
@@ -120,11 +121,13 @@ class manip_dk_ik_map : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(dk_map) & RK_SERIAL_SAVE_WITH_NAME(ik_map);
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(dk_map) & RK_SERIAL_LOAD_WITH_NAME(ik_map);
   }

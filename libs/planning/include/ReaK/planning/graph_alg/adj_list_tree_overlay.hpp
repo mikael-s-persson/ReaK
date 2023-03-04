@@ -565,8 +565,8 @@ class alt_graph_view {
 
   struct mutation_visitor_base {
 
-    mutation_visitor_base() {}
-    virtual ~mutation_visitor_base() {}
+    mutation_visitor_base() = default;
+    virtual ~mutation_visitor_base() = default;
 
     virtual void remove_vertex(tree_vertex_desc,
                                alt_tree_view<AdjListOnTreeType>&) const = 0;
@@ -584,7 +584,7 @@ class alt_graph_view {
         (TreeOrganizerVisitorConcept<GraphMutationVisitor,
                                      alt_tree_view<AdjListOnTreeType>>));
 
-    mutation_visitor(GraphMutationVisitor aVis) : m_vis(aVis) {}
+    explicit mutation_visitor(GraphMutationVisitor aVis) : m_vis(aVis) {}
     ~mutation_visitor() override = default;
 
     void remove_vertex(tree_vertex_desc tv,

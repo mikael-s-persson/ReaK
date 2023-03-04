@@ -80,20 +80,22 @@ struct SubSpaceConcept {
 struct subspace_map : public shared_object {
   using self = subspace_map;
 
-  subspace_map(){};
+  subspace_map() = default;
+  ;
 
   template <typename PointType, typename SpaceIn>
   PointType map_to_space(
-      const PointType& p_in, const SpaceIn&,
-      const typename subspace_traits<SpaceIn>::super_space_type&) const {
+      const PointType& p_in, const SpaceIn& /*unused*/,
+      const typename subspace_traits<SpaceIn>::super_space_type& /*unused*/)
+      const {
     return p_in;
   }
 
   template <typename PointType, typename SpaceOut>
   PointType map_to_space(
       const PointType& p_in,
-      const typename subspace_traits<SpaceOut>::super_space_type&,
-      const SpaceOut&) const {
+      const typename subspace_traits<SpaceOut>::super_space_type& /*unused*/,
+      const SpaceOut& /*unused*/) const {
     return p_in;
   }
 
@@ -101,10 +103,12 @@ struct subspace_map : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
   }
 

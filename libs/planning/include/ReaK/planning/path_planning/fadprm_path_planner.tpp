@@ -90,7 +90,7 @@ struct fadprm_planner_visitor
 
   template <typename EdgeIter, typename Graph>
   std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei,
-                                                 const Graph&) const {
+                                                 const Graph& /*unused*/) const {
     return {0.0, ei};
   }
 };
@@ -112,9 +112,9 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(
   using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
   using PositionMap = boost::data_member_property_map<PointType, VertexProp>;
-  PositionMap pos_map = PositionMap(&VertexProp::position);
+  auto pos_map = PositionMap(&VertexProp::position);
 
-  double space_dim = double(this->get_space_dimensionality());
+  auto space_dim = double(this->get_space_dimensionality());
   double space_Lc = aQuery.get_heuristic_to_goal(aQuery.get_start_position());
 
   std::shared_ptr<const SuperSpace> sup_space_ptr(
@@ -122,7 +122,7 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(
 
   fadprm_planner_visitor<FreeSpaceType> vis(this, &aQuery);
 
-  path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr =
+  auto* p2p_query_ptr =
       reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
           path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
 

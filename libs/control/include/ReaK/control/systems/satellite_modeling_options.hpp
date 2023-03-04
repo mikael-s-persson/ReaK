@@ -162,6 +162,9 @@ struct satellite_model_options {
   /// Stores the initial motion of the satellite.
   frame_3D<double> initial_motion;
 
+  /// Specify the filename-stem for the output of the satellite system, when 'generate-files' is set.
+  std::string sys_output_stem_name;
+
   enum available_measurements {
     pose_measures = 0,
     gyro_measures = 16,

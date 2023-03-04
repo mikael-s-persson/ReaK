@@ -90,7 +90,6 @@ class path_planning_p2p_query : public planning_query<FreeSpaceType> {
           seq_trajectory_wrapper<point_to_point_trajectory<super_space_type>>,
           seq_path_wrapper<point_to_point_path<super_space_type>>>>;
 
- public:
   point_type start_pos;
   point_type goal_pos;
   std::size_t max_num_results;
@@ -195,14 +194,15 @@ class path_planning_p2p_query : public planning_query<FreeSpaceType> {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(start_pos) &
         RK_SERIAL_SAVE_WITH_NAME(goal_pos) &
         RK_SERIAL_SAVE_WITH_NAME(max_num_results);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(start_pos) &
         RK_SERIAL_LOAD_WITH_NAME(goal_pos) &

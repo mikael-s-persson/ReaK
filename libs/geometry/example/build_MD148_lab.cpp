@@ -40,53 +40,41 @@
 
 #include <ReaK/core/serialization/archiver_factory.hpp>
 
-#include <boost/program_options.hpp>
 #include <filesystem>
 
-namespace po = boost::program_options;
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+
 namespace fs = std::filesystem;
+
+// I/O options
+ABSL_FLAG(std::string, output_path, "models",
+          "Specify the output path (default is 'models').");
+ABSL_FLAG(std::string, output_name, "MD148_lab",
+          "Specify the output base-name (default is 'MD148_lab').");
+ABSL_FLAG(std::string, format, "xml",
+          "Specify the format that should be outputted (default is 'xml', but "
+          "can also be 'bin' or 'protobuf').");
 
 int main(int argc, char** argv) {
 
-  po::options_description generic_options("Generic options");
-  generic_options.add_options()("help,h", "produce this help message.");
+  absl::ParseCommandLine(argc, argv);
 
-  po::options_description io_options("I/O options");
-  io_options.add_options()("output-path,p",
-                           po::value<std::string>()->default_value("models"),
-                           "specify the output path (default is 'models')")(
-      "output-name,o", po::value<std::string>()->default_value("MD148_lab"),
-      "specify the output base-name (default is 'MD148_lab')")(
-      "format", po::value<std::string>()->default_value("xml"),
-      "specify the format that should be outputted (default is 'xml', but can "
-      "also be 'bin' or 'protobuf')");
+  std::string output_base_name = absl::GetFlag(FLAGS_output_name);
 
-  po::options_description cmdline_options;
-  cmdline_options.add(generic_options).add(io_options);
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
-  po::notify(vm);
-
-  if (vm.count("help")) {
-    std::cout << cmdline_options << std::endl;
-    return 1;
-  };
-
-  std::string output_base_name = vm["output-name"].as<std::string>();
-
-  std::string output_path_name = vm["output-path"].as<std::string>();
-  while (output_path_name[output_path_name.length() - 1] == '/')
+  std::string output_path_name = absl::GetFlag(FLAGS_output_path);
+  while (output_path_name[output_path_name.length() - 1] == '/') {
     output_path_name.erase(output_path_name.length() - 1, 1);
+  }
 
   fs::create_directory(output_path_name.c_str());
 
   std::string output_extension = ".rkx";
-  if (vm["format"].as<std::string>() == "bin") {
+  if (absl::GetFlag(FLAGS_format) == "bin") {
     output_extension = ".rkb";
-  } else if (vm["format"].as<std::string>() == "protobuf") {
-    output_extension = ".pbuf";
-  };
+  } else if (absl::GetFlag(FLAGS_format) == "protobuf") {
+    output_extension = ".pb";
+  }
 
   using namespace ReaK;
   using namespace geom;
@@ -155,9 +143,6 @@ int main(int argc, char** argv) {
   (*MD148_basic_lab)
       .addElement(color(0, 0, 0), lab_global_arrows)
       .addElement(color(0.3, 0.3, 0.3), lab_floor)
-      //     .addElement(color(0.8,0.8,0.8),lab_n_wall)
-      //     .addElement(color(0.8,0.8,0.8),lab_w_wall)
-      //     .addElement(color(0.8,0.8,0.8),lab_operator_wall)
       .addElement(color(0.35, 0.35, 0.35), lab_robot_track);
 
   (*MD148_lab_proxy)
@@ -173,4 +158,4 @@ int main(int argc, char** argv) {
       << MD148_basic_lab << MD148_lab_proxy;
 
   return 0;
-};
+}

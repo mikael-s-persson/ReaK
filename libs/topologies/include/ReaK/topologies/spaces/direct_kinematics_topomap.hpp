@@ -55,7 +55,7 @@ class manip_direct_kin_map : public shared_object {
   /** This data member points to a manipulator kinematics model to use for the mappings performed. */
   std::shared_ptr<kte::direct_kinematics_model> model;
 
-  manip_direct_kin_map(
+  explicit manip_direct_kin_map(
       const std::shared_ptr<kte::direct_kinematics_model>& aModel =
           std::shared_ptr<kte::direct_kinematics_model>())
       : model(aModel) {}
@@ -102,11 +102,13 @@ class manip_direct_kin_map : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(model);
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(model);
   }
@@ -132,7 +134,7 @@ class manip_rl_direct_kin_map : public shared_object {
   RateLimitMap joint_limits_map;
   std::shared_ptr<NormalJointSpace> normal_jt_space;
 
-  manip_rl_direct_kin_map(
+  explicit manip_rl_direct_kin_map(
       const std::shared_ptr<kte::direct_kinematics_model>& aModel =
           std::shared_ptr<kte::direct_kinematics_model>(),
       const RateLimitMap& aJointLimitMap = RateLimitMap(),
@@ -186,13 +188,15 @@ class manip_rl_direct_kin_map : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(model) &
         RK_SERIAL_SAVE_WITH_NAME(joint_limits_map) &
         RK_SERIAL_SAVE_WITH_NAME(normal_jt_space);
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(model) &
         RK_SERIAL_LOAD_WITH_NAME(joint_limits_map) &

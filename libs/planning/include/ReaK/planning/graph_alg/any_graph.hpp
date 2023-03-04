@@ -65,16 +65,16 @@ class any_graph {
     any_descriptor base;
     explicit vertex_descriptor(const any_descriptor& aBase) : base(aBase) {}
     vertex_descriptor() : vertex_descriptor(any_descriptor()) {}
-    operator any_descriptor&() { return base; }
-    operator const any_descriptor&() const { return base; }
+    operator any_descriptor&() { return base; }              // NOLINT
+    operator const any_descriptor&() const { return base; }  // NOLINT
   };
 
   struct edge_descriptor {
     any_descriptor base;
     explicit edge_descriptor(const any_descriptor& aBase) : base(aBase) {}
     edge_descriptor() : edge_descriptor(any_descriptor()) {}
-    operator any_descriptor&() { return base; }
-    operator const any_descriptor&() const { return base; }
+    operator any_descriptor&() { return base; }              // NOLINT
+    operator const any_descriptor&() const { return base; }  // NOLINT
   };
 
   using any_bundled = std::any;
@@ -166,7 +166,7 @@ class any_graph {
     return equal_edge_descriptors(aE, aF);
   }
 
-  virtual ~any_graph() {}
+  virtual ~any_graph() = default;
 
   /*******************************************************************************************
    *                  IncidenceGraph concept
@@ -282,7 +282,6 @@ class any_graph {
     g.remove_edge_mem(*e_iter);
   }
 
- public:
   template <typename ValueType>
   struct property_map_by_ptr
       : public boost::put_get_helper<ValueType&,
@@ -361,7 +360,7 @@ class type_erased_graph_iterator
   explicit type_erased_graph_iterator(Iterator aIt) : it(aIt) {}
   type_erased_graph_iterator() : type_erased_graph_iterator(Iterator()) {}
 
- public:  // private:
+  // private:
   friend class boost::iterator_core_access;
 
   void increment() { ++it; }
@@ -415,7 +414,7 @@ class type_erased_graph : public any_graph {
   real_graph_type* p_graph;
 
   void* get_property_by_ptr(std::string_view aProperty,
-                            const std::any&) const override {
+                            const std::any& /*aElement*/) const override {
     std::string err_message = "Unknown property: ";
     err_message += aProperty;
     throw std::invalid_argument(err_message.c_str());
@@ -457,7 +456,7 @@ class type_erased_graph : public any_graph {
           detail::type_erase_graph_iterator<edge_descriptor>(first),
           detail::type_erase_graph_iterator<edge_descriptor>(last));
     }
-    return edge_range();
+    return {};
   }
   edges_size_type num_edges_mem() const override {
     if constexpr (boost::is_edge_list_graph<real_graph_type>::value) {
@@ -490,9 +489,9 @@ class type_erased_graph : public any_graph {
     if constexpr (boost::is_adjacency_matrix<real_graph_type>::value) {
       auto [e, e_exists] = edge(std::any_cast<real_vertex_desc>(aU),
                                 std::any_cast<real_vertex_desc>(aV), *p_graph);
-      return std::pair(edge_descriptor(std::any(e)), e_exists);
+      return {edge_descriptor(std::any(e)), e_exists};
     }
-    return std::pair(edge_descriptor(), false);
+    return {edge_descriptor(), false};
   }
 
   out_edge_range out_edges_mem(
@@ -504,7 +503,7 @@ class type_erased_graph : public any_graph {
           detail::type_erase_graph_iterator<edge_descriptor>(first),
           detail::type_erase_graph_iterator<edge_descriptor>(last));
     }
-    return out_edge_range();
+    return {};
   }
 
   degree_size_type out_degree_mem(
@@ -523,7 +522,7 @@ class type_erased_graph : public any_graph {
           detail::type_erase_graph_iterator<edge_descriptor>(first),
           detail::type_erase_graph_iterator<edge_descriptor>(last));
     }
-    return in_edge_range();
+    return {};
   }
 
   degree_size_type in_degree_mem(
@@ -548,7 +547,7 @@ class type_erased_graph : public any_graph {
           detail::type_erase_graph_iterator<vertex_descriptor>(first),
           detail::type_erase_graph_iterator<vertex_descriptor>(last));
     }
-    return vertex_range();
+    return {};
   }
 
   vertices_size_type num_vertices_mem() const override {

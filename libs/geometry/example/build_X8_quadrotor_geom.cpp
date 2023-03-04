@@ -38,6 +38,7 @@
 #include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
 #include <ReaK/geometry/shapes/cylinder.hpp>
 #include <ReaK/geometry/shapes/sphere.hpp>
+#include <memory>
 
 int main() {
 
@@ -177,8 +178,7 @@ int main() {
       new sphere("X8_proxy_sphere", out_frame, pose_3D<double>(), 0.6));
 
   std::shared_ptr<colored_model_3D> geom_model =
-      std::shared_ptr<colored_model_3D>(
-          new colored_model_3D("X8_model_render"));
+      std::make_shared<colored_model_3D>("X8_model_render");
 
   (*geom_model)
       //.addElement(color(0,0,0),global_frame_arrows)
@@ -203,8 +203,7 @@ int main() {
       .addElement(color(0.1, 0.1, 0.1), Rskid);
 
   std::shared_ptr<proxy_query_model_3D> proxy_model =
-      std::shared_ptr<proxy_query_model_3D>(
-          new proxy_query_model_3D("X8_model_proxy"));
+      std::make_shared<proxy_query_model_3D>("X8_model_proxy");
 
   (*proxy_model).addShape(proxy_sphere);
 

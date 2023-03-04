@@ -139,12 +139,13 @@ class planner_base : public named_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(m_space);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(m_space);
     m_keep_going_external = true;
@@ -172,7 +173,7 @@ class sample_based_planner : public planner_base<FreeSpaceType> {
 
   std::size_t m_max_vertex_count;
   std::size_t m_progress_interval;
-  std::size_t m_iteration_count;
+  std::size_t m_iteration_count{0};
   std::size_t m_data_structure_flags;
   std::size_t m_planning_method_flags;
 
@@ -438,7 +439,7 @@ class sample_based_planner : public planner_base<FreeSpaceType> {
       : base_type(aName, aWorld),
         m_max_vertex_count(aMaxVertexCount),
         m_progress_interval(aProgressInterval),
-        m_iteration_count(0),
+
         m_data_structure_flags(aDataStructureFlags),
         m_planning_method_flags(aPlanningMethodFlags),
         m_steer_progress_tol(aSteerProgressTolerance),
@@ -453,7 +454,8 @@ class sample_based_planner : public planner_base<FreeSpaceType> {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(m_max_vertex_count) &
         RK_SERIAL_SAVE_WITH_NAME(m_progress_interval) &
@@ -466,7 +468,7 @@ class sample_based_planner : public planner_base<FreeSpaceType> {
         RK_SERIAL_SAVE_WITH_NAME(m_reporter);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(m_max_vertex_count) &
         RK_SERIAL_LOAD_WITH_NAME(m_progress_interval) &

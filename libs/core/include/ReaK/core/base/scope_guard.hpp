@@ -80,7 +80,7 @@ class scope_guard {
    * Construct the scope-guard with a functor to be called on the scope exit.
    * \param aF The functor to be called with no argument at scope exit.
    */
-  scope_guard(Functor aF) : f(std::move(aF)), isActive(true) {}
+  explicit scope_guard(Functor aF) : f(std::move(aF)), isActive(true) {}
   /**
    * Destructor.
    */
@@ -101,13 +101,14 @@ class scope_guard {
   /**
    * Standard move-constructor.
    */
-  scope_guard(scope_guard&& rhs) : f(std::move(rhs.f)), isActive(rhs.isActive) {
+  scope_guard(scope_guard&& rhs) noexcept
+      : f(std::move(rhs.f)), isActive(rhs.isActive) {
     rhs.dismiss();
   }
   /**
    * Standard move-assignment operator.
    */
-  scope_guard& operator=(scope_guard&& rhs) {
+  scope_guard& operator=(scope_guard&& rhs) noexcept {
     if (isActive) {
       f();
     }
@@ -155,7 +156,7 @@ namespace detail {
 struct scope_guard_on_exit {};
 
 template <typename Functor>
-scope_guard<Functor> operator+(scope_guard_on_exit, Functor&& f) {
+scope_guard<Functor> operator+(scope_guard_on_exit /*unused*/, Functor&& f) {
   return scope_guard<Functor>(std::forward<Functor>(f));
 }
 }  // namespace detail

@@ -115,9 +115,11 @@ int main() {
     std::size_t N = Ar.get_row_count();
     for (std::size_t i = N; i > r;) {
       --i;
-      for (std::size_t j = 0; j < N - r; ++j)
-        if (std::abs(Ar(i, j)) > 1e-6)
+      for (std::size_t j = 0; j < N - r; ++j) {
+        if (std::abs(Ar(i, j)) > 1e-6) {
           r = N - j;
+        }
+      }
     };
     // now, r contains the number of controllable states.
     std::cout << " r = " << r << std::endl;
@@ -148,7 +150,7 @@ int main() {
   solve_IHCT_LQR(A, B, Q, R, K, P, 1e-4, false);
 #endif
 
-    mat<double, mat_structure::rectangular> M_tmp = R;
+    const mat<double, mat_structure::rectangular>& M_tmp = R;
     mat<double, mat_structure::rectangular> M2_tmp(B.get_col_count(),
                                                    A.get_col_count());
     M2_tmp = transpose_view(B) * P;

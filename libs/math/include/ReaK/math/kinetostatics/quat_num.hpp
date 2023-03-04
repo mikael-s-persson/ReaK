@@ -73,7 +73,7 @@ unit_quat<T> oplus(const unit_quat<T>& a, const vect<T, 3>& b) {
 }
 
 template <typename T>
-T otransport(const T&, const T& v, const T&) {
+T otransport(const T& /*unused*/, const T& v, const T& /*unused*/) {
   return v;
 }
 
@@ -114,7 +114,7 @@ T slerp(const T& q0, const Scalar& eta, const T& q1) {
 
 template <typename FIter, typename Scalar>
 auto bezier(FIter qit_first, FIter qit_last, const Scalar& eta) {
-  typedef typename std::iterator_traits<FIter>::value_type Value;
+  using Value = typename std::iterator_traits<FIter>::value_type;
   std::vector<Value> qb(qit_first, qit_last);
   std::size_t M = qb.size();
   assert(M > 0);
@@ -130,7 +130,7 @@ template <typename FIter, typename Scalar>
 auto catmull_rom(FIter qit_first, FIter qit_last, const Scalar& eta,
                  const Scalar& alpha = Scalar(1.0)) {
   using std::pow;
-  typedef typename std::iterator_traits<FIter>::value_type Value;
+  using Value = typename std::iterator_traits<FIter>::value_type;
   std::vector<Value> qb(qit_first, qit_last);
   std::size_t M = qb.size();
   assert(M > 0);
@@ -139,8 +139,9 @@ auto catmull_rom(FIter qit_first, FIter qit_last, const Scalar& eta,
   }
   // first, compute the t-intervals:
   std::vector<Scalar> tv(M, 0.0);
-  for (std::size_t i = 1; i < M; ++i)
+  for (std::size_t i = 1; i < M; ++i) {
     tv[i] = tv[i - 1] + pow(norm_2(ominus(qb[i], qb[i - 1])), alpha);
+  }
   // then, compute t from eta [0..1]
   Scalar t = eta * (tv[tv.size() - 1] - tv[0]);
   // and finally, do the catmull-rom folding:
@@ -157,8 +158,9 @@ auto average(FIter qit_first, FIter qit_last) {
   assert(std::distance(qit_first, qit_last) > 0);
   auto result = *qit_first;
   ++qit_first;
-  for (std::size_t i = 1; qit_first != qit_last; ++i, ++qit_first)
+  for (std::size_t i = 1; qit_first != qit_last; ++i, ++qit_first) {
     result = slerp(result, 1.0 / (i + 1), *qit_first);
+  }
   return result;
 }
 

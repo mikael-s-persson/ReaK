@@ -51,6 +51,13 @@ message(STATUS "Configured compiler options for ${CMAKE_SYSTEM_NAME} system.")
 message(STATUS "   using C++ options: ${CMAKE_CXX_FLAGS}")
 
 
+# Process Abseil's CMake build system
+set(ABSL_PROPAGATE_CXX_STD ON)
+add_subdirectory(third_party/abseil-cpp)
+
+# Process googletest's CMake build system
+add_subdirectory(third_party/googletest)
+
 # Look for Python (needed by Boost.Python):
 
 find_package(Python3 COMPONENTS Development)
@@ -71,7 +78,7 @@ set(Boost_ADDITIONAL_VERSIONS "1.70" "1.70.0" "1.71" "1.71.0" "1.72" "1.72.0" "1
 set(Boost_USE_STATIC_LIBS ON)
 #set(Boost_USE_MULTITHREADED ON)
 
-find_package(Boost 1.70 COMPONENTS program_options unit_test_framework python REQUIRED)
+find_package(Boost 1.70 COMPONENTS python REQUIRED)
 
 if(Boost_FOUND)
   include_directories(SYSTEM ${Boost_INCLUDE_DIR})
@@ -105,6 +112,7 @@ include(ConfigDoxygenTargets)
 
 # Now set the global macros for setting up targets.
 macro(ReaK_setup_tool_program target_name)
+  set_target_properties(${target_name} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
   install(TARGETS ${target_name} RUNTIME DESTINATION bin COMPONENT ReaK_${REAK_CURRENT_MODULE}_tools)
   message(STATUS "Registered ReaK tool program ${target_name}.")
 endmacro(ReaK_setup_tool_program)
@@ -122,11 +130,13 @@ macro(ReaK_setup_shared_library target_name)
 endmacro(ReaK_setup_shared_library)
 
 macro(ReaK_setup_target target_name)
+  set_target_properties(${target_name} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
   set_property(TARGET ${target_name} PROPERTY RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/examples")
   message(STATUS "Registered ReaK target ${target_name}.")
 endmacro(ReaK_setup_target)
 
 macro(ReaK_setup_test_program target_name)
+  set_target_properties(${target_name} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
   set_property(TARGET ${target_name} PROPERTY RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/unit_tests")
   add_test(NAME "${target_name}" WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/unit_tests/" COMMAND "$<TARGET_FILE:${target_name}>")
   message(STATUS "Registered ReaK test program ${target_name}.")

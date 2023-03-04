@@ -140,7 +140,7 @@ class random_vp_chooser {
   /**
    * Default construction.
    */
-  random_vp_chooser() {}
+  random_vp_chooser() = default;
 
   /**
    * This call-operator will choose a vantage-point from within the given range.
@@ -302,10 +302,6 @@ class dvp_tree_impl {
   /// The vantage-point chooser (functor).
   VPChooser m_vp_chooser;
 
-  // non-copyable.
-  dvp_tree_impl(const self&);
-  self& operator=(const self&);
-
   using prop_vector_iter = typename std::vector<vertex_property>::iterator;
 
   struct construction_task {
@@ -323,8 +319,7 @@ class dvp_tree_impl {
     using std::iter_swap;
 
     // choose a vantage-point in the interval:
-    prop_vector_iter chosen_vp_it =
-        m_vp_chooser(aBegin, aEnd, m_distance, m_position);
+    auto chosen_vp_it = m_vp_chooser(aBegin, aEnd, m_distance, m_position);
     if (chosen_vp_it == aEnd) {
       // no vp to be chosen in this interval (presumably, empty interval).
       return aBegin;
@@ -364,14 +359,14 @@ class dvp_tree_impl {
       // update values in the dist-map with the distances to the new chosen vantage-point:
       const point_type& chosen_vp_pt =
           get(m_position, get_raw_vertex_property(*m_tree, cur_task.node));
-      for (prop_vector_iter it = cur_task.first; it != cur_task.last; ++it) {
+      for (auto it = cur_task.first; it != cur_task.last; ++it) {
         dist_map[get(m_key, *it)] =
             m_distance.proper_distance(chosen_vp_pt, get(m_position, *it));
       }
 
       // this loop splits up the children into as equal as possible partitions.
       std::size_t total_count = (cur_task.last - cur_task.first);
-      std::size_t child_count[Arity];
+      std::array<std::size_t, Arity> child_count = {};
       for (std::size_t i = Arity; i > 0; --i) {
         child_count[i - 1] = total_count / i;
         total_count -= child_count[i - 1];
@@ -379,7 +374,7 @@ class dvp_tree_impl {
       for (std::size_t i = 0; (i < Arity) && (child_count[i] > 0); ++i) {
         std::nth_element(cur_task.first, cur_task.first + (child_count[i] - 1),
                          cur_task.last, is_closer);
-        prop_vector_iter temp = cur_task.first;
+        auto temp = cur_task.first;
         cur_task.first += child_count[i];
         edge_property ep;
         put(m_mu, ep, dist_map[get(m_key, *(cur_task.first - 1))]);
@@ -404,10 +399,11 @@ class dvp_tree_impl {
     nearest_search_result_set(std::size_t aK, distance_type aRadius)
         : Neighbors(), K(aK), Radius(aRadius) {}
 
-    void register_vantage_point(const point_type&, const point_type&,
+    void register_vantage_point(const point_type& /*unused*/,
+                                const point_type& /*unused*/,
                                 distance_type current_dist,
                                 vertex_type current_vp,
-                                const parting_metrics_type&) {
+                                const parting_metrics_type& /*unused*/) {
       // is the vantage point within current search bound?
       if (current_dist < Radius) {
         // then add the vantage point to the NN list.
@@ -564,7 +560,8 @@ class dvp_tree_impl {
             ++ei_right;
           }
           break;
-        } else if (right_stopped) {
+        }
+        if (right_stopped) {
           auto ei_leftleft = ei_left;
           distance_type temp_dist = 0.0;
           while ((ei_left != ei) &&
@@ -576,48 +573,47 @@ class dvp_tree_impl {
             --ei_left;
           }
           break;
-        } else {
-          auto ei_leftleft = ei_left;
-          --ei_leftleft;
-          // greater than 0 if ei_leftleft should be searched.
-          distance_type d1 =
-              get(m_mu, get_raw_edge_property(*m_tree, *ei_leftleft));
-          auto ei_rightleft = ei_right;
-          --ei_rightleft;
-          // less than 0 if ei_right should be searched.
-          distance_type d2 =
-              get(m_mu, get_raw_edge_property(*m_tree, *ei_rightleft));
-          if (d1 + d2 > 2.0 * current_dist) {
-            // this means that ei_leftleft's boundary is closer to aPoint.
-            if (d1 + aResult.Radius - current_dist > 0) {
-              temp_invtasks.emplace(target(*ei_leftleft, *m_tree),
-                                    current_dist - d1);
-              ei_left = ei_leftleft;
-              if (d2 - aResult.Radius - current_dist < 0) {
-                temp_invtasks.emplace(target(*ei_right, *m_tree),
-                                      d2 - current_dist);
-                ++ei_right;
-              } else {
-                right_stopped = true;
-              }
-            } else {
-              break;
-            }
-          } else {
+        }
+        auto ei_leftleft = ei_left;
+        --ei_leftleft;
+        // greater than 0 if ei_leftleft should be searched.
+        distance_type d1 =
+            get(m_mu, get_raw_edge_property(*m_tree, *ei_leftleft));
+        auto ei_rightleft = ei_right;
+        --ei_rightleft;
+        // less than 0 if ei_right should be searched.
+        distance_type d2 =
+            get(m_mu, get_raw_edge_property(*m_tree, *ei_rightleft));
+        if (d1 + d2 > 2.0 * current_dist) {
+          // this means that ei_leftleft's boundary is closer to aPoint.
+          if (d1 + aResult.Radius - current_dist > 0) {
+            temp_invtasks.emplace(target(*ei_leftleft, *m_tree),
+                                  current_dist - d1);
+            ei_left = ei_leftleft;
             if (d2 - aResult.Radius - current_dist < 0) {
               temp_invtasks.emplace(target(*ei_right, *m_tree),
                                     d2 - current_dist);
               ++ei_right;
-              if (d1 + aResult.Radius - current_dist > 0) {
-                temp_invtasks.emplace(target(*ei_leftleft, *m_tree),
-                                      current_dist - d1);
-                ei_left = ei_leftleft;
-              } else {
-                left_stopped = true;
-              }
             } else {
-              break;
+              right_stopped = true;
             }
+          } else {
+            break;
+          }
+        } else {
+          if (d2 - aResult.Radius - current_dist < 0) {
+            temp_invtasks.emplace(target(*ei_right, *m_tree),
+                                  d2 - current_dist);
+            ++ei_right;
+            if (d1 + aResult.Radius - current_dist > 0) {
+              temp_invtasks.emplace(target(*ei_leftleft, *m_tree),
+                                    current_dist - d1);
+              ei_left = ei_leftleft;
+            } else {
+              left_stopped = true;
+            }
+          } else {
+            break;
           }
         }
         left_stopped = (ei_left == ei);
@@ -671,9 +667,8 @@ class dvp_tree_impl {
           aNode = aAlternateBranch;
           aAlternateBranch = boost::graph_traits<tree_indexer>::null_vertex();
           continue;
-        } else {
-          throw int(0);
         }
+        throw int(0);
       }
       vertex_type result = aNode;
       for (auto [ei, ei_end] = out_edges(aNode, *m_tree); ei != ei_end; ++ei) {
@@ -717,8 +712,9 @@ class dvp_tree_impl {
   /* Does not require persistent vertices */
   /* This function determines if a given node has no children or if all its children have no children. */
   bool is_leaf_node(vertex_type aNode) const {
-    if (out_degree(aNode, *m_tree) == 0)
+    if (out_degree(aNode, *m_tree) == 0) {
       return true;
+    }
     for (auto [ei, ei_end] = out_edges(aNode, *m_tree); ei != ei_end; ++ei) {
       if (out_degree(target(*ei, *m_tree), *m_tree) != 0) {
         return false;
@@ -848,12 +844,16 @@ class dvp_tree_impl {
       v_bin.push_back(std::move(vp));
     }
 
-    prop_vector_iter v_first = v_bin.begin();
-    prop_vector_iter v_last = v_bin.end();
+    auto v_first = v_bin.begin();
+    auto v_last = v_bin.end();
     rearrange_with_chosen_vp(v_first, v_last);
     m_root = create_root(std::move(*v_first), *m_tree);
     construct_node(m_root, ++v_first, v_last);
   }
+
+  // non-copyable.
+  dvp_tree_impl(const self&) = delete;
+  self& operator=(const self&) = delete;
 
   /**
    * Construct the DVP-tree from a range, position-map, topology, etc..
@@ -1007,9 +1007,8 @@ class dvp_tree_impl {
     }
     if (max_dist != 0.0) {
       return max_dist;
-    } else {  // never found a finite, non-zero distance value.
+    }  // never found a finite, non-zero distance value.
       return std::numeric_limits<double>::infinity();
-    }
   }
 
   /**
@@ -1123,8 +1122,8 @@ class dvp_tree_impl {
       construct_node(u_parent, prop_list.begin(), prop_list.end());
     } else {
       // need to re-construct the root node (u_node == m_root).
-      prop_vector_iter v_first = prop_list.begin();
-      prop_vector_iter v_last = prop_list.end();
+      auto v_first = prop_list.begin();
+      auto v_last = prop_list.end();
       rearrange_with_chosen_vp(v_first, v_last);
       m_root = create_root(std::move(*v_first), *m_tree);
       construct_node(m_root, ++v_first, v_last);
@@ -1290,9 +1289,8 @@ class dvp_tree_impl {
     find_nearest_impl(aPoint, result_set);
     if (result_set.Neighbors.size()) {
       return result_set.Neighbors.front().second;
-    } else {
-      return boost::graph_traits<tree_indexer>::null_vertex();
     }
+    return boost::graph_traits<tree_indexer>::null_vertex();
   }
 
   /**
@@ -1454,15 +1452,15 @@ class dvp_tree_impl {
 
     explicit mutation_visitor(self* aParent) : m_parent(aParent) {}
 
-    void remove_vertex(vertex_type v, tree_indexer&) const {
+    void remove_vertex(vertex_type v, tree_indexer& /*unused*/) const {
       m_parent->erase(v);
     }
 
-    void add_vertex(const vertex_property& vp, tree_indexer&) const {
+    void add_vertex(const vertex_property& vp, tree_indexer& /*unused*/) const {
       m_parent->insert(vp);
     }
 
-    void add_vertex(vertex_property&& vp, tree_indexer&) const {
+    void add_vertex(vertex_property&& vp, tree_indexer& /*unused*/) const {
       m_parent->insert(std::move(vp));
     }
   };

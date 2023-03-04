@@ -105,7 +105,7 @@ double func11(double x) {
 
 int main() {
 
-  typedef double (*func_ptr)(double);
+  using func_ptr = double (*)(double);
 
   std::vector<func_ptr> funcs;
   std::vector<double> lows;

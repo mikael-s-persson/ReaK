@@ -72,7 +72,7 @@ void newton_method_ls_impl(
   while (x_grad_norm > abs_grad_tol) {
     get_direction(H, x_grad, p, abs_tol);
     // check Wolfe for alpha 1.0
-    ValueType alpha = ValueType(1.0);
+    auto alpha = ValueType(1.0);
     ValueType pxg = p * x_grad;
     if ((f(x + p) > x_value + ValueType(1e-4) * pxg) ||
         (abs(p * df(x + p)) > ValueType(0.8) * abs(pxg))) {

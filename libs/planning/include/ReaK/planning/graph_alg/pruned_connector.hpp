@@ -413,7 +413,8 @@ struct pruned_node_connector {
     using Vertex = graph_vertex_t<Graph>;
     using std::back_inserter;
 
-    std::vector<Vertex> Pred, Succ;
+    std::vector<Vertex> Pred;
+    std::vector<Vertex> Succ;
     if constexpr (boost::is_undirected_graph<Graph>::value) {
       select_neighborhood(p, back_inserter(Pred), g, super_space,
                           boost::bundle_prop_to_vertex_prop(position, g));
@@ -473,7 +474,8 @@ struct pruned_node_connector {
     using std::back_inserter;
     const Vertex null_v = boost::graph_traits<Graph>::null_vertex();
 
-    std::vector<Vertex> Pred, Succ;
+    std::vector<Vertex> Pred;
+    std::vector<Vertex> Succ;
     if constexpr (boost::is_undirected_graph<Graph>::value) {
       select_neighborhood(p, back_inserter(Pred), g, super_space,
                           boost::bundle_prop_to_vertex_prop(position, g));

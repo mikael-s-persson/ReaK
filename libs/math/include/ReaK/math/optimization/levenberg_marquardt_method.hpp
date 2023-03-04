@@ -197,9 +197,8 @@ int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac,
           throw singularity_error(
               "Levenberg-Marquardt method has detected a near-singularity in "
               "the Jacobian matrix!");
-        } else {
-          throw i;  // just in case there might be another integer thrown (very unlikely).
         }
+        throw i;  // just in case there might be another integer thrown (very unlikely).
       }
 
     } /* inner loop */

@@ -148,7 +148,7 @@ void inplace_lower_multiply_with_fill_impl(const MatrixLower1& M1,
   for (int i = M1.get_row_count(); i > 0;) {
     --i;
     for (int j = 0; j <= i; ++j) {
-      ValueType sum = ValueType(0.0);
+      auto sum = ValueType(0.0);
       for (int k = j; k <= i; ++k) {
         sum += M1(i, k) * M2(k, j);
       }

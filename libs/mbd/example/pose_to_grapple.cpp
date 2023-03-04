@@ -39,9 +39,13 @@
 
 #include <ReaK/core/recorders/data_record_po.hpp>
 
-#include <boost/program_options.hpp>
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
 
-namespace po = boost::program_options;
+// Model I/O options
+ABSL_FLAG(std::string, target_model, "models/airship3D.model.rkx",
+          "Specify the input file for the kinematic model of the target "
+          "(default is 'models/airship3D.model.rkx').");
 
 int main(int argc, char** argv) {
 
@@ -49,32 +53,9 @@ int main(int argc, char** argv) {
   using namespace geom;
   using namespace kte;
 
-  po::options_description generic_options("Generic options");
-  generic_options.add_options()("help,h", "produce this help message.");
+  absl::ParseCommandLine(argc, argv);
 
-  po::options_description mdl_options("Model I/O options");
-  mdl_options.add_options()(
-      "target-model",
-      po::value<std::string>()->default_value("models/airship3D.model.rkx"),
-      "specify the input file for the kinematic model of the target (default "
-      "is 'models/airship3D.model.rkx')");
-
-  po::options_description io_options =
-      recorder::get_data_stream_options_po_desc(true, true);
-
-  po::options_description cmdline_options;
-  cmdline_options.add(generic_options).add(mdl_options).add(io_options);
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
-  po::notify(vm);
-
-  if (vm.count("help")) {
-    std::cout << cmdline_options << std::endl;
-    return 1;
-  };
-
-  std::string target_mdl_fname = vm["target-model"].as<std::string>();
+  std::string target_mdl_fname = absl::GetFlag(FLAGS_target_model);
 
   std::shared_ptr<frame_3D<double>> global_base;
   std::shared_ptr<manipulator_kinematics_model> airship3D_kin_model;
@@ -90,10 +71,10 @@ int main(int argc, char** argv) {
                  "kinematics model! Got exception: '"
               << e.what() << "'." << std::endl;
     return 2;
-  };
+  }
 
   recorder::data_stream_options data_in_opt =
-      recorder::get_data_stream_options_from_po(vm);
+      recorder::get_data_stream_options_from_flags();
 
   std::shared_ptr<recorder::data_extractor> data_in;
   std::vector<std::string> data_in_names;
@@ -104,7 +85,7 @@ int main(int argc, char** argv) {
                  "stream! Got exception: '"
               << e.what() << "'." << std::endl;
     return 3;
-  };
+  }
 
   recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
 
@@ -140,11 +121,11 @@ int main(int argc, char** argv) {
       RK_UNUSED(e);
       std::cerr << "Could not recognize the input data fields!" << std::endl;
       return 4;
-    };
-  };
+    }
+  }
 
   recorder::data_stream_options data_out_opt =
-      recorder::get_data_stream_options_from_po(vm, true);
+      recorder::get_data_stream_options_from_flags(true);
   data_out_opt.names.clear();
   if (is_measured_pose) {
     data_out_opt.add_name("time")
@@ -170,7 +151,7 @@ int main(int argc, char** argv) {
         .add_name("avel_x")
         .add_name("avel_y")
         .add_name("avel_z");
-  };
+  }
   std::shared_ptr<recorder::data_recorder> data_out =
       data_out_opt.create_recorder();
 
@@ -193,7 +174,7 @@ int main(int argc, char** argv) {
             vect<double, 3>(nvr_in["vel_x"], nvr_in["vel_y"], nvr_in["vel_z"]);
         cur_pose.AngVelocity = vect<double, 3>(
             nvr_in["avel_x"], nvr_in["avel_y"], nvr_in["avel_z"]);
-      };
+      }
 
       *(airship3D_kin_model->getFrame3D(0)) = cur_pose;
       airship3D_kin_model->doDirectMotion();
@@ -202,15 +183,16 @@ int main(int argc, char** argv) {
       (*data_out) << nvr_in["time"] << cur_grapple.Position
                   << cur_grapple.Quat[0] << cur_grapple.Quat[1]
                   << cur_grapple.Quat[2] << cur_grapple.Quat[3];
-      if (!is_measured_pose)
+      if (!is_measured_pose) {
         (*data_out) << cur_grapple.Velocity << cur_grapple.AngVelocity;
+      }
       (*data_out) << recorder::data_recorder::end_value_row;
-    };
+    }
   } catch (recorder::end_of_record& e) {
     RK_UNUSED(e);
-  };
+  }
 
   (*data_out) << recorder::data_recorder::flush;
 
   return 0;
-};
+}

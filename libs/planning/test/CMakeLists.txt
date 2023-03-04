@@ -1,5 +1,5 @@
 
 add_executable(unit_test_assoc_containers "unit_test_assoc_containers.cpp")
 ReaK_setup_test_program(unit_test_assoc_containers)
-target_link_libraries(unit_test_assoc_containers reak_core)
+target_link_libraries(unit_test_assoc_containers reak_core GTest::gtest_main)
 

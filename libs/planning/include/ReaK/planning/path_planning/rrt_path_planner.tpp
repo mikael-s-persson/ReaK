@@ -74,7 +74,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
   using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
   using PositionMap = boost::data_member_property_map<PointType, VertexProp>;
-  PositionMap pos_map = PositionMap(&VertexProp::position);
+  auto pos_map = PositionMap(&VertexProp::position);
 
   std::shared_ptr<const SuperSpace> sup_space_ptr(
       &(this->m_space->get_super_space()), null_deleter());
@@ -230,7 +230,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
 #undef RK_RRT_PLANNER_CALL_RRT_FUNCTION
 
   } else {
-    path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr =
+    auto* p2p_query_ptr =
         reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
             path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
     if (p2p_query_ptr == nullptr) {

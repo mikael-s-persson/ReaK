@@ -85,14 +85,15 @@ struct mg_edge_data<
   steer_record_type steer_record;
 
   mg_edge_data() : steer_record() {}
-  mg_edge_data(const steer_record_type& aRec) : steer_record(aRec) {}
-  mg_edge_data(steer_record_type&& aRec) : steer_record(std::move(aRec)) {}
+  explicit mg_edge_data(const steer_record_type& aRec) : steer_record(aRec) {}
+  explicit mg_edge_data(steer_record_type&& aRec)
+      : steer_record(std::move(aRec)) {}
 };
 
 template <typename Topology>
 void print_mg_vertex(std::ostream& out, const mg_vertex_data<Topology>& vp) {
   using ReaK::to_vect;
-  vect_n<double> v_pos = to_vect<double>(vp.position);
+  auto v_pos = to_vect<double>(vp.position);
   for (double x : v_pos) {
     out << " " << std::setw(10) << x;
   }
@@ -145,7 +146,8 @@ class any_motion_graph : public graph::type_erased_graph<Graph> {
   }
 
  public:
-  any_motion_graph(original_graph_type* aPGraph) : base_type(aPGraph) {}
+  explicit any_motion_graph(original_graph_type* aPGraph)
+      : base_type(aPGraph) {}
 };
 
 /**
@@ -185,7 +187,7 @@ struct optimal_mg_edge : mg_edge_data<Topology> {
 template <typename Topology>
 void print_mg_vertex(std::ostream& out, const optimal_mg_vertex<Topology>& vp) {
   using ReaK::to_vect;
-  vect_n<double> v_pos = to_vect<double>(vp.position);
+  auto v_pos = to_vect<double>(vp.position);
   for (double x : v_pos) {
     out << " " << std::setw(10) << x;
   }
@@ -250,7 +252,8 @@ class any_optimal_motion_graph : public any_motion_graph<Topology, Graph> {
   }
 
  public:
-  any_optimal_motion_graph(original_graph_type* aPGraph) : base_type(aPGraph) {}
+  explicit any_optimal_motion_graph(original_graph_type* aPGraph)
+      : base_type(aPGraph) {}
 };
 
 /**
@@ -271,7 +274,7 @@ template <typename Topology>
 void print_mg_vertex(std::ostream& out,
                      const bidir_optimal_mg_vertex<Topology>& vp) {
   using ReaK::to_vect;
-  vect_n<double> v_pos = to_vect<double>(vp.position);
+  auto v_pos = to_vect<double>(vp.position);
   for (double x : v_pos) {
     out << " " << std::setw(10) << x;
   }
@@ -330,7 +333,7 @@ class any_bidir_optimal_motion_graph
   }
 
  public:
-  any_bidir_optimal_motion_graph(original_graph_type* aPGraph)
+  explicit any_bidir_optimal_motion_graph(original_graph_type* aPGraph)
       : base_type(aPGraph) {}
 };
 
@@ -353,7 +356,7 @@ struct astar_mg_vertex : optimal_mg_vertex<Topology> {
 template <typename Topology>
 void print_mg_vertex(std::ostream& out, const astar_mg_vertex<Topology>& vp) {
   using ReaK::to_vect;
-  vect_n<double> v_pos = to_vect<double>(vp.position);
+  auto v_pos = to_vect<double>(vp.position);
   for (double x : v_pos) {
     out << " " << std::setw(10) << x;
   }
@@ -420,7 +423,8 @@ class any_astar_motion_graph
   }
 
  public:
-  any_astar_motion_graph(original_graph_type* aPGraph) : base_type(aPGraph) {}
+  explicit any_astar_motion_graph(original_graph_type* aPGraph)
+      : base_type(aPGraph) {}
 };
 
 /**
@@ -441,7 +445,7 @@ template <typename Topology>
 void print_mg_vertex(std::ostream& out,
                      const bidir_astar_mg_vertex<Topology>& vp) {
   using ReaK::to_vect;
-  vect_n<double> v_pos = to_vect<double>(vp.position);
+  auto v_pos = to_vect<double>(vp.position);
   for (double x : v_pos) {
     out << " " << std::setw(10) << x;
   }
@@ -498,7 +502,7 @@ class any_bidir_astar_motion_graph
   }
 
  public:
-  any_bidir_astar_motion_graph(original_graph_type* aPGraph)
+  explicit any_bidir_astar_motion_graph(original_graph_type* aPGraph)
       : base_type(aPGraph) {}
 };
 
@@ -556,7 +560,8 @@ class any_dense_motion_graph : public BaseMotionGraph {
   }
 
  public:
-  any_dense_motion_graph(original_graph_type* aPGraph) : base_type(aPGraph) {}
+  explicit any_dense_motion_graph(original_graph_type* aPGraph)
+      : base_type(aPGraph) {}
 };
 
 /**
@@ -654,7 +659,8 @@ class any_recursive_dense_mg : public BaseMotionGraph {
   }
 
  public:
-  any_recursive_dense_mg(original_graph_type* aPGraph) : base_type(aPGraph) {}
+  explicit any_recursive_dense_mg(original_graph_type* aPGraph)
+      : base_type(aPGraph) {}
 };
 
 template <typename Topology, typename Graph>
@@ -717,8 +723,9 @@ struct mg_vertex_printer : serializable {
     out << std::endl;
   }
 
-  void save(serialization::oarchive& A, unsigned int) const override {}
-  void load(serialization::iarchive& A, unsigned int) override {}
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(mg_vertex_printer, 0xC2460011, 1,
                               "mg_vertex_printer", serializable)
@@ -760,23 +767,23 @@ struct any_mg_vertex_printer : serializable {
     using ReaK::to_vect;
     using ReaK::graph::get_dyn_prop;
 
-    vect_n<double> v_pos = to_vect<double>(
+    auto v_pos = to_vect<double>(
         get_dyn_prop<const PointType&>("vertex_position", u, g));
     for (double x : v_pos) {
       out << " " << std::setw(10) << x;
     }
 
-    if (graph_kind & OPTIMAL_MOTION_GRAPH_KIND) {
+    if ((graph_kind & OPTIMAL_MOTION_GRAPH_KIND) != 0U) {
       out << " " << std::setw(10)
           << get_dyn_prop<const double&>("vertex_distance_accum", u, g);
-      if (graph_kind & BIDIR_MOTION_GRAPH_KIND) {
+      if ((graph_kind & BIDIR_MOTION_GRAPH_KIND) != 0U) {
         out << " " << std::setw(10)
             << get_dyn_prop<const double&>("vertex_fwd_distance_accum", u, g);
       }
     }
 
-    if (graph_kind & ASTAR_MOTION_GRAPH_KIND) {
-      if (graph_kind & BIDIR_MOTION_GRAPH_KIND) {
+    if ((graph_kind & ASTAR_MOTION_GRAPH_KIND) != 0U) {
+      if ((graph_kind & BIDIR_MOTION_GRAPH_KIND) != 0U) {
         out << " " << std::setw(10)
             << get_dyn_prop<const double&>("vertex_key_value", u, g);
       } else {
@@ -787,10 +794,10 @@ struct any_mg_vertex_printer : serializable {
       }
     }
 
-    if (graph_kind & DENSE_MOTION_GRAPH_KIND) {
+    if ((graph_kind & DENSE_MOTION_GRAPH_KIND) != 0U) {
       out << " " << std::setw(10)
           << get_dyn_prop<const double&>("vertex_density", u, g);
-    } else if (graph_kind & RECURSIVE_DENSE_MOTION_GRAPH_KIND) {
+    } else if ((graph_kind & RECURSIVE_DENSE_MOTION_GRAPH_KIND) != 0U) {
       out << " " << std::setw(10)
           << get_dyn_prop<const double&>("vertex_density", u, g) << " "
           << std::setw(10)
@@ -809,10 +816,11 @@ struct any_mg_vertex_printer : serializable {
 
   any_mg_vertex_printer() : any_mg_vertex_printer(0) {}
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     A& RK_SERIAL_SAVE_WITH_NAME(graph_kind);
   }
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     A& RK_SERIAL_LOAD_WITH_NAME(graph_kind);
   }
 

@@ -613,9 +613,9 @@ class TSOSAKF_belief_transfer_factory : public serializable {
 
   template <typename BeliefSpace>
   predictor_type create_predictor(
-      const BeliefSpace&,
-      const typename pp::topology_traits<BeliefSpace>::point_type*,
-      const time_type&, const input_type&) const {
+      const BeliefSpace& /*unused*/,
+      const typename pp::topology_traits<BeliefSpace>::point_type* /*unused*/,
+      const time_type& /*unused*/, const input_type& /*unused*/) const {
     return predictor_type(this);
   }
 
@@ -623,12 +623,13 @@ class TSOSAKF_belief_transfer_factory : public serializable {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     A& RK_SERIAL_SAVE_WITH_NAME(sys) & RK_SERIAL_SAVE_WITH_NAME(Q) &
         RK_SERIAL_SAVE_WITH_NAME(R);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     A& RK_SERIAL_LOAD_WITH_NAME(sys) & RK_SERIAL_LOAD_WITH_NAME(Q) &
         RK_SERIAL_LOAD_WITH_NAME(R);
   }

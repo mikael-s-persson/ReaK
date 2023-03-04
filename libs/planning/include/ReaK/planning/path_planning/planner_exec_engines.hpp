@@ -105,7 +105,7 @@ struct monte_carlo_mp_engine {
 
   template <typename Topology>
   std::shared_ptr<any_sbmp_reporter_chain<Topology>> create_reporter(
-      std::shared_ptr<Topology>) {
+      std::shared_ptr<Topology> /*unused*/) {
 
     auto report_chain = std::make_shared<any_sbmp_reporter_chain<Topology>>();
 
@@ -144,10 +144,11 @@ struct monte_carlo_mp_engine {
       planner->reset_internal_state();
       planner->solve_planning_query(mc_query);
 
-      std::size_t v_count = 0, t_val = 0;
+      std::size_t v_count = 0;
+      std::size_t t_val = 0;
       std::string tmp;
       std::size_t j = 0;
-      while (std::getline(time_ss, tmp) && (tmp.size())) {
+      while (std::getline(time_ss, tmp) && (!tmp.empty())) {
         std::stringstream ss_tmp(tmp);
         ss_tmp >> v_count >> t_val;
         vertex_counts[j] =
@@ -163,7 +164,7 @@ struct monte_carlo_mp_engine {
 
       double c_val = 1e10;
       j = 0;
-      while (std::getline(cost_ss, tmp) && (tmp.size())) {
+      while (std::getline(cost_ss, tmp) && (!tmp.empty())) {
         std::stringstream ss_tmp(tmp);
         ss_tmp >> v_count >> c_val;
         if (c_val < best_costs[j]) {
@@ -199,7 +200,7 @@ struct monte_carlo_mp_engine {
 
       std::string first_sol_event;
       std::getline(sol_ss, first_sol_event);
-      if (first_sol_event != "") {
+      if (!first_sol_event.empty()) {
         sol_events_output << first_sol_event << std::endl;
       }
     }
@@ -227,8 +228,7 @@ struct vlist_print_mp_engine {
 
   vlist_print_mp_engine(const std::string& aPlannerName,
                         const std::string& aOutputPathStem)
-      : vlist_file_path(aOutputPathStem + "/" + aPlannerName),
-        vlist_report_te() {
+      : vlist_file_path(aOutputPathStem + "/" + aPlannerName) {
 
     std::filesystem::create_directory(aOutputPathStem.c_str());
 
@@ -243,7 +243,7 @@ struct vlist_print_mp_engine {
 
   template <typename Topology>
   std::shared_ptr<any_sbmp_reporter_chain<Topology>> create_reporter(
-      std::shared_ptr<Topology>) {
+      std::shared_ptr<Topology> /*unused*/) {
 
     auto report_chain = std::make_shared<any_sbmp_reporter_chain<Topology>>();
 
@@ -301,7 +301,7 @@ struct differ_report_mp_engine {
 
   template <typename Topology>
   std::shared_ptr<any_sbmp_reporter_chain<Topology>> create_reporter(
-      std::shared_ptr<Topology>) {
+      std::shared_ptr<Topology> /*unused*/) {
 
     auto report_chain = std::make_shared<any_sbmp_reporter_chain<Topology>>();
 

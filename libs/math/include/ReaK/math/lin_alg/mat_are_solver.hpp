@@ -65,18 +65,15 @@ mat_value_type_t<Matrix1> get_norm_gen_eigens_impl(const Matrix1& A,
     ValueType tmp = abs(B(0, 0));
     if (tmp < std::numeric_limits<ValueType>::epsilon() * l) {
       return std::numeric_limits<ValueType>::infinity();
-    } else {
-      return l / tmp;
     }
-  } else {
-    ValueType l = abs(A(0, 0) * A(1, 1) - A(1, 0) * A(0, 1));
-    ValueType tmp = abs(B(0, 0) * B(1, 1) - B(1, 0) * B(0, 1));
-    if (tmp < std::numeric_limits<ValueType>::epsilon() * l) {
-      return std::numeric_limits<ValueType>::infinity();
-    } else {
-      return sqrt(l / tmp);
-    }
+    return l / tmp;
   }
+  ValueType l = abs(A(0, 0) * A(1, 1) - A(1, 0) * A(0, 1));
+  ValueType tmp = abs(B(0, 0) * B(1, 1) - B(1, 0) * B(0, 1));
+  if (tmp < std::numeric_limits<ValueType>::epsilon() * l) {
+    return std::numeric_limits<ValueType>::infinity();
+  }
+  return sqrt(l / tmp);
 }
 
 template <typename Matrix1, typename Matrix2>
@@ -94,22 +91,19 @@ mat_value_type_t<Matrix1> get_real_val_gen_eigens_impl(const Matrix1& A,
     if (abs(tmp) < std::numeric_limits<ValueType>::epsilon() * abs(l)) {
       return (l < 0 ? -std::numeric_limits<ValueType>::infinity()
                     : std::numeric_limits<ValueType>::infinity());
-    } else {
-      return l / tmp;
     }
-  } else {
-    ValueType l = abs(A(0, 0) * A(1, 1) - A(1, 0) * A(0, 1));
-    ValueType tmp = abs(B(0, 0) * B(1, 1) - B(1, 0) * B(0, 1));
-    if (tmp < std::numeric_limits<ValueType>::epsilon() * l) {
-      return std::numeric_limits<ValueType>::infinity();
-    } else {
-      ValueType mu = A(0, 0) / B(0, 0);
-      ValueType a_22 = A(1, 1) - mu * B(1, 1);
-      ValueType p = ValueType(0.5) * (a_22 / B(1, 1) - (B(0, 1) * A(1, 0)) /
-                                                           (B(0, 0) * B(1, 1)));
-      return mu + p;
-    }
+    return l / tmp;
   }
+  ValueType l = abs(A(0, 0) * A(1, 1) - A(1, 0) * A(0, 1));
+  ValueType tmp = abs(B(0, 0) * B(1, 1) - B(1, 0) * B(0, 1));
+  if (tmp < std::numeric_limits<ValueType>::epsilon() * l) {
+    return std::numeric_limits<ValueType>::infinity();
+  }
+  ValueType mu = A(0, 0) / B(0, 0);
+  ValueType a_22 = A(1, 1) - mu * B(1, 1);
+  ValueType p = ValueType(0.5) *
+                (a_22 / B(1, 1) - (B(0, 1) * A(1, 0)) / (B(0, 0) * B(1, 1)));
+  return mu + p;
 }
 
 struct lesser_norm_eigen_first {
@@ -123,11 +117,11 @@ struct lesser_norm_eigen_first {
     ValueType l2 = get_norm_gen_eigens_impl(A2, B2);
     if (l1 < l2) {
       return 1;
-    } else if (l1 == l2) {
-      return 0;
-    } else {
-      return -1;
     }
+    if (l1 == l2) {
+      return 0;
+    }
+    return -1;
   }
 };
 
@@ -142,11 +136,11 @@ struct greater_norm_eigen_first {
     ValueType l2 = get_norm_gen_eigens_impl(A2, B2);
     if (l1 > l2) {
       return 1;
-    } else if (l1 == l2) {
-      return 0;
-    } else {
-      return -1;
     }
+    if (l1 == l2) {
+      return 0;
+    }
+    return -1;
   }
 };
 
@@ -161,11 +155,11 @@ struct lesser_real_val_eigen_first {
     ValueType l2 = get_real_val_gen_eigens_impl(A2, B2);
     if (l1 < l2) {
       return 1;
-    } else if (l1 == l2) {
-      return 0;
-    } else {
-      return -1;
     }
+    if (l1 == l2) {
+      return 0;
+    }
+    return -1;
   }
 };
 
@@ -180,11 +174,11 @@ struct greater_real_val_eigen_first {
     ValueType l2 = get_real_val_gen_eigens_impl(A2, B2);
     if (l1 > l2) {
       return 1;
-    } else if (l1 == l2) {
-      return 0;
-    } else {
-      return -1;
     }
+    if (l1 == l2) {
+      return 0;
+    }
+    return -1;
   }
 };
 
@@ -199,11 +193,11 @@ struct neg_real_val_eigen_first {
     ValueType l2 = get_real_val_gen_eigens_impl(A2, B2);
     if (l1 < ValueType(0.0) && l2 >= ValueType(0.0)) {
       return 1;
-    } else if (l2 < ValueType(0.0) && l1 >= ValueType(0.0)) {
-      return -1;
-    } else {
-      return 0;
     }
+    if (l2 < ValueType(0.0) && l1 >= ValueType(0.0)) {
+      return -1;
+    }
+    return 0;
   }
 };
 
@@ -218,11 +212,11 @@ struct pos_real_val_eigen_first {
     ValueType l2 = get_real_val_gen_eigens_impl(A2, B2);
     if (l1 > ValueType(0.0) && l2 <= ValueType(0.0)) {
       return 1;
-    } else if (l2 > ValueType(0.0) && l1 <= ValueType(0.0)) {
-      return -1;
-    } else {
-      return 0;
     }
+    if (l2 > ValueType(0.0) && l1 <= ValueType(0.0)) {
+      return -1;
+    }
+    return 0;
   }
 };
 
@@ -237,11 +231,11 @@ struct in_unit_circle_eigen_first {
     ValueType l2 = get_norm_gen_eigens_impl(A2, B2);
     if (l1 < ValueType(1.0) && l2 >= ValueType(1.0)) {
       return 1;
-    } else if (l2 < ValueType(1.0) && l1 >= ValueType(1.0)) {
-      return -1;
-    } else {
-      return 0;
     }
+    if (l2 < ValueType(1.0) && l1 >= ValueType(1.0)) {
+      return -1;
+    }
+    return 0;
   }
 };
 
@@ -256,11 +250,11 @@ struct out_unit_circle_eigen_first {
     ValueType l2 = get_norm_gen_eigens_impl(A2, B2);
     if (l1 < ValueType(1.0) && l2 >= ValueType(1.0)) {
       return -1;
-    } else if (l2 < ValueType(1.0) && l1 >= ValueType(1.0)) {
-      return 1;
-    } else {
-      return 0;
     }
+    if (l2 < ValueType(1.0) && l1 >= ValueType(1.0)) {
+      return 1;
+    }
+    return 0;
   }
 };
 
@@ -862,8 +856,9 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
         }
       }
 
-      if (!swap_needed || p == 0)
+      if (!swap_needed || p == 0) {
         break;
+      }
     }
   }
 }

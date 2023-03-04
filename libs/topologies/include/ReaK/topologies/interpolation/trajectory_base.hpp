@@ -74,7 +74,6 @@ class trajectory_base : public seq_trajectory_base<Topology> {
   using const_waypoint_descriptor = std::any;
   using waypoint_pair = std::pair<const_waypoint_descriptor, point_type>;
 
- public:
   /**
    * Constructs the trajectory from a space, assumes the start and end are at the origin
    * of the space.
@@ -142,11 +141,12 @@ class trajectory_base : public seq_trajectory_base<Topology> {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
   }
 
@@ -209,20 +209,21 @@ class trajectory_wrapper
 
     gen_pt_time_iterator base_it;
 
-    point_time_iterator_impl(gen_pt_time_iterator aBaseIt) : base_it(aBaseIt) {}
+    explicit point_time_iterator_impl(gen_pt_time_iterator aBaseIt)
+        : base_it(aBaseIt) {}
 
-    virtual ~point_time_iterator_impl() {}
+    ~point_time_iterator_impl() override = default;
 
-    virtual void move_by_time(double d) { base_it += d; }
+    void move_by_time(double d) override { base_it += d; }
 
-    virtual bool is_equal_to(const base_pt_time_iterator_impl* rhs) const {
+    bool is_equal_to(const base_pt_time_iterator_impl* rhs) const override {
       return (base_it ==
               static_cast<const point_time_iterator_impl*>(rhs)->base_it);
     }
 
-    virtual point_type get_point() const { return *base_it; }
+    point_type get_point() const override { return *base_it; }
 
-    virtual base_pt_time_iterator_impl* clone() const {
+    base_pt_time_iterator_impl* clone() const override {
       return new point_time_iterator_impl(base_it);
     }
   };
@@ -236,21 +237,21 @@ class trajectory_wrapper
 
     gen_pt_frac_iterator base_it;
 
-    point_fraction_iterator_impl(gen_pt_frac_iterator aBaseIt)
+    explicit point_fraction_iterator_impl(gen_pt_frac_iterator aBaseIt)
         : base_it(aBaseIt) {}
 
-    virtual ~point_fraction_iterator_impl() {}
+    ~point_fraction_iterator_impl() override = default;
 
-    virtual void move_by_fraction(double f) { base_it += f; }
+    void move_by_fraction(double f) override { base_it += f; }
 
-    virtual bool is_equal_to(const base_pt_frac_iterator_impl* rhs) const {
+    bool is_equal_to(const base_pt_frac_iterator_impl* rhs) const override {
       return (base_it ==
               static_cast<const point_fraction_iterator_impl*>(rhs)->base_it);
     }
 
-    virtual point_type get_point() const { return *base_it; }
+    point_type get_point() const override { return *base_it; }
 
-    virtual base_pt_frac_iterator_impl* clone() const {
+    base_pt_frac_iterator_impl* clone() const override {
       return new point_fraction_iterator_impl(base_it);
     }
   };
@@ -354,12 +355,13 @@ class trajectory_wrapper
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(m_traj);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(m_traj);
     m_last_waypoint = wrapped_waypoint_pair();

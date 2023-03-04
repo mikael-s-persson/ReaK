@@ -176,7 +176,7 @@ struct ADStarVisitorConcept {
   */
 class default_adstar_visitor {
  public:
-  default_adstar_visitor() {}
+  default_adstar_visitor() = default;
 
   template <typename Vertex, typename Graph>
   void initialize_vertex(Vertex u, const Graph& g) const {
@@ -395,7 +395,7 @@ struct adstar_bfs_visitor {
   }
 
   template <typename Vertex, typename Graph>
-  void update_key(Vertex u, Graph&) {
+  void update_key(Vertex u, Graph& /*unused*/) {
     distance_type g_u = get(m_distance, u);
     distance_type rhs_u = get(m_rhs, u);
     if (m_compare(rhs_u, g_u)) {
@@ -552,16 +552,17 @@ inline void adstar_search_loop(
       Vertex u = Q.top();
       Q.pop();
       bfs_vis.examine_vertex(u, g);
-      DistanceValue g_u = get(distance, u);
-      DistanceValue rhs_u = get(rhs, u);
+      DistanceValue dist_g_u = get(distance, u);
+      DistanceValue dist_rhs_u = get(rhs, u);
       // if we have a consistent node at the goal
-      if (equal_compare(get(hval, u), zero) && equal_compare(g_u, rhs_u)) {
+      if (equal_compare(get(hval, u), zero) &&
+          equal_compare(dist_g_u, dist_rhs_u)) {
         break;
       }
-      // if g_u is greater than rhs_u, then make u consistent and close it.
-      if (compare(rhs_u, g_u)) {
-        put(distance, u, rhs_u);
-        g_u = rhs_u;
+      // if dist_g_u is greater than dist_rhs_u, then make u consistent and close it.
+      if (compare(dist_rhs_u, dist_g_u)) {
+        put(distance, u, dist_rhs_u);
+        dist_g_u = dist_rhs_u;
         put(color, u, Color::black());
         bfs_vis.finish_vertex(u, g);
       } else {
@@ -787,11 +788,10 @@ inline void adstar_search_no_init(VertexListGraph& g, Vertex start_vertex,
                                   DistanceMap distance, RHSMap rhs, KeyMap key,
                                   WeightMap weight, ColorMap color,
                                   double epsilon) {
-  adstar_search_no_init(g, start_vertex, hval, vis, predecessor, distance, rhs,
-                        key, weight, color, epsilon,
-                        std::numeric_limits<double>::infinity(), 0.0,
-                        std::less<double>(), std::equal_to<double>(),
-                        std::plus<double>(), std::multiplies<double>());
+  adstar_search_no_init(
+      g, start_vertex, hval, vis, predecessor, distance, rhs, key, weight,
+      color, epsilon, std::numeric_limits<double>::infinity(), 0.0,
+      std::less<>(), std::equal_to<>(), std::plus<>(), std::multiplies<>());
 }
 
 /**
@@ -944,8 +944,8 @@ inline void adstar_search(VertexListGraph& g, Vertex start_vertex,
                           ColorMap color, double epsilon) {
   adstar_search(g, start_vertex, hval, vis, predecessor, distance, rhs, key,
                 weight, color, epsilon, std::numeric_limits<double>::infinity(),
-                0.0, std::less<double>(), std::equal_to<double>(),
-                std::plus<double>(), std::multiplies<double>());
+                0.0, std::less<>(), std::equal_to<>(), std::plus<>(),
+                std::multiplies<>());
 }
 
 }  // namespace ReaK::graph

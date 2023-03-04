@@ -86,8 +86,8 @@ std::uint32_t get_fnv_1a_hash(const std::string& s) {
     char c;
     unsigned char uc;
   } c_to_uc;
-  for (std::size_t i = 0; i < s.size(); ++i) {
-    c_to_uc.c = s[i];
+  for (char i : s) {
+    c_to_uc.c = i;
     result ^= c_to_uc.uc;
     result *= fnv_1a_numbers<4>::prime;
   }
@@ -96,9 +96,8 @@ std::uint32_t get_fnv_1a_hash(const std::string& s) {
 
 template <typename... Args>
 struct get_func_input_tuple {
-  typedef std::tuple<typename std::remove_cv<
-      typename std::remove_reference<Args>::type>::type...>
-      type;
+  using type = std::tuple<typename std::remove_cv<
+      typename std::remove_reference<Args>::type>::type...>;
 };
 
 template <int Idx>
@@ -107,7 +106,8 @@ struct tuple_saver_impl;
 template <>
 struct tuple_saver_impl<0> {
   template <typename Tuple>
-  static void apply(serialization::oarchive&, const Tuple&){};
+  static void apply(serialization::oarchive& /*unused*/,
+                    const Tuple& /*unused*/){};
 };
 
 template <int Idx>
@@ -125,7 +125,7 @@ struct tuple_loader_impl;
 template <>
 struct tuple_loader_impl<0> {
   template <typename Tuple>
-  static void apply(serialization::iarchive&, Tuple&) {}
+  static void apply(serialization::iarchive& /*unused*/, Tuple& /*unused*/) {}
 };
 
 template <int Idx>
@@ -155,8 +155,8 @@ struct generic_return_type<void> {
   void apply(const Func& f, Args&... args) {
     f(args...);
   }
-  void save_to(serialization::oarchive&) {}
-  void load_from(serialization::iarchive&) {}
+  void save_to(serialization::oarchive& /*unused*/) {}
+  void load_from(serialization::iarchive& /*unused*/) {}
   void take_value() {}
 };
 
@@ -166,9 +166,8 @@ struct input_tuple_unroller;
 template <>
 struct input_tuple_unroller<0> {
   template <typename Func, typename Tuple, typename... Args>
-  static generic_return_type<typename Func::result_type> apply(const Func& f,
-                                                               Tuple&,
-                                                               Args&... args) {
+  static generic_return_type<typename Func::result_type> apply(
+      const Func& f, Tuple& /*unused*/, Args&... args) {
     generic_return_type<typename Func::result_type> result;
     result.apply(f, args...);
     return result;

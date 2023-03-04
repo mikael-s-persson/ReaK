@@ -155,8 +155,8 @@ class dvp_adjacency_list {
   dvp_impl_type m_impl;
 
   // non-copyable: (because of shared-state)
-  dvp_adjacency_list(const self&);
-  self& operator=(const self&);
+  dvp_adjacency_list(const self&) = delete;
+  self& operator=(const self&) = delete;
 
  public:
   using adj_list_type = ReaK::graph::alt_graph_view<alt_type>;
@@ -254,9 +254,8 @@ class dvp_adjacency_list {
     auto u = m_impl.find_nearest(aPoint);
     if (u != boost::graph_traits<tree_indexer>::null_vertex()) {
       return get(m_vp_key, get_raw_vertex_property(m_tree, u));
-    } else {
-      return boost::graph_traits<adj_list_type>::null_vertex();
     }
+    return boost::graph_traits<adj_list_type>::null_vertex();
   }
 
   /**

@@ -112,13 +112,14 @@ struct density_plan_visitor
     dispatched_initialize_vertex(g[u], u, g);
   }
   template <typename Vertex, typename Graph>
-  void discover_vertex(Vertex, const Graph&) const {}
+  void discover_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
   template <typename Vertex, typename Graph>
-  void examine_vertex(Vertex, const Graph&) const {}
+  void examine_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
   template <typename Edge, typename Graph>
-  void examine_edge(Edge, const Graph&) const {}
+  void examine_edge(Edge /*unused*/, const Graph& /*unused*/) const {}
 
-  bool dispatched_heuristic_potential(const mg_vertex_data<space_type>&) const {
+  bool dispatched_heuristic_potential(
+      const mg_vertex_data<space_type>& /*unused*/) const {
     return true;
   }
   bool dispatched_heuristic_potential(
@@ -151,10 +152,9 @@ struct density_plan_visitor
       return dispatched_heuristic_potential(
                  g[u], g[std::any_cast<Vertex>(this->m_start_node)]) &&
              dispatched_density_cutoff_test(g[u]);
-    } else {
-      return (u != std::any_cast<Vertex>(this->m_goal_node)) &&
-             dispatched_density_cutoff_test(g[u]);
     }
+    return (u != std::any_cast<Vertex>(this->m_goal_node)) &&
+           dispatched_density_cutoff_test(g[u]);
   }
   template <typename Vertex, typename Graph>
   bool should_close(Vertex u, const Graph& g) const {
@@ -175,12 +175,14 @@ struct density_plan_visitor
   ***************************************************/
 
   template <typename BaseType, typename Vertex, typename Graph>
-  void dispatched_travel_succeeded(dense_mg_vertex<BaseType>&, Vertex, Vertex,
-                                   Graph&) const {}
+  void dispatched_travel_succeeded(dense_mg_vertex<BaseType>& /*unused*/,
+                                   Vertex /*unused*/, Vertex /*unused*/,
+                                   Graph& /*unused*/) const {}
 
   template <typename BaseType, typename Vertex, typename Graph>
-  void dispatched_travel_succeeded(recursive_dense_mg_vertex<BaseType>&,
-                                   Vertex u, Vertex v, Graph& g) const {
+  void dispatched_travel_succeeded(
+      recursive_dense_mg_vertex<BaseType>& /*unused*/, Vertex u, Vertex v,
+      Graph& g) const {
     m_density_calc.travel_succeeded(
         u, v, g, *(this->m_query->space),
         this->m_planner->get_sampling_radius(),
@@ -193,12 +195,14 @@ struct density_plan_visitor
   }
 
   template <typename BaseType, typename Vertex, typename Graph>
-  void dispatched_travel_explored(dense_mg_vertex<BaseType>&, Vertex, Vertex,
-                                  Graph&) const {}
+  void dispatched_travel_explored(dense_mg_vertex<BaseType>& /*unused*/,
+                                  Vertex /*unused*/, Vertex /*unused*/,
+                                  Graph& /*unused*/) const {}
 
   template <typename BaseType, typename Vertex, typename Graph>
-  void dispatched_travel_explored(recursive_dense_mg_vertex<BaseType>&,
-                                  Vertex u, Vertex v, Graph& g) const {
+  void dispatched_travel_explored(
+      recursive_dense_mg_vertex<BaseType>& /*unused*/, Vertex u, Vertex v,
+      Graph& g) const {
     m_density_calc.travel_explored(u, v, g, *(this->m_query->space),
                                    this->m_planner->get_sampling_radius(),
                                    this->m_planner->get_space_dimensionality());
@@ -210,12 +214,13 @@ struct density_plan_visitor
   }
 
   template <typename BaseType, typename Vertex, typename Graph>
-  void dispatched_travel_failed(dense_mg_vertex<BaseType>&, Vertex, Vertex,
-                                Graph&) const {}
+  void dispatched_travel_failed(dense_mg_vertex<BaseType>& /*unused*/,
+                                Vertex /*unused*/, Vertex /*unused*/,
+                                Graph& /*unused*/) const {}
 
   template <typename BaseType, typename Vertex, typename Graph>
-  void dispatched_travel_failed(recursive_dense_mg_vertex<BaseType>&, Vertex u,
-                                Vertex v, Graph& g) const {
+  void dispatched_travel_failed(recursive_dense_mg_vertex<BaseType>& /*unused*/,
+                                Vertex u, Vertex v, Graph& g) const {
     m_density_calc.travel_failed(u, v, g, *(this->m_query->space),
                                  this->m_planner->get_sampling_radius(),
                                  this->m_planner->get_space_dimensionality());
@@ -227,14 +232,15 @@ struct density_plan_visitor
   }
 
   template <typename BaseType, typename Vertex, typename Graph>
-  void dispatched_affected_vertex(dense_mg_vertex<BaseType>&, Vertex u,
-                                  Graph& g) const {
+  void dispatched_affected_vertex(dense_mg_vertex<BaseType>& /*unused*/,
+                                  Vertex u, Graph& g) const {
     init_nonrecursive_density(u, g);
   }
 
   template <typename BaseType, typename Vertex, typename Graph>
-  void dispatched_affected_vertex(recursive_dense_mg_vertex<BaseType>&, Vertex,
-                                  Graph&) const {}
+  void dispatched_affected_vertex(
+      recursive_dense_mg_vertex<BaseType>& /*unused*/, Vertex /*unused*/,
+      Graph& /*unused*/) const {}
 
   template <typename Vertex, typename Graph>
   void affected_vertex(Vertex u, Graph& g) const {

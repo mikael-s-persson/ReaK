@@ -122,14 +122,15 @@ struct vlist_sbmp_report : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(next_reporter) &
         RK_SERIAL_SAVE_WITH_NAME(print_to_stream) &
         RK_SERIAL_SAVE_WITH_NAME(file_path);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(next_reporter) &
         RK_SERIAL_LOAD_WITH_NAME(print_to_stream) &

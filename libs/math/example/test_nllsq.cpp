@@ -32,7 +32,6 @@
 
 #include <ReaK/math/lin_alg/mat_svd_method.hpp>
 
-#include <cmath>
 #include <iostream>
 
 #ifndef M_PI
@@ -49,11 +48,13 @@ vect_n<double> p01_f(const vect_n<double>& x) {
   std::size_t N = x.size();
   std::size_t M = N * 2;
   double sum = 0.0;
-  for (std::size_t i = 0; i < N; ++i)
+  for (std::size_t i = 0; i < N; ++i) {
     sum += x[i];
+  }
   vect_n<double> result(M, -1.0 - 2.0 * sum / double(M));
-  for (std::size_t i = 0; i < N; ++i)
+  for (std::size_t i = 0; i < N; ++i) {
     result[i] += x[i];
+  }
   return result;
 };
 
@@ -64,11 +65,14 @@ void p01_j(mat<double, mat_structure::rectangular>& J, const vect_n<double>& x,
   std::size_t N = x.size();
   J.set_col_count(N);
   J.set_row_count(M);
-  for (std::size_t i = 0; i < M; ++i)
-    for (std::size_t j = 0; j < N; ++j)
+  for (std::size_t i = 0; i < M; ++i) {
+    for (std::size_t j = 0; j < N; ++j) {
       J(i, j) = -2.0 / double(M);
-  for (std::size_t i = 0; i < N; ++i)
+    }
+  }
+  for (std::size_t i = 0; i < N; ++i) {
     J(i, i) += 1.0;
+  }
 };
 
 vect_n<double> p01_sol = vect_n<double>(10, -1.0);
@@ -82,11 +86,13 @@ vect_n<double> p02_f(const vect_n<double>& x) {
   std::size_t N = x.size();
   std::size_t M = N * 2;
   double sum = 0.0;
-  for (std::size_t i = 0; i < N; ++i)
+  for (std::size_t i = 0; i < N; ++i) {
     sum += double(i + 1) * x[i];
+  }
   vect_n<double> result(M);
-  for (std::size_t i = 0; i < M; ++i)
+  for (std::size_t i = 0; i < M; ++i) {
     result[i] = double(i + 1) * sum - 1.0;
+  }
   return result;
 };
 
@@ -97,9 +103,11 @@ void p02_j(mat<double, mat_structure::rectangular>& J, const vect_n<double>& x,
   std::size_t N = x.size();
   J.set_col_count(N);
   J.set_row_count(M);
-  for (std::size_t i = 0; i < M; ++i)
-    for (std::size_t j = 0; j < N; ++j)
+  for (std::size_t i = 0; i < M; ++i) {
+    for (std::size_t j = 0; j < N; ++j) {
       J(i, j) = double((i + 1) * (j + 1));
+    }
+  }
 };
 
 vect_n<double> p02_sol = vect_n<double>(10, 6.0 / double(41 * 11 * 10));
@@ -117,7 +125,7 @@ vect_n<double> p04_f(const vect_n<double>& x) {
 };
 
 void p04_j(mat<double, mat_structure::rectangular>& J, const vect_n<double>& x,
-           const vect_n<double>&) {
+           const vect_n<double>& /*unused*/) {
   ++gradCount;
   J.set_col_count(2);
   J.set_row_count(2);
@@ -145,7 +153,7 @@ vect_n<double> p05_f(const vect_n<double>& x) {
 };
 
 void p05_j(mat<double, mat_structure::rectangular>& J, const vect_n<double>& x,
-           const vect_n<double>&) {
+           const vect_n<double>& /*unused*/) {
   ++gradCount;
   J.set_col_count(3);
   J.set_row_count(3);
@@ -180,7 +188,7 @@ vect_n<double> p06_f(const vect_n<double>& x) {
 };
 
 void p06_j(mat<double, mat_structure::rectangular>& J, const vect_n<double>& x,
-           const vect_n<double>&) {
+           const vect_n<double>& /*unused*/) {
   ++gradCount;
   J.set_col_count(4);
   J.set_row_count(4);
@@ -220,7 +228,7 @@ vect_n<double> p07_f(const vect_n<double>& x) {
 };
 
 void p07_j(mat<double, mat_structure::rectangular>& J, const vect_n<double>& x,
-           const vect_n<double>&) {
+           const vect_n<double>& /*unused*/) {
   ++gradCount;
   J.set_col_count(2);
   J.set_row_count(2);
@@ -238,9 +246,9 @@ std::string p07_name = "Freudenstein-Roth Function";
 
 int main() {
 
-  typedef vect_n<double> (*FunctionPtr)(const vect_n<double>&);
-  typedef void (*JacFunctionPtr)(mat<double, mat_structure::rectangular>&,
-                                 const vect_n<double>&, const vect_n<double>&);
+  using FunctionPtr = vect_n<double> (*)(const vect_n<double>&);
+  using JacFunctionPtr = void (*)(mat<double, mat_structure::rectangular>&,
+                                  const vect_n<double>&, const vect_n<double>&);
 
   std::vector<FunctionPtr> funcs;
   std::vector<JacFunctionPtr> func_jacs;

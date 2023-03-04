@@ -32,7 +32,6 @@
 
 #include <ReaK/math/lin_alg/mat_svd_method.hpp>
 
-#include <cmath>
 #include <iostream>
 
 #ifndef M_PI
@@ -49,21 +48,19 @@ int main() {
   std::vector<vect_n<double>> cs;
   std::vector<vect_n<double>> xs;
 
-  Gs.push_back(
-      mat<double, mat_structure::symmetric>(4.0, 1.5, 5.0, 8.0, 2.0, 12.0));
-  cs.push_back(vect_n<double>(1.0, 1.0, 0.5));
-  bs.push_back(vect_n<double>(1, 0.0));
+  Gs.emplace_back(4.0, 1.5, 5.0, 8.0, 2.0, 12.0);
+  cs.emplace_back(1.0, 1.0, 0.5);
+  bs.emplace_back(1, 0.0);
   mat<double, mat_structure::rectangular> A(1, 3);
   A(0, 0) = -2.0;
   A(0, 1) = 1.0;
   A(0, 2) = 4.0;
   As.push_back(A);
-  xs.push_back(vect_n<double>(1.0, 1.0, 1.0));
+  xs.emplace_back(1.0, 1.0, 1.0);
 
-  Gs.push_back(
-      mat<double, mat_structure::symmetric>(6.0, 2.0, 1.0, 5.0, 2.0, 4.0));
-  cs.push_back(vect_n<double>(-8.0, -3.0, -3.0));
-  bs.push_back(vect_n<double>(vect<double, 2>(3.0, 0.0)));
+  Gs.emplace_back(6.0, 2.0, 1.0, 5.0, 2.0, 4.0);
+  cs.emplace_back(-8.0, -3.0, -3.0);
+  bs.emplace_back(vect<double, 2>(3.0, 0.0));
   A = mat<double, mat_structure::rectangular>(2, 3);
   A(0, 0) = 1.0;
   A(0, 1) = 0.0;
@@ -72,7 +69,7 @@ int main() {
   A(1, 1) = 1.0;
   A(1, 2) = 1.0;
   As.push_back(A);
-  xs.push_back(vect_n<double>(1.0, 1.0, 1.0));
+  xs.emplace_back(1.0, 1.0, 1.0);
 
   vect_n<double> x;
   for (std::size_t i = 0; i < Gs.size(); ++i) {

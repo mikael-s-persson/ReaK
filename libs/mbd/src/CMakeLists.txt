@@ -1,6 +1,7 @@
 
 add_library(reak_mbd STATIC 
   "chaser_target_model_data.cpp"
+  "chaser_target_model_data_po.cpp"
   "damper.cpp"
   "driving_actuator.cpp"
   "dry_revolute_joint.cpp"
@@ -40,6 +41,7 @@ add_library(reak_mbd STATIC
 )
 ReaK_setup_static_library(reak_mbd)
 target_link_libraries(reak_mbd reak_geom reak_math)
+target_link_libraries(reak_mbd absl::flags)
 
 if(COIN3D_FOUND)
   

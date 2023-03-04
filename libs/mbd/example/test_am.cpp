@@ -38,6 +38,7 @@
 #include <ReaK/core/serialization/bin_archiver.hpp>
 #include <ReaK/core/serialization/protobuf_archiver.hpp>
 #include <ReaK/core/serialization/xml_archiver.hpp>
+#include <memory>
 
 using namespace ReaK;
 
@@ -105,9 +106,7 @@ int main() {
 
   // create motor inertia
   auto motor_inertia = std::make_shared<inertia_gen>(
-      "motor_inertia",
-      std::shared_ptr<joint_dependent_gen_coord>(
-          new joint_dependent_gen_coord(joint_coord)),
+      "motor_inertia", std::make_shared<joint_dependent_gen_coord>(joint_coord),
       5);
   // create friction
   auto friction = std::make_shared<joint_dry_microslip_gen>(
@@ -124,11 +123,8 @@ int main() {
       pose_2D<double>(std::weak_ptr<pose_2D<double>>(),
                       vect<double, 2>(0.5, 0.0), rot_mat_2D<double>(0.0)));
   // create end mass of 1.0 kg (point mass only)
-  auto mass1 =
-      std::make_shared<inertia_2D>("mass1",
-                                   std::shared_ptr<joint_dependent_frame_2D>(
-                                       new joint_dependent_frame_2D(end_frame)),
-                                   1.0, 0.0);
+  auto mass1 = std::make_shared<inertia_2D>(
+      "mass1", std::make_shared<joint_dependent_frame_2D>(end_frame), 1.0, 0.0);
 
   kte_map_chain adv_pendulum("adv_pendulum");
 

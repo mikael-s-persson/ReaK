@@ -118,10 +118,9 @@ class no_obstacle_space : public named_object {
       return m_distance(
           p1, p2,
           m_space);  // if p2 is reachable from p1, use Euclidean distance.
-    } else {
-      return std::numeric_limits<
-          double>::infinity();  // p2 is not reachable from p1.
     }
+    return std::numeric_limits<
+        double>::infinity();  // p2 is not reachable from p1.
   }
 
   /**
@@ -163,9 +162,8 @@ class no_obstacle_space : public named_object {
     double total_dist = m_distance(p1, p2, m_space);
     if (total_dist * fraction > max_edge_length) {
       return m_space.move_position_toward(p1, max_edge_length / total_dist, p2);
-    } else {
-      return m_space.move_position_toward(p1, fraction, p2);
     }
+    return m_space.move_position_toward(p1, fraction, p2);
   }
 
   /**
@@ -178,9 +176,8 @@ class no_obstacle_space : public named_object {
     if (total_dist * fraction > max_edge_length) {
       return m_space.move_position_back_to(p1, max_edge_length / total_dist,
                                            p2);
-    } else {
-      return m_space.move_position_back_to(p1, fraction, p2);
     }
+    return m_space.move_position_back_to(p1, fraction, p2);
   }
 
   /**
@@ -255,10 +252,12 @@ class no_obstacle_space : public named_object {
    * \param aDistMetric The distance metric functor to use.
    * \param aRandSampler The random sampler functor to use.
    */
-  no_obstacle_space(
-      const std::string& aName = {}, const super_space_type& aSpace = {},
+  explicit no_obstacle_space(
+      const std::string& aName,
+      const super_space_type& aSpace = super_space_type{},
       double aMaxEdgeLength = std::numeric_limits<double>::infinity(),
-      DistanceMetric aDistMetric = {}, RandomSampler aRandSampler = {})
+      DistanceMetric aDistMetric = DistanceMetric{},
+      RandomSampler aRandSampler = RandomSampler{})
       : named_object(),
         max_edge_length(aMaxEdgeLength),
         m_space(aSpace),
@@ -269,13 +268,16 @@ class no_obstacle_space : public named_object {
     setName(aName);
   }
 
-  virtual ~no_obstacle_space() {}
+  no_obstacle_space() : no_obstacle_space("") {}
+
+  ~no_obstacle_space() override = default;
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     ReaK::named_object::save(
         A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(max_edge_length) &
@@ -286,7 +288,7 @@ class no_obstacle_space : public named_object {
         RK_SERIAL_SAVE_WITH_NAME(m_goal_point);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     ReaK::named_object::load(
         A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(max_edge_length) &

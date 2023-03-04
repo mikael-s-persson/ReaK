@@ -55,7 +55,7 @@ void gauss_newton_nllsq_impl(Function f, JacobianFunction fill_jac,
                                  vect_value_type_t<InputVector>(1e-6),
                              vect_value_type_t<InputVector> abs_grad_tol =
                                  vect_value_type_t<InputVector>(1e-6)) {
-  typedef vect_value_type_t<InputVector> ValueType;
+  using ValueType = vect_value_type_t<InputVector>;
   using std::abs;
   using std::sqrt;
 
@@ -69,8 +69,9 @@ void gauss_newton_nllsq_impl(Function f, JacobianFunction fill_jac,
   impose_limits(x, e);
   unsigned int iter = 0;
   while (norm_2(e) > abs_tol) {
-    if (++iter > max_iter)
+    if (++iter > max_iter) {
       throw maximum_iteration(max_iter);
+    }
     x += e;
     y_approx = f(x);
     r = y;
@@ -108,9 +109,9 @@ struct gauss_newton_nllsq_factory {
   LimitFunction impose_limits;
   LinearSolver lin_solve;
 
-  typedef gauss_newton_nllsq_factory<Function, JacobianFunction, OutputVector,
-                                     T, LimitFunction, LinearSolver>
-      self;
+  using self =
+      gauss_newton_nllsq_factory<Function, JacobianFunction, OutputVector, T,
+                                 LimitFunction, LinearSolver>;
 
   /**
    * Parametrized constructor of the factory object.

@@ -74,7 +74,7 @@ struct prm_planner_visitor
   using planner_base_type = typename base_type::planner_base_type;
   using query_type = typename base_type::query_type;
 
-  prm_planner_visitor(planner_base_type* aPlanner, query_type* aQuery = nullptr,
+  explicit prm_planner_visitor(planner_base_type* aPlanner, query_type* aQuery = nullptr,
                       any_knn_synchro* aNNSynchro = nullptr,
                       std::any aStartNode = std::any(),
                       std::any aGoalNode = std::any(),
@@ -105,8 +105,8 @@ struct prm_planner_visitor
         boost::default_astar_visitor(), get(&VertexProp::predecessor, g),
         get(&VertexProp::key_value, g), get(&VertexProp::distance_accum, g),
         get(&EdgeProp::weight, g), boost::identity_property_map(),
-        get(&VertexProp::astar_color, g), std::less<double>(),
-        std::plus<double>(), std::numeric_limits<double>::infinity(),
+        get(&VertexProp::astar_color, g), std::less<>(),
+        std::plus<>(), std::numeric_limits<double>::infinity(),
         double(0.0));
 
     this->dispatched_register_solution(start_node, goal_node, goal_node, g,
@@ -131,12 +131,12 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
   using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
   using PositionMap = boost::data_member_property_map<PointType, VertexProp>;
-  PositionMap pos_map = PositionMap(&VertexProp::position);
+  auto pos_map = PositionMap(&VertexProp::position);
 
   using DensityMap = boost::data_member_property_map<double, VertexProp>;
-  DensityMap dens_map = DensityMap(&VertexProp::density);
+  auto dens_map = DensityMap(&VertexProp::density);
 
-  double space_dim = double(this->get_space_dimensionality());
+  auto space_dim = double(this->get_space_dimensionality());
   double space_Lc = aQuery.get_heuristic_to_goal(aQuery.get_start_position());
 
   std::shared_ptr<const SuperSpace> sup_space_ptr(
@@ -145,7 +145,7 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
   density_plan_visitor<FreeSpaceType, prm_density_calculator> vis(this,
                                                                   &aQuery);
 
-  path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr =
+  auto* p2p_query_ptr =
       reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
           path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
 

@@ -11,22 +11,27 @@ target_link_libraries(test_bm reak_mbd)
 add_executable(build_airship3D_target "build_airship3D_target.cpp")
 ReaK_setup_target(build_airship3D_target)
 target_link_libraries(build_airship3D_target reak_mbd)
+target_link_libraries(build_airship3D_target absl::flags absl::flags_parse)
 
 add_executable(build_P3R3R_model "build_P3R3R_model.cpp")
 ReaK_setup_target(build_P3R3R_model)
 target_link_libraries(build_P3R3R_model reak_mbd)
+target_link_libraries(build_P3R3R_model absl::flags absl::flags_parse)
 
 add_executable(CRS_jtctrl_to_EE "CRS_jtctrl_to_EE.cpp")
 ReaK_setup_target(CRS_jtctrl_to_EE)
 target_link_libraries(CRS_jtctrl_to_EE reak_mbd)
+target_link_libraries(CRS_jtctrl_to_EE absl::flags absl::flags_parse)
 
 add_executable(get_CRS_rel_world_transform "get_CRS_rel_world_transform.cpp")
 ReaK_setup_target(get_CRS_rel_world_transform)
 target_link_libraries(get_CRS_rel_world_transform reak_mbd)
+target_link_libraries(get_CRS_rel_world_transform absl::flags_parse)
 
 add_executable(pose_to_grapple "pose_to_grapple.cpp")
 ReaK_setup_target(pose_to_grapple)
 target_link_libraries(pose_to_grapple reak_mbd)
+target_link_libraries(pose_to_grapple absl::flags absl::flags_parse)
 
 if(COIN3D_FOUND AND QT_FOUND)
   

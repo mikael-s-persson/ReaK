@@ -32,7 +32,6 @@
 
 #include <ReaK/math/lin_alg/mat_svd_method.hpp>
 
-#include <cmath>
 #include <iostream>
 
 #ifndef M_PI
@@ -44,17 +43,17 @@ static int gradCount;
 
 using namespace ReaK;
 
-typedef double (*FunctionPtr)(const vect_n<double>&);
-typedef vect_n<double> (*GradFunctionPtr)(const vect_n<double>&);
-typedef void (*HessFunctionPtr)(mat<double, mat_structure::symmetric>&,
-                                const vect_n<double>&, double,
-                                const vect_n<double>&);
-typedef vect_n<double> (*GFunctionPtr)(const vect_n<double>&);
-typedef void (*GJacFunctionPtr)(mat<double, mat_structure::rectangular>&,
-                                const vect_n<double>&, const vect_n<double>&);
-typedef vect_n<double> (*HFunctionPtr)(const vect_n<double>&);
-typedef void (*HJacFunctionPtr)(mat<double, mat_structure::rectangular>&,
-                                const vect_n<double>&, const vect_n<double>&);
+using FunctionPtr = double (*)(const vect_n<double>&);
+using GradFunctionPtr = vect_n<double> (*)(const vect_n<double>&);
+using HessFunctionPtr = void (*)(mat<double, mat_structure::symmetric>&,
+                                 const vect_n<double>&, double,
+                                 const vect_n<double>&);
+using GFunctionPtr = vect_n<double> (*)(const vect_n<double>&);
+using GJacFunctionPtr = void (*)(mat<double, mat_structure::rectangular>&,
+                                 const vect_n<double>&, const vect_n<double>&);
+using HFunctionPtr = vect_n<double> (*)(const vect_n<double>&);
+using HJacFunctionPtr = void (*)(mat<double, mat_structure::rectangular>&,
+                                 const vect_n<double>&, const vect_n<double>&);
 
 double p01_f(const vect_n<double>& x) {
   ++evalCount;
@@ -78,12 +77,13 @@ void p01_H(mat<double, mat_structure::symmetric>& H, const vect_n<double>& x,
   H(1, 1) = 200.0;
 };
 
-vect_n<double> p01_g(const vect_n<double>&) {
+vect_n<double> p01_g(const vect_n<double>& /*unused*/) {
   return vect_n<double>(0);
 };
 
 void p01_g_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(0);
 };
@@ -95,7 +95,8 @@ vect_n<double> p01_h(const vect_n<double>& x) {
 };
 
 void p01_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(1);
   J(0, 0) = 0.0;
@@ -124,7 +125,8 @@ vect_n<double> p02_h(const vect_n<double>& x) {
 };
 
 void p02_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(1);
   J(0, 0) = 0.0;
@@ -161,12 +163,13 @@ void p03_H(mat<double, mat_structure::symmetric>& H, const vect_n<double>& x,
   H(1, 1) = 2.0;
 };
 
-vect_n<double> p03_g(const vect_n<double>&) {
+vect_n<double> p03_g(const vect_n<double>& /*unused*/) {
   return vect_n<double>(0);
 };
 
 void p03_g_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(0);
 };
@@ -178,7 +181,8 @@ vect_n<double> p03_h(const vect_n<double>& x) {
 };
 
 void p03_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(1);
   J(0, 0) = 0.0;
@@ -215,12 +219,13 @@ void p04_H(mat<double, mat_structure::symmetric>& H, const vect_n<double>& x,
   H(1, 1) = 0.0;
 };
 
-vect_n<double> p04_g(const vect_n<double>&) {
+vect_n<double> p04_g(const vect_n<double>& /*unused*/) {
   return vect_n<double>(0);
 };
 
 void p04_g_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(0);
 };
@@ -233,7 +238,8 @@ vect_n<double> p04_h(const vect_n<double>& x) {
 };
 
 void p04_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(2);
   J(0, 0) = 1.0;
@@ -276,12 +282,13 @@ void p05_H(mat<double, mat_structure::symmetric>& H, const vect_n<double>& x,
   H(1, 1) = v1 + 2.0;
 };
 
-vect_n<double> p05_g(const vect_n<double>&) {
+vect_n<double> p05_g(const vect_n<double>& /*unused*/) {
   return vect_n<double>(0);
 };
 
 void p05_g_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(0);
 };
@@ -296,7 +303,8 @@ vect_n<double> p05_h(const vect_n<double>& x) {
 };
 
 void p05_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(4);
   J(0, 0) = 1.0;
@@ -347,19 +355,20 @@ vect_n<double> p06_g(const vect_n<double>& x) {
 };
 
 void p06_g_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>& x, const vect_n<double>&) {
+               const vect_n<double>& x, const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(1);
   J(0, 0) = -20.0 * x[0];
   J(0, 1) = 10.0;
 };
 
-vect_n<double> p06_h(const vect_n<double>&) {
+vect_n<double> p06_h(const vect_n<double>& /*unused*/) {
   return vect_n<double>(0);
 };
 
 void p06_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(0);
 };
@@ -402,19 +411,20 @@ vect_n<double> p07_g(const vect_n<double>& x) {
 };
 
 void p07_g_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>& x, const vect_n<double>&) {
+               const vect_n<double>& x, const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(1);
   J(0, 0) = 4.0 * x[0] * (1.0 + x[0] * x[0]);
   J(0, 1) = 2.0 * x[1];
 };
 
-vect_n<double> p07_h(const vect_n<double>&) {
+vect_n<double> p07_h(const vect_n<double>& /*unused*/) {
   return vect_n<double>(0);
 };
 
 void p07_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(0);
 };
@@ -449,12 +459,13 @@ void p10_H(mat<double, mat_structure::symmetric>& H, const vect_n<double>& x,
   H(1, 1) = 0.0;
 };
 
-vect_n<double> p10_g(const vect_n<double>&) {
+vect_n<double> p10_g(const vect_n<double>& /*unused*/) {
   return vect_n<double>(0);
 };
 
 void p10_g_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(0);
 };
@@ -466,7 +477,7 @@ vect_n<double> p10_h(const vect_n<double>& x) {
 };
 
 void p10_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>& x, const vect_n<double>&) {
+               const vect_n<double>& x, const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(1);
   J(0, 0) = -6.0 * x[0] + 2.0 * x[1];
@@ -495,20 +506,22 @@ vect_n<double> p11_grad(const vect_n<double>& x) {
   return result;
 };
 
-void p11_H(mat<double, mat_structure::symmetric>& H, const vect_n<double>&,
-           double, const vect_n<double>&) {
+void p11_H(mat<double, mat_structure::symmetric>& H,
+           const vect_n<double>& /*unused*/, double /*unused*/,
+           const vect_n<double>& /*unused*/) {
   H.set_col_count(2);
   H(0, 0) = 2.0;
   H(0, 1) = 0.0;
   H(1, 1) = 2.0;
 };
 
-vect_n<double> p11_g(const vect_n<double>&) {
+vect_n<double> p11_g(const vect_n<double>& /*unused*/) {
   return vect_n<double>(0);
 };
 
 void p11_g_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(0);
 };
@@ -520,7 +533,7 @@ vect_n<double> p11_h(const vect_n<double>& x) {
 };
 
 void p11_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>& x, const vect_n<double>&) {
+               const vect_n<double>& x, const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(1);
   J(0, 0) = -2.0 * x[0];
@@ -568,12 +581,13 @@ void p12_H(mat<double, mat_structure::symmetric>& H, const vect_n<double>& x,
   H(1, 1) = 2.0;
 };
 
-vect_n<double> p12_g(const vect_n<double>&) {
+vect_n<double> p12_g(const vect_n<double>& /*unused*/) {
   return vect_n<double>(0);
 };
 
 void p12_g_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(0);
 };
@@ -585,7 +599,7 @@ vect_n<double> p12_h(const vect_n<double>& x) {
 };
 
 void p12_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>& x, const vect_n<double>&) {
+               const vect_n<double>& x, const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(1);
   J(0, 0) = -8.0 * x[0];
@@ -629,7 +643,7 @@ vect_n<double> p14_g(const vect_n<double>& x) {
 };
 
 void p14_g_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>& x, const vect_n<double>&) {
+               const vect_n<double>& x, const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(1);
   J(0, 0) = 1.0;
@@ -643,7 +657,7 @@ vect_n<double> p14_h(const vect_n<double>& x) {
 };
 
 void p14_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>& x, const vect_n<double>&) {
+               const vect_n<double>& x, const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(1);
   J(0, 0) = -0.5 * x[0];
@@ -681,12 +695,13 @@ void p15_H(mat<double, mat_structure::symmetric>& H, const vect_n<double>& x,
   H(1, 1) = 2.0;
 };
 
-vect_n<double> p15_g(const vect_n<double>&) {
+vect_n<double> p15_g(const vect_n<double>& /*unused*/) {
   return vect_n<double>(0);
 };
 
 void p15_g_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>&, const vect_n<double>&) {
+               const vect_n<double>& /*unused*/,
+               const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(0);
 };
@@ -698,7 +713,7 @@ vect_n<double> p15_h(const vect_n<double>& x) {
 };
 
 void p15_h_jac(mat<double, mat_structure::rectangular>& J,
-               const vect_n<double>& x, const vect_n<double>&) {
+               const vect_n<double>& x, const vect_n<double>& /*unused*/) {
   J.set_col_count(2);
   J.set_row_count(1);
   J(0, 0) = -0.5 * x[0];
@@ -804,7 +819,7 @@ vect_n<double> robot1_g(const vect_n<double>& x) {
 };
 
 void robot1_g_jac(mat<double, mat_structure::rectangular>& J,
-                  const vect_n<double>& x, const vect_n<double>&) {
+                  const vect_n<double>& x, const vect_n<double>& /*unused*/) {
   J.set_col_count(8);
   J.set_row_count(6);
   vect_n<double> l = get_robot1_lengths();
@@ -879,7 +894,8 @@ vect_n<double> robot1_h(const vect_n<double>& x) {
 };
 
 void robot1_h_jac(mat<double, mat_structure::rectangular>& J,
-                  const vect_n<double>&, const vect_n<double>&) {
+                  const vect_n<double>& /*unused*/,
+                  const vect_n<double>& /*unused*/) {
   J.set_col_count(8);
   J.set_row_count(2);
   J(0, 0) = 1.0;
@@ -949,7 +965,7 @@ vect_n<double> robot2_grad(const vect_n<double>& x) {
 };
 
 void robot2_H(mat<double, mat_structure::symmetric>& H, const vect_n<double>& x,
-              double, const vect_n<double>&) {
+              double /*unused*/, const vect_n<double>& /*unused*/) {
   H.set_col_count(4);
   H = mat<double, mat_structure::nil>(4, 4);
   H(0, 0) = 0.0;
@@ -978,7 +994,7 @@ vect_n<double> robot2_g(const vect_n<double>& x) {
 };
 
 void robot2_g_jac(mat<double, mat_structure::rectangular>& J,
-                  const vect_n<double>& x, const vect_n<double>&) {
+                  const vect_n<double>& x, const vect_n<double>& /*unused*/) {
   J.set_col_count(4);
   J.set_row_count(3);
   vect_n<double> l = get_robot2_lengths();
@@ -1023,7 +1039,8 @@ vect_n<double> robot2_h(const vect_n<double>& x) {
 };
 
 void robot2_h_jac(mat<double, mat_structure::rectangular>& J,
-                  const vect_n<double>&, const vect_n<double>&) {
+                  const vect_n<double>& /*unused*/,
+                  const vect_n<double>& /*unused*/) {
   J.set_col_count(4);
   J.set_row_count(2);
   J(0, 0) = 1.0;

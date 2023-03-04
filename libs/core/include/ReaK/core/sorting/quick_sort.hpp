@@ -47,7 +47,7 @@ namespace ReaK::sorting {
 struct random_pivot {
   template <typename RandomAccessIter, typename Compare>
   void operator()(RandomAccessIter first, RandomAccessIter last,
-                  Compare) const {
+                  Compare /*unused*/) const {
     std::iter_swap(std::prev(last),
                    std::next(first, rand() % std::distance(first, last)));
   }
@@ -65,7 +65,8 @@ struct median_of_3_pivots {
     RandomAccessIter middle = std::next(first, std::distance(first, last) / 2);
     if (comp(*first, *before_last) && comp(*before_last, *middle)) {
       return;
-    } else if (comp(*before_last, *first) && comp(*first, *middle)) {
+    }
+    if (comp(*before_last, *first) && comp(*first, *middle)) {
       return std::iter_swap(before_last, first);
     }
     std::iter_swap(before_last, middle);
@@ -84,10 +85,12 @@ struct median_of_3_random_pivots {
     RandomAccessIter piv1 = first + rand() % dist;
     RandomAccessIter piv2 = first + rand() % dist;
     RandomAccessIter piv3 = first + rand() % dist;
-    if (comp(*piv1, *piv2) && comp(*piv2, *piv3))
+    if (comp(*piv1, *piv2) && comp(*piv2, *piv3)) {
       return std::iter_swap(std::prev(last), piv2);
-    else if (comp(*piv2, *piv1) && comp(*piv1, *piv3))
+    }
+    if (comp(*piv2, *piv1) && comp(*piv1, *piv3)) {
       return std::iter_swap(std::prev(last), piv1);
+    }
     std::iter_swap(std::prev(last), piv3);
   }
 };
@@ -98,7 +101,7 @@ struct median_of_3_random_pivots {
 struct first_pivot {
   template <typename RandomAccessIter, typename Compare>
   void operator()(RandomAccessIter first, RandomAccessIter last,
-                  Compare) const {
+                  Compare /*unused*/) const {
     std::iter_swap(std::prev(last), first);
   }
 };
@@ -109,8 +112,9 @@ template <typename RandomAccessIter, typename Compare, typename PivotChooser>
 void quick_sort_ra_impl(RandomAccessIter first, RandomAccessIter last,
                         Compare comp, PivotChooser choose_pivot) {
   while (first != last) {
-    if (last - first < 50)
+    if (last - first < 50) {
       return insertion_sort(first, last, comp);
+    }
     choose_pivot(first, last, comp);
     RandomAccessIter before_last = last - 1;
     RandomAccessIter pivot = std::partition(

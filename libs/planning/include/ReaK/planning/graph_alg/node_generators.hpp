@@ -138,7 +138,8 @@ struct rrg_node_generator {
     while (true) {
       auto p_new = get_sample(*space);
 
-      std::vector<Vertex> Pred, Succ;
+      std::vector<Vertex> Pred;
+      std::vector<Vertex> Succ;
       if constexpr (boost::is_undirected_graph<Graph>::value) {
         select_neighborhood(p_new, back_inserter(Pred), g, *space, g_position);
       } else {
@@ -200,7 +201,8 @@ struct rrg_bidir_generator {
       auto p_pred = get_sample(*space);
       auto p_succ = p_pred;
 
-      std::vector<Vertex> Pred, Succ;
+      std::vector<Vertex> Pred;
+      std::vector<Vertex> Succ;
       if constexpr (boost::is_undirected_graph<Graph>::value) {
         select_neighborhood(p_pred, back_inserter(Pred), g, *space, g_position);
       } else {

@@ -105,7 +105,7 @@ class point_to_point_path
     sum += this->dist(a, *(wpb_a.second), *(this->space));
 
     const_waypoint_descriptor it = wpb_a.second;
-    const_waypoint_descriptor it_prev = it;
+    auto it_prev = it;
     while (++it != wpb_b.first) {
       sum += this->dist(*it_prev++, *it, *(this->space));
     }
@@ -326,15 +326,12 @@ class point_to_point_path
     friend bool operator==(const point_distance_iterator& lhs,
                            const point_distance_iterator& rhs) {
       using std::abs;
-      if ((lhs.parent == rhs.parent) &&
+      return static_cast<bool>(
+          (lhs.parent == rhs.parent) &&
           (lhs.current_wpbound.first == rhs.current_wpbound.first) &&
           (lhs.current_wpbound.second == rhs.current_wpbound.second) &&
           (abs(lhs.current_distance - rhs.current_distance) <=
-           std::numeric_limits<double>::epsilon())) {
-        return true;
-      } else {
-        return false;
-      }
+           std::numeric_limits<double>::epsilon()));
     }
 
     friend bool operator!=(const point_distance_iterator& lhs,
@@ -503,15 +500,12 @@ class point_to_point_path
     friend bool operator==(const point_fraction_iterator& lhs,
                            const point_fraction_iterator& rhs) {
       using std::abs;
-      if ((lhs.parent == rhs.parent) &&
+      return static_cast<bool>(
+          (lhs.parent == rhs.parent) &&
           (lhs.current_wpbound.first == rhs.current_wpbound.first) &&
           (lhs.current_wpbound.second == rhs.current_wpbound.second) &&
           (abs(lhs.current_fraction - rhs.current_fraction) <=
-           std::numeric_limits<double>::epsilon())) {
-        return true;
-      } else {
-        return false;
-      }
+           std::numeric_limits<double>::epsilon()));
     }
 
     friend bool operator!=(const point_fraction_iterator& lhs,
@@ -562,7 +556,7 @@ class point_to_point_path
   /**
    * Standard swap function.
    */
-  friend void swap(self& lhs, self& rhs) throw() {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
     swap(static_cast<base_class_type&>(lhs),
          static_cast<base_class_type&>(rhs));
@@ -583,7 +577,7 @@ class point_to_point_path
    * \return The end distance-iterator along the path.
    */
   point_distance_iterator end_distance_travel() const {
-    const_waypoint_descriptor it = this->waypoints.end();
+    auto it = this->waypoints.end();
     --it;
     return point_distance_iterator(this, const_waypoint_bounds(it, it));
   }
@@ -603,7 +597,7 @@ class point_to_point_path
    * \return The end fraction-iterator along the path.
    */
   point_fraction_iterator end_fraction_travel() const {
-    const_waypoint_descriptor it = this->waypoints.end();
+    auto it = this->waypoints.end();
     --it;
     return point_fraction_iterator(this, const_waypoint_bounds(it, it));
   }
@@ -695,12 +689,13 @@ class point_to_point_path
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_class_type::save(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_class_type::load(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }

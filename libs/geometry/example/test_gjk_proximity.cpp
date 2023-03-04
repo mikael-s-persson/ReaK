@@ -101,8 +101,9 @@ double get_brute_force_dist(BF1& bf1, BF2& bf2) {
           vect<double, 3> v(cos(k) * sin(l), sin(k) * sin(l), cos(l));
           vect<double, 3> pt2 = bf2(v);
           double d = norm_2(pt2 - pt1);
-          if (d < min_dist_brute)
+          if (d < min_dist_brute) {
             min_dist_brute = d;
+          }
         }
       }
     }
@@ -120,7 +121,8 @@ struct proximity_solver {
 
   void operator()() {
     geom::proximity_record_3D result;
-    vect<double, 3> v1, v2;
+    vect<double, 3> v1;
+    vect<double, 3> v2;
     using std::cos;
     using std::sin;
 
@@ -251,31 +253,31 @@ struct proximity_solver {
 int main() {
 
   std::vector<proximity_solver> prox_tasks;
-  prox_tasks.push_back(proximity_solver(cy1, cy4));
-  prox_tasks.push_back(proximity_solver(cy1, cy5));
-  prox_tasks.push_back(proximity_solver(cy1, cy6));
-  prox_tasks.push_back(proximity_solver(cy2, cy4));
-  prox_tasks.push_back(proximity_solver(cy3, cy4));
+  prox_tasks.emplace_back(cy1, cy4);
+  prox_tasks.emplace_back(cy1, cy5);
+  prox_tasks.emplace_back(cy1, cy6);
+  prox_tasks.emplace_back(cy2, cy4);
+  prox_tasks.emplace_back(cy3, cy4);
 
-  prox_tasks.push_back(proximity_solver(bx1, bx4));
-  prox_tasks.push_back(proximity_solver(bx1, bx5));
-  prox_tasks.push_back(proximity_solver(bx1, bx6));
-  prox_tasks.push_back(proximity_solver(bx2, bx4));
-  prox_tasks.push_back(proximity_solver(bx3, bx4));
+  prox_tasks.emplace_back(bx1, bx4);
+  prox_tasks.emplace_back(bx1, bx5);
+  prox_tasks.emplace_back(bx1, bx6);
+  prox_tasks.emplace_back(bx2, bx4);
+  prox_tasks.emplace_back(bx3, bx4);
 
-  prox_tasks.push_back(proximity_solver(bx1, cy4));
-  prox_tasks.push_back(proximity_solver(bx2, cy4));
-  prox_tasks.push_back(proximity_solver(bx3, cy4));
+  prox_tasks.emplace_back(bx1, cy4);
+  prox_tasks.emplace_back(bx2, cy4);
+  prox_tasks.emplace_back(bx3, cy4);
 
-  prox_tasks.push_back(proximity_solver(cy1, bx4));
-  prox_tasks.push_back(proximity_solver(cy2, bx4));
-  prox_tasks.push_back(proximity_solver(cy3, bx4));
+  prox_tasks.emplace_back(cy1, bx4);
+  prox_tasks.emplace_back(cy2, bx4);
+  prox_tasks.emplace_back(cy3, bx4);
 
-  prox_tasks.push_back(proximity_solver(cy7, bx7));
+  prox_tasks.emplace_back(cy7, bx7);
 
-  for (std::size_t i = 0; i < prox_tasks.size(); ++i) {
+  for (auto& prox_task : prox_tasks) {
 
-    prox_tasks[i]();
+    prox_task();
   }
 
   return 0;

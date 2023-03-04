@@ -179,7 +179,7 @@ class givens_rot_matrix {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<size_type, size_type> size() const throw() {
+  std::pair<size_type, size_type> size() const noexcept {
     return std::make_pair(2, 2);
   }
 
@@ -187,7 +187,7 @@ class givens_rot_matrix {
    * Returns the allocator object of the underlying container, which is none at all in this case.
    * \return the allocator object of the underlying container, which is none at all in this case.
    */
-  allocator_type get_allocator() const { return; }
+  allocator_type get_allocator() const {}
 
   /**
    * Matrix indexing accessor for read-only access.

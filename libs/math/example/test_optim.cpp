@@ -53,9 +53,8 @@ double banana_function(const ReaK::vect<double, 2>& x) {
 
 ReaK::vect<double, 2> banana_function_grad(const ReaK::vect<double, 2>& x) {
   gradCount++;
-  return ReaK::vect<double, 2>(
-      2.0 * (x[0] - 1.0) - 400.0 * x[0] * (x[1] - x[0] * x[0]),
-      200.0 * (x[1] - x[0] * x[0]));
+  return {2.0 * (x[0] - 1.0) - 400.0 * x[0] * (x[1] - x[0] * x[0]),
+          200.0 * (x[1] - x[0] * x[0])};
 };
 
 double easy_function(const ReaK::vect<double, 2>& x) {

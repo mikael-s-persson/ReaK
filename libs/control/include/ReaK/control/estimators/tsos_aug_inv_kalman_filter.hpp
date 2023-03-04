@@ -608,7 +608,7 @@ class TSOSAIKF_belief_transfer_factory : public serializable {
    * \param aQ The system's input noise covariance matrix.
    * \param aR The system's output measurement's covariance matrix.
    */
-  TSOSAIKF_belief_transfer_factory(
+  explicit TSOSAIKF_belief_transfer_factory(
       const state_space_system_ptr& aSys = state_space_system_ptr(),
       const matrix_type& aQ = matrix_type(),
       const matrix_type& aR = matrix_type())
@@ -656,9 +656,10 @@ class TSOSAIKF_belief_transfer_factory : public serializable {
   const matrix_type& get_measurement_noise_cov() const { return R; }
 
   template <typename BeliefSpace>
-  predictor_type create_predictor(const BeliefSpace&,
-                                  const pp::topology_point_type_t<BeliefSpace>*,
-                                  const time_type&, const input_type&) const {
+  predictor_type create_predictor(
+      const BeliefSpace& /*unused*/,
+      const pp::topology_point_type_t<BeliefSpace>* /*unused*/,
+      const time_type& /*unused*/, const input_type& /*unused*/) const {
     return predictor_type(this);
   }
 
@@ -666,12 +667,13 @@ class TSOSAIKF_belief_transfer_factory : public serializable {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     A& RK_SERIAL_SAVE_WITH_NAME(sys) & RK_SERIAL_SAVE_WITH_NAME(Q) &
         RK_SERIAL_SAVE_WITH_NAME(R);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     A& RK_SERIAL_LOAD_WITH_NAME(sys) & RK_SERIAL_LOAD_WITH_NAME(Q) &
         RK_SERIAL_LOAD_WITH_NAME(R);
   }

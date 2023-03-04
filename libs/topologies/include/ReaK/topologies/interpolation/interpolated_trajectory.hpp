@@ -127,8 +127,8 @@ class interpolated_trajectory
       }
       sum += it_int->second.travel_distance_from(a, this->dist);
     }
-    const_waypoint_descriptor it = wpb_a.second;
-    const_waypoint_descriptor it_prev = it;
+    auto it = wpb_a.second;
+    auto it_prev = it;
     while (it++ != wpb_b.first) {
       auto it_int = interp_segments.find(&(it_prev->second));
       if (it_int == interp_segments.end()) {

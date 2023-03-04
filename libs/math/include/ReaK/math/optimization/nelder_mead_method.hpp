@@ -64,7 +64,7 @@ T nelder_mead_compute_std_dev(const std::multimap<T, Vector>& pts,
   using ValueType = vect_value_type_t<Vector>;
   using std::sqrt;
 
-  ValueType result = ValueType(0.0);
+  auto result = ValueType(0.0);
   for (auto& pt : pts) {
     result += norm_2_sqr(pt.second - c);
   }

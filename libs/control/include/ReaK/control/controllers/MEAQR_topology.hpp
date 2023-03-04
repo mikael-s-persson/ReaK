@@ -32,6 +32,8 @@
 #ifndef REAK_MEAQR_TOPOLOGY_HPP
 #define REAK_MEAQR_TOPOLOGY_HPP
 
+#include <cmath>
+
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/named_object.hpp>
 
@@ -103,12 +105,10 @@ class MEAQR_ZIR_system {
   using IHAQR_payload =
       typename IHAQR_point_type<StateSpace, StateSpaceSystem>::IHAQR_payload;
 
- public:
   lin_payload* lin_data;
   mat<double, mat_structure::square> BRBmatrix;
   vect_n<double> stat_drift;
 
- public:
   std::size_t get_state_dimensions() const {
     return BRBmatrix.get_row_count() * (2 * BRBmatrix.get_row_count() + 2);
   }
@@ -131,11 +131,12 @@ class MEAQR_ZIR_system {
 
   MEAQR_ZIR_system() : MEAQR_ZIR_system(nullptr) {}
 
-  point_derivative_type get_state_derivative(const state_space_type&,
-                                             const point_type& p, input_type,
-                                             double) const {
+  point_derivative_type get_state_derivative(const state_space_type& /*unused*/,
+                                             const point_type& p,
+                                             input_type /*unused*/,
+                                             double /*unused*/) const {
     if (!lin_data) {
-      return point_derivative_type();
+      return {};
     }
 
     const mat<double, mat_structure::square>& L = get<0>(p);
@@ -182,8 +183,9 @@ class MEAQR_ZIR_system {
             lin_data->A * zir + stat_drift};            // zir_dot
   }
 
-  auto get_output(const state_space_type&, const point_type&, input_type,
-                  double) const {
+  auto get_output(const state_space_type& /*unused*/,
+                  const point_type& /*unused*/, input_type /*unused*/,
+                  double /*unused*/) const {
     return output_type();
   }
 };
@@ -224,8 +226,8 @@ class MEAQR_point_type : public IHAQR_point_type<StateSpace, StateSpaceSystem> {
     return *this;
   }
 
-  MEAQR_point_type(const base_type& rhs) : base_type(rhs){};
-  MEAQR_point_type(base_type&& rhs) : base_type(std::move(rhs)) {}
+  explicit MEAQR_point_type(const base_type& rhs) : base_type(rhs){};
+  explicit MEAQR_point_type(base_type&& rhs) : base_type(std::move(rhs)) {}
   explicit MEAQR_point_type(state_type aX) : base_type(std::move(aX)) {}
   MEAQR_point_type() : MEAQR_point_type(state_type()) {}
 
@@ -243,10 +245,12 @@ class MEAQR_point_type : public IHAQR_point_type<StateSpace, StateSpaceSystem> {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
   }
 
@@ -384,8 +388,6 @@ class MEAQR_topology : public named_object {
       current_time += m_IHAQR_space->m_time_step;
       p.MEAQR_data->pts.push_back(std::make_pair(current_time, current_point));
     }
-
-    return;
   }
 
   /**
@@ -564,8 +566,8 @@ class MEAQR_topology : public named_object {
         invert(m_IHAQR_space->m_R) * transpose_view(b.lin_data->B);
 
     // first, find the T-optimal:
-    double min_J;
-    double T_optimal;
+    double min_J = NAN;
+    double T_optimal = NAN;
     auto min_it =
         find_optimal_cost_and_time(a, b, K, b.lin_data->u, T_optimal, min_J);
     if (min_it == b.MEAQR_data->pts.end()) {
@@ -591,8 +593,9 @@ class MEAQR_topology : public named_object {
       vect_n<double> eta = get<2>(min_it->second);
 
       double time_limit = T_optimal - m_IHAQR_space->m_max_time_horizon;
-      if (time_limit > T_goal)
+      if (time_limit > T_goal) {
         time_limit = T_goal;
+      }
       if (!steer_with_constant_control(get<1>(min_it->second), K,  // H, K
                                        get<2>(min_it->second), b.lin_data->u,
                                        u_prev,  // eta, u0, u_previous
@@ -704,10 +707,10 @@ class MEAQR_topology : public named_object {
    *                         a value of 0.1 would mean that the input-bias cost (idle or hover cost)
    *                         is penalized ten times less than the feedback term.
    */
-  MEAQR_topology(const std::string& aName,
-                 const std::shared_ptr<IHAQR_space_type>& aIHAQRSpace =
-                     std::shared_ptr<IHAQR_space_type>(),
-                 double aIdleToCostRatio = 0.01)
+  explicit MEAQR_topology(const std::string& aName,
+                          const std::shared_ptr<IHAQR_space_type>& aIHAQRSpace =
+                              std::shared_ptr<IHAQR_space_type>(),
+                          double aIdleToCostRatio = 0.01)
       : named_object(),
         m_IHAQR_space(aIHAQRSpace),
         m_idle_to_cost_ratio(aIdleToCostRatio) {
@@ -814,7 +817,8 @@ class MEAQR_topology : public named_object {
   }
 
   // NOTE: don't know if I can get rid of this. (only seems useful in bounded interpolators (and samplers)).
-  point_difference_type get_diff_to_boundary(const point_type&) const {
+  point_difference_type get_diff_to_boundary(
+      const point_type& /*unused*/) const {
     return point_difference_type();
   }
 
@@ -851,14 +855,15 @@ class MEAQR_topology : public named_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     ReaK::named_object::save(
         A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(m_IHAQR_space) &
         RK_SERIAL_SAVE_WITH_NAME(m_idle_to_cost_ratio);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     ReaK::named_object::load(
         A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(m_IHAQR_space) &
@@ -902,29 +907,30 @@ struct get_proper_metric<
 
 class MEAQR_to_state_mapper : public named_object {
  public:
-  MEAQR_to_state_mapper() : named_object() { setName("MEAQR_to_state_mapper"); }
+  MEAQR_to_state_mapper() { setName("MEAQR_to_state_mapper"); }
 
   template <typename StateSpace, typename StateSpaceSystem,
             typename StateSpaceSampler>
-  auto map_to_space(
-      const MEAQR_point_type<StateSpace, StateSpaceSystem>& pt,
-      const MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>&,
-      const StateSpace&) const {
+  auto map_to_space(const MEAQR_point_type<StateSpace, StateSpaceSystem>& pt,
+                    const MEAQR_topology<StateSpace, StateSpaceSystem,
+                                         StateSpaceSampler>& /*unused*/,
+                    const StateSpace& /*unused*/) const {
     return pt.x;
   }
 
   template <typename StateSpace, typename StateSpaceSystem,
             typename StateSpaceSampler>
-  auto map_to_space(
-      const topology_point_type_t<StateSpace>& pt,
-      const MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>&,
-      const StateSpace&) const {
+  auto map_to_space(const topology_point_type_t<StateSpace>& pt,
+                    const MEAQR_topology<StateSpace, StateSpaceSystem,
+                                         StateSpaceSampler>& /*unused*/,
+                    const StateSpace& /*unused*/) const {
     return pt;
   }
 
   template <typename DestSpace, typename StateSpace>
   auto map_to_space(const topology_point_type_t<StateSpace>& pt,
-                    const StateSpace&, const DestSpace&) const {
+                    const StateSpace& /*unused*/,
+                    const DestSpace& /*unused*/) const {
     return topology_point_type_t<DestSpace>(pt);
   }
 
@@ -932,10 +938,12 @@ class MEAQR_to_state_mapper : public named_object {
   ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
     named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
   }
 
@@ -986,20 +994,14 @@ class MEAQR_topology_with_CD
     // update the kinematics model with the given joint states.
     m_model->doDirectMotion();
 
-    for (auto& qp : m_proxy_env_2D) {
-      geom::proximity_record_2D tmp = qp->findMinimumDistance();
-      if (tmp.mDistance < 0.0) {
-        return false;
-      }
-    }
-    for (auto& qp : m_proxy_env_3D) {
-      geom::proximity_record_3D tmp = qp->findMinimumDistance();
-      if (tmp.mDistance < 0.0) {
-        return false;
-      }
-    }
-
-    return true;
+    return std::all_of(m_proxy_env_2D.begin(), m_proxy_env_2D.end(),
+                       [](const auto& qp) {
+                         return qp->findMinimumDistance().mDistance >= 0.0;
+                       }) &&
+           std::all_of(m_proxy_env_3D.begin(), m_proxy_env_3D.end(),
+                       [](const auto& qp) {
+                         return qp->findMinimumDistance().mDistance >= 0.0;
+                       });
   }
 
  public:
@@ -1016,15 +1018,12 @@ class MEAQR_topology_with_CD
    * \param aModel The direct-kinematics model for the system (this is for the application of
    *               state-space points to synchronize the collision-detection code which rely on KTE-based systems).
    */
-  MEAQR_topology_with_CD(
+  explicit MEAQR_topology_with_CD(
       const std::string& aName,
       const std::shared_ptr<IHAQR_space_type>& aIHAQRSpace = {},
       double aIdleToCostRatio = 0.01,
       const std::shared_ptr<kte::direct_kinematics_model>& aModel = {})
-      : base_type(aName, aIHAQRSpace, aIdleToCostRatio),
-        m_model(aModel),
-        m_proxy_env_2D(),
-        m_proxy_env_3D() {}
+      : base_type(aName, aIHAQRSpace, aIdleToCostRatio), m_model(aModel) {}
 
   MEAQR_topology_with_CD() : MEAQR_topology_with_CD("MEAQR_topology_with_CD") {}
 
@@ -1037,10 +1036,7 @@ class MEAQR_topology_with_CD
   MEAQR_topology_with_CD(
       const base_type& aBaseSpace,
       const std::shared_ptr<kte::direct_kinematics_model>& aModel)
-      : base_type(aBaseSpace),
-        m_model(aModel),
-        m_proxy_env_2D(),
-        m_proxy_env_3D() {}
+      : base_type(aBaseSpace), m_model(aModel) {}
 
   ~MEAQR_topology_with_CD() override = default;
 
@@ -1061,9 +1057,8 @@ class MEAQR_topology_with_CD
     if (dist(a.x, b.x, this->get_state_space()) * 0.05 >
         dist(result.x, b.x, this->get_state_space())) {
       return base_type::distance(a, b);
-    } else {
-      return std::numeric_limits<double>::infinity();
     }
+    return std::numeric_limits<double>::infinity();
   }
 
   /**
@@ -1099,14 +1094,15 @@ class MEAQR_topology_with_CD
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(m_model) &
         RK_SERIAL_SAVE_WITH_NAME(m_proxy_env_2D) &
         RK_SERIAL_SAVE_WITH_NAME(m_proxy_env_3D);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(m_model) &
         RK_SERIAL_LOAD_WITH_NAME(m_proxy_env_2D) &

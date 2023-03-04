@@ -100,21 +100,26 @@ struct proximity_solver {
           rtti::rk_dynamic_ptr_cast<geom::box>(mShape1);
       pose_3D<double> bx1_pose = bx1->getPose().getGlobalPose();
       double min_dim = 0.5 * bx1->getDimensions()[0];
-      if (min_dim > 0.5 * bx1->getDimensions()[1])
+      if (min_dim > 0.5 * bx1->getDimensions()[1]) {
         min_dim = 0.5 * bx1->getDimensions()[1];
-      if (min_dim > 0.5 * bx1->getDimensions()[2])
+      }
+      if (min_dim > 0.5 * bx1->getDimensions()[2]) {
         min_dim = 0.5 * bx1->getDimensions()[2];
+      }
       if (mShape2->getObjectType() == geom::box::getStaticObjectType()) {
         // box-box case.
         std::shared_ptr<geom::box> bx2 =
             rtti::rk_dynamic_ptr_cast<geom::box>(mShape2);
         pose_3D<double> bx2_pose = bx2->getPose().getGlobalPose();
-        if (min_dim > 0.5 * bx2->getDimensions()[0])
+        if (min_dim > 0.5 * bx2->getDimensions()[0]) {
           min_dim = 0.5 * bx2->getDimensions()[0];
-        if (min_dim > 0.5 * bx2->getDimensions()[1])
+        }
+        if (min_dim > 0.5 * bx2->getDimensions()[1]) {
           min_dim = 0.5 * bx2->getDimensions()[1];
-        if (min_dim > 0.5 * bx2->getDimensions()[2])
+        }
+        if (min_dim > 0.5 * bx2->getDimensions()[2]) {
           min_dim = 0.5 * bx2->getDimensions()[2];
+        }
 
         x[0] = norm_2(c2 - c1) / min_dim;
 
@@ -147,10 +152,12 @@ struct proximity_solver {
         std::shared_ptr<geom::cylinder> cy2 =
             rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape2);
         pose_3D<double> cy2_pose = cy2->getPose().getGlobalPose();
-        if (min_dim > 0.5 * cy2->getLength())
+        if (min_dim > 0.5 * cy2->getLength()) {
           min_dim = 0.5 * cy2->getLength();
-        if (min_dim > cy2->getRadius())
+        }
+        if (min_dim > cy2->getRadius()) {
           min_dim = cy2->getRadius();
+        }
 
         x[0] = norm_2(c2 - c1) / min_dim;
 
@@ -185,19 +192,23 @@ struct proximity_solver {
           rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape1);
       pose_3D<double> cy1_pose = cy1->getPose().getGlobalPose();
       double min_dim = 0.5 * cy1->getLength();
-      if (min_dim > cy1->getRadius())
+      if (min_dim > cy1->getRadius()) {
         min_dim = cy1->getRadius();
+      }
       if (mShape2->getObjectType() == geom::box::getStaticObjectType()) {
         // cylinder-box case.
         std::shared_ptr<geom::box> bx2 =
             rtti::rk_dynamic_ptr_cast<geom::box>(mShape2);
         pose_3D<double> bx2_pose = bx2->getPose().getGlobalPose();
-        if (min_dim > 0.5 * bx2->getDimensions()[0])
+        if (min_dim > 0.5 * bx2->getDimensions()[0]) {
           min_dim = 0.5 * bx2->getDimensions()[0];
-        if (min_dim > 0.5 * bx2->getDimensions()[1])
+        }
+        if (min_dim > 0.5 * bx2->getDimensions()[1]) {
           min_dim = 0.5 * bx2->getDimensions()[1];
-        if (min_dim > 0.5 * bx2->getDimensions()[2])
+        }
+        if (min_dim > 0.5 * bx2->getDimensions()[2]) {
           min_dim = 0.5 * bx2->getDimensions()[2];
+        }
 
         x[0] = norm_2(c2 - c1) / min_dim;
 
@@ -231,10 +242,12 @@ struct proximity_solver {
         std::shared_ptr<geom::cylinder> cy2 =
             rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape2);
         pose_3D<double> cy2_pose = cy2->getPose().getGlobalPose();
-        if (min_dim > 0.5 * cy2->getLength())
+        if (min_dim > 0.5 * cy2->getLength()) {
           min_dim = 0.5 * cy2->getLength();
-        if (min_dim > cy2->getRadius())
+        }
+        if (min_dim > cy2->getRadius()) {
           min_dim = cy2->getRadius();
+        }
 
         x[0] = norm_2(c2 - c1) / min_dim;
 
@@ -294,29 +307,29 @@ struct proximity_solver {
 int main() {
 
   std::vector<proximity_solver> prox_tasks;
-  prox_tasks.push_back(proximity_solver(cy1, cy4));
-  prox_tasks.push_back(proximity_solver(cy1, cy5));
-  prox_tasks.push_back(proximity_solver(cy1, cy6));
-  prox_tasks.push_back(proximity_solver(cy2, cy4));
-  prox_tasks.push_back(proximity_solver(cy3, cy4));
+  prox_tasks.emplace_back(cy1, cy4);
+  prox_tasks.emplace_back(cy1, cy5);
+  prox_tasks.emplace_back(cy1, cy6);
+  prox_tasks.emplace_back(cy2, cy4);
+  prox_tasks.emplace_back(cy3, cy4);
 
-  prox_tasks.push_back(proximity_solver(bx1, bx4));
-  prox_tasks.push_back(proximity_solver(bx1, bx5));
-  prox_tasks.push_back(proximity_solver(bx1, bx6));
-  prox_tasks.push_back(proximity_solver(bx2, bx4));
-  prox_tasks.push_back(proximity_solver(bx3, bx4));
+  prox_tasks.emplace_back(bx1, bx4);
+  prox_tasks.emplace_back(bx1, bx5);
+  prox_tasks.emplace_back(bx1, bx6);
+  prox_tasks.emplace_back(bx2, bx4);
+  prox_tasks.emplace_back(bx3, bx4);
 
-  prox_tasks.push_back(proximity_solver(bx1, cy4));
-  prox_tasks.push_back(proximity_solver(bx2, cy4));
-  prox_tasks.push_back(proximity_solver(bx3, cy4));
+  prox_tasks.emplace_back(bx1, cy4);
+  prox_tasks.emplace_back(bx2, cy4);
+  prox_tasks.emplace_back(bx3, cy4);
 
-  prox_tasks.push_back(proximity_solver(cy1, bx4));
-  prox_tasks.push_back(proximity_solver(cy2, bx4));
-  prox_tasks.push_back(proximity_solver(cy3, bx4));
+  prox_tasks.emplace_back(cy1, bx4);
+  prox_tasks.emplace_back(cy2, bx4);
+  prox_tasks.emplace_back(cy3, bx4);
 
-  for (std::size_t i = 0; i < prox_tasks.size(); ++i) {
+  for (auto& prox_task : prox_tasks) {
 
-    prox_tasks[i]();
+    prox_task();
   };
 
   return 0;

@@ -89,10 +89,11 @@ struct avl_tree_helper {
   static mapped_type& value_to_mapped(value_type& rhs) { return rhs; }
 
   template <typename U, typename V>
-  static value_type keymap_to_value(U&& k, V&&) {
+  static value_type keymap_to_value(U&& k, V&& /*unused*/) {
     return value_type(std::forward<U>(k));
   }
-  static value_type keymap_to_value(const key_type& k, const mapped_type&) {
+  static value_type keymap_to_value(const key_type& k,
+                                    const mapped_type& /*unused*/) {
     return value_type(k);
   }
 };
@@ -121,10 +122,11 @@ struct avl_tree_helper<TreeType, Compare, avl_multiset_style> {
   static mapped_type& value_to_mapped(value_type& rhs) { return rhs; }
 
   template <typename U, typename V>
-  static value_type keymap_to_value(U&& k, V&&) {
+  static value_type keymap_to_value(U&& k, V&& /*unused*/) {
     return value_type(std::forward<U>(k));
   }
-  static value_type keymap_to_value(const key_type& k, const mapped_type&) {
+  static value_type keymap_to_value(const key_type& k,
+                                    const mapped_type& /*unused*/) {
     return value_type(k);
   }
 };
@@ -138,7 +140,7 @@ struct avl_tree_helper<TreeType, Compare, avl_map_style> {
   struct value_compare {
     Compare m_compare;
 
-    value_compare(Compare aComp) : m_compare(aComp) {}
+    explicit value_compare(Compare aComp) : m_compare(aComp) {}
 
     bool operator()(const value_type& lhs, const value_type& rhs) const {
       return m_compare(lhs.first, rhs.first);
@@ -189,7 +191,7 @@ struct avl_tree_helper<TreeType, Compare, avl_multimap_style> {
   struct value_compare {
     Compare m_compare;
 
-    value_compare(Compare aComp) : m_compare(aComp){};
+    explicit value_compare(Compare aComp) : m_compare(aComp){};
 
     bool operator()(const value_type& lhs, const value_type& rhs) const {
       return m_compare(lhs.first, rhs.first);
@@ -494,11 +496,13 @@ class avl_tree_impl {
     c_depth.second += depth_change;
     vertex_type orig_u = u;
 
-    in_edge_iter ei, ei_end;
+    in_edge_iter ei;
+    in_edge_iter ei_end;
     std::tie(ei, ei_end) = in_edges(u, m_tree);
     while (ei != ei_end) {  // until you hit the root node.
       vertex_type p = source(*ei, m_tree);
-      child_vertex_iter vil, vi_end;
+      child_vertex_iter vil;
+      child_vertex_iter vi_end;
       std::tie(vil, vi_end) = child_vertices(p, m_tree);
       std::pair<std::size_t, std::size_t> o_depth;
       if (*vil != u) {
@@ -559,12 +563,11 @@ class avl_tree_impl {
       rebalance_and_insert_subtree(imbal_u.first, std::move(aValue));
       return std::pair<iterator, bool>(
           iterator(&m_tree, find_lower_bound(tmp_k, imbal_u.first)), true);
-    } else {
-      std::pair<vertex_type, edge_type> new_child =
-          add_child_vertex(aBefore, std::move(aValue), m_tree);
-      swap(m_tree[new_child.first], m_tree[aBefore]);
-      return std::pair<iterator, bool>(iterator(&m_tree, aBefore), true);
     }
+    std::pair<vertex_type, edge_type> new_child =
+        add_child_vertex(aBefore, std::move(aValue), m_tree);
+    swap(m_tree[new_child.first], m_tree[aBefore]);
+    return std::pair<iterator, bool>(iterator(&m_tree, aBefore), true);
   }
 
   vertex_type insert_in_range_impl(iterator tvi, iterator tvi_end,
@@ -590,13 +593,11 @@ class avl_tree_impl {
         key_type tmp_k = helper_type::value_to_key(aValue);
         rebalance_and_insert_subtree(imbal_u.first, std::move(aValue));
         return find_lower_bound(tmp_k, imbal_u.first);
-      } else {
-        rebalance_and_insert_subtree(tmp_u, std::move(aValue));
-        return tmp_u;
       }
-    } else {
-      return tree_indexer::null_vertex();
+      rebalance_and_insert_subtree(tmp_u, std::move(aValue));
+      return tmp_u;
     }
+    return tree_indexer::null_vertex();
   }
 
   /*
@@ -642,12 +643,11 @@ class avl_tree_impl {
           rebalance_and_insert_subtree(imbal_u.first, std::move(aValue));
           return std::pair<iterator, bool>(
               iterator(&m_tree, find_lower_bound(tmp_k, imbal_u.first)), true);
-        } else {
-          std::pair<vertex_type, edge_type> new_child =
-              add_child_vertex(aAfter, std::move(aValue), m_tree);
-          return std::pair<iterator, bool>(iterator(&m_tree, new_child.first),
-                                           true);
         }
+        std::pair<vertex_type, edge_type> new_child =
+            add_child_vertex(aAfter, std::move(aValue), m_tree);
+        return std::pair<iterator, bool>(iterator(&m_tree, new_child.first),
+                                         true);
       }
 
       if (out_degree(aAfter, m_tree) == 1) {
@@ -673,9 +673,9 @@ class avl_tree_impl {
     if (tmp_u == tree_indexer::null_vertex()) {
       return std::pair<iterator, bool>(iterator::end(&m_tree),
                                        false);  // this case is impossible.
-    } else {
-      return std::pair<iterator, bool>(iterator(&m_tree, tmp_u), true);
     }
+    return std::pair<iterator, bool>(iterator(&m_tree, tmp_u), true);
+
     // at this point, the vertex must have been inserted one way or another (worst-case: the whole tree got
     // re-constructed).
   }
@@ -758,7 +758,8 @@ class avl_tree_impl {
     }
 
     if (collected_nodes.empty()) {
-      in_edge_iter ei, ei_end;
+      in_edge_iter ei;
+      in_edge_iter ei_end;
       std::tie(ei, ei_end) = in_edges(mid_root, m_tree);
       vertex_type tmp_parent = source(*ei, m_tree);
       remove_branch(mid_root, m_tree);
@@ -770,24 +771,24 @@ class avl_tree_impl {
 
     while (true) {
       std::pair<vertex_type, bool> imbal_u = find_imbalance_impl(mid_root, 0);
-      if (!imbal_u.second)
+      if (!imbal_u.second) {
         break;
+      }
       rebalance_subtree(imbal_u.first);
       mid_root = imbal_u.first;
     }
 
     if (after_at_end) {
       return iterator::end(&m_tree);
-    } else {
-      return iterator(&m_tree, find_lower_bound(tmp_after_key, mid_root));
     }
+    return iterator(&m_tree, find_lower_bound(tmp_after_key, mid_root));
   }
 
  public:
   /**
    * Creates a AVL-tree with no elements.
    */
-  explicit avl_tree_impl(const allocator_type& = allocator_type())
+  explicit avl_tree_impl(const allocator_type& /*unused*/ = allocator_type())
       : m_tree(),
         m_root(boost::graph_traits<tree_indexer>::null_vertex()),
         m_compare(Compare()) {}
@@ -796,7 +797,7 @@ class avl_tree_impl {
    * Creates a AVL-tree with no elements.
    */
   explicit avl_tree_impl(const Compare& comp,
-                         const allocator_type& = allocator_type())
+                         const allocator_type& /*unused*/ = allocator_type())
       : m_tree(),
         m_root(boost::graph_traits<tree_indexer>::null_vertex()),
         m_compare(comp) {}
@@ -810,7 +811,7 @@ class avl_tree_impl {
   template <typename InputIterator>
   avl_tree_impl(InputIterator aFirst, InputIterator aLast,
                 const Compare& comp = Compare(),
-                const allocator_type& = allocator_type())
+                const allocator_type& /*unused*/ = allocator_type())
       : m_tree(),
         m_root(boost::graph_traits<tree_indexer>::null_vertex()),
         m_compare(comp) {
@@ -826,7 +827,7 @@ class avl_tree_impl {
    */
   avl_tree_impl(std::initializer_list<value_type> aList,
                 const Compare& comp = Compare(),
-                const allocator_type& = allocator_type())
+                const allocator_type& /*unused*/ = allocator_type())
       : m_tree(),
         m_root(boost::graph_traits<tree_indexer>::null_vertex()),
         m_compare(comp) {
@@ -875,9 +876,8 @@ class avl_tree_impl {
   size_type depth() const {
     if (m_root == boost::graph_traits<tree_indexer>::null_vertex()) {
       return 0;
-    } else {
-      return get_minmax_depth(m_root).second;
     }
+    return get_minmax_depth(m_root).second;
   }
 
   /** Returns the comparison object with which the tree was constructed.  */
@@ -950,9 +950,8 @@ class avl_tree_impl {
     vertex_type u = find_lower_bound(aKey, m_root);
     if (!m_compare(aKey, m_tree[u])) {
       return const_iterator(&m_tree, u);
-    } else {
-      return const_iterator::end(&m_tree);
     }
+    return const_iterator::end(&m_tree);
   }
 
   /**
@@ -1261,11 +1260,10 @@ class avl_tree_impl {
     vertex_type u = find_lower_bound(k, m_root);
     if (!m_compare(k, m_tree[u])) {
       return helper_type::value_to_mapped(m_tree[u]);
-    } else {  // insert the key:
+    }  // insert the key:
       iterator it = insert(const_iterator(&m_tree, u),
                            helper_type::keymap_to_value(k, mapped_type()));
       return helper_type::value_to_mapped(m_tree[it.base()]);
-    }
   }
 
   /**
@@ -1286,12 +1284,11 @@ class avl_tree_impl {
     vertex_type u = find_lower_bound(k, m_root);
     if (!m_compare(k, m_tree[u])) {
       return helper_type::value_to_mapped(m_tree[u]);
-    } else {  // insert the key:
+    }  // insert the key:
       iterator it =
           insert(const_iterator(&m_tree, u),
                  helper_type::keymap_to_value(std::move(k), mapped_type()));
       return helper_type::value_to_mapped(m_tree[it.base()]);
-    }
   }
 
   /**
@@ -1308,9 +1305,8 @@ class avl_tree_impl {
     vertex_type u = find_lower_bound(k, m_root);
     if (!m_compare(k, m_tree[u])) {
       return helper_type::value_to_mapped(m_tree[u]);
-    } else {
-      throw std::out_of_range("The key does not match an element of the map!");
     }
+    throw std::out_of_range("The key does not match an element of the map!");
   }
 
   /**
@@ -1327,26 +1323,25 @@ class avl_tree_impl {
     vertex_type u = find_lower_bound(k, m_root);
     if (!m_compare(k, m_tree[u])) {
       return helper_type::value_to_mapped(m_tree[u]);
-    } else {
-      throw std::out_of_range("The key does not match an element of the map!");
     }
+    throw std::out_of_range("The key does not match an element of the map!");
   }
 
   /* for private use only (useful to keep a map / set synchronized to another dynamic structure. */
   struct mutation_visitor {
     self* m_parent;
 
-    mutation_visitor(self* aParent) : m_parent(aParent){};
+    explicit mutation_visitor(self* aParent) : m_parent(aParent){};
 
-    void remove_vertex(vertex_type v, tree_indexer&) const {
+    void remove_vertex(vertex_type v, tree_indexer& /*unused*/) const {
       m_parent->erase(v);
     }
 
-    void add_vertex(const vertex_property& vp, tree_indexer&) const {
+    void add_vertex(const vertex_property& vp, tree_indexer& /*unused*/) const {
       m_parent->insert(vp);
     }
 
-    void add_vertex(vertex_property&& vp, tree_indexer&) const {
+    void add_vertex(vertex_property&& vp, tree_indexer& /*unused*/) const {
       m_parent->insert(std::move(vp));
     }
   };

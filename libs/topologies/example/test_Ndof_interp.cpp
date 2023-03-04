@@ -41,6 +41,7 @@ using std::size_t;
 
 #include <ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof_detail.hpp>
 #include <ReaK/topologies/interpolation/sustained_velocity_pulse_Ndof_detail.hpp>
+#include <memory>
 
 #define TEST_SIZE 2
 
@@ -48,10 +49,10 @@ int main(int argc, char** argv) {
 
   std::shared_ptr<std::istream> task_src_ptr;
   std::string in_filename = "piped";
-  if (argc < 2)
+  if (argc < 2) {
     task_src_ptr =
         std::shared_ptr<std::istream>(&std::cin, ReaK::null_deleter());
-  else {
+  } else {
     std::string tmp_fn = argv[1];
     in_filename =
         std::string(std::find(tmp_fn.rbegin(), tmp_fn.rend(), '/').base(),
@@ -61,37 +62,43 @@ int main(int argc, char** argv) {
   };
   std::istream& task_src = *task_src_ptr;
 
-  double time_step, min_time, max_time;
+  double time_step;
+  double min_time;
+  double max_time;
   task_src >> time_step >> min_time >> max_time;
 
-  ReaK::vect<double, 2> max_vel, max_accel, start_pt, start_vel, end_pt,
-      end_vel;
+  ReaK::vect<double, 2> max_vel;
+  ReaK::vect<double, 2> max_accel;
+  ReaK::vect<double, 2> start_pt;
+  ReaK::vect<double, 2> start_vel;
+  ReaK::vect<double, 2> end_pt;
+  ReaK::vect<double, 2> end_vel;
   task_src >> max_vel >> max_accel >> start_pt >> start_vel >> end_pt >>
       end_vel;
 
-  typedef ReaK::pp::Ndof_rl_space<double, TEST_SIZE, 2>::type SpaceType;
-  typedef ReaK::pp::hyperbox_topology<ReaK::vect<double, TEST_SIZE>,
-                                      ReaK::pp::inf_norm_distance_metric>
-      BoxTopoType;
-  typedef ReaK::arithmetic_tuple<BoxTopoType, BoxTopoType, BoxTopoType>
-      SpaceTupleType;
-  typedef ReaK::pp::topology_traits<SpaceType>::point_type PointType;
+  using SpaceType = ReaK::pp::Ndof_rl_space<double, 2, 2>::type;
+  using BoxTopoType =
+      ReaK::pp::hyperbox_topology<ReaK::vect<double, 2>,
+                                  ReaK::pp::inf_norm_distance_metric>;
+  using SpaceTupleType =
+      ReaK::arithmetic_tuple<BoxTopoType, BoxTopoType, BoxTopoType>;
+  using PointType = ReaK::pp::topology_traits<SpaceType>::point_type;
 
   ReaK::vect<double, TEST_SIZE> max_pos;
-  for (std::size_t i = 0; i < TEST_SIZE; ++i)
+  for (std::size_t i = 0; i < TEST_SIZE; ++i) {
     max_pos[i] = 100.0;
+  }
 
-  typedef ReaK::pp::Ndof_reach_time_differentiation<
-      ReaK::vect<double, TEST_SIZE>>
-      DiffRule;
-  typedef ReaK::arithmetic_tuple<DiffRule, DiffRule> DiffTuple;
+  using DiffRule =
+      ReaK::pp::Ndof_reach_time_differentiation<ReaK::vect<double, 2>>;
+  using DiffTuple = ReaK::arithmetic_tuple<DiffRule, DiffRule>;
 
-  std::shared_ptr<SpaceType> topo = std::shared_ptr<SpaceType>(new SpaceType(
+  std::shared_ptr<SpaceType> topo = std::make_shared<SpaceType>(
       SpaceTupleType(BoxTopoType("pos_topo", -max_pos, max_pos),
                      BoxTopoType("vel_topo", -max_vel, max_vel),
                      BoxTopoType("acc_topo", -max_accel, max_accel)),
       ReaK::pp::manhattan_tuple_distance(),
-      DiffTuple(DiffRule(max_vel), DiffRule(max_accel))));
+      DiffTuple(DiffRule(max_vel), DiffRule(max_accel)));
   ReaK::pp::time_topology t_topo;
 
   PointType start_point(start_pt, start_vel, ReaK::vect<double, TEST_SIZE>());

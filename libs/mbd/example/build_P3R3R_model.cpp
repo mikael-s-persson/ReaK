@@ -21,70 +21,56 @@
 
 #include <boost/tuple/tuple.hpp>
 
-#include <boost/program_options.hpp>
 #include <filesystem>
+#include <memory>
 
-namespace po = boost::program_options;
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+
 namespace fs = std::filesystem;
+
+// I/O options
+ABSL_FLAG(std::string, output_path, "models",
+          "Specify the output path (default is 'models').");
+ABSL_FLAG(std::string, output_name, "CRS_A465",
+          "Specify the output base-name (default is 'CRS_A465').");
+ABSL_FLAG(std::string, format, "xml",
+          "Specify the format that should be outputted (default is 'xml', but "
+          "can also be 'bin' or 'protobuf').");
+
+// Output options
+ABSL_FLAG(bool, geometry, false,
+          "Specify that the geometry should be outputted (default is not).");
+ABSL_FLAG(bool, proxy, false,
+          "Specify that the proximity-query model (simplified "
+          "bounding-geometry) should be outputted (default is not).");
+ABSL_FLAG(bool, kte_model, false,
+          "Specify that the KTE kinematics model should be outputted (with "
+          "limits) (default is not).");
+ABSL_FLAG(
+    bool, all_assembled, false,
+    "Specify that the KTE kinematics + geometry + proximity-query models "
+    "should be outputted (with limits) together in one file (default is not).");
 
 int main(int argc, char** argv) {
 
-  po::options_description generic_options("Generic options");
-  generic_options.add_options()("help,h", "produce this help message.");
+  absl::ParseCommandLine(argc, argv);
 
-  po::options_description io_options("I/O options");
-  io_options.add_options()("output-path,p",
-                           po::value<std::string>()->default_value("models"),
-                           "specify the output path (default is models)")(
-      "output-name,o", po::value<std::string>()->default_value("CRS_A465"),
-      "specify the output base-name (default is CRS_A465)")(
-      "format", po::value<std::string>()->default_value("xml"),
-      "specify the format that should be outputted (default is xml, but can "
-      "also be bin or protobuf)");
+  std::string output_base_name = absl::GetFlag(FLAGS_output_name);
 
-  po::options_description output_options("Output options");
-  output_options.add_options()(
-      "geometry",
-      "specify that the geometry should be outputted (default is not)")(
-      "proxy",
-      "specify that the proximity-query model (simplified bounding-geometry) "
-      "should be outputted (default is not)")(
-      "kte-model",
-      "specify that the KTE kinematics model should be outputted (with limits) "
-      "(default is not)")("all-assembled",
-                          "specify that the KTE kinematics + geometry + "
-                          "proximity-query models should be outputted (with "
-                          "limits) together in one file (default is not)");
-
-  po::options_description cmdline_options;
-  cmdline_options.add(generic_options).add(io_options).add(output_options);
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
-  po::notify(vm);
-
-  if (vm.count("help") ||
-      (vm.count("geometry") + vm.count("proxy") + vm.count("kte-model") +
-           vm.count("all-assembled") <
-       1)) {
-    std::cout << cmdline_options << std::endl;
-    return 1;
-  };
-
-  std::string output_base_name = vm["output-name"].as<std::string>();
-
-  std::string output_path_name = vm["output-path"].as<std::string>();
-  while (output_path_name[output_path_name.length() - 1] == '/')
+  std::string output_path_name = absl::GetFlag(FLAGS_output_path);
+  while (output_path_name[output_path_name.length() - 1] == '/') {
     output_path_name.erase(output_path_name.length() - 1, 1);
+  }
 
   fs::create_directory(output_path_name.c_str());
 
   std::string output_extension = ".rkx";
-  if (vm["format"].as<std::string>() == "bin") {
+  if (absl::GetFlag(FLAGS_format) == "bin") {
     output_extension = ".rkb";
-  } else if (vm["format"].as<std::string>() == "protobuf") {
-    output_extension = ".pbuf";
-  };
+  } else if (absl::GetFlag(FLAGS_format) == "protobuf") {
+    output_extension = ".pb";
+  }
 
   using namespace ReaK;
   using namespace geom;
@@ -92,8 +78,8 @@ int main(int argc, char** argv) {
 
   std::shared_ptr<kte_chain_geometry_3D> kte_geom_model;
 
-  if (vm.count("geometry") + vm.count("proxy") + vm.count("all-assembled") >
-      0) {
+  if (absl::GetFlag(FLAGS_geometry) || absl::GetFlag(FLAGS_proxy) ||
+      absl::GetFlag(FLAGS_all_assembled)) {
 
     // CRS_A465 geometries:
 
@@ -189,10 +175,9 @@ int main(int argc, char** argv) {
                                 quaternion<double>()),
                 vect<double, 3>(0.02, 0.01, 0.05)));
 
-    kte_geom_model = std::shared_ptr<kte_chain_geometry_3D>(
-        new kte_chain_geometry_3D("CRS_A465_kte"));
+    kte_geom_model = std::make_shared<kte_chain_geometry_3D>("CRS_A465_kte");
 
-    if (vm.count("geometry") || vm.count("all-assembled")) {
+    if (absl::GetFlag(FLAGS_geometry) || absl::GetFlag(FLAGS_all_assembled)) {
       (*kte_geom_model)
           .addElement("manip_P3R3R_track_base", color(0, 0, 0),
                       robot_base_arrows)
@@ -227,9 +212,9 @@ int main(int argc, char** argv) {
                       EE_gripper_box)
           .addElement("manip_3R3R_joint_6_end", color(0.5, 0.5, 0.5),
                       EE_gripper_fingers);
-    };
+    }
 
-    if (vm.count("proxy") || vm.count("all-assembled")) {
+    if (absl::GetFlag(FLAGS_proxy) || absl::GetFlag(FLAGS_all_assembled)) {
       (*kte_geom_model)
           .addShape("manip_3R3R_joint_1_end", joint2_cyl)
           .addShape("manip_3R3R_joint_2_end", link2_cyl)
@@ -237,34 +222,33 @@ int main(int argc, char** argv) {
           .addShape("manip_3R3R_joint_3_end", link3_wire_cyl)
           .addShape("manip_3R3R_joint_5_end", link5_cyl)
           .addShape("manip_3R3R_joint_6_end", EE_sphere);
-    };
-  };
+    }
+  }
 
   // Save the kte_geom_model object:
-  if (vm.count("geometry") || vm.count("proxy")) {
+  if (absl::GetFlag(FLAGS_geometry) || absl::GetFlag(FLAGS_proxy)) {
     (*serialization::open_oarchive(output_path_name + "/" + output_base_name +
                                    ".geom" + output_extension))
         << kte_geom_model;
-  };
+  }
 
   // CRS_A465 model parameters:
 
-  if (vm.count("kte-model") + vm.count("all-assembled") > 0) {
+  if (absl::GetFlag(FLAGS_kte_model) || absl::GetFlag(FLAGS_all_assembled)) {
 
     std::shared_ptr<frame_3D<double>> base_frame(new frame_3D<double>());
 
     std::shared_ptr<manip_P3R3R_kinematics> kte_model(
         new manip_P3R3R_kinematics(
             "CRS_A465_kte_model",
-            std::shared_ptr<frame_3D<double>>(new frame_3D<double>(
+            std::make_shared<frame_3D<double>>(
                 base_frame,
                 vect<double, 3>(0.0, -3.3, 0.3),  // aGlobalToBasePlate
                 axis_angle<double>(M_PI * 0.5, vect<double, 3>(0.0, 0.0, 1.0))
                     .getQuaternion(),  // align the x-axis along the track.
                 vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
                 vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
-                vect<double, 3>(0.0, 0.0, 0.0),
-                vect<double, 3>(0.0, 0.0, 0.0))),
+                vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0)),
             0.3302,          // aBaseToShoulder
             0.3048,          // aShoulderToElbowDist
             0.1500,          // aElbowToJoint4
@@ -314,18 +298,14 @@ int main(int argc, char** argv) {
     joint_rate_limits->frame3D_accel_limits.resize(0);
     joint_rate_limits->frame3D_jerk_limits.resize(0);
 
-    //     std::shared_ptr< pp::manip_static_workspace< manip_P3R3R_kinematics, 0 >::rl_workspace_type >
-    //       workspace = pp::make_manip_static_workspace< 0 >(
-    //         pp::linear_interpolation_tag(), kte_model, joint_rate_limits, 0.1);
-
     // Save kte_model and joint_rate_limits together in one file (kte_model first).
-    if (vm.count("kte-model")) {
+    if (absl::GetFlag(FLAGS_kte_model)) {
       (*serialization::open_oarchive(output_path_name + "/" + output_base_name +
                                      ".kte_ik" + output_extension))
           << base_frame << kte_model << joint_rate_limits;
-    };
+    }
 
-    if (vm.count("all-assembled")) {
+    if (absl::GetFlag(FLAGS_all_assembled)) {
       std::shared_ptr<colored_model_3D> mdl_geom;
       std::shared_ptr<proxy_query_model_3D> mdl_prox;
       std::tie(mdl_geom, mdl_prox) =
@@ -335,8 +315,8 @@ int main(int argc, char** argv) {
                                      ".model" + output_extension))
           << base_frame << kte_model << joint_rate_limits << mdl_geom
           << mdl_prox;
-    };
-  };
+    }
+  }
 
   return 0;
-};
+}

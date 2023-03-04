@@ -43,10 +43,48 @@
 #include <ReaK/planning/path_planning/basic_sbmp_reporters.hpp>
 #include <ReaK/planning/path_planning/vlist_sbmp_report.hpp>
 
-#include <boost/program_options.hpp>
-#include <filesystem>
+#include <ReaK/core/serialization/archiver_factory.hpp>
 
-namespace po = boost::program_options;
+#include <filesystem>
+#include <memory>
+
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+
+// I/O options
+ABSL_FLAG(std::string, output_path, "pp_results",
+          "Specify the output path (default is pp_results).");
+
+// Monte-Carlo options
+ABSL_FLAG(
+    bool, monte_carlo, false,
+    "Specify that monte-carlo runs should be performed (default is not).");
+ABSL_FLAG(std::size_t, mc_runs, 100,
+          "Number of monte-carlo runs to average out (default is 100).");
+
+// Single-run options
+ABSL_FLAG(bool, single_run, false,
+          "Specify that single runs should be performed (default is not).");
+
+// More planning options
+ABSL_FLAG(
+    double, max_edge_length, -1.0,
+    "Maximum length of edges of the motion-graph (default is 0.2*sqrt(N)).");
+
+// File generation options
+ABSL_FLAG(std::string, generate_all_files, "",
+          "Specify that all configuration files should be generated with the "
+          "given file-name prefix (file-name without suffix and extension).");
+ABSL_FLAG(std::string, generate_planner_options, "",
+          "Specify that the planner options file should be generated with the "
+          "given file-name prefix (file-name without extension).");
+ABSL_FLAG(bool, generate_xml, false,
+          "If set, output results in XML format (rkx) (default).");
+ABSL_FLAG(bool, generate_protobuf, false,
+          "If set, output results in protobuf format (pbuf).");
+ABSL_FLAG(bool, generate_binary, false,
+          "if set, output results in binary format (rkb).");
+
 namespace fs = std::filesystem;
 
 #ifndef RK_HIDIM_PLANNER_N
@@ -58,89 +96,13 @@ int main(int argc, char** argv) {
   using namespace ReaK;
   using namespace pp;
 
-  std::string config_file;
+  absl::ParseCommandLine(argc, argv);
 
-  po::options_description generic_options("Generic options");
-  generic_options.add_options()("help,h", "produce this help message.")(
-      "config,c",
-      po::value<std::string>(&config_file)
-          ->default_value("test_hidim_planners.cfg"),
-      "configuration file-name (can contain any or all options, will be "
-      "overriden by command-line options).");
-
-  po::options_description io_options("I/O options");
-  io_options.add_options()(
-      "output-path,o", po::value<std::string>()->default_value("pp_results"),
-      "specify the output path (default is pp_results)");
-
-  po::options_description mc_options("Monte-Carlo options");
-  mc_options.add_options()(
-      "monte-carlo,m",
-      "specify that monte-carlo runs should be performed (default is not).")(
-      "mc-runs", po::value<std::size_t>()->default_value(100),
-      "number of monte-carlo runs to average out (default is 100).");
-
-  po::options_description single_options("Single-run options");
-  single_options.add_options()(
-      "single-run,s",
-      "specify that single runs should be performed (default is not).");
-
-  po::options_description planner_select_options =
-      get_planning_option_po_desc();
-  planner_select_options.add_options()(
-      "max-edge-length", po::value<double>(),
-      "maximum length of edges of the motion-graph (default is 0.2*sqrt(N)).");
-
-  po::options_description generate_options("File generation options");
-  generate_options.add_options()(
-      "generate-all-files", po::value<std::string>(),
-      "specify that all configuration files should be generated with the given "
-      "file-name "
-      "prefix (file-name without suffix and extension).")(
-      "generate-planner-options", po::value<std::string>(),
-      "specify that the planner options file should be generated "
-      "with the given file-name prefix (file-name without "
-      "extension).")
-
-      ("generate-xml", "if set, output results in XML format (rkx) (default).")(
-          "generate-protobuf",
-          "if set, output results in protobuf format (pbuf).")(
-          "generate-binary", "if set, output results in binary format (rkb).");
-
-  po::options_description cmdline_options;
-  cmdline_options.add(generic_options)
-      .add(io_options)
-      .add(mc_options)
-      .add(single_options)
-      .add(planner_select_options)
-      .add(generate_options);
-
-  po::options_description config_file_options;
-  config_file_options.add(io_options)
-      .add(mc_options)
-      .add(single_options)
-      .add(planner_select_options);
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
-  po::notify(vm);
-
-  {
-    std::ifstream ifs(config_file.c_str());
-    if (ifs) {
-      po::store(po::parse_config_file(ifs, config_file_options), vm);
-      po::notify(vm);
-    };
-  };
-
-  if (vm.count("help")) {
-    std::cout << cmdline_options << std::endl;
-    return 0;
-  };
-
-  if (vm.count("monte-carlo") + vm.count("single-run") +
-          vm.count("generate-all-files") +
-          vm.count("generate-planner-options") <
+  if (static_cast<int>(absl::GetFlag(FLAGS_monte_carlo)) +
+          static_cast<int>(absl::GetFlag(FLAGS_single_run)) +
+          static_cast<int>(!absl::GetFlag(FLAGS_generate_all_files).empty()) +
+          static_cast<int>(
+              !absl::GetFlag(FLAGS_generate_planner_options).empty()) <
       1) {
     std::cout << "Error: There was no action specified! This program is "
                  "designed to perform Monte-Carlo runs, single "
@@ -148,17 +110,17 @@ int main(int argc, char** argv) {
                  "construct scenarios. You must specify at "
                  "least one of these actions to be performed!"
               << std::endl;
-    std::cout << cmdline_options << std::endl;
     return 1;
-  };
+  }
 
-  std::string output_path_name = vm["output-path"].as<std::string>();
-  while (output_path_name[output_path_name.length() - 1] == '/')
+  std::string output_path_name = absl::GetFlag(FLAGS_output_path);
+  while (output_path_name[output_path_name.length() - 1] == '/') {
     output_path_name.erase(output_path_name.length() - 1, 1);
+  }
 
   fs::create_directory(output_path_name.c_str());
 
-  planning_option_collection plan_options = get_planning_option_from_po(vm);
+  planning_option_collection plan_options = get_planning_option_from_flags();
 
   std::string knn_method_str = plan_options.get_knn_method_str();
   std::string mg_storage_str = plan_options.get_mg_storage_str();
@@ -168,73 +130,79 @@ int main(int argc, char** argv) {
                                  "_" + knn_method_str;
 
   double max_radius = 0.2 * std::sqrt(double(RK_HIDIM_PLANNER_N));
-  if (vm.count("max-edge-length"))
-    max_radius = vm["max-edge-length"].as<double>();
+  if (absl::GetFlag(FLAGS_max_edge_length) > 0.0) {
+    max_radius = absl::GetFlag(FLAGS_max_edge_length);
+  }
   plan_options.max_random_walk = max_radius;
 
   // Do the generations if required:
 
-  if (vm.count("generate-all-files") + vm.count("generate-planner-options") >
-      0) {
+  if (!absl::GetFlag(FLAGS_generate_all_files).empty() ||
+      !absl::GetFlag(FLAGS_generate_planner_options).empty()) {
     std::string file_name;
-    if (vm.count("generate-planner-options") == 0) {
-      file_name = vm["generate-all-files"].as<std::string>() + "_planner";
+    if (absl::GetFlag(FLAGS_generate_planner_options).empty()) {
+      file_name = absl::GetFlag(FLAGS_generate_all_files) + "_planner";
     } else {
-      file_name = vm["generate-planner-options"].as<std::string>();
+      file_name = absl::GetFlag(FLAGS_generate_planner_options);
     };
-    if (vm.count("generate-protobuf"))
+    if (absl::GetFlag(FLAGS_generate_protobuf)) {
       file_name += ".pbuf";
-    else if (vm.count("generate-binary"))
+    } else if (absl::GetFlag(FLAGS_generate_binary)) {
       file_name += ".rkb";
-    else
+    } else {
       file_name += ".rkx";
+    }
 
     try {
       (*serialization::open_oarchive(file_name)) << plan_options;
     } catch (std::exception& e) {
       std::cerr << "Error: Could not generate the planner options file!"
                 << std::endl;
-    };
-    if (vm.count("monte-carlo") + vm.count("single-run") ==
-        0)  // only wanted to generate planner-option file.
+    }
+    if (static_cast<int>(absl::GetFlag(FLAGS_monte_carlo)) +
+            static_cast<int>(absl::GetFlag(FLAGS_single_run)) ==
+        0) {  // only wanted to generate planner-option file.
       return 0;
-  };
+    }
+  }
 
   std::string world_ND_name = "world_";
   {
     std::stringstream ss_tmp;
     ss_tmp << RK_HIDIM_PLANNER_N << "D";
     world_ND_name += ss_tmp.str();
-  };
+  }
   std::string space_ND_name = "e";
   {
     std::stringstream ss_tmp;
     ss_tmp << RK_HIDIM_PLANNER_N;
     space_ND_name += ss_tmp.str();
-  };
+  }
 
-  vect<double, RK_HIDIM_PLANNER_N> lb, ub, start_pt, goal_pt;
+  vect<double, RK_HIDIM_PLANNER_N> lb;
+  vect<double, RK_HIDIM_PLANNER_N> ub;
+  vect<double, RK_HIDIM_PLANNER_N> start_pt;
+  vect<double, RK_HIDIM_PLANNER_N> goal_pt;
   for (std::size_t i = 0; i < RK_HIDIM_PLANNER_N; ++i) {
     lb[i] = 0.0;
     ub[i] = 1.0;
     start_pt[i] = 0.05;
     goal_pt[i] = 0.95;
-  };
+  }
 
-  typedef no_obstacle_space<hyperbox_topology<vect<double, RK_HIDIM_PLANNER_N>>>
-      WorldNDType;
+  using WorldNDType =
+      no_obstacle_space<hyperbox_topology<vect<double, RK_HIDIM_PLANNER_N>>>;
 
-  std::shared_ptr<WorldNDType> world_ND = std::shared_ptr<WorldNDType>(
-      new WorldNDType(world_ND_name + "_no_obstacles",
-                      hyperbox_topology<vect<double, RK_HIDIM_PLANNER_N>>(
-                          world_ND_name, lb, ub),
-                      max_radius));
+  std::shared_ptr<WorldNDType> world_ND = std::make_shared<WorldNDType>(
+      world_ND_name + "_no_obstacles",
+      hyperbox_topology<vect<double, RK_HIDIM_PLANNER_N>>(world_ND_name, lb,
+                                                          ub),
+      max_radius);
   world_ND->set_start_pos(start_pt);
   world_ND->set_goal_pos(goal_pt);
 
-  if (vm.count("monte-carlo")) {
-    monte_carlo_mp_engine mc_eng(vm["mc-runs"].as<std::size_t>(),
-                                 planner_name_str,
+  if (absl::GetFlag(FLAGS_monte_carlo)) {
+    monte_carlo_mp_engine mc_eng(absl::GetFlag(FLAGS_mc_runs), planner_name_str,
                                  output_path_name + "/" + space_ND_name);
     try {
       execute_p2p_planner(world_ND, plan_options, RK_HIDIM_PLANNER_N, mc_eng,
@@ -244,10 +212,10 @@ int main(int argc, char** argv) {
           << "Error: An exception was raised during the planning:\nwhat(): "
           << e.what() << std::endl;
       return 2;
-    };
-  };
+    }
+  }
 
-  if (vm.count("single-run")) {
+  if (absl::GetFlag(FLAGS_single_run)) {
     vlist_print_mp_engine sr_eng(planner_name_str,
                                  output_path_name + "/" + space_ND_name);
     try {
@@ -258,8 +226,8 @@ int main(int argc, char** argv) {
           << "Error: An exception was raised during the planning:\nwhat(): "
           << e.what() << std::endl;
       return 3;
-    };
-  };
+    }
+  }
 
   return 0;
-};
+}

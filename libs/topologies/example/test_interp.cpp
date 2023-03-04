@@ -21,6 +21,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cmath>
+
 #include <iostream>
 
 using std::ptrdiff_t;
@@ -37,6 +39,7 @@ using std::size_t;
 #include <ReaK/topologies/interpolation/quintic_hermite_interp.hpp>
 
 #include <ReaK/core/recorders/ascii_recorder.hpp>
+#include <memory>
 
 int main(int argc, char** argv) {
 
@@ -51,63 +54,62 @@ int main(int argc, char** argv) {
     return 1;
   };
 
-  double time_step;
+  double time_step = NAN;
   {
     std::stringstream ss(argv[1]);
     ss >> time_step;
   };
 
-  double interp_time_step;
+  double interp_time_step = NAN;
   {
     std::stringstream ss(argv[2]);
     ss >> interp_time_step;
   };
 
-  double max_time;
+  double max_time = NAN;
   {
     std::stringstream ss(argv[3]);
     ss >> max_time;
   };
 
-  double amplitude;
+  double amplitude = NAN;
   {
     std::stringstream ss(argv[4]);
     ss >> amplitude;
   };
 
-  typedef ReaK::arithmetic_tuple<ReaK::pp::line_segment_topology<double>,
-                                 ReaK::pp::line_segment_topology<double>,
-                                 ReaK::pp::line_segment_topology<double>,
-                                 ReaK::pp::line_segment_topology<double>>
-      SpaceTupleType;
+  using SpaceTupleType =
+      ReaK::arithmetic_tuple<ReaK::pp::line_segment_topology<double>,
+                             ReaK::pp::line_segment_topology<double>,
+                             ReaK::pp::line_segment_topology<double>,
+                             ReaK::pp::line_segment_topology<double>>;
 
-  typedef ReaK::pp::differentiable_space<ReaK::pp::time_poisson_topology,
-                                         SpaceTupleType>
-      TopoType;
-  typedef ReaK::pp::topology_traits<TopoType>::point_type PointType;
-  typedef ReaK::pp::temporal_space<TopoType, ReaK::pp::time_poisson_topology>
-      TempTopoType;
-  typedef ReaK::pp::topology_traits<TempTopoType>::point_type TempPointType;
+  using TopoType =
+      ReaK::pp::differentiable_space<ReaK::pp::time_poisson_topology,
+                                     SpaceTupleType>;
+  using PointType = ReaK::pp::topology_traits<TopoType>::point_type;
+  using TempTopoType =
+      ReaK::pp::temporal_space<TopoType, ReaK::pp::time_poisson_topology>;
+  using TempPointType = ReaK::pp::topology_traits<TempTopoType>::point_type;
 
-  std::shared_ptr<TempTopoType> topo =
-      std::shared_ptr<TempTopoType>(new TempTopoType(
-          "temporal_space",
-          TopoType(SpaceTupleType(
-              ReaK::pp::line_segment_topology<double>(
-                  "pos_topo", -2.0 * amplitude, 2.0 * amplitude),
-              ReaK::pp::line_segment_topology<double>(
-                  "vel_topo", -2.0 * amplitude, 2.0 * amplitude),
-              ReaK::pp::line_segment_topology<double>(
-                  "acc_topo", -2.0 * amplitude, 2.0 * amplitude),
-              ReaK::pp::line_segment_topology<double>(
-                  "jerk_topo", -2.0 * amplitude, 2.0 * amplitude)))));
+  std::shared_ptr<TempTopoType> topo = std::make_shared<TempTopoType>(
+      "temporal_space",
+      TopoType(
+          SpaceTupleType(ReaK::pp::line_segment_topology<double>(
+                             "pos_topo", -2.0 * amplitude, 2.0 * amplitude),
+                         ReaK::pp::line_segment_topology<double>(
+                             "vel_topo", -2.0 * amplitude, 2.0 * amplitude),
+                         ReaK::pp::line_segment_topology<double>(
+                             "acc_topo", -2.0 * amplitude, 2.0 * amplitude),
+                         ReaK::pp::line_segment_topology<double>(
+                             "jerk_topo", -2.0 * amplitude, 2.0 * amplitude))));
 
   std::vector<TempPointType> pts;
 
   for (double t = 0.0; t <= max_time; t += interp_time_step) {
-    pts.push_back(TempPointType(
+    pts.emplace_back(
         t, PointType(amplitude * std::sin(t), amplitude * std::cos(t),
-                     -amplitude * std::sin(t), -amplitude * std::cos(t))));
+                     -amplitude * std::sin(t), -amplitude * std::cos(t)));
   };
 
   try {

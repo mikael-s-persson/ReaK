@@ -71,17 +71,14 @@ static constexpr std::size_t PLAN_IN_RATE_LIMITED_SPACE = 0x02 << 8;
 
 class planning_space_options : public shared_object {
  public:
-  std::size_t space_options;
-  std::size_t output_space_options;
-  double min_travel;
-  double max_travel;
+  std::size_t space_options{0};
+  std::size_t output_space_options{0};
+  double min_travel{0.0};
+  double max_travel{1.0};
 
   planning_space_options()
-      : space_options(0),
-        output_space_options(
-            0),  // <- 0-th order, linear-interp, non-temporal, not rate-limited.
-        min_travel(0.0),
-        max_travel(1.0) {}
+
+      = default;
 
   std::size_t get_space_order() const {
     return space_options & PLANNING_SPACE_ORDER_MASK;
@@ -163,7 +160,8 @@ class planning_space_options : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(space_options) &
         RK_SERIAL_SAVE_WITH_NAME(output_space_options) &
@@ -171,7 +169,7 @@ class planning_space_options : public shared_object {
         RK_SERIAL_SAVE_WITH_NAME(max_travel);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(space_options) &
         RK_SERIAL_LOAD_WITH_NAME(output_space_options) &

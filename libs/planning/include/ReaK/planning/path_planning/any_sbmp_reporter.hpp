@@ -69,13 +69,13 @@ class any_sbmp_reporter : public shared_object {
 
   using solution_record_ptr = std::shared_ptr<solution_base_type>;
 
- public:
-  virtual void draw_any_motion_graph(const FreeSpaceType&,
-                                     const graph::any_graph&) const {}
-  virtual void draw_any_solution(const FreeSpaceType&,
-                                 const solution_record_ptr&) const {}
+  virtual void draw_any_motion_graph(const FreeSpaceType& /*unused*/,
+                                     const graph::any_graph& /*unused*/) const {
+  }
+  virtual void draw_any_solution(const FreeSpaceType& /*unused*/,
+                                 const solution_record_ptr& /*unused*/) const {}
 
-  virtual ~any_sbmp_reporter() {}
+  ~any_sbmp_reporter() override = default;
 
   virtual void reset_internal_state() {}
 
@@ -86,7 +86,7 @@ class any_sbmp_reporter : public shared_object {
    */
   template <typename MotionGraph, typename PositionMap>
   void draw_motion_graph(const FreeSpaceType& space, const MotionGraph& g,
-                         PositionMap) const {
+                         PositionMap /*unused*/) const {
     using TEGraphType =
         typename te_mg_selector<FreeSpaceType, MotionGraph>::type;
     TEGraphType teg(const_cast<MotionGraph*>(&g));
@@ -105,11 +105,12 @@ class any_sbmp_reporter : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
   }
 
@@ -182,12 +183,13 @@ class type_erased_sbmp_reporter : public any_sbmp_reporter<FreeSpaceType> {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(reporter);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(reporter);
   }
@@ -283,7 +285,7 @@ class any_sbmp_reporter_chain : public shared_object {
    */
   template <typename MotionGraph, typename PositionMap>
   void draw_motion_graph(const FreeSpaceType& space, const MotionGraph& g,
-                         PositionMap) const {
+                         PositionMap /*unused*/) const {
     using TEGraphType =
         typename te_mg_selector<FreeSpaceType, MotionGraph>::type;
     TEGraphType teg(const_cast<MotionGraph*>(&g));
@@ -312,12 +314,13 @@ class any_sbmp_reporter_chain : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(reporters);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(reporters);
   }

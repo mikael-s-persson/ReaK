@@ -106,19 +106,19 @@ struct sbastar_bundle_factory {
 
     struct space_part_type {
       template <typename GraphPositionMap>
-      space_part_type(const type&,
-                      const std::shared_ptr<const super_space_type>&,
-                      GraphPositionMap){}
+      space_part_type(const type& /*unused*/,
+                      const std::shared_ptr<const super_space_type>& /*unused*/,
+                      GraphPositionMap /*unused*/){}
     };
 
     using nn_finder_type = linear_neighbor_search<type>;
-    static nn_finder_type get_nn_finder(type&, space_part_type&) {
+    static nn_finder_type get_nn_finder(type& /*unused*/, space_part_type& /*unused*/) {
       return nn_finder_type();
     }
 
     using nn_synchro_type = any_knn_synchro;
-    static nn_synchro_type get_nn_synchro(nn_finder_type&) {
-      return nn_synchro_type();
+    static nn_synchro_type get_nn_synchro(nn_finder_type& /*unused*/) {
+      return {};
     }
 
     static type get_motion_graph() { return type(); }
@@ -193,7 +193,7 @@ struct sbastar_bundle_factory {
     vp_start.position = query.get_start_position();
     Vertex start_node = add_vertex(vp_start, motion_graph);
     vis.m_start_node = std::any(start_node);
-    path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr =
+    auto* p2p_query_ptr =
         reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(query.castTo(
             path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
     if (p2p_query_ptr) {
@@ -434,7 +434,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query_impl(
 
   this->reset_internal_state();
 
-  double space_dim = double(this->get_space_dimensionality());
+  auto space_dim = double(this->get_space_dimensionality());
   double space_Lc = aQuery.get_heuristic_to_goal(aQuery.get_start_position());
 
   using SuperSpace = typename subspace_traits<FreeSpaceType>::super_space_type;
@@ -485,7 +485,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query_impl(
   SBAStarFactory::init_motion_graph(motion_graph, vis, aQuery);
 
   using VisitorType = typename SBAStarFactory::visitor_type;
-  VisitorType vis(this, &aQuery, NULL, std::any(), std::any(),
+  VisitorType vis(this, &aQuery, nullptr, std::any(), std::any(),
                   this->m_init_dens_threshold);
 
   if ((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) ==

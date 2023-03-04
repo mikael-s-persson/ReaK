@@ -33,55 +33,57 @@
 #include <ReaK/topologies/spaces/hyperbox_topology.hpp>
 
 #include <boost/graph/adjacency_list_BC.hpp>
+#include <memory>
 
-typedef ReaK::pp::hyperbox_topology<ReaK::vect<double, 2>> TopologyType;
+using TopologyType = ReaK::pp::hyperbox_topology<ReaK::vect<double, 2>>;
 
-typedef TopologyType::point_type PointType;
+using PointType = TopologyType::point_type;
 
 struct WorldGridVertexProperties {
   PointType pos;
 
-  WorldGridVertexProperties(const PointType& aPos = PointType()) : pos(aPos){};
+  explicit WorldGridVertexProperties(const PointType& aPos = PointType())
+      : pos(aPos){};
 };
 
 struct WorldGridEdgeProperties {
   double dist;
 
-  WorldGridEdgeProperties(double aDist = double(0.0)) : dist(aDist){};
+  explicit WorldGridEdgeProperties(double aDist = double(0.0)) : dist(aDist){};
 };
 
 template <typename Graph>
 bool test_propgraph_functions(Graph& g) {
 
-  typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+  using Vertex = typename boost::graph_traits<Graph>::vertex_descriptor;
+  using Edge = typename boost::graph_traits<Graph>::edge_descriptor;
 
-  typedef typename Graph::vertex_property_type VertexProp;
-  typedef typename Graph::edge_property_type EdgeProp;
+  using VertexProp = typename Graph::vertex_property_type;
+  using EdgeProp = typename Graph::edge_property_type;
 
-  typedef typename boost::raw_vertex_to_bundle_map<Graph>::type VProp2Bundle;
-  typedef typename boost::raw_edge_to_bundle_map<Graph>::type EProp2Bundle;
+  using VProp2Bundle = typename boost::raw_vertex_to_bundle_map<Graph>::type;
+  using EProp2Bundle = typename boost::raw_edge_to_bundle_map<Graph>::type;
 
   VProp2Bundle vp_2_bundle = get_raw_vertex_to_bundle_map(g);
   EProp2Bundle ep_2_bundle = get_raw_edge_to_bundle_map(g);
   RK_UNUSED(ep_2_bundle);
 
   std::vector<WorldGridVertexProperties> pts;
-  pts.push_back(WorldGridVertexProperties(ReaK::vect<double, 2>(0.0, 0.0)));
-  pts.push_back(WorldGridVertexProperties(ReaK::vect<double, 2>(0.0, 0.2)));
-  pts.push_back(WorldGridVertexProperties(ReaK::vect<double, 2>(0.2, 0.2)));
-  pts.push_back(WorldGridVertexProperties(ReaK::vect<double, 2>(0.6, 0.2)));
-  pts.push_back(WorldGridVertexProperties(ReaK::vect<double, 2>(0.6, 0.4)));
-  pts.push_back(WorldGridVertexProperties(ReaK::vect<double, 2>(0.6, 0.6)));
-  pts.push_back(WorldGridVertexProperties(ReaK::vect<double, 2>(0.6, 0.8)));
-  pts.push_back(WorldGridVertexProperties(ReaK::vect<double, 2>(0.6, 1.0)));
-  pts.push_back(WorldGridVertexProperties(ReaK::vect<double, 2>(0.2, 1.0)));
-  pts.push_back(WorldGridVertexProperties(ReaK::vect<double, 2>(0.0, 1.0)));
+  pts.emplace_back(ReaK::vect<double, 2>(0.0, 0.0));
+  pts.emplace_back(ReaK::vect<double, 2>(0.0, 0.2));
+  pts.emplace_back(ReaK::vect<double, 2>(0.2, 0.2));
+  pts.emplace_back(ReaK::vect<double, 2>(0.6, 0.2));
+  pts.emplace_back(ReaK::vect<double, 2>(0.6, 0.4));
+  pts.emplace_back(ReaK::vect<double, 2>(0.6, 0.6));
+  pts.emplace_back(ReaK::vect<double, 2>(0.6, 0.8));
+  pts.emplace_back(ReaK::vect<double, 2>(0.6, 1.0));
+  pts.emplace_back(ReaK::vect<double, 2>(0.2, 1.0));
+  pts.emplace_back(ReaK::vect<double, 2>(0.0, 1.0));
 
   std::vector<Vertex> pts_v;
-  for (std::size_t i = 0; i < pts.size(); ++i) {
+  for (auto& pt : pts) {
     VertexProp vp;
-    put(vp_2_bundle, vp, pts[i]);
+    put(vp_2_bundle, vp, pt);
     pts_v.push_back(add_vertex(vp, g));
   };
 
@@ -121,16 +123,16 @@ bool test_propgraph_functions(Graph& g) {
   };
 
   std::vector<WorldGridEdgeProperties> segs;
-  segs.push_back(WorldGridEdgeProperties(0.2));  // 0 to 1
-  segs.push_back(WorldGridEdgeProperties(0.2));  // 1 to 2
-  segs.push_back(WorldGridEdgeProperties(0.4));  // 2 to 3
-  segs.push_back(WorldGridEdgeProperties(0.2));  // 3 to 4
-  segs.push_back(WorldGridEdgeProperties(0.2));  // 4 to 5
-  segs.push_back(WorldGridEdgeProperties(0.2));  // 5 to 6
-  segs.push_back(WorldGridEdgeProperties(0.2));  // 6 to 7
-  segs.push_back(WorldGridEdgeProperties(0.4));  // 7 to 8
-  segs.push_back(WorldGridEdgeProperties(0.2));  // 8 to 9
-  segs.push_back(WorldGridEdgeProperties(1.0));  // 9 to 0
+  segs.emplace_back(0.2);  // 0 to 1
+  segs.emplace_back(0.2);  // 1 to 2
+  segs.emplace_back(0.4);  // 2 to 3
+  segs.emplace_back(0.2);  // 3 to 4
+  segs.emplace_back(0.2);  // 4 to 5
+  segs.emplace_back(0.2);  // 5 to 6
+  segs.emplace_back(0.2);  // 6 to 7
+  segs.emplace_back(0.4);  // 7 to 8
+  segs.emplace_back(0.2);  // 8 to 9
+  segs.emplace_back(1.0);  // 9 to 0
 
   std::vector<Edge> segs_e;
   for (std::size_t i = 0; i < segs.size(); ++i) {
@@ -162,53 +164,53 @@ bool test_propgraph_functions(Graph& g) {
 
 int main() {
 
-  std::shared_ptr<TopologyType> m_space = std::shared_ptr<TopologyType>(
-      new TopologyType("", ReaK::vect<double, 2>(0.0, 0.0),
-                       ReaK::vect<double, 2>(1.0, 1.0)));
+  std::shared_ptr<TopologyType> m_space = std::make_shared<TopologyType>(
+      "", ReaK::vect<double, 2>(0.0, 0.0), ReaK::vect<double, 2>(1.0, 1.0));
 
-  typedef boost::data_member_property_map<PointType, WorldGridVertexProperties>
-      PositionMap;
+  using PositionMap =
+      boost::data_member_property_map<PointType, WorldGridVertexProperties>;
 
-  typedef ReaK::pp::dvp_adjacency_list<
+  using WorldPartition2BF = ReaK::pp::dvp_adjacency_list<
       WorldGridVertexProperties, WorldGridEdgeProperties, TopologyType,
       PositionMap, 2, ReaK::pp::random_vp_chooser,
       boost::bfl_d_ary_tree_storage<2>, boost::vecBC, boost::bidirectionalS,
-      boost::listBC>
-      WorldPartition2BF;
+      boost::listBC>;
 
-  typedef WorldPartition2BF::adj_list_type WorldGrid2BF;
+  using WorldGrid2BF = WorldPartition2BF::adj_list_type;
 
   WorldPartition2BF dvp2(m_space, PositionMap(&WorldGridVertexProperties::pos));
   WorldGrid2BF g2 = dvp2.get_adjacency_list();
 
-  if (!test_propgraph_functions(g2))
+  if (!test_propgraph_functions(g2)) {
     return 1;
+  }
 
-  typedef ReaK::pp::dvp_adjacency_list<
+  using WorldPartition2BF_listBC = ReaK::pp::dvp_adjacency_list<
       WorldGridVertexProperties, WorldGridEdgeProperties, TopologyType,
       PositionMap, 2, ReaK::pp::random_vp_chooser,
       boost::bfl_d_ary_tree_storage<2>, boost::listBC, boost::bidirectionalS,
-      boost::listBC>
-      WorldPartition2BF_listBC;
+      boost::listBC>;
 
-  typedef WorldPartition2BF_listBC::adj_list_type WorldGrid2BF_listBC;
+  using WorldGrid2BF_listBC = WorldPartition2BF_listBC::adj_list_type;
 
   WorldPartition2BF_listBC dvp2_ls(
       m_space, PositionMap(&WorldGridVertexProperties::pos));
   WorldGrid2BF_listBC g2_ls = dvp2_ls.get_adjacency_list();
 
-  if (!test_propgraph_functions(g2_ls))
+  if (!test_propgraph_functions(g2_ls)) {
     return 1;
+  }
 
-  typedef boost::adjacency_list_BC<
-      boost::vecBC, boost::poolBC, boost::bidirectionalS,
-      WorldGridVertexProperties, WorldGridEdgeProperties>
-      WorldGridPooled;
+  using WorldGridPooled =
+      boost::adjacency_list_BC<boost::vecBC, boost::poolBC,
+                               boost::bidirectionalS, WorldGridVertexProperties,
+                               WorldGridEdgeProperties>;
 
   WorldGridPooled g_pooled;
 
-  if (!test_propgraph_functions(g_pooled))
+  if (!test_propgraph_functions(g_pooled)) {
     return 1;
+  }
 
   return 0;
 };

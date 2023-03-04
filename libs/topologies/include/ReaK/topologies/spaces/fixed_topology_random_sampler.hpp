@@ -51,25 +51,25 @@ struct fixed_topology_random_sampler : public serializable {
 
   const Topology* m_space;
 
-  fixed_topology_random_sampler(const Topology* pSpace = nullptr)
+  explicit fixed_topology_random_sampler(const Topology* pSpace = nullptr)
       : m_space(pSpace) {}
 
   template <typename Topology2>
   point_type operator()(const Topology2& s) const {
     if (m_space) {
       return m_space->random_point();
-    } else {
-      return s.random_point();
     }
+    return s.random_point();
   }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {}
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  void load(serialization::iarchive& A, unsigned int) override {}
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(fixed_topology_random_sampler, 0xC2450005, 1,
                               "fixed_topology_random_sampler", serializable)

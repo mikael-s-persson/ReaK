@@ -323,10 +323,10 @@ class complex {
   friend self exp(const self& x) noexcept {
     using std::cos;
     using std::sin;
-    if (x.Re == 0.0)
+    if (x.Re == 0.0) {
       return self(cos(x.Im), sin(x.Im));
-    else
-      return exp(x.Re) * self(cos(x.Im), sin(x.Im));
+    }
+    return exp(x.Re) * self(cos(x.Im), sin(x.Im));
   }
 
   /** Compute natural logarithm (function), for a complex value. */

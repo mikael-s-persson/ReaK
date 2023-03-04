@@ -72,7 +72,6 @@ class rrt_planner : public sample_based_planner<FreeSpaceType> {
   using point_difference_type =
       topology_point_difference_type_t<super_space_type>;
 
- public:
   /**
    * This function computes a valid path in the C-free. If it cannot
    * achieve a valid path, an exception will be thrown. This algorithmic
@@ -126,11 +125,12 @@ class rrt_planner : public sample_based_planner<FreeSpaceType> {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
   }
 

@@ -419,7 +419,7 @@ void mehrotra_QP_method(
       dy[i] = -y[i] * (dl[i] / l[i] + ValueType(1.0));
     }
 
-    ValueType alpha = ValueType(0.995);
+    auto alpha = ValueType(0.995);
     for (int i = 0; i < M; ++i) {
       if (y[i] < -alpha * dy[i]) {
         alpha = -y[i] / dy[i];
@@ -442,8 +442,8 @@ void mehrotra_QP_method(
       dy[i] = -y[i] * (dl[i] / l[i] + ValueType(1.0));
     }
 
-    ValueType a_p = ValueType(0.995);
-    ValueType a_d = ValueType(0.995);
+    auto a_p = ValueType(0.995);
+    auto a_d = ValueType(0.995);
     for (int i = 0; i < M; ++i) {
       if (a_p * dy[i] < -eta * y[i]) {
         a_p = -eta * y[i] / dy[i];

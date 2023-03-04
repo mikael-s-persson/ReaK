@@ -87,7 +87,6 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
 
   using target_trajectory_type = TargetTrajectory;
 
- public:
   point_type start_pos;
   std::shared_ptr<target_trajectory_type> goal_traj;
   std::set<point_type, temporal_point_time_ordering> goal_knots;
@@ -104,9 +103,8 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
   double get_best_solution_distance() const override {
     if (solutions.size() == 0) {
       return std::numeric_limits<double>::infinity();
-    } else {
-      return solutions.begin()->first;
     }
+    return solutions.begin()->first;
   }
 
   /**
@@ -305,7 +303,8 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(start_pos) &
         RK_SERIAL_SAVE_WITH_NAME(goal_traj) &
@@ -314,7 +313,7 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
         RK_SERIAL_SAVE_WITH_NAME(horizon_decimation);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(start_pos) &
         RK_SERIAL_LOAD_WITH_NAME(goal_traj) &

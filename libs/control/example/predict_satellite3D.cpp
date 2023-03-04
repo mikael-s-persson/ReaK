@@ -37,14 +37,105 @@
 #include <ReaK/topologies/interpolation/discrete_point_trajectory.hpp>
 #include <ReaK/topologies/spaces/temporal_space.hpp>
 
+#include <memory>
 #include <random>
 
 #include <cctype>
 #include <filesystem>
 
-#include <boost/program_options.hpp>
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
 
-namespace po = boost::program_options;
+// I/O options
+ABSL_FLAG(std::string, measurements, "",
+          "Specify the filename for the satellite's measurements.");
+ABSL_FLAG(std::string, init, "models/satellite3D_init.rkx",
+          "Specify the filename for the satellite's initial conditions, only "
+          "used when Monte-Carlo simulations are done (default is "
+          "'models/satellite3D_init.rkx').");
+ABSL_FLAG(std::string, inertia, "models/satellite3D_inertia.rkx",
+          "Specify the filename for the satellite's inertial data (default is "
+          "'models/satellite3D_inertia.rkx').");
+ABSL_FLAG(std::string, Q_matrix, "models/satellite3D_Q.rkx",
+          "Specify the filename for the satellite's input disturbance "
+          "covariance matrix (default is 'models/satellite3D_Q.rkx').");
+ABSL_FLAG(std::string, R_matrix, "models/satellite3D_R.rkx",
+          "Specify the filename for the satellite's measurement noise "
+          "covariance matrix (default is 'models/satellite3D_R.rkx').");
+ABSL_FLAG(std::string, R_added, "",
+          "Specify the filename for the satellite's artificial measurement "
+          "noise covariance matrix.");
+ABSL_FLAG(std::string, IMU_config, "models/satellite3D_IMU_config.rkx",
+          "Specify the filename for the satellite's IMU configuration data, "
+          "specifying its placement on the satellite and the inertial / "
+          "magnetic-field frame it is relative to (default is "
+          "'models/satellite3D_IMU_config.rkx').");
+ABSL_FLAG(std::string, output, "est_results/satellite3D/output_record",
+          "Specify the filename stem (without extension) for the output of the "
+          "results (default is 'sim_results/satellite3D/output_record').");
+ABSL_FLAG(bool, generate_meas_file, false,
+          "If set, the measurement file will be generated from the output of a "
+          "simulation with the given initial conditions (default is not).");
+ABSL_FLAG(bool, generate_mdl_files, false,
+          "If set, the output will be the generation of all the modeling files "
+          "(with default values).");
+ABSL_FLAG(std::string, system_output, "models/satellite3D",
+          "Specify the filename-stem for the output of the satellite system, "
+          "when 'generate-files' is set (default is 'models/satellite3D').");
+
+// Simulation options
+ABSL_FLAG(double, start_time, 0.0,
+          "Start time of the estimation (default is 0.0).");
+ABSL_FLAG(double, end_time, 1.0,
+          "End time of the estimation (default is 1.0).");
+ABSL_FLAG(double, time_step, 0.01,
+          "Time-step in the measurement files (default is 0.01).");
+ABSL_FLAG(bool, monte_carlo, false,
+          "If set, will perform a Monte-Carlo set of randomized runs to gather "
+          "estimation performance statistics.");
+ABSL_FLAG(int, mc_runs, 1000,
+          "Number of Monte-Carlo runs to perform (default is 1000).");
+ABSL_FLAG(int, min_skips, 1,
+          "Minimum number of time-step skips between estimations when "
+          "generating a series of Monte-Carlo statistics (default is 1, i.e., "
+          "one estimation point per measurement point).");
+ABSL_FLAG(int, max_skips, 1,
+          "maximum number of time-step skips between estimations when "
+          "generating a series of Monte-Carlo statistics (default is 1, i.e., "
+          "one estimation point per measurement point).");
+
+// Modeling options
+ABSL_FLAG(bool, gyro, false,
+          "If set, a set of gyros is added to the model (angular velocity "
+          "measurements). This requires the 'R-matrix' file to contain a 9x9 "
+          "matrix.");
+ABSL_FLAG(bool, IMU, false,
+          "If set, a set of gyros is added to the model (angular velocity, "
+          "magnetic field, and accelerometer measurements). This requires the "
+          "'R-matrix' file to contain a 15x15 matrix. This option also "
+          "automatically implies the 'midpoint' option. This option will "
+          "trigger the use of the 'IMU-config' file to obtain the information "
+          "necessary about the IMU and the Earth's inertial frame.");
+ABSL_FLAG(bool, iekf, false,
+          "If set, results for the invariant extended Kalman filter (IEKF) "
+          "will be generated.");
+ABSL_FLAG(bool, imkf, false,
+          "If set, results for the invariant momentum-tracking Kalman filter "
+          "(IMKF) will be generated.");
+ABSL_FLAG(bool, imkfv2, false,
+          "If set, results for the invariant midpoint Kalman filter (IMKFv2) "
+          "will be generated.");
+
+// Output options (at least one must be set)
+ABSL_FLAG(bool, xml, false, "If set, output results in XML format (rkx).");
+ABSL_FLAG(bool, protobuf, false,
+          "If set, output results in protobuf format (pb).");
+ABSL_FLAG(bool, binary, false, "If set, output results in binary format (rkb)");
+ABSL_FLAG(
+    bool, ssv, false,
+    "If set, output resulting trajectories as time-series in "
+    "space-separated-values files (ssv) (easily loadable in matlab / octave).");
+
 namespace fs = std::filesystem;
 
 const auto var_rnd = []() {
@@ -59,29 +150,29 @@ struct sat3D_measurement_point {
   ReaK::vect_n<double> u;
 };
 
-typedef ReaK::ctrl::satellite3D_lin_dt_system::state_space_type
-    sat3D_state_space_type;
-typedef ReaK::ctrl::satellite3D_lin_dt_system::point_type sat3D_state_type;
-typedef ReaK::ctrl::satellite3D_lin_dt_system::point_difference_type
-    sat3D_state_diff_type;
-typedef ReaK::ctrl::satellite3D_lin_dt_system::input_type sat3D_input_type;
-typedef ReaK::ctrl::satellite3D_lin_dt_system::output_type sat3D_output_type;
+using sat3D_state_space_type =
+    ReaK::ctrl::satellite3D_lin_dt_system::state_space_type;
+using sat3D_state_type = ReaK::ctrl::satellite3D_lin_dt_system::point_type;
+using sat3D_state_diff_type =
+    ReaK::ctrl::satellite3D_lin_dt_system::point_difference_type;
+using sat3D_input_type = ReaK::ctrl::satellite3D_lin_dt_system::input_type;
+using sat3D_output_type = ReaK::ctrl::satellite3D_lin_dt_system::output_type;
 
-typedef ReaK::pp::temporal_space<sat3D_state_space_type,
-                                 ReaK::pp::time_poisson_topology,
-                                 ReaK::pp::time_distance_only>
-    sat3D_temp_space_type;
-typedef ReaK::pp::topology_traits<sat3D_temp_space_type>::point_type
-    sat3D_temp_point_type;
+using sat3D_temp_space_type =
+    ReaK::pp::temporal_space<sat3D_state_space_type,
+                             ReaK::pp::time_poisson_topology,
+                             ReaK::pp::time_distance_only>;
+using sat3D_temp_point_type =
+    ReaK::pp::topology_traits<sat3D_temp_space_type>::point_type;
 
-typedef ReaK::ctrl::covariance_matrix<ReaK::vect_n<double>> cov_type;
-typedef cov_type::matrix_type cov_matrix_type;
-typedef ReaK::ctrl::gaussian_belief_state<sat3D_state_type, cov_type>
-    sat3D_state_belief_type;
-typedef ReaK::ctrl::gaussian_belief_state<sat3D_input_type, cov_type>
-    sat3D_input_belief_type;
-typedef ReaK::ctrl::gaussian_belief_state<sat3D_output_type, cov_type>
-    sat3D_output_belief_type;
+using cov_type = ReaK::ctrl::covariance_matrix<ReaK::vect_n<double>>;
+using cov_matrix_type = cov_type::matrix_type;
+using sat3D_state_belief_type =
+    ReaK::ctrl::gaussian_belief_state<sat3D_state_type, cov_type>;
+using sat3D_input_belief_type =
+    ReaK::ctrl::gaussian_belief_state<sat3D_input_type, cov_type>;
+using sat3D_output_belief_type =
+    ReaK::ctrl::gaussian_belief_state<sat3D_output_type, cov_type>;
 
 template <typename Sat3DSystemType>
 std::vector<std::pair<double, ReaK::vect_n<double>>> batch_KF_on_timeseries(
@@ -94,20 +185,19 @@ std::vector<std::pair<double, ReaK::vect_n<double>>> batch_KF_on_timeseries(
 
   std::vector<std::pair<double, vect_n<double>>> result_pts;
 
-  std::vector<std::pair<double, sat3D_state_type>>::const_iterator it_orig =
-      ground_truth.begin();
-  std::vector<std::pair<double, sat3D_measurement_point>>::const_iterator it =
-      measurements.begin();
+  auto it_orig = ground_truth.begin();
+  auto it = measurements.begin();
   while (it != measurements.end()) {
     vect_n<double> z_vect(it->second.pose.size() + it->second.gyro.size() +
                               it->second.IMU_a_m.size(),
                           0.0);
     z_vect[range(0, 7)] = it->second.pose;
-    if (it->second.gyro.size()) {
+    if (!it->second.gyro.empty()) {
       z_vect[range(7, 10)] = it->second.gyro;
-      if (it->second.IMU_a_m.size())
+      if (!it->second.IMU_a_m.empty()) {
         z_vect[range(10, 16)] = it->second.IMU_a_m;
-    };
+      }
+    }
     b_z.set_mean_state(z_vect);
 
     b_u.set_mean_state(it->second.u);
@@ -132,24 +222,27 @@ std::vector<std::pair<double, ReaK::vect_n<double>>> batch_KF_on_timeseries(
           get_velocity(x_mean) - get_velocity(it_orig->second);
       result_vect[range(22, 25)] =
           get_ang_velocity(x_mean) - get_ang_velocity(it_orig->second);
-    };
+    }
 
     const cov_matrix_type& P_xx = b.get_covariance().get_matrix();
-    for (std::size_t l = 0; l < 12; ++l)
+    for (std::size_t l = 0; l < 12; ++l) {
       result_vect[l + 25] = P_xx(l, l);
+    }
 
-    result_pts.push_back(std::make_pair(it->first, result_vect));
+    result_pts.emplace_back(it->first, result_vect);
 
     for (std::size_t i = 0; i < skips; ++i) {
-      if (it != measurements.end())
+      if (it != measurements.end()) {
         ++it;
-      if (it_orig != ground_truth.end())
+      }
+      if (it_orig != ground_truth.end()) {
         ++it_orig;
-    };
-  };
+      }
+    }
+  }
 
   return result_pts;
-};
+}
 
 template <typename Sat3DSystemType>
 void generate_timeseries(
@@ -179,7 +272,7 @@ void generate_timeseries(
     x = sat_sys.get_next_state(state_space, x, u, t);
     vect_n<double> y = sat_sys.get_output(state_space, x, u, t);
 
-    ground_truth.push_back(std::make_pair(t, x));
+    ground_truth.emplace_back(t, x);
 
     sat3D_measurement_point meas;
     meas.u = vect_n<double>(6, 0.0);
@@ -221,7 +314,7 @@ void generate_timeseries(
                       (meas.pose[2] - y[2]) * (meas.pose[2] - y[2]))) /
                     k;
       std_devs[7] = ((k - 1) * std_devs[7] + norm_2_sqr(aa_vect_noise)) / k;
-    };
+    }
 
     if (y.size() >= 10) {
       meas.gyro = y[range(7, 10)];
@@ -243,7 +336,7 @@ void generate_timeseries(
                          (meas.gyro[1] - y[8]) * (meas.gyro[1] - y[8]) +
                          (meas.gyro[2] - y[9]) * (meas.gyro[2] - y[9]))) /
                        k;
-      };
+      }
       if (y.size() >= 16) {
         meas.IMU_a_m = y[range(10, 16)];
         meas.IMU_a_m[0] += var_rnd() * sqrt(R(9, 9));
@@ -290,19 +383,20 @@ void generate_timeseries(
                 (meas.IMU_a_m[4] - y[14]) * (meas.IMU_a_m[4] - y[14]) +
                 (meas.IMU_a_m[5] - y[15]) * (meas.IMU_a_m[5] - y[15]))) /
               k;
-        };
-      };
-    };
-    measurements.push_back(std::make_pair(t, meas));
-  };
+        }
+      }
+    }
+    measurements.emplace_back(t, meas);
+  }
 
   if (stat_results) {
-    for (std::size_t i = 0; i < std_devs.size(); ++i)
-      (*stat_results) << std::sqrt(std_devs[i]);
+    for (double std_dev : std_devs) {
+      (*stat_results) << std::sqrt(std_dev);
+    }
     (*stat_results) << recorder::data_recorder::end_value_row
                     << recorder::data_recorder::flush;
-  };
-};
+  }
+}
 
 template <typename Sat3DSystemType>
 void do_all_single_runs(
@@ -369,17 +463,18 @@ void do_all_single_runs(
             << "P_wwx"
             << "P_wwy"
             << "P_wwz" << recorder::data_recorder::end_name_row;
-    for (std::size_t i = 0; i < result_pts.size(); ++i) {
-      results << result_pts[i].first;
-      for (std::size_t j = 0; j < result_pts[i].second.size(); ++j)
-        results << result_pts[i].second[j];
+    for (auto& result_pt : result_pts) {
+      results << result_pt.first;
+      for (double j : result_pt.second) {
+        results << j;
+      }
       results << recorder::data_recorder::end_value_row;
-    };
+    }
     results << recorder::data_recorder::flush;
-  };
+  }
 
   sat_sys.set_time_step(time_step);
-};
+}
 
 template <typename Sat3DSystemType>
 void do_single_monte_carlo_run(
@@ -410,10 +505,11 @@ void do_single_monte_carlo_run(
     for (std::size_t i = 0; i < result_pts.size(); ++i) {
 
       // state vector component errors:
-      for (std::size_t j = 13; j < 25; ++j)
+      for (std::size_t j = 13; j < 25; ++j) {
         std_devs[j - 13] = (i * std_devs[j - 13] +
                             result_pts[i].second[j] * result_pts[i].second[j]) /
                            (i + 1);
+      }
 
       // position distance error:
       std_devs[12] = (i * std_devs[12] +
@@ -444,10 +540,11 @@ void do_single_monte_carlo_run(
                      (i + 1);
 
       // average estimated covariances:
-      for (std::size_t j = 25; j < 37; ++j)
+      for (std::size_t j = 25; j < 37; ++j) {
         std_devs[j - 25 + 16] =
             (i * std_devs[j - 25 + 16] + result_pts[i].second[j]) / (i + 1);
-    };
+      }
+    }
 
     std::stringstream ss;
     ss << "_" << std::setfill('0') << std::setw(4)
@@ -456,9 +553,8 @@ void do_single_monte_carlo_run(
     std::shared_ptr<recorder::ascii_recorder>& results =
         results_map[file_middle];
     if (!results) {
-      results = std::shared_ptr<recorder::ascii_recorder>(
-          new recorder::ascii_recorder(output_stem_name + file_middle +
-                                       "_stddevs.ssv"));
+      results = std::make_shared<recorder::ascii_recorder>(
+          output_stem_name + file_middle + "_stddevs.ssv");
       (*results) << "ep_x"
                  << "ep_y"
                  << "ep_z"
@@ -487,220 +583,114 @@ void do_single_monte_carlo_run(
                  << "P_wwx"
                  << "P_wwy"
                  << "P_wwz" << recorder::data_recorder::end_name_row;
-    };
+    }
 
-    for (std::size_t j = 0; j < 18; ++j)
+    for (std::size_t j = 0; j < 18; ++j) {
       (*results) << std::sqrt(std_devs[j]);  // turn variances into std-devs.
+    }
     (*results) << recorder::data_recorder::end_value_row
                << recorder::data_recorder::flush;
-  };
+  }
 
   sat_sys.set_time_step(time_step);
-};
+}
 
 static std::string strip_quotes(const std::string& s) {
   std::size_t first = 0;
-  while ((first < s.length()) && (std::isspace(s[first]) || (s[first] == '"')))
+  while ((first < s.length()) &&
+         ((std::isspace(s[first]) != 0) || (s[first] == '"'))) {
     ++first;
+  }
   std::size_t last = s.length();
-  while ((last > 0) && (std::isspace(s[last - 1]) || (s[last - 1] == '"')))
+  while ((last > 0) &&
+         ((std::isspace(s[last - 1]) != 0) || (s[last - 1] == '"'))) {
     --last;
+  }
   return s.substr(first, last - first);
-};
+}
 
 int main(int argc, char** argv) {
   using namespace ReaK;
 
-  po::options_description generic_options("Generic options");
-  generic_options.add_options()("help,h", "produce this help message.");
+  absl::ParseCommandLine(argc, argv);
 
-  po::options_description io_options("I/O options");
-  io_options.add_options()(
-      "measurements,m", po::value<std::string>(),
-      "specify the filename for the satellite's initial conditions")(
-      "init,i",
-      po::value<std::string>()->default_value("models/satellite3D_init.rkx"),
-      "specify the filename for the satellite's initial conditions, only used "
-      "when Monte-Carlo simulations are done "
-      "(default is 'models/satellite3D_init.rkx')")(
-      "inertia,I",
-      po::value<std::string>()->default_value("models/satellite3D_inertia.rkx"),
-      "specify the filename for the satellite's inertial data (default is "
-      "'models/satellite3D_inertia.rkx')")(
-      "Q-matrix,Q",
-      po::value<std::string>()->default_value("models/satellite3D_Q.rkx"),
-      "specify the filename for the satellite's input disturbance covariance "
-      "matrix (default is "
-      "'models/satellite3D_Q.rkx')")(
-      "R-matrix,R",
-      po::value<std::string>()->default_value("models/satellite3D_R.rkx"),
-      "specify the filename for the satellite's measurement noise covariance "
-      "matrix "
-      "(default is 'models/satellite3D_R.rkx')")(
-      "R-added,A", po::value<std::string>(),
-      "specify the filename for the satellite's artificial measurement noise "
-      "covariance matrix")(
-      "IMU-config",
-      po::value<std::string>()->default_value(
-          "models/satellite3D_IMU_config.rkx"),
-      "specify the filename for the satellite's IMU configuration data, "
-      "specifying its placement on the satellite and "
-      "the inertial / magnetic-field frame it is relative to (default is "
-      "'models/satellite3D_IMU_config.rkx')")(
-      "output,o",
-      po::value<std::string>()->default_value(
-          "est_results/satellite3D/output_record"),
-      "specify the filename stem (without extension) for the output of the "
-      "results (default is "
-      "'sim_results/satellite3D/output_record')")(
-      "generate-meas-file,g",
-      "if set, the measurement file will be generated from the output of a "
-      "simulation with the given initial conditions (default is not)")(
-      "generate-mdl-files,G",
-      "if set, the output will be the generation of all the modeling files "
-      "(with default values)")(
-      "system-output",
-      po::value<std::string>()->default_value("models/satellite3D"),
-      "specify the filename-stem for the output of the satellite system, when "
-      "'generate-files' is set (default is "
-      "'models/satellite3D')");
-
-  po::options_description sim_options("Simulation options");
-  sim_options.add_options()("start-time,s",
-                            po::value<double>()->default_value(0.0),
-                            "start time of the estimation (default is 0.0)")(
-      "end-time,e", po::value<double>()->default_value(1.0),
-      "end time of the estimation (default is 1.0)")(
-      "time-step,t", po::value<double>()->default_value(0.01),
-      "time-step in the measurement files (default is 0.01)")(
-      "monte-carlo",
-      "if set, will perform a Monte-Carlo set of randomized runs to gather "
-      "estimation performance statistics")(
-      "mc-runs", po::value<unsigned int>()->default_value(1000),
-      "number of Monte-Carlo runs to perform (default is 1000)")(
-      "min-skips", po::value<unsigned int>()->default_value(1),
-      "minimum number of time-step skips between estimations when generating a "
-      "series of Monte-Carlo statistics (default "
-      "is 1, i.e., one estimation point per measurement point)")(
-      "max-skips", po::value<unsigned int>()->default_value(1),
-      "maximum number of time-step skips between estimations when generating a "
-      "series of Monte-Carlo statistics (default "
-      "is 1, i.e., one estimation point per measurement point)");
-
-  po::options_description model_options("Modeling options");
-  sim_options.add_options()(
-      "gyro",
-      "if set, a set of gyros is added to the model (angular velocity "
-      "measurements). "
-      "This requires the 'R-matrix' file to contain a 9x9 matrix.")(
-      "IMU",
-      "if set, a set of gyros is added to the model (angular velocity, magnetic field, and accelerometer measurements).\
- This requires the 'R-matrix' file to contain a 15x15 matrix. This option also automatically implies the 'midpoint' option.\
- This option will trigger the use of the 'IMU-config' file to obtain the information necessary about the IMU and the Earth's inertial frame.")
-      //     ("mekf",   "if set, results for the multiplicative extended Kalman filter (MEKF) will be generated.")
-      ("iekf",
-       "if set, results for the invariant extended Kalman filter (IEKF) will "
-       "be generated.")("imkf",
-                        "if set, results for the invariant momentum-tracking "
-                        "Kalman filter (IMKF) will be generated.")(
-          "imkfv2",
-          "if set, results for the invariant midpoint Kalman filter (IMKFv2) "
-          "will be generated.");
-
-  po::options_description output_options(
-      "Output options (at least one must be set)");
-  output_options.add_options()("xml,x",
-                               "if set, output results in XML format (rkx)")(
-      "protobuf,p", "if set, output results in protobuf format (pbuf)")(
-      "binary,b", "if set, output results in binary format (rkb)")(
-      "ssv",
-      "if set, output resulting trajectories as time-series in "
-      "space-separated-values files (ssv) (easily "
-      "loadable in matlab / octave / excel)");
-
-  po::options_description cmdline_options;
-  cmdline_options.add(generic_options)
-      .add(io_options)
-      .add(sim_options)
-      .add(model_options)
-      .add(output_options);
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
-  po::notify(vm);
-
-  std::string output_path_name = strip_quotes(vm["output"].as<std::string>());
+  std::string output_path_name = strip_quotes(absl::GetFlag(FLAGS_output));
   std::string output_stem_name = output_path_name;
-  if (output_stem_name[output_stem_name.size() - 1] == '/')
+  if (output_stem_name.back() == '/') {
     output_stem_name += "output_record";
-  else {
+  } else {
     std::size_t p = output_path_name.find_last_of('/');
-    if (p == std::string::npos)
+    if (p == std::string::npos) {
       output_path_name = "";
-    else
+    } else {
       output_path_name.erase(p);
-  };
-  while (output_path_name[output_path_name.length() - 1] == '/')
+    }
+  }
+  while (output_path_name.back() == '/') {
     output_path_name.erase(output_path_name.length() - 1, 1);
+  }
 
-  if (!output_path_name.empty())
+  if (!output_path_name.empty()) {
     fs::create_directory(output_path_name.c_str());
+  }
 
   std::string sys_output_path_name =
-      strip_quotes(vm["system-output"].as<std::string>());
+      strip_quotes(absl::GetFlag(FLAGS_system_output));
   std::string sys_output_stem_name = sys_output_path_name;
-  if (vm.count("generate-mdl-files")) {
-    if (sys_output_stem_name[sys_output_stem_name.size() - 1] == '/')
+  if (absl::GetFlag(FLAGS_generate_mdl_files)) {
+    if (sys_output_stem_name.back() == '/') {
       sys_output_stem_name += "satellite3D";
-    else {
+    } else {
       std::size_t p = sys_output_path_name.find_last_of('/');
-      if (p == std::string::npos)
+      if (p == std::string::npos) {
         sys_output_path_name = "";
-      else
+      } else {
         sys_output_path_name.erase(p);
-    };
-    while (sys_output_path_name[sys_output_path_name.length() - 1] == '/')
+      }
+    }
+    while (sys_output_path_name.back() == '/') {
       sys_output_path_name.erase(sys_output_path_name.length() - 1, 1);
+    }
 
-    if (!sys_output_path_name.empty())
+    if (!sys_output_path_name.empty()) {
       fs::create_directory(sys_output_path_name.c_str());
-  };
+    }
+  }
 
-  double start_time = vm["start-time"].as<double>();
-  double end_time = vm["end-time"].as<double>();
-  double time_step = vm["time-step"].as<double>();
+  double start_time = absl::GetFlag(FLAGS_start_time);
+  double end_time = absl::GetFlag(FLAGS_end_time);
+  double time_step = absl::GetFlag(FLAGS_time_step);
 
-  unsigned int mc_runs = vm["mc-runs"].as<unsigned int>();
-  unsigned int min_skips = vm["min-skips"].as<unsigned int>();
-  unsigned int max_skips = vm["max-skips"].as<unsigned int>();
+  unsigned int mc_runs = absl::GetFlag(FLAGS_mc_runs);
+  unsigned int min_skips = absl::GetFlag(FLAGS_min_skips);
+  unsigned int max_skips = absl::GetFlag(FLAGS_max_skips);
 
   /* initial states */
   frame_3D<double> initial_motion;
-  if (vm.count("init")) {
+  if (!absl::GetFlag(FLAGS_init).empty()) {
     try {
+      std::string init_filename = strip_quotes(absl::GetFlag(FLAGS_init));
 
-      std::string init_filename = strip_quotes(vm["init"].as<std::string>());
-
-      if (vm.count("generate-mdl-files")) {
+      if (absl::GetFlag(FLAGS_generate_mdl_files)) {
         *(serialization::open_oarchive(init_filename)) &
             RK_SERIAL_SAVE_WITH_NAME(initial_motion);
       } else {
         if (!fs::exists(fs::path(init_filename))) {
           std::cout << "Initial-conditions file does not exist!" << std::endl;
           return 3;
-        };
+        }
 
         *(serialization::open_iarchive(init_filename)) &
             RK_SERIAL_LOAD_WITH_NAME(initial_motion);
-      };
+      }
     } catch (std::exception& e) {
       RK_ERROR(
           "An exception occurred during the loading of the initial conditions! "
           "what(): '"
           << e.what() << "'.");
       return 11;
-    };
-  };
+    }
+  }
 
   /* inertial data */
   double mass = 1.0;
@@ -708,10 +698,9 @@ int main(int argc, char** argv) {
       1.0, 0.0, 0.0, 1.0, 0.0, 1.0);
   try {
 
-    std::string inertia_filename =
-        strip_quotes(vm["inertia"].as<std::string>());
+    std::string inertia_filename = strip_quotes(absl::GetFlag(FLAGS_inertia));
 
-    if (vm.count("generate-mdl-files")) {
+    if (absl::GetFlag(FLAGS_generate_mdl_files)) {
       *(serialization::open_oarchive(inertia_filename)) &
           RK_SERIAL_SAVE_WITH_NAME(mass) &
           RK_SERIAL_SAVE_WITH_NAME(inertia_tensor);
@@ -719,27 +708,27 @@ int main(int argc, char** argv) {
       if (!fs::exists(fs::path(inertia_filename))) {
         std::cout << "Inertial-information file does not exist!" << std::endl;
         return 4;
-      };
+      }
 
       *(serialization::open_iarchive(inertia_filename)) &
           RK_SERIAL_LOAD_WITH_NAME(mass) &
           RK_SERIAL_LOAD_WITH_NAME(inertia_tensor);
-    };
+    }
   } catch (std::exception& e) {
     RK_ERROR(
         "An exception occurred during the loading of the inertia matrix! "
         "what(): '"
         << e.what() << "'.");
     return 12;
-  };
+  }
 
   /* input disturbance */
   mat<double, mat_structure::diagonal> input_disturbance(6, true);
   try {
 
-    std::string Qu_filename = strip_quotes(vm["Q-matrix"].as<std::string>());
+    std::string Qu_filename = strip_quotes(absl::GetFlag(FLAGS_Q_matrix));
 
-    if (vm.count("generate-mdl-files")) {
+    if (absl::GetFlag(FLAGS_generate_mdl_files)) {
       *(serialization::open_oarchive(Qu_filename)) &
           RK_SERIAL_SAVE_WITH_NAME(input_disturbance);
     } else {
@@ -747,30 +736,32 @@ int main(int argc, char** argv) {
         std::cout << "Input disturbance covariance matrix file does not exist!"
                   << std::endl;
         return 5;
-      };
+      }
 
       *(serialization::open_iarchive(Qu_filename)) &
           RK_SERIAL_LOAD_WITH_NAME(input_disturbance);
-    };
+    }
   } catch (std::exception& e) {
     RK_ERROR(
         "An exception occurred during the loading of the input disturbance "
         "covariance matrix! what(): '"
         << e.what() << "'.");
     return 13;
-  };
+  }
 
   /* measurement noise */
   std::size_t m_noise_size = 6;
-  if (vm.count("gyro"))
+  if (absl::GetFlag(FLAGS_gyro)) {
     m_noise_size = 9;
-  if (vm.count("IMU"))
+  }
+  if (absl::GetFlag(FLAGS_IMU)) {
     m_noise_size = 15;
+  }
   mat<double, mat_structure::diagonal> measurement_noise(m_noise_size, true);
   try {
-    std::string R_filename = strip_quotes(vm["R-matrix"].as<std::string>());
+    std::string R_filename = strip_quotes(absl::GetFlag(FLAGS_R_matrix));
 
-    if (vm.count("generate-mdl-files")) {
+    if (absl::GetFlag(FLAGS_generate_mdl_files)) {
       *(serialization::open_oarchive(R_filename)) &
           RK_SERIAL_SAVE_WITH_NAME(measurement_noise);
     } else {
@@ -778,27 +769,26 @@ int main(int argc, char** argv) {
         std::cout << "Measurement noise covariance matrix file does not exist!"
                   << std::endl;
         return 6;
-      };
+      }
 
       *(serialization::open_iarchive(R_filename)) &
           RK_SERIAL_LOAD_WITH_NAME(measurement_noise);
-    };
+    }
   } catch (std::exception& e) {
     RK_ERROR(
         "An exception occurred during the loading of the measurement noise "
         "covariance matrix! what(): '"
         << e.what() << "'.");
     return 14;
-  };
+  }
 
   /* artificial measurement noise */
   mat<double, mat_structure::diagonal> artificial_noise(m_noise_size, 0.0);
-  if (vm.count("R-added")) {
+  if (!absl::GetFlag(FLAGS_R_added).empty()) {
     try {
-      std::string R_added_filename =
-          strip_quotes(vm["R-added"].as<std::string>());
+      std::string R_added_filename = strip_quotes(absl::GetFlag(FLAGS_R_added));
 
-      if (vm.count("generate-mdl-files")) {
+      if (absl::GetFlag(FLAGS_generate_mdl_files)) {
         *(serialization::open_oarchive(R_added_filename)) &
             RK_SERIAL_SAVE_WITH_NAME(artificial_noise);
       } else {
@@ -806,19 +796,19 @@ int main(int argc, char** argv) {
           std::cout << "Artificial noise covariance matrix file does not exist!"
                     << std::endl;
           return 6;
-        };
+        }
 
         *(serialization::open_iarchive(R_added_filename)) &
             RK_SERIAL_LOAD_WITH_NAME(artificial_noise);
-      };
+      }
     } catch (std::exception& e) {
       RK_ERROR(
           "An exception occurred during the loading of the artificial "
           "measurement noise covariance matrix! what(): '"
           << e.what() << "'.");
       return 3;
-    };
-  };
+    }
+  }
   double RAq0 = (artificial_noise(3, 3) + artificial_noise(4, 4) +
                  artificial_noise(5, 5)) /
                 12.0;
@@ -828,13 +818,13 @@ int main(int argc, char** argv) {
   vect<double, 3> IMU_location;
   unit_quat<double> earth_orientation;
   vect<double, 3> mag_field_direction(1.0, 0.0, 0.0);
-  if (vm.count("IMU")) {
+  if (absl::GetFlag(FLAGS_IMU)) {
     try {
 
       std::string IMUconf_filename =
-          strip_quotes(vm["IMU-config"].as<std::string>());
+          strip_quotes(absl::GetFlag(FLAGS_IMU_config));
 
-      if (vm.count("generate-mdl-files")) {
+      if (absl::GetFlag(FLAGS_generate_mdl_files)) {
         *(serialization::open_oarchive(IMUconf_filename)) &
             RK_SERIAL_SAVE_WITH_NAME(IMU_orientation) &
             RK_SERIAL_SAVE_WITH_NAME(IMU_location) &
@@ -845,45 +835,46 @@ int main(int argc, char** argv) {
           std::cout << "IMU configuration data file does not exist!"
                     << std::endl;
           return 6;
-        };
+        }
 
         *(serialization::open_iarchive(IMUconf_filename)) &
             RK_SERIAL_LOAD_WITH_NAME(IMU_orientation) &
             RK_SERIAL_LOAD_WITH_NAME(IMU_location) &
             RK_SERIAL_LOAD_WITH_NAME(earth_orientation) &
             RK_SERIAL_LOAD_WITH_NAME(mag_field_direction);
-      };
+      }
     } catch (std::exception& e) {
       RK_ERROR(
           "An exception occurred during the loading of the IMU configuration "
           "file! what(): '"
           << e.what() << "'.");
       return 14;
-    };
-  };
+    }
+  }
 
   std::vector<std::pair<double, sat3D_measurement_point>> measurements;
   std::vector<std::pair<double, sat3D_state_type>> ground_truth;
-  if ((!vm.count("monte-carlo")) && vm.count("measurements") &&
-      fs::exists(
-          fs::path(strip_quotes(vm["measurements"].as<std::string>())))) {
+  if ((!absl::GetFlag(FLAGS_monte_carlo)) &&
+      !absl::GetFlag(FLAGS_measurements).empty() &&
+      fs::exists(fs::path(strip_quotes(absl::GetFlag(FLAGS_measurements))))) {
     try {
       recorder::ascii_extractor measurements_file(
-          strip_quotes(vm["measurements"].as<std::string>()));
+          strip_quotes(absl::GetFlag(FLAGS_measurements)));
       while (true) {
-        double t;
+        double t = 0.0;
         measurements_file >> t;
         std::vector<double> meas;
         try {
           while (true) {
-            double dummy;
+            double dummy = 0.0;
             measurements_file >> dummy;
             meas.push_back(dummy);
-          };
-        } catch (recorder::out_of_bounds&) {};
+          }
+        } catch (recorder::out_of_bounds&) {}
         measurements_file >> recorder::data_extractor::end_value_row;
 
-        sat3D_measurement_point meas_actual, meas_noisy;
+        sat3D_measurement_point meas_actual;
+        sat3D_measurement_point meas_noisy;
 
         /* read off the position-orientation measurements. */
         if (meas.size() < 7) {
@@ -891,10 +882,10 @@ int main(int argc, char** argv) {
               "The measurement file does not even contain the position and "
               "quaternion measurements!");
           return 4;
-        };
+        }
         meas_actual.pose = vect_n<double>(meas.begin(), meas.begin() + 7);
         meas_noisy.pose = meas_actual.pose;
-        if (vm.count("R-added")) {
+        if (!absl::GetFlag(FLAGS_R_added).empty()) {
           meas_noisy.pose += vect_n<double>(
               var_rnd() * sqrt(artificial_noise(0, 0)),
               var_rnd() * sqrt(artificial_noise(1, 1)),
@@ -902,39 +893,41 @@ int main(int argc, char** argv) {
               var_rnd() * sqrt(0.25 * artificial_noise(3, 3)),
               var_rnd() * sqrt(0.25 * artificial_noise(4, 4)),
               var_rnd() * sqrt(0.25 * artificial_noise(5, 5)));
-        };
+        }
         meas.erase(meas.begin(), meas.begin() + 7);
 
         /* read off the IMU/gyro angular velocity measurements. */
-        if (vm.count("gyro") || vm.count("IMU")) {
+        if (absl::GetFlag(FLAGS_gyro) || absl::GetFlag(FLAGS_IMU)) {
           if (meas.size() < 3) {
             RK_ERROR(
                 "The measurement file does not contain the angular velocity "
                 "measurements!");
             return 4;
-          };
+          }
           meas_actual.gyro = vect_n<double>(meas.begin(), meas.begin() + 3);
           meas_noisy.gyro = meas_actual.gyro;
-          if (vm.count("R-added") && (artificial_noise.get_row_count() >= 9)) {
+          if (!absl::GetFlag(FLAGS_R_added).empty() &&
+              (artificial_noise.get_row_count() >= 9)) {
             meas_noisy.gyro +=
                 vect_n<double>(var_rnd() * sqrt(artificial_noise(6, 6)),
                                var_rnd() * sqrt(artificial_noise(7, 7)),
                                var_rnd() * sqrt(artificial_noise(8, 8)));
-          };
+          }
           meas.erase(meas.begin(), meas.begin() + 3);
-        };
+        }
 
         /* read off the IMU accel-mag measurements. */
-        if (vm.count("IMU")) {
+        if (absl::GetFlag(FLAGS_IMU)) {
           if (meas.size() < 6) {
             RK_ERROR(
                 "The measurement file does not contain the accelerometer and "
                 "magnetometer measurements!");
             return 4;
-          };
+          }
           meas_actual.IMU_a_m = vect_n<double>(meas.begin(), meas.begin() + 6);
           meas_noisy.IMU_a_m = meas_actual.IMU_a_m;
-          if (vm.count("R-added") && (artificial_noise.get_row_count() >= 15)) {
+          if (!absl::GetFlag(FLAGS_R_added).empty() &&
+              (artificial_noise.get_row_count() >= 15)) {
             meas_noisy.IMU_a_m +=
                 vect_n<double>(var_rnd() * sqrt(artificial_noise(9, 9)),
                                var_rnd() * sqrt(artificial_noise(10, 10)),
@@ -942,9 +935,9 @@ int main(int argc, char** argv) {
                                var_rnd() * sqrt(artificial_noise(12, 12)),
                                var_rnd() * sqrt(artificial_noise(13, 13)),
                                var_rnd() * sqrt(artificial_noise(14, 14)));
-          };
+          }
           meas.erase(meas.begin(), meas.begin() + 6);
-        };
+        }
 
         /* read off the input vector. */
         if (meas.size() < 6) {
@@ -952,13 +945,13 @@ int main(int argc, char** argv) {
               "The measurement file does not contain the input force-torque "
               "vector measurements!");
           return 4;
-        };
+        }
         meas_actual.u = vect_n<double>(meas.begin(), meas.begin() + 6);
         meas_noisy.u = meas_actual.u;
         meas.erase(meas.begin(), meas.begin() + 6);
 
         /* now, the meas_actual and meas_noisy are fully formed. */
-        measurements.push_back(std::make_pair(t, meas_noisy));
+        measurements.emplace_back(t, meas_noisy);
 
         /* check if the file contains a ground-truth: */
         if (meas.size() >= 7) {
@@ -969,10 +962,10 @@ int main(int argc, char** argv) {
           if (meas.size() >= 13) {
             set_velocity(x, vect<double, 3>(meas[7], meas[8], meas[9]));
             set_ang_velocity(x, vect<double, 3>(meas[10], meas[11], meas[12]));
-          };
-          ground_truth.push_back(std::make_pair(t, x));
+          }
+          ground_truth.emplace_back(t, x);
           meas.erase(meas.begin(), meas.end());
-        } else if (vm.count("R-added")) {
+        } else if (!absl::GetFlag(FLAGS_R_added).empty()) {
           sat3D_state_type x;
           set_position(x,
                        vect<double, 3>(meas_actual.pose[0], meas_actual.pose[1],
@@ -980,29 +973,31 @@ int main(int argc, char** argv) {
           set_quaternion(
               x, unit_quat<double>(meas_actual.pose[3], meas_actual.pose[4],
                                    meas_actual.pose[5], meas_actual.pose[6]));
-          ground_truth.push_back(std::make_pair(t, x));
-        };
-      };
+          ground_truth.emplace_back(t, x);
+        }
+      }
     } catch (recorder::out_of_bounds&) {
       RK_ERROR(
           "The measurement file does not appear to have the required number of "
           "columns!");
       return 4;
-    } catch (recorder::end_of_record&) {};
-  };
+    } catch (recorder::end_of_record&) {}
+  }
 
   sat3D_temp_space_type sat_space(
       "satellite3D_temporal_space", sat3D_state_space_type(),
       pp::time_poisson_topology("satellite3D_time_space", time_step,
                                 (end_time - start_time) * 0.5));
 
-  typedef pp::discrete_point_trajectory<sat3D_temp_space_type> sat3D_traj_type;
+  using sat3D_traj_type = pp::discrete_point_trajectory<sat3D_temp_space_type>;
 
   std::shared_ptr<sat3D_traj_type> traj_ptr;
-  if (vm.count("generate-meas-file") &&
-      (vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0))
-    traj_ptr = std::shared_ptr<sat3D_traj_type>(new sat3D_traj_type(
-        std::shared_ptr<sat3D_temp_space_type>(&sat_space, null_deleter())));
+  if (absl::GetFlag(FLAGS_generate_meas_file) &&
+      (absl::GetFlag(FLAGS_xml) || absl::GetFlag(FLAGS_protobuf) ||
+       absl::GetFlag(FLAGS_binary))) {
+    traj_ptr = std::make_shared<sat3D_traj_type>(
+        std::shared_ptr<sat3D_temp_space_type>(&sat_space, null_deleter()));
+  }
 
   sat3D_state_type x_init;
   set_position(x_init, vect<double, 3>(0.0, 0.0, 0.0));
@@ -1017,7 +1012,7 @@ int main(int argc, char** argv) {
   sat3D_input_belief_type b_u(sat3D_input_type(vect_n<double>(6, 0.0)),
                               cov_type(cov_matrix_type(input_disturbance)));
 
-  if (!vm.count("gyro") && !vm.count("IMU")) {
+  if (!absl::GetFlag(FLAGS_gyro) && !absl::GetFlag(FLAGS_IMU)) {
 
     // Create the set of satellite3D systems for when there is only pose measurements:
 
@@ -1034,7 +1029,7 @@ int main(int argc, char** argv) {
         sat3D_output_type(vect_n<double>(7, 0.0)),
         cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
 
-    if (vm.count("generate-mdl-files")) {
+    if (absl::GetFlag(FLAGS_generate_mdl_files)) {
       try {
         std::shared_ptr<ctrl::satellite3D_inv_dt_system> satellite3D_system =
             std::shared_ptr<ctrl::satellite3D_inv_dt_system>(&sat3D_inv,
@@ -1058,10 +1053,10 @@ int main(int argc, char** argv) {
             "An exception occurred during the saving the satellite system "
             "file!");
         return 14;
-      };
-    } else if (!vm.count("monte-carlo")) {
+      }
+    } else if (!absl::GetFlag(FLAGS_monte_carlo)) {
 
-      if (measurements.size() == 0) {
+      if (measurements.empty()) {
         // must generate the measurements and ground_truth vectors:
         set_frame_3D(x_init, initial_motion);
         generate_timeseries(
@@ -1071,7 +1066,7 @@ int main(int argc, char** argv) {
             cov_matrix_type(measurement_noise + artificial_noise));
 
         // and output those if asked for it:
-        if (vm.count("generate-meas-file")) {
+        if (absl::GetFlag(FLAGS_generate_meas_file)) {
           recorder::ascii_recorder measurements_gen(output_stem_name +
                                                     "_meas.ssv");
           measurements_gen << "time"
@@ -1112,42 +1107,42 @@ int main(int argc, char** argv) {
                              << get_velocity(g) << get_ang_velocity(g);
             measurements_gen << recorder::data_recorder::end_value_row;
 
-            if (vm.count("xml") + vm.count("protobuf") + vm.count("binary") >
-                0) {
+            if (absl::GetFlag(FLAGS_xml) || absl::GetFlag(FLAGS_protobuf) ||
+                absl::GetFlag(FLAGS_binary)) {
               traj_ptr->push_back(
                   sat3D_temp_point_type(ground_truth[i].first, g));
-            };
-          };
+            }
+          }
           measurements_gen << recorder::data_recorder::flush;
-        };
-      };
+        }
+      }
 
       // do a single run for each skips:
 
       std::cout << "Running estimators on data series.." << std::flush;
 
-      if (vm.count("iekf")) {
+      if (absl::GetFlag(FLAGS_iekf)) {
         do_all_single_runs(output_stem_name, "iekf", measurements, ground_truth,
                            sat3D_inv, sat_space.get_space_topology(), b_init,
                            b_u, b_z, time_step, min_skips, max_skips);
-      };
+      }
 
       std::cout << "." << std::flush;
 
-      if (vm.count("imkf")) {
+      if (absl::GetFlag(FLAGS_imkf)) {
         do_all_single_runs(output_stem_name, "imkf", measurements, ground_truth,
                            sat3D_invmom, sat_space.get_space_topology(), b_init,
                            b_u, b_z, time_step, min_skips, max_skips);
-      };
+      }
 
       std::cout << "." << std::flush;
 
-      if (vm.count("imkfv2")) {
+      if (absl::GetFlag(FLAGS_imkfv2)) {
         do_all_single_runs(output_stem_name, "imkfv2", measurements,
                            ground_truth, sat3D_invmid,
                            sat_space.get_space_topology(), b_init, b_u, b_z,
                            time_step, min_skips, max_skips);
-      };
+      }
 
       std::cout << "." << std::flush;
 
@@ -1184,38 +1179,38 @@ int main(int argc, char** argv) {
 
         std::cout << "." << std::flush;
 
-        if (vm.count("iekf")) {
+        if (absl::GetFlag(FLAGS_iekf)) {
           do_single_monte_carlo_run(results_map, output_stem_name, "iekf",
                                     measurements, ground_truth, sat3D_inv,
                                     sat_space.get_space_topology(), b_init, b_u,
                                     b_z, time_step, min_skips, max_skips);
-        };
+        }
 
         std::cout << "." << std::flush;
 
-        if (vm.count("imkf")) {
+        if (absl::GetFlag(FLAGS_imkf)) {
           do_single_monte_carlo_run(results_map, output_stem_name, "imkf",
                                     measurements, ground_truth, sat3D_invmom,
                                     sat_space.get_space_topology(), b_init, b_u,
                                     b_z, time_step, min_skips, max_skips);
-        };
+        }
 
         std::cout << "." << std::flush;
 
-        if (vm.count("imkfv2")) {
+        if (absl::GetFlag(FLAGS_imkfv2)) {
           do_single_monte_carlo_run(results_map, output_stem_name, "imkfv2",
                                     measurements, ground_truth, sat3D_invmid,
                                     sat_space.get_space_topology(), b_init, b_u,
                                     b_z, time_step, min_skips, max_skips);
-        };
+        }
 
         std::cout << "." << std::flush;
-      };
+      }
 
       std::cout << "Finished!" << std::endl;
-    };
+    }
 
-  } else if (vm.count("gyro") && !vm.count("IMU")) {
+  } else if (absl::GetFlag(FLAGS_gyro) && !absl::GetFlag(FLAGS_IMU)) {
 
     // Create the set of satellite3D systems for when there is gyro measurements:
 
@@ -1232,7 +1227,7 @@ int main(int argc, char** argv) {
         sat3D_output_type(vect_n<double>(10, 0.0)),
         cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
 
-    if (vm.count("generate-mdl-files")) {
+    if (absl::GetFlag(FLAGS_generate_mdl_files)) {
       try {
         std::shared_ptr<ctrl::satellite3D_inv_dt_system> satellite3D_system =
             std::shared_ptr<ctrl::satellite3D_inv_dt_system>(&sat3D_inv_gyro,
@@ -1257,10 +1252,10 @@ int main(int argc, char** argv) {
             "An exception occurred during the saving the satellite system "
             "file!");
         return 14;
-      };
-    } else if (!vm.count("monte-carlo")) {
+      }
+    } else if (!absl::GetFlag(FLAGS_monte_carlo)) {
 
-      if (measurements.size() == 0) {
+      if (measurements.empty()) {
         // must generate the measurements and ground_truth vectors:
         set_frame_3D(x_init, initial_motion);
         generate_timeseries(
@@ -1270,7 +1265,7 @@ int main(int argc, char** argv) {
             cov_matrix_type(measurement_noise + artificial_noise));
 
         // and output those if asked for it:
-        if (vm.count("generate-meas-file")) {
+        if (absl::GetFlag(FLAGS_generate_meas_file)) {
           recorder::ascii_recorder measurements_gen(output_stem_name +
                                                     "_meas.ssv");
           measurements_gen << "time"
@@ -1314,44 +1309,44 @@ int main(int argc, char** argv) {
                              << get_velocity(g) << get_ang_velocity(g);
             measurements_gen << recorder::data_recorder::end_value_row;
 
-            if (vm.count("xml") + vm.count("protobuf") + vm.count("binary") >
-                0) {
+            if (absl::GetFlag(FLAGS_xml) || absl::GetFlag(FLAGS_protobuf) ||
+                absl::GetFlag(FLAGS_binary)) {
               traj_ptr->push_back(
                   sat3D_temp_point_type(ground_truth[i].first, g));
-            };
-          };
+            }
+          }
           measurements_gen << recorder::data_recorder::flush;
-        };
-      };
+        }
+      }
 
       // do a single run for each skips:
 
       std::cout << "Running estimators on data series.." << std::flush;
 
-      if (vm.count("iekf")) {
+      if (absl::GetFlag(FLAGS_iekf)) {
         do_all_single_runs(output_stem_name, "iekf_gyro", measurements,
                            ground_truth, sat3D_inv_gyro,
                            sat_space.get_space_topology(), b_init, b_u, b_z,
                            time_step, min_skips, max_skips);
-      };
+      }
 
       std::cout << "." << std::flush;
 
-      if (vm.count("imkf")) {
+      if (absl::GetFlag(FLAGS_imkf)) {
         do_all_single_runs(output_stem_name, "imkf_gyro", measurements,
                            ground_truth, sat3D_invmom_gyro,
                            sat_space.get_space_topology(), b_init, b_u, b_z,
                            time_step, min_skips, max_skips);
-      };
+      }
 
       std::cout << "." << std::flush;
 
-      if (vm.count("imkfv2")) {
+      if (absl::GetFlag(FLAGS_imkfv2)) {
         do_all_single_runs(output_stem_name, "imkfv2_gyro", measurements,
                            ground_truth, sat3D_invmid_gyro,
                            sat_space.get_space_topology(), b_init, b_u, b_z,
                            time_step, min_skips, max_skips);
-      };
+      }
 
       std::cout << "." << std::flush;
 
@@ -1393,36 +1388,36 @@ int main(int argc, char** argv) {
 
         std::cout << "." << std::flush;
 
-        if (vm.count("iekf")) {
+        if (absl::GetFlag(FLAGS_iekf)) {
           do_single_monte_carlo_run(results_map, output_stem_name, "iekf_gyro",
                                     measurements, ground_truth, sat3D_inv_gyro,
                                     sat_space.get_space_topology(), b_init, b_u,
                                     b_z, time_step, min_skips, max_skips);
-        };
+        }
 
         std::cout << "." << std::flush;
 
-        if (vm.count("imkf")) {
+        if (absl::GetFlag(FLAGS_imkf)) {
           do_single_monte_carlo_run(
               results_map, output_stem_name, "imkf_gyro", measurements,
               ground_truth, sat3D_invmom_gyro, sat_space.get_space_topology(),
               b_init, b_u, b_z, time_step, min_skips, max_skips);
-        };
+        }
 
         std::cout << "." << std::flush;
 
-        if (vm.count("imkfv2")) {
+        if (absl::GetFlag(FLAGS_imkfv2)) {
           do_single_monte_carlo_run(
               results_map, output_stem_name, "imkfv2_gyro", measurements,
               ground_truth, sat3D_invmid_gyro, sat_space.get_space_topology(),
               b_init, b_u, b_z, time_step, min_skips, max_skips);
-        };
+        }
 
         std::cout << "." << std::flush;
-      };
+      }
 
       std::cout << "Finished!" << std::endl;
-    };
+    }
 
   } else {
 
@@ -1441,7 +1436,7 @@ int main(int argc, char** argv) {
         sat3D_output_type(vect_n<double>(16, 0.0)),
         cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
 
-    if (vm.count("generate-mdl-files")) {
+    if (absl::GetFlag(FLAGS_generate_mdl_files)) {
       try {
         std::shared_ptr<ctrl::satellite3D_inv_dt_system> satellite3D_system =
             std::shared_ptr<ctrl::satellite3D_inv_dt_system>(&sat3D_invmom_IMU,
@@ -1460,10 +1455,10 @@ int main(int argc, char** argv) {
             "An exception occurred during the saving the satellite system "
             "file!");
         return 14;
-      };
-    } else if (!vm.count("monte-carlo")) {
+      }
+    } else if (!absl::GetFlag(FLAGS_monte_carlo)) {
 
-      if (measurements.size() == 0) {
+      if (measurements.empty()) {
         // must generate the measurements and ground_truth vectors:
         set_frame_3D(x_init, initial_motion);
         generate_timeseries(
@@ -1473,7 +1468,7 @@ int main(int argc, char** argv) {
             cov_matrix_type(measurement_noise + artificial_noise));
 
         // and output those if asked for it:
-        if (vm.count("generate-meas-file")) {
+        if (absl::GetFlag(FLAGS_generate_meas_file)) {
           recorder::ascii_recorder measurements_gen(output_stem_name +
                                                     "_meas.ssv");
           measurements_gen << "time"
@@ -1523,43 +1518,43 @@ int main(int argc, char** argv) {
                              << get_velocity(g) << get_ang_velocity(g);
             measurements_gen << recorder::data_recorder::end_value_row;
 
-            if (vm.count("xml") + vm.count("protobuf") + vm.count("binary") >
-                0) {
+            if (absl::GetFlag(FLAGS_xml) || absl::GetFlag(FLAGS_protobuf) ||
+                absl::GetFlag(FLAGS_binary)) {
               traj_ptr->push_back(
                   sat3D_temp_point_type(ground_truth[i].first, g));
-            };
-          };
+            }
+          }
           measurements_gen << recorder::data_recorder::flush;
-        };
-      };
+        }
+      }
 
       // do a single run for each skips:
 
       std::cout << "Running estimators on data series.." << std::flush;
 
-      if (vm.count("iekf")) {
+      if (absl::GetFlag(FLAGS_iekf)) {
         std::cerr << "Warning: The invariant extended Kalman filter (IEKF) is "
                      "not available for full IMU measurements!"
                   << std::endl;
-      };
+      }
 
       std::cout << "." << std::flush;
 
-      if (vm.count("imkf")) {
+      if (absl::GetFlag(FLAGS_imkf)) {
         do_all_single_runs(output_stem_name, "imkf_IMU", measurements,
                            ground_truth, sat3D_invmom_IMU,
                            sat_space.get_space_topology(), b_init, b_u, b_z,
                            time_step, min_skips, max_skips);
-      };
+      }
 
       std::cout << "." << std::flush;
 
-      if (vm.count("imkfv2")) {
+      if (absl::GetFlag(FLAGS_imkfv2)) {
         do_all_single_runs(output_stem_name, "imkfv2_IMU", measurements,
                            ground_truth, sat3D_invmid_IMU,
                            sat_space.get_space_topology(), b_init, b_u, b_z,
                            time_step, min_skips, max_skips);
-      };
+      }
 
       std::cout << "." << std::flush;
 
@@ -1595,11 +1590,11 @@ int main(int argc, char** argv) {
           << "emag_z"
           << "emag_m" << recorder::data_recorder::end_name_row;
 
-      if (vm.count("iekf")) {
+      if (absl::GetFlag(FLAGS_iekf)) {
         std::cerr << "Warning: The invariant extended Kalman filter (IEKF) is "
                      "not available for full IMU measurements!"
                   << std::endl;
-      };
+      }
 
       std::cout << "Running Monte-Carlo Simulations..." << std::endl;
 
@@ -1616,57 +1611,58 @@ int main(int argc, char** argv) {
 
         std::cout << "." << std::flush;
 
-        if (vm.count("imkf")) {
+        if (absl::GetFlag(FLAGS_imkf)) {
           do_single_monte_carlo_run(
               results_map, output_stem_name, "imkf_IMU", measurements,
               ground_truth, sat3D_invmom_IMU, sat_space.get_space_topology(),
               b_init, b_u, b_z, time_step, min_skips, max_skips);
-        };
+        }
 
         std::cout << "." << std::flush;
 
-        if (vm.count("imkfv2")) {
+        if (absl::GetFlag(FLAGS_imkfv2)) {
           do_single_monte_carlo_run(
               results_map, output_stem_name, "imkfv2_IMU", measurements,
               ground_truth, sat3D_invmid_IMU, sat_space.get_space_topology(),
               b_init, b_u, b_z, time_step, min_skips, max_skips);
-        };
+        }
 
         std::cout << "." << std::flush;
-      };
+      }
 
       std::cout << "Finished!" << std::endl;
-    };
-  };
+    }
+  }
 
-  if (vm.count("generate-meas-file") &&
-      (vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0)) {
+  if (absl::GetFlag(FLAGS_generate_meas_file) &&
+      (absl::GetFlag(FLAGS_xml) || absl::GetFlag(FLAGS_protobuf) ||
+       absl::GetFlag(FLAGS_binary))) {
     std::cout << "Saving the generated trajectory.." << std::flush;
 
     std::cout << "." << std::flush;
 
-    if (vm.count("xml")) {
+    if (absl::GetFlag(FLAGS_xml)) {
 
       *(serialization::open_oarchive(output_stem_name + "_traj.rkx")) &
           RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-    };
+    }
 
     std::cout << "." << std::flush;
 
-    if (vm.count("protobuf")) {
+    if (absl::GetFlag(FLAGS_protobuf)) {
 
-      *(serialization::open_oarchive(output_stem_name + "_traj.pbuf")) &
+      *(serialization::open_oarchive(output_stem_name + "_traj.pb")) &
           RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-    };
+    }
 
     std::cout << "." << std::flush;
 
-    if (vm.count("binary")) {
+    if (absl::GetFlag(FLAGS_binary)) {
 
       *(serialization::open_oarchive(output_stem_name + "_traj.rkb")) &
           RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-    };
+    }
 
     std::cout << "Finished!" << std::endl;
-  };
-};
+  }
+}

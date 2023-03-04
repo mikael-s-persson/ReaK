@@ -53,9 +53,33 @@
 #include <boost/asio.hpp>
 #include <functional>
 
-#include <boost/program_options.hpp>
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
 
-namespace po = boost::program_options;
+// Configuration options
+ABSL_FLAG(std::string, scene_data, "", "File-name of a complete model file.");
+ABSL_FLAG(std::string, chaser_target_pos, "",
+          "File-name of a chaser-target positions file.");
+ABSL_FLAG(std::string, planning_cfg, "",
+          "File-name of a planning algorithm configuration file.");
+ABSL_FLAG(std::string, space_cfg, "",
+          "File-name of a robot state-space configuration file.");
+ABSL_FLAG(std::string, predictor_cfg, "",
+          "File-name of a target predictor configuration file.");
+ABSL_FLAG(std::string, jtctrl_log_cfg, "",
+          "File-name of a configuration file for the chaser joint logging.");
+ABSL_FLAG(
+    std::string, jtctrl_network_cfg, "",
+    "File-name of a configuration file for the chaser joint control network.");
+ABSL_FLAG(
+    std::string, target_meas_log_cfg, "",
+    "File-name of a configuration file for the target measurement logging.");
+ABSL_FLAG(
+    std::string, target_est_log_cfg, "",
+    "File-name of a configuration file for the target estimates logging.");
+ABSL_FLAG(
+    std::string, target_pred_log_cfg, "",
+    "File-name of a configuration file for the target predictions logging.");
 
 using namespace ReaK;
 
@@ -732,42 +756,7 @@ CRSPlannerGUI::~CRSPlannerGUI() {
 
 int main(int argc, char** argv) {
 
-  po::options_description generic_options("Generic options");
-  generic_options.add_options()("help,h", "produce this help message.");
-
-  po::options_description conf_options("Configuration options");
-  conf_options.add_options()("scene-data", po::value<std::string>(),
-                             "file-name of a complete model file")(
-      "chaser-target-pos", po::value<std::string>(),
-      "file-name of a chaser-target positions file")(
-      "planning-cfg", po::value<std::string>(),
-      "file-name of a planning algorithm configuration file")(
-      "space-cfg", po::value<std::string>(),
-      "file-name of a robot state-space configuration file")(
-      "predictor-cfg", po::value<std::string>(),
-      "file-name of a target predictor configuration file")(
-      "jtctrl-log-cfg", po::value<std::string>(),
-      "file-name of a configuration file for the chaser joint logging")(
-      "jtctrl-network-cfg", po::value<std::string>(),
-      "file-name of a configuration file for the chaser joint control network")(
-      "target-meas-log-cfg", po::value<std::string>(),
-      "file-name of a configuration file for the target measurement logging")(
-      "target-est-log-cfg", po::value<std::string>(),
-      "file-name of a configuration file for the target estimates logging")(
-      "target-pred-log-cfg", po::value<std::string>(),
-      "file-name of a configuration file for the target predictions logging");
-
-  po::options_description cmdline_options;
-  cmdline_options.add(generic_options).add(conf_options);
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
-  po::notify(vm);
-
-  if (vm.count("help")) {
-    std::cout << cmdline_options << std::endl;
-    return 1;
-  };
+  absl::ParseCommandLine(argc, argv);
 
   QApplication app(argc, argv);
 
@@ -778,44 +767,52 @@ int main(int argc, char** argv) {
   // Pop up the main window.
   SoQt::show(&window);
 
-  if (vm.count("scene-data"))
-    window.ct_config.loadCompleteModel(vm["scene-data"].as<std::string>());
+  if (!absl::GetFlag(FLAGS_scene_data).empty()) {
+    window.ct_config.loadCompleteModel(absl::GetFlag(FLAGS_scene_data));
+  }
 
-  if (vm.count("chaser-target-pos"))
+  if (!absl::GetFlag(FLAGS_chaser_target_pos).empty()) {
     window.ct_interact.loadChaserTargetPositions(
-        vm["chaser-target-pos"].as<std::string>());
+        absl::GetFlag(FLAGS_chaser_target_pos));
+  }
 
-  if (vm.count("planning-cfg"))
+  if (!absl::GetFlag(FLAGS_planning_cfg).empty()) {
     window.plan_alg_config.loadPlannerConfiguration(
-        vm["planning-cfg"].as<std::string>());
+        absl::GetFlag(FLAGS_planning_cfg));
+  }
 
-  if (vm.count("space-cfg"))
-    window.space_config.loadSpaceConfiguration(
-        vm["space-cfg"].as<std::string>());
+  if (!absl::GetFlag(FLAGS_space_cfg).empty()) {
+    window.space_config.loadSpaceConfiguration(absl::GetFlag(FLAGS_space_cfg));
+  }
 
-  if (vm.count("predictor-cfg"))
+  if (!absl::GetFlag(FLAGS_predictor_cfg).empty()) {
     window.target_pred_config.loadPredictorConfigurations(
-        vm["predictor-cfg"].as<std::string>());
+        absl::GetFlag(FLAGS_predictor_cfg));
+  }
 
-  if (vm.count("jtctrl-log-cfg"))
-    window.jtctrl_log_opt.load_all_configs(
-        vm["jtctrl-log-cfg"].as<std::string>());
+  if (!absl::GetFlag(FLAGS_jtctrl_log_cfg).empty()) {
+    window.jtctrl_log_opt.load_all_configs(absl::GetFlag(FLAGS_jtctrl_log_cfg));
+  }
 
-  if (vm.count("jtctrl-network-cfg"))
+  if (!absl::GetFlag(FLAGS_jtctrl_network_cfg).empty()) {
     window.jtctrl_network_opt.load_all_configs(
-        vm["jtctrl-network-cfg"].as<std::string>());
+        absl::GetFlag(FLAGS_jtctrl_network_cfg));
+  }
 
-  if (vm.count("target-meas-log-cfg"))
+  if (!absl::GetFlag(FLAGS_target_meas_log_cfg).empty()) {
     window.target_pred_config.meas_out_opt.load_all_configs(
-        vm["target-meas-log-cfg"].as<std::string>());
+        absl::GetFlag(FLAGS_target_meas_log_cfg));
+  }
 
-  if (vm.count("target-est-log-cfg"))
+  if (!absl::GetFlag(FLAGS_target_est_log_cfg).empty()) {
     window.target_pred_config.est_out_opt.load_all_configs(
-        vm["target-est-log-cfg"].as<std::string>());
+        absl::GetFlag(FLAGS_target_est_log_cfg));
+  }
 
-  if (vm.count("target-pred-log-cfg"))
+  if (!absl::GetFlag(FLAGS_target_pred_log_cfg).empty()) {
     window.target_pred_config.pred_out_opt.load_all_configs(
-        vm["target-pred-log-cfg"].as<std::string>());
+        absl::GetFlag(FLAGS_target_pred_log_cfg));
+  }
 
   // Loop until exit.
   SoQt::mainLoop();

@@ -114,30 +114,21 @@ static constexpr std::size_t USE_BRANCH_AND_BOUND_PRUNING_FLAG = 0x01 << 10;
 
 class planning_option_collection : public shared_object {
  public:
-  std::size_t planning_algo;
-  std::size_t max_vertices;
-  std::size_t prog_interval;
-  std::size_t max_results;
-  std::size_t planning_options;
-  std::size_t store_policy;
-  std::size_t knn_method;
-  double init_SA_temp;
-  double init_relax;
-  double max_random_walk;
-  double start_delay;
+  std::size_t planning_algo{0};
+  std::size_t max_vertices{5000};
+  std::size_t prog_interval{10};
+  std::size_t max_results{50};
+  std::size_t planning_options{0};
+  std::size_t store_policy{0};
+  std::size_t knn_method{0};
+  double init_SA_temp{0.0};
+  double init_relax{0.0};
+  double max_random_walk{1.0};
+  double start_delay{20.0};
 
   planning_option_collection()
-      : planning_algo(0),
-        max_vertices(5000),
-        prog_interval(10),
-        max_results(50),
-        planning_options(0),
-        store_policy(0),
-        knn_method(0),
-        init_SA_temp(0.0),
-        init_relax(0.0),
-        max_random_walk(1.0),
-        start_delay(20.0) {}
+
+      = default;
 
   std::string get_planning_algo_str() const {
     switch (planning_algo) {
@@ -187,17 +178,17 @@ class planning_option_collection : public shared_object {
   }
 
   std::string get_planner_qualifier_str() const {
-    std::string result = "";
-    if (planning_options & BIDIRECTIONAL_PLANNING) {
+    std::string result;
+    if ((planning_options & BIDIRECTIONAL_PLANNING) != 0U) {
       result += "_bidir";
     }
-    if (planning_options & USE_BRANCH_AND_BOUND_PRUNING_FLAG) {
+    if ((planning_options & USE_BRANCH_AND_BOUND_PRUNING_FLAG) != 0U) {
       result += "_bnb";
     }
-    if (planning_options & PLAN_WITH_ANYTIME_HEURISTIC) {
+    if ((planning_options & PLAN_WITH_ANYTIME_HEURISTIC) != 0U) {
       result += "_any";
     }
-    if (planning_options & PLAN_WITH_VORONOI_PULL) {
+    if ((planning_options & PLAN_WITH_VORONOI_PULL) != 0U) {
       result += "_sa";
     }
     return result;
@@ -207,7 +198,8 @@ class planning_option_collection : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(planning_algo) &
         RK_SERIAL_SAVE_WITH_NAME(max_vertices) &
@@ -222,7 +214,7 @@ class planning_option_collection : public shared_object {
         RK_SERIAL_SAVE_WITH_NAME(start_delay);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(planning_algo) &
         RK_SERIAL_LOAD_WITH_NAME(max_vertices) &

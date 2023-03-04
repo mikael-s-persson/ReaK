@@ -37,9 +37,9 @@
 namespace ReaK::math {
 
 inline std::size_t highest_pow2(std::size_t N) {
-  std::size_t temp;
+  std::size_t temp = 0;
   for (std::size_t shift = 1;
-       ((shift < 8 * sizeof(std::size_t)) && (temp = N >> shift));
+       ((shift < 8 * sizeof(std::size_t)) && ((temp = N >> shift) != 0U));
        shift <<= 1) {
     N |= temp;
   }
@@ -48,9 +48,9 @@ inline std::size_t highest_pow2(std::size_t N) {
 
 inline std::size_t highest_set_bit(std::size_t N) {
   std::size_t temp = 0;
-  for (std::size_t shift = sizeof(std::size_t) * 4; (shift && (N != 1));
+  for (std::size_t shift = sizeof(std::size_t) * 4; ((shift != 0U) && (N != 1));
        shift >>= 1) {
-    if (N >> shift) {
+    if ((N >> shift) != 0U) {
       temp |= shift;
       N >>= shift;
     }

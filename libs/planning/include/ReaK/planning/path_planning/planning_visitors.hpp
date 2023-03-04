@@ -80,11 +80,11 @@ struct planning_visitor_base {
   std::any m_start_node;
   std::any m_goal_node;
 
-  planning_visitor_base(planner_base_type* aPlanner,
-                        query_type* aQuery = nullptr,
-                        any_knn_synchro* aNNSynchro = nullptr,
-                        std::any aStartNode = std::any(),
-                        std::any aGoalNode = std::any())
+  explicit planning_visitor_base(planner_base_type* aPlanner,
+                                 query_type* aQuery = nullptr,
+                                 any_knn_synchro* aNNSynchro = nullptr,
+                                 std::any aStartNode = std::any(),
+                                 std::any aGoalNode = std::any())
       : m_planner(aPlanner),
         m_query(aQuery),
         m_nn_synchro(aNNSynchro),
@@ -92,9 +92,9 @@ struct planning_visitor_base {
         m_goal_node(aGoalNode) {}
 
   template <typename Vertex, typename Graph>
-  void dispatched_register_solution(Vertex start, Vertex, Vertex current,
-                                    Graph& g,
-                                    const mg_vertex_data<space_type>&) const {
+  void dispatched_register_solution(
+      Vertex start, Vertex /*unused*/, Vertex current, Graph& g,
+      const mg_vertex_data<space_type>& /*unused*/) const {
     double goal_dist = m_query->get_distance_to_goal(g[current].position);
     solution_record_ptr srp =
         m_query->register_solution(start, current, goal_dist, g);
@@ -105,8 +105,8 @@ struct planning_visitor_base {
 
   template <typename Vertex, typename Graph>
   void dispatched_register_solution(
-      Vertex start, Vertex goal, Vertex, Graph& g,
-      const optimal_mg_vertex<space_type>&) const {
+      Vertex start, Vertex goal, Vertex /*unused*/, Graph& g,
+      const optimal_mg_vertex<space_type>& /*unused*/) const {
     if ((g[goal].predecessor != boost::graph_traits<Graph>::null_vertex()) &&
         (g[goal].distance_accum < m_query->get_best_solution_distance())) {
       solution_record_ptr srp = m_query->register_solution(start, goal, 0.0, g);
@@ -120,7 +120,7 @@ struct planning_visitor_base {
   void publish_path(Graph& g) const {
     if (m_goal_node.has_value()) {
       using Vertex = graph::graph_vertex_t<Graph>;
-      Vertex goal_node = std::any_cast<Vertex>(m_goal_node);
+      auto goal_node = std::any_cast<Vertex>(m_goal_node);
       dispatched_register_solution(std::any_cast<Vertex>(m_start_node),
                                    goal_node, goal_node, g, g[goal_node]);
     }
@@ -131,19 +131,22 @@ struct planning_visitor_base {
   ***************************************************/
 
   template <typename Vertex, typename Graph>
-  void dispatched_initialize_vertex(mg_vertex_data<space_type>&, Vertex,
-                                    Graph&) const {}
+  void dispatched_initialize_vertex(mg_vertex_data<space_type>& /*unused*/,
+                                    Vertex /*unused*/,
+                                    Graph& /*unused*/) const {}
 
   template <typename Vertex, typename Graph>
-  void dispatched_initialize_vertex(optimal_mg_vertex<space_type>& vp, Vertex,
-                                    Graph&) const {
+  void dispatched_initialize_vertex(optimal_mg_vertex<space_type>& vp,
+                                    Vertex /*unused*/,
+                                    Graph& /*unused*/) const {
     vp.distance_accum = std::numeric_limits<double>::infinity();
     vp.predecessor = boost::graph_traits<Graph>::null_vertex();
   }
 
   template <typename Vertex, typename Graph>
-  void dispatched_initialize_vertex(astar_mg_vertex<space_type>& vp, Vertex,
-                                    Graph&) const {
+  void dispatched_initialize_vertex(astar_mg_vertex<space_type>& vp,
+                                    Vertex /*unused*/,
+                                    Graph& /*unused*/) const {
     vp.distance_accum = std::numeric_limits<double>::infinity();
     vp.predecessor = boost::graph_traits<Graph>::null_vertex();
     vp.heuristic_value = m_query->get_heuristic_to_goal(vp.position);
@@ -151,7 +154,7 @@ struct planning_visitor_base {
 
   template <typename Vertex, typename Graph>
   void dispatched_initialize_vertex(bidir_astar_mg_vertex<space_type>& vp,
-                                    Vertex, Graph& g) const {
+                                    Vertex /*unused*/, Graph& g) const {
     vp.distance_accum = get(distance_metric, m_query->space->get_super_space())(
         g[std::any_cast<Vertex>(m_start_node)].position, vp.position,
         m_query->space->get_super_space());
@@ -399,10 +402,10 @@ struct planning_visitor_base {
            m_planner->get_steer_progress_tolerance() * target_dist)) {
         get<1>(result) = true;
         return result;
-      } else {
-        p_rnd = get_sample(sup_space);
-        dp_rnd = sup_space.difference(p_rnd, sup_space.origin());
       }
+      p_rnd = get_sample(sup_space);
+      dp_rnd = sup_space.difference(p_rnd, sup_space.origin());
+
     } while (++i <= 10);
     get<1>(result) = false;
     return result;
@@ -438,10 +441,10 @@ struct planning_visitor_base {
            m_planner->get_steer_progress_tolerance() * target_dist)) {
         get<1>(result) = true;
         return result;
-      } else {
-        p_rnd = get_sample(sup_space);
-        dp_rnd = sup_space.difference(p_rnd, sup_space.origin());
       }
+      p_rnd = get_sample(sup_space);
+      dp_rnd = sup_space.difference(p_rnd, sup_space.origin());
+
     } while (++i <= 10);
     get<1>(result) = false;
     return result;
@@ -477,18 +480,17 @@ struct planning_visitor
     base_type::dispatched_initialize_vertex(g[u], u, g);
   }
   template <typename Vertex, typename Graph>
-  void discover_vertex(Vertex, const Graph&) const {}
+  void discover_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
   template <typename Vertex, typename Graph>
-  void examine_vertex(Vertex, const Graph&) const {}
+  void examine_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
   template <typename Edge, typename Graph>
-  void examine_edge(Edge, const Graph&) const {}
+  void examine_edge(Edge /*unused*/, const Graph& /*unused*/) const {}
   template <typename Vertex, typename Graph>
-  bool has_search_potential(Vertex u, const Graph&) const {
+  bool has_search_potential(Vertex u, const Graph& /*unused*/) const {
     if (this->m_goal_node.empty()) {
       return true;
-    } else {
-      return (u != std::any_cast<Vertex>(this->m_goal_node));
     }
+    return (u != std::any_cast<Vertex>(this->m_goal_node));
   }
   template <typename Vertex, typename Graph>
   bool should_close(Vertex u, const Graph& g) const {
@@ -536,18 +538,17 @@ struct heuristic_plan_visitor
     base_type::dispatched_initialize_vertex(g[u], u, g);
   }
   template <typename Vertex, typename Graph>
-  void discover_vertex(Vertex, const Graph&) const {}
+  void discover_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
   template <typename Vertex, typename Graph>
-  void examine_vertex(Vertex, const Graph&) const {}
+  void examine_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
   template <typename Edge, typename Graph>
-  void examine_edge(Edge, const Graph&) const {}
+  void examine_edge(Edge /*unused*/, const Graph& /*unused*/) const {}
   template <typename Vertex, typename Graph>
   bool has_search_potential(Vertex u, const Graph& g) const {
     if (this->m_goal_node.empty()) {
       return true;
-    } else {
-      return (u != std::any_cast<Vertex>(this->m_goal_node));
     }
+    return (u != std::any_cast<Vertex>(this->m_goal_node));
   }
   template <typename Vertex, typename Graph>
   bool should_close(Vertex u, const Graph& g) const {

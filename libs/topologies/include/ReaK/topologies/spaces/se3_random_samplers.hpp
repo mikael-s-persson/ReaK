@@ -43,10 +43,10 @@ namespace ReaK::pp {
 
 struct position_only_sampler : public serializable {
 
-  position_only_sampler() {}
+  position_only_sampler() = default;
 
   template <typename Topology>
-  position_only_sampler(const Topology&) {}
+  explicit position_only_sampler(const Topology& /*unused*/) {}
 
   /**
    * This function returns a random sample point on a topology.
@@ -66,9 +66,10 @@ struct position_only_sampler : public serializable {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {}
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {}
 
-  void load(serialization::iarchive& A, unsigned int) override {}
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {}
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(position_only_sampler, 0xC2450006, 1,
                               "position_only_sampler", serializable)

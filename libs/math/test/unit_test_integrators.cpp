@@ -39,17 +39,15 @@
 #include <string>
 #include <vector>
 
-#define BOOST_TEST_DYN_LINK
+#include "gtest/gtest.h"
 
-#define BOOST_TEST_MODULE num_integrators
-#include <boost/mpl/list.hpp>
-#include <boost/test/test_case_template.hpp>
-#include <boost/test/unit_test.hpp>
+namespace ReaK {
+namespace {
 
-typedef std::vector<std::pair<double, ReaK::vect_n<double>>> SolutionTrace;
-typedef std::shared_ptr<ReaK::iv_problem<double>> ProblemPtr;
-typedef std::pair<ProblemPtr, SolutionTrace> RefProblemPair;
-typedef std::vector<RefProblemPair> RefProblemSet;
+using SolutionTrace = std::vector<std::pair<double, ReaK::vect_n<double>>>;
+using ProblemPtr = std::shared_ptr<ReaK::iv_problem<double>>;
+using RefProblemPair = std::pair<ProblemPtr, SolutionTrace>;
+using RefProblemSet = std::vector<RefProblemPair>;
 
 void computeReferenceSolution(const ProblemPtr& prob,
                               SolutionTrace& sol_trace) {
@@ -78,12 +76,13 @@ void computeReferenceSolution(const ProblemPtr& prob,
         ReaK::vect_n<double>(integ.getStateBegin(), integ.getStateEnd())));
 
     std::cout << "\r" << std::setw(10) << next_time;
-    for (std::size_t k = 0; k < sol_trace.back().second.size(); ++k)
+    for (std::size_t k = 0; k < sol_trace.back().second.size(); ++k) {
       std::cout << std::setw(10) << sol_trace.back().second[k];
+    }
     std::cout << std::flush;
-  };
+  }
   std::cout << std::endl << "Done!" << std::endl;
-};
+}
 
 const RefProblemSet& getRefProblemSet() {
   using namespace ReaK;
@@ -107,8 +106,8 @@ const RefProblemSet& getRefProblemSet() {
         std::ofstream file_out("integ_records/hires.pbuf");
         serialization::protobuf_oarchive ar_out(file_out);
         ar_out << prob_set.back();
-      };
-    };
+      }
+    }
 
 #if 0
     {
@@ -125,8 +124,8 @@ const RefProblemSet& getRefProblemSet() {
         std::ofstream file_out("integ_records/pollution.pbuf");
         serialization::protobuf_oarchive ar_out(file_out);
         ar_out << prob_set.back();
-      };
-    };
+      }
+    }
 #endif
 
     {
@@ -145,8 +144,8 @@ const RefProblemSet& getRefProblemSet() {
         std::ofstream file_out("integ_records/ringmod.pbuf");
         serialization::protobuf_oarchive ar_out(file_out);
         ar_out << prob_set.back();
-      };
-    };
+      }
+    }
 
     {
       std::ifstream file_in("integ_records/vanderpol.pbuf");
@@ -163,8 +162,8 @@ const RefProblemSet& getRefProblemSet() {
         std::ofstream file_out("integ_records/vanderpol.pbuf");
         serialization::protobuf_oarchive ar_out(file_out);
         ar_out << prob_set.back();
-      };
-    };
+      }
+    }
 
     {
       std::ifstream file_in("integ_records/vanderpolmod.pbuf");
@@ -182,8 +181,8 @@ const RefProblemSet& getRefProblemSet() {
         std::ofstream file_out("integ_records/vanderpolmod.pbuf");
         serialization::protobuf_oarchive ar_out(file_out);
         ar_out << prob_set.back();
-      };
-    };
+      }
+    }
 
     {
       std::ifstream file_in("integ_records/orego.pbuf");
@@ -200,8 +199,8 @@ const RefProblemSet& getRefProblemSet() {
         std::ofstream file_out("integ_records/orego.pbuf");
         serialization::protobuf_oarchive ar_out(file_out);
         ar_out << prob_set.back();
-      };
-    };
+      }
+    }
 
 #if 0
     {
@@ -218,8 +217,8 @@ const RefProblemSet& getRefProblemSet() {
         std::ofstream file_out("integ_records/rober.pbuf");
         serialization::protobuf_oarchive ar_out(file_out);
         ar_out << prob_set.back();
-      };
-    };
+      }
+    }
 #endif
 
 #if 0
@@ -237,20 +236,17 @@ const RefProblemSet& getRefProblemSet() {
         std::ofstream file_out("integ_records/e5.pbuf");
         serialization::protobuf_oarchive ar_out(file_out);
         ar_out << prob_set.back();
-      };
-    };
+      }
+    }
 #endif
 
     first_pass = false;
-  };
+  }
 
   return prob_set;
-};
+}
 
-BOOST_AUTO_TEST_CASE(fixed_step_integrators_tests) {
-
-  using namespace ReaK;
-
+TEST(Integrators, FixedStepIntegrators) {
   const RefProblemSet& ref_set = getRefProblemSet();
 
   for (std::size_t i = 0; i < ref_set.size(); ++i) {
@@ -260,15 +256,14 @@ BOOST_AUTO_TEST_CASE(fixed_step_integrators_tests) {
       for (std::size_t k = 0; k < ref_set[i].second[j].second.size(); ++k)
         std::cout << std::setw(10) << ref_set[i].second[j].second[k];
       std::cout << std::flush;
-    };
+    }
     std::cout << std::endl << "Done!" << std::endl;
-  };
-};
+  }
+}
 
-BOOST_AUTO_TEST_CASE(variable_step_integrators_tests) {
-  using namespace ReaK;
-};
+TEST(Integrators, VariableStepIntegrators) {}
 
-BOOST_AUTO_TEST_CASE(pred_corr_integrators_tests) {
-  using namespace ReaK;
-};
+TEST(Integrators, PredCorrIntegrators) {}
+
+}  // namespace
+}  // namespace ReaK

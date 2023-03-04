@@ -114,11 +114,13 @@ class IHAQR_point_type : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(x);
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(x);
   }
@@ -557,7 +559,8 @@ class IHAQR_topology : public named_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     ReaK::named_object::save(
         A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(m_system) & RK_SERIAL_SAVE_WITH_NAME(m_space) &
@@ -570,7 +573,7 @@ class IHAQR_topology : public named_object {
         RK_SERIAL_SAVE_WITH_NAME(m_goal_proximity_threshold);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     ReaK::named_object::load(
         A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(m_system) & RK_SERIAL_LOAD_WITH_NAME(m_space) &
@@ -614,29 +617,30 @@ struct get_proper_metric<
 
 class IHAQR_to_state_mapper : public named_object {
  public:
-  IHAQR_to_state_mapper() : named_object() { setName("IHAQR_to_state_mapper"); }
+  IHAQR_to_state_mapper() { setName("IHAQR_to_state_mapper"); }
 
   template <typename StateSpace, typename StateSpaceSystem,
             typename StateSpaceSampler>
-  auto map_to_space(
-      const IHAQR_point_type<StateSpace, StateSpaceSystem>& pt,
-      const IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>&,
-      const StateSpace&) const {
+  auto map_to_space(const IHAQR_point_type<StateSpace, StateSpaceSystem>& pt,
+                    const IHAQR_topology<StateSpace, StateSpaceSystem,
+                                         StateSpaceSampler>& /*unused*/,
+                    const StateSpace& /*unused*/) const {
     return pt.x;
   }
 
   template <typename StateSpace, typename StateSpaceSystem,
             typename StateSpaceSampler>
-  auto map_to_space(
-      const topology_point_type_t<StateSpace>& pt,
-      const IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>&,
-      const StateSpace&) const {
+  auto map_to_space(const topology_point_type_t<StateSpace>& pt,
+                    const IHAQR_topology<StateSpace, StateSpaceSystem,
+                                         StateSpaceSampler>& /*unused*/,
+                    const StateSpace& /*unused*/) const {
     return pt;
   }
 
   template <typename DestSpace, typename StateSpace>
   auto map_to_space(const topology_point_type_t<StateSpace>& pt,
-                    const StateSpace&, const DestSpace&) const {
+                    const StateSpace& /*unused*/,
+                    const DestSpace& /*unused*/) const {
     return topology_point_type_t<DestSpace>(pt);
   }
 
@@ -644,10 +648,12 @@ class IHAQR_to_state_mapper : public named_object {
   ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
     named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
   }
 
@@ -692,20 +698,14 @@ class IHAQR_topology_with_CD
     // update the kinematics model with the given joint states.
     m_model->doDirectMotion();
 
-    for (auto& qp : m_proxy_env_2D) {
-      geom::proximity_record_2D tmp = qp->findMinimumDistance();
-      if (tmp.mDistance < 0.0) {
-        return false;
-      }
-    }
-    for (auto& qp : m_proxy_env_3D) {
-      geom::proximity_record_3D tmp = qp->findMinimumDistance();
-      if (tmp.mDistance < 0.0) {
-        return false;
-      }
-    }
-
-    return true;
+    return std::all_of(m_proxy_env_2D.begin(), m_proxy_env_2D.end(),
+                       [](const auto& qp) {
+                         return qp->findMinimumDistance().mDistance >= 0.0;
+                       }) &&
+           std::all_of(m_proxy_env_3D.begin(), m_proxy_env_3D.end(),
+                       [](const auto& qp) {
+                         return qp->findMinimumDistance().mDistance >= 0.0;
+                       });
   }
 
  public:
@@ -751,9 +751,7 @@ class IHAQR_topology_with_CD
       : base_type(aName, aSystem, aSpace, aMinInput, aMaxInput, aInputBandwidth,
                   aR, aQ, aTimeStep, aMaxTimeHorizon, aGoalProximityThreshold,
                   aGetSample),
-        m_model(aModel),
-        m_proxy_env_2D(),
-        m_proxy_env_3D(){};
+        m_model(aModel){};
 
   IHAQR_topology_with_CD() : IHAQR_topology_with_CD("IHAQR_topology_with_CD") {}
 
@@ -766,10 +764,7 @@ class IHAQR_topology_with_CD
   IHAQR_topology_with_CD(
       const base_type& aBaseSpace,
       const std::shared_ptr<kte::direct_kinematics_model>& aModel)
-      : base_type(aBaseSpace),
-        m_model(aModel),
-        m_proxy_env_2D(),
-        m_proxy_env_3D(){};
+      : base_type(aBaseSpace), m_model(aModel){};
 
   ~IHAQR_topology_with_CD() override = default;
 
@@ -790,9 +785,8 @@ class IHAQR_topology_with_CD
     if (dist(a.x, b.x, this->get_state_space()) * 0.1 >
         dist(result.x, b.x, this->get_state_space())) {
       return base_type::distance(a, b);
-    } else {
-      return std::numeric_limits<double>::infinity();
     }
+    return std::numeric_limits<double>::infinity();
   }
 
   /**
@@ -814,14 +808,15 @@ class IHAQR_topology_with_CD
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(m_model) &
         RK_SERIAL_SAVE_WITH_NAME(m_proxy_env_2D) &
         RK_SERIAL_SAVE_WITH_NAME(m_proxy_env_3D);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(m_model) &
         RK_SERIAL_LOAD_WITH_NAME(m_proxy_env_2D) &

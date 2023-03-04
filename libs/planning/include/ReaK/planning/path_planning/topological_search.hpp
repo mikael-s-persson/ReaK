@@ -49,6 +49,8 @@
 #ifndef REAK_TOPOLOGICAL_SEARCH_HPP
 #define REAK_TOPOLOGICAL_SEARCH_HPP
 
+#include <cmath>
+
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/graph/topology.hpp>
@@ -341,13 +343,13 @@ struct no_NNfinder_synchro {
     * This is a call-back for when a vertex has been added.
     */
   template <typename Vertex, typename Graph>
-  void added_vertex(Vertex, const Graph&) const {}
+  void added_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
 
   /**
     * This is a call-back for when a vertex is about to be removed.
     */
   template <typename Vertex, typename Graph>
-  void removed_vertex(Vertex, const Graph&) const {}
+  void removed_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
 };
 
 /**
@@ -361,8 +363,8 @@ struct composite_NNsynchro {
   NNSynchro1 s1;
   NNSynchro2 s2;
 
-  composite_NNsynchro(NNSynchro1 aS1 = NNSynchro1(),
-                      NNSynchro2 aS2 = NNSynchro2())
+  explicit composite_NNsynchro(NNSynchro1 aS1 = NNSynchro1(),
+                               NNSynchro2 aS2 = NNSynchro2())
       : s1(aS1), s2(aS2) {}
 
   /**
@@ -433,7 +435,8 @@ struct linear_neighbor_search_base {
     * Default constructor.
     * \param compare The comparison functor for ordering the distances (strict weak ordering).
     */
-  linear_neighbor_search_base(CompareFunction compare = CompareFunction())
+  explicit linear_neighbor_search_base(
+      CompareFunction compare = CompareFunction())
       : m_compare(compare) {}
 
   /**
@@ -608,7 +611,8 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
     * Default constructor.
     * \param compare The comparison functor for ordering the distances (strict weak ordering).
     */
-  linear_neighbor_search_base(CompareFunction compare = CompareFunction())
+  explicit linear_neighbor_search_base(
+      CompareFunction compare = CompareFunction())
       : m_compare(compare) {}
 
   /**
@@ -841,7 +845,6 @@ struct best_only_neighbor_search {
       }
       u = v_min;
     }
-    return;
   }
 
   /**
@@ -868,10 +871,10 @@ struct best_only_neighbor_search {
       m_vertex_num_divider = 1;
     }
     Vertex u_min = vertex(std::rand() % num_vertices(g), g);
-    double d_min;
+    double d_min = NAN;
     search(p, u_min, d_min, g, space, position);
     for (int i = 0; i < num_vertices(g) / m_vertex_num_divider; ++i) {
-      double d_v;
+      double d_v = NAN;
       Vertex v = vertex(std::rand() % num_vertices(g), g);
       search(p, v, d_v, g, space, position);
       if (m_compare(d_v, d_min)) {
@@ -902,9 +905,10 @@ struct best_only_neighbor_search {
     for (auto [ei, ei_end] = out_edges(u, g); ei != ei_end; ++ei) {
       Vertex v = target(*ei, g);
       double d_v = distance(p, v, space, position);
-      if (m_compare(d_v, d_min))
+      if (m_compare(d_v, d_min)) {
         search(p, v, output, p_compare, d_v, g, space, position, max_neighbors,
                radius);
+      }
     }
   }
 

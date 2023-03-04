@@ -112,7 +112,7 @@ struct sbastar_visitor_archetype : sbmp_visitor_archetype,
                                    neighborhood_tracking_visitor_archetype,
                                    node_exploring_visitor_archetype {
   template <typename Graph>
-  void publish_path(const Graph&) const {}
+  void publish_path(const Graph& /*unused*/) const {}
 };
 
 /**
@@ -299,7 +299,7 @@ struct sba_node_generator {
 
   template <typename Graph, typename SBAVisitor, typename PositionMap>
   auto operator()(graph_vertex_t<Graph> u, Graph& g, const SBAVisitor& sba_vis,
-                  PositionMap) const {
+                  PositionMap /*unused*/) const {
     auto [p_new, was_expanded, ep_new] = sba_vis.random_walk(u, g);
     auto u_exp = (was_expanded ? u : boost::graph_traits<Graph>::null_vertex());
     return std::tuple(u_exp, p_new, ep_new);
@@ -310,16 +310,18 @@ struct sba_bidir_node_generator {
 
   template <typename Graph, typename SBAVisitor, typename PositionMap>
   auto operator()(graph_vertex_t<Graph> u, Graph& g, const SBAVisitor& sba_vis,
-                  PositionMap) const {
+                  PositionMap /*unused*/) const {
     using std::get;
     using PositionValue =
         std::decay_t<decltype(get<0>(sba_vis.random_walk(u, g)))>;
     using EdgeProp = graph_edge_bundle_t<Graph>;
 
-    PositionValue p_exp, p_ret;
+    PositionValue p_exp;
+    PositionValue p_ret;
     bool was_expanded = false;
     bool was_retracted = false;
-    EdgeProp ep_exp, ep_ret;
+    EdgeProp ep_exp;
+    EdgeProp ep_ret;
     if (get(sba_vis.m_predecessor, g[u]) !=
         boost::graph_traits<Graph>::null_vertex()) {
       std::tie(p_exp, was_expanded, ep_exp) = sba_vis.random_walk(u, g);

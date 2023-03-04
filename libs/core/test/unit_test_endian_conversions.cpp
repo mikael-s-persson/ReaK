@@ -24,141 +24,150 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/endian_conversions.hpp>
 
-#define BOOST_TEST_DYN_LINK
+#include <cstdint>
 
-#define BOOST_TEST_MODULE endian_conversions
-#include <boost/test/unit_test.hpp>
+#include "gtest/gtest.h"
 
 union wrap_uint8_t {
-  boost::uint8_t u;
-  boost::int8_t i;
-  unsigned char c[1];
+  std::uint8_t u;
+  std::int8_t i;
+  unsigned char c[1];  // NOLINT
 };
 
 union wrap_uint16_t {
-  boost::uint16_t u;
-  boost::int16_t i;
-  unsigned char c[2];
+  std::uint16_t u;
+  std::int16_t i;
+  unsigned char c[2];  // NOLINT
 };
 
 union wrap_uint32_t {
-  boost::uint32_t u;
-  boost::int32_t i;
-  unsigned char c[4];
+  std::uint32_t u;
+  std::int32_t i;
+  unsigned char c[4];  // NOLINT
 };
 
-#ifndef BOOST_NO_INT64_T
 union wrap_uint64_t {
-  boost::uint64_t u;
-  boost::int64_t i;
-  unsigned char c[8];
+  std::uint64_t u;
+  std::int64_t i;
+  unsigned char c[8];  // NOLINT
 };
-#endif
 
-BOOST_AUTO_TEST_CASE(endian_conversions_test) {
-  using namespace ReaK;
+namespace ReaK {
+namespace {
 
+TEST(EndianConversionTests, AllCases) {
   // Tests for little-endian systems:
   if (1000 != htonl(1000)) {
 
     wrap_uint8_t u8;
     u8.u = 0x0A;
     hton_any(u8.u);
-    if (u8.c[0] != 0x0A)
-      BOOST_ERROR("uint8 conversion to network order failed!");
+    EXPECT_EQ(u8.c[0], 0x0A) << "uint8 conversion to network order failed!";
+
     u8.i = 0x0A;
     hton_any(u8.i);
-    if (u8.c[0] != 0x0A)
-      BOOST_ERROR("int8 conversion to network order failed!");
+    EXPECT_EQ(u8.c[0], 0x0A) << "int8 conversion to network order failed!";
 
     wrap_uint16_t u16;
     u16.u = 0x0A0B;
     hton_any(u16.u);
-    if ((u16.c[0] != 0x0A) || (u16.c[1] != 0x0B))
-      BOOST_ERROR("uint16 conversion to network order failed!");
+    EXPECT_EQ(u16.c[0], 0x0A) << "uint16 conversion to network order failed!";
+    EXPECT_EQ(u16.c[1], 0x0B) << "uint16 conversion to network order failed!";
+
     u16.i = 0x0A0B;
     hton_any(u16.i);
-    if ((u16.c[0] != 0x0A) || (u16.c[1] != 0x0B))
-      BOOST_ERROR("int16 conversion to network order failed!");
+    EXPECT_EQ(u16.c[0], 0x0A) << "int16 conversion to network order failed!";
+    EXPECT_EQ(u16.c[1], 0x0B) << "int16 conversion to network order failed!";
 
     wrap_uint32_t u32;
     u32.u = 0x0A0B0C0D;
     hton_any(u32.u);
-    if ((u32.c[0] != 0x0A) || (u32.c[1] != 0x0B) || (u32.c[2] != 0x0C) ||
-        (u32.c[3] != 0x0D))
-      BOOST_ERROR("uint32 conversion to network order failed!");
+    EXPECT_EQ(u32.c[0], 0x0A) << "uint32 conversion to network order failed!";
+    EXPECT_EQ(u32.c[1], 0x0B) << "uint32 conversion to network order failed!";
+    EXPECT_EQ(u32.c[2], 0x0C) << "uint32 conversion to network order failed!";
+    EXPECT_EQ(u32.c[3], 0x0D) << "uint32 conversion to network order failed!";
+
     u32.i = 0x0A0B0C0D;
     hton_any(u32.i);
-    if ((u32.c[0] != 0x0A) || (u32.c[1] != 0x0B) || (u32.c[2] != 0x0C) ||
-        (u32.c[3] != 0x0D))
-      BOOST_ERROR("int32 conversion to network order failed!");
+    EXPECT_EQ(u32.c[0], 0x0A) << "int32 conversion to network order failed!";
+    EXPECT_EQ(u32.c[1], 0x0B) << "int32 conversion to network order failed!";
+    EXPECT_EQ(u32.c[2], 0x0C) << "int32 conversion to network order failed!";
+    EXPECT_EQ(u32.c[3], 0x0D) << "int32 conversion to network order failed!";
 
-#ifndef BOOST_NO_INT64_T
     wrap_uint64_t u64;
     u64.u = 0x0A0B0C0D0E0F;
     hton_any(u64.u);
-    if ((u64.c[0] != 0x00) || (u64.c[1] != 0x00) || (u64.c[2] != 0x0A) ||
-        (u64.c[3] != 0x0B) || (u64.c[4] != 0x0C) || (u64.c[5] != 0x0D) ||
-        (u64.c[6] != 0x0E) || (u64.c[7] != 0x0F))
-      BOOST_ERROR("uint64 conversion to network order failed!");
+    EXPECT_EQ(u64.c[0], 0x00) << "uint64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[1], 0x00) << "uint64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[2], 0x0A) << "uint64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[3], 0x0B) << "uint64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[4], 0x0C) << "uint64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[5], 0x0D) << "uint64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[6], 0x0E) << "uint64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[7], 0x0F) << "uint64 conversion to network order failed!";
+
     u64.i = 0x0A0B0C0D0E0F;
     hton_any(u64.i);
-    if ((u64.c[0] != 0x00) || (u64.c[1] != 0x00) || (u64.c[2] != 0x0A) ||
-        (u64.c[3] != 0x0B) || (u64.c[4] != 0x0C) || (u64.c[5] != 0x0D) ||
-        (u64.c[6] != 0x0E) || (u64.c[7] != 0x0F))
-      BOOST_ERROR("int64 conversion to network order failed!");
-#endif
-  };
+    EXPECT_EQ(u64.c[0], 0x00) << "int64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[1], 0x00) << "int64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[2], 0x0A) << "int64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[3], 0x0B) << "int64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[4], 0x0C) << "int64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[5], 0x0D) << "int64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[6], 0x0E) << "int64 conversion to network order failed!";
+    EXPECT_EQ(u64.c[7], 0x0F) << "int64 conversion to network order failed!";
+  }
 
-  boost::uint8_t u8 = 0x0A;
+  std::uint8_t u8 = 0x0A;
   ntoh_any(u8);
   hton_any(u8);
-  BOOST_CHECK_EQUAL(u8, 0x0A);
+  EXPECT_EQ(u8, 0x0A);
 
-  boost::int8_t i8 = 0x0A;
+  std::int8_t i8 = 0x0A;
   ntoh_any(i8);
   hton_any(i8);
-  BOOST_CHECK_EQUAL(i8, 0x0A);
+  EXPECT_EQ(i8, 0x0A);
 
-  boost::uint16_t u16 = 0x0A0B;
+  std::uint16_t u16 = 0x0A0B;
   hton_any(u16);
   ntoh_any(u16);
-  BOOST_CHECK_EQUAL(u16, 0x0A0B);
+  EXPECT_EQ(u16, 0x0A0B);
 
-  boost::int16_t i16 = 0x0A0B;
+  std::int16_t i16 = 0x0A0B;
   hton_any(i16);
   ntoh_any(i16);
-  BOOST_CHECK_EQUAL(i16, 0x0A0B);
+  EXPECT_EQ(i16, 0x0A0B);
 
-  boost::uint32_t u32 = 0x0A0B0C0D;
+  std::uint32_t u32 = 0x0A0B0C0D;
   hton_any(u32);
   ntoh_any(u32);
-  BOOST_CHECK_EQUAL(u32, 0x0A0B0C0D);
+  EXPECT_EQ(u32, 0x0A0B0C0D);
 
-  boost::int32_t i32 = 0x0A0B0C0D;
+  std::int32_t i32 = 0x0A0B0C0D;
   hton_any(i32);
   ntoh_any(i32);
-  BOOST_CHECK_EQUAL(i32, 0x0A0B0C0D);
+  EXPECT_EQ(i32, 0x0A0B0C0D);
 
-#ifndef BOOST_NO_INT64_T
-  boost::uint64_t u64 = 0x0A0B0C0D0E0F;
+  std::uint64_t u64 = 0x0A0B0C0D0E0F;
   hton_any(u64);
   ntoh_any(u64);
-  BOOST_CHECK_EQUAL(u64, 0x0A0B0C0D0E0F);
+  EXPECT_EQ(u64, 0x0A0B0C0D0E0F);
 
-  boost::int64_t i64 = 0x0A0B0C0D0E0F;
+  std::int64_t i64 = 0x0A0B0C0D0E0F;
   hton_any(i64);
   ntoh_any(i64);
-  BOOST_CHECK_EQUAL(i64, 0x0A0B0C0D0E0F);
-#endif
+  EXPECT_EQ(i64, 0x0A0B0C0D0E0F);
 
   float f(3.14159);
   hton_any(f);
   ntoh_any(f);
-  BOOST_CHECK_EQUAL(f, float(3.14159));
+  EXPECT_EQ(f, float(3.14159));
 
   double d(3.14159);
   hton_any(d);
   ntoh_any(d);
-  BOOST_CHECK_EQUAL(d, double(3.14159));
-};
+  EXPECT_EQ(d, double(3.14159));
+}
+
+}  // namespace
+}  // namespace ReaK

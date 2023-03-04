@@ -88,9 +88,9 @@ class discrete_point_trajectory
 
     // first assume that a is before b:
     double sum = 0.0;
-    const_waypoint_descriptor a_cpy = wpb_a.first;
+    auto a_cpy = wpb_a.first;
     while (a_cpy != wpb_b.first) {
-      const_waypoint_descriptor a_next = a_cpy;
+      auto a_next = a_cpy;
       ++a_next;
       if (a_next == this->waypoints.end()) {
         break;  // we're done.
@@ -116,7 +116,7 @@ class discrete_point_trajectory
       return waypoint_pair(wpb_p.first, wpb_p.first->second);
     }
 
-    const_waypoint_descriptor a_next = wpb_p.first;
+    auto a_next = wpb_p.first;
     ++a_next;
     if (a_next == this->waypoints.end()) {
       return waypoint_pair(wpb_p.first, wpb_p.first->second);
@@ -124,9 +124,8 @@ class discrete_point_trajectory
 
     if (dt < 0.5 * (a_next->first - wpb_p.first->first)) {
       return waypoint_pair(wpb_p.first, wpb_p.first->second);
-    } else {
-      return waypoint_pair(a_next, a_next->second);
     }
+    return waypoint_pair(a_next, a_next->second);
   }
 
  public:
@@ -170,7 +169,7 @@ class discrete_point_trajectory
   /**
    * Standard swap function.
    */
-  friend void swap(self& lhs, self& rhs) throw() {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
     swap(static_cast<base_class_type&>(lhs),
          static_cast<base_class_type&>(rhs));
@@ -180,12 +179,13 @@ class discrete_point_trajectory
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_class_type::save(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_class_type::load(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }

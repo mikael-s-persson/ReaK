@@ -658,7 +658,7 @@ class mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
    * \return the trace of matrix M.
    */
   friend value_type trace(const self& M) {
-    value_type sum = value_type(0);
+    auto sum = value_type(0);
     for (int i = 0; i < M.q.size(); i += M.rowCount + 1) {
       sum += M.q[i];
     }

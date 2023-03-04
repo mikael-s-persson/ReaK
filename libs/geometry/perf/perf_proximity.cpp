@@ -35,6 +35,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <memory>
 #include <random>
 
 using namespace ReaK;
@@ -70,32 +71,31 @@ struct proxy_query_generator {
     double chosen_shape = ud(get_global_rng());
     if (chosen_shape < 0.2) {
       // create plane:
-      query->addShape(std::shared_ptr<geom::plane>(
-          new geom::plane("plane", anchor, rel_pose,
-                          vect<double, 2>(ud(get_global_rng()) * 2.0,
-                                          ud(get_global_rng()) * 2.0))));
+      query->addShape(std::make_shared<geom::plane>(
+          "plane", anchor, rel_pose,
+          vect<double, 2>(ud(get_global_rng()) * 2.0,
+                          ud(get_global_rng()) * 2.0)));
     } else if (chosen_shape < 0.4) {
       // create box:
-      query->addShape(std::shared_ptr<geom::box>(
-          new geom::box("box", anchor, rel_pose,
-                        vect<double, 3>(ud(get_global_rng()) * 2.0,
-                                        ud(get_global_rng()) * 2.0,
-                                        ud(get_global_rng()) * 2.0))));
+      query->addShape(std::make_shared<geom::box>(
+          "box", anchor, rel_pose,
+          vect<double, 3>(ud(get_global_rng()) * 2.0,
+                          ud(get_global_rng()) * 2.0,
+                          ud(get_global_rng()) * 2.0)));
     } else if (chosen_shape < 0.6) {
       // create sphere:
-      query->addShape(std::shared_ptr<geom::sphere>(new geom::sphere(
-          "sphere", anchor, rel_pose, ud(get_global_rng()) * 2.0)));
+      query->addShape(std::make_shared<geom::sphere>(
+          "sphere", anchor, rel_pose, ud(get_global_rng()) * 2.0));
     } else if (chosen_shape < 0.8) {
       // create cylinder:
-      query->addShape(std::shared_ptr<geom::cylinder>(new geom::cylinder(
+      query->addShape(std::make_shared<geom::cylinder>(
           "cylinder", anchor, rel_pose, ud(get_global_rng()) * 2.0,
-          ud(get_global_rng()) * 1.0)));
+          ud(get_global_rng()) * 1.0));
     } else {
       // create capped_cylinder:
-      query->addShape(
-          std::shared_ptr<geom::capped_cylinder>(new geom::capped_cylinder(
-              "capped_cylinder", anchor, rel_pose, ud(get_global_rng()) * 2.0,
-              ud(get_global_rng()) * 1.0)));
+      query->addShape(std::make_shared<geom::capped_cylinder>(
+          "capped_cylinder", anchor, rel_pose, ud(get_global_rng()) * 2.0,
+          ud(get_global_rng()) * 1.0));
     };
   };
 };
@@ -112,7 +112,8 @@ int main(int argc, const char* argv[]) {
       high_resolution_clock::duration::zero();
 
   for (int i = 0; i < num_runs; ++i) {
-    proxy_query_generator pg1, pg2;
+    proxy_query_generator pg1;
+    proxy_query_generator pg2;
     for (int j = 0; j < num_shapes; ++j) {
       pg1.addOneRandomShape();
       pg2.addOneRandomShape();

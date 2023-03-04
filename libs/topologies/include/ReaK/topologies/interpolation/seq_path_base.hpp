@@ -60,7 +60,7 @@ class seq_path_base : public named_object {
  protected:
   struct point_distance_iterator_impl {
 
-    virtual ~point_distance_iterator_impl() {}
+    virtual ~point_distance_iterator_impl() = default;
 
     virtual void move_by_distance(double d) = 0;
 
@@ -73,7 +73,7 @@ class seq_path_base : public named_object {
 
   struct point_fraction_iterator_impl {
 
-    virtual ~point_fraction_iterator_impl() {}
+    virtual ~point_fraction_iterator_impl() = default;
 
     virtual void move_by_fraction(double f) = 0;
 
@@ -90,12 +90,13 @@ class seq_path_base : public named_object {
     point_distance_iterator_impl* p_impl;
 
    public:
-    point_distance_iterator(point_distance_iterator_impl* aPImpl = nullptr)
+    explicit point_distance_iterator(
+        point_distance_iterator_impl* aPImpl = nullptr)
         : p_impl(aPImpl) {}
 
     point_distance_iterator(const point_distance_iterator& rhs)
         : p_impl(rhs.p_impl->clone()) {}
-    point_distance_iterator(point_distance_iterator&& rhs)
+    point_distance_iterator(point_distance_iterator&& rhs) noexcept
         : p_impl(rhs.p_impl) {
       rhs.p_impl = nullptr;
     }
@@ -157,12 +158,13 @@ class seq_path_base : public named_object {
     point_fraction_iterator_impl* p_impl;
 
    public:
-    point_fraction_iterator(point_fraction_iterator_impl* aPImpl = nullptr)
+    explicit point_fraction_iterator(
+        point_fraction_iterator_impl* aPImpl = nullptr)
         : p_impl(aPImpl) {}
 
     point_fraction_iterator(const point_fraction_iterator& rhs)
         : p_impl(rhs.p_impl->clone()) {}
-    point_fraction_iterator(point_fraction_iterator&& rhs)
+    point_fraction_iterator(point_fraction_iterator&& rhs) noexcept
         : p_impl(rhs.p_impl) {
       rhs.p_impl = nullptr;
     }
@@ -219,7 +221,6 @@ class seq_path_base : public named_object {
     const point_type& operator*() const { return p_impl->get_point(); };
   };
 
- public:
   /**
    * Constructs the path from a space, assumes the start and end are at the origin
    * of the space.
@@ -268,11 +269,12 @@ class seq_path_base : public named_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
   }
 

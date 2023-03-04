@@ -107,8 +107,7 @@ struct bnb_ordering_data {
   bnb_ordering_data(Graph& g, Vertex aStart, Vertex aGoal)
       : start_vertex(aStart),
         goal_vertex(aGoal),
-        index_in_heap(),
-        key(),
+
         Q(key, index_in_heap, KeyCompareType()) {
     for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
       put(index_in_heap, *ui, static_cast<std::size_t>(-1));
@@ -145,7 +144,7 @@ struct bnb_connector {
 
   bnb_ordering_data<Graph>* data;
 
-  bnb_connector(bnb_ordering_data<Graph>& aData) : data(&aData){};
+  explicit bnb_connector(bnb_ordering_data<Graph>& aData) : data(&aData){};
 
   template <typename Topology, typename ConnectorVisitor, typename PositionMap,
             typename DistanceMap, typename PredecessorMap, typename WeightMap>
@@ -301,7 +300,8 @@ struct bnb_connector {
     }
 
     using std::back_inserter;
-    std::vector<Vertex> Pred, Succ;
+    std::vector<Vertex> Pred;
+    std::vector<Vertex> Succ;
     if constexpr (boost::is_undirected_graph<Graph2>::value) {
       select_neighborhood(p, back_inserter(Pred), g, super_space,
                           boost::bundle_prop_to_vertex_prop(position, g));
@@ -379,7 +379,8 @@ struct bnb_connector {
     }
 
     using std::back_inserter;
-    std::vector<Vertex> Pred, Succ;
+    std::vector<Vertex> Pred;
+    std::vector<Vertex> Succ;
     if constexpr (boost::is_undirected_graph<Graph2>::value) {
       select_neighborhood(p, back_inserter(Pred), g, super_space,
                           boost::bundle_prop_to_vertex_prop(position, g));

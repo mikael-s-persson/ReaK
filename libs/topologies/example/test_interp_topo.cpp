@@ -63,10 +63,56 @@
 
 #include <ReaK/core/base/scope_guard.hpp>
 
-#include <boost/program_options.hpp>
 #include <filesystem>
 
-namespace po = boost::program_options;
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+
+// I/O options
+ABSL_FLAG(std::string, output_path, "test_interp_results",
+          "Specify the output path (default is test_interp_results).");
+
+// Monte-Carlo options
+ABSL_FLAG(int, mc_runs, 100,
+          "Number of monte-carlo runs to perform (default is 100).");
+
+// Monte-Carlo options
+ABSL_FLAG(int, space_dimensionality, 1,
+          "Number of dimensions for the underlying space (default is 1).");
+ABSL_FLAG(
+    double, space_max_frequency, 10.0,
+    "The maximum frequency of the sinusoidal curves (default is 10.0 Hz).");
+ABSL_FLAG(double, interp_steps, 0.05,
+          "The time-step between the interpolator's control-points, over a "
+          "total curve-time of 1.0 second (default is 0.05 seconds)");
+
+// Interpolator selection options
+ABSL_FLAG(bool, all_interpolators, false,
+          "Specify that all supported interpolators should be run (default if "
+          "no particular interpolator is specified).");
+#ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
+ABSL_FLAG(bool, linear, false,
+          "Specify that the linear interpolation should be run.");
+#endif
+#ifdef RK_ENABLE_TEST_CUBIC_INTERPOLATOR
+ABSL_FLAG(bool, cubic, false,
+          "Specify that the cubic interpolation should be run.");
+#endif
+#ifdef RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
+ABSL_FLAG(bool, quintic, false,
+          "Specify that the quintic interpolation should be run.");
+#endif
+#ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
+ABSL_FLAG(
+    bool, svp_Ndof, false,
+    "Specify that the sustained-velocity-pulse interpolation should be run.");
+#endif
+#ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
+ABSL_FLAG(bool, sap_Ndof, false,
+          "Specify that the sustained-acceleration-pulse interpolation should "
+          "be run.");
+#endif
+
 namespace fs = std::filesystem;
 
 #define RK_TEST_IS_NAN(X) std::isnan(X[0])
@@ -75,17 +121,21 @@ namespace fs = std::filesystem;
 
 template <typename Vector>
 bool vect_is_nan(const Vector& v) {
-  for (std::size_t i = 0; i < v.size(); ++i)
-    if (std::isnan(v[i]))
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    if (std::isnan(v[i])) {
       return true;
+    }
+  }
   return false;
 };
 
 template <typename Vector>
 bool vect_is_inf(const Vector& v) {
-  for (std::size_t i = 0; i < v.size(); ++i)
-    if (std::isinf(v[i]))
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    if (std::isinf(v[i])) {
       return true;
+    }
+  }
   return false;
 };
 
@@ -98,11 +148,11 @@ void try_interpolation(const std::string& aMethodName,
 
   using namespace ReaK;
 
-  typedef typename pp::topology_traits<InterpTopoType>::point_type PointType;
-  typedef typename PtContainer::const_iterator Iter;
+  using PointType = typename pp::topology_traits<InterpTopoType>::point_type;
+  using Iter = typename PtContainer::const_iterator;
 
-  Iter it = pts.begin();
-  for (Iter prev_it = it++; it != pts.end(); ++prev_it, ++it) {
+  auto it = pts.begin();
+  for (auto prev_it = it++; it != pts.end(); ++prev_it, ++it) {
 
     try {
 
@@ -164,11 +214,13 @@ void try_interpolation(const std::string& aMethodName,
 
 template <std::size_t StaticSpDim>
 struct interp_mc_test_space {
-  typedef
-      typename ReaK::pp::Ndof_rl_space<double, StaticSpDim, 2>::type topo_type;
-  typedef ReaK::vect<double, StaticSpDim> vector_type;
+  using topo_type =
+      typename ReaK::pp::Ndof_rl_space<double, StaticSpDim, 2>::type;
+  using vector_type = ReaK::vect<double, StaticSpDim>;
 
-  static vector_type default_vect(std::size_t) { return vector_type(); };
+  static vector_type default_vect(std::size_t /*unused*/) {
+    return vector_type();
+  };
 
   static topo_type create(const vector_type& lb, const vector_type& ub,
                           const vector_type& sb, const vector_type& ab,
@@ -179,8 +231,8 @@ struct interp_mc_test_space {
 
 template <>
 struct interp_mc_test_space<0> {
-  typedef ReaK::pp::Ndof_rl_space<double, 0, 2>::type topo_type;
-  typedef ReaK::vect_n<double> vector_type;
+  using topo_type = ReaK::pp::Ndof_rl_space<double, 0, 2>::type;
+  using vector_type = ReaK::vect_n<double>;
 
   static vector_type default_vect(std::size_t dyn_sp_size) {
     return vector_type(dyn_sp_size);
@@ -194,17 +246,17 @@ struct interp_mc_test_space<0> {
 };
 
 template <std::size_t StaticSpDim>
-void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
+void perform_mc_tests(std::size_t dyn_sp_dim) {
 
   using namespace ReaK;
 
-  typedef interp_mc_test_space<StaticSpDim> Config;
-  typedef typename Config::topo_type TopoType;
-  typedef typename Config::vector_type Vector;
+  using Config = interp_mc_test_space<StaticSpDim>;
+  using TopoType = typename Config::topo_type;
+  using Vector = typename Config::vector_type;
 
-  typedef typename pp::topology_traits<TopoType>::point_type PointType;
+  using PointType = typename pp::topology_traits<TopoType>::point_type;
 
-  double max_freq = vm["space-max-frequency"].as<double>();
+  double max_freq = absl::GetFlag(FLAGS_space_max_frequency);
   double max_rad_freq = max_freq * 2.0 * M_PI;  // rad/s
 
   Vector lb = Config::default_vect(dyn_sp_dim);
@@ -220,9 +272,10 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
     jb[i] = 2.0 * max_rad_freq * max_rad_freq * max_rad_freq;
   };
 
-  std::string output_path = vm["output-path"].as<std::string>();
-  while (output_path[output_path.length() - 1] == '/')
+  std::string output_path = absl::GetFlag(FLAGS_output_path);
+  while (output_path[output_path.length() - 1] == '/') {
     output_path.erase(output_path.length() - 1, 1);
+  }
 
   fs::create_directory(output_path.c_str());
 
@@ -253,12 +306,13 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
       sap_Ndof_topo(Config::create(lb, ub, sb, ab, jb));
 #endif
 
-  std::size_t mc_runs = vm["mc-runs"].as<std::size_t>();
-  double interp_steps = vm["interp-steps"].as<double>();
+  std::size_t mc_runs = absl::GetFlag(FLAGS_mc_runs);
+  double interp_steps = absl::GetFlag(FLAGS_interp_steps);
 
   std::size_t segment_count = 0;
-  for (double t = 0.0; t < 1.0 + 0.5 * interp_steps; t += interp_steps)
+  for (double t = 0.0; t < 1.0 + 0.5 * interp_steps; t += interp_steps) {
     ++segment_count;
+  }
   --segment_count;
 
   global_rng_type& gbl_rng = get_global_rng();
@@ -303,7 +357,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
 
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
 
-    if (vm.count("all-interpolators") || vm.count("linear")) {
+    if (absl::GetFlag(FLAGS_all_interpolators) || absl::GetFlag(FLAGS_linear)) {
       try_interpolation("linear", test_data_str, linear_succ_count,
                         linear_graceful_fails, linear_topo, pts, fail_reports);
     };
@@ -312,7 +366,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
 
 #ifdef RK_ENABLE_TEST_CUBIC_INTERPOLATOR
 
-    if (vm.count("all-interpolators") || vm.count("cubic")) {
+    if (absl::GetFlag(FLAGS_all_interpolators) || absl::GetFlag(FLAGS_cubic)) {
       try_interpolation("cubic", test_data_str, cubic_succ_count,
                         cubic_graceful_fails, cubic_topo, pts, fail_reports);
     };
@@ -321,7 +375,8 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
 
 #ifdef RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
 
-    if (vm.count("all-interpolators") || vm.count("quintic")) {
+    if (absl::GetFlag(FLAGS_all_interpolators) ||
+        absl::GetFlag(FLAGS_quintic)) {
       try_interpolation("quintic", test_data_str, quintic_succ_count,
                         quintic_graceful_fails, quintic_topo, pts,
                         fail_reports);
@@ -331,7 +386,8 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
 
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
 
-    if (vm.count("all-interpolators") || vm.count("svp-Ndof")) {
+    if (absl::GetFlag(FLAGS_all_interpolators) ||
+        absl::GetFlag(FLAGS_svp_Ndof)) {
       try_interpolation("svp_Ndof", test_data_str, svp_Ndof_succ_count,
                         svp_Ndof_graceful_fails, svp_Ndof_topo, pts,
                         fail_reports);
@@ -341,7 +397,8 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
 
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
 
-    if (vm.count("all-interpolators") || vm.count("sap-Ndof")) {
+    if (absl::GetFlag(FLAGS_all_interpolators) ||
+        absl::GetFlag(FLAGS_sap_Ndof)) {
       try_interpolation("sap_Ndof", test_data_str, sap_Ndof_succ_count,
                         sap_Ndof_graceful_fails, sap_Ndof_topo, pts,
                         fail_reports);
@@ -364,7 +421,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
                << "  Interpolation steps of: " << interp_steps << std::endl;
 
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
-  if (vm.count("all-interpolators") || vm.count("linear"))
+  if (absl::GetFlag(FLAGS_all_interpolators) || absl::GetFlag(FLAGS_linear))
     succ_reports << "Linear interp"
                  << "\n"
                  << "\t Successes: " << linear_succ_count << "\n"
@@ -384,7 +441,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
                  << "\%." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_CUBIC_INTERPOLATOR
-  if (vm.count("all-interpolators") || vm.count("cubic"))
+  if (absl::GetFlag(FLAGS_all_interpolators) || absl::GetFlag(FLAGS_cubic))
     succ_reports
         << "Cubic interp"
         << "\n"
@@ -402,7 +459,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
         << "\%." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
-  if (vm.count("all-interpolators") || vm.count("quintic"))
+  if (absl::GetFlag(FLAGS_all_interpolators) || absl::GetFlag(FLAGS_quintic))
     succ_reports
         << "Quintic interp"
         << "\n"
@@ -421,7 +478,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
         << "\%." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
-  if (vm.count("all-interpolators") || vm.count("svp-Ndof"))
+  if (absl::GetFlag(FLAGS_all_interpolators) || absl::GetFlag(FLAGS_svp_Ndof)) {
     succ_reports
         << "SVP_Ndof interp"
         << "\n"
@@ -439,9 +496,10 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
             (1.0 - double(svp_Ndof_succ_count + svp_Ndof_graceful_fails) /
                        double(total_segments)))
         << "%." << std::endl;
+  }
 #endif
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
-  if (vm.count("all-interpolators") || vm.count("sap-Ndof"))
+  if (absl::GetFlag(FLAGS_all_interpolators) || absl::GetFlag(FLAGS_sap_Ndof)) {
     succ_reports
         << "SAP_Ndof interp"
         << "\n"
@@ -459,6 +517,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
             (1.0 - double(sap_Ndof_succ_count + sap_Ndof_graceful_fails) /
                        double(total_segments)))
         << "%." << std::endl;
+  }
 #endif
 
   succ_reports.close();
@@ -468,104 +527,40 @@ int main(int argc, char** argv) {
 
   using namespace ReaK;
 
-  po::options_description generic_options("Generic options");
-  generic_options.add_options()("help,h", "produce this help message.");
+  absl::ParseCommandLine(argc, argv);
 
-  po::options_description io_options("I/O options");
-  io_options.add_options()(
-      "output-path,o",
-      po::value<std::string>()->default_value("test_interp_results"),
-      "specify the output path (default is test_interp_results)");
-
-  po::options_description mc_options("Monte-Carlo options");
-  mc_options.add_options()(
-      "mc-runs", po::value<std::size_t>()->default_value(100),
-      "number of monte-carlo runs to perform (default is 100)");
-
-  po::options_description space_options("Monte-Carlo options");
-  mc_options.add_options()(
-      "space-dimensionality", po::value<std::size_t>()->default_value(1),
-      "number of dimensions for the underlying space (default is 1)")(
-      "space-max-frequency", po::value<double>()->default_value(10.0),
-      "the maximum frequency of the sinusoidal curves (default is 10.0 Hz)")(
-      "interp-steps", po::value<double>()->default_value(0.05),
-      "the time-step between the interpolator's "
-      "control-points, over a total curve-time of 1.0 "
-      "second (default is 0.05 seconds)");
-
-  po::options_description interp_select_options(
-      "Interpolator selection options");
-  interp_select_options.add_options()(
-      "all-interpolators,a",
-      "specify that all supported interpolators should be run (default if no "
-      "particular interpolator is specified)")
-#ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
-      ("linear", "specify that the uni-directional RRT algorithm should be run")
-#endif
-#ifdef RK_ENABLE_TEST_CUBIC_INTERPOLATOR
-          ("cubic",
-           "specify that the bi-directional RRT algorithm should be run")
-#endif
-#ifdef RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
-              ("quintic", "specify that the RRT* algorithm should be run")
-#endif
-#ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
-                  ("svp-Ndof", "specify that the PRM algorithm should be run")
-#endif
-#ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
-                      ("sap-Ndof",
-                       "specify that the FADPRM algorithm should be run")
-#endif
-      ;
-
-  po::options_description cmdline_options;
-  cmdline_options.add(generic_options)
-      .add(io_options)
-      .add(mc_options)
-      .add(space_options)
-      .add(interp_select_options);
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
-  po::notify(vm);
-
-  if (vm.count("help")) {
-    std::cout << cmdline_options << std::endl;
-    return 1;
-  };
-
-  std::size_t sp_dim = vm["space-dimensionality"].as<std::size_t>();
+  std::size_t sp_dim = absl::GetFlag(FLAGS_space_dimensionality);
 
   switch (sp_dim) {
     case 1:
-      perform_mc_tests<1>(vm, sp_dim);
+      perform_mc_tests<1>(sp_dim);
       break;
     case 2:
-      perform_mc_tests<2>(vm, sp_dim);
+      perform_mc_tests<2>(sp_dim);
       break;
     case 3:
-      perform_mc_tests<3>(vm, sp_dim);
+      perform_mc_tests<3>(sp_dim);
       break;
     case 4:
-      perform_mc_tests<4>(vm, sp_dim);
+      perform_mc_tests<4>(sp_dim);
       break;
     case 5:
-      perform_mc_tests<5>(vm, sp_dim);
+      perform_mc_tests<5>(sp_dim);
       break;
     case 6:
-      perform_mc_tests<6>(vm, sp_dim);
+      perform_mc_tests<6>(sp_dim);
       break;
     case 7:
-      perform_mc_tests<7>(vm, sp_dim);
+      perform_mc_tests<7>(sp_dim);
       break;
     case 8:
-      perform_mc_tests<8>(vm, sp_dim);
+      perform_mc_tests<8>(sp_dim);
       break;
     case 9:
-      perform_mc_tests<9>(vm, sp_dim);
+      perform_mc_tests<9>(sp_dim);
       break;
     default:
-      perform_mc_tests<0>(vm, sp_dim);
+      perform_mc_tests<0>(sp_dim);
       break;
   };
 

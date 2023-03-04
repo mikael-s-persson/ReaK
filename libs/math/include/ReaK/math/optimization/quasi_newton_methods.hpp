@@ -91,7 +91,7 @@ void quasi_newton_line_search(
   Vector x_grad = -df(x);
 
   Vector p = x_grad;
-  ValueType alpha = ValueType(1.0);
+  auto alpha = ValueType(1.0);
   ValueType pxg = p * x_grad;
   if ((f(x + p) > x_value - ValueType(1e-4) * pxg) ||
       (abs(p * df(x + p)) > ValueType(0.9) * abs(pxg))) {
@@ -218,8 +218,9 @@ void quasi_newton_trust_region(
     if (ratio > ValueType(0.75)) {
       if (norm_p > ValueType(0.8) * radius) {
         radius *= ValueType(2.0);
-        if (radius > max_radius)
+        if (radius > max_radius) {
           radius = max_radius;
+        }
       }
     } else if (ratio < ValueType(0.1)) {
       radius *= ValueType(0.5);

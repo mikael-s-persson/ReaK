@@ -50,9 +50,9 @@ int main(int argc, char** argv) {
       u_max[0] * char_length_sqr / v_max, u_max[0] * char_length_sqr / v_max,
       u_max[0] * char_length_sqr / v_max));
 
-  typedef IHAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
-                         position_only_sampler>
-      IHAQR_space_type;
+  using IHAQR_space_type =
+      IHAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
+                     position_only_sampler>;
 
   std::shared_ptr<IHAQR_space_type> quad_space(new IHAQR_space_type(
       "Quadrotor_IHAQR_topology", quad_sys,
@@ -72,9 +72,9 @@ int main(int argc, char** argv) {
       20.0,   // aMaxTimeHorizon = 10.0,
       0.1));  // aGoalProximityThreshold = 1.0)
 
-  typedef MEAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
-                         position_only_sampler>
-      MEAQR_space_type;
+  using MEAQR_space_type =
+      MEAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
+                     position_only_sampler>;
 
   std::shared_ptr<MEAQR_space_type> quad_MEAQR_space(
       new MEAQR_space_type("QuadRotor_MEAQR_topology", quad_space,

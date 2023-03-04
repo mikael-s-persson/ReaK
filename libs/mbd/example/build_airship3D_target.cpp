@@ -37,53 +37,42 @@
 
 #include <ReaK/core/serialization/archiver_factory.hpp>
 
-#include <boost/program_options.hpp>
 #include <filesystem>
+#include <memory>
 
-namespace po = boost::program_options;
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+
 namespace fs = std::filesystem;
+
+// I/O options
+ABSL_FLAG(std::string, output_path, "models",
+          "Specify the output path (default is 'models').");
+ABSL_FLAG(std::string, output_name, "airship3D",
+          "Specify the output base-name (default is 'airship3D').");
+ABSL_FLAG(std::string, format, "xml",
+          "Specify the format that should be outputted (default is 'xml', but "
+          "can also be 'bin' or 'protobuf').");
 
 int main(int argc, char** argv) {
 
-  po::options_description generic_options("Generic options");
-  generic_options.add_options()("help,h", "produce this help message.");
+  absl::ParseCommandLine(argc, argv);
 
-  po::options_description io_options("I/O options");
-  io_options.add_options()("output-path,p",
-                           po::value<std::string>()->default_value("models"),
-                           "specify the output path (default is 'models')")(
-      "output-name,o", po::value<std::string>()->default_value("airship3D"),
-      "specify the output base-name (default is 'airship3D')")(
-      "format", po::value<std::string>()->default_value("xml"),
-      "specify the format that should be outputted (default is 'xml', but can "
-      "also be 'bin' or 'protobuf')");
+  std::string output_base_name = absl::GetFlag(FLAGS_output_name);
 
-  po::options_description cmdline_options;
-  cmdline_options.add(generic_options).add(io_options);
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
-  po::notify(vm);
-
-  if (vm.count("help")) {
-    std::cout << cmdline_options << std::endl;
-    return 1;
-  };
-
-  std::string output_base_name = vm["output-name"].as<std::string>();
-
-  std::string output_path_name = vm["output-path"].as<std::string>();
-  while (output_path_name[output_path_name.length() - 1] == '/')
+  std::string output_path_name = absl::GetFlag(FLAGS_output_path);
+  while (output_path_name[output_path_name.length() - 1] == '/') {
     output_path_name.erase(output_path_name.length() - 1, 1);
+  }
 
   fs::create_directory(output_path_name.c_str());
 
   std::string output_extension = ".rkx";
-  if (vm["format"].as<std::string>() == "bin") {
+  if (absl::GetFlag(FLAGS_format) == "bin") {
     output_extension = ".rkb";
-  } else if (vm["format"].as<std::string>() == "protobuf") {
-    output_extension = ".pbuf";
-  };
+  } else if (absl::GetFlag(FLAGS_format) == "protobuf") {
+    output_extension = ".pb";
+  }
 
   using namespace ReaK;
   using namespace geom;
@@ -92,7 +81,6 @@ int main(int argc, char** argv) {
   std::shared_ptr<frame_3D<double>> global_base(new frame_3D<double>());
 
   //  Output from calibration program:
-  //   (Position = (0.176438; -0.356764; -0.0521845); Quaternion = (0.999986; 0.00301881; -0.00257751; 0.00343278))
   global_base->Position = vect<double, 3>(0.176438, -0.356764, -0.0521845);
   global_base->Quat = quaternion<double>(
       vect<double, 4>(0.999986, 0.00301881, -0.00257751, 0.00343278));
@@ -146,23 +134,6 @@ int main(int argc, char** argv) {
   (*airship3D_dyn_model) << airship3D_position;
   (*airship3D_dyn_model) << airship3D_rotation;
 
-  /* Old values (none-sense, I think):
-  std::shared_ptr< frame_3D<double> >
-    airship3D_grasp_frame( new frame_3D<double>(airship3D_output_frame,
-      vect<double,3>(0.97 * std::sin(0.2 / 0.93),0.0,0.97 * std::cos(0.2 / 0.93)),
-      axis_angle<double>(0.2 / 0.93 / 2.0,vect<double,3>(0.0,1.0,0.0)).getQuaternion()
-      * quaternion<double>::yrot(M_PI) * quaternion<double>::zrot(0.5 * M_PI),
-      vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0),
-      vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0),
-      vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0)
-    ));
-  airship3D_grasp_frame->Position += airship3D_grasp_frame->Quat * (-0.3 * vect_k);
-  */
-
-  // Original position (near prop A)
-  //   double gr_radius = 0.93;
-  //   double gr_arc_length = 0.225;
-
   // New position (lower, during bottom-heavy tests)
   double gr_radius = 0.93;
   double gr_arc_length = 0.584;
@@ -201,8 +172,7 @@ int main(int argc, char** argv) {
                           pose_3D<double>(), 0.3));
 
   std::shared_ptr<colored_model_3D> geom_mdl =
-      std::shared_ptr<colored_model_3D>(
-          new colored_model_3D("airship3D_geom_render"));
+      std::make_shared<colored_model_3D>("airship3D_geom_render");
   (*geom_mdl)
       .addAnchor(airship3D_output_frame)
       .addElement(color(0, 0, 0), grapple_arrows)
@@ -210,8 +180,7 @@ int main(int argc, char** argv) {
       .addElement(color(0.2, 0.2, 0.2), grapple);
 
   std::shared_ptr<proxy_query_model_3D> proxy_mdl =
-      std::shared_ptr<proxy_query_model_3D>(
-          new proxy_query_model_3D("airship3D_geom_render"));
+      std::make_shared<proxy_query_model_3D>("airship3D_geom_render");
   (*proxy_mdl).addShape(hull);
 
   std::shared_ptr<manipulator_kinematics_model> airship3D_kin_model(
@@ -224,4 +193,4 @@ int main(int argc, char** argv) {
                                  ".model" + output_extension))
       << global_base << airship3D_kin_model << airship3D_grasp_frame << geom_mdl
       << proxy_mdl;
-};
+}

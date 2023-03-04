@@ -71,18 +71,74 @@
 #include <ReaK/topologies/spaces/Ndof_sap_spaces.hpp>
 #include <ReaK/topologies/spaces/Ndof_svp_spaces.hpp>
 
-#include <boost/program_options.hpp>
 #include <filesystem>
 
-namespace po = boost::program_options;
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+
+// I/O options
+ABSL_FLAG(std::string, start_configuration, "",
+          "Specify the file containing the start configuration of the chaser "
+          "(P3R3R-manipulator), if not specified, the chaser configuration of "
+          "the chaser model will be used.");
+ABSL_FLAG(std::string, target_pose, "",
+          "Specify the file containing the target pose of the capture target "
+          "(satellite / airship), if not specified, the pose of the target "
+          "model will be used.");
+ABSL_FLAG(std::string, target_trajectory, "",
+          "Specify the file containing the target trajectory of the capture "
+          "target (satellite / airship), if not specified, the pose of the "
+          "target model will be used.");
+ABSL_FLAG(std::string, output_path, "pp_results",
+          "Specify the output path (default is pp_results).");
+ABSL_FLAG(std::string, result_file_prefix, "",
+          "Specify the prefix to apply to the result output files.");
+
+// Monte-Carlo options
+ABSL_FLAG(
+    bool, monte_carlo, false,
+    "Specify that monte-carlo runs should be performed (default is not).");
+ABSL_FLAG(int, mc_runs, 100,
+          "Number of monte-carlo runs to average out (default is 100).");
+
+// Single-run options
+ABSL_FLAG(bool, single_run, false,
+          "Specify that single runs should be performed (default is not).");
+
+// File generation options
+ABSL_FLAG(std::string, generate_all_files, "",
+          "Specify that all configuration files should be generated with the "
+          "given file-name prefix (file-name without suffix and extension).");
+ABSL_FLAG(std::string, generate_planner_options, "",
+          "Specify that the planner options file should be generated with the "
+          "given file-name prefix (file-name without extension).");
+ABSL_FLAG(std::string, generate_chaser_target_env, "",
+          "Specify that the chaser-target-env file should be generated with "
+          "the given file-name prefix (file-name without extension).");
+ABSL_FLAG(std::string, generate_space_definition, "",
+          "Specify that the space-definition file should be generated with the "
+          "given file-name prefix (file-name without extension).");
+ABSL_FLAG(std::string, generate_start_config, "",
+          "Specify that the start-configuration file should be generated with "
+          "the given file-name prefix (file-name without extension).");
+ABSL_FLAG(std::string, generate_target_pose, "",
+          "Specify that the target-pose file should be generated with the "
+          "given file-name prefix (file-name without extension).");
+ABSL_FLAG(bool, generate_xml, false,
+          "If set, output results in XML format (rkx) (default).");
+ABSL_FLAG(bool, generate_protobuf, false,
+          "If set, output results in protobuf format (pb).");
+ABSL_FLAG(bool, generate_binary, false,
+          "If set, output results in binary format (rkb).");
+
 namespace fs = std::filesystem;
 
-typedef ReaK::pp::se3_1st_order_topology<double>::type sat_state_space_type;
-typedef ReaK::pp::temporal_space<sat_state_space_type,
-                                 ReaK::pp::time_poisson_topology,
-                                 ReaK::pp::time_distance_only>
-    sat_temporal_space_type;
-typedef ReaK::pp::trajectory_base<sat_temporal_space_type> sat_trajectory_type;
+using sat_state_space_type = ReaK::pp::se3_1st_order_topology<double>::type;
+using sat_temporal_space_type =
+    ReaK::pp::temporal_space<sat_state_space_type,
+                             ReaK::pp::time_poisson_topology,
+                             ReaK::pp::time_distance_only>;
+using sat_trajectory_type = ReaK::pp::trajectory_base<sat_temporal_space_type>;
 
 template <typename ManipMdlType, typename InterpTag, int Order,
           typename PlanEngine>
@@ -97,19 +153,19 @@ void CRS_execute_static_planner(
 
   std::shared_ptr<ManipMdlType> chaser_concrete_model =
       rtti::rk_dynamic_ptr_cast<ManipMdlType>(scene_data.chaser_kin_model);
-  if (!chaser_concrete_model)
+  if (!chaser_concrete_model) {
     return;
+  }
 
-  typedef
-      typename manip_static_workspace<ManipMdlType, Order>::rl_workspace_type
-          static_workspace_type;
-  typedef typename manip_pp_traits<ManipMdlType, Order>::rl_jt_space_type
-      rl_jt_space_type;
-  typedef typename manip_pp_traits<ManipMdlType, Order>::jt_space_type
-      jt_space_type;
+  using static_workspace_type =
+      typename manip_static_workspace<ManipMdlType, Order>::rl_workspace_type;
+  using rl_jt_space_type =
+      typename manip_pp_traits<ManipMdlType, Order>::rl_jt_space_type;
+  using jt_space_type =
+      typename manip_pp_traits<ManipMdlType, Order>::jt_space_type;
 
-  typedef typename topology_traits<rl_jt_space_type>::point_type rl_point_type;
-  typedef typename topology_traits<jt_space_type>::point_type point_type;
+  using rl_point_type = typename topology_traits<rl_jt_space_type>::point_type;
+  using point_type = typename topology_traits<jt_space_type>::point_type;
 
   std::size_t workspace_dims =
       (Order + 1) * manip_pp_traits<ManipMdlType, Order>::degrees_of_freedom;
@@ -127,12 +183,15 @@ void CRS_execute_static_planner(
       chaser_concrete_model, scene_data.chaser_jt_limits);
 
   (*workspace) << scene_data.chaser_target_proxy;
-  for (std::size_t i = 0; i < scene_data.chaser_env_proxies.size(); ++i)
-    (*workspace) << scene_data.chaser_env_proxies[i];
+  for (const auto& chaser_env_proxie : scene_data.chaser_env_proxies) {
+    (*workspace) << chaser_env_proxie;
+  }
 
   // Create the start and goal points:
-  rl_point_type start_point, goal_point;
-  point_type start_inter, goal_inter;
+  rl_point_type start_point;
+  rl_point_type goal_point;
+  point_type start_inter;
+  point_type goal_inter;
 
   start_inter = normal_jt_space->origin();
   get<0>(start_inter) = jt_start;
@@ -150,7 +209,7 @@ void CRS_execute_static_planner(
   // Restore model's state:
   chaser_concrete_model->setJointPositions(jt_start);
   chaser_concrete_model->doDirectMotion();
-};
+}
 
 template <typename PlanEngine>
 void CRS_launch_static_planner(
@@ -209,8 +268,8 @@ void CRS_launch_static_planner(
     CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics,
                                ReaK::pp::sap_Ndof_interpolation_tag, 2>(
         scene_data, plan_options, space_def, engine, jt_start, jt_desired);
-  };
-};
+  }
+}
 
 template <typename ManipMdlType, typename InterpTag, int Order,
           typename PlanEngine>
@@ -229,31 +288,32 @@ void CRS_execute_dynamic_planner(
   if (!chaser_concrete_model) {
     std::cout << "Could not cast the chaser model to the given type!"
               << std::endl;
-    if (scene_data.chaser_kin_model)
+    if (scene_data.chaser_kin_model) {
       std::cout << "Because the chaser model is a null pointer!" << std::endl;
-    if (dynamic_cast<ManipMdlType*>(scene_data.chaser_kin_model.get()))
+    }
+    if (dynamic_cast<ManipMdlType*>(scene_data.chaser_kin_model.get())) {
       std::cout << "But the C++RTTI could perform the dynamic-cast correctly!"
                 << std::endl;
+    }
     return;
-  };
+  }
 
   vect_n<double> target_jt_original =
       scene_data.target_kin_model->getJointPositions();
 
-  typedef
-      typename manip_dynamic_workspace<ManipMdlType, Order>::rl_workspace_type
-          dynamic_workspace_type;
-  typedef typename manip_pp_traits<ManipMdlType, Order>::rl_jt_space_type
-      rl_jt_space_type;
-  typedef typename manip_pp_traits<ManipMdlType, Order>::jt_space_type
-      jt_space_type;
-  typedef typename manip_IK_map<ManipMdlType, Order>::rl_map_type rlIK_map_type;
+  using dynamic_workspace_type =
+      typename manip_dynamic_workspace<ManipMdlType, Order>::rl_workspace_type;
+  using rl_jt_space_type =
+      typename manip_pp_traits<ManipMdlType, Order>::rl_jt_space_type;
+  using jt_space_type =
+      typename manip_pp_traits<ManipMdlType, Order>::jt_space_type;
+  using rlIK_map_type = typename manip_IK_map<ManipMdlType, Order>::rl_map_type;
 
-  typedef typename topology_traits<rl_jt_space_type>::point_type rl_point_type;
-  typedef typename topology_traits<jt_space_type>::point_type point_type;
+  using rl_point_type = typename topology_traits<rl_jt_space_type>::point_type;
+  using point_type = typename topology_traits<jt_space_type>::point_type;
 
-  typedef typename subspace_traits<dynamic_workspace_type>::super_space_type
-      dynamic_super_space_type;  // SuperSpaceType
+  using dynamic_super_space_type = typename subspace_traits<
+      dynamic_workspace_type>::super_space_type;  // SuperSpaceType
 
   std::size_t workspace_dims =
       (Order + 1) * manip_pp_traits<ManipMdlType, Order>::degrees_of_freedom;
@@ -279,14 +339,15 @@ void CRS_execute_dynamic_planner(
   // Add the proximity-query models for the target and the environment to the workspace's collision-checking:
   (*workspace) << scene_data.chaser_target_proxy;
 
-  for (std::size_t i = 0; i < scene_data.chaser_env_proxies.size(); ++i)
-    (*workspace) << scene_data.chaser_env_proxies[i];
+  for (const auto& chaser_env_proxie : scene_data.chaser_env_proxies) {
+    (*workspace) << chaser_env_proxie;
+  }
 
   // Add the proximity-query model updater for the target's trajectory:
-  typedef proxy_traj_applicator<sat_trajectory_type>
-      target_proxy_applicator_type;
-  typedef typename target_proxy_applicator_type::joint_space_type
-      target_jt_space_type;
+  using target_proxy_applicator_type =
+      proxy_traj_applicator<sat_trajectory_type>;
+  using target_jt_space_type =
+      typename target_proxy_applicator_type::joint_space_type;
 
   std::shared_ptr<target_proxy_applicator_type> target_proxy_applicator(
       new target_proxy_applicator_type(
@@ -297,8 +358,8 @@ void CRS_execute_dynamic_planner(
   workspace->add_proxy_model_updater(target_proxy_applicator);
 
   // Create the starting configuration as a joint-space configuration.
-  typedef typename topology_traits<dynamic_workspace_type>::point_type
-      rl_temporal_point_type;
+  using rl_temporal_point_type =
+      typename topology_traits<dynamic_workspace_type>::point_type;
 
   point_type start_inter = normal_jt_space->origin();
   get<0>(start_inter) = jt_start;
@@ -311,11 +372,11 @@ void CRS_execute_dynamic_planner(
 
   // Create the interception query object:
 
-  typedef manip_dk_ik_map<manip_direct_kin_map, rlIK_map_type> dkik_map_type;
-  typedef temporal_topo_map<dkik_map_type> temporal_dkik_map_type;
-  typedef transformed_trajectory<dynamic_super_space_type, sat_trajectory_type,
-                                 temporal_dkik_map_type>
-      mapped_traj_type;
+  using dkik_map_type = manip_dk_ik_map<manip_direct_kin_map, rlIK_map_type>;
+  using temporal_dkik_map_type = temporal_topo_map<dkik_map_type>;
+  using mapped_traj_type =
+      transformed_trajectory<dynamic_super_space_type, sat_trajectory_type,
+                             temporal_dkik_map_type>;
 
   std::shared_ptr<mapped_traj_type> mapped_goal_traj(new mapped_traj_type(
       std::shared_ptr<dynamic_super_space_type>(&(workspace->get_super_space()),
@@ -326,30 +387,6 @@ void CRS_execute_dynamic_planner(
           rlIK_map_type(
               chaser_concrete_model,
               joint_limits_mapping<double>(scene_data.chaser_jt_limits))))));
-
-#if 0
-  std::cout << "The selected planning algorithm is of index = " << plan_options.planning_algo << std::endl;
-  switch(plan_options.planning_algo) {
-    case 0:
-      std::cout << "RRT" << std::endl;
-      break;
-    case 1:
-      std::cout << "RRT*" << std::endl;
-      break;
-    case 2:
-      std::cout << "PRM" << std::endl;
-      break;
-    case 3:
-      std::cout << "SBA*" << std::endl;
-      break;
-    case 4:
-      std::cout << "FADPRM" << std::endl;
-      break;
-    default:
-      std::cout << "Unkown algorithm type" << std::endl;
-      break;
-  };
-#endif
 
   execute_intercept_planner(workspace, plan_options, workspace_dims + 1,
                             target_state_traj->get_end_time(),
@@ -399,7 +436,7 @@ void CRS_execute_dynamic_planner(
 
   scene_data.target_kin_model->setJointPositions(target_jt_original);
   scene_data.target_kin_model->doDirectMotion();
-};
+}
 
 template <typename PlanEngine>
 void CRS_launch_dynamic_planner(
@@ -460,8 +497,8 @@ void CRS_launch_dynamic_planner(
     CRS_execute_dynamic_planner<kte::manip_P3R3R_kinematics,
                                 sap_Ndof_interpolation_tag, 2>(
         scene_data, plan_options, space_def, engine, jt_start, sat_trajectory);
-  };
-};
+  }
+}
 
 /****************************** Notes on the CRS path-planner code **********************************
 
@@ -486,126 +523,20 @@ int main(int argc, char** argv) {
   using namespace pp;
   using namespace kte;
 
-  std::string config_file;
+  absl::ParseCommandLine(argc, argv);
 
-  po::options_description generic_options("Generic options");
-  generic_options.add_options()("help,h", "produce this help message.")(
-      "config,c",
-      po::value<std::string>(&config_file)
-          ->default_value("run_CRS_planner.cfg"),
-      "configuration file-name (can contain any or all options, will be "
-      "overriden by command-line options).");
-
-  po::options_description io_options("I/O options");
-  io_options.add_options()(
-      "start-configuration", po::value<std::string>(),
-      "specify the file containing the start configuration of the chaser "
-      "(P3R3R-manipulator), if "
-      "not specified, the chaser configuration of the chaser model will be "
-      "used.")("target-pose", po::value<std::string>(),
-               "specify the file containing the target pose of the capture "
-               "target (satellite / airship), if not specified, the "
-               "pose of the target model will be used.")(
-      "target-trajectory", po::value<std::string>(),
-      "specify the file containing the target trajectory of the capture "
-      "target (satellite / airship), if not specified, the pose of the "
-      "target model will be used.")
-
-      ("output-path,o", po::value<std::string>()->default_value("pp_results"),
-       "specify the output path (default is pp_results).")(
-          "result-file-prefix", po::value<std::string>(),
-          "specify the prefix to apply to the result output files.");
-
-  po::options_description mc_options("Monte-Carlo options");
-  mc_options.add_options()(
-      "monte-carlo,m",
-      "specify that monte-carlo runs should be performed (default is not).")(
-      "mc-runs", po::value<std::size_t>()->default_value(100),
-      "number of monte-carlo runs to average out (default is 100).");
-
-  po::options_description single_options("Single-run options");
-  single_options.add_options()(
-      "single-run,s",
-      "specify that single runs should be performed (default is not).");
-
-  po::options_description planner_select_options =
-      get_planning_option_po_desc();
-
-  po::options_description space_def_options =
-      get_planning_space_options_po_desc();
-
-  po::options_description scene_data_options = get_chaser_target_data_po_desc();
-
-  po::options_description generate_options("File generation options");
-  generate_options.add_options()(
-      "generate-all-files", po::value<std::string>(),
-      "specify that all configuration files should be generated with the given "
-      "file-name "
-      "prefix (file-name without suffix and extension).")(
-      "generate-planner-options", po::value<std::string>(),
-      "specify that the planner options file should be generated with the "
-      "given file-name prefix (file-name without "
-      "extension).")("generate-chaser-target-env", po::value<std::string>(),
-                     "specify that the chaser-target-env file should be "
-                     "generated with the given file-name prefix "
-                     "(file-name without extension).")(
-      "generate-space-definition", po::value<std::string>(),
-      "specify that the space-definition file should be generated with the "
-      "given file-name prefix (file-name without "
-      "extension).")("generate-start-config", po::value<std::string>(),
-                     "specify that the start-configuration file should be "
-                     "generated with the given file-name prefix "
-                     "(file-name without extension).")(
-      "generate-target-pose", po::value<std::string>(),
-      "specify that the target-pose file should be generated with "
-      "the given file-name prefix (file-name without extension).")
-
-      ("generate-xml", "if set, output results in XML format (rkx) (default).")(
-          "generate-protobuf",
-          "if set, output results in protobuf format (pbuf).")(
-          "generate-binary", "if set, output results in binary format (rkb).");
-
-  po::options_description cmdline_options;
-  cmdline_options.add(generic_options)
-      .add(io_options)
-      .add(mc_options)
-      .add(single_options)
-      .add(planner_select_options)
-      .add(scene_data_options)
-      .add(space_def_options)
-      .add(generate_options);
-
-  po::options_description config_file_options;
-  config_file_options.add(io_options)
-      .add(mc_options)
-      .add(single_options)
-      .add(planner_select_options)
-      .add(scene_data_options)
-      .add(space_def_options);
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
-  po::notify(vm);
-
-  {
-    std::ifstream ifs(config_file.c_str());
-    if (ifs) {
-      po::store(po::parse_config_file(ifs, config_file_options), vm);
-      po::notify(vm);
-    };
-  };
-
-  if (vm.count("help")) {
-    std::cout << cmdline_options << std::endl;
-    return 0;
-  };
-
-  if (vm.count("monte-carlo") + vm.count("single-run") +
-          vm.count("generate-all-files") +
-          vm.count("generate-planner-options") +
-          vm.count("generate-chaser-target-env") +
-          vm.count("generate-space-definition") +
-          vm.count("generate-start-config") + vm.count("generate-target-pose") <
+  if (static_cast<int>(absl::GetFlag(FLAGS_monte_carlo)) +
+          static_cast<int>(absl::GetFlag(FLAGS_single_run)) +
+          static_cast<int>(!absl::GetFlag(FLAGS_generate_all_files).empty()) +
+          static_cast<int>(
+              !absl::GetFlag(FLAGS_generate_planner_options).empty()) +
+          static_cast<int>(
+              !absl::GetFlag(FLAGS_generate_chaser_target_env).empty()) +
+          static_cast<int>(
+              !absl::GetFlag(FLAGS_generate_space_definition).empty()) +
+          static_cast<int>(
+              !absl::GetFlag(FLAGS_generate_start_config).empty()) +
+          static_cast<int>(!absl::GetFlag(FLAGS_generate_target_pose).empty()) <
       1) {
     std::cout << "Error: There was no action specified! This program is "
                  "designed to perform Monte-Carlo runs, single "
@@ -613,21 +544,22 @@ int main(int argc, char** argv) {
                  "construct scenarios. You must specify at "
                  "least one of these actions to be performed!"
               << std::endl;
-    std::cout << cmdline_options << std::endl;
     return 1;
-  };
+  }
 
-  std::string output_path_name = vm["output-path"].as<std::string>();
-  while (output_path_name[output_path_name.length() - 1] == '/')
+  std::string output_path_name = absl::GetFlag(FLAGS_output_path);
+  while (output_path_name.back() == '/') {
     output_path_name.erase(output_path_name.length() - 1, 1);
+  }
 
   fs::create_directory(output_path_name.c_str());
 
   std::string result_file_prefix = "CRS_static_scene";
-  if (vm.count("result-file-prefix"))
-    result_file_prefix = vm["result-file-prefix"].as<std::string>();
+  if (!absl::GetFlag(FLAGS_result_file_prefix).empty()) {
+    result_file_prefix = absl::GetFlag(FLAGS_result_file_prefix);
+  }
 
-  planning_option_collection plan_options = get_planning_option_from_po(vm);
+  planning_option_collection plan_options = get_planning_option_from_flags();
 
   std::string knn_method_str = plan_options.get_knn_method_str();
   std::string mg_storage_str = plan_options.get_mg_storage_str();
@@ -636,35 +568,35 @@ int main(int argc, char** argv) {
                                  planner_qualifier_str + "_" + mg_storage_str +
                                  "_" + knn_method_str;
 
-  planning_space_options space_def = get_planning_space_options_from_po(vm);
+  planning_space_options space_def = get_planning_space_options_from_flags();
 
-  chaser_target_data scene_data = get_chaser_target_data_from_po(vm);
+  chaser_target_data scene_data = get_chaser_target_data_from_flags();
 
   vect_n<double> jt_start(7, 0.0);
   if (scene_data.chaser_kin_model) {
     jt_start = scene_data.chaser_kin_model->getJointPositions();
-    if (vm.count("start-configuration")) {
+    if (!absl::GetFlag(FLAGS_start_configuration).empty()) {
       try {
         vect_n<double> jt_start_tmp = jt_start;
         (*serialization::open_iarchive(
-            vm["start-configuration"].as<std::string>())) >>
+            absl::GetFlag(FLAGS_start_configuration))) >>
             jt_start_tmp;
         jt_start = jt_start_tmp;
       } catch (std::exception& e) {
         RK_UNUSED(e);
         std::cerr << "Error: Could not load the start-configuration file!"
                   << std::endl;
-      };
-    };
-  };
+      }
+    }
+  }
 
   frame_3D<double> target_frame;
   if (scene_data.target_kin_model) {
     target_frame = scene_data.target_kin_model->getFrame3D(0)->getGlobalFrame();
-    if (vm.count("target-pose")) {
+    if (!absl::GetFlag(FLAGS_target_pose).empty()) {
       try {
         frame_3D<double> target_frame_tmp = target_frame;
-        (*serialization::open_iarchive(vm["target-pose"].as<std::string>())) >>
+        (*serialization::open_iarchive(absl::GetFlag(FLAGS_target_pose))) >>
             target_frame_tmp;
         target_frame = target_frame_tmp;
         *(scene_data.target_kin_model->getFrame3D(0)) = target_frame;
@@ -672,15 +604,17 @@ int main(int argc, char** argv) {
       } catch (std::exception& e) {
         RK_UNUSED(e);
         std::cerr << "Error: Could not load the target-pose file!" << std::endl;
-      };
-    };
-  };
+      }
+    }
+  }
 
   vect_n<double> jt_desired(7, 0.0);
-  if ((vm.count("target-trajectory") == 0) && scene_data.chaser_kin_model) {
+  if (absl::GetFlag(FLAGS_target_trajectory).empty() &&
+      scene_data.chaser_kin_model) {
     std::shared_ptr<frame_3D<double>> dep_EE_frame =
         scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame;
-    if (vm.count("monte-carlo") + vm.count("single-run") > 0) {
+    if (absl::GetFlag(FLAGS_monte_carlo) ||
+        static_cast<int>(absl::GetFlag(FLAGS_single_run)) > 0) {
       try {
         *dep_EE_frame = scene_data.target_frame->getGlobalFrame();
         scene_data.chaser_kin_model->doInverseMotion();
@@ -691,23 +625,22 @@ int main(int argc, char** argv) {
                      "kinematics solution possible!"
                   << std::endl;
         return 10;
-      };
+      }
       scene_data.chaser_kin_model->setJointPositions(jt_start);
       scene_data.chaser_kin_model->doDirectMotion();
-    };
-  };
+    }
+  }
 
   std::shared_ptr<sat_trajectory_type> target_state_traj;
   if (scene_data.target_kin_model) {
-    if (vm.count("target-trajectory")) {
+    if (!absl::GetFlag(FLAGS_target_trajectory).empty()) {
       try {
-        typedef trajectory_wrapper<
-            discrete_point_trajectory<sat_temporal_space_type>>
-            wrapped_traj_type;
+        using wrapped_traj_type = trajectory_wrapper<
+            discrete_point_trajectory<sat_temporal_space_type>>;
         std::shared_ptr<wrapped_traj_type> tmp_traj(new wrapped_traj_type());
 
         (*serialization::open_iarchive(
-            vm["target-trajectory"].as<std::string>())) &
+            absl::GetFlag(FLAGS_target_trajectory))) &
             RK_SERIAL_LOAD_WITH_ALIAS("se3_trajectory",
                                       tmp_traj->get_underlying_trajectory());
 
@@ -717,26 +650,27 @@ int main(int argc, char** argv) {
         std::cerr << "Error: Could not load the target-trajectory file!"
                   << std::endl;
         return 11;
-      };
-    };
-  };
+      }
+    }
+  }
 
   // Do the generations if required:
 
-  if (vm.count("generate-all-files") + vm.count("generate-planner-options") >
-      0) {
+  if (!absl::GetFlag(FLAGS_generate_all_files).empty() ||
+      !absl::GetFlag(FLAGS_generate_planner_options).empty()) {
     std::string file_name;
-    if (vm.count("generate-planner-options") == 0) {
-      file_name = vm["generate-all-files"].as<std::string>() + "_planner";
+    if (absl::GetFlag(FLAGS_generate_planner_options).empty()) {
+      file_name = absl::GetFlag(FLAGS_generate_all_files) + "_planner";
     } else {
-      file_name = vm["generate-planner-options"].as<std::string>();
-    };
-    if (vm.count("generate-protobuf"))
+      file_name = absl::GetFlag(FLAGS_generate_planner_options);
+    }
+    if (absl::GetFlag(FLAGS_generate_protobuf)) {
       file_name += ".pbuf";
-    else if (vm.count("generate-binary"))
+    } else if (absl::GetFlag(FLAGS_generate_binary)) {
       file_name += ".rkb";
-    else
+    } else {
       file_name += ".rkx";
+    }
 
     try {
       (*serialization::open_oarchive(file_name)) << plan_options;
@@ -744,23 +678,24 @@ int main(int argc, char** argv) {
       RK_UNUSED(e);
       std::cerr << "Error: Could not generate the planner options file!"
                 << std::endl;
-    };
-  };
+    }
+  }
 
-  if (vm.count("generate-all-files") + vm.count("generate-chaser-target-env") >
-      0) {
+  if (!absl::GetFlag(FLAGS_generate_all_files).empty() ||
+      !absl::GetFlag(FLAGS_generate_chaser_target_env).empty()) {
     std::string file_name;
-    if (vm.count("generate-chaser-target-env") == 0) {
-      file_name = vm["generate-all-files"].as<std::string>() + "_models";
+    if (absl::GetFlag(FLAGS_generate_chaser_target_env).empty()) {
+      file_name = absl::GetFlag(FLAGS_generate_all_files) + "_models";
     } else {
-      file_name = vm["generate-chaser-target-env"].as<std::string>();
-    };
-    if (vm.count("generate-protobuf"))
+      file_name = absl::GetFlag(FLAGS_generate_chaser_target_env);
+    }
+    if (absl::GetFlag(FLAGS_generate_protobuf)) {
       file_name += ".pbuf";
-    else if (vm.count("generate-binary"))
+    } else if (absl::GetFlag(FLAGS_generate_binary)) {
       file_name += ".rkb";
-    else
+    } else {
       file_name += ".rkx";
+    }
 
     try {
       (*serialization::open_oarchive(file_name)) << scene_data;
@@ -768,23 +703,24 @@ int main(int argc, char** argv) {
       RK_UNUSED(e);
       std::cerr << "Error: Could not generate the chaser-target-env model file!"
                 << std::endl;
-    };
-  };
+    }
+  }
 
-  if (vm.count("generate-all-files") + vm.count("generate-space-definition") >
-      0) {
+  if (!absl::GetFlag(FLAGS_generate_all_files).empty() ||
+      !absl::GetFlag(FLAGS_generate_space_definition).empty()) {
     std::string file_name;
-    if (vm.count("generate-space-definition") == 0) {
-      file_name = vm["generate-all-files"].as<std::string>() + "_space";
+    if (absl::GetFlag(FLAGS_generate_space_definition).empty()) {
+      file_name = absl::GetFlag(FLAGS_generate_all_files) + "_space";
     } else {
-      file_name = vm["generate-space-definition"].as<std::string>();
-    };
-    if (vm.count("generate-protobuf"))
+      file_name = absl::GetFlag(FLAGS_generate_space_definition);
+    }
+    if (absl::GetFlag(FLAGS_generate_protobuf)) {
       file_name += ".pbuf";
-    else if (vm.count("generate-binary"))
+    } else if (absl::GetFlag(FLAGS_generate_binary)) {
       file_name += ".rkb";
-    else
+    } else {
       file_name += ".rkx";
+    }
 
     try {
       (*serialization::open_oarchive(file_name)) << space_def;
@@ -792,22 +728,24 @@ int main(int argc, char** argv) {
       RK_UNUSED(e);
       std::cerr << "Error: Could not generate the space-definition file!"
                 << std::endl;
-    };
-  };
+    }
+  }
 
-  if (vm.count("generate-all-files") + vm.count("generate-start-config") > 0) {
+  if (!absl::GetFlag(FLAGS_generate_all_files).empty() ||
+      !absl::GetFlag(FLAGS_generate_start_config).empty()) {
     std::string file_name;
-    if (vm.count("generate-start-config") == 0) {
-      file_name = vm["generate-all-files"].as<std::string>() + "_start_config";
+    if (absl::GetFlag(FLAGS_generate_start_config).empty()) {
+      file_name = absl::GetFlag(FLAGS_generate_all_files) + "_start_config";
     } else {
-      file_name = vm["generate-start-config"].as<std::string>();
-    };
-    if (vm.count("generate-protobuf"))
+      file_name = absl::GetFlag(FLAGS_generate_start_config);
+    }
+    if (absl::GetFlag(FLAGS_generate_protobuf)) {
       file_name += ".pbuf";
-    else if (vm.count("generate-binary"))
+    } else if (absl::GetFlag(FLAGS_generate_binary)) {
       file_name += ".rkb";
-    else
+    } else {
       file_name += ".rkx";
+    }
 
     try {
       (*serialization::open_oarchive(file_name)) << jt_start;
@@ -815,22 +753,24 @@ int main(int argc, char** argv) {
       RK_UNUSED(e);
       std::cerr << "Error: Could not generate the start-configuration file!"
                 << std::endl;
-    };
-  };
+    }
+  }
 
-  if (vm.count("generate-all-files") + vm.count("generate-target-pose") > 0) {
+  if (!absl::GetFlag(FLAGS_generate_all_files).empty() ||
+      !absl::GetFlag(FLAGS_generate_target_pose).empty()) {
     std::string file_name;
-    if (vm.count("generate-target-pose") == 0) {
-      file_name = vm["generate-all-files"].as<std::string>() + "_target_pose";
+    if (absl::GetFlag(FLAGS_generate_target_pose).empty()) {
+      file_name = absl::GetFlag(FLAGS_generate_all_files) + "_target_pose";
     } else {
-      file_name = vm["generate-target-pose"].as<std::string>();
-    };
-    if (vm.count("generate-protobuf"))
+      file_name = absl::GetFlag(FLAGS_generate_target_pose);
+    }
+    if (absl::GetFlag(FLAGS_generate_protobuf)) {
       file_name += ".pbuf";
-    else if (vm.count("generate-binary"))
+    } else if (absl::GetFlag(FLAGS_generate_binary)) {
       file_name += ".rkb";
-    else
+    } else {
       file_name += ".rkx";
+    }
 
     try {
       (*serialization::open_oarchive(file_name)) << target_frame;
@@ -838,14 +778,14 @@ int main(int argc, char** argv) {
       RK_UNUSED(e);
       std::cerr << "Error: Could not generate the target-pose file!"
                 << std::endl;
-    };
-  };
+    }
+  }
 
   if (space_def.is_temporal_space()) {
 
     // Do the Monte-Carlo runs if required:
-    if (vm.count("monte-carlo")) {
-      monte_carlo_mp_engine mc_eng(vm["mc-runs"].as<std::size_t>(),
+    if (absl::GetFlag(FLAGS_monte_carlo)) {
+      monte_carlo_mp_engine mc_eng(absl::GetFlag(FLAGS_mc_runs),
                                    planner_name_str,
                                    output_path_name + "/" + result_file_prefix);
       try {
@@ -856,11 +796,11 @@ int main(int argc, char** argv) {
             << "Error: An exception was raised during the planning:\nwhat(): "
             << e.what() << std::endl;
         return 2;
-      };
-    };
+      }
+    }
 
     // Do a single run if required:
-    if (vm.count("single-run")) {
+    if (absl::GetFlag(FLAGS_single_run)) {
       vlist_print_mp_engine sr_eng(planner_name_str,
                                    output_path_name + "/" + result_file_prefix);
       try {
@@ -871,14 +811,14 @@ int main(int argc, char** argv) {
             << "Error: An exception was raised during the planning:\nwhat(): "
             << e.what() << std::endl;
         return 3;
-      };
-    };
+      }
+    }
 
   } else {
 
     // Do the Monte-Carlo runs if required:
-    if (vm.count("monte-carlo")) {
-      monte_carlo_mp_engine mc_eng(vm["mc-runs"].as<std::size_t>(),
+    if (absl::GetFlag(FLAGS_monte_carlo)) {
+      monte_carlo_mp_engine mc_eng(absl::GetFlag(FLAGS_mc_runs),
                                    planner_name_str,
                                    output_path_name + "/" + result_file_prefix);
       try {
@@ -889,11 +829,11 @@ int main(int argc, char** argv) {
             << "Error: An exception was raised during the planning:\nwhat(): "
             << e.what() << std::endl;
         return 2;
-      };
-    };
+      }
+    }
 
     // Do a single run if required:
-    if (vm.count("single-run")) {
+    if (absl::GetFlag(FLAGS_single_run)) {
       vlist_print_mp_engine sr_eng(planner_name_str,
                                    output_path_name + "/" + result_file_prefix);
       try {
@@ -904,9 +844,9 @@ int main(int argc, char** argv) {
             << "Error: An exception was raised during the planning:\nwhat(): "
             << e.what() << std::endl;
         return 3;
-      };
-    };
-  };
+      }
+    }
+  }
 
   return 0;
-};
+}

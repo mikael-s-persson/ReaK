@@ -134,7 +134,7 @@ class householder_matrix {
 
     using std::sqrt;
 
-    value_type sigma = value_type(0.0);
+    auto sigma = value_type(0.0);
     for (int i = 0; i < v.size() - 1; ++i) {
       sigma += v[i] * v[i];
     }

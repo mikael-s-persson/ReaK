@@ -38,13 +38,16 @@ using namespace ReaK;
 struct const_ang_vel_sys {
   vect<double, 3> ang_velocity;
 
-  const_ang_vel_sys(const vect<double, 3>& aAngVel) : ang_velocity(aAngVel){};
+  explicit const_ang_vel_sys(const vect<double, 3>& aAngVel)
+      : ang_velocity(aAngVel){};
 
-  vect<double, 3> operator()(double, const unit_quat<double>&) const {
+  vect<double, 3> operator()(double /*unused*/,
+                             const unit_quat<double>& /*unused*/) const {
     return ang_velocity;
   };
 
-  vect<double, 4> operator()(double, const vect<double, 4>& q) const {
+  vect<double, 4> operator()(double /*unused*/,
+                             const vect<double, 4>& q) const {
     auto qw = quat<double>(q) * ang_velocity;
     return vect<double, 4>(0.5 * qw[0], 0.5 * qw[1], 0.5 * qw[2], 0.5 * qw[3]);
   };
@@ -117,12 +120,13 @@ struct const_ang_mom_sys {
   mat<double, mat_structure::symmetric> I;
   mat<double, mat_structure::symmetric> Iinv;
 
-  const_ang_mom_sys(const mat<double, mat_structure::symmetric>& aInertiaMoment)
+  explicit const_ang_mom_sys(
+      const mat<double, mat_structure::symmetric>& aInertiaMoment)
       : I(aInertiaMoment) {
     invert_Cholesky(I, Iinv);
   };
 
-  so3_state_tangent operator()(double, const so3_state& x) const {
+  so3_state_tangent operator()(double /*unused*/, const so3_state& x) const {
     vect<double, 3> w = x.w;
     vect<double, 3> aacc = Iinv * ((I * w) % w);
 
@@ -133,7 +137,8 @@ struct const_ang_mom_sys {
     //       make_arithmetic_tuple( w, aacc ) );
   };
 
-  vect<double, 7> operator()(double, const vect<double, 7>& x) const {
+  vect<double, 7> operator()(double /*unused*/,
+                             const vect<double, 7>& x) const {
     quat<double> q(vect<double, 4>(x[0], x[1], x[2], x[3]));
     vect<double, 3> w(x[4], x[5], x[6]);
     auto qw = q * w;
@@ -152,8 +157,9 @@ so3_state trapm_rule(so3_state q, const_ang_mom_sys f, double t_start,
   assert(t_end > t_start);
   double t = t_start;
   while (t < t_end) {
-    if (t + dt > t_end)
+    if (t + dt > t_end) {
       dt = t_end - t;
+    }
     unit_quat<double> q0 = q.q;
     vect<double, 3> w0 = q.w;
     unit_quat<double> q0_mid = oplus(q0, (0.5 * dt) * w0);
@@ -162,8 +168,9 @@ so3_state trapm_rule(so3_state q, const_ang_mom_sys f, double t_start,
       q.w = f.Iinv * otransport(q0, f.I * w0, q.q);
       unit_quat<double> q1_mid = oplus(q.q, (-0.5 * dt) * q.w);
       auto q_err = ominus(q0_mid, q1_mid);
-      if (norm_2(q_err) < tol)
+      if (norm_2(q_err) < tol) {
         break;
+      }
       q.q = oplus(q0_mid, otransport(q.q, (0.5 * dt) * q.w, q0_mid));
     };
     t += dt;
@@ -174,9 +181,10 @@ so3_state trapm_rule(so3_state q, const_ang_mom_sys f, double t_start,
 struct compare_quat_lex_less {
   template <typename Vector>
   bool operator()(const Vector& u, const Vector& v, int i = 0) const {
-    if (u[i] < v[i])
+    if (u[i] < v[i]) {
       return true;
-    else if (u[i] > v[i])
+    }
+    if (u[i] > v[i])
       return false;
     else {
       if (i == 3)

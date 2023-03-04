@@ -90,7 +90,6 @@ class MEAQR_rrtstar_planner
 
   using steer_record_type = steerable_space_steer_record_t<super_space_type>;
 
- public:
   /**
    * This function computes a valid path in the C-free. If it cannot
    * achieve a valid path, an exception will be thrown. This algorithmic
@@ -147,11 +146,12 @@ class MEAQR_rrtstar_planner
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
   }
 
@@ -171,11 +171,11 @@ struct MEAQR_rrtstar_visitor
   using planner_base_type = typename base_type::planner_base_type;
   using query_type = typename base_type::query_type;
 
-  MEAQR_rrtstar_visitor(planner_base_type* aPlanner,
-                        query_type* aQuery = nullptr,
-                        any_knn_synchro* aNNSynchro = nullptr,
-                        std::any aStartNode = std::any(),
-                        std::any aGoalNode = std::any())
+  explicit MEAQR_rrtstar_visitor(planner_base_type* aPlanner,
+                                 query_type* aQuery = nullptr,
+                                 any_knn_synchro* aNNSynchro = nullptr,
+                                 std::any aStartNode = std::any(),
+                                 std::any aGoalNode = std::any())
       : base_type(aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode){};
 
   using point_type = topology_point_type_t<space_type>;
@@ -271,18 +271,18 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
   using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
   using PositionMap = boost::data_member_property_map<PointType, VertexProp>;
-  PositionMap pos_map = PositionMap(&VertexProp::position);
+  auto pos_map = PositionMap(&VertexProp::position);
 
   using CostMap = boost::data_member_property_map<double, VertexProp>;
-  CostMap cost_map = CostMap(&VertexProp::distance_accum);
+  auto cost_map = CostMap(&VertexProp::distance_accum);
 
   using PredMap = boost::data_member_property_map<std::size_t, VertexProp>;
-  PredMap pred_map = PredMap(&VertexProp::predecessor);
+  auto pred_map = PredMap(&VertexProp::predecessor);
 
   using WeightMap = boost::data_member_property_map<double, EdgeProp>;
-  WeightMap weight_map = WeightMap(&EdgeProp::weight);
+  auto weight_map = WeightMap(&EdgeProp::weight);
 
-  double space_dim = static_cast<double>(this->get_space_dimensionality());
+  auto space_dim = static_cast<double>(this->get_space_dimensionality());
   double space_Lc = aQuery.get_heuristic_to_goal(aQuery.get_start_position());
 
   std::shared_ptr<const SuperSpace> sup_space_ptr(
@@ -294,7 +294,7 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
   MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler> vis(
       this, &aQuery);
 
-  path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr =
+  auto* p2p_query_ptr =
       reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
           path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
 

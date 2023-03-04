@@ -164,12 +164,7 @@ bool svp_is_in_bounds(const topology_point_type_t<Topology>& pt,
   detail::svp_constant_accel_motion_impl<
       max_derivation_order<Topology, TimeTopology>>(result, -dp1, space,
                                                     t_space, -dt);
-  if (!space.is_in_bounds(result)) {
-    return false;  // reject the sample.
-  }
-
-  // If this point is reached, it means that the sample is acceptable:
-  return true;
+  return space.is_in_bounds(result);
 }
 
 /**
@@ -309,7 +304,7 @@ class svp_interpolator_factory : public serializable {
   double tolerance;
   unsigned int maximum_iterations;
 
-  svp_interpolator_factory(
+  explicit svp_interpolator_factory(
       const std::shared_ptr<topology>& aSpace = std::shared_ptr<topology>(),
       double aTolerance = 1e-6, unsigned int aMaxIter = 60)
       : space(aSpace), tolerance(aTolerance), maximum_iterations(aMaxIter){};
@@ -328,12 +323,13 @@ class svp_interpolator_factory : public serializable {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     A& RK_SERIAL_SAVE_WITH_NAME(space) & RK_SERIAL_SAVE_WITH_NAME(tolerance) &
         RK_SERIAL_SAVE_WITH_NAME(maximum_iterations);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     A& RK_SERIAL_LOAD_WITH_NAME(space) & RK_SERIAL_LOAD_WITH_NAME(tolerance) &
         RK_SERIAL_LOAD_WITH_NAME(maximum_iterations);
   }
@@ -371,7 +367,6 @@ class svp_interp_traj
   using topology = typename base_class_type::topology;
   using distance_metric = typename base_class_type::distance_metric;
 
- public:
   /**
    * Constructs the path from a space, assumes the start and end are at the origin
    * of the space.
@@ -416,12 +411,13 @@ class svp_interp_traj
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_class_type::save(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_class_type::load(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }

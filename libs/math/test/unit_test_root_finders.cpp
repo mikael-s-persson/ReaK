@@ -27,38 +27,34 @@
 #include <cmath>
 #include <vector>
 
-#define BOOST_TEST_DYN_LINK
+#include "gtest/gtest.h"
 
-#define BOOST_TEST_MODULE root_finding
-#include <boost/mpl/list.hpp>
-#include <boost/test/test_case_template.hpp>
-#include <boost/test/unit_test.hpp>
+namespace ReaK {
+namespace {
 
 double func1(double x) {
   return 4.0 * std::cos(x) - std::exp(x);
-};
+}
 
 double func2(double x) {
   double result = 0.0;
   for (int i = 1; i < 11; ++i) {
     double t = 0.1 * i;
     result += std::exp(x * t) - std::exp(5.0 * t);
-  };
+  }
   return result;
-};
+}
 
 double func3(double x) {
   return 2.0 * x * std::exp(-20.0) + 1.0 - 2.0 * std::exp(-20.0 * x);
-};
+}
 
 double func4(double x) {
   return std::exp(1.0 / x - 25.0) - 1.0;
-};
+}
 
-BOOST_AUTO_TEST_CASE(root_finding_tests) {
-  using namespace ReaK;
-
-  typedef double (*func_ptr)(double);
+TEST(RootFinding, Tests) {
+  using func_ptr = double (*)(double);
 
   std::vector<func_ptr> funcs;
   std::vector<double> lows;
@@ -87,32 +83,35 @@ BOOST_AUTO_TEST_CASE(root_finding_tests) {
 
     double l = lows[i];
     double h = his[i];
-    BOOST_CHECK_NO_THROW(bisection_method(l, h, funcs[i], rel_tol));
-    BOOST_CHECK_CLOSE(l, sols[i], 5e-5);
+    EXPECT_NO_THROW(bisection_method(l, h, funcs[i], rel_tol));
+    EXPECT_NEAR(l, sols[i], 5e-5);
 
     l = lows[i];
     h = his[i];
-    BOOST_CHECK_NO_THROW(l = secant_method(l, h, funcs[i], rel_tol));
-    BOOST_CHECK_CLOSE(l, sols[i], 5e-5);
+    EXPECT_NO_THROW(l = secant_method(l, h, funcs[i], rel_tol));
+    EXPECT_NEAR(l, sols[i], 5e-5);
 
     l = lows[i];
     h = his[i];
-    BOOST_CHECK_NO_THROW(illinois_method(l, h, funcs[i], rel_tol));
-    BOOST_CHECK_CLOSE(l, sols[i], 5e-5);
+    EXPECT_NO_THROW(illinois_method(l, h, funcs[i], rel_tol));
+    EXPECT_NEAR(l, sols[i], 5e-5);
 
     l = lows[i];
     h = his[i];
-    BOOST_CHECK_NO_THROW(ford3_method(l, h, funcs[i], rel_tol));
-    BOOST_CHECK_CLOSE(l, sols[i], 5e-5);
+    EXPECT_NO_THROW(ford3_method(l, h, funcs[i], rel_tol));
+    EXPECT_NEAR(l, sols[i], 5e-5);
 
     l = lows[i];
     h = his[i];
-    BOOST_CHECK_NO_THROW(brent_method(l, h, funcs[i], rel_tol));
-    BOOST_CHECK_CLOSE(l, sols[i], 5e-5);
+    EXPECT_NO_THROW(brent_method(l, h, funcs[i], rel_tol));
+    EXPECT_NEAR(l, sols[i], 5e-5);
 
     l = lows[i];
     h = his[i];
-    BOOST_CHECK_NO_THROW(ridders_method(l, h, funcs[i], rel_tol));
-    BOOST_CHECK_CLOSE(l, sols[i], 5e-5);
-  };
-};
+    EXPECT_NO_THROW(ridders_method(l, h, funcs[i], rel_tol));
+    EXPECT_NEAR(l, sols[i], 5e-5);
+  }
+}
+
+}  // namespace
+}  // namespace ReaK

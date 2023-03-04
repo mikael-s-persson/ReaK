@@ -97,8 +97,9 @@ void symmetric_QRalg_impl(Matrix1& T, Matrix2* Z,
   int N = T.get_row_count();
 
   ValueType absNumTol = 0.0;
-  for (int i = 0; i < N; ++i)
+  for (int i = 0; i < N; ++i) {
     absNumTol = abs(T(i, i));
+  }
   absNumTol *= NumTol / N;
 
   detail::decompose_TriDiag_impl(T, Z, absNumTol);
@@ -110,14 +111,16 @@ void symmetric_QRalg_impl(Matrix1& T, Matrix2* Z,
     int i = N - 1;
     // find a trailing diagonal sub-matrix
     for (; i > 0; --i) {
-      if (abs(T(i, i - 1)) < absNumTol)
+      if (abs(T(i, i - 1)) < absNumTol) {
         T(i, i - 1) = ValueType(0.0);
-      else
+      } else {
         break;
+      }
     }
     q = i;
-    if (i == 0)  // break if it is entirely diagonal.
+    if (i == 0) {  // break if it is entirely diagonal.
       break;
+    }
 
     // find the middle, biggest unreduced tridiagonal matrix
     for (; i > 0; --i) {
@@ -129,9 +132,11 @@ void symmetric_QRalg_impl(Matrix1& T, Matrix2* Z,
     p = i;
 
     // set remaining sub-diagonals to zero if they are very small.
-    for (i = p; i > 0; --i)
-      if (abs(T(i, i - 1)) < absNumTol)
+    for (i = p; i > 0; --i) {
+      if (abs(T(i, i - 1)) < absNumTol) {
         T(i, i - 1) = ValueType(0.0);
+      }
+    }
 
     if (Z) {
       mat_sub_block<Matrix2> subZ(*Z, Z->get_row_count(), q - p + 1, 0, p);
@@ -152,8 +157,9 @@ void francis_QR_step(Matrix1& H, Matrix2* Z, mat_size_type_t<Matrix1> Offset,
   householder_matrix<vect<ValueType, 3>> hhm;
 
   int N = H.get_row_count() - Offset;
-  if (N < 3)
+  if (N < 3) {
     return;
+  }
 
   ValueType s = H(Offset + N - 2, N - 2) + H(Offset + N - 1, N - 1);
   ValueType t = H(Offset + N - 2, N - 2) * H(Offset + N - 1, N - 1) -
@@ -181,8 +187,9 @@ void francis_QR_step(Matrix1& H, Matrix2* Z, mat_size_type_t<Matrix1> Offset,
 
     v[0] = H(Offset + k + 1, k);
     v[1] = H(Offset + k + 2, k);
-    if (k < N - 3)
+    if (k < N - 3) {
       v[2] = H(Offset + k + 3, k);
+    }
   }
 
   householder_matrix<vect<ValueType, 2>> hhm2(vect<ValueType, 2>(v[0], v[1]),
@@ -197,8 +204,6 @@ void francis_QR_step(Matrix1& H, Matrix2* Z, mat_size_type_t<Matrix1> Offset,
     mat_sub_block<Matrix2> subZ(*Z, Z->get_row_count(), 2, 0, N - 2);
     householder_prod(subZ, hhm2);  // Q_prev * P
   }
-
-  return;
 }
 
 template <typename Matrix1, typename Matrix2>
@@ -210,8 +215,9 @@ void schur_decomp_impl(Matrix1& T, Matrix2* Q,
   int N = T.get_row_count();
 
   ValueType absNumTol = 0.0;
-  for (int i = 0; i < N; ++i)
+  for (int i = 0; i < N; ++i) {
     absNumTol = abs(T(i, i));
+  }
   absNumTol *= NumTol / N;
 
   detail::decompose_Hess_impl(T, Q, absNumTol);
@@ -230,13 +236,15 @@ void schur_decomp_impl(Matrix1& T, Matrix2* Q,
         q = i;
         last_off_diag_was_nil = true;
       } else {
-        if (!last_off_diag_was_nil)
+        if (!last_off_diag_was_nil) {
           break;
+        }
         last_off_diag_was_nil = false;
       }
     }
-    if (i == 0)  // break if it is entirely quasi-upper-triangular.
+    if (i == 0) {  // break if it is entirely quasi-upper-triangular.
       break;
+    }
 
     // find the middle, biggest unreduced upper-Hessenberg matrix
     p = 0;
@@ -249,9 +257,11 @@ void schur_decomp_impl(Matrix1& T, Matrix2* Q,
     }
 
     // set remaining sub-diagonals to zero if they are very small.
-    for (i = p; i > 0; --i)
-      if (abs(T(i, i - 1)) < absNumTol)
+    for (i = p; i > 0; --i) {
+      if (abs(T(i, i - 1)) < absNumTol) {
         T(i, i - 1) = ValueType(0.0);
+      }
+    }
 
     if (Q) {
       mat_sub_block<Matrix2> subQ(*Q, Q->get_row_count(),
@@ -311,8 +321,9 @@ void deflate_hess_elem_down_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
       givens_rot_prod(subQ, transpose(G));  // Q_prev * G^T
     }
 
-    if (p == 0)
+    if (p == 0) {
       continue;
+    }
 
     G.set(-A(q + 1, p), A(q + 1, p - 1));
     G = transpose(G);
@@ -387,8 +398,9 @@ bool deflate_hess_all_down_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
         break;
       }
     }
-    if (j == 0 && !deflated_prev_time)
+    if (j == 0 && !deflated_prev_time) {
       return false;
+    }
   }
   return true;
 }
@@ -438,8 +450,9 @@ void deflate_hess_elem_up_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
       givens_rot_prod(subZ, G);  // Q_prev * G^T
     }
 
-    if (q == N - 1)
+    if (q == N - 1) {
       continue;
+    }
 
     G.set(A(q, p - 1), A(q + 1, p - 1));
 
@@ -512,8 +525,9 @@ bool deflate_hess_all_up_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
         break;
       }
     }
-    if (j == 0 && !deflated_prev_time)
+    if (j == 0 && !deflated_prev_time) {
       return false;
+    }
   }
   return true;
 }
@@ -576,8 +590,9 @@ void francis_QZ_step_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 
     v[0] = A(Offset + k + 1, k);
     v[1] = A(Offset + k + 2, k);
-    if (k < N - 3)
+    if (k < N - 3) {
       v[2] = A(Offset + k + 3, k);
+    }
   }
 
   householder_matrix<vect<ValueType, 2>> hhm3(vect<ValueType, 2>(v[0], v[1]),
@@ -608,8 +623,6 @@ void francis_QZ_step_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
     mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), 2, 0, N - 2);
     householder_prod(subZ, hhm3);  // Q_prev * P
   }
-
-  return;
 }
 
 template <typename Matrix1, typename Matrix2, typename Matrix3,
@@ -622,8 +635,9 @@ void francis_QZ_step(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   householder_matrix<vect<ValueType, 3>> hhm;
 
   int N = A.get_row_count() - Offset;
-  if (N < 3)
+  if (N < 3) {
     return;
+  }
 
   vect<ValueType, 3> v;
 
@@ -650,8 +664,6 @@ void francis_QZ_step(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   v[2] = A(Offset + 2, 1) / B(Offset + 1, 1);
 
   francis_QZ_step_impl(A, B, Q, Z, Offset, N, v, NumTol);
-
-  return;
 }
 
 template <typename Matrix1, typename Matrix2, typename Matrix3,
@@ -663,12 +675,14 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   using std::sqrt;
 
   int N = A.get_row_count();
-  if (N == 0)
+  if (N == 0) {
     return;
+  }
 
   ValueType absNumTol = 0.0;
-  for (int i = 0; i < N; ++i)
+  for (int i = 0; i < N; ++i) {
     absNumTol += abs(A(i, i));
+  }
   absNumTol *= NumTol / N;
 
   detail::reduce_HessTri_offset_impl(A, B, Q, Z, 0, absNumTol);
@@ -688,13 +702,15 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
         q = i;
         last_off_diag_was_nil = true;
       } else {
-        if (!last_off_diag_was_nil)
+        if (!last_off_diag_was_nil) {
           break;
+        }
         last_off_diag_was_nil = false;
       }
     }
-    if (i == 0)  // break if it is entirely quasi-upper-triangular.
+    if (i == 0) {  // break if it is entirely quasi-upper-triangular.
       break;
+    }
 
     // find the middle, biggest unreduced upper-Hessenberg matrix
     p = 0;  // in case the below loop never gets to the condition.
@@ -707,9 +723,11 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
     }
 
     // set remaining sub-diagonals to zero if they are very small.
-    for (i = p; i > 0; --i)
-      if (abs(A(i, i - 1)) < absNumTol)
+    for (i = p; i > 0; --i) {
+      if (abs(A(i, i - 1)) < absNumTol) {
         A(i, i - 1) = ValueType(0.0);
+      }
+    }
 
     mat_sub_block<Matrix1> subA(
         A, q, N - p, 0,
@@ -724,14 +742,16 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
         mat_sub_block<Matrix3> subZ(
             *Z, Z->get_row_count(), Z->get_col_count() - p, 0,
             p);  // Z_new will only change in the columns after p.
-        if (!deflate_hess_all_up_impl(subA, subB, &subQ, &subZ, p, absNumTol))
+        if (!deflate_hess_all_up_impl(subA, subB, &subQ, &subZ, p, absNumTol)) {
           francis_QZ_step(subA, subB, &subQ, &subZ, p, absNumTol);
+        }
       } else {
         if (!deflate_hess_all_up_impl(subA, subB, &subQ,
                                       static_cast<Matrix4*>(nullptr), p,
-                                      absNumTol))
+                                      absNumTol)) {
           francis_QZ_step(subA, subB, &subQ, static_cast<Matrix4*>(nullptr), p,
                           absNumTol);
+        }
       }
     } else {
       if (Z) {
@@ -739,15 +759,17 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
                                     Z->get_col_count() - p, 0, p);
         if (!deflate_hess_all_up_impl(subA, subB,
                                       static_cast<Matrix3*>(nullptr), &subZ, p,
-                                      absNumTol))
+                                      absNumTol)) {
           francis_QZ_step(subA, subB, static_cast<Matrix3*>(nullptr), &subZ, p,
                           absNumTol);
+        }
       } else {
         if (!deflate_hess_all_up_impl(
                 subA, subB, static_cast<Matrix3*>(nullptr),
-                static_cast<Matrix4*>(nullptr), p, absNumTol))
+                static_cast<Matrix4*>(nullptr), p, absNumTol)) {
           francis_QZ_step(subA, subB, static_cast<Matrix3*>(nullptr),
                           static_cast<Matrix4*>(nullptr), p, absNumTol);
+        }
       }
     }
   }
@@ -756,8 +778,9 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   //  to 2 1-1 blocks (eigenvalues are real).
   // NOTE Not sure this is needed.
   for (q = 1; q < N; ++q) {
-    if (abs(A(q, q - 1)) < absNumTol)
+    if (abs(A(q, q - 1)) < absNumTol) {
       continue;
+    }
 
     ValueType mu = A(q - 1, q - 1) / B(q - 1, q - 1);
     ValueType a_12 = A(q - 1, q) - mu * B(q - 1, q);
@@ -767,8 +790,9 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
                                                (B(q - 1, q - 1) * B(q, q)));
     ValueType q_val = (A(q, q - 1) * a_12) / (B(q - 1, q - 1) * B(q, q));
     ValueType r = p_val * p_val + q_val;
-    if (r < ValueType(0.0))
+    if (r < ValueType(0.0)) {
       continue;
+    }
 
     ValueType l = mu + p_val + (p_val > 0 ? sqrt(r) : -sqrt(r));
 
@@ -1040,9 +1064,8 @@ mat_value_type<Matrix1> condition_number_SymQR(
   }
   if (l_min < 1e-10 * l_max) {
     return std::numeric_limits<ValueType>::infinity();
-  } else {
-    return l_max / l_min;
   }
+  return l_max / l_min;
 }
 
 /**

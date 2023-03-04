@@ -20,25 +20,23 @@
  *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
+#include <ReaK/core/base/cnst_string.hpp>
 
 #include <ReaK/core/base/defs.hpp>
 
-#define BOOST_TEST_DYN_LINK
+#include "gtest/gtest.h"
 
-#define BOOST_TEST_MODULE cnst_string
-#include <boost/test/unit_test.hpp>
+namespace ReaK {
+namespace {
 
-#include <ReaK/core/base/cnst_string.hpp>
-
-BOOST_AUTO_TEST_CASE(cnst_string_test) {
-  using namespace ReaK;
-
+TEST(CnstStringTest, AllCases) {
   constexpr auto s1 = std::string_view{"Hello World!"};
 
-  if ((s1[0] != 'H') || (s1[6] != 'W') || (s1[12] != '\0'))
-    BOOST_ERROR("Initialization from a string literal has failed!");
+  EXPECT_EQ(s1[0], 'H') << "Initialization from a string literal has failed!";
+  EXPECT_EQ(s1[6], 'W') << "Initialization from a string literal has failed!";
+  EXPECT_EQ(s1[12], '\0') << "Initialization from a string literal has failed!";
 
-  BOOST_CHECK_EQUAL(s1.size(), 12);
+  EXPECT_EQ(s1.size(), 12);
 
   static constexpr auto hello = std::string_view{"Hello "};
   static constexpr auto world = std::string_view{"World!"};
@@ -46,29 +44,34 @@ BOOST_AUTO_TEST_CASE(cnst_string_test) {
   constexpr auto s3 = ct_concat_v<hello, world, nice_to_see_you>;
   const std::string_view compare_s3 = "Hello World! Nice to see you!";
 
-  if ((s3[0] != compare_s3[0]) || (s3[6] != compare_s3[6]) ||
-      (s3[13] != compare_s3[13]) || (s3[sizeof(compare_s3) - 1] != '\0'))
-    BOOST_ERROR(
-        "Initialization from a concatenation of wrapped string literals has "
-        "failed!");
+  EXPECT_EQ(s3[0], compare_s3[0]) << "Initialization from a concatenation of "
+                                     "wrapped string literals has failed!";
+  EXPECT_EQ(s3[6], compare_s3[6]) << "Initialization from a concatenation of "
+                                     "wrapped string literals has failed!";
+  EXPECT_EQ(s3[13], compare_s3[13]) << "Initialization from a concatenation of "
+                                       "wrapped string literals has failed!";
 
-  BOOST_CHECK_EQUAL(s3.size(), (sizeof(compare_s3) - 1));
-
-  constexpr unsigned int s3_size = s3.size();
-  BOOST_CHECK_EQUAL(s3_size, (sizeof(compare_s3) - 1));
-
-  constexpr char s3_c13 = s3[13];
-  BOOST_CHECK_EQUAL(s3_c13, compare_s3[13]);
+  EXPECT_EQ(s3.size(), compare_s3.size());
 
   constexpr std::size_t s3_hash = fnv_1a_hash(s3);
-  BOOST_CHECK_EQUAL(s3_hash, fnv_1a_hash(compare_s3));
+  EXPECT_EQ(s3_hash, fnv_1a_hash(compare_s3));
 
   constexpr auto h_54582 = ct_itoa_v<54582>;
 
-  if ((h_54582[0] != '5') || (h_54582[1] != '4') || (h_54582[2] != '5') ||
-      (h_54582[3] != '8') || (h_54582[4] != '2'))
-    BOOST_ERROR("Initialization from a integer conversion has failed!");
+  EXPECT_EQ(h_54582[0], '5')
+      << "Initialization from a integer conversion has failed!";
+  EXPECT_EQ(h_54582[1], '4')
+      << "Initialization from a integer conversion has failed!";
+  EXPECT_EQ(h_54582[2], '5')
+      << "Initialization from a integer conversion has failed!";
+  EXPECT_EQ(h_54582[3], '8')
+      << "Initialization from a integer conversion has failed!";
+  EXPECT_EQ(h_54582[4], '2')
+      << "Initialization from a integer conversion has failed!";
 
   std::string s3_str{s3};
-  BOOST_CHECK_EQUAL(s3_str, compare_s3);
-};
+  EXPECT_EQ(s3_str, compare_s3);
+}
+
+}  // namespace
+}  // namespace ReaK

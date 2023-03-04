@@ -83,7 +83,7 @@ class proxy_traj_applicator : public proxy_model_updater {
    * \param aStaticApplicator The static applicator for the proximity-query model.
    * \param aTraj The joint-space trajectory of the proximity-query model, i.e., tracks its state over time.
    */
-  proxy_traj_applicator(
+  explicit proxy_traj_applicator(
       const std::shared_ptr<proxy_model_applicator<joint_space_type>>&
           aStaticApplicator = {},
       const std::shared_ptr<JointTrajectory>& aTraj = {})
@@ -108,13 +108,15 @@ class proxy_traj_applicator : public proxy_model_updater {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     proxy_model_updater::save(
         A, proxy_model_updater::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(static_applicator) &
         RK_SERIAL_SAVE_WITH_NAME(traj);
   };
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
     proxy_model_updater::load(
         A, proxy_model_updater::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(static_applicator) &

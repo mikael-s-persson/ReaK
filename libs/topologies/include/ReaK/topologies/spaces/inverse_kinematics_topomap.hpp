@@ -60,7 +60,7 @@ namespace ReaK::pp {
  */
 class manip_inverse_kin_map : public shared_object {
  public:
-  typedef manip_inverse_kin_map self;
+  using self = manip_inverse_kin_map;
 
   /** This data member points to a manipulator kinematics model to use for the mappings performed. */
   std::shared_ptr<kte::inverse_kinematics_model> model;
@@ -69,7 +69,7 @@ class manip_inverse_kin_map : public shared_object {
    * Parametrized Constructor.
    * \param aModel A pointer to the manipulator model which can do the inverse kinematics calculation.
    */
-  manip_inverse_kin_map(
+  explicit manip_inverse_kin_map(
       const std::shared_ptr<kte::inverse_kinematics_model>& aModel =
           std::shared_ptr<kte::inverse_kinematics_model>())
       : model(aModel) {}
@@ -117,11 +117,13 @@ class manip_inverse_kin_map : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(model);
   };
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(model);
   };
@@ -138,7 +140,7 @@ class manip_inverse_kin_map : public shared_object {
 template <typename RateLimitMap = joint_limits_mapping<double>>
 class manip_rl_inverse_kin_map : public shared_object {
  public:
-  typedef manip_rl_inverse_kin_map<RateLimitMap> self;
+  using self = manip_rl_inverse_kin_map<RateLimitMap>;
 
   /** This data member points to a manipulator kinematics model to use for the mappings performed. */
   std::shared_ptr<kte::inverse_kinematics_model> model;
@@ -150,7 +152,7 @@ class manip_rl_inverse_kin_map : public shared_object {
    * \param aModel A pointer to the manipulator model on which the inverse kinematics search is applied.
    * \param aJointLimitMap A pointer to the mapping used to map rate-limited points to the normal joint-space.
    */
-  manip_rl_inverse_kin_map(
+  explicit manip_rl_inverse_kin_map(
       const std::shared_ptr<kte::inverse_kinematics_model>& aModel =
           std::shared_ptr<kte::inverse_kinematics_model>(),
       const RateLimitMap& aJointLimitMap = RateLimitMap())
@@ -203,12 +205,14 @@ class manip_rl_inverse_kin_map : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(model) &
         RK_SERIAL_SAVE_WITH_NAME(joint_limits_map);
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(model) &
         RK_SERIAL_LOAD_WITH_NAME(joint_limits_map);
@@ -246,7 +250,7 @@ class manip_clik_kin_map : public shared_object {
    * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint
    * (barrier).
    */
-  manip_clik_kin_map(
+  explicit manip_clik_kin_map(
       const std::shared_ptr<kte::direct_kinematics_model>& aModel =
           std::shared_ptr<kte::direct_kinematics_model>(),
       const std::shared_ptr<optim::cost_evaluator>& aCostEvaluator =
@@ -287,11 +291,13 @@ class manip_clik_kin_map : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(model) & RK_SERIAL_SAVE_WITH_NAME(clik_calc);
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(model) & RK_SERIAL_LOAD_WITH_NAME(clik_calc);
   }
@@ -332,7 +338,7 @@ class manip_rl_clik_kin_map : public shared_object {
    * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint
    * (barrier).
    */
-  manip_rl_clik_kin_map(
+  explicit manip_rl_clik_kin_map(
       const std::shared_ptr<kte::direct_kinematics_model>& aModel =
           std::shared_ptr<kte::direct_kinematics_model>(),
       const RateLimitMap& aJointLimitMap = RateLimitMap(),
@@ -366,7 +372,7 @@ class manip_rl_clik_kin_map : public shared_object {
 
     clik_calc.solveInverseKinematics();
 
-    typedef typename get_rate_illimited_space<OutSpace>::type NormalJointSpace;
+    using NormalJointSpace = typename get_rate_illimited_space<OutSpace>::type;
     topology_point_type_t<NormalJointSpace> result_inter;
     detail::read_joint_coordinates_impl(result_inter, NormalJointSpace(),
                                         model);
@@ -380,12 +386,14 @@ class manip_rl_clik_kin_map : public shared_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*Version*/) const override {
     shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(model) & RK_SERIAL_SAVE_WITH_NAME(clik_calc) &
         RK_SERIAL_SAVE_WITH_NAME(joint_limits_map);
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*Version*/) override {
     shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(model) & RK_SERIAL_LOAD_WITH_NAME(clik_calc) &
         RK_SERIAL_LOAD_WITH_NAME(joint_limits_map);
@@ -422,7 +430,7 @@ class manip_clik_fig_kin_map : public manip_clik_kin_map {
    * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint
    * (barrier).
    */
-  manip_clik_fig_kin_map(
+  explicit manip_clik_fig_kin_map(
       const JointStateType& aInitGuess = JointStateType(),
       const std::shared_ptr<kte::direct_kinematics_model>& aModel =
           std::shared_ptr<kte::direct_kinematics_model>(),
@@ -466,12 +474,14 @@ class manip_clik_fig_kin_map : public manip_clik_kin_map {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     manip_clik_kin_map::save(
         A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(initial_guess);
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
     manip_clik_kin_map::load(
         A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(initial_guess);
@@ -511,7 +521,7 @@ class manip_rl_clik_fig_kin_map : public manip_rl_clik_kin_map<RateLimitMap> {
    * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint
    * (barrier).
    */
-  manip_rl_clik_fig_kin_map(
+  explicit manip_rl_clik_fig_kin_map(
       const JointStateType& aInitGuess = {},
       const std::shared_ptr<kte::direct_kinematics_model>& aModel = {},
       const RateLimitMap& aJointLimitMap = {},
@@ -562,11 +572,13 @@ class manip_rl_clik_fig_kin_map : public manip_rl_clik_kin_map<RateLimitMap> {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(initial_guess);
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(initial_guess);
   }
@@ -601,7 +613,7 @@ class manip_clik_rnd_restart_map : public manip_clik_kin_map {
    * (barrier).
    * \param aRestartCount The number of restarts to try before giving up on the inverse kinematics search.
    */
-  manip_clik_rnd_restart_map(
+  explicit manip_clik_rnd_restart_map(
       const std::shared_ptr<kte::direct_kinematics_model>& aModel = {},
       const std::shared_ptr<optim::cost_evaluator>& aCostEvaluator = {},
       double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300,
@@ -648,7 +660,8 @@ class manip_clik_rnd_restart_map : public manip_clik_kin_map {
       if (norm_2(clik_calc.computeStatesError(x)) < clik_calc.tol * 10.0) {
         clik_calc.writeJointStatesToModel(x);
         break;
-      } else if (i == restart_count - 1) {
+      }
+      if (i == restart_count - 1) {
         throw optim::infeasible_problem(
             "The inverse kinematics problem cannot be solved!");
       }
@@ -663,12 +676,14 @@ class manip_clik_rnd_restart_map : public manip_clik_kin_map {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     manip_clik_kin_map::save(
         A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(restart_count);
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
     manip_clik_kin_map::load(
         A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(restart_count);
@@ -708,7 +723,7 @@ class manip_rl_clik_rnd_restart_map
    * (barrier).
    * \param aRestartCount The number of restarts to try before giving up on the inverse kinematics search.
    */
-  manip_rl_clik_rnd_restart_map(
+  explicit manip_rl_clik_rnd_restart_map(
       const std::shared_ptr<kte::direct_kinematics_model>& aModel = {},
       const RateLimitMap& aJointLimitMap = {},
       const std::shared_ptr<optim::cost_evaluator>& aCostEvaluator = {},
@@ -761,7 +776,8 @@ class manip_rl_clik_rnd_restart_map
           this->clik_calc.tol * 10.0) {
         this->clik_calc.writeJointStatesToModel(x);
         break;
-      } else if (i == restart_count - 1) {
+      }
+      if (i == restart_count - 1) {
         throw optim::infeasible_problem(
             "The inverse kinematics problem cannot be solved!");
       }
@@ -780,11 +796,13 @@ class manip_rl_clik_rnd_restart_map
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(ReaK::serialization::oarchive& A, unsigned int) const override {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(restart_count);
   }
-  void load(ReaK::serialization::iarchive& A, unsigned int) override {
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
     base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(restart_count);
   }

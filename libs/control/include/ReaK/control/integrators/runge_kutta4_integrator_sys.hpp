@@ -182,7 +182,7 @@ class runge_kutta4_integrator_factory : public named_object {
    * \param aInputTraj A pointer to the trajectory object which can deliver input vectors at any given time point.
    * \param aTimeStep The integration time-step to use.
    */
-  runge_kutta4_integrator_factory(
+  explicit runge_kutta4_integrator_factory(
       const std::string& aName,
       const std::shared_ptr<const TemporalSpace>& aTSpace = {},
       const std::shared_ptr<const StateSpaceSystem>& aSystem = {},
@@ -257,7 +257,8 @@ class runge_kutta4_integrator_factory : public named_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     ReaK::named_object::save(
         A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_SAVE_WITH_NAME(m_t_space) & RK_SERIAL_SAVE_WITH_NAME(m_sys) &
@@ -265,7 +266,7 @@ class runge_kutta4_integrator_factory : public named_object {
         RK_SERIAL_SAVE_WITH_NAME(m_time_step);
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     ReaK::named_object::save(
         A, named_object::getStaticObjectType()->TypeVersion());
     A& RK_SERIAL_LOAD_WITH_NAME(m_t_space) & RK_SERIAL_LOAD_WITH_NAME(m_sys) &

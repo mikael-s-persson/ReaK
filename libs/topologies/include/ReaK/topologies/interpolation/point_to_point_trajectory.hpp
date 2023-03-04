@@ -106,8 +106,8 @@ class point_to_point_trajectory
 
     sum += this->dist(a, wpb_a.second->second, *(this->space));
 
-    const_waypoint_descriptor it = wpb_a.second;
-    const_waypoint_descriptor it_prev = it;
+    auto it = wpb_a.second;
+    auto it_prev = it;
     while (it++ != wpb_b.first) {
       sum += this->dist((it_prev++)->second, it->second, *(this->space));
     }
@@ -147,10 +147,9 @@ class point_to_point_trajectory
     if ((a.time + dt >= wpb_a.first->first) &&
         (a.time + dt <= wpb_a.second->first)) {
       return get_point_at_time_impl(a.time + dt, wpb_a);
-    } else {
-      return get_point_at_time_impl(a.time + dt,
-                                    this->get_waypoint_bounds(a.time + dt));
     }
+    return get_point_at_time_impl(a.time + dt,
+                                  this->get_waypoint_bounds(a.time + dt));
   }
 
  public:
@@ -194,7 +193,7 @@ class point_to_point_trajectory
   /**
    * Standard swap function.
    */
-  friend void swap(self& lhs, self& rhs) throw() {
+  friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
     swap(static_cast<base_class_type&>(lhs),
          static_cast<base_class_type&>(rhs));
@@ -204,12 +203,13 @@ class point_to_point_trajectory
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     base_class_type::save(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     base_class_type::load(
         A, base_class_type::getStaticObjectType()->TypeVersion());
   }

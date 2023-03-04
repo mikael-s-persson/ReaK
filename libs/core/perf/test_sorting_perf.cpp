@@ -44,37 +44,40 @@ std::size_t REPEATS = 10;
 
 struct rand_int_generator {
   std::size_t m_range;
-  rand_int_generator(std::size_t aRange) : m_range(aRange){};
-  int operator()() const { return rand() % m_range; };
+  explicit rand_int_generator(std::size_t aRange) : m_range(aRange) {}
+  int operator()() const { return rand() % m_range; }
 };
 
 void generate_random_seq(int* first, int* last) {
   std::generate(first, last, rand_int_generator(RANGE));
-};
+}
 
 void generate_almost_sorted(int* first, int* last) {
   std::generate(first, last, rand_int_generator(RANGE));
   std::sort(first, last);
   std::size_t dist = (last - first);
-  for (std::size_t i = 0; i < dist / 10; ++i)
+  for (std::size_t i = 0; i < dist / 10; ++i) {
     first[rand() % dist] = rand() % RANGE;
-};
+  }
+}
 
 void generate_almost_reversed(int* first, int* last) {
   std::generate(first, last, rand_int_generator(RANGE));
-  std::sort(first, last, std::greater<int>());
+  std::sort(first, last, std::greater<>());
   std::size_t dist = (last - first);
-  for (std::size_t i = 0; i < dist / 10; ++i)
+  for (std::size_t i = 0; i < dist / 10; ++i) {
     first[rand() % dist] = rand() % RANGE;
-};
+  }
+}
 
 void generate_partly_sorted(int* first, int* last) {
   std::generate(first, last, rand_int_generator(RANGE));
   std::sort(first, last);
   std::size_t dist = (last - first);
-  for (std::size_t i = dist - dist / 10; i < dist; ++i)
+  for (std::size_t i = dist - dist / 10; i < dist; ++i) {
     first[i] = rand() % RANGE;
-};
+  }
+}
 
 template <typename SortFunction, typename GenFunction>
 std::size_t sort_and_get_us(std::size_t SIZE, SortFunction func,
@@ -95,111 +98,125 @@ std::size_t sort_and_get_us(std::size_t SIZE, SortFunction func,
     t_end = high_resolution_clock::now();
 
     t_duration = t_duration + (t_end - t_start);
-  };
+  }
 
   delete[] tmp_array;
 
   return (duration_cast<microseconds>(t_duration).count() / REPEATS);
-};
+}
 
 int main(int argc, char** argv) {
 
   using namespace ReaK::sorting;
 
   std::size_t max_size = 1000000;
-  if (argc > 1)
+  if (argc > 1) {
     std::stringstream(argv[1]) >> max_size;
+  }
 
-  if (argc > 2)
+  if (argc > 2) {
     std::stringstream(argv[2]) >> REPEATS;
+  }
 
-  std::srand(static_cast<unsigned int>(std::time(0)));
+  std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
-  typedef void (*GenFuncType)(int*, int*);
+  using GenFuncType = void (*)(int*, int*);
 
-  GenFuncType generators[] = {&generate_random_seq, &generate_almost_sorted,
-                              &generate_almost_reversed,
-                              &generate_partly_sorted};
+  std::array<GenFuncType, 4> generators = {
+      &generate_random_seq, &generate_almost_sorted, &generate_almost_reversed,
+      &generate_partly_sorted};
 
-  for (std::size_t i = 0; i < 4; ++i) {
+  for (auto& generator : generators) {
     for (std::size_t j = 10; j < max_size; j *= 2) {
       std::cout << std::setw(10) << j;
 
       if (j < 10000) {
         std::cout << std::setw(10)
-                  << sort_and_get_us(j, selection_sort<int*>, generators[i]);
+                  << sort_and_get_us(j, selection_sort<int*>, generator);
 
         std::cout << std::setw(10)
-                  << sort_and_get_us(j, insertion_sort<int*>, generators[i]);
+                  << sort_and_get_us(j, insertion_sort<int*>, generator);
 
         std::cout << std::setw(10)
-                  << sort_and_get_us(j, bubble_sort<int*>, generators[i]);
+                  << sort_and_get_us(j, bubble_sort<int*>, generator);
       } else {
         std::cout << std::setw(10) << 0;
         std::cout << std::setw(10) << 0;
         std::cout << std::setw(10) << 0;
-      };
+      }
 
       std::cout << std::setw(10)
-                << sort_and_get_us(j, std::sort<int*>, generators[i]);
+                << sort_and_get_us(j, std::sort<int*>, generator);
 
       std::cout << std::setw(10)
-                << sort_and_get_us(j, merge_sort<int*>, generators[i]);
+                << sort_and_get_us(j, merge_sort<int*>, generator);
 
       std::cout << std::setw(10)
-                << sort_and_get_us(j, shell_sort<int*>, generators[i]);
+                << sort_and_get_us(j, shell_sort<int*>, generator);
 
       std::cout << std::setw(10)
-                << sort_and_get_us(j, comb_sort<int*>, generators[i]);
+                << sort_and_get_us(j, comb_sort<int*>, generator);
 
       std::cout << std::setw(10)
-                << sort_and_get_us(j, heap_sort<int*>, generators[i]);
+                << sort_and_get_us(j, heap_sort<int*>, generator);
 
       std::cout << std::setw(10)
-                << sort_and_get_us(j, quick_sort<int*>, generators[i]);
-
-      std::cout << std::setw(10)
-                << sort_and_get_us(
-                       j,
-                       std::bind(quick_sort<int*, std::less<int>, random_pivot>,
-                                 std::placeholders::_1, std::placeholders::_2,
-                                 std::less<int>(), random_pivot()),
-                       generators[i]);
+                << sort_and_get_us(j, quick_sort<int*>, generator);
 
       std::cout << std::setw(10)
                 << sort_and_get_us(
                        j,
-                       std::bind(quick_sort<int*, std::less<int>, first_pivot>,
-                                 std::placeholders::_1, std::placeholders::_2,
-                                 std::less<int>(), first_pivot()),
-                       generators[i]);
-
-      std::cout << std::setw(10)
-                << sort_and_get_us(j, quickselect_sort<int*>, generators[i]);
-
-      std::cout << std::setw(10)
-                << sort_and_get_us(j, intro_sort<int*>, generators[i]);
+                       [](auto&& PH1, auto&& PH2) {
+                         return quick_sort<int*, std::less<>, random_pivot>(
+                             std::forward<decltype(PH1)>(PH1),
+                             std::forward<decltype(PH2)>(PH2), std::less<>(),
+                             random_pivot());
+                       },
+                       generator);
 
       std::cout << std::setw(10)
                 << sort_and_get_us(
                        j,
-                       std::bind(intro_sort<int*, std::less<int>, random_pivot>,
-                                 std::placeholders::_1, std::placeholders::_2,
-                                 std::less<int>(), random_pivot()),
-                       generators[i]);
+                       [](auto&& PH1, auto&& PH2) {
+                         return quick_sort<int*, std::less<>, first_pivot>(
+                             std::forward<decltype(PH1)>(PH1),
+                             std::forward<decltype(PH2)>(PH2), std::less<>(),
+                             first_pivot());
+                       },
+                       generator);
+
+      std::cout << std::setw(10)
+                << sort_and_get_us(j, quickselect_sort<int*>, generator);
+
+      std::cout << std::setw(10)
+                << sort_and_get_us(j, intro_sort<int*>, generator);
 
       std::cout << std::setw(10)
                 << sort_and_get_us(
                        j,
-                       std::bind(intro_sort<int*, std::less<int>, first_pivot>,
-                                 std::placeholders::_1, std::placeholders::_2,
-                                 std::less<int>(), first_pivot()),
-                       generators[i]);
+                       [](auto&& PH1, auto&& PH2) {
+                         return intro_sort<int*, std::less<>, random_pivot>(
+                             std::forward<decltype(PH1)>(PH1),
+                             std::forward<decltype(PH2)>(PH2), std::less<>(),
+                             random_pivot());
+                       },
+                       generator);
+
+      std::cout << std::setw(10)
+                << sort_and_get_us(
+                       j,
+                       [](auto&& PH1, auto&& PH2) {
+                         return intro_sort<int*, std::less<>, first_pivot>(
+                             std::forward<decltype(PH1)>(PH1),
+                             std::forward<decltype(PH2)>(PH2), std::less<>(),
+                             first_pivot());
+                       },
+                       generator);
 
       std::cout << std::endl;
-    };
-  };
+    }
+  }
   std::cout << std::flush;
 
   return 0;
-};
+}

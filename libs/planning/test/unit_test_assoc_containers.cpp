@@ -29,36 +29,35 @@
 
 #include <ReaK/planning/graph_alg/avl_tree.hpp>
 
-#define BOOST_TEST_DYN_LINK
+#include "gtest/gtest.h"
 
-#define BOOST_TEST_MODULE assoc_containers
-#include <boost/mpl/list.hpp>
-#include <boost/test/test_case_template.hpp>
-#include <boost/test/unit_test.hpp>
+namespace ReaK::graph {
+namespace {
 
-typedef boost::mpl::list<std::map<int, int>, ReaK::graph::avlbfl_map<int, int>
-                         //   , ReaK::graph::avlvebl_map<int, int>
-                         >
-    intint_maptest_types;
+template <typename T>
+class IntIntMapTest : public ::testing::Test {};
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(intint_map_test, Map, intint_maptest_types) {
-  typedef typename Map::key_type KeyType;
-  typedef typename Map::mapped_type MappedType;
-  typedef std::pair<KeyType, MappedType> ValueType;
+using IntIntMapTestTypes =
+    ::testing::Types<std::map<int, int>, avlbfl_map<int, int>>;
+TYPED_TEST_SUITE(IntIntMapTest, IntIntMapTestTypes);
+
+TYPED_TEST(IntIntMapTest, IntIntMapOperations) {
+  using Map = TypeParam;
+  using KeyType = typename Map::key_type;
+  using MappedType = typename Map::mapped_type;
+  using ValueType = std::pair<KeyType, MappedType>;
 
   Map m;
-#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
-  BOOST_CHECK_THROW(m.at(KeyType(5)), std::out_of_range);
-#endif
+  EXPECT_THROW(m.at(KeyType(5)), std::out_of_range);
 
-  BOOST_CHECK((m[KeyType(5)] =
+  EXPECT_TRUE((m[KeyType(5)] =
                    MappedType(10)));  // check insertion through [] operator.
-  BOOST_CHECK((
+  EXPECT_TRUE((
       m[KeyType(5)] ==
       MappedType(
           10)));  // validate the insertion (still has the expected mapped-value).
 
-  BOOST_CHECK(m.insert(ValueType(KeyType(10), MappedType(20))).second);
+  EXPECT_TRUE(m.insert(ValueType(KeyType(10), MappedType(20))).second);
 
   std::vector<ValueType> tmp_v;
   tmp_v.push_back(ValueType(KeyType(7), MappedType(14)));
@@ -67,54 +66,50 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(intint_map_test, Map, intint_maptest_types) {
   tmp_v.push_back(ValueType(KeyType(17), MappedType(34)));
   tmp_v.push_back(ValueType(KeyType(22), MappedType(44)));
   m.insert(tmp_v.begin(), tmp_v.end());
-  BOOST_CHECK_MESSAGE(((m[7] == 14) && (m[12] == 24) && (m[15] == 30) &&
-                       (m[17] == 34) && (m[22] == 44)),
-                      "insert iterator range");
+  EXPECT_TRUE(((m[7] == 14) && (m[12] == 24) && (m[15] == 30) &&
+               (m[17] == 34) && (m[22] == 44)))
+      << "insert iterator range";
 
-#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   m.insert({ValueType(KeyType(8), MappedType(16)),
             ValueType(KeyType(13), MappedType(26)),
             ValueType(KeyType(16), MappedType(32))});
-  BOOST_CHECK_MESSAGE(((m[8] == 16) && (m[13] == 26) && (m[16] == 32)),
-                      "insert std::initializer_list");
-#endif
-};
+  EXPECT_TRUE(((m[8] == 16) && (m[13] == 26) && (m[16] == 32)))
+      << "insert std::initializer_list";
+}
 
-typedef boost::mpl::list<std::map<int, int>, std::multimap<int, int>,
-                         ReaK::graph::avlbfl_map<int, int>,
-                         ReaK::graph::avlbfl_multimap<int, int>
-                         //   , ReaK::graph::avlvebl_map<int, int>
-                         //   , ReaK::graph::avlvebl_multimap<int, int>
-                         >
-    intint_multimaptest_types;
+template <typename T>
+class IntIntMultiMapTest : public ::testing::Test {};
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(intint_multimap_test, Map,
-                              intint_multimaptest_types) {
+using IntIntMultiMapTestTypes =
+    ::testing::Types<std::map<int, int>, std::multimap<int, int>,
+                     avlbfl_map<int, int>, avlbfl_multimap<int, int>>;
+TYPED_TEST_SUITE(IntIntMultiMapTest, IntIntMultiMapTestTypes);
+
+TYPED_TEST(IntIntMultiMapTest, IntIntMultiMapOperations) {
+  using Map = TypeParam;
   using std::swap;
-  typedef typename Map::key_type KeyType;
-  typedef typename Map::mapped_type MappedType;
+  using KeyType = typename Map::key_type;
+  using MappedType = typename Map::mapped_type;
   //   typedef typename Map::value_type ValueType;
-  typedef std::pair<KeyType, MappedType> ValueType;
-  typedef typename Map::iterator Iter;
-  typedef typename Map::const_iterator ConstIter;
-  typedef typename Map::const_reverse_iterator ConstRevIter;
+  using ValueType = std::pair<KeyType, MappedType>;
+  using Iter = typename Map::iterator;
+  using ConstIter = typename Map::const_iterator;
+  using ConstRevIter = typename Map::const_reverse_iterator;
 
   Map m;
-  BOOST_CHECK_EQUAL(m.size(), 0);
-  BOOST_CHECK(m.empty());
-  BOOST_CHECK(m.begin() == m.end());
-  BOOST_CHECK(m.rbegin() == m.rend());
-#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
-  BOOST_CHECK(m.cbegin() == m.cend());
-  BOOST_CHECK(m.crbegin() == m.crend());
-#endif
+  EXPECT_EQ(m.size(), 0);
+  EXPECT_TRUE(m.empty());
+  EXPECT_TRUE(m.begin() == m.end());
+  EXPECT_TRUE(m.rbegin() == m.rend());
+  EXPECT_TRUE(m.cbegin() == m.cend());
+  EXPECT_TRUE(m.crbegin() == m.crend());
 
   m.insert(ValueType(KeyType(5), MappedType(10)));
   m.insert(ValueType(KeyType(10), MappedType(20)));
-  BOOST_CHECK_MESSAGE(m.count(10), "insert single element");
-  BOOST_CHECK(m.insert(m.end(), ValueType(KeyType(20), MappedType(40))) !=
+  EXPECT_TRUE(m.count(10)) << "insert single element";
+  EXPECT_TRUE(m.insert(m.end(), ValueType(KeyType(20), MappedType(40))) !=
               m.end());
-  BOOST_CHECK(m.insert(m.begin(), ValueType(KeyType(4), MappedType(8))) !=
+  EXPECT_TRUE(m.insert(m.begin(), ValueType(KeyType(4), MappedType(8))) !=
               m.end());
 
   std::vector<ValueType> tmp_v;
@@ -125,58 +120,48 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(intint_multimap_test, Map,
   tmp_v.push_back(ValueType(KeyType(15), MappedType(30)));
 
   m.insert(tmp_v.begin(), tmp_v.end());
-  BOOST_CHECK_MESSAGE(
-      ((m.count(7) == 1) && (m.count(12) == 1) && (m.count(15) == 1) &&
-       (m.count(17) == 1) && (m.count(22) == 1)),
-      "insert iterator range");
+  EXPECT_TRUE((m.count(7) == 1) && (m.count(12) == 1) && (m.count(15) == 1) &&
+              (m.count(17) == 1) && (m.count(22) == 1))
+      << "insert iterator range";
 
-#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   m.insert({ValueType(KeyType(16), MappedType(32)),
             ValueType(KeyType(8), MappedType(16)),
             ValueType(KeyType(13), MappedType(26))});
-  BOOST_CHECK_MESSAGE(
-      ((m.count(8) == 1) && (m.count(13) == 1) && (m.count(16) == 1)),
-      "insert std::initializer_list");
-#endif
+  EXPECT_TRUE((m.count(8) == 1) && (m.count(13) == 1) && (m.count(16) == 1))
+      << "insert std::initializer_list";
 
-  ConstIter it8_lo = m.lower_bound(8);
-  ConstIter it8_hi = m.upper_bound(8);
-  BOOST_CHECK(((it8_lo != it8_hi) && (it8_lo != m.end()) &&
+  auto it8_lo = m.lower_bound(8);
+  auto it8_hi = m.upper_bound(8);
+  EXPECT_TRUE(((it8_lo != it8_hi) && (it8_lo != m.end()) &&
                (std::distance(it8_lo, it8_hi) == 1)));
-  BOOST_CHECK(((it8_lo->first == 8) && (it8_lo->second == 16)));
+  EXPECT_TRUE(((it8_lo->first == 8) && (it8_lo->second == 16)));
 
   std::pair<ConstIter, ConstIter> it17_eq_range = m.equal_range(17);
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((it17_eq_range.first != it17_eq_range.second) &&
        (it17_eq_range.first != m.end()) &&
        (std::distance(it17_eq_range.first, it17_eq_range.second) == 1)));
-  BOOST_CHECK(((it17_eq_range.first->first == 17) &&
+  EXPECT_TRUE(((it17_eq_range.first->first == 17) &&
                (it17_eq_range.first->second == 34)));
 
-  BOOST_CHECK_EQUAL(m.count(15), 1);
+  EXPECT_EQ(m.count(15), 1);
 
-  ConstIter it15 = m.find(15);
-  BOOST_CHECK(it15 != m.end());
-  BOOST_CHECK(((it15->first == 15) && (it15->second == 30)));
+  auto it15 = m.find(15);
+  EXPECT_TRUE(it15 != m.end());
+  EXPECT_TRUE(((it15->first == 15) && (it15->second == 30)));
 
-#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
-  Iter it16 = m.erase(it15);
-  BOOST_CHECK(m.count(15) == 0);
-  BOOST_CHECK(it16 != m.end());
-  BOOST_CHECK(((it16->first == 16) && (it16->second == 32)));
-#else
-  m.erase(it15);
-  BOOST_CHECK(m.count(15) == 0);
-#endif
+  auto it16 = m.erase(it15);
+  EXPECT_TRUE(m.count(15) == 0);
+  EXPECT_TRUE(it16 != m.end());
+  EXPECT_TRUE(((it16->first == 16) && (it16->second == 32)));
   m.erase(m.find(7), m.find(13));
-  BOOST_CHECK_MESSAGE(
-      ((m.count(7) == 0) && (m.count(8) == 0) && (m.count(9) == 0) &&
-       (m.count(10) == 0) && (m.count(11) == 0) && (m.count(12) == 0)),
-      "erase iterator range");
-  BOOST_CHECK(m.erase(16) == 1);
+  EXPECT_TRUE((m.count(7) == 0) && (m.count(8) == 0) && (m.count(9) == 0) &&
+              (m.count(10) == 0) && (m.count(11) == 0) && (m.count(12) == 0))
+      << "erase iterator range";
+  EXPECT_TRUE(m.erase(16) == 1);
 
   // at this point the map contains: 4 5 13 17 20 22
-  ConstIter it = m.begin();
+  auto it = m.begin();
   bool in_order = (it != m.end()) && (it->first == 4);
   ++it;
   in_order = in_order && (it != m.end()) && (it->first == 5);
@@ -190,8 +175,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(intint_multimap_test, Map,
   in_order = in_order && (it != m.end()) && (it->first == 22);
   ++it;
   in_order = in_order && (it == m.end());
-  BOOST_CHECK_MESSAGE(in_order, "in-order element traversal");
-  ConstRevIter rit = m.rbegin();
+  EXPECT_TRUE(in_order) << "in-order element traversal";
+  auto rit = m.rbegin();
   in_order = (rit != m.rend()) && (rit->first == 22);
   ++rit;
   in_order = in_order && (rit != m.rend()) && (rit->first == 20);
@@ -205,69 +190,63 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(intint_multimap_test, Map,
   in_order = in_order && (rit != m.rend()) && (rit->first == 4);
   ++rit;
   in_order = in_order && (rit == m.rend());
-  BOOST_CHECK_MESSAGE(in_order, "reverse in-order element traversal");
+  EXPECT_TRUE(in_order) << "reverse in-order element traversal";
 
   Map m2(tmp_v.begin(), tmp_v.end());
-  BOOST_CHECK_MESSAGE(
-      ((m2.count(7) == 1) && (m2.count(12) == 1) && (m2.count(15) == 1) &&
-       (m2.count(17) == 1) && (m2.count(22) == 1)),
-      "constructor iterator range");
-#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
+  EXPECT_TRUE((m2.count(7) == 1) && (m2.count(12) == 1) &&
+              (m2.count(15) == 1) && (m2.count(17) == 1) && (m2.count(22) == 1))
+      << "constructor iterator range";
   Map m3{ValueType(KeyType(8), MappedType(16)),
          ValueType(KeyType(13), MappedType(26)),
          ValueType(KeyType(16), MappedType(32))};
-  BOOST_CHECK_MESSAGE(
-      ((m3.count(8) == 1) && (m3.count(13) == 1) && (m3.count(16) == 1)),
-      "constructor std::initializer_list");
+  EXPECT_TRUE((m3.count(8) == 1) && (m3.count(13) == 1) && (m3.count(16) == 1))
+      << "constructor std::initializer_list";
 
   swap(m2, m3);
-  BOOST_CHECK_MESSAGE(
-      ((m3.count(7) == 1) && (m3.count(12) == 1) && (m3.count(15) == 1) &&
-       (m3.count(17) == 1) && (m3.count(22) == 1) && (m2.count(8) == 1) &&
-       (m2.count(13) == 1) && (m2.count(16) == 1)),
-      "swap free function");
-#endif
+  EXPECT_TRUE((m3.count(7) == 1) && (m3.count(12) == 1) &&
+              (m3.count(15) == 1) && (m3.count(17) == 1) &&
+              (m3.count(22) == 1) && (m2.count(8) == 1) &&
+              (m2.count(13) == 1) && (m2.count(16) == 1))
+      << "swap free function";
 
   m.swap(m2);
-  BOOST_CHECK_MESSAGE(
-      ((m.count(8) == 1) && (m.count(13) == 1) && (m.count(16) == 1)),
-      "swap member function");
+  EXPECT_TRUE((m.count(8) == 1) && (m.count(13) == 1) && (m.count(16) == 1))
+      << "swap member function";
 
   m.clear();
-  BOOST_CHECK_EQUAL(m.size(), 0);
-};
+  EXPECT_EQ(m.size(), 0);
+}
 
-typedef boost::mpl::list<std::set<int>, std::multiset<int>,
-                         ReaK::graph::avlbfl_set<int>,
-                         ReaK::graph::avlbfl_multiset<int>
-                         //   , ReaK::graph::avlvebl_set<int>
-                         //   , ReaK::graph::avlvebl_multiset<int>
-                         >
-    int_multisettest_types;
+template <typename T>
+class IntIntMultiSetTest : public ::testing::Test {};
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(int_multiset_test, Set, int_multisettest_types) {
+using IntIntMultiSetTestTypes =
+    ::testing::Types<std::set<int>, std::multiset<int>, avlbfl_set<int>,
+                     avlbfl_multiset<int>>;
+TYPED_TEST_SUITE(IntIntMultiSetTest, IntIntMultiSetTestTypes);
+
+TYPED_TEST(IntIntMultiSetTest, IntIntMultiSetOperations) {
+  using Set = TypeParam;
   using std::swap;
-  typedef typename Set::value_type ValueType;
-  typedef typename Set::iterator Iter;
-  typedef typename Set::const_iterator ConstIter;
-  typedef typename Set::const_reverse_iterator ConstRevIter;
+  using ValueType = typename Set::value_type;
+  using Iter = typename Set::iterator;
+  using ConstIter = typename Set::const_iterator;
+  using ConstRevIter = typename Set::const_reverse_iterator;
 
   Set s;
-  BOOST_CHECK_EQUAL(s.size(), 0);
-  BOOST_CHECK(s.empty());
-  BOOST_CHECK(s.begin() == s.end());
-  BOOST_CHECK(s.rbegin() == s.rend());
-#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
-  BOOST_CHECK(s.cbegin() == s.cend());
-  BOOST_CHECK(s.crbegin() == s.crend());
-#endif
+  EXPECT_EQ(s.size(), 0);
+  EXPECT_TRUE(s.empty());
+  EXPECT_TRUE(s.begin() == s.end());
+  EXPECT_TRUE(s.rbegin() == s.rend());
+  EXPECT_TRUE(s.cbegin() == s.cend());
+  EXPECT_TRUE(s.crbegin() == s.crend());
 
   s.insert(ValueType(5));
-  BOOST_CHECK_MESSAGE(s.count(5), "insert single element");
+  EXPECT_TRUE(s.count(5)) << "insert single element";
   s.insert(ValueType(10));
-  BOOST_CHECK_MESSAGE(s.count(10), "insert single element");
-  BOOST_CHECK(s.insert(s.end(), ValueType(20)) != s.end());
-  BOOST_CHECK(s.insert(s.begin(), ValueType(4)) != s.end());
+  EXPECT_TRUE(s.count(10)) << "insert single element";
+  EXPECT_TRUE(s.insert(s.end(), ValueType(20)) != s.end());
+  EXPECT_TRUE(s.insert(s.begin(), ValueType(4)) != s.end());
 
   std::vector<ValueType> tmp_v;
   tmp_v.push_back(ValueType(12));
@@ -277,55 +256,45 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(int_multiset_test, Set, int_multisettest_types) {
   tmp_v.push_back(ValueType(15));
 
   s.insert(tmp_v.begin(), tmp_v.end());
-  BOOST_CHECK_MESSAGE(
-      ((s.count(7) == 1) && (s.count(12) == 1) && (s.count(15) == 1) &&
-       (s.count(17) == 1) && (s.count(22) == 1)),
-      "insert iterator range");
+  EXPECT_TRUE((s.count(7) == 1) && (s.count(12) == 1) && (s.count(15) == 1) &&
+              (s.count(17) == 1) && (s.count(22) == 1))
+      << "insert iterator range";
 
-#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   s.insert({ValueType(16), ValueType(8), ValueType(13)});
-  BOOST_CHECK_MESSAGE(
-      ((s.count(8) == 1) && (s.count(13) == 1) && (s.count(16) == 1)),
-      "insert std::initializer_list");
-#endif
+  EXPECT_TRUE((s.count(8) == 1) && (s.count(13) == 1) && (s.count(16) == 1))
+      << "insert std::initializer_list";
 
-  ConstIter it8_lo = s.lower_bound(8);
-  ConstIter it8_hi = s.upper_bound(8);
-  BOOST_CHECK(((it8_lo != it8_hi) && (it8_lo != s.end()) &&
+  auto it8_lo = s.lower_bound(8);
+  auto it8_hi = s.upper_bound(8);
+  EXPECT_TRUE(((it8_lo != it8_hi) && (it8_lo != s.end()) &&
                (std::distance(it8_lo, it8_hi) == 1)));
-  BOOST_CHECK((*it8_lo == 8));
+  EXPECT_TRUE((*it8_lo == 8));
 
   std::pair<ConstIter, ConstIter> it17_eq_range = s.equal_range(17);
-  BOOST_CHECK(
+  EXPECT_TRUE(
       ((it17_eq_range.first != it17_eq_range.second) &&
        (it17_eq_range.first != s.end()) &&
        (std::distance(it17_eq_range.first, it17_eq_range.second) == 1)));
-  BOOST_CHECK((*(it17_eq_range.first) == 17));
+  EXPECT_TRUE((*(it17_eq_range.first) == 17));
 
-  BOOST_CHECK_EQUAL(s.count(15), 1);
+  EXPECT_EQ(s.count(15), 1);
 
-  ConstIter it15 = s.find(15);
-  BOOST_CHECK(it15 != s.end());
-  BOOST_CHECK((*it15 == 15));
+  auto it15 = s.find(15);
+  EXPECT_TRUE(it15 != s.end());
+  EXPECT_TRUE((*it15 == 15));
 
-#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
-  Iter it16 = s.erase(it15);
-  BOOST_CHECK(s.count(15) == 0);
-  BOOST_CHECK(it16 != s.end());
-  BOOST_CHECK((*it16 == 16));
-#else
-  s.erase(it15);
-  BOOST_CHECK(s.count(15) == 0);
-#endif
+  auto it16 = s.erase(it15);
+  EXPECT_TRUE(s.count(15) == 0);
+  EXPECT_TRUE(it16 != s.end());
+  EXPECT_TRUE((*it16 == 16));
   s.erase(s.find(7), s.find(13));
-  BOOST_CHECK_MESSAGE(
-      ((s.count(7) == 0) && (s.count(8) == 0) && (s.count(9) == 0) &&
-       (s.count(10) == 0) && (s.count(11) == 0) && (s.count(12) == 0)),
-      "erase iterator range");
-  BOOST_CHECK(s.erase(16) == 1);
+  EXPECT_TRUE((s.count(7) == 0) && (s.count(8) == 0) && (s.count(9) == 0) &&
+              (s.count(10) == 0) && (s.count(11) == 0) && (s.count(12) == 0))
+      << "erase iterator range";
+  EXPECT_TRUE(s.erase(16) == 1);
 
   // at this point the map contains: 4 5 13 17 20 22
-  ConstIter it = s.begin();
+  auto it = s.begin();
   bool in_order = (it != s.end()) && (*it == 4);
   ++it;
   in_order = in_order && (it != s.end()) && (*it == 5);
@@ -339,8 +308,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(int_multiset_test, Set, int_multisettest_types) {
   in_order = in_order && (it != s.end()) && (*it == 22);
   ++it;
   in_order = in_order && (it == s.end());
-  BOOST_CHECK_MESSAGE(in_order, "in-order element traversal");
-  ConstRevIter rit = s.rbegin();
+  EXPECT_TRUE(in_order) << "in-order element traversal";
+  auto rit = s.rbegin();
   in_order = (rit != s.rend()) && (*rit == 22);
   ++rit;
   in_order = in_order && (rit != s.rend()) && (*rit == 20);
@@ -354,32 +323,30 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(int_multiset_test, Set, int_multisettest_types) {
   in_order = in_order && (rit != s.rend()) && (*rit == 4);
   ++rit;
   in_order = in_order && (rit == s.rend());
-  BOOST_CHECK_MESSAGE(in_order, "reverse in-order element traversal");
+  EXPECT_TRUE(in_order) << "reverse in-order element traversal";
 
   Set s2(tmp_v.begin(), tmp_v.end());
-  BOOST_CHECK_MESSAGE(
-      ((s2.count(7) == 1) && (s2.count(12) == 1) && (s2.count(15) == 1) &&
-       (s2.count(17) == 1) && (s2.count(22) == 1)),
-      "constructor iterator range");
-#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
+  EXPECT_TRUE((s2.count(7) == 1) && (s2.count(12) == 1) &&
+              (s2.count(15) == 1) && (s2.count(17) == 1) && (s2.count(22) == 1))
+      << "constructor iterator range";
   Set s3{ValueType(8), ValueType(13), ValueType(16)};
-  BOOST_CHECK_MESSAGE(
-      ((s3.count(8) == 1) && (s3.count(13) == 1) && (s3.count(16) == 1)),
-      "constructor std::initializer_list");
+  EXPECT_TRUE((s3.count(8) == 1) && (s3.count(13) == 1) && (s3.count(16) == 1))
+      << "constructor std::initializer_list";
 
   swap(s2, s3);
-  BOOST_CHECK_MESSAGE(
-      ((s3.count(7) == 1) && (s3.count(12) == 1) && (s3.count(15) == 1) &&
-       (s3.count(17) == 1) && (s3.count(22) == 1) && (s2.count(8) == 1) &&
-       (s2.count(13) == 1) && (s2.count(16) == 1)),
-      "swap free function");
-#endif
+  EXPECT_TRUE((s3.count(7) == 1) && (s3.count(12) == 1) &&
+              (s3.count(15) == 1) && (s3.count(17) == 1) &&
+              (s3.count(22) == 1) && (s2.count(8) == 1) &&
+              (s2.count(13) == 1) && (s2.count(16) == 1))
+      << "swap free function";
 
   s.swap(s2);
-  BOOST_CHECK_MESSAGE(
-      ((s.count(8) == 1) && (s.count(13) == 1) && (s.count(16) == 1)),
-      "swap member function");
+  EXPECT_TRUE((s.count(8) == 1) && (s.count(13) == 1) && (s.count(16) == 1))
+      << "swap member function";
 
   s.clear();
-  BOOST_CHECK_EQUAL(s.size(), 0);
-};
+  EXPECT_EQ(s.size(), 0);
+}
+
+}  // namespace
+}  // namespace ReaK::graph

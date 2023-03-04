@@ -741,7 +741,7 @@ void nl_intpoint_method_ls_impl(
   MeritFuncComputer m_func(f, df, x, p_x, s, p_s, nu, mu, g, fill_g_jac, h,
                            fill_h_jac);
 
-  ValueType Err_value = ValueType(0.0);
+  auto Err_value = ValueType(0.0);
   for (SizeType i = 0; i < K; ++i) {
     ValueType tmp = z[i] * s[i];
     if (abs(tmp) > Err_value) {
@@ -784,7 +784,7 @@ void nl_intpoint_method_ls_impl(
     // if(abs_tol_mu < abs_tol)
     // abs_tol_mu = abs_tol;
 
-    ValueType rho = ValueType(0.1);
+    auto rho = ValueType(0.1);
 
     while ((++k <= max_iter) && (Err_value > abs_tol_mu)) {
       try {

@@ -54,7 +54,7 @@ void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac,
                                        vect_value_type_t<InputVector>(1e-6),
                                    vect_value_type_t<InputVector> abs_grad_tol =
                                        vect_value_type_t<InputVector>(1e-6)) {
-  typedef vect_value_type_t<InputVector> ValueType;
+  using ValueType = vect_value_type_t<InputVector>;
   using std::abs;
   using std::sqrt;
 

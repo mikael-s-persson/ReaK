@@ -65,12 +65,15 @@ int Jacobi_maxind(const Matrix& A, mat_size_type_t<Matrix> k) {
   using std::abs;
 
   int N = A.get_row_count();
-  if (k >= N - 1)
+  if (k >= N - 1) {
     return N - 1;
+  }
   int result(k + 1);
-  for (int i = k + 2; i < N; ++i)
-    if (abs(A(k, i)) > abs(A(k, result)))
+  for (int i = k + 2; i < N; ++i) {
+    if (abs(A(k, i)) > abs(A(k, result))) {
       result = i;
+    }
+  }
   return result;
 }
 
@@ -84,13 +87,17 @@ void eigensolve_Jacobi_impl(Matrix1& A, Matrix2& E, Matrix3* Q,
   int N = A.get_row_count();
 
   // init lambda, Q, and arrays ind, changed
-  for (int i = 0; i < N; ++i)
+  for (int i = 0; i < N; ++i) {
     E(i, i) = A(i, i);
+  }
   ValueType max_od_value = 0.0;
-  for (int i = 0; i < N - 1; ++i)
-    for (int j = i + 1; j < N; ++j)
-      if (max_od_value < abs(A(i, j)))
+  for (int i = 0; i < N - 1; ++i) {
+    for (int j = i + 1; j < N; ++j) {
+      if (max_od_value < abs(A(i, j))) {
         max_od_value = abs(A(i, j));
+      }
+    }
+  }
 
   while (max_od_value > NumTol) {
     for (int k = 0; k < N - 1; ++k) {
@@ -146,10 +153,13 @@ void eigensolve_Jacobi_impl(Matrix1& A, Matrix2& E, Matrix3* Q,
     }
 
     max_od_value = 0.0;
-    for (int i = 0; i < N - 1; ++i)
-      for (int j = i + 1; j < N; ++j)
-        if (max_od_value < abs(A(i, j)))
+    for (int i = 0; i < N - 1; ++i) {
+      for (int j = i + 1; j < N; ++j) {
+        if (max_od_value < abs(A(i, j))) {
           max_od_value = abs(A(i, j));
+        }
+      }
+    }
   }
 }
 }  // namespace detail

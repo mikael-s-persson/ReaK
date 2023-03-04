@@ -48,26 +48,25 @@ class function;
 template <typename R, typename... Args>
 class function<R(Args...)> : public detail::remote_function {
  private:
-  typedef std::function<R(Args...)> FunctorType;
+  using FunctorType = std::function<R(Args...)>;
   std::variant<FunctorType, std::string> func_id;
 
  public:
-  std::size_t get_params_hash() const {
+  std::size_t get_params_hash() const override {
     static std::size_t h_val =
         detail::get_fnv_1a_hash(detail::concat_arg_types<0, Args...>());
     return h_val;
   }
 
-  std::string get_host() const {
+  std::string get_host() const override {
     if (func_id.index() == 0) {
       return "localhost";
-    } else {
-      return std::get<std::string>(func_id);
     }
+    return std::get<std::string>(func_id);
   }
 
-  typedef function<R(Args...)> self;
-  typedef typename detail::get_func_input_tuple<Args...>::type input_tuple;
+  using self = function<R(Args...)>;
+  using input_tuple = typename detail::get_func_input_tuple<Args...>::type;
 
   function() : detail::remote_function(), func_id(std::string("")) {}
 
@@ -79,14 +78,14 @@ class function<R(Args...)> : public detail::remote_function {
     detail::remote_function::publish();
   }
 
-  ~function() {
+  ~function() override {
     if (func_id.index() == 0) {
       detail::remote_function::unpublish();
     }
   }
 
   void execute(serialization::iarchive& inputs,
-               serialization::oarchive& outputs) {
+               serialization::oarchive& outputs) override {
     if (func_id.index() != 0) {
       throw std::bad_function_call();
     }
@@ -119,40 +118,41 @@ class function<R(Args...)> : public detail::remote_function {
   R operator()(Args2&&... args) {
     if (func_id.index() == 0) {
       return std::get<FunctorType>(func_id)(std::forward<Args2>(args)...);
-    } else {
-      try {
-        // Put args into the call preparations
-        detail::call_preparations pre_data = this->prepare_for_call();
-        detail::input_saver<Args...>::apply(*pre_data.p_aro,
+    }
+    try {
+      // Put args into the call preparations
+      detail::call_preparations pre_data = this->prepare_for_call();
+      detail::input_saver<Args...>::apply(*pre_data.p_aro,
+                                          std::forward<Args2>(args)...);
+
+      // Do the remote call
+      detail::call_results res = this->do_remote_call(std::move(pre_data));
+
+      // Retrieve args from p_ari
+      detail::generic_return_type<R> result_val;
+      result_val.load_from(*res.p_ari);
+      detail::output_loader<Args...>::apply(*res.p_ari,
                                             std::forward<Args2>(args)...);
 
-        // Do the remote call
-        detail::call_results res = this->do_remote_call(std::move(pre_data));
-
-        // Retrieve args from p_ari
-        detail::generic_return_type<R> result_val;
-        result_val.load_from(*res.p_ari);
-        detail::output_loader<Args...>::apply(*res.p_ari,
-                                              std::forward<Args2>(args)...);
-
-        return result_val.take_value();
-      } catch (std::exception& e) {
-        throw marshalling_error(this, e.what());
-      }
+      return result_val.take_value();
+    } catch (std::exception& e) {
+      throw marshalling_error(this, e.what());
     }
   }
 
   void publish(const std::string& aName, std::function<R(Args...)> aFuncObj) {
-    if ((func_id.index() == 0) && (aName != this->name))
+    if ((func_id.index() == 0) && (aName != this->name)) {
       detail::remote_function::unpublish();
+    }
     this->name = aName;
     func_id = std::move(aFuncObj);
     detail::remote_function::publish();
   }
 
   void from_remote(const std::string& aName, const std::string& aHost) {
-    if (func_id.index() == 0)
+    if (func_id.index() == 0) {
       detail::remote_function::unpublish();
+    }
     this->name = aName;
     func_id = aHost;
   }

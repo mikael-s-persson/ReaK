@@ -443,13 +443,16 @@ struct NeighborhoodTrackingVisitorConcept {
   */
 struct neighborhood_tracking_visitor_archetype {
   template <typename Vertex, typename Graph>
-  void travel_explored(Vertex, Vertex, Graph&) const {}
+  void travel_explored(Vertex /*unused*/, Vertex /*unused*/,
+                       Graph& /*unused*/) const {}
   template <typename Vertex, typename Graph>
-  void travel_succeeded(Vertex, Vertex, Graph&) const {}
+  void travel_succeeded(Vertex /*unused*/, Vertex /*unused*/,
+                        Graph& /*unused*/) const {}
   template <typename Vertex, typename Graph>
-  void travel_failed(Vertex, Vertex, Graph&) const {}
+  void travel_failed(Vertex /*unused*/, Vertex /*unused*/,
+                     Graph& /*unused*/) const {}
   template <typename Vertex, typename Graph>
-  void affected_vertex(Vertex, Graph&) const {}
+  void affected_vertex(Vertex /*unused*/, Graph& /*unused*/) const {}
 };
 
 /**
@@ -480,7 +483,7 @@ struct CollisionCheckingVisitorConcept {
   */
 struct collision_checking_visitor_archetype {
   template <typename Position>
-  bool is_position_free(const Position&) const {
+  bool is_position_free(const Position& /*unused*/) const {
     return true;
   }
 };
@@ -539,24 +542,24 @@ struct NodeExploringVisitorConcept {
 struct node_exploring_visitor_archetype {
 
   template <typename Vertex, typename Graph>
-  void initialize_vertex(Vertex, const Graph&) const {}
+  void initialize_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
 
   template <typename Vertex, typename Graph>
-  void discover_vertex(Vertex, const Graph&) const {}
+  void discover_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
 
   template <typename Vertex, typename Graph>
-  void examine_vertex(Vertex, const Graph&) const {}
+  void examine_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
 
   template <typename Edge, typename Graph>
-  void examine_edge(Edge, const Graph&) const {}
+  void examine_edge(Edge /*unused*/, const Graph& /*unused*/) const {}
 
   template <typename Vertex, typename Graph>
-  bool has_search_potential(Vertex, const Graph&) const {
+  bool has_search_potential(Vertex /*unused*/, const Graph& /*unused*/) const {
     return true;
   }
 
   template <typename Vertex, typename Graph>
-  bool should_close(Vertex, const Graph&) const {
+  bool should_close(Vertex /*unused*/, const Graph& /*unused*/) const {
     return false;
   }
 };
@@ -758,7 +761,7 @@ struct AnytimeHeuristicVisitorConcept {
   */
 struct anytime_heuristic_visitor_archetype {
   template <typename Graph>
-  double adjust_relaxation(double d, Graph&) const {
+  double adjust_relaxation(double d, Graph& /*unused*/) const {
     return d;
   }
 };

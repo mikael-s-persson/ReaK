@@ -46,13 +46,14 @@ class any_knn_synchro {
   using self = any_knn_synchro;
 
  protected:
-  virtual void added_vertex_impl(graph::any_graph::vertex_descriptor,
-                                 graph::any_graph&) const {}
-  virtual void removed_vertex_impl(graph::any_graph::vertex_descriptor,
-                                   graph::any_graph&) const {}
+  virtual void added_vertex_impl(graph::any_graph::vertex_descriptor /*unused*/,
+                                 graph::any_graph& /*unused*/) const {}
+  virtual void removed_vertex_impl(
+      graph::any_graph::vertex_descriptor /*unused*/,
+      graph::any_graph& /*unused*/) const {}
 
  public:
-  virtual ~any_knn_synchro() {}
+  virtual ~any_knn_synchro() = default;
 
   /**
    * Called to notify the synchronizer that a vertex was just added to the graph.
@@ -100,7 +101,6 @@ class type_erased_knn_synchro : public any_knn_synchro {
 
   KNNSynchro synchro;
 
- protected:
   void added_vertex_impl(graph::any_graph::vertex_descriptor tev,
                          graph::any_graph& teg) const override {
     synchro.added_vertex(

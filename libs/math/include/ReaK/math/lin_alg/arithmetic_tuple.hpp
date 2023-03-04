@@ -101,86 +101,86 @@ struct arithmetic_tuple_size<arithmetic_tuple<T...>>
 namespace {
 
 template <typename Tuple, typename Func, std::size_t... Idx>
-void tuple_for_each_impl(Tuple& lhs, Func f,
+void tuple_for_each_impl(Tuple& arg1, Func f,
                          std::index_sequence<Idx...> /*unused*/) {
   // Using Louis Dionne's "swallow" trick:
   using swallow = int[];  // NOLINT
-  (void)swallow{1, (f(get<Idx>(lhs)), void(), int())...};
+  (void)swallow{1, (f(get<Idx>(arg1)), void(), int())...};
 }
 
 template <typename Tuple1, typename Tuple2, typename Func, std::size_t... Idx>
-void tuple_for_each_impl(Tuple1& lhs, Tuple2& rhs, Func f,
+void tuple_for_each_impl(Tuple1& arg1, Tuple2& arg2, Func f,
                          std::index_sequence<Idx...> /*unused*/) {
   // Using Louis Dionne's "swallow" trick:
   using swallow = int[];  // NOLINT
-  (void)swallow{1, (f(get<Idx>(lhs), get<Idx>(rhs)), void(), int())...};
+  (void)swallow{1, (f(get<Idx>(arg1), get<Idx>(arg2)), void(), int())...};
 }
 
 template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func,
           std::size_t... Idx>
-void tuple_for_each_impl(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f,
+void tuple_for_each_impl(Tuple1& arg1, Tuple2& arg2, Tuple3& arg3, Func f,
                          std::index_sequence<Idx...> /*unused*/) {
   // Using Louis Dionne's "swallow" trick:
   using swallow = int[];  // NOLINT
   (void)swallow{
-      1, (f(get<Idx>(lhs), get<Idx>(rhs), get<Idx>(fhs)), void(), int())...};
+      1, (f(get<Idx>(arg1), get<Idx>(arg2), get<Idx>(arg3)), void(), int())...};
 }
 
 template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4,
           typename Func, std::size_t... Idx>
-void tuple_for_each_impl(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs,
+void tuple_for_each_impl(Tuple1& arg1, Tuple2& arg2, Tuple3& arg3, Tuple4& arg4,
                          Func f, std::index_sequence<Idx...> /*unused*/) {
   // Using Louis Dionne's "swallow" trick:
   using swallow = int[];  // NOLINT
   (void)swallow{
-      1, (f(get<Idx>(lhs), get<Idx>(rhs), get<Idx>(fhs), get<Idx>(ghs)), void(),
-          int())...};
+      1, (f(get<Idx>(arg1), get<Idx>(arg2), get<Idx>(arg3), get<Idx>(arg4)),
+          void(), int())...};
 }
 
 template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4,
           typename Tuple5, typename Func, std::size_t... Idx>
-void tuple_for_each_impl(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs,
-                         Tuple5& hhs, Func f,
+void tuple_for_each_impl(Tuple1& arg1, Tuple2& arg2, Tuple3& arg3, Tuple4& arg4,
+                         Tuple5& arg5, Func f,
                          std::index_sequence<Idx...> /*unused*/) {
   // Using Louis Dionne's "swallow" trick:
   using swallow = int[];  // NOLINT
-  (void)swallow{1, (f(get<Idx>(lhs), get<Idx>(rhs), get<Idx>(fhs),
-                      get<Idx>(ghs), get<Idx>(hhs)),
+  (void)swallow{1, (f(get<Idx>(arg1), get<Idx>(arg2), get<Idx>(arg3),
+                      get<Idx>(arg4), get<Idx>(arg5)),
                     void(), int())...};
 }
 
 template <typename Tuple, typename Func>
-void tuple_for_each(Tuple& lhs, Func f) {
+void tuple_for_each(Tuple& arg1, Func f) {
   using idx_seq = std::make_index_sequence<arithmetic_tuple_size_v<Tuple>>;
-  tuple_for_each_impl(lhs, f, idx_seq());
+  tuple_for_each_impl(arg1, f, idx_seq());
 }
 
 template <typename Tuple1, typename Tuple2, typename Func>
-void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Func f) {
+void tuple_for_each(Tuple1& arg1, Tuple2& arg2, Func f) {
   using idx_seq = std::make_index_sequence<arithmetic_tuple_size_v<Tuple1>>;
-  tuple_for_each_impl(lhs, rhs, f, idx_seq());
+  tuple_for_each_impl(arg1, arg2, f, idx_seq());
 }
 
 template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
-void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) {
+void tuple_for_each(Tuple1& arg1, Tuple2& arg2, Tuple3& arg3, Func f) {
   using idx_seq = std::make_index_sequence<arithmetic_tuple_size_v<Tuple1>>;
-  tuple_for_each_impl(lhs, rhs, fhs, f, idx_seq());
+  tuple_for_each_impl(arg1, arg2, arg3, f, idx_seq());
 }
 
 template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4,
           typename Func>
-void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs,
+void tuple_for_each(Tuple1& arg1, Tuple2& arg2, Tuple3& arg3, Tuple4& arg4,
                     Func f) {
   using idx_seq = std::make_index_sequence<arithmetic_tuple_size_v<Tuple1>>;
-  tuple_for_each_impl(lhs, rhs, fhs, ghs, f, idx_seq());
+  tuple_for_each_impl(arg1, arg2, arg3, arg4, f, idx_seq());
 }
 
 template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4,
           typename Tuple5, typename Func>
-void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs,
-                    Tuple5& hhs, Func f) {
+void tuple_for_each(Tuple1& arg1, Tuple2& arg2, Tuple3& arg3, Tuple4& arg4,
+                    Tuple5& arg5, Func f) {
   using idx_seq = std::make_index_sequence<arithmetic_tuple_size_v<Tuple1>>;
-  tuple_for_each_impl(lhs, rhs, fhs, ghs, hhs, f, idx_seq());
+  tuple_for_each_impl(arg1, arg2, arg3, arg4, arg5, f, idx_seq());
 }
 
 }  // namespace

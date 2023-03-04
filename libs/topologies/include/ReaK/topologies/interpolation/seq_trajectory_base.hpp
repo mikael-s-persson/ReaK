@@ -60,7 +60,8 @@ class seq_trajectory_base : public named_object {
  protected:
   struct point_time_iterator_impl {
 
-    virtual ~point_time_iterator_impl(){};
+    virtual ~point_time_iterator_impl() = default;
+    ;
 
     virtual void move_by_time(double t) = 0;
 
@@ -73,7 +74,8 @@ class seq_trajectory_base : public named_object {
 
   struct point_fraction_iterator_impl {
 
-    virtual ~point_fraction_iterator_impl(){};
+    virtual ~point_fraction_iterator_impl() = default;
+    ;
 
     virtual void move_by_fraction(double f) = 0;
 
@@ -90,12 +92,13 @@ class seq_trajectory_base : public named_object {
     point_time_iterator_impl* p_impl;
 
    public:
-    point_time_iterator(point_time_iterator_impl* aPImpl = nullptr)
+    explicit point_time_iterator(point_time_iterator_impl* aPImpl = nullptr)
         : p_impl(aPImpl) {}
 
     point_time_iterator(const point_time_iterator& rhs)
         : p_impl(rhs.p_impl->clone()) {}
-    point_time_iterator(point_time_iterator&& rhs) : p_impl(rhs.p_impl) {
+    point_time_iterator(point_time_iterator&& rhs) noexcept
+        : p_impl(rhs.p_impl) {
       rhs.p_impl = nullptr;
     }
     friend void swap(point_time_iterator& rhs, point_time_iterator& lhs) {
@@ -152,12 +155,13 @@ class seq_trajectory_base : public named_object {
     point_fraction_iterator_impl* p_impl;
 
    public:
-    point_fraction_iterator(point_fraction_iterator_impl* aPImpl = nullptr)
+    explicit point_fraction_iterator(
+        point_fraction_iterator_impl* aPImpl = nullptr)
         : p_impl(aPImpl) {}
 
     point_fraction_iterator(const point_fraction_iterator& rhs)
         : p_impl(rhs.p_impl->clone()) {}
-    point_fraction_iterator(point_fraction_iterator&& rhs)
+    point_fraction_iterator(point_fraction_iterator&& rhs) noexcept
         : p_impl(rhs.p_impl) {
       rhs.p_impl = nullptr;
     }
@@ -214,7 +218,6 @@ class seq_trajectory_base : public named_object {
     point_type operator*() const { return p_impl->get_point(); }
   };
 
- public:
   /**
    * Constructs the trajectory from a space, assumes the start and end are at the origin
    * of the space.
@@ -224,7 +227,7 @@ class seq_trajectory_base : public named_object {
     setName(aName);
   }
 
-  virtual ~seq_trajectory_base() {}
+  ~seq_trajectory_base() override = default;
 
   /**
    * Returns the starting time-iterator along the path.
@@ -263,11 +266,12 @@ class seq_trajectory_base : public named_object {
                      ReaK's RTTI and Serialization interfaces
   *******************************************************************************/
 
-  void save(serialization::oarchive& A, unsigned int) const override {
+  void save(serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
   }
 
-  void load(serialization::iarchive& A, unsigned int) override {
+  void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
   }
 

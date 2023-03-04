@@ -32,17 +32,12 @@
 #include <sstream>
 #include <string>
 
-#define BOOST_TEST_DYN_LINK
+#include "gtest/gtest.h"
 
-#define BOOST_TEST_MODULE mat_alg_riccati_eqs
-#include <boost/mpl/list.hpp>
-#include <boost/test/test_case_template.hpp>
-#include <boost/test/unit_test.hpp>
+namespace ReaK {
+namespace {
 
-BOOST_AUTO_TEST_CASE(mat_darex_tests) {
-
-  using namespace ReaK;
-
+TEST(MatAlgRiccatiEq, MatDarexTests) {
   std::vector<mat<double, mat_structure::rectangular>> F_list;
   std::vector<mat<double, mat_structure::rectangular>> G_list;
   std::vector<mat<double, mat_structure::rectangular>> R_list;
@@ -53,9 +48,11 @@ BOOST_AUTO_TEST_CASE(mat_darex_tests) {
     std::string str_tmp;
     std::stringstream ss;
     std::getline(infile, str_tmp);
-    if (!infile)
+    if (!infile) {
       break;
-    std::size_t N, M;
+    }
+    std::size_t N = 0;
+    std::size_t M = 0;
     ss.str(str_tmp);
     ss >> N >> M;
 
@@ -64,39 +61,43 @@ BOOST_AUTO_TEST_CASE(mat_darex_tests) {
       std::getline(infile, str_tmp);
       ss.clear();
       ss.str(str_tmp);
-      for (std::size_t j = 0; j < N; ++j)
+      for (std::size_t j = 0; j < N; ++j) {
         ss >> F_tmp(i, j);
-    };
+      }
+    }
     mat<double, mat_structure::rectangular> G_tmp(N, M);
     for (std::size_t i = 0; i < N; ++i) {
       std::getline(infile, str_tmp);
       ss.clear();
       ss.str(str_tmp);
-      for (std::size_t j = 0; j < M; ++j)
+      for (std::size_t j = 0; j < M; ++j) {
         ss >> G_tmp(i, j);
-    };
+      }
+    }
     mat<double, mat_structure::rectangular> R_tmp(M, M);
     for (std::size_t i = 0; i < M; ++i) {
       std::getline(infile, str_tmp);
       ss.clear();
       ss.str(str_tmp);
-      for (std::size_t j = 0; j < M; ++j)
+      for (std::size_t j = 0; j < M; ++j) {
         ss >> R_tmp(i, j);
-    };
+      }
+    }
     mat<double, mat_structure::rectangular> Q_tmp(N, N);
     for (std::size_t i = 0; i < N; ++i) {
       std::getline(infile, str_tmp);
       ss.clear();
       ss.str(str_tmp);
-      for (std::size_t j = 0; j < N; ++j)
+      for (std::size_t j = 0; j < N; ++j) {
         ss >> Q_tmp(i, j);
-    };
+      }
+    }
 
     F_list.push_back(F_tmp);
     G_list.push_back(G_tmp);
     R_list.push_back(R_tmp);
     Q_list.push_back(Q_tmp);
-  };
+  }
 
   for (std::size_t i = 0; i < F_list.size(); ++i) {
 
@@ -117,23 +118,19 @@ BOOST_AUTO_TEST_CASE(mat_darex_tests) {
            transpose_view(F_list[i]) * P * G_list[i] * Msol_tmp + Q_list[i]);
       double err_norm = norm_1(X - P);
       double P_norm = norm_1(P);
-      BOOST_WARN_MESSAGE(
-          (err_norm < 2e-5 * P_norm),
-          "Significant loss of precision on DAREX problem " << i << "!");
-      BOOST_CHECK_MESSAGE((err_norm < 1e-3 * P_norm),
-                          "Failed to solve DAREX problem "
-                              << i << "! Loss of precision unacceptable!");
+      EXPECT_LT(err_norm, 2e-5 * P_norm)
+          << "Significant loss of precision on DAREX problem " << i << "!";
+      EXPECT_LT(err_norm, 1e-3 * P_norm)
+          << "Failed to solve DAREX problem " << i
+          << "! Loss of precision unacceptable!";
     } catch (...) {
-      BOOST_ERROR("DAREX problem " << i
-                                   << " caused an exception to be thrown!");
-    };
-  };
-};
+      EXPECT_TRUE(false) << "DAREX problem " << i
+                         << " caused an exception to be thrown!";
+    }
+  }
+}
 
-BOOST_AUTO_TEST_CASE(mat_carex_tests) {
-
-  using namespace ReaK;
-
+TEST(MatAlgRiccatiEq, MatCarexTests) {
   // These are the benchmark tests for the Continuous-time Algebraic Riccatic Equations (CARE)
   // NOTE So, far it seems that these are not working. Needs investigation.
   //      It is a bit weird that it wouldn't work since DARE is exactly the same algorithm
@@ -148,9 +145,11 @@ BOOST_AUTO_TEST_CASE(mat_carex_tests) {
     std::string str_tmp;
     std::stringstream ss;
     std::getline(infile, str_tmp);
-    if (!infile)
+    if (!infile) {
       break;
-    std::size_t N, M;
+    }
+    std::size_t N = 0;
+    std::size_t M = 0;
     ss.str(str_tmp);
     ss >> N >> M;
 
@@ -159,39 +158,43 @@ BOOST_AUTO_TEST_CASE(mat_carex_tests) {
       std::getline(infile, str_tmp);
       ss.clear();
       ss.str(str_tmp);
-      for (std::size_t j = 0; j < N; ++j)
+      for (std::size_t j = 0; j < N; ++j) {
         ss >> A_tmp(i, j);
-    };
+      }
+    }
     mat<double, mat_structure::rectangular> B_tmp(N, M);
     for (std::size_t i = 0; i < N; ++i) {
       std::getline(infile, str_tmp);
       ss.clear();
       ss.str(str_tmp);
-      for (std::size_t j = 0; j < M; ++j)
+      for (std::size_t j = 0; j < M; ++j) {
         ss >> B_tmp(i, j);
-    };
+      }
+    }
     mat<double, mat_structure::rectangular> R_tmp(M, M);
     for (std::size_t i = 0; i < M; ++i) {
       std::getline(infile, str_tmp);
       ss.clear();
       ss.str(str_tmp);
-      for (std::size_t j = 0; j < M; ++j)
+      for (std::size_t j = 0; j < M; ++j) {
         ss >> R_tmp(i, j);
-    };
+      }
+    }
     mat<double, mat_structure::rectangular> Q_tmp(N, N);
     for (std::size_t i = 0; i < N; ++i) {
       std::getline(infile, str_tmp);
       ss.clear();
       ss.str(str_tmp);
-      for (std::size_t j = 0; j < N; ++j)
+      for (std::size_t j = 0; j < N; ++j) {
         ss >> Q_tmp(i, j);
-    };
+      }
+    }
 
     A_list.push_back(A_tmp);
     B_list.push_back(B_tmp);
     R_list.push_back(R_tmp);
     Q_list.push_back(Q_tmp);
-  };
+  }
 
   for (std::size_t i = 0; i < A_list.size(); ++i) {
 
@@ -211,15 +214,17 @@ BOOST_AUTO_TEST_CASE(mat_carex_tests) {
            P * B_list[i] * Msol_tmp + Q_list[i]);
       double err_norm = norm_1(X);
       double P_norm = norm_1(P);
-      BOOST_WARN_MESSAGE(
-          (err_norm < 2e-5 * P_norm),
-          "Significant loss of precision on CAREX problem " << i << "!");
-      BOOST_CHECK_MESSAGE((err_norm < 1e-3 * P_norm),
-                          "Failed to solve CAREX problem "
-                              << i << "! Loss of precision unacceptable!");
+      EXPECT_LT(err_norm, 2e-5 * P_norm)
+          << "Significant loss of precision on CAREX problem " << i << "!";
+      EXPECT_LT(err_norm, 1e-3 * P_norm)
+          << "Failed to solve CAREX problem " << i
+          << "! Loss of precision unacceptable!";
     } catch (...) {
-      BOOST_ERROR("CAREX problem " << i
-                                   << " caused an exception to be thrown!");
-    };
-  };
-};
+      EXPECT_TRUE(false) << "CAREX problem " << i
+                         << " caused an exception to be thrown!";
+    }
+  }
+}
+
+}  // namespace
+}  // namespace ReaK
