@@ -44,8 +44,8 @@
 #ifndef REAK_MAT_SVD_METHOD_HPP
 #define REAK_MAT_SVD_METHOD_HPP
 
-#include "mat_alg.hpp"
-#include "mat_num_exceptions.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
 #include <type_traits>
 

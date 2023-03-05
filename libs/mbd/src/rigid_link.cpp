@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/rigid_link.hpp>
+#include "ReaK/mbd/kte/rigid_link.hpp"
 
 namespace ReaK::kte {
 

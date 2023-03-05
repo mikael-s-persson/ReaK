@@ -21,22 +21,22 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
 
-#include <ReaK/mbd/kte/damper.hpp>       // done.
-#include <ReaK/mbd/kte/free_joints.hpp>  // done.
-#include <ReaK/mbd/kte/inertia.hpp>      // done.
-#include <ReaK/mbd/kte/kte_map.hpp>      // for kte_map
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
-#include <ReaK/mbd/kte/prismatic_joint.hpp>  // done.
-#include <ReaK/mbd/kte/revolute_joint.hpp>   // done.
-#include <ReaK/mbd/kte/rigid_link.hpp>       // done.
-#include <ReaK/mbd/kte/spring.hpp>           // done.
-#include <ReaK/mbd/kte/torsion_damper.hpp>   // done.
-#include <ReaK/mbd/kte/torsion_spring.hpp>   // done.
 #include <utility>
-//#include <ReaK/mbd/kte/line_point_mindist.hpp>
-//#include <ReaK/mbd/kte/plane_point_mindist.hpp>
+#include "ReaK/mbd/kte/damper.hpp"       // done.
+#include "ReaK/mbd/kte/free_joints.hpp"  // done.
+#include "ReaK/mbd/kte/inertia.hpp"      // done.
+#include "ReaK/mbd/kte/kte_map.hpp"      // for kte_map
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
+#include "ReaK/mbd/kte/prismatic_joint.hpp"  // done.
+#include "ReaK/mbd/kte/revolute_joint.hpp"   // done.
+#include "ReaK/mbd/kte/rigid_link.hpp"       // done.
+#include "ReaK/mbd/kte/spring.hpp"           // done.
+#include "ReaK/mbd/kte/torsion_damper.hpp"   // done.
+#include "ReaK/mbd/kte/torsion_spring.hpp"   // done.
+//#include "ReaK/mbd/kte/line_point_mindist.hpp"
+//#include "ReaK/mbd/kte/plane_point_mindist.hpp"
 
 #include <Inventor/SbColor.h>              // for SbColor
 #include <Inventor/SbMatrix.h>             // for SbMatrix

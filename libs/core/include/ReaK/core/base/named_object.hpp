@@ -34,7 +34,7 @@
 #ifndef REAK_NAMED_OBJECT_HPP
 #define REAK_NAMED_OBJECT_HPP
 
-#include "shared_object.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
 #include <string>
 

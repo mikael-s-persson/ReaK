@@ -27,20 +27,20 @@
 #include "ui_CRS_planner_config.h"
 #include "ui_CRS_planner_window.h"
 
-#include <ReaK/mbd/models/chaser_target_model_data.hpp>
-#include <ReaK/planning/path_planning/path_planner_options.hpp>
 #include "CRS_planner_data.hpp"
+#include "ReaK/mbd/models/chaser_target_model_data.hpp"
+#include "ReaK/planning/path_planning/path_planner_options.hpp"
 
-#include <ReaK/core/recorders/data_record_options.hpp>
-#include <ReaK/mbd/qt/rk_view3d_menu.hpp>
 #include <atomic>
 #include <thread>
+#include "ReaK/core/recorders/data_record_options.hpp"
+#include "ReaK/mbd/qt/rk_view3d_menu.hpp"
 
-#include <ReaK/control/qt/target_pred_config_widget.hpp>
-#include <ReaK/mbd/qt/chaser_target_config_widget.hpp>
-#include <ReaK/mbd/qt/chaser_target_interact_widget.hpp>
-#include <ReaK/planning/qt/manip_space_config_widget.hpp>
-#include <ReaK/planning/qt/planner_alg_config_widget.hpp>
+#include "ReaK/control/qt/target_pred_config_widget.hpp"
+#include "ReaK/mbd/qt/chaser_target_config_widget.hpp"
+#include "ReaK/mbd/qt/chaser_target_interact_widget.hpp"
+#include "ReaK/planning/qt/manip_space_config_widget.hpp"
+#include "ReaK/planning/qt/planner_alg_config_widget.hpp"
 
 #include "CRS_run_dialog.hpp"
 

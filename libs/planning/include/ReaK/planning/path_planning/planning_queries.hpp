@@ -33,16 +33,16 @@
 #ifndef REAK_PLANNING_QUERIES_HPP
 #define REAK_PLANNING_QUERIES_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/subspace_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/subspace_concept.hpp"
 
-#include <ReaK/topologies/interpolation/seq_path_base.hpp>
-#include <ReaK/topologies/interpolation/seq_trajectory_base.hpp>
+#include "ReaK/topologies/interpolation/seq_path_base.hpp"
+#include "ReaK/topologies/interpolation/seq_trajectory_base.hpp"
 
-#include "any_motion_graphs.hpp"
+#include "ReaK/planning/path_planning/any_motion_graphs.hpp"
 
 #include <type_traits>
 

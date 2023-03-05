@@ -21,8 +21,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/typed_object.hpp>
-#include <ReaK/core/rtti/so_type.hpp>
+#include "ReaK/core/rtti/so_type.hpp"
+#include "ReaK/core/base/typed_object.hpp"
 
 #include <algorithm>
 #include <iostream>

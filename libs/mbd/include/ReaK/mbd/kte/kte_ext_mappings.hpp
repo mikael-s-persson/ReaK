@@ -33,8 +33,8 @@
 #ifndef REAK_KTE_EXT_MAPPINGS_HPP
 #define REAK_KTE_EXT_MAPPINGS_HPP
 
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
 #include <map>
 

@@ -33,12 +33,12 @@
 #ifndef REAK_QUADRATIC_PROGRAMS_HPP
 #define REAK_QUADRATIC_PROGRAMS_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_qr_decomp.hpp>
-#include <ReaK/math/lin_alg/mat_views.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
+#include "ReaK/math/lin_alg/mat_views.hpp"
 
-#include "optim_exceptions.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 #include <vector>
 

@@ -32,7 +32,7 @@
 #ifndef REAK_OBJ_PROPERTIES_QTMODEL_HPP
 #define REAK_OBJ_PROPERTIES_QTMODEL_HPP
 
-#include <ReaK/core/serialization/objtree_archiver.hpp>
+#include "ReaK/core/serialization/objtree_archiver.hpp"
 
 #include <QAbstractTableModel>
 #include <QModelIndex>

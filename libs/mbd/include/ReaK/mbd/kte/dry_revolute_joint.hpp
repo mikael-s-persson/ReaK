@@ -43,9 +43,9 @@
 #ifndef REAK_DRY_REVOLUTE_JOINT_HPP
 #define REAK_DRY_REVOLUTE_JOINT_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "revolute_joint.hpp"
+#include "ReaK/mbd/kte/revolute_joint.hpp"
 
 namespace ReaK::kte {
 

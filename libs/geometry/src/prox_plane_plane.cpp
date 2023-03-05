@@ -23,7 +23,7 @@
 
 #include <cmath>
 
-#include <ReaK/geometry/proximity/prox_plane_plane.hpp>
+#include "ReaK/geometry/proximity/prox_plane_plane.hpp"
 
 namespace ReaK::geom {
 

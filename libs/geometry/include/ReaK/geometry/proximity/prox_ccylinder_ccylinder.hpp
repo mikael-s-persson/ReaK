@@ -32,9 +32,9 @@
 #ifndef REAK_PROX_CCYLINDER_CCYLINDER_HPP
 #define REAK_PROX_CCYLINDER_CCYLINDER_HPP
 
-#include "proximity_finder_3D.hpp"
+#include "ReaK/geometry/proximity/proximity_finder_3D.hpp"
 
-#include <ReaK/geometry/shapes/capped_cylinder.hpp>
+#include "ReaK/geometry/shapes/capped_cylinder.hpp"
 
 namespace ReaK::geom {
 

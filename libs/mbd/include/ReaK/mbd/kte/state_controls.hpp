@@ -37,10 +37,10 @@
 #ifndef REAK_STATE_CONTROLS_HPP
 #define REAK_STATE_CONTROLS_HPP
 
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
 #include <utility>
-#include "kte_map.hpp"
-#include "kte_system_input.hpp"
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
+#include "ReaK/mbd/kte/kte_map.hpp"
+#include "ReaK/mbd/kte/kte_system_input.hpp"
 
 namespace ReaK::kte {
 

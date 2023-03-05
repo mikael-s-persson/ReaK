@@ -37,13 +37,13 @@
 #ifndef REAK_PRM_PATH_PLANNER_HPP
 #define REAK_PRM_PATH_PLANNER_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include "motion_planner_base.hpp"
+#include "ReaK/planning/path_planning/motion_planner_base.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include "any_sbmp_reporter.hpp"
+#include "ReaK/planning/path_planning/any_sbmp_reporter.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
 namespace ReaK::pp {
 

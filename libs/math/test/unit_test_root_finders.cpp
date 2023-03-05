@@ -21,8 +21,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/math/root_finders/bisection_method.hpp>
-#include <ReaK/math/root_finders/secant_method.hpp>
+#include "ReaK/math/root_finders/bisection_method.hpp"
+#include "ReaK/math/root_finders/secant_method.hpp"
 
 #include <cmath>
 #include <vector>

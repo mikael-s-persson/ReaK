@@ -34,8 +34,8 @@
 #ifndef REAK_MAT_ALG_SKEW_SYMMETRIC_HPP
 #define REAK_MAT_ALG_SKEW_SYMMETRIC_HPP
 
-#include "mat_alg_general.hpp"
-#include "mat_op_results.hpp"
+#include "ReaK/math/lin_alg/mat_alg_general.hpp"
+#include "ReaK/math/lin_alg/mat_op_results.hpp"
 
 #include <type_traits>
 

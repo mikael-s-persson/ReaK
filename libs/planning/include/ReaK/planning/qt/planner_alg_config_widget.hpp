@@ -29,7 +29,7 @@
 #ifndef REAK_PLANNER_ALG_CONFIG_WIDGET_HPP
 #define REAK_PLANNER_ALG_CONFIG_WIDGET_HPP
 
-#include <ReaK/planning/path_planning/path_planner_options.hpp>
+#include "ReaK/planning/path_planning/path_planner_options.hpp"
 
 #include <QDockWidget>
 

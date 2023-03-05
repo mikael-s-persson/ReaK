@@ -8,14 +8,14 @@
  * \date March 2013
  */
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/geometry/shapes/colored_model.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/geometry/shapes/colored_model.hpp"
 
-#include <ReaK/mbd/coin3D/oi_reader.hpp>
+#include "ReaK/mbd/coin3D/oi_reader.hpp"
 
-#include <ReaK/core/serialization/bin_archiver.hpp>
-#include <ReaK/core/serialization/protobuf_archiver.hpp>
-#include <ReaK/core/serialization/xml_archiver.hpp>
+#include "ReaK/core/serialization/bin_archiver.hpp"
+#include "ReaK/core/serialization/protobuf_archiver.hpp"
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"

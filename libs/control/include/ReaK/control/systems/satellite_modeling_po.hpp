@@ -34,8 +34,8 @@
 #ifndef REAK_SATELLITE_MODELING_PO_HPP
 #define REAK_SATELLITE_MODELING_PO_HPP
 
-#include "satellite_invar_models.hpp"
-#include "satellite_modeling_options.hpp"
+#include "ReaK/control/systems/satellite_invar_models.hpp"
+#include "ReaK/control/systems/satellite_modeling_options.hpp"
 
 #include "absl/flags/declare.h"
 

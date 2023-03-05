@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/qt/data_stream_opt_widget.hpp>
+#include "ReaK/core/qt/data_stream_opt_widget.hpp"
 
 #include "ui_data_stream_opt.h"
 
@@ -34,10 +34,10 @@
 #include <QScrollArea>
 
 #if 0
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 #endif
 
-#include <ReaK/core/recorders/data_record_options.hpp>
+#include "ReaK/core/recorders/data_record_options.hpp"
 
 namespace ReaK {
 

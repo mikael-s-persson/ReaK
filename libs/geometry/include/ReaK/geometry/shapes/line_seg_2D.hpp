@@ -32,7 +32,7 @@
 #ifndef REAK_LINE_SEG_2D_HPP
 #define REAK_LINE_SEG_2D_HPP
 
-#include "geometry_2D.hpp"
+#include "ReaK/geometry/shapes/geometry_2D.hpp"
 
 namespace ReaK::geom {
 

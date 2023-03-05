@@ -32,18 +32,18 @@
 #ifndef REAK_PLANNING_VISITORS_HPP
 #define REAK_PLANNING_VISITORS_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/global_rng.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/global_rng.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include "any_knn_synchro.hpp"
-#include "any_motion_graphs.hpp"
-#include "any_sbmp_reporter.hpp"
-#include "motion_planner_base.hpp"
-#include "planning_queries.hpp"
+#include "ReaK/planning/path_planning/any_knn_synchro.hpp"
+#include "ReaK/planning/path_planning/any_motion_graphs.hpp"
+#include "ReaK/planning/path_planning/any_sbmp_reporter.hpp"
+#include "ReaK/planning/path_planning/motion_planner_base.hpp"
+#include "ReaK/planning/path_planning/planning_queries.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/subspace_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/subspace_concept.hpp"
 
 #include <type_traits>
 

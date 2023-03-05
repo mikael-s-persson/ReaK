@@ -33,10 +33,10 @@
 #ifndef REAK_DATA_RECORD_HPP
 #define REAK_DATA_RECORD_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object.hpp>
 #include <atomic>
 #include <thread>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
 #include <exception>
 #include <iostream>

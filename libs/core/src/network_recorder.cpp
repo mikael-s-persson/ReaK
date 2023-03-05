@@ -21,11 +21,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/recorders/network_recorder.hpp>
+#include "ReaK/core/recorders/network_recorder.hpp"
 
-#include <ReaK/core/base/endian_conversions.hpp>
+#include "ReaK/core/base/endian_conversions.hpp"
 
-#include <boost/asio.hpp>
+#include "boost/asio.hpp"
 
 namespace ReaK::recorder {
 

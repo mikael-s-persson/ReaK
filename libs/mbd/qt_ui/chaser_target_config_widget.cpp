@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/qt/chaser_target_config_widget.hpp>
+#include "ReaK/mbd/qt/chaser_target_config_widget.hpp"
 
 #include <QDockWidget>
 #include <QFileDialog>
@@ -30,10 +30,10 @@
 #include <QMessageBox>
 #include <QScrollArea>
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
 
 #include "ui_chaser_target_mdl_config.h"
 

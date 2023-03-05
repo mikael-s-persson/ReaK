@@ -37,7 +37,7 @@
 #ifndef REAK_MOTION_JACOBIANS_HPP
 #define REAK_MOTION_JACOBIANS_HPP
 
-#include "kinetostatics.hpp"
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
 
 #include <type_traits>
 #include <utility>

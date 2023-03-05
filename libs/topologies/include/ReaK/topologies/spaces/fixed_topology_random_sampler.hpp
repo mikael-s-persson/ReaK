@@ -33,9 +33,9 @@
 #ifndef REAK_FIXED_TOPOLOGY_RANDOM_SAMPLER_HPP
 #define REAK_FIXED_TOPOLOGY_RANDOM_SAMPLER_HPP
 
-#include <ReaK/core/base/serializable.hpp>
+#include "ReaK/core/base/serializable.hpp"
 
-#include "random_sampler_concept.hpp"
+#include "ReaK/topologies/spaces/random_sampler_concept.hpp"
 
 namespace ReaK::pp {
 

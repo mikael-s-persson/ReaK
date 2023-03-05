@@ -53,11 +53,11 @@
 #ifndef REAK_MAT_COMPOSITE_ADAPTOR_HPP
 #define REAK_MAT_COMPOSITE_ADAPTOR_HPP
 
-#include "mat_concepts.hpp"
-#include "mat_traits.hpp"
-#include "mat_views.hpp"
-#include "vect_concepts.hpp"
-#include "vect_views.hpp"
+#include "ReaK/math/lin_alg/mat_concepts.hpp"
+#include "ReaK/math/lin_alg/mat_traits.hpp"
+#include "ReaK/math/lin_alg/mat_views.hpp"
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
+#include "ReaK/math/lin_alg/vect_views.hpp"
 
 #include <type_traits>
 

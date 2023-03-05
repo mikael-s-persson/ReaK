@@ -23,15 +23,15 @@
 
 #include <iostream>
 
-#include <boost/graph/adjacency_list_BC.hpp>
-#include <boost/graph/properties.hpp>
+#include "boost/graph/adjacency_list_BC.hpp"
+#include "boost/graph/properties.hpp"
 
 #include <functional>
 
-#include <ReaK/math/lin_alg/vect_alg.hpp>
-#include <ReaK/planning/graph_alg/adstar_search.hpp>
+#include "ReaK/math/lin_alg/vect_alg.hpp"
+#include "ReaK/planning/graph_alg/adstar_search.hpp"
 
-#include <boost/graph/astar_search.hpp>
+#include "boost/graph/astar_search.hpp"
 
 #include <FreeImage.h>
 

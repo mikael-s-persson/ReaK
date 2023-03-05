@@ -32,10 +32,10 @@
 #ifndef REAK_QUAT_ALG_HPP
 #define REAK_QUAT_ALG_HPP
 
-#include <ReaK/core/serialization/archiver.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/core/serialization/archiver.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
-#include "rotations_3D.hpp"
+#include "ReaK/math/kinetostatics/rotations_3D.hpp"
 
 #include <cassert>
 #include <cmath>

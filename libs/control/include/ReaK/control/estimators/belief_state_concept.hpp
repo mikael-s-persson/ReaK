@@ -37,10 +37,10 @@
 #ifndef REAK_BELIEF_STATE_CONCEPT_HPP
 #define REAK_BELIEF_STATE_CONCEPT_HPP
 
-#include <ReaK/control/systems/state_space_sys_concept.hpp>
-#include <ReaK/control/systems/state_vector_concept.hpp>
-#include <boost/concept_check.hpp>
-#include "covariance_concept.hpp"
+#include "ReaK/control/estimators/covariance_concept.hpp"
+#include "ReaK/control/systems/state_space_sys_concept.hpp"
+#include "ReaK/control/systems/state_vector_concept.hpp"
+#include "boost/concept_check.hpp"
 
 namespace ReaK::ctrl {
 

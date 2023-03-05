@@ -34,16 +34,16 @@
 #ifndef REAK_SAP_NDOF_METRICS_HPP
 #define REAK_SAP_NDOF_METRICS_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
-#include <ReaK/topologies/spaces/proper_metric_concept.hpp>
-#include <ReaK/topologies/spaces/time_topology.hpp>
+#include "ReaK/topologies/spaces/proper_metric_concept.hpp"
+#include "ReaK/topologies/spaces/time_topology.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
-#include "generic_interpolator_factory.hpp"
-#include "sustained_acceleration_pulse_Ndof.hpp"
+#include "ReaK/topologies/interpolation/generic_interpolator_factory.hpp"
+#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof.hpp"
 
 #include <type_traits>
 #include <utility>

@@ -36,12 +36,12 @@
 #ifndef REAK_FORCE_ACTUATOR_HPP
 #define REAK_FORCE_ACTUATOR_HPP
 
-#include <ReaK/core/base/defs.hpp>
 #include <utility>
+#include "ReaK/core/base/defs.hpp"
 
-#include "kte_map.hpp"
+#include "ReaK/mbd/kte/kte_map.hpp"
 
-#include "reacting_kte.hpp"
+#include "ReaK/mbd/kte/reacting_kte.hpp"
 
 namespace ReaK::kte {
 

@@ -43,20 +43,20 @@
 #ifndef REAK_TSOS_AUG_KALMAN_FILTER_HPP
 #define REAK_TSOS_AUG_KALMAN_FILTER_HPP
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
-#include <ReaK/math/lin_alg/vect_concepts.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
-#include <ReaK/control/systems/augmented_sss_concept.hpp>
-#include <ReaK/control/systems/discrete_linear_sss_concept.hpp>
-#include "belief_state_concept.hpp"
-#include "covariance_concept.hpp"
+#include "ReaK/control/estimators/belief_state_concept.hpp"
+#include "ReaK/control/estimators/covariance_concept.hpp"
+#include "ReaK/control/systems/augmented_sss_concept.hpp"
+#include "ReaK/control/systems/discrete_linear_sss_concept.hpp"
 
-#include "covariance_matrix.hpp"
-#include "gaussian_belief_state.hpp"
-#include "kalman_filter.hpp"
+#include "ReaK/control/estimators/covariance_matrix.hpp"
+#include "ReaK/control/estimators/gaussian_belief_state.hpp"
+#include "ReaK/control/estimators/kalman_filter.hpp"
 
 #include <type_traits>
 

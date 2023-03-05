@@ -47,12 +47,12 @@
 #ifndef REAK_MAT_QR_DECOMP_HPP
 #define REAK_MAT_QR_DECOMP_HPP
 
-#include "mat_alg.hpp"
-#include "mat_num_exceptions.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
-#include "mat_householder.hpp"
+#include "ReaK/math/lin_alg/mat_householder.hpp"
 
-#include "mat_cholesky.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
 
 #include <type_traits>
 

@@ -33,10 +33,10 @@
 #ifndef REAK_PLANE_POINT_MINDIST_HPP
 #define REAK_PLANE_POINT_MINDIST_HPP
 
-#include "kte_map.hpp"
+#include "ReaK/mbd/kte/kte_map.hpp"
 
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
 #include <utility>
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
 
 namespace ReaK::kte {
 

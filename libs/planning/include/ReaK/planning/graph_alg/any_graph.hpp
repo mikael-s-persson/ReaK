@@ -35,21 +35,21 @@
 #include <stdexcept>
 #include <string>
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/graph_mutability_traits.hpp>
-#include <boost/graph/properties.hpp>
-#include <boost/iterator/iterator_facade.hpp>
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/graph/graph_mutability_traits.hpp"
+#include "boost/graph/properties.hpp"
+#include "boost/iterator/iterator_facade.hpp"
 
 #include <any>
-#include <boost/range/any_range.hpp>
+#include "boost/range/any_range.hpp"
 
 #include <tuple>
 #include <type_traits>
 
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/more_property_tags.hpp>
+#include "boost/graph/more_property_tags.hpp"
 
 namespace ReaK::graph {
 

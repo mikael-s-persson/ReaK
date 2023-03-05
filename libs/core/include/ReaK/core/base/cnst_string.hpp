@@ -32,7 +32,7 @@
 #ifndef REAK_CNST_STRING_HPP
 #define REAK_CNST_STRING_HPP
 
-#include "defs.hpp"
+#include "ReaK/core/base/defs.hpp"
 
 #include <array>
 #include <cstdint>

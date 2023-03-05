@@ -33,12 +33,12 @@
 #ifndef REAK_SEQ_TRAJECTORY_WRAPPER_HPP
 #define REAK_SEQ_TRAJECTORY_WRAPPER_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "seq_trajectory_base.hpp"
-#include "sequential_trajectory_concept.hpp"
+#include "ReaK/topologies/interpolation/seq_trajectory_base.hpp"
+#include "ReaK/topologies/interpolation/sequential_trajectory_concept.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::pp {
 

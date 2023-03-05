@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/models/manip_kinematics_helper.hpp>
+#include "ReaK/mbd/models/manip_kinematics_helper.hpp"
 
 namespace ReaK::kte {
 

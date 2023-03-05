@@ -33,7 +33,7 @@
 #ifndef REAK_KTE_CHAIN_VISITATION_HPP
 #define REAK_KTE_CHAIN_VISITATION_HPP
 
-#include "kte_map_chain.hpp"
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
 
 #include <tuple>
 #include <type_traits>

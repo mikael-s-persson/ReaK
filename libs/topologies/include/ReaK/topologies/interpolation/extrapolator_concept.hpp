@@ -40,11 +40,11 @@
 #ifndef REAK_EXTRAPOLATOR_CONCEPT_HPP
 #define REAK_EXTRAPOLATOR_CONCEPT_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::pp {
 

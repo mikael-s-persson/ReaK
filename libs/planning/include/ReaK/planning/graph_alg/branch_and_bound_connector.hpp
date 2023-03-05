@@ -41,18 +41,18 @@
 #include <tuple>
 #include <type_traits>
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
-#include "lazy_connector.hpp"
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/lazy_connector.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
-#include <boost/graph/detail/d_ary_heap.hpp>
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/properties.hpp>
+#include "boost/graph/detail/d_ary_heap.hpp"
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/graph/properties.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/more_property_maps.hpp>
-#include <boost/graph/more_property_tags.hpp>
+#include "boost/graph/more_property_maps.hpp"
+#include "boost/graph/more_property_tags.hpp"
 
 namespace ReaK::graph {
 

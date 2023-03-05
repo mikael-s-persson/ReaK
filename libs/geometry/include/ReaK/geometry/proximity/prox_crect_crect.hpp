@@ -32,9 +32,9 @@
 #ifndef REAK_PROX_CRECT_CRECT_HPP
 #define REAK_PROX_CRECT_CRECT_HPP
 
-#include "proximity_finder_2D.hpp"
+#include "ReaK/geometry/proximity/proximity_finder_2D.hpp"
 
-#include <ReaK/geometry/shapes/capped_rectangle.hpp>
+#include "ReaK/geometry/shapes/capped_rectangle.hpp"
 
 namespace ReaK::geom {
 

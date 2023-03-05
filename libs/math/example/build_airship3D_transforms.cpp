@@ -21,10 +21,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/serialization/xml_archiver.hpp>
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
-#include <ReaK/math/kinetostatics/quat_alg.hpp>
-#include <ReaK/math/kinetostatics/rotations_3D.hpp>
+#include "ReaK/math/kinetostatics/quat_alg.hpp"
+#include "ReaK/math/kinetostatics/rotations_3D.hpp"
 
 int main() {
 

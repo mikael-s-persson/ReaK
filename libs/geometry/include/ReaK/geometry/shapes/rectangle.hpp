@@ -32,7 +32,7 @@
 #ifndef REAK_RECTANGLE_HPP
 #define REAK_RECTANGLE_HPP
 
-#include "shape_2D.hpp"
+#include "ReaK/geometry/shapes/shape_2D.hpp"
 
 namespace ReaK::geom {
 

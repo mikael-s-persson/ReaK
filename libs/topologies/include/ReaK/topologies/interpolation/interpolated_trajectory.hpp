@@ -34,16 +34,16 @@
 #ifndef REAK_INTERPOLATED_TRAJECTORY_HPP
 #define REAK_INTERPOLATED_TRAJECTORY_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
-#include "interpolator_concept.hpp"
-#include "spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/interpolation/interpolator_concept.hpp"
+#include "ReaK/topologies/interpolation/spatial_trajectory_concept.hpp"
 
-#include "waypoint_container.hpp"
+#include "ReaK/topologies/interpolation/waypoint_container.hpp"
 
-#include <boost/concept_check.hpp>
 #include <cmath>
+#include "boost/concept_check.hpp"
 
 #include <limits>
 #include <list>

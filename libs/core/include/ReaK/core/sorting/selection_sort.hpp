@@ -32,7 +32,7 @@
 #ifndef REAK_SELECTION_SORT_HPP
 #define REAK_SELECTION_SORT_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
 #include <algorithm>
 #include <functional>

@@ -38,16 +38,16 @@
 #ifndef REAK_COVARIANCE_CONCEPT_HPP
 #define REAK_COVARIANCE_CONCEPT_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
-#include <ReaK/math/lin_alg/mat_concepts.hpp>
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
+#include "ReaK/math/lin_alg/mat_concepts.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
-#include <ReaK/control/systems/state_vector_concept.hpp>
+#include "ReaK/control/systems/state_vector_concept.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::ctrl {
 

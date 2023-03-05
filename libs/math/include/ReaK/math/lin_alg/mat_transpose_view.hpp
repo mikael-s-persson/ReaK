@@ -32,7 +32,7 @@
 #ifndef REAK_MAT_TRANSPOSE_VIEW_HPP
 #define REAK_MAT_TRANSPOSE_VIEW_HPP
 
-#include "mat_alg_general.hpp"
+#include "ReaK/math/lin_alg/mat_alg_general.hpp"
 
 #include <type_traits>
 

@@ -33,25 +33,25 @@
 #ifndef REAK_P2P_PLANNING_QUERY_HPP
 #define REAK_P2P_PLANNING_QUERY_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/random_sampler_concept.hpp>
-#include <ReaK/topologies/spaces/steerable_space_concept.hpp>
-#include <ReaK/topologies/spaces/subspace_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/random_sampler_concept.hpp"
+#include "ReaK/topologies/spaces/steerable_space_concept.hpp"
+#include "ReaK/topologies/spaces/subspace_concept.hpp"
 
-#include <ReaK/topologies/interpolation/discrete_point_path.hpp>
-#include <ReaK/topologies/interpolation/discrete_point_trajectory.hpp>
-#include <ReaK/topologies/interpolation/point_to_point_path.hpp>
-#include <ReaK/topologies/interpolation/point_to_point_trajectory.hpp>
-#include <ReaK/topologies/interpolation/seq_path_wrapper.hpp>
-#include <ReaK/topologies/interpolation/seq_trajectory_wrapper.hpp>
-#include "planning_queries.hpp"
+#include "ReaK/planning/path_planning/planning_queries.hpp"
+#include "ReaK/topologies/interpolation/discrete_point_path.hpp"
+#include "ReaK/topologies/interpolation/discrete_point_trajectory.hpp"
+#include "ReaK/topologies/interpolation/point_to_point_path.hpp"
+#include "ReaK/topologies/interpolation/point_to_point_trajectory.hpp"
+#include "ReaK/topologies/interpolation/seq_path_wrapper.hpp"
+#include "ReaK/topologies/interpolation/seq_trajectory_wrapper.hpp"
 
-#include "any_motion_graphs.hpp"
+#include "ReaK/planning/path_planning/any_motion_graphs.hpp"
 
-#include "solution_path_factories.hpp"
+#include "ReaK/planning/path_planning/solution_path_factories.hpp"
 
 #include <map>
 #include <type_traits>

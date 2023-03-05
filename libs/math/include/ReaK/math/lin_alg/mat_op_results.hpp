@@ -34,15 +34,15 @@
 #ifndef REAK_MAT_OP_RESULTS_HPP
 #define REAK_MAT_OP_RESULTS_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "mat_alg_general.hpp"
-#include "mat_concepts.hpp"
-#include "mat_traits.hpp"
+#include "ReaK/math/lin_alg/mat_alg_general.hpp"
+#include "ReaK/math/lin_alg/mat_concepts.hpp"
+#include "ReaK/math/lin_alg/mat_traits.hpp"
 
 #include <type_traits>
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK {
 

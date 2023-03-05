@@ -21,12 +21,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/named_object.hpp"
 
-#include <ReaK/core/serialization/bin_archiver.hpp>
-#include <ReaK/core/serialization/objtree_archiver.hpp>
-#include <ReaK/core/serialization/protobuf_archiver.hpp>
-#include <ReaK/core/serialization/xml_archiver.hpp>
+#include "ReaK/core/serialization/bin_archiver.hpp"
+#include "ReaK/core/serialization/objtree_archiver.hpp"
+#include "ReaK/core/serialization/protobuf_archiver.hpp"
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
 #include <sstream>
 

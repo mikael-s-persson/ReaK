@@ -33,9 +33,9 @@
 #ifndef REAK_TEMPORAL_DISTANCE_METRICS_HPP
 #define REAK_TEMPORAL_DISTANCE_METRICS_HPP
 
-#include <ReaK/core/base/serializable.hpp>
+#include "ReaK/core/base/serializable.hpp"
 
-#include "temporal_space_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
 namespace ReaK::pp {
 

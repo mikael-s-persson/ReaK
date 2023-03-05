@@ -21,9 +21,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/rpc/rpc_exceptions.hpp>
+#include "ReaK/core/rpc/rpc_exceptions.hpp"
 
-#include <ReaK/core/rpc/detail/remote_function.hpp>
+#include "ReaK/core/rpc/detail/remote_function.hpp"
 
 #include <iomanip>
 #include <sstream>

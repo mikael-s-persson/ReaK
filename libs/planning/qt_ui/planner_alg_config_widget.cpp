@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/planning/qt/planner_alg_config_widget.hpp>
+#include "ReaK/planning/qt/planner_alg_config_widget.hpp"
 
 #include "ui_planner_alg_config.h"
 
@@ -31,10 +31,10 @@
 #include <QMessageBox>
 #include <QScrollArea>
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
 
 namespace ReaK {
 

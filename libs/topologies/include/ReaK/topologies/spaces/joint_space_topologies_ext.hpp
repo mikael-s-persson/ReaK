@@ -32,12 +32,12 @@
 #ifndef REAK_JOINT_SPACE_TOPOLOGIES_EXT_HPP
 #define REAK_JOINT_SPACE_TOPOLOGIES_EXT_HPP
 
-#include "joint_space_topologies.hpp"
+#include "ReaK/topologies/spaces/joint_space_topologies.hpp"
 
-#include "reachability_space.hpp"
-#include "temporal_space.hpp"
-#include "time_poisson_topology.hpp"
+#include "ReaK/topologies/spaces/reachability_space.hpp"
+#include "ReaK/topologies/spaces/temporal_space.hpp"
+#include "ReaK/topologies/spaces/time_poisson_topology.hpp"
 
-#include "joint_space_limits.hpp"
+#include "ReaK/topologies/spaces/joint_space_limits.hpp"
 
 #endif

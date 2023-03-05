@@ -33,17 +33,17 @@
 #ifndef REAK_AUGMENTED_LAGRANGIAN_METHODS_HPP
 #define REAK_AUGMENTED_LAGRANGIAN_METHODS_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
-#include "limit_functions.hpp"
-#include "line_search.hpp"
-#include "newton_search_directions.hpp"
-#include "trust_region_search.hpp"
+#include "ReaK/math/optimization/limit_functions.hpp"
+#include "ReaK/math/optimization/line_search.hpp"
+#include "ReaK/math/optimization/newton_search_directions.hpp"
+#include "ReaK/math/optimization/trust_region_search.hpp"
 
-#include "newton_methods.hpp"
+#include "ReaK/math/optimization/newton_methods.hpp"
 
 namespace ReaK::optim {
 

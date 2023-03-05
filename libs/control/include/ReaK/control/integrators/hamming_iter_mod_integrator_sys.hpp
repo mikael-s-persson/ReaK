@@ -37,15 +37,15 @@
 #ifndef REAK_HAMMING_ITER_MOD_INTEGRATOR_SYS_HPP
 #define REAK_HAMMING_ITER_MOD_INTEGRATOR_SYS_HPP
 
-#include <ReaK/control/systems/state_space_sys_concept.hpp>
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/topologies/interpolation/spatial_trajectory_concept.hpp>
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
+#include "ReaK/control/systems/state_space_sys_concept.hpp"
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/topologies/interpolation/spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
-#include <ReaK/math/integrators/integration_exceptions.hpp>
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/math/integrators/integration_exceptions.hpp"
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
 namespace ReaK::ctrl {
 

@@ -32,7 +32,7 @@
 #ifndef REAK_PLANE_HPP
 #define REAK_PLANE_HPP
 
-#include "shape_3D.hpp"
+#include "ReaK/geometry/shapes/shape_3D.hpp"
 
 namespace ReaK::geom {
 

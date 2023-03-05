@@ -34,7 +34,7 @@
 
 #include <utility>
 
-#include "manip_kinematics_model.hpp"
+#include "ReaK/mbd/models/manip_kinematics_model.hpp"
 
 namespace ReaK::kte {
 

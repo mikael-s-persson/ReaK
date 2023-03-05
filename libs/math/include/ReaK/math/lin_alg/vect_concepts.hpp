@@ -35,12 +35,12 @@
 #ifndef REAK_VECT_CONCEPTS_HPP
 #define REAK_VECT_CONCEPTS_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
 #include <vector>
-#include "vect_traits.hpp"
+#include "ReaK/math/lin_alg/vect_traits.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK {
 

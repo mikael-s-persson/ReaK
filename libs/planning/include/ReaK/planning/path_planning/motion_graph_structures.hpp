@@ -40,21 +40,21 @@
 // #define RK_PLANNERS_ENABLE_VEBL_TREE
 // #define RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/adjacency_list_BC.hpp>
-#include <boost/graph/bfl_d_ary_tree.hpp>
+#include "boost/graph/adjacency_list_BC.hpp"
+#include "boost/graph/bfl_d_ary_tree.hpp"
 
 #ifdef RK_PLANNERS_ENABLE_VEBL_TREE
-#include <boost/graph/vebl_d_ary_tree.hpp>
+#include "boost/graph/vebl_d_ary_tree.hpp"
 #endif
 
 #ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
-#include "dvp_layout_adjacency_list.hpp"
+#include "ReaK/planning/path_planning/dvp_layout_adjacency_list.hpp"
 #endif
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
 #include <type_traits>
 

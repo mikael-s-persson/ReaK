@@ -21,14 +21,14 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
 #if 0
 
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
-#include <ReaK/math/kinetostatics/motion_jacobians.hpp>
-#include <ReaK/math/kinetostatics/quat_alg.hpp>
-#include <ReaK/math/kinetostatics/rotations.hpp>
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
+#include "ReaK/math/kinetostatics/motion_jacobians.hpp"
+#include "ReaK/math/kinetostatics/quat_alg.hpp"
+#include "ReaK/math/kinetostatics/rotations.hpp"
 
 namespace ReaK {
 

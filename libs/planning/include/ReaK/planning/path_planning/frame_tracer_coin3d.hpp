@@ -33,21 +33,21 @@
 #ifndef REAK_FRAME_TRACER_COIN3D_HPP
 #define REAK_FRAME_TRACER_COIN3D_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
-#include <ReaK/topologies/interpolation/trajectory_base.hpp>
-#include <boost/graph/graph_concepts.hpp>
-#include "basic_sbmp_reporters.hpp"
+#include "ReaK/planning/path_planning/basic_sbmp_reporters.hpp"
+#include "ReaK/topologies/interpolation/trajectory_base.hpp"
+#include "boost/graph/graph_concepts.hpp"
 
-#include <ReaK/topologies/spaces/direct_kinematics_topomap.hpp>
-#include <ReaK/topologies/spaces/topological_map_concepts.hpp>
+#include "ReaK/topologies/spaces/direct_kinematics_topomap.hpp"
+#include "ReaK/topologies/spaces/topological_map_concepts.hpp"
 
-#include <ReaK/topologies/spaces/proxy_model_updater.hpp>
+#include "ReaK/topologies/spaces/proxy_model_updater.hpp"
 
-#include <ReaK/mbd/coin3D/frame_tracer_coin3d_impl.hpp>
+#include "ReaK/mbd/coin3D/frame_tracer_coin3d_impl.hpp"
 
 #include <tuple>
 #include <type_traits>

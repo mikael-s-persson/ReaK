@@ -33,15 +33,15 @@
 #ifndef REAK_VLIST_SBMP_REPORT_HPP
 #define REAK_VLIST_SBMP_REPORT_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
-#include <ReaK/topologies/interpolation/seq_path_base.hpp>
-#include <ReaK/topologies/interpolation/seq_trajectory_base.hpp>
-#include <ReaK/topologies/spaces/subspace_concept.hpp>
-#include <boost/graph/graph_concepts.hpp>
+#include "ReaK/topologies/interpolation/seq_path_base.hpp"
+#include "ReaK/topologies/interpolation/seq_trajectory_base.hpp"
+#include "ReaK/topologies/spaces/subspace_concept.hpp"
+#include "boost/graph/graph_concepts.hpp"
 
 #include <fstream>
 #include <type_traits>

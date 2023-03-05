@@ -34,13 +34,13 @@
 #ifndef REAK_PREDICTED_TRAJECTORY_CONCEPT_HPP
 #define REAK_PREDICTED_TRAJECTORY_CONCEPT_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
-#include "spatial_path_concept.hpp"
-#include "spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/interpolation/spatial_path_concept.hpp"
+#include "ReaK/topologies/interpolation/spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::pp {
 

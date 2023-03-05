@@ -29,22 +29,22 @@
 #ifndef REAK_TARGET_PRED_CONFIG_WIDGET_HPP
 #define REAK_TARGET_PRED_CONFIG_WIDGET_HPP
 
-#include <ReaK/math/lin_alg/mat_alg_diagonal.hpp>
-#include <ReaK/math/lin_alg/mat_alg_symmetric.hpp>
+#include "ReaK/math/lin_alg/mat_alg_diagonal.hpp"
+#include "ReaK/math/lin_alg/mat_alg_symmetric.hpp"
 
-#include <ReaK/core/recorders/data_record_options.hpp>
-#include <ReaK/math/kinetostatics/quat_alg.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
 #include <atomic>
+#include "ReaK/core/recorders/data_record_options.hpp"
+#include "ReaK/math/kinetostatics/quat_alg.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
-#include <ReaK/core/qt/rk_object_tree_widget.hpp>
-#include <ReaK/core/qt/rk_prop_editor_widget.hpp>
-#include <ReaK/core/serialization/scheme_builder.hpp>
+#include "ReaK/core/qt/rk_object_tree_widget.hpp"
+#include "ReaK/core/qt/rk_prop_editor_widget.hpp"
+#include "ReaK/core/serialization/scheme_builder.hpp"
 
-#include <ReaK/control/systems/satellite_modeling_options.hpp>
-#include <ReaK/topologies/interpolation/trajectory_base.hpp>
-#include <ReaK/topologies/spaces/temporal_space.hpp>
-#include <ReaK/topologies/spaces/time_topology.hpp>
+#include "ReaK/control/systems/satellite_modeling_options.hpp"
+#include "ReaK/topologies/interpolation/trajectory_base.hpp"
+#include "ReaK/topologies/spaces/temporal_space.hpp"
+#include "ReaK/topologies/spaces/time_topology.hpp"
 
 #include <QDockWidget>
 #include <QMainWindow>

@@ -34,24 +34,24 @@
 #ifndef REAK_SAP_REACH_TOPOLOGIES_HPP
 #define REAK_SAP_REACH_TOPOLOGIES_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
-#include <ReaK/topologies/spaces/bounded_space_concept.hpp>
-#include <ReaK/topologies/spaces/generic_sampler_factory.hpp>
-#include <ReaK/topologies/spaces/rate_limited_spaces.hpp>
-#include <ReaK/topologies/spaces/reversible_space_concept.hpp>
-#include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
-#include "spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/interpolation/spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/spaces/bounded_space_concept.hpp"
+#include "ReaK/topologies/spaces/generic_sampler_factory.hpp"
+#include "ReaK/topologies/spaces/rate_limited_spaces.hpp"
+#include "ReaK/topologies/spaces/reversible_space_concept.hpp"
+#include "ReaK/topologies/spaces/tangent_bundle_concept.hpp"
 
-#include "generic_interpolator_factory.hpp"
-#include "interpolated_topologies.hpp"
+#include "ReaK/topologies/interpolation/generic_interpolator_factory.hpp"
+#include "ReaK/topologies/interpolation/interpolated_topologies.hpp"
 
-#include "sap_metrics.hpp"
-#include "sap_samplers.hpp"
-#include "sustained_acceleration_pulse.hpp"
+#include "ReaK/topologies/interpolation/sap_metrics.hpp"
+#include "ReaK/topologies/interpolation/sap_samplers.hpp"
+#include "ReaK/topologies/interpolation/sustained_acceleration_pulse.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::pp {
 

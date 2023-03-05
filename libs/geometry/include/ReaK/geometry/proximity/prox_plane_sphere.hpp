@@ -32,10 +32,10 @@
 #ifndef REAK_PROX_PLANE_SPHERE_HPP
 #define REAK_PROX_PLANE_SPHERE_HPP
 
-#include "proximity_finder_3D.hpp"
+#include "ReaK/geometry/proximity/proximity_finder_3D.hpp"
 
-#include <ReaK/geometry/shapes/plane.hpp>
-#include <ReaK/geometry/shapes/sphere.hpp>
+#include "ReaK/geometry/shapes/plane.hpp"
+#include "ReaK/geometry/shapes/sphere.hpp"
 
 namespace ReaK::geom {
 

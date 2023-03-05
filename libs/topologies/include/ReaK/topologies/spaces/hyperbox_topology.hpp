@@ -33,15 +33,15 @@
 #ifndef REAK_HYPERBOX_TOPOLOGY_HPP
 #define REAK_HYPERBOX_TOPOLOGY_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/global_rng.hpp>
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
-#include <ReaK/math/lin_alg/vect_concepts.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/global_rng.hpp"
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
 
-#include "default_random_sampler.hpp"
-#include "vect_distance_metrics.hpp"
-#include "vector_topology.hpp"
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/vect_distance_metrics.hpp"
+#include "ReaK/topologies/spaces/vector_topology.hpp"
 
 #include <cmath>
 #include <random>

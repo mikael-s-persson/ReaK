@@ -33,13 +33,13 @@
 #ifndef REAK_VECTOR_TOPOLOGY_HPP
 #define REAK_VECTOR_TOPOLOGY_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include <ReaK/math/lin_alg/vect_concepts.hpp>
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
 
-#include "metric_space_concept.hpp"
-#include "reversible_space_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/reversible_space_concept.hpp"
 
 namespace ReaK::pp {
 
@@ -140,7 +140,7 @@ struct is_reversible_space<vector_topology<Vector>> : std::true_type {};
 
 }  // namespace ReaK::pp
 
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
 namespace ReaK::pp {
 

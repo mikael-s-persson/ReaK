@@ -36,10 +36,10 @@
 #ifndef REAK_KINETOSTATICS_HPP
 #define REAK_KINETOSTATICS_HPP
 
-#include "frame_2D.hpp"
-#include "frame_3D.hpp"
-#include "gen_coord.hpp"
-#include "pose_2D.hpp"
-#include "pose_3D.hpp"
+#include "ReaK/math/kinetostatics/frame_2D.hpp"
+#include "ReaK/math/kinetostatics/frame_3D.hpp"
+#include "ReaK/math/kinetostatics/gen_coord.hpp"
+#include "ReaK/math/kinetostatics/pose_2D.hpp"
+#include "ReaK/math/kinetostatics/pose_3D.hpp"
 
 #endif

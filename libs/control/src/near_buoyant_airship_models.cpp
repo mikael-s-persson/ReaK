@@ -21,13 +21,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/control/systems/near_buoyant_airship_models.hpp>
+#include "ReaK/control/systems/near_buoyant_airship_models.hpp"
 
-#include <ReaK/control/systems/sss_exceptions.hpp>
-#include <ReaK/topologies/spaces/se3_topologies.hpp>
+#include "ReaK/control/systems/sss_exceptions.hpp"
+#include "ReaK/topologies/spaces/se3_topologies.hpp"
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
 
 namespace ReaK::ctrl {
 

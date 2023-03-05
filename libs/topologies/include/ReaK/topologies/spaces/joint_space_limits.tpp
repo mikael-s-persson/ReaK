@@ -33,8 +33,8 @@
 #ifndef REAK_JOINT_SPACE_LIMITS_TPP
 #define REAK_JOINT_SPACE_LIMITS_TPP
 
-#include "joint_space_limits.hpp"
-#include "joint_space_limits_detail.hpp"
+#include "ReaK/topologies/spaces/joint_space_limits.hpp"
+#include "ReaK/topologies/spaces/joint_space_limits_detail.hpp"
 
 namespace ReaK::pp {
 

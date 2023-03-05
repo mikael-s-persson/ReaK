@@ -32,13 +32,13 @@
 #ifndef REAK_RTTI_ALL_HEADERS_HPP
 #define REAK_RTTI_ALL_HEADERS_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "so_register_type.hpp"
-#include "so_type.hpp"
-#include "so_type_repo.hpp"
+#include "ReaK/core/rtti/so_register_type.hpp"
+#include "ReaK/core/rtti/so_type.hpp"
+#include "ReaK/core/rtti/so_type_repo.hpp"
 
-#include "typed_containers.hpp"
-#include "typed_primitives.hpp"
+#include "ReaK/core/rtti/typed_containers.hpp"
+#include "ReaK/core/rtti/typed_primitives.hpp"
 
 #endif  // REAK_RTTI_ALL_HEADERS_HPP

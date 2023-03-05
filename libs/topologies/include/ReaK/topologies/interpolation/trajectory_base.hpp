@@ -35,20 +35,20 @@
 #ifndef REAK_TRAJECTORY_BASE_HPP
 #define REAK_TRAJECTORY_BASE_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
 #include <any>
 
-#include "seq_trajectory_base.hpp"
-#include "sequential_trajectory_concept.hpp"
-#include "spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/interpolation/seq_trajectory_base.hpp"
+#include "ReaK/topologies/interpolation/sequential_trajectory_concept.hpp"
+#include "ReaK/topologies/interpolation/spatial_trajectory_concept.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
-#include <boost/any.hpp>
+#include "boost/any.hpp"
 
 namespace ReaK::pp {
 

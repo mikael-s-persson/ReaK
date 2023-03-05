@@ -33,31 +33,31 @@
 #ifndef REAK_IHAQR_TOPOLOGY_HPP
 #define REAK_IHAQR_TOPOLOGY_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include <ReaK/topologies/spaces/direct_kinematics_topomap.hpp>  // for write_joint_coordinates_impl
-#include <ReaK/topologies/spaces/hyperbox_topology.hpp>
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/proper_metric_concept.hpp>
-#include <ReaK/topologies/spaces/steerable_space_concept.hpp>
-#include <ReaK/topologies/spaces/tuple_distance_metrics.hpp>
+#include "ReaK/topologies/spaces/direct_kinematics_topomap.hpp"  // for write_joint_coordinates_impl
+#include "ReaK/topologies/spaces/hyperbox_topology.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/proper_metric_concept.hpp"
+#include "ReaK/topologies/spaces/steerable_space_concept.hpp"
+#include "ReaK/topologies/spaces/tuple_distance_metrics.hpp"
 
-#include <ReaK/topologies/interpolation/constant_trajectory.hpp>
+#include "ReaK/topologies/interpolation/constant_trajectory.hpp"
 
-#include <ReaK/control/integrators/dormand_prince45_integrator_sys.hpp>
-#include <ReaK/control/integrators/runge_kutta4_integrator_sys.hpp>
-#include <ReaK/control/systems/linear_ss_system_concept.hpp>
+#include "ReaK/control/integrators/dormand_prince45_integrator_sys.hpp"
+#include "ReaK/control/integrators/runge_kutta4_integrator_sys.hpp"
+#include "ReaK/control/systems/linear_ss_system_concept.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>  // for proxy-query class
-#include <ReaK/mbd/models/direct_kinematics_model.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"  // for proxy-query class
+#include "ReaK/mbd/models/direct_kinematics_model.hpp"
 
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
-#include <ReaK/math/lin_alg/mat_are_solver.hpp>
-#include <ReaK/math/lin_alg/mat_qr_decomp.hpp>
+#include "ReaK/math/lin_alg/mat_are_solver.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
 
 #include <type_traits>
 

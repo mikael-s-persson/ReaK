@@ -32,13 +32,13 @@
 #ifndef REAK_GAUSS_NEWTON_METHOD_HPP
 #define REAK_GAUSS_NEWTON_METHOD_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
-#include <ReaK/math/lin_alg/mat_qr_decomp.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
 
-#include "limit_functions.hpp"
+#include "ReaK/math/optimization/limit_functions.hpp"
 
 namespace ReaK::optim {
 

@@ -21,14 +21,14 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/qt/rk_view3d_menu.hpp>
+#include "ReaK/mbd/qt/rk_view3d_menu.hpp"
 
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
 
 namespace ReaK {
 

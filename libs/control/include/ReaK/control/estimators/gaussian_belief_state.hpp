@@ -36,14 +36,14 @@
 #ifndef REAK_GAUSSIAN_BELIEF_STATE_HPP
 #define REAK_GAUSSIAN_BELIEF_STATE_HPP
 
-#include <ReaK/core/base/global_rng.hpp>
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
-#include <ReaK/math/lin_alg/mat_qr_decomp.hpp>
-#include <ReaK/math/lin_alg/mat_svd_method.hpp>
+#include "ReaK/core/base/global_rng.hpp"
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
+#include "ReaK/math/lin_alg/mat_svd_method.hpp"
 
-#include "belief_state_concept.hpp"
-#include "covariance_concept.hpp"
+#include "ReaK/control/estimators/belief_state_concept.hpp"
+#include "ReaK/control/estimators/covariance_concept.hpp"
 
 #include <random>
 #include <type_traits>

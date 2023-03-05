@@ -37,9 +37,9 @@
 #include <cmath>
 #include <limits>
 
-#include <ReaK/math/lin_alg/mat_alg_square.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
-#include <ReaK/math/lin_alg/vect_concepts.hpp>
+#include "ReaK/math/lin_alg/mat_alg_square.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
 
 namespace ReaK {
 

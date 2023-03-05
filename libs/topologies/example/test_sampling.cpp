@@ -29,11 +29,11 @@ using std::size_t;
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include <ReaK/math/lin_alg/vect_alg.hpp>
-#include <ReaK/topologies/spaces/hyperball_topology.hpp>
-#include <ReaK/topologies/spaces/hyperbox_topology.hpp>
-#include <ReaK/topologies/spaces/line_topology.hpp>
-#include <ReaK/topologies/spaces/time_poisson_topology.hpp>
+#include "ReaK/math/lin_alg/vect_alg.hpp"
+#include "ReaK/topologies/spaces/hyperball_topology.hpp"
+#include "ReaK/topologies/spaces/hyperbox_topology.hpp"
+#include "ReaK/topologies/spaces/line_topology.hpp"
+#include "ReaK/topologies/spaces/time_poisson_topology.hpp"
 
 void printResult(const cv::Mat& image, unsigned int vertex_num,
                  const std::string& dist) {

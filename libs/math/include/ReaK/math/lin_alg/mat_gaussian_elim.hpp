@@ -45,10 +45,10 @@
 #ifndef REAK_MAT_GAUSSIAN_ELIM_HPP
 #define REAK_MAT_GAUSSIAN_ELIM_HPP
 
-#include "mat_alg.hpp"
-#include "mat_num_exceptions.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/shared_object.hpp"
 
 namespace ReaK {
 

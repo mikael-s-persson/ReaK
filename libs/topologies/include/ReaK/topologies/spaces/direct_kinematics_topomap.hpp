@@ -34,12 +34,12 @@
 #ifndef REAK_DIRECT_KINEMATICS_TOPOMAP_HPP
 #define REAK_DIRECT_KINEMATICS_TOPOMAP_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
-#include <ReaK/mbd/models/direct_kinematics_model.hpp>
+#include "ReaK/mbd/models/direct_kinematics_model.hpp"
 
-#include "direct_kinematics_topomap_detail.hpp"
+#include "ReaK/topologies/spaces/direct_kinematics_topomap_detail.hpp"
 
 namespace ReaK::pp {
 

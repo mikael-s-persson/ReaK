@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/control/qt/target_pred_config_widget.hpp>
+#include "ReaK/control/qt/target_pred_config_widget.hpp"
 
 #include <QDockWidget>
 #include <QFileDialog>
@@ -31,20 +31,20 @@
 #include <QProcess>
 #include <QScrollArea>
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
 #include <atomic>
 #include <functional>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
-#include <ReaK/control/estimators/belief_state_predictor.hpp>
-#include <ReaK/control/estimators/covar_topology.hpp>
-#include <ReaK/control/estimators/gaussian_belief_space.hpp>
-#include <ReaK/control/estimators/maximum_likelihood_mapping.hpp>
-#include <ReaK/control/estimators/tsos_aug_inv_kalman_filter.hpp>
-#include <ReaK/control/systems/augmented_to_state_mapping.hpp>
-#include <ReaK/topologies/interpolation/constant_trajectory.hpp>
-#include <ReaK/topologies/interpolation/transformed_trajectory.hpp>
+#include "ReaK/control/estimators/belief_state_predictor.hpp"
+#include "ReaK/control/estimators/covar_topology.hpp"
+#include "ReaK/control/estimators/gaussian_belief_space.hpp"
+#include "ReaK/control/estimators/maximum_likelihood_mapping.hpp"
+#include "ReaK/control/estimators/tsos_aug_inv_kalman_filter.hpp"
+#include "ReaK/control/systems/augmented_to_state_mapping.hpp"
+#include "ReaK/topologies/interpolation/constant_trajectory.hpp"
+#include "ReaK/topologies/interpolation/transformed_trajectory.hpp"
 
-#include <ReaK/core/recorders/data_record_options.hpp>
+#include "ReaK/core/recorders/data_record_options.hpp"
 
 #include "ui_target_predictor_config.h"
 

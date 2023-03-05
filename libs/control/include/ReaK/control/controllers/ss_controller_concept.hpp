@@ -41,15 +41,15 @@
 #ifndef REAK_SS_CONTROLLER_CONCEPT_HPP
 #define REAK_SS_CONTROLLER_CONCEPT_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
-#include <ReaK/control/systems/discrete_linear_sss_concept.hpp>
-#include <ReaK/control/systems/discrete_sss_concept.hpp>
-#include <ReaK/control/systems/linear_ss_system_concept.hpp>
-#include <ReaK/control/systems/state_space_sys_concept.hpp>
+#include "ReaK/control/systems/discrete_linear_sss_concept.hpp"
+#include "ReaK/control/systems/discrete_sss_concept.hpp"
+#include "ReaK/control/systems/linear_ss_system_concept.hpp"
+#include "ReaK/control/systems/state_space_sys_concept.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::ctrl {
 

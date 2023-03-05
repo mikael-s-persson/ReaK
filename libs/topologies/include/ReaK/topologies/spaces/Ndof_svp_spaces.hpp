@@ -33,11 +33,11 @@
 #ifndef REAK_NDOF_SVP_SPACES_HPP
 #define REAK_NDOF_SVP_SPACES_HPP
 
-#include <ReaK/topologies/interpolation/svp_Ndof_reach_topologies.hpp>
-#include "Ndof_spaces.hpp"
-#include "reachability_space.hpp"
-#include "temporal_space.hpp"
-#include "time_poisson_topology.hpp"
+#include "ReaK/topologies/interpolation/svp_Ndof_reach_topologies.hpp"
+#include "ReaK/topologies/spaces/Ndof_spaces.hpp"
+#include "ReaK/topologies/spaces/reachability_space.hpp"
+#include "ReaK/topologies/spaces/temporal_space.hpp"
+#include "ReaK/topologies/spaces/time_poisson_topology.hpp"
 
 namespace ReaK::pp {
 

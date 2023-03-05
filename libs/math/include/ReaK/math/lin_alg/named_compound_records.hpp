@@ -33,12 +33,12 @@
 #ifndef REAK_NAMED_COMPOUND_RECORDS_HPP
 #define REAK_NAMED_COMPOUND_RECORDS_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/core/recorders/data_record.hpp>
+#include "ReaK/core/recorders/data_record.hpp"
 
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
 #include <exception>
 #include <map>

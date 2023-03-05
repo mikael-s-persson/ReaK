@@ -32,15 +32,15 @@
 #ifndef REAK_SBASTAR_MANIP_PLANNERS_HPP
 #define REAK_SBASTAR_MANIP_PLANNERS_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include <ReaK/topologies/spaces/Ndof_spaces.hpp>
+#include "ReaK/topologies/spaces/Ndof_spaces.hpp"
 
-#include <ReaK/topologies/spaces/manip_free_dynamic_workspace.hpp>
-#include <ReaK/topologies/spaces/manip_free_workspace.hpp>
+#include "ReaK/topologies/spaces/manip_free_dynamic_workspace.hpp"
+#include "ReaK/topologies/spaces/manip_free_workspace.hpp"
 
-#include <ReaK/planning/path_planning/sbastar_path_planner.hpp>
+#include "ReaK/planning/path_planning/sbastar_path_planner.hpp"
 
 namespace ReaK::pp {
 

@@ -35,10 +35,10 @@
 #ifndef REAK_MAT_STAR_PRODUCT_HPP
 #define REAK_MAT_STAR_PRODUCT_HPP
 
-#include "mat_alg.hpp"
-#include "mat_composite_adaptor.hpp"
-#include "mat_qr_decomp.hpp"
-#include "mat_svd_method.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_composite_adaptor.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
+#include "ReaK/math/lin_alg/mat_svd_method.hpp"
 
 #include <type_traits>
 

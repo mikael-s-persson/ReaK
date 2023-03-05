@@ -35,7 +35,7 @@
 #include <cmath>
 #include <limits>
 
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
 namespace ReaK {
 

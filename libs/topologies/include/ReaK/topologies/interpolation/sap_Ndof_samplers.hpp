@@ -32,17 +32,17 @@
 #ifndef REAK_SAP_NDOF_SAMPLERS_HPP
 #define REAK_SAP_NDOF_SAMPLERS_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/topologies/spaces/bounded_space_concept.hpp>
-#include <ReaK/topologies/spaces/prob_distribution_concept.hpp>
-#include <ReaK/topologies/spaces/rate_limited_spaces.hpp>
-#include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
-#include <ReaK/topologies/spaces/time_topology.hpp>
+#include "ReaK/topologies/spaces/bounded_space_concept.hpp"
+#include "ReaK/topologies/spaces/prob_distribution_concept.hpp"
+#include "ReaK/topologies/spaces/rate_limited_spaces.hpp"
+#include "ReaK/topologies/spaces/tangent_bundle_concept.hpp"
+#include "ReaK/topologies/spaces/time_topology.hpp"
 
-#include "sustained_acceleration_pulse_Ndof.hpp"
+#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 #include <cmath>
 #include <utility>

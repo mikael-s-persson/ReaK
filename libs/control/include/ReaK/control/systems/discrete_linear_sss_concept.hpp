@@ -37,16 +37,16 @@
 #ifndef REAK_DISCRETE_LINEAR_SSS_CONCEPT_HPP
 #define REAK_DISCRETE_LINEAR_SSS_CONCEPT_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
-#include "discrete_sss_concept.hpp"
-#include "linear_ss_system_concept.hpp"
+#include "ReaK/control/systems/discrete_sss_concept.hpp"
+#include "ReaK/control/systems/linear_ss_system_concept.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::ctrl {
 

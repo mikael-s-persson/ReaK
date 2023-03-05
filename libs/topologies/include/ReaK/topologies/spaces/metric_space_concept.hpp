@@ -37,11 +37,11 @@
 #ifndef REAK_METRIC_SPACE_CONCEPT_HPP
 #define REAK_METRIC_SPACE_CONCEPT_HPP
 
-#include <ReaK/core/base/serializable.hpp>
+#include "ReaK/core/base/serializable.hpp"
 
-#include <boost/concept_check.hpp>
 #include <cmath>
 #include <type_traits>
+#include "boost/concept_check.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK::pp {

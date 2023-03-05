@@ -40,18 +40,18 @@
 #include <type_traits>
 #include <utility>
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
-#include "pruned_connector.hpp"
-#include "sbmp_visitor_concepts.hpp"
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/pruned_connector.hpp"
+#include "ReaK/planning/graph_alg/sbmp_visitor_concepts.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/properties.hpp>
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/graph/properties.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/more_property_maps.hpp>
-#include <boost/graph/more_property_tags.hpp>
+#include "boost/graph/more_property_maps.hpp"
+#include "boost/graph/more_property_tags.hpp"
 
 #include <stack>
 #include <vector>

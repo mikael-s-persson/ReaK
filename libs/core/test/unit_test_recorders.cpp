@@ -21,10 +21,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/recorders/ascii_recorder.hpp>
-#include <ReaK/core/recorders/bin_recorder.hpp>
-#include <ReaK/core/recorders/network_recorder.hpp>
-#include <ReaK/core/recorders/vector_recorder.hpp>
+#include "ReaK/core/recorders/ascii_recorder.hpp"
+#include "ReaK/core/recorders/bin_recorder.hpp"
+#include "ReaK/core/recorders/network_recorder.hpp"
+#include "ReaK/core/recorders/vector_recorder.hpp"
 
 #include <sstream>
 

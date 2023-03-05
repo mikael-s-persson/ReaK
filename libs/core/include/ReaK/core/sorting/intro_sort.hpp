@@ -32,16 +32,16 @@
 #ifndef REAK_INTRO_SORT_HPP
 #define REAK_INTRO_SORT_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
 #include <algorithm>
 #include <functional>
 #include <iterator>
 
-#include "quick_sort.hpp"
+#include "ReaK/core/sorting/quick_sort.hpp"
 
-#include "heap_sort.hpp"
-#include "insertion_sort.hpp"
+#include "ReaK/core/sorting/heap_sort.hpp"
+#include "ReaK/core/sorting/insertion_sort.hpp"
 
 namespace ReaK::sorting {
 

@@ -32,7 +32,7 @@
 #ifndef REAK_GRID_3D_HPP
 #define REAK_GRID_3D_HPP
 
-#include "geometry_3D.hpp"
+#include "ReaK/geometry/shapes/geometry_3D.hpp"
 
 namespace ReaK::geom {
 

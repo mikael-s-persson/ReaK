@@ -23,8 +23,8 @@
 
 #include <cmath>
 
-#include <ReaK/core/rpc/detail/disc_headers.hpp>
-#include <ReaK/core/rpc/rpc_exceptions.hpp>
+#include "ReaK/core/rpc/detail/disc_headers.hpp"
+#include "ReaK/core/rpc/rpc_exceptions.hpp"
 
 #include <iomanip>
 #include <sstream>

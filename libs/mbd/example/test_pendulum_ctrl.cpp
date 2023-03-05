@@ -21,22 +21,22 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
 
-#include <ReaK/mbd/kte/inertia.hpp>
-#include <ReaK/mbd/kte/revolute_joint.hpp>
-#include <ReaK/mbd/kte/rigid_link.hpp>
+#include "ReaK/mbd/kte/inertia.hpp"
+#include "ReaK/mbd/kte/revolute_joint.hpp"
+#include "ReaK/mbd/kte/rigid_link.hpp"
 
-#include <ReaK/core/recorders/ascii_recorder.hpp>
+#include "ReaK/core/recorders/ascii_recorder.hpp"
 
-#include <ReaK/core/serialization/xml_archiver.hpp>
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
 #include "subarc/sa_root_node.hpp"
 #include "subarc/sa_signal.hpp"
 
-#include <ReaK/core/base/rk_typed_primitives.hpp>
-#include <ReaK/mbd/kte/damper.hpp>
-#include <ReaK/mbd/kte/spring.hpp>
+#include "ReaK/core/base/rk_typed_primitives.hpp"
+#include "ReaK/mbd/kte/damper.hpp"
+#include "ReaK/mbd/kte/spring.hpp"
 
 #include <thread>
 

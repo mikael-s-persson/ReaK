@@ -33,13 +33,13 @@
 #ifndef REAK_MAT_CTRL_DECOMP_HPP
 #define REAK_MAT_CTRL_DECOMP_HPP
 
-#include "mat_alg.hpp"
-#include "mat_num_exceptions.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
-#include "mat_householder.hpp"
-#include "mat_qr_decomp.hpp"
+#include "ReaK/math/lin_alg/mat_householder.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
 
-#include "mat_norms.hpp"
+#include "ReaK/math/lin_alg/mat_norms.hpp"
 
 #include <type_traits>
 

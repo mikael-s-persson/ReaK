@@ -35,15 +35,15 @@
 #ifndef REAK_TIME_POISSON_TOPOLOGY_HPP
 #define REAK_TIME_POISSON_TOPOLOGY_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/global_rng.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/global_rng.hpp"
 
 #include <cmath>
 #include <random>
 
-#include "time_topology.hpp"
+#include "ReaK/topologies/spaces/time_topology.hpp"
 
-#include "default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
 
 namespace ReaK::pp {
 

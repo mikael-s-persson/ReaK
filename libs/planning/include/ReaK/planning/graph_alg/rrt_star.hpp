@@ -61,25 +61,25 @@
 #ifndef REAK_RRT_STAR_HPP
 #define REAK_RRT_STAR_HPP
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/property_map/property_map.hpp>
 #include <limits>
 #include <tuple>
 #include <utility>
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/property_map/property_map.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/random_sampler_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/random_sampler_concept.hpp"
 
-#include "neighborhood_functors.hpp"
-#include "node_generators.hpp"
-#include "sbmp_visitor_concepts.hpp"
+#include "ReaK/planning/graph_alg/neighborhood_functors.hpp"
+#include "ReaK/planning/graph_alg/node_generators.hpp"
+#include "ReaK/planning/graph_alg/sbmp_visitor_concepts.hpp"
 
-#include "branch_and_bound_connector.hpp"
-#include "lazy_connector.hpp"
-#include "pruned_connector.hpp"
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/branch_and_bound_connector.hpp"
+#include "ReaK/planning/graph_alg/lazy_connector.hpp"
+#include "ReaK/planning/graph_alg/pruned_connector.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 namespace ReaK::graph {
 

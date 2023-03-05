@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof_detail.hpp>
+#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof_detail.hpp"
 
 #include <cmath>
 

@@ -34,7 +34,7 @@
 #ifndef REAK_VECT_INDEX_ITERATOR_HPP
 #define REAK_VECT_INDEX_ITERATOR_HPP
 
-#include "vect_traits.hpp"
+#include "ReaK/math/lin_alg/vect_traits.hpp"
 
 #include <iterator>
 #include <stdexcept>

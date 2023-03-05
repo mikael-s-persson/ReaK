@@ -35,9 +35,9 @@
 #ifndef REAK_NEIGHBORHOOD_FUNCTORS_HPP
 #define REAK_NEIGHBORHOOD_FUNCTORS_HPP
 
-#include <ReaK/core/base/misc_math.hpp>
+#include "ReaK/core/base/misc_math.hpp"
 
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
 namespace ReaK::graph {
 

@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/geometry/shapes/capped_cylinder.hpp>
+#include "ReaK/geometry/shapes/capped_cylinder.hpp"
 
 namespace ReaK::geom {
 

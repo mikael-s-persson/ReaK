@@ -33,10 +33,10 @@
 #ifndef REAK_INVERSE_DYNAMICS_MODEL_HPP
 #define REAK_INVERSE_DYNAMICS_MODEL_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
-#include <ReaK/mbd/kte/kte_map.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
+#include "ReaK/mbd/kte/kte_map.hpp"
 
 namespace ReaK::kte {
 

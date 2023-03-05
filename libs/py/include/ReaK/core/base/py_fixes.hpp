@@ -32,9 +32,9 @@
 #ifndef REAK_PY_FIXES_HPP
 #define REAK_PY_FIXES_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <boost/python.hpp>
-#include <boost/version.hpp>
+#include "boost/python.hpp"
+#include "boost/version.hpp"
 
 #endif

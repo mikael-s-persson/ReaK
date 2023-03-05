@@ -32,10 +32,10 @@
 #ifndef REAK_MANIP_SCARA_ARM_HPP
 #define REAK_MANIP_SCARA_ARM_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
 
-#include "inverse_kinematics_model.hpp"
+#include "ReaK/mbd/models/inverse_kinematics_model.hpp"
 
 namespace ReaK::kte {
 

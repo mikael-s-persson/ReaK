@@ -33,12 +33,12 @@
 #ifndef REAK_PATH_WRAPPER_HPP
 #define REAK_PATH_WRAPPER_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "path_base.hpp"
-#include "spatial_path_concept.hpp"
+#include "ReaK/topologies/interpolation/path_base.hpp"
+#include "ReaK/topologies/interpolation/spatial_path_concept.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::pp {
 

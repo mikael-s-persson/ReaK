@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/geometry/shapes/line_seg_2D.hpp>
+#include "ReaK/geometry/shapes/line_seg_2D.hpp"
 
 namespace ReaK::geom {
 

@@ -34,9 +34,9 @@
 #ifndef REAK_MULTI_DVP_TREE_SEARCH_HPP
 #define REAK_MULTI_DVP_TREE_SEARCH_HPP
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/properties.hpp>
-#include <boost/property_map/property_map.hpp>
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/graph/properties.hpp"
+#include "boost/property_map/property_map.hpp"
 
 #include <map>  // for map in multi_dvp_tree_search
 

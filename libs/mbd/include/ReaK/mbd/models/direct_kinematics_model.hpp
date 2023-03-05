@@ -33,12 +33,12 @@
 #ifndef REAK_DIRECT_KINEMATICS_MODEL_HPP
 #define REAK_DIRECT_KINEMATICS_MODEL_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/mbd/kte/jacobian_joint_map.hpp>
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/mbd/kte/jacobian_joint_map.hpp"
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
 
 namespace ReaK::kte {
 

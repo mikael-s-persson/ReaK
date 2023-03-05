@@ -32,10 +32,10 @@
 #ifndef REAK_CONJUGATE_GRADIENT_METHODS_HPP
 #define REAK_CONJUGATE_GRADIENT_METHODS_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
 #include <type_traits>
 

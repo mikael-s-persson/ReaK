@@ -32,34 +32,34 @@
 #ifndef REAK_MEAQR_RRTSTAR_PLANNER_HPP
 #define REAK_MEAQR_RRTSTAR_PLANNER_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include "motion_planner_base.hpp"
+#include "ReaK/planning/path_planning/motion_planner_base.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include "any_sbmp_reporter.hpp"
+#include "ReaK/planning/path_planning/any_sbmp_reporter.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
-#include <ReaK/planning/graph_alg/rrt_star.hpp>
+#include "ReaK/planning/graph_alg/rrt_star.hpp"
 
-#include "motion_graph_structures.hpp"
+#include "ReaK/planning/path_planning/motion_graph_structures.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/more_property_maps.hpp>
-#include <boost/graph/more_property_tags.hpp>
-#include <boost/graph/tree_adaptor.hpp>
+#include "boost/graph/more_property_maps.hpp"
+#include "boost/graph/more_property_tags.hpp"
+#include "boost/graph/tree_adaptor.hpp"
 
-#include "metric_space_search.hpp"
-#include "topological_search.hpp"
+#include "ReaK/planning/path_planning/metric_space_search.hpp"
+#include "ReaK/planning/path_planning/topological_search.hpp"
 
-#include <ReaK/planning/graph_alg/neighborhood_functors.hpp>
-#include "any_motion_graphs.hpp"
-#include "p2p_planning_query.hpp"
-#include "path_planner_options.hpp"
-#include "planning_visitors.hpp"
+#include "ReaK/planning/graph_alg/neighborhood_functors.hpp"
+#include "ReaK/planning/path_planning/any_motion_graphs.hpp"
+#include "ReaK/planning/path_planning/p2p_planning_query.hpp"
+#include "ReaK/planning/path_planning/path_planner_options.hpp"
+#include "ReaK/planning/path_planning/planning_visitors.hpp"
 
-#include <ReaK/control/controllers/MEAQR_topology.hpp>
-#include <ReaK/topologies/spaces/fixed_topology_random_sampler.hpp>
+#include "ReaK/control/controllers/MEAQR_topology.hpp"
+#include "ReaK/topologies/spaces/fixed_topology_random_sampler.hpp"
 
 namespace ReaK::pp {
 

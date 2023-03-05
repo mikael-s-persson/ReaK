@@ -28,42 +28,42 @@
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
 
-#include <ReaK/topologies/spaces/manip_P3R3R_workspaces.hpp>
+#include "ReaK/topologies/spaces/manip_P3R3R_workspaces.hpp"
 
 #include "CRS_planner_data.hpp"
 
-#include <ReaK/mbd/models/chaser_target_model_data.hpp>
-#include <ReaK/planning/path_planning/path_planner_options.hpp>
+#include "ReaK/mbd/models/chaser_target_model_data.hpp"
+#include "ReaK/planning/path_planning/path_planner_options.hpp"
 
-#include <ReaK/planning/path_planning/intercept_query.hpp>
+#include "ReaK/planning/path_planning/intercept_query.hpp"
 
-#include <ReaK/planning/path_planning/rrtstar_manip_planners.hpp>
-#include <ReaK/planning/path_planning/sbastar_manip_planners.hpp>
+#include "ReaK/planning/path_planning/rrtstar_manip_planners.hpp"
+#include "ReaK/planning/path_planning/sbastar_manip_planners.hpp"
 
 #if 0
-#include <ReaK/planning/path_planning/fadprm_path_planner.hpp>
-#include <ReaK/planning/path_planning/prm_path_planner.hpp>
-#include <ReaK/planning/path_planning/rrt_path_planner.hpp>
+#include "ReaK/planning/path_planning/fadprm_path_planner.hpp"
+#include "ReaK/planning/path_planning/prm_path_planner.hpp"
+#include "ReaK/planning/path_planning/rrt_path_planner.hpp"
 #endif
 
-#include <ReaK/planning/path_planning/frame_tracer_coin3d.hpp>
+#include "ReaK/planning/path_planning/frame_tracer_coin3d.hpp"
 
-#include <ReaK/topologies/interpolation/discrete_point_trajectory.hpp>
-#include <ReaK/topologies/interpolation/trajectory_base.hpp>
-#include <ReaK/topologies/spaces/manip_planning_traits.hpp>
+#include "ReaK/topologies/interpolation/discrete_point_trajectory.hpp"
+#include "ReaK/topologies/interpolation/trajectory_base.hpp"
+#include "ReaK/topologies/spaces/manip_planning_traits.hpp"
 
-#include <ReaK/topologies/interpolation/transformed_trajectory.hpp>
-#include <ReaK/topologies/spaces/direct_inverse_kin_topomap.hpp>
-#include <ReaK/topologies/spaces/proxy_traj_applicator.hpp>
+#include "ReaK/topologies/interpolation/transformed_trajectory.hpp"
+#include "ReaK/topologies/spaces/direct_inverse_kin_topomap.hpp"
+#include "ReaK/topologies/spaces/proxy_traj_applicator.hpp"
 
-#include <ReaK/topologies/spaces/Ndof_cubic_spaces.hpp>
-#include <ReaK/topologies/spaces/Ndof_linear_spaces.hpp>
-#include <ReaK/topologies/spaces/Ndof_quintic_spaces.hpp>
-#include <ReaK/topologies/spaces/Ndof_sap_spaces.hpp>
-#include <ReaK/topologies/spaces/Ndof_svp_spaces.hpp>
+#include "ReaK/topologies/spaces/Ndof_cubic_spaces.hpp"
+#include "ReaK/topologies/spaces/Ndof_linear_spaces.hpp"
+#include "ReaK/topologies/spaces/Ndof_quintic_spaces.hpp"
+#include "ReaK/topologies/spaces/Ndof_sap_spaces.hpp"
+#include "ReaK/topologies/spaces/Ndof_svp_spaces.hpp"
 
 template <typename ManipMdlType, typename InterpTag, int Order,
           typename TargetStateTrajectory, typename ManipCSpaceTrajectory>

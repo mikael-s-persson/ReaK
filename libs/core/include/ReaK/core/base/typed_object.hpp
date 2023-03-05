@@ -36,8 +36,8 @@
 
 #include <memory>
 
-#include <ReaK/core/rtti/rtti.hpp>
-#include "defs.hpp"
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/rtti/rtti.hpp"
 
 namespace ReaK {
 

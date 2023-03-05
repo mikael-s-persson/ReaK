@@ -34,23 +34,23 @@
 #ifndef REAK_MAT_ALG_GENERAL_HPP
 #define REAK_MAT_ALG_GENERAL_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/serializable.hpp>
-#include <ReaK/core/rtti/so_register_type.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/serializable.hpp"
+#include "ReaK/core/rtti/so_register_type.hpp"
 
-#include "mat_composite_adaptor.hpp"
-#include "mat_concepts.hpp"
-#include "mat_slices.hpp"
-#include "mat_traits.hpp"
-#include "mat_vector_adaptor.hpp"
-#include "mat_views.hpp"
-#include "stride_iterator.hpp"
-#include "vect_alg.hpp"
-#include "vect_concepts.hpp"
+#include "ReaK/math/lin_alg/mat_composite_adaptor.hpp"
+#include "ReaK/math/lin_alg/mat_concepts.hpp"
+#include "ReaK/math/lin_alg/mat_slices.hpp"
+#include "ReaK/math/lin_alg/mat_traits.hpp"
+#include "ReaK/math/lin_alg/mat_vector_adaptor.hpp"
+#include "ReaK/math/lin_alg/mat_views.hpp"
+#include "ReaK/math/lin_alg/stride_iterator.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
 
 #include <type_traits>
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK {
 

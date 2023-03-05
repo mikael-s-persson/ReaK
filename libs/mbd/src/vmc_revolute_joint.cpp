@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/vmc_revolute_joint.hpp>
+#include "ReaK/mbd/kte/vmc_revolute_joint.hpp"
 
 namespace ReaK::kte {
 

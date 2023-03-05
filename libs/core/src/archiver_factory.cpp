@@ -21,11 +21,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
-#include <ReaK/core/serialization/bin_archiver.hpp>
-#include <ReaK/core/serialization/protobuf_archiver.hpp>
-#include <ReaK/core/serialization/xml_archiver.hpp>
+#include "ReaK/core/serialization/bin_archiver.hpp"
+#include "ReaK/core/serialization/protobuf_archiver.hpp"
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
 #include <ios>
 #include <memory>

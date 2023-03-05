@@ -21,12 +21,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/serialization/scheme_builder.hpp>
+#include "ReaK/core/serialization/scheme_builder.hpp"
 
-#include <ReaK/core/base/shared_object.hpp>
-#include <ReaK/core/rtti/rtti.hpp>
+#include "ReaK/core/base/shared_object.hpp"
+#include "ReaK/core/rtti/rtti.hpp"
 
-#include <ReaK/core/serialization/type_schemes.hpp>
+#include "ReaK/core/serialization/type_schemes.hpp"
 
 #include <string>
 

@@ -36,10 +36,10 @@
 #ifndef REAK_STATE_MEASURES_HPP
 #define REAK_STATE_MEASURES_HPP
 
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
 #include <utility>
-#include "kte_map.hpp"
-#include "kte_system_output.hpp"
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
+#include "ReaK/mbd/kte/kte_map.hpp"
+#include "ReaK/mbd/kte/kte_system_output.hpp"
 
 namespace ReaK::kte {
 

@@ -33,9 +33,9 @@
 #ifndef REAK_COLORED_MODEL_HPP
 #define REAK_COLORED_MODEL_HPP
 
-#include "color.hpp"
-#include "geometry_2D.hpp"
-#include "geometry_3D.hpp"
+#include "ReaK/geometry/shapes/color.hpp"
+#include "ReaK/geometry/shapes/geometry_2D.hpp"
+#include "ReaK/geometry/shapes/geometry_3D.hpp"
 
 #include <utility>
 #include <vector>

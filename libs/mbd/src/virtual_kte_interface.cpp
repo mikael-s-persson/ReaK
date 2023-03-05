@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/virtual_kte_interface.hpp>
+#include "ReaK/mbd/kte/virtual_kte_interface.hpp"
 
 namespace ReaK::kte {
 

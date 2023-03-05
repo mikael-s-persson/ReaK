@@ -33,11 +33,11 @@
 #ifndef REAK_JACOBIAN_HELPER_FUNCTIONS_HPP
 #define REAK_JACOBIAN_HELPER_FUNCTIONS_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_svd_method.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_svd_method.hpp"
 
-#include "optim_exceptions.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 namespace ReaK::optim {
 

@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/recorders/ascii_recorder.hpp>
+#include "ReaK/core/recorders/ascii_recorder.hpp"
 
 #include <mutex>
 

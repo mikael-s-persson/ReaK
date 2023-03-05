@@ -33,17 +33,17 @@
 #ifndef REAK_BELIEF_STATE_PREDICTOR_HPP
 #define REAK_BELIEF_STATE_PREDICTOR_HPP
 
-#include <ReaK/control/systems/discrete_sss_concept.hpp>
-#include <ReaK/control/systems/state_vector_concept.hpp>
-#include "belief_state_concept.hpp"
+#include "ReaK/control/estimators/belief_state_concept.hpp"
+#include "ReaK/control/systems/discrete_sss_concept.hpp"
+#include "ReaK/control/systems/state_vector_concept.hpp"
 
-#include <ReaK/topologies/interpolation/predicted_trajectory_concept.hpp>
-#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
+#include "ReaK/topologies/interpolation/predicted_trajectory_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
-#include <ReaK/topologies/spaces/temporal_space.hpp>
-#include <ReaK/topologies/spaces/time_poisson_topology.hpp>
+#include "ReaK/topologies/spaces/temporal_space.hpp"
+#include "ReaK/topologies/spaces/time_poisson_topology.hpp"
 
-#include <ReaK/topologies/interpolation/waypoint_container.hpp>
+#include "ReaK/topologies/interpolation/waypoint_container.hpp"
 
 #include <iterator>
 #include <map>

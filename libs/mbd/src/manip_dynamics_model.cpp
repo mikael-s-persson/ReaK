@@ -21,11 +21,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
-#include <ReaK/mbd/models/manip_dynamics_model.hpp>
-#include <ReaK/mbd/models/manip_kinematics_helper.hpp>
+#include "ReaK/mbd/models/manip_dynamics_model.hpp"
+#include "ReaK/mbd/models/manip_kinematics_helper.hpp"
 
 namespace ReaK::kte {
 

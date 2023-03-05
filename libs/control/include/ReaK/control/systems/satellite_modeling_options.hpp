@@ -34,27 +34,27 @@
 #ifndef REAK_SATELLITE_MODELING_OPTIONS_HPP
 #define REAK_SATELLITE_MODELING_OPTIONS_HPP
 
-#include "near_buoyant_airship_models.hpp"
-#include "satellite_invar_models.hpp"
+#include "ReaK/control/systems/near_buoyant_airship_models.hpp"
+#include "ReaK/control/systems/satellite_invar_models.hpp"
 
-#include <ReaK/control/estimators/belief_state_predictor.hpp>
-#include <ReaK/control/estimators/covar_topology.hpp>
-#include <ReaK/control/estimators/covariance_matrix.hpp>
-#include <ReaK/control/estimators/gaussian_belief_space.hpp>
-#include <ReaK/control/estimators/invariant_kalman_filter.hpp>
-#include <ReaK/control/estimators/maximum_likelihood_mapping.hpp>
-#include <ReaK/control/systems/discrete_sss_concept.hpp>
-#include <ReaK/topologies/interpolation/constant_trajectory.hpp>
-#include <ReaK/topologies/interpolation/transformed_trajectory.hpp>
-#include <ReaK/topologies/spaces/temporal_space.hpp>
-#include <ReaK/topologies/spaces/time_poisson_topology.hpp>
-#include <ReaK/topologies/spaces/vector_topology.hpp>
+#include "ReaK/control/estimators/belief_state_predictor.hpp"
+#include "ReaK/control/estimators/covar_topology.hpp"
+#include "ReaK/control/estimators/covariance_matrix.hpp"
+#include "ReaK/control/estimators/gaussian_belief_space.hpp"
+#include "ReaK/control/estimators/invariant_kalman_filter.hpp"
+#include "ReaK/control/estimators/maximum_likelihood_mapping.hpp"
+#include "ReaK/control/systems/discrete_sss_concept.hpp"
+#include "ReaK/topologies/interpolation/constant_trajectory.hpp"
+#include "ReaK/topologies/interpolation/transformed_trajectory.hpp"
+#include "ReaK/topologies/spaces/temporal_space.hpp"
+#include "ReaK/topologies/spaces/time_poisson_topology.hpp"
+#include "ReaK/topologies/spaces/vector_topology.hpp"
 
-#include <ReaK/math/lin_alg/mat_alg_diagonal.hpp>
-#include <ReaK/math/lin_alg/mat_alg_symmetric.hpp>
+#include "ReaK/math/lin_alg/mat_alg_diagonal.hpp"
+#include "ReaK/math/lin_alg/mat_alg_symmetric.hpp"
 
-#include <ReaK/core/recorders/data_record_options.hpp>
-#include <ReaK/core/serialization/archiver.hpp>
+#include "ReaK/core/recorders/data_record_options.hpp"
+#include "ReaK/core/serialization/archiver.hpp"
 
 #include <string>
 

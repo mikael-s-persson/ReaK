@@ -32,17 +32,17 @@
 #ifndef REAK_INTERPOLATED_TOPOLOGIES_HPP
 #define REAK_INTERPOLATED_TOPOLOGIES_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/topologies/interpolation/generic_interpolator_factory.hpp>
-#include <ReaK/topologies/spaces/default_random_sampler.hpp>
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/proper_metric_concept.hpp>
-#include <ReaK/topologies/spaces/rate_limited_space_metamaps.hpp>
-#include <ReaK/topologies/spaces/reversible_space_concept.hpp>
-#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
+#include "ReaK/topologies/interpolation/generic_interpolator_factory.hpp"
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/proper_metric_concept.hpp"
+#include "ReaK/topologies/spaces/rate_limited_space_metamaps.hpp"
+#include "ReaK/topologies/spaces/reversible_space_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 #include <functional>
 #include <type_traits>

@@ -33,13 +33,13 @@
 #ifndef REAK_NUM_INT_DTNL_SYSTEM_HPP
 #define REAK_NUM_INT_DTNL_SYSTEM_HPP
 
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/integrators/fixed_step_integrators.hpp>
-#include <ReaK/math/integrators/integrator.hpp>
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/math/integrators/fixed_step_integrators.hpp"
+#include "ReaK/math/integrators/integrator.hpp"
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
 
-#include "discrete_sss_concept.hpp"
-#include "state_space_sys_concept.hpp"
+#include "ReaK/control/systems/discrete_sss_concept.hpp"
+#include "ReaK/control/systems/state_space_sys_concept.hpp"
 
 namespace ReaK::ctrl {
 

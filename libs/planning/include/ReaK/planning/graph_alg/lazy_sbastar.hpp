@@ -49,7 +49,7 @@
 #ifndef REAK_LAZY_SBASTAR_HPP
 #define REAK_LAZY_SBASTAR_HPP
 
-#include "sbastar_search.hpp"
+#include "ReaK/planning/graph_alg/sbastar_search.hpp"
 
 namespace ReaK::graph {}  // namespace ReaK::graph
 

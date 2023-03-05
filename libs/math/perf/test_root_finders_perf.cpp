@@ -21,21 +21,19 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/math/root_finders/bisection_method.hpp>
-#include <ReaK/math/root_finders/secant_method.hpp>
 #include <cmath>
+#include "ReaK/math/root_finders/bisection_method.hpp"
+#include "ReaK/math/root_finders/secant_method.hpp"
 
 #include <iomanip>
 #include <iostream>
 #include <vector>
 
-using std::abs;
 using std::cos;
 using std::exp;
 using std::log;
 using std::pow;
 using std::sin;
-using std::sqrt;
 
 int iteration_count;
 

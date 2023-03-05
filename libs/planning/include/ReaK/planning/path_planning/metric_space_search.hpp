@@ -35,26 +35,26 @@
 #ifndef REAK_METRIC_SPACE_SEARCH_HPP
 #define REAK_METRIC_SPACE_SEARCH_HPP
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/properties.hpp>
-#include <boost/property_map/property_map.hpp>
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/graph/properties.hpp"
+#include "boost/property_map/property_map.hpp"
 
 #include <limits>   // for numeric_limits
 #include <utility>  // for pair and move
 #include <vector>   // for vector
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/bfl_d_ary_tree.hpp>  // for default tree storage.
-#include <boost/graph/more_property_maps.hpp>
-#include <boost/graph/more_property_tags.hpp>
+#include "boost/graph/bfl_d_ary_tree.hpp"  // for default tree storage.
+#include "boost/graph/more_property_maps.hpp"
+#include "boost/graph/more_property_tags.hpp"
 
 // Pending inclusion in BGL-Extra:
-#include <ReaK/planning/graph_alg/bgl_raw_property_graph.hpp>
+#include "ReaK/planning/graph_alg/bgl_raw_property_graph.hpp"
 
-#include "dvp_tree_detail.hpp"
-#include "multi_dvp_tree_search.hpp"
+#include "ReaK/planning/path_planning/dvp_tree_detail.hpp"
+#include "ReaK/planning/path_planning/multi_dvp_tree_search.hpp"
 
 namespace ReaK::pp {
 

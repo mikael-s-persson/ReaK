@@ -32,9 +32,9 @@
 #ifndef REAK_FREE_FLOATING_PLATFORM_HPP
 #define REAK_FREE_FLOATING_PLATFORM_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
-#include "inverse_kinematics_model.hpp"
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
+#include "ReaK/mbd/models/inverse_kinematics_model.hpp"
 
 namespace ReaK::kte {
 

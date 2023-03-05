@@ -32,11 +32,11 @@
 #ifndef REAK_ADJ_LIST_TREE_OVERLAY_HPP
 #define REAK_ADJ_LIST_TREE_OVERLAY_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/properties.hpp>
-#include <boost/property_map/property_map.hpp>
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/graph/properties.hpp"
+#include "boost/property_map/property_map.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -44,16 +44,16 @@
 #include <vector>
 
 // BGL-Extra includes:
-#include <boost/graph/adjacency_list_BC.hpp>
-#include <boost/graph/bfl_d_ary_tree.hpp>
-#include <boost/graph/more_property_tags.hpp>
-//#include <boost/graph/tree_adaptor.hpp>
-#include <boost/graph/more_property_maps.hpp>
+#include "boost/graph/adjacency_list_BC.hpp"
+#include "boost/graph/bfl_d_ary_tree.hpp"
+#include "boost/graph/more_property_tags.hpp"
+//#include "boost/graph/tree_adaptor.hpp"
+#include "boost/graph/more_property_maps.hpp"
 
 // Pending inclusion in BGL-Extra:
-#include "bgl_raw_property_graph.hpp"
+#include "ReaK/planning/graph_alg/bgl_raw_property_graph.hpp"
 
-#include "tree_organizer_concept.hpp"
+#include "ReaK/planning/graph_alg/tree_organizer_concept.hpp"
 
 namespace ReaK::graph {
 

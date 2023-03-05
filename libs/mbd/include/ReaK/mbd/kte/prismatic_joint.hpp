@@ -34,11 +34,11 @@
 #ifndef REAK_PRISMATIC_JOINT_HPP
 #define REAK_PRISMATIC_JOINT_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/kinetostatics/motion_jacobians.hpp>
 #include <utility>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/kinetostatics/motion_jacobians.hpp"
 
-#include "reacting_kte.hpp"
+#include "ReaK/mbd/kte/reacting_kte.hpp"
 
 namespace ReaK::kte {
 

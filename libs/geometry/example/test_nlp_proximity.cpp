@@ -21,9 +21,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/math/optimization/nl_interior_points_methods.hpp>
+#include "ReaK/math/optimization/nl_interior_points_methods.hpp"
 
-#include <ReaK/geometry/proximity/prox_fundamentals_3D.hpp>
+#include "ReaK/geometry/proximity/prox_fundamentals_3D.hpp"
 
 #include <iostream>
 

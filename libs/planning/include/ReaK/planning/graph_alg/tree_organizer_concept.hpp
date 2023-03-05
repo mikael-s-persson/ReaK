@@ -33,11 +33,11 @@
 #ifndef REAK_TREE_ORGANIZER_CONCEPT_HPP
 #define REAK_TREE_ORGANIZER_CONCEPT_HPP
 
-#include <boost/concept_check.hpp>
-#include <boost/config.hpp>
-#include <boost/graph/graph_concepts.hpp>
+#include "boost/concept_check.hpp"
+#include "boost/config.hpp"
+#include "boost/graph/graph_concepts.hpp"
 
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
 namespace ReaK::graph {
 

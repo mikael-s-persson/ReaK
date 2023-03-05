@@ -34,13 +34,13 @@
 #ifndef REAK_DISCRETE_POINT_TRAJECTORY_HPP
 #define REAK_DISCRETE_POINT_TRAJECTORY_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/interpolation/spatial_trajectory_concept.hpp"
 
-#include "waypoint_container.hpp"
+#include "ReaK/topologies/interpolation/waypoint_container.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 #include <utility>
 

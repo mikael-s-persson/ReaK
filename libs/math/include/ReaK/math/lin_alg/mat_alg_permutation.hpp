@@ -32,8 +32,8 @@
 #ifndef REAK_MAT_ALG_PERMUTATION_HPP
 #define REAK_MAT_ALG_PERMUTATION_HPP
 
-#include "mat_alg_general.hpp"
-#include "mat_alg_identity.hpp"
+#include "ReaK/math/lin_alg/mat_alg_general.hpp"
+#include "ReaK/math/lin_alg/mat_alg_identity.hpp"
 
 #include <type_traits>
 

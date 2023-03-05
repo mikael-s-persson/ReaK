@@ -35,11 +35,11 @@
 #ifndef REAK_STATE_VECTOR_CONCEPT_HPP
 #define REAK_STATE_VECTOR_CONCEPT_HPP
 
-#include <ReaK/math/lin_alg/mat_slices.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
-#include <ReaK/math/lin_alg/vect_concepts.hpp>
+#include "ReaK/math/lin_alg/mat_slices.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::ctrl {
 

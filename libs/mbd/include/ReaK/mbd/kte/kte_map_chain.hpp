@@ -35,7 +35,7 @@
 #define REAK_KTE_MAP_CHAIN_HPP
 
 #include <vector>
-#include "kte_map.hpp"
+#include "ReaK/mbd/kte/kte_map.hpp"
 
 namespace ReaK::kte {
 

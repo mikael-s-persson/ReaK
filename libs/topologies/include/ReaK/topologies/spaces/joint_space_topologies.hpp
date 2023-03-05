@@ -35,16 +35,16 @@
 #ifndef REAK_JOINT_SPACE_TOPOLOGIES_HPP
 #define REAK_JOINT_SPACE_TOPOLOGIES_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "differentiable_space.hpp"
-#include "metric_space_tuple.hpp"
-#include "rate_limited_spaces.hpp"
+#include "ReaK/topologies/spaces/differentiable_space.hpp"
+#include "ReaK/topologies/spaces/metric_space_tuple.hpp"
+#include "ReaK/topologies/spaces/rate_limited_spaces.hpp"
 
-#include "line_topology.hpp"
+#include "ReaK/topologies/spaces/line_topology.hpp"
 
-#include <ReaK/math/kinetostatics/gen_coord.hpp>
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
+#include "ReaK/math/kinetostatics/gen_coord.hpp"
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
 
 namespace ReaK {
 
@@ -407,6 +407,6 @@ void set_acceleration(arithmetic_tuple<T, T, T>& pt, const T& p) {
 
 }  // namespace ReaK
 
-#include "joint_space_topologies_ext.hpp"
+#include "ReaK/topologies/spaces/joint_space_topologies_ext.hpp"
 
 #endif

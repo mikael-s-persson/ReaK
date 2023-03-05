@@ -27,10 +27,10 @@
 #include <fstream>
 #include <iostream>
 
-#include <ReaK/topologies/spaces/differentiable_space.hpp>
-#include <ReaK/topologies/spaces/temporal_space.hpp>
-#include <ReaK/topologies/spaces/time_poisson_topology.hpp>
-#include <ReaK/topologies/spaces/time_topology.hpp>
+#include "ReaK/topologies/spaces/differentiable_space.hpp"
+#include "ReaK/topologies/spaces/temporal_space.hpp"
+#include "ReaK/topologies/spaces/time_poisson_topology.hpp"
+#include "ReaK/topologies/spaces/time_topology.hpp"
 
 #define RK_ENABLE_TEST_LINEAR_INTERPOLATOR
 #define RK_ENABLE_TEST_CUBIC_INTERPOLATOR
@@ -38,30 +38,30 @@
 #define RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
 #define RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
 
-#include <ReaK/topologies/spaces/Ndof_spaces.hpp>
-#include <ReaK/topologies/spaces/hyperbox_topology.hpp>
+#include "ReaK/topologies/spaces/Ndof_spaces.hpp"
+#include "ReaK/topologies/spaces/hyperbox_topology.hpp"
 
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
-#include <ReaK/topologies/interpolation/linear_interp.hpp>
+#include "ReaK/topologies/interpolation/linear_interp.hpp"
 #endif
 
 #ifdef RK_ENABLE_TEST_CUBIC_INTERPOLATOR
-#include <ReaK/topologies/interpolation/cubic_hermite_interp.hpp>
+#include "ReaK/topologies/interpolation/cubic_hermite_interp.hpp"
 #endif
 
 #ifdef RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
-#include <ReaK/topologies/interpolation/quintic_hermite_interp.hpp>
+#include "ReaK/topologies/interpolation/quintic_hermite_interp.hpp"
 #endif
 
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
-#include <ReaK/topologies/interpolation/sustained_velocity_pulse_Ndof.hpp>
+#include "ReaK/topologies/interpolation/sustained_velocity_pulse_Ndof.hpp"
 #endif
 
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
-#include <ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof.hpp>
+#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof.hpp"
 #endif
 
-#include <ReaK/core/base/scope_guard.hpp>
+#include "ReaK/core/base/scope_guard.hpp"
 
 #include <filesystem>
 #include <memory>

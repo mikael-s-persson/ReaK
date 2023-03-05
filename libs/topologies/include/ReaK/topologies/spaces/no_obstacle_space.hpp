@@ -34,11 +34,11 @@
 #ifndef REAK_NO_OBSTACLE_SPACE_HPP
 #define REAK_NO_OBSTACLE_SPACE_HPP
 
-#include "metric_space_concept.hpp"
-#include "random_sampler_concept.hpp"
-#include "reversible_space_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/random_sampler_concept.hpp"
+#include "ReaK/topologies/spaces/reversible_space_concept.hpp"
 
-#include "default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
 
 namespace ReaK::pp {
 

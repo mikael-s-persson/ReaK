@@ -34,13 +34,13 @@
 #ifndef REAK_AVL_TREE_HPP
 #define REAK_AVL_TREE_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "avl_tree_detail.hpp"
+#include "ReaK/planning/graph_alg/avl_tree_detail.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/bfl_d_ary_tree.hpp>
-#include <boost/graph/vebl_d_ary_tree.hpp>
+#include "boost/graph/bfl_d_ary_tree.hpp"
+#include "boost/graph/vebl_d_ary_tree.hpp"
 
 namespace ReaK::graph {
 

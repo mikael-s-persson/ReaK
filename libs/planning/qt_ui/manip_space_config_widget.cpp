@@ -21,9 +21,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/planning/qt/manip_space_config_widget.hpp>
+#include "ReaK/planning/qt/manip_space_config_widget.hpp"
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
 #include "ui_manip_space_config.h"
 

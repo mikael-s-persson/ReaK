@@ -21,12 +21,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/rpc/detail/remote_function.hpp>
+#include "ReaK/core/rpc/detail/remote_function.hpp"
 
-#include <ReaK/core/rpc/rpc_server.hpp>
 #include <future>
 #include <thread>
 #include <utility>
+#include "ReaK/core/rpc/rpc_server.hpp"
 
 namespace ReaK::rpc::detail {
 

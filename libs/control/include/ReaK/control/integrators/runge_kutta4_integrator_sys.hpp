@@ -34,11 +34,11 @@
 #ifndef REAK_RUNGE_KUTTA4_INTEGRATOR_SYS_HPP
 #define REAK_RUNGE_KUTTA4_INTEGRATOR_SYS_HPP
 
-#include <ReaK/control/systems/state_space_sys_concept.hpp>
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/topologies/interpolation/spatial_trajectory_concept.hpp>
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
+#include "ReaK/control/systems/state_space_sys_concept.hpp"
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/topologies/interpolation/spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
 namespace ReaK::ctrl {
 

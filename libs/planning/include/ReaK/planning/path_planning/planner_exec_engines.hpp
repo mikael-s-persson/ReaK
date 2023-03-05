@@ -33,45 +33,45 @@
 #define REAK_PLANNER_EXEC_ENGINES_HPP
 
 #ifndef RK_DISABLE_RRT_PLANNER
-#include "rrt_path_planner.hpp"
+#include "ReaK/planning/path_planning/rrt_path_planner.hpp"
 #endif
 #ifndef RK_DISABLE_PRM_PLANNER
-#include "prm_path_planner.hpp"
+#include "ReaK/planning/path_planning/prm_path_planner.hpp"
 #endif
 #ifndef RK_DISABLE_RRTSTAR_PLANNER
-#include "rrtstar_path_planner.hpp"
+#include "ReaK/planning/path_planning/rrtstar_path_planner.hpp"
 #endif
 #ifndef RK_DISABLE_FADPRM_PLANNER
-#include "fadprm_path_planner.hpp"
+#include "ReaK/planning/path_planning/fadprm_path_planner.hpp"
 #endif
 #ifndef RK_DISABLE_SBASTAR_PLANNER
-#include "sbastar_path_planner.hpp"
+#include "ReaK/planning/path_planning/sbastar_path_planner.hpp"
 #endif
 
 #ifndef RK_DISABLE_PLANNER_DEFINITIONS
 #ifndef RK_DISABLE_RRT_PLANNER
-#include "rrt_path_planner.tpp"
+#include "ReaK/planning/path_planning/rrt_path_planner.tpp"
 #endif
 #ifndef RK_DISABLE_PRM_PLANNER
-#include "prm_path_planner.tpp"
+#include "ReaK/planning/path_planning/prm_path_planner.tpp"
 #endif
 #ifndef RK_DISABLE_RRTSTAR_PLANNER
-#include "rrtstar_path_planner.tpp"
+#include "ReaK/planning/path_planning/rrtstar_path_planner.tpp"
 #endif
 #ifndef RK_DISABLE_FADPRM_PLANNER
-#include "fadprm_path_planner.tpp"
+#include "ReaK/planning/path_planning/fadprm_path_planner.tpp"
 #endif
 #ifndef RK_DISABLE_SBASTAR_PLANNER
-#include "sbastar_path_planner.tpp"
+#include "ReaK/planning/path_planning/sbastar_path_planner.tpp"
 #endif
 #endif
 
-#include "path_planner_options.hpp"
+#include "ReaK/planning/path_planning/path_planner_options.hpp"
 
-#include "p2p_planning_query.hpp"
+#include "ReaK/planning/path_planning/p2p_planning_query.hpp"
 
-#include "basic_sbmp_reporters.hpp"
-#include "vlist_sbmp_report.hpp"
+#include "ReaK/planning/path_planning/basic_sbmp_reporters.hpp"
+#include "ReaK/planning/path_planning/vlist_sbmp_report.hpp"
 
 #include <filesystem>
 

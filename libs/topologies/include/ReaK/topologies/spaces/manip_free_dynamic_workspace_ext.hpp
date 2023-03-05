@@ -32,15 +32,15 @@
 #ifndef REAK_MANIP_FREE_DYNAMIC_WORKSPACE_EXT_HPP
 #define REAK_MANIP_FREE_DYNAMIC_WORKSPACE_EXT_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "differentiable_space.hpp"
-#include "metric_space_tuple.hpp"
-#include "rate_limited_spaces.hpp"
+#include "ReaK/topologies/spaces/differentiable_space.hpp"
+#include "ReaK/topologies/spaces/metric_space_tuple.hpp"
+#include "ReaK/topologies/spaces/rate_limited_spaces.hpp"
 
-#include "Ndof_spaces.hpp"
-#include "se2_topologies.hpp"
-#include "se3_topologies.hpp"
+#include "ReaK/topologies/spaces/Ndof_spaces.hpp"
+#include "ReaK/topologies/spaces/se2_topologies.hpp"
+#include "ReaK/topologies/spaces/se3_topologies.hpp"
 
 namespace ReaK::pp {
 

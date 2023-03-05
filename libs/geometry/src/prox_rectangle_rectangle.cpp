@@ -23,7 +23,7 @@
 
 #include <cmath>
 
-#include <ReaK/geometry/proximity/prox_rectangle_rectangle.hpp>
+#include "ReaK/geometry/proximity/prox_rectangle_rectangle.hpp"
 
 namespace ReaK::geom {
 

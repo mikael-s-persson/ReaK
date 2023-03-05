@@ -38,23 +38,23 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/sensors/SoTimerSensor.h>  // for SoTimerSensor
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
-#include <ReaK/mbd/kte/kte_chain_geometry.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
+#include "ReaK/mbd/kte/kte_chain_geometry.hpp"
 
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
-#include <ReaK/mbd/models/direct_kinematics_model.hpp>
-#include <ReaK/mbd/models/inverse_dynamics_model.hpp>
-#include <ReaK/mbd/models/inverse_kinematics_model.hpp>
-#include <ReaK/mbd/models/manip_P3R3R_arm.hpp>
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
+#include "ReaK/mbd/models/direct_kinematics_model.hpp"
+#include "ReaK/mbd/models/inverse_dynamics_model.hpp"
+#include "ReaK/mbd/models/inverse_kinematics_model.hpp"
+#include "ReaK/mbd/models/manip_P3R3R_arm.hpp"
 
-#include <ReaK/mbd/models/joint_space_limits.hpp>
+#include "ReaK/mbd/models/joint_space_limits.hpp"
 
-#include <ReaK/core/serialization/bin_archiver.hpp>
-#include <ReaK/core/serialization/protobuf_archiver.hpp>
-#include <ReaK/core/serialization/xml_archiver.hpp>
+#include "ReaK/core/serialization/bin_archiver.hpp"
+#include "ReaK/core/serialization/protobuf_archiver.hpp"
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 #include "ui_kte_model_viewer.h"
 

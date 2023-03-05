@@ -32,10 +32,10 @@
 #ifndef REAK_PROX_PLANE_CYLINDER_HPP
 #define REAK_PROX_PLANE_CYLINDER_HPP
 
-#include "proximity_finder_3D.hpp"
+#include "ReaK/geometry/proximity/proximity_finder_3D.hpp"
 
-#include <ReaK/geometry/shapes/cylinder.hpp>
-#include <ReaK/geometry/shapes/plane.hpp>
+#include "ReaK/geometry/shapes/cylinder.hpp"
+#include "ReaK/geometry/shapes/plane.hpp"
 
 namespace ReaK::geom {
 

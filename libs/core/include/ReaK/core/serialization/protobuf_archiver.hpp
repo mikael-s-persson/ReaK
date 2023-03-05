@@ -33,7 +33,7 @@
 #ifndef REAK_PROTOBUF_ARCHIVER_HPP
 #define REAK_PROTOBUF_ARCHIVER_HPP
 
-#include "archiver.hpp"
+#include "ReaK/core/serialization/archiver.hpp"
 
 #include <iostream>
 #include <map>

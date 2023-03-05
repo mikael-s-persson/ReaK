@@ -37,16 +37,16 @@
 #ifndef REAK_AVL_TREE_DETAIL_HPP
 #define REAK_AVL_TREE_DETAIL_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/property_map/property_map.hpp>
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/property_map/property_map.hpp"
 
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/bst_inorder_iterator.hpp>
-#include <boost/graph/tree_adaptor.hpp>
+#include "boost/graph/bst_inorder_iterator.hpp"
+#include "boost/graph/tree_adaptor.hpp"
 
 #include <iterator>
 #include <queue>

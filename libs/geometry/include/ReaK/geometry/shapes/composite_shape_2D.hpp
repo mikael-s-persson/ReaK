@@ -32,7 +32,7 @@
 #ifndef REAK_COMPOSITE_SHAPE_2D_HPP
 #define REAK_COMPOSITE_SHAPE_2D_HPP
 
-#include "shape_2D.hpp"
+#include "ReaK/geometry/shapes/shape_2D.hpp"
 
 namespace ReaK::geom {
 

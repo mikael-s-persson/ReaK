@@ -34,9 +34,9 @@
 #ifndef REAK_JOINT_FRICTION_HPP
 #define REAK_JOINT_FRICTION_HPP
 
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
 #include <utility>
-#include "kte_map.hpp"
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
+#include "ReaK/mbd/kte/kte_map.hpp"
 
 namespace ReaK::kte {
 

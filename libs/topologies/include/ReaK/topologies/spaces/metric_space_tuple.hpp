@@ -34,17 +34,17 @@
 #ifndef REAK_METRIC_SPACE_TUPLE_HPP
 #define REAK_METRIC_SPACE_TUPLE_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/serializable.hpp>
-#include <ReaK/core/base/shared_object.hpp>
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
 #include <utility>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/serializable.hpp"
+#include "ReaK/core/base/shared_object.hpp"
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
 
-#include "metric_space_concept.hpp"
-#include "metric_space_tuple_fwd.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_tuple_fwd.hpp"
 
-#include "default_random_sampler.hpp"
-#include "tuple_distance_metrics.hpp"
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/tuple_distance_metrics.hpp"
 
 namespace ReaK::pp {
 

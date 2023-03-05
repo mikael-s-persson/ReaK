@@ -32,12 +32,12 @@
 #ifndef REAK_SERIALIZABLE_HPP
 #define REAK_SERIALIZABLE_HPP
 
-#include "defs.hpp"
-#include "typed_object.hpp"
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/typed_object.hpp"
 
 #include <type_traits>
 
-#include <ReaK/core/serialization/archiver.hpp>
+#include "ReaK/core/serialization/archiver.hpp"
 
 namespace ReaK {
 

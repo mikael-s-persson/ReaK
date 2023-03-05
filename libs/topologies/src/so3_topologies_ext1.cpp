@@ -21,9 +21,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/topologies/spaces/so3_topologies.hpp>
+#include "ReaK/topologies/spaces/so3_topologies.hpp"
 
 namespace ReaK::pp {
 

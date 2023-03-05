@@ -46,7 +46,7 @@
 #ifndef REAK_VARIABLE_STEP_INTEGRATORS_HPP
 #define REAK_VARIABLE_STEP_INTEGRATORS_HPP
 
-#include "integrator.hpp"
+#include "ReaK/math/integrators/integrator.hpp"
 
 #include <cmath>
 

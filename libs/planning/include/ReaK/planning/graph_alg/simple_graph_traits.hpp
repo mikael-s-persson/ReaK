@@ -32,7 +32,7 @@
 #ifndef REAK_SIMPLE_GRAPH_TRAITS_HPP
 #define REAK_SIMPLE_GRAPH_TRAITS_HPP
 
-#include <boost/graph/graph_traits.hpp>
+#include "boost/graph/graph_traits.hpp"
 
 namespace ReaK::graph {
 

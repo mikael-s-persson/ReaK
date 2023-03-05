@@ -57,20 +57,20 @@
 #ifndef REAK_RR_TREE_HPP
 #define REAK_RR_TREE_HPP
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/property_map/property_map.hpp>
 #include <tuple>
 #include <utility>
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/property_map/property_map.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/random_sampler_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/random_sampler_concept.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/more_property_maps.hpp>
-#include <boost/graph/tree_adaptor.hpp>
+#include "boost/graph/more_property_maps.hpp"
+#include "boost/graph/tree_adaptor.hpp"
 
-#include "sbmp_visitor_concepts.hpp"
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/sbmp_visitor_concepts.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
 namespace ReaK::graph {
 

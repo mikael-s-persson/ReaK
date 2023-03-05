@@ -21,16 +21,16 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/math/optimization/line_search.hpp>
 #include <cmath>
+#include "ReaK/math/optimization/line_search.hpp"
 
-#include <ReaK/math/optimization/finite_diff_jacobians.hpp>
+#include "ReaK/math/optimization/finite_diff_jacobians.hpp"
 
-#include <ReaK/math/optimization/augmented_lagrangian_methods.hpp>
-#include <ReaK/math/optimization/nl_interior_points_methods.hpp>
-#include <ReaK/math/optimization/sequential_qp_methods.hpp>
+#include "ReaK/math/optimization/augmented_lagrangian_methods.hpp"
+#include "ReaK/math/optimization/nl_interior_points_methods.hpp"
+#include "ReaK/math/optimization/sequential_qp_methods.hpp"
 
-#include <ReaK/math/lin_alg/mat_svd_method.hpp>
+#include "ReaK/math/lin_alg/mat_svd_method.hpp"
 
 #include <iostream>
 

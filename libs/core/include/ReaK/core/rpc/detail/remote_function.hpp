@@ -34,11 +34,11 @@
 #ifndef REAK_DETAIL_REMOTE_FUNCTION_HPP
 #define REAK_DETAIL_REMOTE_FUNCTION_HPP
 
-#include <ReaK/core/rpc/version.hpp>
+#include "ReaK/core/rpc/version.hpp"
 
-#include <ReaK/core/serialization/archiver.hpp>
 #include <sstream>
 #include <string>
+#include "ReaK/core/serialization/archiver.hpp"
 
 namespace ReaK::rpc::detail {
 

@@ -21,13 +21,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/qt/obj_properties_qtmodel.hpp>
+#include "ReaK/core/qt/obj_properties_qtmodel.hpp"
 
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/named_object.hpp"
 
 #include <QMessageBox>
-#include <ReaK/core/serialization/scheme_builder.hpp>
-#include <ReaK/core/serialization/type_schemes.hpp>
+#include "ReaK/core/serialization/scheme_builder.hpp"
+#include "ReaK/core/serialization/type_schemes.hpp"
 
 #include <QComboBox>
 #include <QDoubleSpinBox>

@@ -47,24 +47,24 @@
 #ifndef REAK_PROBABILISTIC_ROADMAP_HPP
 #define REAK_PROBABILISTIC_ROADMAP_HPP
 
-#include <boost/graph/detail/d_ary_heap.hpp>
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/property_map/property_map.hpp>
 #include <tuple>
 #include <utility>
+#include "boost/graph/detail/d_ary_heap.hpp"
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/property_map/property_map.hpp"
 
-#include <ReaK/core/base/global_rng.hpp>
+#include "ReaK/core/base/global_rng.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/random_sampler_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/random_sampler_concept.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/more_property_maps.hpp>
+#include "boost/graph/more_property_maps.hpp"
 
 #include <set>
-#include "prm_connector.hpp"
-#include "sbmp_visitor_concepts.hpp"
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/prm_connector.hpp"
+#include "ReaK/planning/graph_alg/sbmp_visitor_concepts.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
 namespace ReaK::graph {
 

@@ -24,10 +24,10 @@
 #include <fstream>
 #include <iostream>
 
-#include <ReaK/topologies/interpolation/sustained_velocity_pulse.hpp>
-#include <ReaK/topologies/spaces/hyperbox_topology.hpp>
-#include <ReaK/topologies/spaces/no_obstacle_space.hpp>
-#include <ReaK/topologies/spaces/se3_topologies.hpp>
+#include "ReaK/topologies/interpolation/sustained_velocity_pulse.hpp"
+#include "ReaK/topologies/spaces/hyperbox_topology.hpp"
+#include "ReaK/topologies/spaces/no_obstacle_space.hpp"
+#include "ReaK/topologies/spaces/se3_topologies.hpp"
 
 // #define RK_DISABLE_RRT_PLANNER
 // #define RK_DISABLE_RRTSTAR_PLANNER
@@ -35,15 +35,15 @@
 // #define RK_DISABLE_FADPRM_PLANNER
 // #define RK_DISABLE_SBASTAR_PLANNER
 
-#include <ReaK/planning/path_planning/path_planner_options_po.hpp>
-#include <ReaK/planning/path_planning/planner_exec_engines.hpp>
+#include "ReaK/planning/path_planning/path_planner_options_po.hpp"
+#include "ReaK/planning/path_planning/planner_exec_engines.hpp"
 
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
-#include <ReaK/planning/path_planning/basic_sbmp_reporters.hpp>
-#include <ReaK/planning/path_planning/vlist_sbmp_report.hpp>
+#include "ReaK/planning/path_planning/basic_sbmp_reporters.hpp"
+#include "ReaK/planning/path_planning/vlist_sbmp_report.hpp"
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
 #include <filesystem>
 #include <memory>

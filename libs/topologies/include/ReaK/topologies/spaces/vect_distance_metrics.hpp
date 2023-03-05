@@ -33,14 +33,14 @@
 #ifndef REAK_VECT_DISTANCE_METRICS_HPP
 #define REAK_VECT_DISTANCE_METRICS_HPP
 
-#include <ReaK/core/base/serializable.hpp>
+#include "ReaK/core/base/serializable.hpp"
 
 #include <cmath>
 #include <type_traits>
 
-#include <ReaK/math/lin_alg/vect_concepts.hpp>
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
 
-#include "metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
 namespace ReaK::pp {
 

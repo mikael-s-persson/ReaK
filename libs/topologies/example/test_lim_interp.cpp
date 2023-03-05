@@ -28,16 +28,16 @@
 using std::ptrdiff_t;
 using std::size_t;
 
-#include <ReaK/topologies/spaces/differentiable_space.hpp>
-#include <ReaK/topologies/spaces/line_topology.hpp>
-#include <ReaK/topologies/spaces/temporal_space.hpp>
-#include <ReaK/topologies/spaces/time_poisson_topology.hpp>
-#include <ReaK/topologies/spaces/time_topology.hpp>
+#include "ReaK/topologies/spaces/differentiable_space.hpp"
+#include "ReaK/topologies/spaces/line_topology.hpp"
+#include "ReaK/topologies/spaces/temporal_space.hpp"
+#include "ReaK/topologies/spaces/time_poisson_topology.hpp"
+#include "ReaK/topologies/spaces/time_topology.hpp"
 
-#include <ReaK/core/recorders/ascii_recorder.hpp>
-#include <ReaK/topologies/interpolation/sustained_acceleration_pulse.hpp>
-#include <ReaK/topologies/interpolation/sustained_velocity_pulse.hpp>
 #include <memory>
+#include "ReaK/core/recorders/ascii_recorder.hpp"
+#include "ReaK/topologies/interpolation/sustained_acceleration_pulse.hpp"
+#include "ReaK/topologies/interpolation/sustained_velocity_pulse.hpp"
 
 int main(int argc, char** argv) {
 

@@ -33,23 +33,23 @@
 #ifndef REAK_INVERSE_KINEMATICS_TOPOMAP_HPP
 #define REAK_INVERSE_KINEMATICS_TOPOMAP_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/kinetostatics/gen_coord.hpp>
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/kinetostatics/gen_coord.hpp"
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
-#include <ReaK/mbd/models/inverse_kinematics_model.hpp>
-#include <ReaK/mbd/models/manip_clik_calculator.hpp>
-#include <ReaK/planning/path_planning/metric_space_search.hpp>
+#include "ReaK/mbd/models/inverse_kinematics_model.hpp"
+#include "ReaK/mbd/models/manip_clik_calculator.hpp"
+#include "ReaK/planning/path_planning/metric_space_search.hpp"
 
-#include "Ndof_spaces.hpp"
-#include "joint_space_limits.hpp"
-#include "joint_space_topologies.hpp"
-#include "se2_topologies.hpp"
-#include "se3_topologies.hpp"
+#include "ReaK/topologies/spaces/Ndof_spaces.hpp"
+#include "ReaK/topologies/spaces/joint_space_limits.hpp"
+#include "ReaK/topologies/spaces/joint_space_topologies.hpp"
+#include "ReaK/topologies/spaces/se2_topologies.hpp"
+#include "ReaK/topologies/spaces/se3_topologies.hpp"
 
-#include "direct_kinematics_topomap.hpp"
-#include "inverse_kinematics_topomap_detail.hpp"
+#include "ReaK/topologies/spaces/direct_kinematics_topomap.hpp"
+#include "ReaK/topologies/spaces/inverse_kinematics_topomap_detail.hpp"
 
 namespace ReaK::pp {
 

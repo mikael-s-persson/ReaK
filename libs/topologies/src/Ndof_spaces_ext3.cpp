@@ -21,10 +21,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/topologies/spaces/Ndof_spaces.hpp>
-#include <ReaK/topologies/spaces/joint_space_limits.tpp>
+#include "ReaK/topologies/spaces/Ndof_spaces.hpp"
+#include "ReaK/topologies/spaces/joint_space_limits.tpp"
 
 namespace ReaK::pp {
 

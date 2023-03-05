@@ -33,12 +33,12 @@
 #ifndef REAK_SOLUTION_PATH_FACTORIES_HPP
 #define REAK_SOLUTION_PATH_FACTORIES_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/steerable_space_concept.hpp>
-#include <ReaK/topologies/spaces/subspace_concept.hpp>
-#include "any_motion_graphs.hpp"
+#include "ReaK/planning/path_planning/any_motion_graphs.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/steerable_space_concept.hpp"
+#include "ReaK/topologies/spaces/subspace_concept.hpp"
 
 #include <type_traits>
 

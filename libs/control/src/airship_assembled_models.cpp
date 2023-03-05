@@ -21,9 +21,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/control/systems/airship_assembled_models.hpp>
+#include "ReaK/control/systems/airship_assembled_models.hpp"
 
 namespace ReaK::ctrl {
 

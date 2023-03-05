@@ -35,9 +35,9 @@
 #ifndef REAK_DIRECT_INVERSE_KIN_TOPOMAP_HPP
 #define REAK_DIRECT_INVERSE_KIN_TOPOMAP_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/mbd/models/inverse_kinematics_model.hpp>
+#include "ReaK/mbd/models/inverse_kinematics_model.hpp"
 
 namespace ReaK::pp {
 

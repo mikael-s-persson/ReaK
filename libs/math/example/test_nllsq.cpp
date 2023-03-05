@@ -21,16 +21,16 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/math/optimization/line_search.hpp>
 #include <cmath>
+#include "ReaK/math/optimization/line_search.hpp"
 
-#include <ReaK/math/optimization/finite_diff_jacobians.hpp>
+#include "ReaK/math/optimization/finite_diff_jacobians.hpp"
 
-#include <ReaK/math/optimization/gauss_newton_method.hpp>
-#include <ReaK/math/optimization/jacobian_transpose_method.hpp>
-#include <ReaK/math/optimization/levenberg_marquardt_method.hpp>
+#include "ReaK/math/optimization/gauss_newton_method.hpp"
+#include "ReaK/math/optimization/jacobian_transpose_method.hpp"
+#include "ReaK/math/optimization/levenberg_marquardt_method.hpp"
 
-#include <ReaK/math/lin_alg/mat_svd_method.hpp>
+#include "ReaK/math/lin_alg/mat_svd_method.hpp"
 
 #include <iostream>
 

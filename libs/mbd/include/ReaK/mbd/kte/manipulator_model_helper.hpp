@@ -38,10 +38,10 @@
 #ifndef REAK_MANIPULATOR_MODEL_HELPER_HPP
 #define REAK_MANIPULATOR_MODEL_HELPER_HPP
 
-#include "manipulator_model.hpp"
+#include "ReaK/mbd/kte/manipulator_model.hpp"
 
-#include <ReaK/math/optimization/function_types.hpp>
-#include <ReaK/math/optimization/nl_interior_points_methods.hpp>
+#include "ReaK/math/optimization/function_types.hpp"
+#include "ReaK/math/optimization/nl_interior_points_methods.hpp"
 
 namespace ReaK::kte {
 

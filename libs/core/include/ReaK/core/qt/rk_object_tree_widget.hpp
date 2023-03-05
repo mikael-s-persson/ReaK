@@ -29,7 +29,7 @@
 #ifndef REAK_OBJECT_TREE_WIDGET_HPP
 #define REAK_OBJECT_TREE_WIDGET_HPP
 
-#include "objtree_qtmodel.hpp"
+#include "ReaK/core/qt/objtree_qtmodel.hpp"
 
 #include <QDockWidget>
 

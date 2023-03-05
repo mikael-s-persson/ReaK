@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/free_joints.hpp>
+#include "ReaK/mbd/kte/free_joints.hpp"
 
 namespace ReaK::kte {
 

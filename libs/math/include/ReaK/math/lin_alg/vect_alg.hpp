@@ -45,15 +45,15 @@
 #include <type_traits>
 #include <vector>
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/rtti/so_register_type.hpp>
-#include <ReaK/core/rtti/typed_primitives.hpp>
-#include <ReaK/core/serialization/archiver.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/rtti/so_register_type.hpp"
+#include "ReaK/core/rtti/typed_primitives.hpp"
+#include "ReaK/core/serialization/archiver.hpp"
 
-#include "mat_concepts.hpp"
-#include "vect_concepts.hpp"
-#include "vect_index_iterator.hpp"
-#include "vect_views.hpp"
+#include "ReaK/math/lin_alg/mat_concepts.hpp"
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
+#include "ReaK/math/lin_alg/vect_index_iterator.hpp"
+#include "ReaK/math/lin_alg/vect_views.hpp"
 
 namespace ReaK {
 

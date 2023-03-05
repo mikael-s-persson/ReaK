@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/geometry/shapes/sphere.hpp>
+#include "ReaK/geometry/shapes/sphere.hpp"
 
 namespace ReaK::geom {
 

@@ -36,8 +36,8 @@
 #ifndef REAK_MAT_ALG_IDENTITY_HPP
 #define REAK_MAT_ALG_IDENTITY_HPP
 
-#include "mat_alg_general.hpp"
-#include "mat_alg_nil.hpp"
+#include "ReaK/math/lin_alg/mat_alg_general.hpp"
+#include "ReaK/math/lin_alg/mat_alg_nil.hpp"
 
 namespace ReaK {
 

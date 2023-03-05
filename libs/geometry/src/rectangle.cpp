@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/geometry/shapes/rectangle.hpp>
+#include "ReaK/geometry/shapes/rectangle.hpp"
 
 namespace ReaK::geom {
 

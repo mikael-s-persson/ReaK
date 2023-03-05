@@ -21,21 +21,21 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/driving_actuator.hpp>
-#include <ReaK/mbd/kte/free_joints.hpp>
-#include <ReaK/mbd/kte/inertia.hpp>
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
-#include <ReaK/mbd/kte/state_measures.hpp>
+#include "ReaK/mbd/kte/driving_actuator.hpp"
+#include "ReaK/mbd/kte/free_joints.hpp"
+#include "ReaK/mbd/kte/inertia.hpp"
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
+#include "ReaK/mbd/kte/state_measures.hpp"
 
-#include <ReaK/mbd/models/manip_dynamics_model.hpp>
+#include "ReaK/mbd/models/manip_dynamics_model.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/geometry/shapes/box.hpp>
-#include <ReaK/geometry/shapes/colored_model.hpp>
-#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
-#include <ReaK/geometry/shapes/sphere.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/geometry/shapes/box.hpp"
+#include "ReaK/geometry/shapes/colored_model.hpp"
+#include "ReaK/geometry/shapes/coord_arrows_3D.hpp"
+#include "ReaK/geometry/shapes/sphere.hpp"
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
 #include <filesystem>
 #include <memory>

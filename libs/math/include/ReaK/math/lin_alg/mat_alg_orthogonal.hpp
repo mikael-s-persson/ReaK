@@ -30,7 +30,7 @@
 #ifndef REAK_MAT_ALG_ORTHOGONAL_HPP
 #define REAK_MAT_ALG_ORTHOGONAL_HPP
 
-#include "mat_alg_general.hpp"
+#include "ReaK/math/lin_alg/mat_alg_general.hpp"
 
 namespace ReaK {
 

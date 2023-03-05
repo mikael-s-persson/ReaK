@@ -32,9 +32,9 @@
 #ifndef REAK_PROX_CIRCLE_CIRCLE_HPP
 #define REAK_PROX_CIRCLE_CIRCLE_HPP
 
-#include "proximity_finder_2D.hpp"
+#include "ReaK/geometry/proximity/proximity_finder_2D.hpp"
 
-#include <ReaK/geometry/shapes/circle.hpp>
+#include "ReaK/geometry/shapes/circle.hpp"
 
 namespace ReaK::geom {
 

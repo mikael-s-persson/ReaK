@@ -27,7 +27,7 @@
 #include <map>
 #include <set>
 
-#include <ReaK/planning/graph_alg/avl_tree.hpp>
+#include "ReaK/planning/graph_alg/avl_tree.hpp"
 
 #include "gtest/gtest.h"
 

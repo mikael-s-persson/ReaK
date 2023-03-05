@@ -33,12 +33,12 @@
 #ifndef REAK_MAXIMUM_LIKELIHOOD_MAPPING_HPP
 #define REAK_MAXIMUM_LIKELIHOOD_MAPPING_HPP
 
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/named_object.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
-#include "belief_state_concept.hpp"
+#include "ReaK/control/estimators/belief_state_concept.hpp"
 
 #include <type_traits>
 

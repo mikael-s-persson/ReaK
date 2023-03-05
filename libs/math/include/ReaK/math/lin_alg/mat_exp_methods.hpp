@@ -38,11 +38,11 @@
 #ifndef REAK_MAT_EXP_METHODS_HPP
 #define REAK_MAT_EXP_METHODS_HPP
 
-#include "mat_concepts.hpp"
-#include "mat_traits.hpp"
+#include "ReaK/math/lin_alg/mat_concepts.hpp"
+#include "ReaK/math/lin_alg/mat_traits.hpp"
 
-#include "mat_alg.hpp"
-#include "mat_norms.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_norms.hpp"
 
 #include <type_traits>
 

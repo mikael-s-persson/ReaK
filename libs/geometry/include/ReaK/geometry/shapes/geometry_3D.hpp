@@ -32,9 +32,9 @@
 #ifndef REAK_GEOMETRY_3D_HPP
 #define REAK_GEOMETRY_3D_HPP
 
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/named_object.hpp"
 
-#include <ReaK/math/kinetostatics/pose_3D.hpp>
+#include "ReaK/math/kinetostatics/pose_3D.hpp"
 
 namespace ReaK::geom {
 

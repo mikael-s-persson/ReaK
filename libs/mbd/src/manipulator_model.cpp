@@ -21,12 +21,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/manipulator_model.hpp>
+#include "ReaK/mbd/kte/manipulator_model.hpp"
 
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
-#include <ReaK/mbd/kte/manipulator_model_helper.hpp>
+#include "ReaK/mbd/kte/manipulator_model_helper.hpp"
 
 namespace ReaK::kte {
 

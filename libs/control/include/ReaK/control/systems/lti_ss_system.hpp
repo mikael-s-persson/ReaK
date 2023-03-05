@@ -33,11 +33,11 @@
 #ifndef REAK_LTI_SS_SYSTEM_HPP
 #define REAK_LTI_SS_SYSTEM_HPP
 
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
-#include "linear_ss_system_concept.hpp"
+#include "ReaK/control/systems/linear_ss_system_concept.hpp"
 
 namespace ReaK::ctrl {
 

@@ -34,10 +34,10 @@
 #ifndef REAK_SEQUENTIAL_TRAJECTORY_CONCEPT_HPP
 #define REAK_SEQUENTIAL_TRAJECTORY_CONCEPT_HPP
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
 namespace ReaK::pp {
 

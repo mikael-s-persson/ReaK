@@ -21,13 +21,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_qr_decomp.hpp>
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
-#include <ReaK/mbd/kte/revolute_joint.hpp>
-#include <ReaK/mbd/kte/rigid_link.hpp>
-#include <ReaK/mbd/models/manip_3R_arm.hpp>
+#include "ReaK/mbd/kte/revolute_joint.hpp"
+#include "ReaK/mbd/kte/rigid_link.hpp"
+#include "ReaK/mbd/models/manip_3R_arm.hpp"
 
 #include <cmath>
 #include <utility>

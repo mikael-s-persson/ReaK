@@ -24,12 +24,12 @@
 #include <QApplication>
 #include <QMainWindow>
 
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/named_object.hpp"
 
-#include <ReaK/core/qt/rk_object_tree_widget.hpp>
-#include <ReaK/core/qt/rk_prop_editor_widget.hpp>
+#include "ReaK/core/qt/rk_object_tree_widget.hpp"
+#include "ReaK/core/qt/rk_prop_editor_widget.hpp"
 
-#include <ReaK/core/serialization/scheme_builder.hpp>
+#include "ReaK/core/serialization/scheme_builder.hpp"
 
 class test_class : public ReaK::named_object {
  public:

@@ -32,8 +32,8 @@
 #ifndef REAK_COLOR_HPP
 #define REAK_COLOR_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/serializable.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/serializable.hpp"
 
 namespace ReaK {
 

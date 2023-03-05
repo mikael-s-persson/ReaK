@@ -35,12 +35,12 @@
 #ifndef REAK_SBMP_REPORTER_CONCEPT_HPP
 #define REAK_SBMP_REPORTER_CONCEPT_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
-#include <ReaK/topologies/interpolation/seq_path_base.hpp>
-#include <ReaK/topologies/interpolation/seq_trajectory_base.hpp>
+#include "ReaK/topologies/interpolation/seq_path_base.hpp"
+#include "ReaK/topologies/interpolation/seq_trajectory_base.hpp"
 
 namespace ReaK::pp {
 

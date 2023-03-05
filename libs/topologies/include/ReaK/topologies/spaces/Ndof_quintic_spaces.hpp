@@ -33,12 +33,12 @@
 #ifndef REAK_NDOF_QUINTIC_SPACES_HPP
 #define REAK_NDOF_QUINTIC_SPACES_HPP
 
-#include <ReaK/topologies/interpolation/interpolated_topologies.hpp>
-#include <ReaK/topologies/interpolation/quintic_hermite_interp.hpp>
-#include "Ndof_spaces.hpp"
-#include "reachability_space.hpp"
-#include "temporal_space.hpp"
-#include "time_poisson_topology.hpp"
+#include "ReaK/topologies/interpolation/interpolated_topologies.hpp"
+#include "ReaK/topologies/interpolation/quintic_hermite_interp.hpp"
+#include "ReaK/topologies/spaces/Ndof_spaces.hpp"
+#include "ReaK/topologies/spaces/reachability_space.hpp"
+#include "ReaK/topologies/spaces/temporal_space.hpp"
+#include "ReaK/topologies/spaces/time_poisson_topology.hpp"
 
 namespace ReaK::pp {
 

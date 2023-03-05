@@ -30,13 +30,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/py_fixes.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/py_fixes.hpp"
 
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include "boost/python.hpp"
+#include "boost/python/suite/indexing/vector_indexing_suite.hpp"
 
 #include <sstream>
 

@@ -36,8 +36,8 @@
 #ifndef REAK_NELDER_MEAD_METHOD_HPP
 #define REAK_NELDER_MEAD_METHOD_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
 
 #include <map>
 #include <random>

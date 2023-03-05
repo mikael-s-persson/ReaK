@@ -32,9 +32,9 @@
 #ifndef REAK_PROX_RECTANGLE_RECTANGLE_HPP
 #define REAK_PROX_RECTANGLE_RECTANGLE_HPP
 
-#include "proximity_finder_2D.hpp"
+#include "ReaK/geometry/proximity/proximity_finder_2D.hpp"
 
-#include <ReaK/geometry/shapes/rectangle.hpp>
+#include "ReaK/geometry/shapes/rectangle.hpp"
 
 namespace ReaK::geom {
 

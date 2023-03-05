@@ -32,7 +32,7 @@
 #ifndef REAK_VECT_TRAITS_HPP
 #define REAK_VECT_TRAITS_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
 namespace ReaK {
 

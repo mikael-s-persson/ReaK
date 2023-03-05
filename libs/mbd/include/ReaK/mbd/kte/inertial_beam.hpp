@@ -35,9 +35,9 @@
 #ifndef REAK_INERTIAL_BEAM_HPP
 #define REAK_INERTIAL_BEAM_HPP
 
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
 #include <utility>
-#include "kte_map.hpp"
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
+#include "ReaK/mbd/kte/kte_map.hpp"
 
 namespace ReaK::kte {
 

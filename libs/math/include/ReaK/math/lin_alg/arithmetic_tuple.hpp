@@ -36,13 +36,13 @@
 #ifndef REAK_ARITHMETIC_TUPLE_HPP
 #define REAK_ARITHMETIC_TUPLE_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/rtti/so_register_type.hpp>
-#include <ReaK/core/rtti/typed_primitives.hpp>
-#include <ReaK/core/serialization/archiver.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/rtti/so_register_type.hpp"
+#include "ReaK/core/rtti/typed_primitives.hpp"
+#include "ReaK/core/serialization/archiver.hpp"
 
-#include "vect_alg.hpp"
-#include "vect_concepts.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
 
 #include <tuple>
 #include <type_traits>

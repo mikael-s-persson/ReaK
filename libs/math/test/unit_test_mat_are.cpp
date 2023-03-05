@@ -21,11 +21,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_are_solver.hpp>
-#include <ReaK/math/lin_alg/mat_norms.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_are_solver.hpp"
+#include "ReaK/math/lin_alg/mat_norms.hpp"
 
 #include <fstream>
 #include <iostream>

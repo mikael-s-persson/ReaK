@@ -32,7 +32,7 @@
 #ifndef REAK_PATH_PLANNER_OPTIONS_PO_HPP
 #define REAK_PATH_PLANNER_OPTIONS_PO_HPP
 
-#include "path_planner_options.hpp"
+#include "ReaK/planning/path_planning/path_planner_options.hpp"
 
 namespace ReaK::pp {
 

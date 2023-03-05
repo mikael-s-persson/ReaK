@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/flexible_beam.hpp>
+#include "ReaK/mbd/kte/flexible_beam.hpp"
 
 namespace ReaK::kte {
 

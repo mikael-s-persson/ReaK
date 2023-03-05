@@ -34,15 +34,15 @@
 #ifndef REAK_SVP_METRICS_HPP
 #define REAK_SVP_METRICS_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/topologies/spaces/proper_metric_concept.hpp>
-#include <ReaK/topologies/spaces/time_topology.hpp>
+#include "ReaK/topologies/spaces/proper_metric_concept.hpp"
+#include "ReaK/topologies/spaces/time_topology.hpp"
 
-#include "generic_interpolator_factory.hpp"
-#include "sustained_velocity_pulse.hpp"
+#include "ReaK/topologies/interpolation/generic_interpolator_factory.hpp"
+#include "ReaK/topologies/interpolation/sustained_velocity_pulse.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 #include <type_traits>
 

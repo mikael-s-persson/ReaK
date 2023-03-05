@@ -32,9 +32,9 @@
 #ifndef REAK_QUAT_NUM_HPP
 #define REAK_QUAT_NUM_HPP
 
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
-#include "quat_alg.hpp"
+#include "ReaK/math/kinetostatics/quat_alg.hpp"
 
 #include <cassert>
 #include <cmath>

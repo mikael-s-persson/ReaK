@@ -35,12 +35,12 @@
 #ifndef REAK_MEHROTRA_METHOD_HPP
 #define REAK_MEHROTRA_METHOD_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_qr_decomp.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
 
-#include "optim_exceptions.hpp"
-#include "quadratic_programs.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
+#include "ReaK/math/optimization/quadratic_programs.hpp"
 
 #include <vector>
 

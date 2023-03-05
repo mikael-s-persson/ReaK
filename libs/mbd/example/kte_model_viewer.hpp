@@ -24,10 +24,10 @@
 #ifndef REAK_KTE_MODEL_VIEWER_HPP
 #define REAK_KTE_MODEL_VIEWER_HPP
 
-#include <ReaK/core/qt/rk_object_tree_widget.hpp>
-#include <ReaK/core/qt/rk_prop_editor_widget.hpp>
-#include <ReaK/core/serialization/scheme_builder.hpp>
-#include <ReaK/mbd/qt/rk_view3d_menu.hpp>
+#include "ReaK/core/qt/rk_object_tree_widget.hpp"
+#include "ReaK/core/qt/rk_prop_editor_widget.hpp"
+#include "ReaK/core/serialization/scheme_builder.hpp"
+#include "ReaK/mbd/qt/rk_view3d_menu.hpp"
 
 #include <map>
 #include <string>

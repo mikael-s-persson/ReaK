@@ -33,15 +33,15 @@
 #ifndef REAK_TRANSFORMED_TRAJECTORY_HPP
 #define REAK_TRANSFORMED_TRAJECTORY_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/topological_map_concepts.hpp>
-#include "sequential_trajectory_concept.hpp"
-#include "spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/interpolation/sequential_trajectory_concept.hpp"
+#include "ReaK/topologies/interpolation/spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/topological_map_concepts.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 #include <map>
 

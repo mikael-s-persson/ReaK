@@ -33,17 +33,17 @@
 #ifndef REAK_TEMPORAL_SPACE_HPP
 #define REAK_TEMPORAL_SPACE_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
 #include <utility>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include "metric_space_concept.hpp"
-#include "proper_metric_concept.hpp"
-#include "reversible_space_concept.hpp"
-#include "temporal_space_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/proper_metric_concept.hpp"
+#include "ReaK/topologies/spaces/reversible_space_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
-#include "default_random_sampler.hpp"
-#include "temporal_distance_metrics.hpp"
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/temporal_distance_metrics.hpp"
 
 namespace ReaK::pp {
 

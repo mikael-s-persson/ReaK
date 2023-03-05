@@ -33,7 +33,7 @@
 #ifndef REAK_OBJTREE_ARCHIVER_HPP
 #define REAK_OBJTREE_ARCHIVER_HPP
 
-#include "archiver.hpp"
+#include "ReaK/core/serialization/archiver.hpp"
 
 #include <queue>
 #include <sstream>
@@ -41,8 +41,8 @@
 #include <utility>
 #include <vector>
 
-#include <boost/graph/graph_selectors.hpp>
-#include <boost/graph/graph_traits.hpp>
+#include "boost/graph/graph_selectors.hpp"
+#include "boost/graph/graph_traits.hpp"
 
 #include "boost/graph/adjacency_list_BC.hpp"
 

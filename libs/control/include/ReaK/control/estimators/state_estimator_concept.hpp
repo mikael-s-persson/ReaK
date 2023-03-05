@@ -24,9 +24,9 @@
 #ifndef REAK_STATE_ESTIMATOR_CONCEPT_HPP
 #define REAK_STATE_ESTIMATOR_CONCEPT_HPP
 
-#include "belief_state_concept.hpp"
-#include "discrete_sss_concept.hpp"
-#include "state_vector_concept.hpp"
+#include "ReaK/control/estimators/belief_state_concept.hpp"
+#include "ReaK/control/estimators/discrete_sss_concept.hpp"
+#include "ReaK/control/estimators/state_vector_concept.hpp"
 
 namespace ReaK::ctrl {
 

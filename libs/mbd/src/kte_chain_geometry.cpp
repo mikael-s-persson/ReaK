@@ -21,14 +21,14 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/kte_chain_geometry.hpp>
+#include "ReaK/mbd/kte/kte_chain_geometry.hpp"
 
-#include <ReaK/mbd/kte/inertia.hpp>
-#include <ReaK/mbd/kte/kte_chain_visitation.hpp>
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
-#include <ReaK/mbd/kte/prismatic_joint.hpp>
-#include <ReaK/mbd/kte/revolute_joint.hpp>
-#include <ReaK/mbd/kte/rigid_link.hpp>
+#include "ReaK/mbd/kte/inertia.hpp"
+#include "ReaK/mbd/kte/kte_chain_visitation.hpp"
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
+#include "ReaK/mbd/kte/prismatic_joint.hpp"
+#include "ReaK/mbd/kte/revolute_joint.hpp"
+#include "ReaK/mbd/kte/rigid_link.hpp"
 
 #include <map>
 #include <string>

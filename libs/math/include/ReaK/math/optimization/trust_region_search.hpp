@@ -35,12 +35,12 @@
 #ifndef REAK_TRUST_REGION_SEARCH_HPP
 #define REAK_TRUST_REGION_SEARCH_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
 
-#include "newton_search_directions.hpp"
+#include "ReaK/math/optimization/newton_search_directions.hpp"
 
 #include <type_traits>
 

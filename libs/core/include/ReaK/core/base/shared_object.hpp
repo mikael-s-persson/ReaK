@@ -39,8 +39,8 @@
 
 #include <memory>
 
-#include "defs.hpp"
-#include "serializable.hpp"
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/serializable.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {

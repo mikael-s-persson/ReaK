@@ -29,9 +29,9 @@
 #ifndef REAK_CHASER_TARGET_CONFIG_WIDGET_HPP
 #define REAK_CHASER_TARGET_CONFIG_WIDGET_HPP
 
-#include <ReaK/mbd/models/chaser_target_model_data.hpp>
+#include "ReaK/mbd/models/chaser_target_model_data.hpp"
 
-#include "rk_view3d_menu.hpp"
+#include "ReaK/mbd/qt/rk_view3d_menu.hpp"
 
 #include <QDockWidget>
 

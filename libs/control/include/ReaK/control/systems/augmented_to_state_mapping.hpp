@@ -33,12 +33,12 @@
 #ifndef REAK_AUGMENTED_TO_STATE_MAPPING_HPP
 #define REAK_AUGMENTED_TO_STATE_MAPPING_HPP
 
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/named_object.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
 
 #include <type_traits>
 

@@ -32,8 +32,8 @@
 #ifndef REAK_MAT_NORMS_HPP
 #define REAK_MAT_NORMS_HPP
 
-#include "mat_concepts.hpp"
-#include "mat_traits.hpp"
+#include "ReaK/math/lin_alg/mat_concepts.hpp"
+#include "ReaK/math/lin_alg/mat_traits.hpp"
 
 #include <type_traits>
 

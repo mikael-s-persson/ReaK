@@ -7,19 +7,19 @@
  * \date June 2010
  */
 
-#include <ReaK/mbd/kte/kte_chain_geometry.hpp>
-#include <ReaK/mbd/models/manip_P3R3R_arm.hpp>
+#include "ReaK/mbd/kte/kte_chain_geometry.hpp"
+#include "ReaK/mbd/models/manip_P3R3R_arm.hpp"
 
-#include <ReaK/geometry/shapes/box.hpp>
-#include <ReaK/geometry/shapes/capped_cylinder.hpp>
-#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
-#include <ReaK/geometry/shapes/sphere.hpp>
+#include "ReaK/geometry/shapes/box.hpp"
+#include "ReaK/geometry/shapes/capped_cylinder.hpp"
+#include "ReaK/geometry/shapes/coord_arrows_3D.hpp"
+#include "ReaK/geometry/shapes/sphere.hpp"
 
-#include <ReaK/mbd/models/joint_space_limits.hpp>
+#include "ReaK/mbd/models/joint_space_limits.hpp"
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
-#include <boost/tuple/tuple.hpp>
+#include "boost/tuple/tuple.hpp"
 
 #include <filesystem>
 #include <memory>

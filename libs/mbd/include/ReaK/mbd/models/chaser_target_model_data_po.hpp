@@ -33,8 +33,8 @@
 #ifndef REAK_CHASER_TARGET_MODEL_DATA_PO_HPP
 #define REAK_CHASER_TARGET_MODEL_DATA_PO_HPP
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
-#include "chaser_target_model_data.hpp"
+#include "ReaK/core/serialization/archiver_factory.hpp"
+#include "ReaK/mbd/models/chaser_target_model_data.hpp"
 
 namespace ReaK::kte {
 

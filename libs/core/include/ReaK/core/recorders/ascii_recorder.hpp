@@ -33,7 +33,7 @@
 #ifndef ASCII_RECORDER_HPP
 #define ASCII_RECORDER_HPP
 
-#include "data_record.hpp"
+#include "ReaK/core/recorders/data_record.hpp"
 
 #include <fstream>
 #include <utility>

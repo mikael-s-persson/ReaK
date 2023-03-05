@@ -38,13 +38,13 @@
 #ifndef REAK_INVARIANT_SYSTEM_CONCEPT_HPP
 #define REAK_INVARIANT_SYSTEM_CONCEPT_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "discrete_linear_sss_concept.hpp"
-#include "linear_ss_system_concept.hpp"
+#include "ReaK/control/systems/discrete_linear_sss_concept.hpp"
+#include "ReaK/control/systems/linear_ss_system_concept.hpp"
 
-#include <boost/concept_check.hpp>
 #include <type_traits>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::ctrl {
 

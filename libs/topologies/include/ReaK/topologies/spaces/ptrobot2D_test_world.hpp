@@ -39,13 +39,13 @@
 #ifndef REAK_PTROBOT2D_TEST_WORLD_HPP
 #define REAK_PTROBOT2D_TEST_WORLD_HPP
 
-#include "metric_space_concept.hpp"
-#include "random_sampler_concept.hpp"
-#include "reversible_space_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/random_sampler_concept.hpp"
+#include "ReaK/topologies/spaces/reversible_space_concept.hpp"
 
-#include <ReaK/math/lin_alg/vect_alg.hpp>
-#include "default_random_sampler.hpp"
-#include "hyperbox_topology.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/hyperbox_topology.hpp"
 
 namespace ReaK::pp {
 

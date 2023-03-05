@@ -36,9 +36,9 @@
 #include "detail/remote_function.hpp"
 #include "detail/rpc_function_helpers.hpp"
 
-#include <ReaK/core/rpc/rpc_exceptions.hpp>
 #include <functional>
 #include <variant>
+#include "ReaK/core/rpc/rpc_exceptions.hpp"
 
 namespace ReaK::rpc {
 

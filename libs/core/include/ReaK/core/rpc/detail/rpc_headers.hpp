@@ -32,10 +32,10 @@
 #ifndef REAK_RPC_HEADERS_HPP
 #define REAK_RPC_HEADERS_HPP
 
-#include <ReaK/core/base/serializable.hpp>
-#include <ReaK/core/serialization/archiver.hpp>
+#include "ReaK/core/base/serializable.hpp"
+#include "ReaK/core/serialization/archiver.hpp"
 
-#include <ReaK/core/rpc/version.hpp>
+#include "ReaK/core/rpc/version.hpp"
 
 #include <iostream>
 #include <string>

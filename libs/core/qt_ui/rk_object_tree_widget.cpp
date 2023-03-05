@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/qt/rk_object_tree_widget.hpp>
+#include "ReaK/core/qt/rk_object_tree_widget.hpp"
 
 #include "ui_rk_object_tree.h"
 

@@ -42,9 +42,9 @@
 #ifndef REAK_MAT_CONCEPTS_HPP
 #define REAK_MAT_CONCEPTS_HPP
 
-#include <boost/concept/requires.hpp>
-#include <boost/concept_check.hpp>
-#include "mat_traits.hpp"
+#include "ReaK/math/lin_alg/mat_traits.hpp"
+#include "boost/concept/requires.hpp"
+#include "boost/concept_check.hpp"
 
 #include <type_traits>
 

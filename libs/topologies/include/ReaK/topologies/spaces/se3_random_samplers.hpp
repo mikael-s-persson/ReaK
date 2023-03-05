@@ -33,11 +33,11 @@
 #ifndef REAK_SE3_RANDOM_SAMPLERS_HPP
 #define REAK_SE3_RANDOM_SAMPLERS_HPP
 
-#include <ReaK/core/base/serializable.hpp>
+#include "ReaK/core/base/serializable.hpp"
 
-#include "random_sampler_concept.hpp"
+#include "ReaK/topologies/spaces/random_sampler_concept.hpp"
 
-#include "se3_topologies.hpp"
+#include "ReaK/topologies/spaces/se3_topologies.hpp"
 
 namespace ReaK::pp {
 

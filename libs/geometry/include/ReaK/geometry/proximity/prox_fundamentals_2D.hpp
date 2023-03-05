@@ -32,9 +32,9 @@
 #ifndef REAK_PROX_FUNDAMENTALS_2D_HPP
 #define REAK_PROX_FUNDAMENTALS_2D_HPP
 
-#include "proximity_finder_2D.hpp"
+#include "ReaK/geometry/proximity/proximity_finder_2D.hpp"
 
-#include <ReaK/geometry/shapes/rectangle.hpp>
+#include "ReaK/geometry/shapes/rectangle.hpp"
 
 namespace ReaK::geom {}  // namespace ReaK::geom
 

@@ -38,12 +38,12 @@
 #ifndef REAK_AIRSHIP_DRAG_MIXINS_HPP
 #define REAK_AIRSHIP_DRAG_MIXINS_HPP
 
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/named_object.hpp"
 
-#include "airship_basic_mixins.hpp"
-#include "state_space_system_tuple.hpp"
+#include "ReaK/control/systems/airship_basic_mixins.hpp"
+#include "ReaK/control/systems/state_space_system_tuple.hpp"
 
-#include <ReaK/topologies/spaces/line_topology.hpp>
+#include "ReaK/topologies/spaces/line_topology.hpp"
 
 namespace ReaK::ctrl {
 

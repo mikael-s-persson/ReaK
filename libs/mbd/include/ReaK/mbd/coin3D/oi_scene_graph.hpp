@@ -47,12 +47,12 @@
 #ifndef REAK_OI_SCENE_GRAPH_HPP
 #define REAK_OI_SCENE_GRAPH_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/geometry/shapes/color.hpp>
-#include <ReaK/geometry/shapes/colored_model.hpp>
+#include "ReaK/geometry/shapes/color.hpp"
+#include "ReaK/geometry/shapes/colored_model.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
 
 #include <functional>
 #include <map>

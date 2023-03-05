@@ -32,7 +32,7 @@
 #ifndef REAK_CAPPED_CYLINDER_HPP
 #define REAK_CAPPED_CYLINDER_HPP
 
-#include "shape_3D.hpp"
+#include "ReaK/geometry/shapes/shape_3D.hpp"
 
 namespace ReaK::geom {
 

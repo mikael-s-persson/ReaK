@@ -32,12 +32,12 @@
 #ifndef REAK_MANIP_3R_WORKSPACES_HPP
 #define REAK_MANIP_3R_WORKSPACES_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/mbd/models/manip_3R_arm.hpp>
-#include <ReaK/topologies/spaces/manip_planning_traits.hpp>
-#include <ReaK/topologies/spaces/se2_topologies.hpp>
-#include <ReaK/topologies/spaces/se3_topologies.hpp>
+#include "ReaK/mbd/models/manip_3R_arm.hpp"
+#include "ReaK/topologies/spaces/manip_planning_traits.hpp"
+#include "ReaK/topologies/spaces/se2_topologies.hpp"
+#include "ReaK/topologies/spaces/se3_topologies.hpp"
 
 namespace ReaK::pp {
 

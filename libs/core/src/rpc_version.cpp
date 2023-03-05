@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/rpc/version.hpp>
+#include "ReaK/core/rpc/version.hpp"
 
 namespace ReaK::rpc {
 

@@ -36,7 +36,7 @@
 #ifndef REAK_MASS_MATRIX_CALCULATOR_HPP
 #define REAK_MASS_MATRIX_CALCULATOR_HPP
 
-#include "inertia.hpp"
+#include "ReaK/mbd/kte/inertia.hpp"
 
 #include <vector>
 

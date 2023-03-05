@@ -30,17 +30,17 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/py_fixes.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/py_fixes.hpp"
 
-#include <ReaK/mbd/models/direct_kinematics_model.hpp>
-#include <ReaK/mbd/models/inverse_dynamics_model.hpp>
-#include <ReaK/mbd/models/inverse_kinematics_model.hpp>
-#include <ReaK/mbd/models/manip_dynamics_model.hpp>
-#include <ReaK/mbd/models/manip_kinematics_model.hpp>
+#include "ReaK/mbd/models/direct_kinematics_model.hpp"
+#include "ReaK/mbd/models/inverse_dynamics_model.hpp"
+#include "ReaK/mbd/models/inverse_kinematics_model.hpp"
+#include "ReaK/mbd/models/manip_dynamics_model.hpp"
+#include "ReaK/mbd/models/manip_kinematics_model.hpp"
 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include "boost/python.hpp"
+#include "boost/python/suite/indexing/vector_indexing_suite.hpp"
 
 #include <sstream>
 

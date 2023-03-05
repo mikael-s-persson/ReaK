@@ -21,10 +21,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/serialization/xml_archiver.hpp>
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
-#include <ReaK/math/optimization/mehrotra_method.hpp>
-#include <ReaK/math/optimization/simplex_method.hpp>
+#include "ReaK/math/optimization/mehrotra_method.hpp"
+#include "ReaK/math/optimization/simplex_method.hpp"
 
 #include <cmath>
 #include <iostream>

@@ -34,19 +34,19 @@
 #ifndef REAK_SO3_TOPOLOGIES_HPP
 #define REAK_SO3_TOPOLOGIES_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/global_rng.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/global_rng.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include "tuple_distance_metrics.hpp"
+#include "ReaK/topologies/spaces/tuple_distance_metrics.hpp"
 
-#include "differentiable_space.hpp"
-#include "hyperball_topology.hpp"
-#include "rate_limited_spaces.hpp"
+#include "ReaK/topologies/spaces/differentiable_space.hpp"
+#include "ReaK/topologies/spaces/hyperball_topology.hpp"
+#include "ReaK/topologies/spaces/rate_limited_spaces.hpp"
 
-#include <ReaK/math/kinetostatics/quat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/math/kinetostatics/quat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
 #include <random>
 #include <type_traits>
@@ -555,9 +555,9 @@ using so3_rl_topology_t =
 
 }  // namespace ReaK::pp
 
-#include "reachability_space.hpp"
-#include "temporal_space.hpp"
-#include "time_poisson_topology.hpp"
+#include "ReaK/topologies/spaces/reachability_space.hpp"
+#include "ReaK/topologies/spaces/temporal_space.hpp"
+#include "ReaK/topologies/spaces/time_poisson_topology.hpp"
 
 namespace ReaK::pp {
 

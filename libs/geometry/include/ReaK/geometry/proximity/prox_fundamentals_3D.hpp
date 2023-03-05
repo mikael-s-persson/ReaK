@@ -32,13 +32,13 @@
 #ifndef REAK_PROX_FUNDAMENTALS_3D_HPP
 #define REAK_PROX_FUNDAMENTALS_3D_HPP
 
-#include "proximity_finder_3D.hpp"
+#include "ReaK/geometry/proximity/proximity_finder_3D.hpp"
 
-#include <ReaK/geometry/shapes/box.hpp>
-#include <ReaK/geometry/shapes/capped_cylinder.hpp>
-#include <ReaK/geometry/shapes/cylinder.hpp>
+#include "ReaK/geometry/shapes/box.hpp"
+#include "ReaK/geometry/shapes/capped_cylinder.hpp"
+#include "ReaK/geometry/shapes/cylinder.hpp"
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
 
 namespace ReaK::geom {
 

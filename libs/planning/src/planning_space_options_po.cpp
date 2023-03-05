@@ -23,7 +23,7 @@
 #include "ReaK/planning/path_planning/planning_space_options_po.hpp"
 #include "ReaK/planning/path_planning/planning_space_options.hpp"
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
 #include "absl/flags/flag.h"
 

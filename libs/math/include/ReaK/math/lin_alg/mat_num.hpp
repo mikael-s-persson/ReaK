@@ -39,21 +39,21 @@
 #ifndef REAK_MAT_NUM_HPP
 #define REAK_MAT_NUM_HPP
 
-#include "mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
 
-#include "mat_are_solver.hpp"
-#include "mat_balance.hpp"
-#include "mat_cholesky.hpp"
-#include "mat_damped_matrix.hpp"
-#include "mat_exp_methods.hpp"
-#include "mat_gaussian_elim.hpp"
-#include "mat_givens_rot.hpp"
-#include "mat_hess_decomp.hpp"
-#include "mat_householder.hpp"
-#include "mat_jacobi_method.hpp"
-#include "mat_norms.hpp"
-#include "mat_qr_decomp.hpp"
-#include "mat_schur_decomp.hpp"
-#include "mat_svd_method.hpp"
+#include "ReaK/math/lin_alg/mat_are_solver.hpp"
+#include "ReaK/math/lin_alg/mat_balance.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
+#include "ReaK/math/lin_alg/mat_damped_matrix.hpp"
+#include "ReaK/math/lin_alg/mat_exp_methods.hpp"
+#include "ReaK/math/lin_alg/mat_gaussian_elim.hpp"
+#include "ReaK/math/lin_alg/mat_givens_rot.hpp"
+#include "ReaK/math/lin_alg/mat_hess_decomp.hpp"
+#include "ReaK/math/lin_alg/mat_householder.hpp"
+#include "ReaK/math/lin_alg/mat_jacobi_method.hpp"
+#include "ReaK/math/lin_alg/mat_norms.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
+#include "ReaK/math/lin_alg/mat_schur_decomp.hpp"
+#include "ReaK/math/lin_alg/mat_svd_method.hpp"
 
 #endif

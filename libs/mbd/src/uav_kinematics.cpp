@@ -21,12 +21,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_qr_decomp.hpp>
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
-#include <ReaK/mbd/kte/free_joints.hpp>
-#include <ReaK/mbd/models/uav_kinematics.hpp>
+#include "ReaK/mbd/kte/free_joints.hpp"
+#include "ReaK/mbd/models/uav_kinematics.hpp"
 
 #include <cmath>
 #include <utility>

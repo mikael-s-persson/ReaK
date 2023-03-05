@@ -34,20 +34,20 @@
 #ifndef REAK_SUSTAINED_VELOCITY_PULSE_HPP
 #define REAK_SUSTAINED_VELOCITY_PULSE_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/topologies/spaces/bounded_space_concept.hpp>
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/rate_limited_spaces.hpp>
-#include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
-#include <ReaK/topologies/spaces/temporal_space_concept.hpp>
+#include "ReaK/topologies/spaces/bounded_space_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/rate_limited_spaces.hpp"
+#include "ReaK/topologies/spaces/tangent_bundle_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
-#include "generic_interpolator_factory.hpp"
-#include "interpolated_trajectory.hpp"
+#include "ReaK/topologies/interpolation/generic_interpolator_factory.hpp"
+#include "ReaK/topologies/interpolation/interpolated_trajectory.hpp"
 
-#include "sustained_velocity_pulse_detail.hpp"
+#include "ReaK/topologies/interpolation/sustained_velocity_pulse_detail.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 #include <limits>
 #include <type_traits>

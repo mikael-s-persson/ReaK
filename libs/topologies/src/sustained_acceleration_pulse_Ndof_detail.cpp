@@ -23,14 +23,14 @@
 
 #include <cmath>
 
-#include <ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof_detail.hpp>
+#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof_detail.hpp"
 
-#include <ReaK/math/root_finders/bisection_method.hpp>
-#include <ReaK/math/root_finders/secant_method.hpp>
+#include "ReaK/math/root_finders/bisection_method.hpp"
+#include "ReaK/math/root_finders/secant_method.hpp"
 
-#include <ReaK/core/sorting/insertion_sort.hpp>
+#include "ReaK/core/sorting/insertion_sort.hpp"
 
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 namespace ReaK::pp::detail {
 

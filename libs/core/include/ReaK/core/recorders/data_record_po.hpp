@@ -34,8 +34,8 @@
 #ifndef REAK_DATA_RECORD_PO_HPP
 #define REAK_DATA_RECORD_PO_HPP
 
-#include "data_record.hpp"
-#include "data_record_options.hpp"
+#include "ReaK/core/recorders/data_record.hpp"
+#include "ReaK/core/recorders/data_record_options.hpp"
 
 #include <filesystem>
 

@@ -32,17 +32,17 @@
 #ifndef REAK_GENERIC_SAMPLER_FACTORY_HPP
 #define REAK_GENERIC_SAMPLER_FACTORY_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "tangent_bundle_concept.hpp"
-#include "temporal_space_concept.hpp"
+#include "ReaK/topologies/spaces/tangent_bundle_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.hpp"
 
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
-#include <ReaK/topologies/spaces/metric_space_tuple.hpp>
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
+#include "ReaK/topologies/spaces/metric_space_tuple.hpp"
 
-#include <boost/concept_check.hpp>
 #include <cmath>
 #include <utility>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::pp {
 

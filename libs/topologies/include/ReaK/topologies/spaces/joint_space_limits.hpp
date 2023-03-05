@@ -33,13 +33,13 @@
 #ifndef REAK_JOINT_SPACE_LIMITS_MAPPING_HPP
 #define REAK_JOINT_SPACE_LIMITS_MAPPING_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include <ReaK/mbd/models/joint_space_limits.hpp>
+#include "ReaK/mbd/models/joint_space_limits.hpp"
 
-#include "metric_space_concept.hpp"
-#include "rate_limited_space_metamaps.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/rate_limited_space_metamaps.hpp"
 
 namespace ReaK::pp {
 

@@ -21,24 +21,24 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/math/kinetostatics/frame_3D.hpp>
-#include <ReaK/math/kinetostatics/pose_3D.hpp>
-#include <ReaK/math/kinetostatics/rotations_3D.hpp>
+#include "ReaK/math/kinetostatics/frame_3D.hpp"
+#include "ReaK/math/kinetostatics/pose_3D.hpp"
+#include "ReaK/math/kinetostatics/rotations_3D.hpp"
 
-#include <ReaK/core/serialization/xml_archiver.hpp>
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
-#include <ReaK/core/rtti/typed_primitives.hpp>
+#include "ReaK/core/rtti/typed_primitives.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/geometry/shapes/box.hpp>
-#include <ReaK/geometry/shapes/capped_cylinder.hpp>
-#include <ReaK/geometry/shapes/colored_model.hpp>
-#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
-#include <ReaK/geometry/shapes/cylinder.hpp>
-#include <ReaK/geometry/shapes/sphere.hpp>
 #include <memory>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/geometry/shapes/box.hpp"
+#include "ReaK/geometry/shapes/capped_cylinder.hpp"
+#include "ReaK/geometry/shapes/colored_model.hpp"
+#include "ReaK/geometry/shapes/coord_arrows_3D.hpp"
+#include "ReaK/geometry/shapes/cylinder.hpp"
+#include "ReaK/geometry/shapes/sphere.hpp"
 
 int main() {
 

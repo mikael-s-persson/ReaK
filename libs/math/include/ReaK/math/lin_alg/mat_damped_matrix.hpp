@@ -33,7 +33,7 @@
 #ifndef REAK_MAT_DAMPED_MATRIX_HPP
 #define REAK_MAT_DAMPED_MATRIX_HPP
 
-#include "mat_alg_general.hpp"
+#include "ReaK/math/lin_alg/mat_alg_general.hpp"
 
 namespace ReaK {
 

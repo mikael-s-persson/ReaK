@@ -32,13 +32,13 @@
 #ifndef REAK_MANIP_PLANNING_TRAITS_HPP
 #define REAK_MANIP_PLANNING_TRAITS_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "manip_free_dynamic_workspace.hpp"
-#include "manip_free_workspace.hpp"
+#include "ReaK/topologies/spaces/manip_free_dynamic_workspace.hpp"
+#include "ReaK/topologies/spaces/manip_free_workspace.hpp"
 
-#include "direct_kinematics_topomap.hpp"
-#include "inverse_kinematics_topomap.hpp"
+#include "ReaK/topologies/spaces/direct_kinematics_topomap.hpp"
+#include "ReaK/topologies/spaces/inverse_kinematics_topomap.hpp"
 
 #include <type_traits>
 

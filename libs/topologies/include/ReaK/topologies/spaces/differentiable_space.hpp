@@ -37,12 +37,12 @@
 #ifndef REAK_DIFFERENTIABLE_SPACE_HPP
 #define REAK_DIFFERENTIABLE_SPACE_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "metric_space_concept.hpp"
-#include "metric_space_tuple.hpp"
-#include "tangent_bundle_concept.hpp"
-#include "time_topology.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_tuple.hpp"
+#include "ReaK/topologies/spaces/tangent_bundle_concept.hpp"
+#include "ReaK/topologies/spaces/time_topology.hpp"
 
 #include <cmath>
 #include <type_traits>

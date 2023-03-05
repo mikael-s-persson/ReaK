@@ -46,7 +46,7 @@
 #ifndef REAK_PRED_CORR_INTEGRATORS_HPP
 #define REAK_PRED_CORR_INTEGRATORS_HPP
 
-#include "integrator.hpp"
+#include "ReaK/math/integrators/integrator.hpp"
 
 #include <cmath>
 

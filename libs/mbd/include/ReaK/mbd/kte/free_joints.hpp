@@ -34,9 +34,9 @@
 #ifndef REAK_FREE_JOINTS_HPP
 #define REAK_FREE_JOINTS_HPP
 
-#include <ReaK/math/kinetostatics/motion_jacobians.hpp>
 #include <utility>
-#include "reacting_kte.hpp"
+#include "ReaK/math/kinetostatics/motion_jacobians.hpp"
+#include "ReaK/mbd/kte/reacting_kte.hpp"
 
 namespace ReaK::kte {
 

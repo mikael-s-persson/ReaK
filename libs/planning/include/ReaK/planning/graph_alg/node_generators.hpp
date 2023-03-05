@@ -34,18 +34,18 @@
 #ifndef REAK_NODE_GENERATORS_HPP
 #define REAK_NODE_GENERATORS_HPP
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/property_map/property_map.hpp>
 #include <iterator>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/property_map/property_map.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/random_sampler_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/random_sampler_concept.hpp"
 
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
 namespace ReaK::graph {
 

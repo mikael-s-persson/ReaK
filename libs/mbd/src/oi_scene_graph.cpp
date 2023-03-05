@@ -21,30 +21,30 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
 
-#include <ReaK/geometry/shapes/geometry_2D.hpp>
-#include <ReaK/geometry/shapes/geometry_3D.hpp>
-#include <ReaK/geometry/shapes/shape_2D.hpp>
-#include <ReaK/geometry/shapes/shape_3D.hpp>
+#include "ReaK/geometry/shapes/geometry_2D.hpp"
+#include "ReaK/geometry/shapes/geometry_3D.hpp"
+#include "ReaK/geometry/shapes/shape_2D.hpp"
+#include "ReaK/geometry/shapes/shape_3D.hpp"
 
-#include <ReaK/geometry/shapes/capped_rectangle.hpp>
-#include <ReaK/geometry/shapes/circle.hpp>
-#include <ReaK/geometry/shapes/composite_shape_2D.hpp>
-#include <ReaK/geometry/shapes/coord_arrows_2D.hpp>
-#include <ReaK/geometry/shapes/grid_2D.hpp>
-#include <ReaK/geometry/shapes/line_seg_2D.hpp>
-#include <ReaK/geometry/shapes/rectangle.hpp>
+#include "ReaK/geometry/shapes/capped_rectangle.hpp"
+#include "ReaK/geometry/shapes/circle.hpp"
+#include "ReaK/geometry/shapes/composite_shape_2D.hpp"
+#include "ReaK/geometry/shapes/coord_arrows_2D.hpp"
+#include "ReaK/geometry/shapes/grid_2D.hpp"
+#include "ReaK/geometry/shapes/line_seg_2D.hpp"
+#include "ReaK/geometry/shapes/rectangle.hpp"
 
-#include <ReaK/geometry/shapes/box.hpp>
-#include <ReaK/geometry/shapes/capped_cylinder.hpp>
-#include <ReaK/geometry/shapes/composite_shape_3D.hpp>
-#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
-#include <ReaK/geometry/shapes/cylinder.hpp>
-#include <ReaK/geometry/shapes/grid_3D.hpp>
-#include <ReaK/geometry/shapes/line_seg_3D.hpp>
-#include <ReaK/geometry/shapes/plane.hpp>
-#include <ReaK/geometry/shapes/sphere.hpp>
+#include "ReaK/geometry/shapes/box.hpp"
+#include "ReaK/geometry/shapes/capped_cylinder.hpp"
+#include "ReaK/geometry/shapes/composite_shape_3D.hpp"
+#include "ReaK/geometry/shapes/coord_arrows_3D.hpp"
+#include "ReaK/geometry/shapes/cylinder.hpp"
+#include "ReaK/geometry/shapes/grid_3D.hpp"
+#include "ReaK/geometry/shapes/line_seg_3D.hpp"
+#include "ReaK/geometry/shapes/plane.hpp"
+#include "ReaK/geometry/shapes/sphere.hpp"
 
 #include <Inventor/SbColor.h>           // for SbColor
 #include <Inventor/SbVec3f.h>           // for SbVec3f

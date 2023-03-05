@@ -33,8 +33,8 @@
 #ifndef REAK_SO_TYPE_HPP
 #define REAK_SO_TYPE_HPP
 
-#include <ReaK/core/base/cnst_string.hpp>
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/cnst_string.hpp"
+#include "ReaK/core/base/defs.hpp"
 
 #include <cstdio>
 #include <memory>
@@ -335,5 +335,5 @@ so_type_ptr create_dummy_so_type(const unsigned int* aTypeID);
 
 #endif
 
-#include "typed_containers.hpp"
-#include "typed_primitives.hpp"
+#include "ReaK/core/rtti/typed_containers.hpp"
+#include "ReaK/core/rtti/typed_primitives.hpp"

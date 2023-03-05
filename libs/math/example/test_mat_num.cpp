@@ -21,14 +21,14 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
-#include <ReaK/math/lin_alg/mat_gaussian_elim.hpp>
-#include <ReaK/math/lin_alg/mat_jacobi_method.hpp>
-#include <ReaK/math/lin_alg/mat_qr_decomp.hpp>
-#include <ReaK/math/lin_alg/mat_schur_decomp.hpp>
-#include <ReaK/math/lin_alg/mat_svd_method.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
+#include "ReaK/math/lin_alg/mat_gaussian_elim.hpp"
+#include "ReaK/math/lin_alg/mat_jacobi_method.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
+#include "ReaK/math/lin_alg/mat_schur_decomp.hpp"
+#include "ReaK/math/lin_alg/mat_svd_method.hpp"
 
 #include <cstdio>
 #include <fstream>

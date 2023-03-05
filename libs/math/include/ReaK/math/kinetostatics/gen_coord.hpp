@@ -33,7 +33,7 @@
 #ifndef REAK_GEN_COORD_HPP
 #define REAK_GEN_COORD_HPP
 
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/shared_object.hpp"
 
 namespace ReaK {
 

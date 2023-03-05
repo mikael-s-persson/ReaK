@@ -32,12 +32,12 @@
 #ifndef REAK_NEWTON_SEARCH_DIRECTIONS_HPP
 #define REAK_NEWTON_SEARCH_DIRECTIONS_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
-#include <ReaK/math/lin_alg/mat_damped_matrix.hpp>
-#include <ReaK/math/lin_alg/mat_norms.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
+#include "ReaK/math/lin_alg/mat_damped_matrix.hpp"
+#include "ReaK/math/lin_alg/mat_norms.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
 namespace ReaK::optim {
 

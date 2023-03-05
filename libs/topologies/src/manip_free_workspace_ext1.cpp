@@ -21,9 +21,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/topologies/spaces/manip_free_workspace.hpp>
+#include "ReaK/topologies/spaces/manip_free_workspace.hpp"
 
 namespace ReaK::pp {
 

@@ -32,15 +32,15 @@
 #ifndef REAK_WAYPOINT_CONTAINER_HPP
 #define REAK_WAYPOINT_CONTAINER_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
-#include "spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/interpolation/spatial_trajectory_concept.hpp"
 
-#include <ReaK/topologies/spaces/temporal_space.hpp>
+#include "ReaK/topologies/spaces/temporal_space.hpp"
 
-#include <boost/concept_check.hpp>
 #include <cmath>
+#include "boost/concept_check.hpp"
 
 #include <limits>
 #include <list>

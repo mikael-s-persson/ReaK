@@ -32,12 +32,12 @@
 #ifndef REAK_BGL_RAW_PROPERTY_GRAPH_HPP
 #define REAK_BGL_RAW_PROPERTY_GRAPH_HPP
 
-#include <boost/graph/adjacency_list_BC.hpp>
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/properties.hpp>
+#include "boost/graph/adjacency_list_BC.hpp"
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/graph/properties.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/more_property_maps.hpp>
+#include "boost/graph/more_property_maps.hpp"
 
 #include <type_traits>
 

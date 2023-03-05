@@ -34,7 +34,7 @@
 #ifndef REAK_VECTOR_RECORDER_HPP
 #define REAK_VECTOR_RECORDER_HPP
 
-#include "data_record.hpp"
+#include "ReaK/core/recorders/data_record.hpp"
 
 #include <vector>
 

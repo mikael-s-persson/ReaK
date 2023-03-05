@@ -46,7 +46,7 @@
 #ifndef REAK_FIXED_STEP_INTEGRATORS_HPP
 #define REAK_FIXED_STEP_INTEGRATORS_HPP
 
-#include "integrator.hpp"
+#include "ReaK/math/integrators/integrator.hpp"
 
 namespace ReaK {
 

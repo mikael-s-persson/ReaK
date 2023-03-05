@@ -33,15 +33,15 @@
 #ifndef REAK_NDOF_SPACES_HPP
 #define REAK_NDOF_SPACES_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/serializable.hpp>
-#include <ReaK/math/kinetostatics/gen_coord.hpp>
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/serializable.hpp"
+#include "ReaK/math/kinetostatics/gen_coord.hpp"
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
 
-#include "default_random_sampler.hpp"
-#include "hyperbox_topology.hpp"
-#include "rate_limited_spaces.hpp"
-#include "tuple_distance_metrics.hpp"
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/hyperbox_topology.hpp"
+#include "ReaK/topologies/spaces/rate_limited_spaces.hpp"
+#include "ReaK/topologies/spaces/tuple_distance_metrics.hpp"
 
 namespace ReaK {
 
@@ -951,7 +951,7 @@ void set_acceleration(arithmetic_tuple<Vector, Vector, Vector>& pt,
 
 }  // namespace ReaK
 
-#include "joint_space_limits.hpp"
+#include "ReaK/topologies/spaces/joint_space_limits.hpp"
 
 namespace ReaK::pp {
 

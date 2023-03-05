@@ -35,11 +35,11 @@
 #ifndef REAK_GAUSSIAN_BELIEF_SPACE_HPP
 #define REAK_GAUSSIAN_BELIEF_SPACE_HPP
 
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/topologies/spaces/default_random_sampler.hpp>
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
-#include "gaussian_belief_state.hpp"
+#include "ReaK/control/estimators/gaussian_belief_state.hpp"
 
 #include <type_traits>
 #include <utility>

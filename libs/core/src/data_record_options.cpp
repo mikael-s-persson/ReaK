@@ -21,17 +21,17 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/recorders/data_record_options.hpp>
+#include "ReaK/core/recorders/data_record_options.hpp"
 
-#include <ReaK/core/recorders/ascii_recorder.hpp>
-#include <ReaK/core/recorders/bin_recorder.hpp>
-#include <ReaK/core/recorders/network_recorder.hpp>
-#include <ReaK/core/recorders/vector_recorder.hpp>
+#include "ReaK/core/recorders/ascii_recorder.hpp"
+#include "ReaK/core/recorders/bin_recorder.hpp"
+#include "ReaK/core/recorders/network_recorder.hpp"
+#include "ReaK/core/recorders/vector_recorder.hpp"
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
 #include <algorithm>
-#include <boost/graph/graph_concepts.hpp>
+#include "boost/graph/graph_concepts.hpp"
 
 #include <ctime>
 

@@ -21,10 +21,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/planning/path_planning/rrtstar_manip_planners.hpp>
-#include <ReaK/planning/path_planning/rrtstar_path_planner.tpp>
+#include "ReaK/planning/path_planning/rrtstar_manip_planners.hpp"
+#include "ReaK/planning/path_planning/rrtstar_path_planner.tpp"
 
 namespace ReaK::pp {
 

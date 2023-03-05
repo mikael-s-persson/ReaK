@@ -36,18 +36,18 @@
 #ifndef REAK_COVAR_TOPOLOGY_HPP
 #define REAK_COVAR_TOPOLOGY_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/global_rng.hpp>
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/lin_alg/mat_exp_methods.hpp>
-#include <ReaK/math/lin_alg/mat_norms.hpp>
-#include <ReaK/math/lin_alg/mat_qr_decomp.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/global_rng.hpp"
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/math/lin_alg/mat_exp_methods.hpp"
+#include "ReaK/math/lin_alg/mat_norms.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
 
-#include <ReaK/topologies/spaces/default_random_sampler.hpp>
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/reversible_space_concept.hpp>
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/reversible_space_concept.hpp"
 
-#include "covariance_concept.hpp"
+#include "ReaK/control/estimators/covariance_concept.hpp"
 
 #include <random>
 #include <type_traits>

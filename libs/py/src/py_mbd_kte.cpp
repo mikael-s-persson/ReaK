@@ -30,41 +30,41 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/mbd/kte/damper.hpp>
-#include <ReaK/mbd/kte/driving_actuator.hpp>
-#include <ReaK/mbd/kte/dry_revolute_joint.hpp>
-#include <ReaK/mbd/kte/flexible_beam.hpp>
-#include <ReaK/mbd/kte/force_actuator.hpp>
-#include <ReaK/mbd/kte/free_joints.hpp>
-#include <ReaK/mbd/kte/inertia.hpp>
-#include <ReaK/mbd/kte/inertial_beam.hpp>
-#include <ReaK/mbd/kte/jacobian_joint_map.hpp>
-#include <ReaK/mbd/kte/kte_map.hpp>
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
-#include <ReaK/mbd/kte/kte_system_input.hpp>
-#include <ReaK/mbd/kte/kte_system_output.hpp>
-//#include <ReaK/mbd/kte/kte_ext_mappings.hpp>       // not needed.
-#include <ReaK/mbd/kte/line_point_mindist.hpp>
-#include <ReaK/mbd/kte/mass_matrix_calculator.hpp>
-#include <ReaK/mbd/kte/plane_point_mindist.hpp>
-#include <ReaK/mbd/kte/prismatic_joint.hpp>
-#include <ReaK/mbd/kte/reacting_kte.hpp>
-#include <ReaK/mbd/kte/revolute_joint.hpp>
-#include <ReaK/mbd/kte/rigid_link.hpp>
-#include <ReaK/mbd/kte/spring.hpp>
-#include <ReaK/mbd/kte/state_controls.hpp>
-#include <ReaK/mbd/kte/state_measures.hpp>
-#include <ReaK/mbd/kte/torsion_damper.hpp>
-#include <ReaK/mbd/kte/torsion_spring.hpp>
-#include <ReaK/mbd/kte/virtual_kte_interface.hpp>
-#include <ReaK/mbd/kte/vmc_revolute_joint.hpp>
+#include "ReaK/mbd/kte/damper.hpp"
+#include "ReaK/mbd/kte/driving_actuator.hpp"
+#include "ReaK/mbd/kte/dry_revolute_joint.hpp"
+#include "ReaK/mbd/kte/flexible_beam.hpp"
+#include "ReaK/mbd/kte/force_actuator.hpp"
+#include "ReaK/mbd/kte/free_joints.hpp"
+#include "ReaK/mbd/kte/inertia.hpp"
+#include "ReaK/mbd/kte/inertial_beam.hpp"
+#include "ReaK/mbd/kte/jacobian_joint_map.hpp"
+#include "ReaK/mbd/kte/kte_map.hpp"
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
+#include "ReaK/mbd/kte/kte_system_input.hpp"
+#include "ReaK/mbd/kte/kte_system_output.hpp"
+//#include "ReaK/mbd/kte/kte_ext_mappings.hpp"       // not needed.
+#include "ReaK/mbd/kte/line_point_mindist.hpp"
+#include "ReaK/mbd/kte/mass_matrix_calculator.hpp"
+#include "ReaK/mbd/kte/plane_point_mindist.hpp"
+#include "ReaK/mbd/kte/prismatic_joint.hpp"
+#include "ReaK/mbd/kte/reacting_kte.hpp"
+#include "ReaK/mbd/kte/revolute_joint.hpp"
+#include "ReaK/mbd/kte/rigid_link.hpp"
+#include "ReaK/mbd/kte/spring.hpp"
+#include "ReaK/mbd/kte/state_controls.hpp"
+#include "ReaK/mbd/kte/state_measures.hpp"
+#include "ReaK/mbd/kte/torsion_damper.hpp"
+#include "ReaK/mbd/kte/torsion_spring.hpp"
+#include "ReaK/mbd/kte/virtual_kte_interface.hpp"
+#include "ReaK/mbd/kte/vmc_revolute_joint.hpp"
 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include "boost/python.hpp"
+#include "boost/python/suite/indexing/vector_indexing_suite.hpp"
 
-#include <ReaK/core/base/py_fixes.hpp>
+#include "ReaK/core/base/py_fixes.hpp"
 
 #include <sstream>
 

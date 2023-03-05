@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/qt/chaser_target_interact_widget.hpp>
+#include "ReaK/mbd/qt/chaser_target_interact_widget.hpp"
 
 #include <QDockWidget>
 #include <QFileDialog>
@@ -30,9 +30,9 @@
 #include <QScrollArea>
 #include <QString>
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 #include "ui_chaser_target_interact.h"
 

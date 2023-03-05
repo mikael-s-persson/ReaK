@@ -33,43 +33,43 @@
 // disable template definitions for the planners, because this program uses extern templates for the planners:
 #define RK_DISABLE_PLANNER_DEFINITIONS
 
-#include <ReaK/planning/path_planning/planner_exec_engines.hpp>
-#include <ReaK/planning/path_planning/planner_exec_intercept.hpp>
+#include "ReaK/planning/path_planning/planner_exec_engines.hpp"
+#include "ReaK/planning/path_planning/planner_exec_intercept.hpp"
 
-#include <ReaK/mbd/models/chaser_target_model_data_po.hpp>
-#include <ReaK/planning/path_planning/path_planner_options_po.hpp>
-#include <ReaK/planning/path_planning/planning_space_options_po.hpp>
+#include "ReaK/mbd/models/chaser_target_model_data_po.hpp"
+#include "ReaK/planning/path_planning/path_planner_options_po.hpp"
+#include "ReaK/planning/path_planning/planning_space_options_po.hpp"
 
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
-#include <ReaK/mbd/kte/driving_actuator.hpp>
-#include <ReaK/mbd/kte/free_joints.hpp>
-#include <ReaK/mbd/kte/inertia.hpp>
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
-#include <ReaK/mbd/kte/state_measures.hpp>
+#include "ReaK/mbd/kte/driving_actuator.hpp"
+#include "ReaK/mbd/kte/free_joints.hpp"
+#include "ReaK/mbd/kte/inertia.hpp"
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
+#include "ReaK/mbd/kte/state_measures.hpp"
 
-#include <ReaK/mbd/models/manip_dynamics_model.hpp>
+#include "ReaK/mbd/models/manip_dynamics_model.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/geometry/shapes/box.hpp>
-#include <ReaK/geometry/shapes/colored_model.hpp>
-#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
-#include <ReaK/geometry/shapes/sphere.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/geometry/shapes/box.hpp"
+#include "ReaK/geometry/shapes/colored_model.hpp"
+#include "ReaK/geometry/shapes/coord_arrows_3D.hpp"
+#include "ReaK/geometry/shapes/sphere.hpp"
 
-#include <ReaK/topologies/interpolation/discrete_point_trajectory.hpp>
-#include <ReaK/topologies/interpolation/trajectory_base.hpp>
-#include <ReaK/topologies/spaces/manip_P3R3R_workspaces.hpp>
-#include <ReaK/topologies/spaces/manip_planning_traits.hpp>
+#include "ReaK/topologies/interpolation/discrete_point_trajectory.hpp"
+#include "ReaK/topologies/interpolation/trajectory_base.hpp"
+#include "ReaK/topologies/spaces/manip_P3R3R_workspaces.hpp"
+#include "ReaK/topologies/spaces/manip_planning_traits.hpp"
 
-#include <ReaK/topologies/interpolation/transformed_trajectory.hpp>
-#include <ReaK/topologies/spaces/direct_inverse_kin_topomap.hpp>
-#include <ReaK/topologies/spaces/proxy_traj_applicator.hpp>
+#include "ReaK/topologies/interpolation/transformed_trajectory.hpp"
+#include "ReaK/topologies/spaces/direct_inverse_kin_topomap.hpp"
+#include "ReaK/topologies/spaces/proxy_traj_applicator.hpp"
 
-#include <ReaK/topologies/spaces/Ndof_cubic_spaces.hpp>
-#include <ReaK/topologies/spaces/Ndof_linear_spaces.hpp>
-#include <ReaK/topologies/spaces/Ndof_quintic_spaces.hpp>
-#include <ReaK/topologies/spaces/Ndof_sap_spaces.hpp>
-#include <ReaK/topologies/spaces/Ndof_svp_spaces.hpp>
+#include "ReaK/topologies/spaces/Ndof_cubic_spaces.hpp"
+#include "ReaK/topologies/spaces/Ndof_linear_spaces.hpp"
+#include "ReaK/topologies/spaces/Ndof_quintic_spaces.hpp"
+#include "ReaK/topologies/spaces/Ndof_sap_spaces.hpp"
+#include "ReaK/topologies/spaces/Ndof_svp_spaces.hpp"
 
 #include <filesystem>
 

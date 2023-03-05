@@ -32,7 +32,7 @@
 #ifndef REAK_PLANNING_SPACE_OPTIONS_PO_HPP
 #define REAK_PLANNING_SPACE_OPTIONS_PO_HPP
 
-#include "planning_space_options.hpp"
+#include "ReaK/planning/path_planning/planning_space_options.hpp"
 
 namespace ReaK::pp {
 

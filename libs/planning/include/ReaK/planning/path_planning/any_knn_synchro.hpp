@@ -32,9 +32,9 @@
 #ifndef REAK_ANY_KNN_SYNCHRO_HPP
 #define REAK_ANY_KNN_SYNCHRO_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object.hpp>
-#include <ReaK/planning/graph_alg/any_graph.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/shared_object.hpp"
+#include "ReaK/planning/graph_alg/any_graph.hpp"
 
 namespace ReaK::pp {
 

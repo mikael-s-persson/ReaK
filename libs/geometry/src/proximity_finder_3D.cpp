@@ -21,6 +21,6 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/geometry/proximity/proximity_finder_3D.hpp>
+#include "ReaK/geometry/proximity/proximity_finder_3D.hpp"
 
 namespace ReaK::geom {}  // namespace ReaK::geom

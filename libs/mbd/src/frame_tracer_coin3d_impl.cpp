@@ -22,7 +22,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/coin3D/frame_tracer_coin3d_impl.hpp>
+#include "ReaK/mbd/coin3D/frame_tracer_coin3d_impl.hpp"
 
 #include <Inventor/SbColor.h>              // for SbColor
 #include <Inventor/fields/SoMFColor.h>     // for SoMFColor

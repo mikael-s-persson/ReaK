@@ -51,10 +51,10 @@
 
 #include <cmath>
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/properties.hpp>
-#include <boost/graph/topology.hpp>
-#include <boost/property_map/property_map.hpp>
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/graph/properties.hpp"
+#include "boost/graph/topology.hpp"
+#include "boost/property_map/property_map.hpp"
 
 #include <algorithm>
 #include <iterator>
@@ -63,9 +63,9 @@
 #include <type_traits>
 #include <vector>
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
-#include <ReaK/core/base/misc_math.hpp>
+#include "ReaK/core/base/misc_math.hpp"
 
 namespace ReaK::pp {
 

@@ -35,8 +35,8 @@
 #ifndef REAK_DRIVING_ACTUATOR_HPP
 #define REAK_DRIVING_ACTUATOR_HPP
 
-#include "force_actuator.hpp"
-#include "kte_system_input.hpp"
+#include "ReaK/mbd/kte/force_actuator.hpp"
+#include "ReaK/mbd/kte/kte_system_input.hpp"
 
 namespace ReaK::kte {
 

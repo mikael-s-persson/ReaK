@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/geometry/shapes/grid_3D.hpp>
+#include "ReaK/geometry/shapes/grid_3D.hpp"
 
 namespace ReaK::geom {
 

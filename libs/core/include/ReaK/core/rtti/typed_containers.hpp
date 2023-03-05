@@ -33,7 +33,7 @@
 #ifndef REAK_TYPED_CONTAINERS_HPP
 #define REAK_TYPED_CONTAINERS_HPP
 
-#include "so_type.hpp"
+#include "ReaK/core/rtti/so_type.hpp"
 
 #include <vector>
 

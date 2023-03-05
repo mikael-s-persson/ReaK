@@ -30,18 +30,18 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/py_fixes.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/py_fixes.hpp"
 
-#include <ReaK/math/kinetostatics/frame_2D.hpp>
-#include <ReaK/math/kinetostatics/frame_3D.hpp>
-#include <ReaK/math/kinetostatics/gen_coord.hpp>
-#include <ReaK/math/kinetostatics/motion_jacobians.hpp>
-#include <ReaK/math/kinetostatics/quat_alg.hpp>
-#include <ReaK/math/kinetostatics/rotations.hpp>
+#include "ReaK/math/kinetostatics/frame_2D.hpp"
+#include "ReaK/math/kinetostatics/frame_3D.hpp"
+#include "ReaK/math/kinetostatics/gen_coord.hpp"
+#include "ReaK/math/kinetostatics/motion_jacobians.hpp"
+#include "ReaK/math/kinetostatics/quat_alg.hpp"
+#include "ReaK/math/kinetostatics/rotations.hpp"
 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include "boost/python.hpp"
+#include "boost/python/suite/indexing/vector_indexing_suite.hpp"
 
 #include <sstream>
 

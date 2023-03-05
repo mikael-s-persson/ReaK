@@ -29,7 +29,7 @@
 #ifndef REAK_DATA_STREAM_OPT_WIDGET_HPP
 #define REAK_DATA_STREAM_OPT_WIDGET_HPP
 
-#include <ReaK/core/recorders/data_record_options.hpp>
+#include "ReaK/core/recorders/data_record_options.hpp"
 
 #include <QDockWidget>
 

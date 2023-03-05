@@ -32,7 +32,7 @@
 #ifndef REAK_ENDIAN_CONVERSIONS_HPP
 #define REAK_ENDIAN_CONVERSIONS_HPP
 
-#include "defs.hpp"
+#include "ReaK/core/base/defs.hpp"
 
 #include <netinet/in.h>
 #include <cstdint>

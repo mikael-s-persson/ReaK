@@ -38,28 +38,28 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/sensors/SoTimerSensor.h>  // for SoTimerSensor
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/geometry/shapes/box.hpp>
-#include <ReaK/geometry/shapes/capped_cylinder.hpp>
-#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
-#include <ReaK/geometry/shapes/plane.hpp>
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/geometry/shapes/box.hpp"
+#include "ReaK/geometry/shapes/capped_cylinder.hpp"
+#include "ReaK/geometry/shapes/coord_arrows_3D.hpp"
+#include "ReaK/geometry/shapes/plane.hpp"
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
 
-#include <ReaK/mbd/kte/driving_actuator.hpp>
-#include <ReaK/mbd/kte/free_joints.hpp>
-#include <ReaK/mbd/kte/inertia.hpp>
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
-#include <ReaK/mbd/kte/mass_matrix_calculator.hpp>
-#include <ReaK/mbd/kte/state_measures.hpp>
-#include <ReaK/mbd/models/manip_dynamics_model.hpp>
+#include "ReaK/mbd/kte/driving_actuator.hpp"
+#include "ReaK/mbd/kte/free_joints.hpp"
+#include "ReaK/mbd/kte/inertia.hpp"
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
+#include "ReaK/mbd/kte/mass_matrix_calculator.hpp"
+#include "ReaK/mbd/kte/state_measures.hpp"
+#include "ReaK/mbd/models/manip_dynamics_model.hpp"
 
-#include <ReaK/core/serialization/bin_archiver.hpp>
-#include <ReaK/core/serialization/protobuf_archiver.hpp>
-#include <ReaK/core/serialization/xml_archiver.hpp>
+#include "ReaK/core/serialization/bin_archiver.hpp"
+#include "ReaK/core/serialization/protobuf_archiver.hpp"
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
-#include <ReaK/mbd/models/joint_space_limits.hpp>
+#include "ReaK/mbd/models/joint_space_limits.hpp"
 
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 #include <chrono>
 

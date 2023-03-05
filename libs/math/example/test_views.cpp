@@ -1,7 +1,7 @@
 
 #include <iostream>
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
 
 using namespace ReaK;
 

@@ -33,7 +33,7 @@
 #ifndef REAK_ARCHIVER_FACTORY_HPP
 #define REAK_ARCHIVER_FACTORY_HPP
 
-#include "archiver.hpp"
+#include "ReaK/core/serialization/archiver.hpp"
 
 namespace ReaK::serialization {
 

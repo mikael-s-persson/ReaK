@@ -48,18 +48,18 @@
 #ifndef REAK_ADSTAR_SEARCH_HPP
 #define REAK_ADSTAR_SEARCH_HPP
 
-#include <boost/graph/detail/d_ary_heap.hpp>
-#include <boost/graph/exception.hpp>
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/limits.hpp>
-#include <boost/property_map/property_map.hpp>
 #include <functional>
 #include <vector>
+#include "boost/graph/detail/d_ary_heap.hpp"
+#include "boost/graph/exception.hpp"
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/limits.hpp"
+#include "boost/property_map/property_map.hpp"
 
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/more_property_tags.hpp>
+#include "boost/graph/more_property_tags.hpp"
 
 namespace ReaK::graph {
 

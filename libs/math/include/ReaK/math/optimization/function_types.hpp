@@ -33,11 +33,11 @@
 #ifndef REAK_FUNCTION_TYPES_HPP
 #define REAK_FUNCTION_TYPES_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
 #include <utility>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/shared_object.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
 namespace ReaK::optim {
 

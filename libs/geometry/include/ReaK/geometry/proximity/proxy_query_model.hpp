@@ -33,10 +33,10 @@
 #ifndef REAK_PROXY_QUERY_MODEL_HPP
 #define REAK_PROXY_QUERY_MODEL_HPP
 
-#include <ReaK/geometry/shapes/shape_2D.hpp>
-#include <ReaK/geometry/shapes/shape_3D.hpp>
-#include "proximity_finder_2D.hpp"
-#include "proximity_finder_3D.hpp"
+#include "ReaK/geometry/proximity/proximity_finder_2D.hpp"
+#include "ReaK/geometry/proximity/proximity_finder_3D.hpp"
+#include "ReaK/geometry/shapes/shape_2D.hpp"
+#include "ReaK/geometry/shapes/shape_3D.hpp"
 
 #include <utility>
 #include <vector>

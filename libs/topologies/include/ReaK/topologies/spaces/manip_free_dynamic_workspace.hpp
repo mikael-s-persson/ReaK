@@ -35,14 +35,14 @@
 #ifndef REAK_MANIP_FREE_DYNAMIC_WORKSPACE_HPP
 #define REAK_MANIP_FREE_DYNAMIC_WORKSPACE_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "manip_free_workspace.hpp"
+#include "ReaK/topologies/spaces/manip_free_workspace.hpp"
 
-#include "proxy_model_updater.hpp"    // needed by manip_dynamic_env
-#include "reachability_space.hpp"     // needed by manip_dynamic_env
-#include "temporal_space.hpp"         // needed by manip_dynamic_env
-#include "time_poisson_topology.hpp"  // needed by manip_dynamic_env
+#include "ReaK/topologies/spaces/proxy_model_updater.hpp"  // needed by manip_dynamic_env
+#include "ReaK/topologies/spaces/reachability_space.hpp"  // needed by manip_dynamic_env
+#include "ReaK/topologies/spaces/temporal_space.hpp"  // needed by manip_dynamic_env
+#include "ReaK/topologies/spaces/time_poisson_topology.hpp"  // needed by manip_dynamic_env
 
 namespace ReaK::pp {
 
@@ -335,6 +335,6 @@ struct is_metric_symmetric<manip_dynamic_env<BaseJointSpace>>
 
 }  // namespace ReaK::pp
 
-#include "manip_free_dynamic_workspace_ext.hpp"
+#include "ReaK/topologies/spaces/manip_free_dynamic_workspace_ext.hpp"
 
 #endif

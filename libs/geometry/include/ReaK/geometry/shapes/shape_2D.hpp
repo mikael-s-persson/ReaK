@@ -32,8 +32,8 @@
 #ifndef REAK_SHAPE_2D_HPP
 #define REAK_SHAPE_2D_HPP
 
-#include <ReaK/math/kinetostatics/pose_2D.hpp>
-#include "geometry_2D.hpp"
+#include "ReaK/geometry/shapes/geometry_2D.hpp"
+#include "ReaK/math/kinetostatics/pose_2D.hpp"
 
 namespace ReaK::geom {
 

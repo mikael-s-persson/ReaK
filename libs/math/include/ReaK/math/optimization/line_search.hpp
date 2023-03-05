@@ -35,7 +35,7 @@
 #ifndef REAK_LINE_SEARCH_HPP
 #define REAK_LINE_SEARCH_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
 #include <array>
 #include <cmath>

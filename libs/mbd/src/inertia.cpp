@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/inertia.hpp>
+#include "ReaK/mbd/kte/inertia.hpp"
 
 namespace ReaK::kte {
 

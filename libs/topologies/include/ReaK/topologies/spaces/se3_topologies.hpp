@@ -32,21 +32,21 @@
 #ifndef REAK_SE3_TOPOLOGIES_HPP
 #define REAK_SE3_TOPOLOGIES_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "so3_topologies.hpp"
+#include "ReaK/topologies/spaces/so3_topologies.hpp"
 
-#include "differentiable_space.hpp"
-#include "metric_space_tuple.hpp"
-#include "rate_limited_spaces.hpp"
+#include "ReaK/topologies/spaces/differentiable_space.hpp"
+#include "ReaK/topologies/spaces/metric_space_tuple.hpp"
+#include "ReaK/topologies/spaces/rate_limited_spaces.hpp"
 
-#include "hyperball_topology.hpp"
-#include "hyperbox_topology.hpp"
-#include "line_topology.hpp"
+#include "ReaK/topologies/spaces/hyperball_topology.hpp"
+#include "ReaK/topologies/spaces/hyperbox_topology.hpp"
+#include "ReaK/topologies/spaces/line_topology.hpp"
 
-#include <ReaK/math/kinetostatics/frame_3D.hpp>
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/math/kinetostatics/frame_3D.hpp"
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
 namespace ReaK {
 
@@ -1066,11 +1066,11 @@ void set_acceleration(
 
 }  // namespace ReaK
 
-#include "reachability_space.hpp"
-#include "temporal_space.hpp"
-#include "time_poisson_topology.hpp"
+#include "ReaK/topologies/spaces/reachability_space.hpp"
+#include "ReaK/topologies/spaces/temporal_space.hpp"
+#include "ReaK/topologies/spaces/time_poisson_topology.hpp"
 
-#include "joint_space_limits.hpp"
+#include "ReaK/topologies/spaces/joint_space_limits.hpp"
 
 namespace ReaK::pp {
 

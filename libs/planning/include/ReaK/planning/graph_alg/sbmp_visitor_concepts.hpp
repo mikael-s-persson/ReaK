@@ -32,12 +32,12 @@
 #ifndef REAK_SBMP_VISITOR_CONCEPTS_HPP
 #define REAK_SBMP_VISITOR_CONCEPTS_HPP
 
-#include <boost/concept_check.hpp>
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/property_map/property_map.hpp>
+#include "boost/concept_check.hpp"
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/property_map/property_map.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
 namespace ReaK::graph {
 

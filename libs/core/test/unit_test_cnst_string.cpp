@@ -20,9 +20,9 @@
  *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
-#include <ReaK/core/base/cnst_string.hpp>
+#include "ReaK/core/base/cnst_string.hpp"
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
 #include "gtest/gtest.h"
 

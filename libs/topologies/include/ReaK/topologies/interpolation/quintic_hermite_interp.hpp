@@ -34,18 +34,18 @@
 #ifndef REAK_QUINTIC_HERMITE_INTERP_HPP
 #define REAK_QUINTIC_HERMITE_INTERP_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
-#include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
-#include "spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/interpolation/spatial_trajectory_concept.hpp"
+#include "ReaK/topologies/spaces/tangent_bundle_concept.hpp"
 
-#include "generic_interpolator_factory.hpp"
-#include "interpolated_trajectory.hpp"
+#include "ReaK/topologies/interpolation/generic_interpolator_factory.hpp"
+#include "ReaK/topologies/interpolation/interpolated_trajectory.hpp"
 
-#include <boost/concept_check.hpp>
 #include <cmath>
+#include "boost/concept_check.hpp"
 
 #include <limits>
 #include <list>

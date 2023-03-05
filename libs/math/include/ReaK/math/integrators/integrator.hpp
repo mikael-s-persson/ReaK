@@ -34,10 +34,10 @@
 #ifndef REAK_INTEGRATOR_HPP
 #define REAK_INTEGRATOR_HPP
 
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
-#include "integration_exceptions.hpp"
+#include "ReaK/math/integrators/integration_exceptions.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {

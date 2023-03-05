@@ -32,9 +32,9 @@
 #ifndef REAK_PROX_BOX_BOX_HPP
 #define REAK_PROX_BOX_BOX_HPP
 
-#include "proximity_finder_3D.hpp"
+#include "ReaK/geometry/proximity/proximity_finder_3D.hpp"
 
-#include <ReaK/geometry/shapes/box.hpp>
+#include "ReaK/geometry/shapes/box.hpp"
 
 namespace ReaK::geom {
 

@@ -35,20 +35,20 @@
 #ifndef REAK_DVP_TREE_DETAIL_HPP
 #define REAK_DVP_TREE_DETAIL_HPP
 
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/property_map/property_map.hpp>
+#include "boost/graph/graph_concepts.hpp"
+#include "boost/property_map/property_map.hpp"
 
-#include <ReaK/topologies/spaces/metric_space_concept.hpp>
-#include <ReaK/topologies/spaces/proper_metric_concept.hpp>
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/proper_metric_concept.hpp"
 
-#include <ReaK/core/base/global_rng.hpp>
+#include "ReaK/core/base/global_rng.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/tree_adaptor.hpp>
+#include "boost/graph/tree_adaptor.hpp"
 
 // Pending inclusion in BGL-Extra:
-#include <ReaK/planning/graph_alg/bgl_raw_property_graph.hpp>
-#include <ReaK/planning/graph_alg/simple_graph_traits.hpp>
+#include "ReaK/planning/graph_alg/bgl_raw_property_graph.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
 #include <algorithm>
 #include <cmath>

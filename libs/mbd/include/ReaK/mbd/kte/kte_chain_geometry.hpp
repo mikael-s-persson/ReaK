@@ -32,10 +32,10 @@
 #ifndef REAK_KTE_CHAIN_GEOMETRY_HPP
 #define REAK_KTE_CHAIN_GEOMETRY_HPP
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/geometry/shapes/colored_model.hpp>
-#include <ReaK/geometry/shapes/shape_2D.hpp>
-#include <ReaK/geometry/shapes/shape_3D.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/geometry/shapes/colored_model.hpp"
+#include "ReaK/geometry/shapes/shape_2D.hpp"
+#include "ReaK/geometry/shapes/shape_3D.hpp"
 
 #include <map>
 #include <string>

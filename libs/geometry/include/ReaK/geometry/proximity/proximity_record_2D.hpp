@@ -32,9 +32,9 @@
 #ifndef REAK_PROXIMITY_RECORD_2D_HPP
 #define REAK_PROXIMITY_RECORD_2D_HPP
 
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/shared_object.hpp"
 
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
 namespace ReaK::geom {
 

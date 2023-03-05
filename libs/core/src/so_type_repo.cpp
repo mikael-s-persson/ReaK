@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/rtti/so_type_repo.hpp>
+#include "ReaK/core/rtti/so_type_repo.hpp"
 
 #include <iostream>
 

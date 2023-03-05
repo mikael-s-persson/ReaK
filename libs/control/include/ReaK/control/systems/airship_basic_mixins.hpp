@@ -38,13 +38,13 @@
 #ifndef REAK_AIRSHIP_BASIC_MIXINS_HPP
 #define REAK_AIRSHIP_BASIC_MIXINS_HPP
 
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/named_object.hpp"
 
-#include "state_space_system_tuple.hpp"
+#include "ReaK/control/systems/state_space_system_tuple.hpp"
 
-#include <ReaK/topologies/spaces/hyperball_topology.hpp>
-#include <ReaK/topologies/spaces/line_topology.hpp>
-#include <ReaK/topologies/spaces/se3_topologies.hpp>
+#include "ReaK/topologies/spaces/hyperball_topology.hpp"
+#include "ReaK/topologies/spaces/line_topology.hpp"
+#include "ReaK/topologies/spaces/se3_topologies.hpp"
 
 namespace ReaK::ctrl {
 

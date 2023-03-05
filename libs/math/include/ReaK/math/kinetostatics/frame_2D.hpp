@@ -33,7 +33,7 @@
 #ifndef REAK_FRAME_2D_HPP
 #define REAK_FRAME_2D_HPP
 
-#include "pose_2D.hpp"
+#include "ReaK/math/kinetostatics/pose_2D.hpp"
 
 namespace ReaK {
 

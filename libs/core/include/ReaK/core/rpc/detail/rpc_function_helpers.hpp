@@ -34,12 +34,12 @@
 #ifndef REAK_DETAIL_RPC_FUNCTION_HELPERS_HPP
 #define REAK_DETAIL_RPC_FUNCTION_HELPERS_HPP
 
-#include <ReaK/core/serialization/archiver.hpp>
 #include <functional>
 #include <string>
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include "ReaK/core/serialization/archiver.hpp"
 
 namespace ReaK::rpc::detail {
 

@@ -48,13 +48,13 @@
 #ifndef REAK_PROPER_METRIC_CONCEPT_HPP
 #define REAK_PROPER_METRIC_CONCEPT_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/serializable.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/serializable.hpp"
 
-#include "metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
-#include <boost/concept_check.hpp>
 #include <type_traits>
+#include "boost/concept_check.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK::pp {

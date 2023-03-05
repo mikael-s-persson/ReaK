@@ -21,17 +21,17 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/math/optimization/line_search.hpp>
 #include <cmath>
+#include "ReaK/math/optimization/line_search.hpp"
 
-#include <ReaK/math/optimization/finite_diff_jacobians.hpp>
+#include "ReaK/math/optimization/finite_diff_jacobians.hpp"
 
-#include <ReaK/math/optimization/conjugate_gradient_methods.hpp>
-#include <ReaK/math/optimization/nelder_mead_method.hpp>
-#include <ReaK/math/optimization/quasi_newton_methods.hpp>
-#include <ReaK/math/optimization/trust_region_search.hpp>
+#include "ReaK/math/optimization/conjugate_gradient_methods.hpp"
+#include "ReaK/math/optimization/nelder_mead_method.hpp"
+#include "ReaK/math/optimization/quasi_newton_methods.hpp"
+#include "ReaK/math/optimization/trust_region_search.hpp"
 
-#include <ReaK/core/base/global_rng.hpp>
+#include "ReaK/core/base/global_rng.hpp"
 
 #include <iostream>
 

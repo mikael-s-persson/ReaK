@@ -32,11 +32,11 @@
 #ifndef REAK_DENSITY_PLAN_VISITORS_HPP
 #define REAK_DENSITY_PLAN_VISITORS_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include "density_calculators.hpp"
-#include "planning_visitors.hpp"
+#include "ReaK/planning/path_planning/density_calculators.hpp"
+#include "ReaK/planning/path_planning/planning_visitors.hpp"
 
 namespace ReaK::pp {
 

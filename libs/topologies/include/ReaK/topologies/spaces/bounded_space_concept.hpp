@@ -34,9 +34,9 @@
 #ifndef REAK_BOUNDED_SPACE_CONCEPT_HPP
 #define REAK_BOUNDED_SPACE_CONCEPT_HPP
 
-#include "metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::pp {
 

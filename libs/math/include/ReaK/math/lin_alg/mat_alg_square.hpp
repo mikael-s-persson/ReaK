@@ -40,7 +40,7 @@
 #ifndef REAK_MAT_ALG_SQUARE_HPP
 #define REAK_MAT_ALG_SQUARE_HPP
 
-#include "mat_alg_general.hpp"
+#include "ReaK/math/lin_alg/mat_alg_general.hpp"
 
 #include <type_traits>
 #include <utility>

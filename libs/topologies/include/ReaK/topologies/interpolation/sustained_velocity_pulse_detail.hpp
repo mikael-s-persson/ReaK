@@ -33,10 +33,10 @@
 #ifndef REAK_SUSTAINED_VELOCITY_PULSE_DETAIL_HPP
 #define REAK_SUSTAINED_VELOCITY_PULSE_DETAIL_HPP
 
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
 
-#include <ReaK/topologies/spaces/bounded_space_concept.hpp>
-#include <ReaK/topologies/spaces/tangent_bundle_concept.hpp>
+#include "ReaK/topologies/spaces/bounded_space_concept.hpp"
+#include "ReaK/topologies/spaces/tangent_bundle_concept.hpp"
 
 #include <functional>
 #include <type_traits>

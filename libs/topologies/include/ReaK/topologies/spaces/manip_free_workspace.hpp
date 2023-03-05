@@ -35,19 +35,19 @@
 #ifndef REAK_MANIP_FREE_WORKSPACE_HPP
 #define REAK_MANIP_FREE_WORKSPACE_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/named_object.hpp"
 
-#include "metric_space_concept.hpp"
-#include "random_sampler_concept.hpp"
-#include "reversible_space_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/random_sampler_concept.hpp"
+#include "ReaK/topologies/spaces/reversible_space_concept.hpp"
 
-#include <ReaK/topologies/interpolation/interpolated_topologies.hpp>
-#include "proxy_model_updater.hpp"
+#include "ReaK/topologies/interpolation/interpolated_topologies.hpp"
+#include "ReaK/topologies/spaces/proxy_model_updater.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>  // for proxy-query class
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"  // for proxy-query class
 
-#include "default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
 
 #include <functional>
 #include <utility>
@@ -316,6 +316,6 @@ struct is_metric_symmetric<manip_quasi_static_env<BaseJointSpace>>
 
 }  // namespace ReaK::pp
 
-#include "manip_free_workspace_ext.hpp"
+#include "ReaK/topologies/spaces/manip_free_workspace_ext.hpp"
 
 #endif

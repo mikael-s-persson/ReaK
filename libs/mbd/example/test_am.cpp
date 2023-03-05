@@ -21,24 +21,24 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
 
-#include <ReaK/mbd/kte/inertia.hpp>
-#include <ReaK/mbd/kte/revolute_joint.hpp>
-#include <ReaK/mbd/kte/rigid_link.hpp>
+#include "ReaK/mbd/kte/inertia.hpp"
+#include "ReaK/mbd/kte/revolute_joint.hpp"
+#include "ReaK/mbd/kte/rigid_link.hpp"
 
-#include <ReaK/mbd/kte/force_actuator.hpp>
-#include <ReaK/mbd/kte/joint_backlash.hpp>
-#include <ReaK/mbd/kte/joint_friction.hpp>
+#include "ReaK/mbd/kte/force_actuator.hpp"
+#include "ReaK/mbd/kte/joint_backlash.hpp"
+#include "ReaK/mbd/kte/joint_friction.hpp"
 
-#include <ReaK/math/lin_alg/mat_num.hpp>
+#include "ReaK/math/lin_alg/mat_num.hpp"
 
-#include <ReaK/core/recorders/ascii_recorder.hpp>
+#include "ReaK/core/recorders/ascii_recorder.hpp"
 
-#include <ReaK/core/serialization/bin_archiver.hpp>
-#include <ReaK/core/serialization/protobuf_archiver.hpp>
-#include <ReaK/core/serialization/xml_archiver.hpp>
 #include <memory>
+#include "ReaK/core/serialization/bin_archiver.hpp"
+#include "ReaK/core/serialization/protobuf_archiver.hpp"
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
 using namespace ReaK;
 

@@ -21,13 +21,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/kinetostatics/quat_alg.hpp>
-#include <ReaK/math/kinetostatics/quat_num.hpp>
-#include <ReaK/math/lin_alg/complex_math.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/kinetostatics/quat_alg.hpp"
+#include "ReaK/math/kinetostatics/quat_num.hpp"
+#include "ReaK/math/lin_alg/complex_math.hpp"
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
 
 #include <cstdio>
 #include <fstream>

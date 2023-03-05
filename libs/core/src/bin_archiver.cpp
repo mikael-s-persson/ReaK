@@ -21,14 +21,14 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/serialization/bin_archiver.hpp>
+#include "ReaK/core/serialization/bin_archiver.hpp"
 
-#include <ReaK/core/base/shared_object.hpp>
-#include <ReaK/core/rtti/rtti.hpp>
+#include "ReaK/core/base/shared_object.hpp"
+#include "ReaK/core/rtti/rtti.hpp"
 
-#include <ReaK/core/serialization/archiving_exceptions.hpp>
+#include "ReaK/core/serialization/archiving_exceptions.hpp"
 
-#include <ReaK/core/base/endian_conversions.hpp>
+#include "ReaK/core/base/endian_conversions.hpp"
 
 #include <map>
 #include <string>

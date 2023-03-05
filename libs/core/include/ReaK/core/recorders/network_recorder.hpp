@@ -34,7 +34,7 @@
 #ifndef REAK_NETWORK_RECORDER_HPP
 #define REAK_NETWORK_RECORDER_HPP
 
-#include "data_record.hpp"
+#include "ReaK/core/recorders/data_record.hpp"
 
 namespace ReaK::recorder {
 

@@ -21,14 +21,14 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
-#include <ReaK/mbd/models/navigation_model_data.hpp>
+#include "ReaK/mbd/models/navigation_model_data.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/geometry/shapes/colored_model.hpp>
 #include <memory>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/geometry/shapes/colored_model.hpp"
 
 namespace ReaK::kte {
 

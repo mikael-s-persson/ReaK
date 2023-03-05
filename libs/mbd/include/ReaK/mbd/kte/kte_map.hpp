@@ -33,12 +33,12 @@
 #ifndef REAK_KTE_MAP_HPP
 #define REAK_KTE_MAP_HPP
 
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
 
-#include "kte_ext_mappings.hpp"
+#include "ReaK/mbd/kte/kte_ext_mappings.hpp"
 
-#include <boost/noncopyable.hpp>
+#include "boost/noncopyable.hpp"
 
 namespace ReaK::kte {
 

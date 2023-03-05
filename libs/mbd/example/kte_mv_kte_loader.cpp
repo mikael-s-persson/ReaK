@@ -30,23 +30,23 @@
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
-#include <ReaK/mbd/kte/kte_chain_geometry.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
+#include "ReaK/mbd/kte/kte_chain_geometry.hpp"
 
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
-#include <ReaK/mbd/models/direct_kinematics_model.hpp>
-#include <ReaK/mbd/models/inverse_dynamics_model.hpp>
-#include <ReaK/mbd/models/inverse_kinematics_model.hpp>
-#include <ReaK/mbd/models/joint_space_limits.hpp>
-#include <ReaK/mbd/models/manip_3R3R_arm.hpp>
-#include <ReaK/mbd/models/manip_3R_arm.hpp>
-#include <ReaK/mbd/models/manip_ERA_arm.hpp>
-#include <ReaK/mbd/models/manip_P3R3R_arm.hpp>
-#include <ReaK/mbd/models/manip_SCARA_arm.hpp>
-#include <ReaK/mbd/models/manip_SSRMS_arm.hpp>
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
+#include "ReaK/mbd/models/direct_kinematics_model.hpp"
+#include "ReaK/mbd/models/inverse_dynamics_model.hpp"
+#include "ReaK/mbd/models/inverse_kinematics_model.hpp"
+#include "ReaK/mbd/models/joint_space_limits.hpp"
+#include "ReaK/mbd/models/manip_3R3R_arm.hpp"
+#include "ReaK/mbd/models/manip_3R_arm.hpp"
+#include "ReaK/mbd/models/manip_ERA_arm.hpp"
+#include "ReaK/mbd/models/manip_P3R3R_arm.hpp"
+#include "ReaK/mbd/models/manip_SCARA_arm.hpp"
+#include "ReaK/mbd/models/manip_SSRMS_arm.hpp"
 
-#include <ReaK/core/serialization/archiver.hpp>
+#include "ReaK/core/serialization/archiver.hpp"
 
 namespace ReaK {
 

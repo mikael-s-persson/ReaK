@@ -33,11 +33,11 @@
 #ifndef REAK_COVARIANCE_MATRIX_HPP
 #define REAK_COVARIANCE_MATRIX_HPP
 
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
 
-#include "covariance_concept.hpp"
+#include "ReaK/control/estimators/covariance_concept.hpp"
 
 #include <type_traits>
 #include <utility>

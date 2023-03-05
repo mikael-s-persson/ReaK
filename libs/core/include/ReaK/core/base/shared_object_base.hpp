@@ -35,7 +35,7 @@
 #ifndef REAK_SHARED_OBJECT_BASE_HPP
 #define REAK_SHARED_OBJECT_BASE_HPP
 
-#include "defs.hpp"
+#include "ReaK/core/base/defs.hpp"
 
 namespace ReaK {}  // namespace ReaK
 

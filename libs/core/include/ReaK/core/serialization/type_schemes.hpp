@@ -33,12 +33,12 @@
 #ifndef REAK_TYPE_SCHEMES_HPP
 #define REAK_TYPE_SCHEMES_HPP
 
-#include "archiver.hpp"
+#include "ReaK/core/serialization/archiver.hpp"
 
-#include <ReaK/core/base/serializable.hpp>
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/serializable.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
-#include <ReaK/core/rtti/rtti.hpp>
+#include "ReaK/core/rtti/rtti.hpp"
 
 #include <string>
 #include <utility>

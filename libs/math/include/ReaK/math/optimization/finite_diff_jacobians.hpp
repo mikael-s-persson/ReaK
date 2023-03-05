@@ -33,10 +33,10 @@
 #ifndef REAK_FINITE_DIFF_JACOBIANS_HPP
 #define REAK_FINITE_DIFF_JACOBIANS_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
 
-#include "optim_exceptions.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 #include <type_traits>
 

@@ -23,14 +23,14 @@
 
 #include <cmath>
 
-#include <ReaK/math/optimization/line_search.hpp>
+#include "ReaK/math/optimization/line_search.hpp"
 
-#include <ReaK/math/optimization/finite_diff_jacobians.hpp>
+#include "ReaK/math/optimization/finite_diff_jacobians.hpp"
 
-#include <ReaK/math/optimization/mehrotra_method.hpp>
-#include <ReaK/math/optimization/quadratic_programs.hpp>
+#include "ReaK/math/optimization/mehrotra_method.hpp"
+#include "ReaK/math/optimization/quadratic_programs.hpp"
 
-#include <ReaK/math/lin_alg/mat_svd_method.hpp>
+#include "ReaK/math/lin_alg/mat_svd_method.hpp"
 
 #include <iostream>
 

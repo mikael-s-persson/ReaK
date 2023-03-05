@@ -9,16 +9,16 @@
  * \date February 2013
  */
 
-#include <ReaK/geometry/shapes/box.hpp>
-#include <ReaK/geometry/shapes/capped_cylinder.hpp>
-#include <ReaK/geometry/shapes/colored_model.hpp>
-#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
-#include <ReaK/geometry/shapes/plane.hpp>
+#include "ReaK/geometry/shapes/box.hpp"
+#include "ReaK/geometry/shapes/capped_cylinder.hpp"
+#include "ReaK/geometry/shapes/colored_model.hpp"
+#include "ReaK/geometry/shapes/coord_arrows_3D.hpp"
+#include "ReaK/geometry/shapes/plane.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
 
-#include <ReaK/core/serialization/xml_archiver.hpp>
 #include <memory>
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
 int main(int argc, char** argv) {
 

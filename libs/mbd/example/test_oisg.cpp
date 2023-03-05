@@ -28,11 +28,11 @@
 
 #include <Inventor/nodes/SoSeparator.h>
 
-#include <ReaK/geometry/shapes/box.hpp>
-#include <ReaK/geometry/shapes/cylinder.hpp>
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
+#include "ReaK/geometry/shapes/box.hpp"
+#include "ReaK/geometry/shapes/cylinder.hpp"
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
 
-#include <ReaK/core/serialization/xml_archiver.hpp>
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
 #include <cmath>
 #include <iostream>

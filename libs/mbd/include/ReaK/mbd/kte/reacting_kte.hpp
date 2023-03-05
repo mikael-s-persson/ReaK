@@ -34,8 +34,8 @@
 #ifndef REAK_REACTING_KTE_HPP
 #define REAK_REACTING_KTE_HPP
 
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
-#include "kte_map.hpp"
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
+#include "ReaK/mbd/kte/kte_map.hpp"
 
 namespace ReaK::kte {
 

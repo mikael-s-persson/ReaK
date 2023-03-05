@@ -34,11 +34,11 @@
 #ifndef REAK_JACOBIAN_JOINT_MAP_HPP
 #define REAK_JACOBIAN_JOINT_MAP_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/kinetostatics/kinetostatics.hpp>
-#include <ReaK/math/kinetostatics/motion_jacobians.hpp>
 #include <map>
 #include <utility>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/kinetostatics/kinetostatics.hpp"
+#include "ReaK/math/kinetostatics/motion_jacobians.hpp"
 
 namespace ReaK::kte {
 

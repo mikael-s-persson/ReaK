@@ -30,13 +30,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/py_fixes.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/py_fixes.hpp"
 
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
-#include <boost/python.hpp>
+#include "boost/python.hpp"
 
 namespace PyReaK {
 

@@ -32,10 +32,10 @@
 #ifndef REAK_POSE_3D_HPP
 #define REAK_POSE_3D_HPP
 
-#include "rotations_3D.hpp"
+#include "ReaK/math/kinetostatics/rotations_3D.hpp"
 
-#include <ReaK/core/base/shared_object.hpp>
 #include <utility>
+#include "ReaK/core/base/shared_object.hpp"
 
 namespace ReaK {
 

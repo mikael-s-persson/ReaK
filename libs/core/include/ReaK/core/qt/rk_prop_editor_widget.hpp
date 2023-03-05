@@ -29,8 +29,8 @@
 #ifndef REAK_PROP_EDITOR_WIDGET_HPP
 #define REAK_PROP_EDITOR_WIDGET_HPP
 
-#include "obj_properties_qtmodel.hpp"
-#include "objtree_qtmodel.hpp"
+#include "ReaK/core/qt/obj_properties_qtmodel.hpp"
+#include "ReaK/core/qt/objtree_qtmodel.hpp"
 
 #include <QDockWidget>
 

@@ -7,12 +7,12 @@
  * \date June 2010
  */
 
-#include <ReaK/mbd/models/manip_P3R3R_arm.hpp>
+#include "ReaK/mbd/models/manip_P3R3R_arm.hpp"
 
-#include <ReaK/core/recorders/data_record_po.hpp>
+#include "ReaK/core/recorders/data_record_po.hpp"
 
-#include <ReaK/math/kinetostatics/calibrate_frames_3D.hpp>
 #include <memory>
+#include "ReaK/math/kinetostatics/calibrate_frames_3D.hpp"
 
 #include "absl/flags/parse.h"
 

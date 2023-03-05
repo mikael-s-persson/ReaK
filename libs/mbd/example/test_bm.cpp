@@ -21,17 +21,17 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
 
-#include <ReaK/mbd/kte/inertia.hpp>
-#include <ReaK/mbd/kte/jacobian_joint_map.hpp>
-#include <ReaK/mbd/kte/mass_matrix_calculator.hpp>
-#include <ReaK/mbd/kte/revolute_joint.hpp>
-#include <ReaK/mbd/kte/rigid_link.hpp>
+#include "ReaK/mbd/kte/inertia.hpp"
+#include "ReaK/mbd/kte/jacobian_joint_map.hpp"
+#include "ReaK/mbd/kte/mass_matrix_calculator.hpp"
+#include "ReaK/mbd/kte/revolute_joint.hpp"
+#include "ReaK/mbd/kte/rigid_link.hpp"
 
-#include <ReaK/core/recorders/ascii_recorder.hpp>
+#include "ReaK/core/recorders/ascii_recorder.hpp"
 
-#include <ReaK/core/serialization/xml_archiver.hpp>
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
 using namespace ReaK;
 

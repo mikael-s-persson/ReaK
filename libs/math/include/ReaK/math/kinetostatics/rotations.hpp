@@ -36,7 +36,7 @@
 #ifndef REAK_ROTATIONS_HPP
 #define REAK_ROTATIONS_HPP
 
-#include "rotations_2D.hpp"
-#include "rotations_3D.hpp"
+#include "ReaK/math/kinetostatics/rotations_2D.hpp"
+#include "ReaK/math/kinetostatics/rotations_3D.hpp"
 
 #endif

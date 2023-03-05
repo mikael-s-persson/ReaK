@@ -34,18 +34,18 @@
 #ifndef REAK_RATE_LIMITED_SPACES_HPP
 #define REAK_RATE_LIMITED_SPACES_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/serializable.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/serializable.hpp"
 
-#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
-#include "metric_space_concept.hpp"
-#include "prob_distribution_concept.hpp"
+#include "ReaK/math/lin_alg/arithmetic_tuple.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/prob_distribution_concept.hpp"
 
-#include "default_random_sampler.hpp"
-#include "differentiable_space.hpp"
-#include "tuple_distance_metrics.hpp"
+#include "ReaK/topologies/spaces/default_random_sampler.hpp"
+#include "ReaK/topologies/spaces/differentiable_space.hpp"
+#include "ReaK/topologies/spaces/tuple_distance_metrics.hpp"
 
-#include "rate_limited_space_metamaps.hpp"
+#include "ReaK/topologies/spaces/rate_limited_space_metamaps.hpp"
 
 #include <type_traits>
 

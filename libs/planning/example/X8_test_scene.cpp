@@ -6,14 +6,14 @@
  * \date February 2013
  */
 
-#include <ReaK/control/controllers/IHAQR_topology.hpp>
-#include <ReaK/control/controllers/MEAQR_topology.hpp>
-#include <ReaK/control/systems/quadrotor_system.hpp>
-#include <ReaK/mbd/models/uav_kinematics.hpp>
-#include <ReaK/topologies/spaces/se3_random_samplers.hpp>
+#include "ReaK/control/controllers/IHAQR_topology.hpp"
+#include "ReaK/control/controllers/MEAQR_topology.hpp"
+#include "ReaK/control/systems/quadrotor_system.hpp"
+#include "ReaK/mbd/models/uav_kinematics.hpp"
+#include "ReaK/topologies/spaces/se3_random_samplers.hpp"
 
-#include <ReaK/planning/path_planning/MEAQR_rrtstar_planner.hpp>
-#include <ReaK/planning/path_planning/MEAQR_sbastar_planner.hpp>
+#include "ReaK/planning/path_planning/MEAQR_rrtstar_planner.hpp"
+#include "ReaK/planning/path_planning/MEAQR_sbastar_planner.hpp"
 
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
@@ -26,18 +26,18 @@
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
 
-#include <ReaK/planning/path_planning/basic_sbmp_reporters.hpp>
-#include <ReaK/planning/path_planning/frame_tracer_coin3d.hpp>
+#include "ReaK/planning/path_planning/basic_sbmp_reporters.hpp"
+#include "ReaK/planning/path_planning/frame_tracer_coin3d.hpp"
 
-#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
+#include "ReaK/geometry/shapes/coord_arrows_3D.hpp"
 
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
 
-#include <ReaK/core/serialization/xml_archiver.hpp>
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/core/serialization/xml_archiver.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 using namespace ReaK;
 using namespace pp;

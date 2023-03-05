@@ -32,7 +32,7 @@
 #ifndef REAK_CIRCLE_HPP
 #define REAK_CIRCLE_HPP
 
-#include "shape_2D.hpp"
+#include "ReaK/geometry/shapes/shape_2D.hpp"
 
 namespace ReaK::geom {
 

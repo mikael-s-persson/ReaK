@@ -33,9 +33,9 @@
 #ifndef REAK_SO_TYPE_REPO_HPP
 #define REAK_SO_TYPE_REPO_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include "so_type.hpp"
+#include "ReaK/core/rtti/so_type.hpp"
 
 namespace ReaK::rtti {
 

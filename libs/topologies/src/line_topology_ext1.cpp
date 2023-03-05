@@ -20,7 +20,7 @@
  *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
-#include <ReaK/topologies/spaces/line_topology.hpp>
+#include "ReaK/topologies/spaces/line_topology.hpp"
 
 namespace ReaK::pp {
 template class line_topology<double>;

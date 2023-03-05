@@ -34,11 +34,11 @@
 #ifndef REAK_JOINT_SPACE_LIMITS_DETAIL_HPP
 #define REAK_JOINT_SPACE_LIMITS_DETAIL_HPP
 
-#include "Ndof_spaces.hpp"
-#include "differentiable_space.hpp"
-#include "joint_space_topologies.hpp"
-#include "se2_topologies.hpp"
-#include "se3_topologies.hpp"
+#include "ReaK/topologies/spaces/Ndof_spaces.hpp"
+#include "ReaK/topologies/spaces/differentiable_space.hpp"
+#include "ReaK/topologies/spaces/joint_space_topologies.hpp"
+#include "ReaK/topologies/spaces/se2_topologies.hpp"
+#include "ReaK/topologies/spaces/se3_topologies.hpp"
 
 #include <type_traits>
 

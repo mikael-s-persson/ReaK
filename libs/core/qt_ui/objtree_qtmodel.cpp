@@ -29,12 +29,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/qt/objtree_qtmodel.hpp>
+#include "ReaK/core/qt/objtree_qtmodel.hpp"
 
-#include <ReaK/core/base/named_object.hpp>
+#include "ReaK/core/base/named_object.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/tree_adaptor.hpp>
+#include "boost/graph/tree_adaptor.hpp"
 
 namespace ReaK {
 

@@ -36,8 +36,8 @@
 #ifndef REAK_VECT_VIEWS_HPP
 #define REAK_VECT_VIEWS_HPP
 
-#include "vect_concepts.hpp"
-#include "vect_traits.hpp"
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
+#include "ReaK/math/lin_alg/vect_traits.hpp"
 
 #include <stdexcept>
 #include <type_traits>

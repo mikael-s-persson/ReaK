@@ -38,10 +38,10 @@
 #ifndef REAK_SUBSPACE_CONCEPT_HPP
 #define REAK_SUBSPACE_CONCEPT_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK::pp {

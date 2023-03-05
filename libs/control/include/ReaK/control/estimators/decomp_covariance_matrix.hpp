@@ -33,12 +33,12 @@
 #ifndef REAK_DECOMP_COVARIANCE_MATRIX_HPP
 #define REAK_DECOMP_COVARIANCE_MATRIX_HPP
 
-#include <ReaK/core/base/named_object.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_gaussian_elim.hpp>
-#include <ReaK/math/lin_alg/mat_qr_decomp.hpp>
+#include "ReaK/core/base/named_object.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_gaussian_elim.hpp"
+#include "ReaK/math/lin_alg/mat_qr_decomp.hpp"
 
-#include "covariance_concept.hpp"
+#include "ReaK/control/estimators/covariance_concept.hpp"
 
 namespace ReaK::ctrl {
 

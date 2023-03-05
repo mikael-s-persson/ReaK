@@ -23,16 +23,16 @@
 
 #include <cmath>
 
-#include <ReaK/topologies/interpolation/sustained_velocity_pulse_Ndof_detail.hpp>
+#include "ReaK/topologies/interpolation/sustained_velocity_pulse_Ndof_detail.hpp"
 
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 // #define RK_SVP_NDOF_DETAIL_USE_NUMERICAL_SOLVERS
 
 #ifdef RK_SVP_NDOF_DETAIL_USE_NUMERICAL_SOLVERS
 
-#include <ReaK/math/root_finders/bisection_method.hpp>
-#include <ReaK/math/root_finders/secant_method.hpp>
+#include "ReaK/math/root_finders/bisection_method.hpp"
+#include "ReaK/math/root_finders/secant_method.hpp"
 
 #endif
 

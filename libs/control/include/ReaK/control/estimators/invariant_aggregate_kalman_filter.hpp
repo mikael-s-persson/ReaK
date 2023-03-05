@@ -24,15 +24,15 @@
 #ifndef REAK_INVARIANT_AGGREGATE_KALMAN_FILTER_HPP
 #define REAK_INVARIANT_AGGREGATE_KALMAN_FILTER_HPP
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
-#include <ReaK/math/lin_alg/mat_star_product.hpp>
-#include <ReaK/math/lin_alg/vect_concepts.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
+#include "ReaK/math/lin_alg/mat_star_product.hpp"
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
 
-#include <ReaK/control/systems/discrete_linear_sss_concept.hpp>
-#include <ReaK/control/systems/invariant_system_concept.hpp>
-#include "belief_state_concept.hpp"
-#include "covariance_concept.hpp"
+#include "ReaK/control/estimators/belief_state_concept.hpp"
+#include "ReaK/control/estimators/covariance_concept.hpp"
+#include "ReaK/control/systems/discrete_linear_sss_concept.hpp"
+#include "ReaK/control/systems/invariant_system_concept.hpp"
 
 #include <type_traits>
 

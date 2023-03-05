@@ -35,8 +35,8 @@
 #ifndef REAK_ARCHIVER_HPP
 #define REAK_ARCHIVER_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/typed_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/typed_object.hpp"
 
 #include <array>
 #include <cstdint>

@@ -33,23 +33,23 @@
 #ifndef REAK_SBMP_POINT_RECORDER_HPP
 #define REAK_SBMP_POINT_RECORDER_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
-#include <ReaK/topologies/interpolation/seq_trajectory_base.hpp>
-#include <boost/graph/graph_concepts.hpp>
-#include "basic_sbmp_reporters.hpp"
+#include "ReaK/planning/path_planning/basic_sbmp_reporters.hpp"
+#include "ReaK/topologies/interpolation/seq_trajectory_base.hpp"
+#include "boost/graph/graph_concepts.hpp"
 
 #include <tuple>
 #include <type_traits>
 
-#include <ReaK/topologies/spaces/direct_kinematics_topomap.hpp>
-#include <ReaK/topologies/spaces/topological_map_concepts.hpp>
+#include "ReaK/topologies/spaces/direct_kinematics_topomap.hpp"
+#include "ReaK/topologies/spaces/topological_map_concepts.hpp"
 
-#include <ReaK/core/recorders/ascii_recorder.hpp>
-#include <ReaK/core/recorders/data_record.hpp>
+#include "ReaK/core/recorders/ascii_recorder.hpp"
+#include "ReaK/core/recorders/data_record.hpp"
 
 namespace ReaK::pp {
 

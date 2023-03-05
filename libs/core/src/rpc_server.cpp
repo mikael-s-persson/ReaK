@@ -21,22 +21,22 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/rpc/detail/disc_headers.hpp>
-#include <ReaK/core/rpc/detail/rpc_headers.hpp>
-#include <ReaK/core/rpc/rpc_exceptions.hpp>
-#include <ReaK/core/rpc/rpc_server.hpp>
+#include "ReaK/core/rpc/rpc_server.hpp"
+#include "ReaK/core/rpc/detail/disc_headers.hpp"
+#include "ReaK/core/rpc/detail/rpc_headers.hpp"
+#include "ReaK/core/rpc/rpc_exceptions.hpp"
 
-#include <ReaK/core/base/global_rng.hpp>
-#include <ReaK/core/serialization/bin_archiver.hpp>
-#include <ReaK/core/serialization/protobuf_archiver.hpp>
-#include <ReaK/core/serialization/xml_archiver.hpp>
 #include <memory>
 #include <thread>
+#include "ReaK/core/base/global_rng.hpp"
+#include "ReaK/core/serialization/bin_archiver.hpp"
+#include "ReaK/core/serialization/protobuf_archiver.hpp"
+#include "ReaK/core/serialization/xml_archiver.hpp"
 
-#include <boost/asio.hpp>
-#include <boost/circular_buffer.hpp>
 #include <functional>
 #include <set>
+#include "boost/asio.hpp"
+#include "boost/circular_buffer.hpp"
 
 #include <chrono>
 #include <utility>

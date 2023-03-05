@@ -21,10 +21,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/core/base/shared_object.hpp>
-#include <ReaK/core/rtti/rtti.hpp>
+#include "ReaK/core/base/shared_object.hpp"
+#include "ReaK/core/rtti/rtti.hpp"
 
 #include "gtest/gtest.h"
 

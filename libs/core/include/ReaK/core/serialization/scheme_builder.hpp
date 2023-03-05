@@ -33,7 +33,7 @@
 #ifndef REAK_SCHEME_BUILDER_HPP
 #define REAK_SCHEME_BUILDER_HPP
 
-#include "archiver.hpp"
+#include "ReaK/core/serialization/archiver.hpp"
 
 #include <map>
 #include <stack>

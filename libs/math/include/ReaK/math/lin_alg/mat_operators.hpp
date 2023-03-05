@@ -34,14 +34,14 @@
 #ifndef REAK_MAT_OPERATORS_HPP
 #define REAK_MAT_OPERATORS_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-//#include "vect_alg.hpp"
-#include "mat_concepts.hpp"
-#include "mat_traits.hpp"
-#include "vect_concepts.hpp"
+//#include "ReaK/math/lin_alg/vect_alg.hpp"
+#include "ReaK/math/lin_alg/mat_concepts.hpp"
+#include "ReaK/math/lin_alg/mat_traits.hpp"
+#include "ReaK/math/lin_alg/vect_concepts.hpp"
 
-#include "mat_op_results.hpp"
+#include "ReaK/math/lin_alg/mat_op_results.hpp"
 
 #include <type_traits>
 

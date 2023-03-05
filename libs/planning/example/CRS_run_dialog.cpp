@@ -22,7 +22,7 @@
  */
 
 #include "CRS_run_dialog.hpp"
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
 #include "ui_CRS_run_dialog.h"
 

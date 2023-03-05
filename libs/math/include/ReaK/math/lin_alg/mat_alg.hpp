@@ -39,28 +39,28 @@
 #ifndef REAK_MAT_ALG_HPP
 #define REAK_MAT_ALG_HPP
 
-#include "mat_alg_diagonal.hpp"
-#include "mat_alg_general.hpp"
-#include "mat_alg_identity.hpp"
-#include "mat_alg_lower_triangular.hpp"
-#include "mat_alg_nil.hpp"
-#include "mat_alg_orthogonal.hpp"
-#include "mat_alg_permutation.hpp"
-#include "mat_alg_rectangular.hpp"
-#include "mat_alg_scalar.hpp"
-#include "mat_alg_skew_symmetric.hpp"
-#include "mat_alg_square.hpp"
-#include "mat_alg_symmetric.hpp"
-#include "mat_alg_upper_triangular.hpp"
-#include "mat_comparisons.hpp"
+#include "ReaK/math/lin_alg/mat_alg_diagonal.hpp"
+#include "ReaK/math/lin_alg/mat_alg_general.hpp"
+#include "ReaK/math/lin_alg/mat_alg_identity.hpp"
+#include "ReaK/math/lin_alg/mat_alg_lower_triangular.hpp"
+#include "ReaK/math/lin_alg/mat_alg_nil.hpp"
+#include "ReaK/math/lin_alg/mat_alg_orthogonal.hpp"
+#include "ReaK/math/lin_alg/mat_alg_permutation.hpp"
+#include "ReaK/math/lin_alg/mat_alg_rectangular.hpp"
+#include "ReaK/math/lin_alg/mat_alg_scalar.hpp"
+#include "ReaK/math/lin_alg/mat_alg_skew_symmetric.hpp"
+#include "ReaK/math/lin_alg/mat_alg_square.hpp"
+#include "ReaK/math/lin_alg/mat_alg_symmetric.hpp"
+#include "ReaK/math/lin_alg/mat_alg_upper_triangular.hpp"
+#include "ReaK/math/lin_alg/mat_comparisons.hpp"
 
-#include "mat_operators.hpp"
+#include "ReaK/math/lin_alg/mat_operators.hpp"
 
-#include "mat_composite_adaptor.hpp"
-#include "mat_slices.hpp"
-#include "mat_transpose_view.hpp"
-#include "mat_vector_adaptor.hpp"
-#include "mat_views.hpp"
+#include "ReaK/math/lin_alg/mat_composite_adaptor.hpp"
+#include "ReaK/math/lin_alg/mat_slices.hpp"
+#include "ReaK/math/lin_alg/mat_transpose_view.hpp"
+#include "ReaK/math/lin_alg/mat_vector_adaptor.hpp"
+#include "ReaK/math/lin_alg/mat_views.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {

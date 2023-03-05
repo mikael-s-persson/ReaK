@@ -21,19 +21,19 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/models/manip_P3R3R_arm.hpp>
+#include "ReaK/mbd/models/manip_P3R3R_arm.hpp"
 
-#include <ReaK/mbd/models/joint_space_limits.hpp>
+#include "ReaK/mbd/models/joint_space_limits.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
-#include <ReaK/geometry/shapes/box.hpp>
-#include <ReaK/geometry/shapes/colored_model.hpp>
-#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
-#include <ReaK/geometry/shapes/sphere.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
+#include "ReaK/geometry/shapes/box.hpp"
+#include "ReaK/geometry/shapes/colored_model.hpp"
+#include "ReaK/geometry/shapes/coord_arrows_3D.hpp"
+#include "ReaK/geometry/shapes/sphere.hpp"
 
-#include <ReaK/core/serialization/archiver_factory.hpp>
+#include "ReaK/core/serialization/archiver_factory.hpp"
 
-#include <ReaK/core/recorders/data_record_po.hpp>
+#include "ReaK/core/recorders/data_record_po.hpp"
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"

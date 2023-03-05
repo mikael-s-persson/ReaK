@@ -48,9 +48,9 @@
 #include <functional>
 #include <type_traits>
 
-#include "adstar_search.hpp"
-#include "probabilistic_roadmap.hpp"
-#include "simple_graph_traits.hpp"
+#include "ReaK/planning/graph_alg/adstar_search.hpp"
+#include "ReaK/planning/graph_alg/probabilistic_roadmap.hpp"
+#include "ReaK/planning/graph_alg/simple_graph_traits.hpp"
 
 namespace ReaK::graph {
 

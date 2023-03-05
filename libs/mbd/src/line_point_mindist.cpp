@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/kte/line_point_mindist.hpp>
+#include "ReaK/mbd/kte/line_point_mindist.hpp"
 
 namespace ReaK::kte {
 

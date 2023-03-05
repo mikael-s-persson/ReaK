@@ -1,5 +1,5 @@
 
-#include <ReaK/core/rpc/rpc_function.hpp>
+#include "ReaK/core/rpc/rpc_function.hpp"
 
 #include <cassert>
 #include <iostream>

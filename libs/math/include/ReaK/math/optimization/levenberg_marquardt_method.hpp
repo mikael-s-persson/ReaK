@@ -32,15 +32,15 @@
 #ifndef REAK_LEVENBERG_MARQUARDT_METHOD_HPP
 #define REAK_LEVENBERG_MARQUARDT_METHOD_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "ReaK/core/base/defs.hpp"
 
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_cholesky.hpp>
-#include <ReaK/math/lin_alg/mat_damped_matrix.hpp>
-#include <ReaK/math/lin_alg/mat_norms.hpp>
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_cholesky.hpp"
+#include "ReaK/math/lin_alg/mat_damped_matrix.hpp"
+#include "ReaK/math/lin_alg/mat_norms.hpp"
 
-#include "limit_functions.hpp"
-#include "optim_exceptions.hpp"
+#include "ReaK/math/optimization/limit_functions.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 namespace ReaK::optim {
 

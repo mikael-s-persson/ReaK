@@ -7,10 +7,10 @@
  * \date February 2013
  */
 
-#include <ReaK/mbd/models/inverse_kinematics_model.hpp>
-#include <ReaK/mbd/models/manip_ERA_arm.hpp>
-#include <ReaK/mbd/models/manip_P3R3R_arm.hpp>
-#include <ReaK/mbd/models/manip_SSRMS_arm.hpp>
+#include "ReaK/mbd/models/inverse_kinematics_model.hpp"
+#include "ReaK/mbd/models/manip_ERA_arm.hpp"
+#include "ReaK/mbd/models/manip_P3R3R_arm.hpp"
+#include "ReaK/mbd/models/manip_SSRMS_arm.hpp"
 
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
@@ -22,14 +22,14 @@
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoSeparator.h>
 
-#include <ReaK/mbd/coin3D/oi_scene_graph.hpp>
+#include "ReaK/mbd/coin3D/oi_scene_graph.hpp"
 
-#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
+#include "ReaK/geometry/shapes/coord_arrows_3D.hpp"
 
-#include <ReaK/mbd/kte/kte_map_chain.hpp>
+#include "ReaK/mbd/kte/kte_map_chain.hpp"
 
-#include <ReaK/core/serialization/xml_archiver.hpp>
-#include <ReaK/math/optimization/optim_exceptions.hpp>
+#include "ReaK/core/serialization/xml_archiver.hpp"
+#include "ReaK/math/optimization/optim_exceptions.hpp"
 
 using namespace ReaK;
 

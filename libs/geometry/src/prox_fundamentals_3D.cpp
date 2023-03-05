@@ -21,9 +21,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/geometry/proximity/prox_fundamentals_3D.hpp>
+#include "ReaK/geometry/proximity/prox_fundamentals_3D.hpp"
 
-#include <ReaK/math/optimization/line_search.hpp>
+#include "ReaK/math/optimization/line_search.hpp"
 
 #include <queue>
 #include <vector>

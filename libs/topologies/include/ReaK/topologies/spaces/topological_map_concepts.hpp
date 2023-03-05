@@ -34,14 +34,14 @@
 #ifndef REAK_TOPOLOGICAL_MAP_CONCEPTS_HPP
 #define REAK_TOPOLOGICAL_MAP_CONCEPTS_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/core/base/shared_object.hpp"
 
-#include <boost/concept_check.hpp>
 #include <cmath>
+#include "boost/concept_check.hpp"
 
-#include "metric_space_concept.hpp"
-#include "tangent_bundle_concept.hpp"
+#include "ReaK/topologies/spaces/metric_space_concept.hpp"
+#include "ReaK/topologies/spaces/tangent_bundle_concept.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK::pp {

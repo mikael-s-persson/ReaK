@@ -36,7 +36,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "so_type.hpp"
+#include "ReaK/core/rtti/so_type.hpp"
 
 namespace ReaK::rtti {
 

@@ -21,15 +21,15 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/sorting/bubble_sort.hpp>
-#include <ReaK/core/sorting/comb_sort.hpp>
-#include <ReaK/core/sorting/heap_sort.hpp>
-#include <ReaK/core/sorting/insertion_sort.hpp>
-#include <ReaK/core/sorting/intro_sort.hpp>
-#include <ReaK/core/sorting/merge_sort.hpp>
-#include <ReaK/core/sorting/quick_sort.hpp>
-#include <ReaK/core/sorting/selection_sort.hpp>
-#include <ReaK/core/sorting/shell_sort.hpp>
+#include "ReaK/core/sorting/bubble_sort.hpp"
+#include "ReaK/core/sorting/comb_sort.hpp"
+#include "ReaK/core/sorting/heap_sort.hpp"
+#include "ReaK/core/sorting/insertion_sort.hpp"
+#include "ReaK/core/sorting/intro_sort.hpp"
+#include "ReaK/core/sorting/merge_sort.hpp"
+#include "ReaK/core/sorting/quick_sort.hpp"
+#include "ReaK/core/sorting/selection_sort.hpp"
+#include "ReaK/core/sorting/shell_sort.hpp"
 
 #include <array>
 #include <chrono>

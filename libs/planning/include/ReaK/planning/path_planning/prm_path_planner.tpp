@@ -37,26 +37,26 @@
 #ifndef REAK_PRM_PATH_PLANNER_TPP
 #define REAK_PRM_PATH_PLANNER_TPP
 
-#include "prm_path_planner.hpp"
+#include "ReaK/planning/path_planning/prm_path_planner.hpp"
 
-#include <ReaK/planning/graph_alg/neighborhood_functors.hpp>
-#include <ReaK/planning/graph_alg/probabilistic_roadmap.hpp>
+#include "ReaK/planning/graph_alg/neighborhood_functors.hpp"
+#include "ReaK/planning/graph_alg/probabilistic_roadmap.hpp"
 
-#include "motion_graph_structures.hpp"
+#include "ReaK/planning/path_planning/motion_graph_structures.hpp"
 
 // BGL-Extra includes:
-#include <boost/graph/more_property_maps.hpp>
-#include <boost/graph/more_property_tags.hpp>
+#include "boost/graph/more_property_maps.hpp"
+#include "boost/graph/more_property_tags.hpp"
 
-#include "metric_space_search.hpp"
-#include "topological_search.hpp"
+#include "ReaK/planning/path_planning/metric_space_search.hpp"
+#include "ReaK/planning/path_planning/topological_search.hpp"
 
-#include "any_motion_graphs.hpp"
-#include "density_plan_visitors.hpp"
-#include "p2p_planning_query.hpp"
-#include "path_planner_options.hpp"
+#include "ReaK/planning/path_planning/any_motion_graphs.hpp"
+#include "ReaK/planning/path_planning/density_plan_visitors.hpp"
+#include "ReaK/planning/path_planning/p2p_planning_query.hpp"
+#include "ReaK/planning/path_planning/path_planner_options.hpp"
 
-#include <boost/graph/astar_search.hpp>
+#include "boost/graph/astar_search.hpp"
 
 namespace ReaK::pp {
 

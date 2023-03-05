@@ -21,18 +21,18 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/mbd/coin3D/oi_reader.hpp>
+#include "ReaK/mbd/coin3D/oi_reader.hpp"
 
-#include <ReaK/geometry/shapes/geometry_3D.hpp>
-#include <ReaK/geometry/shapes/shape_3D.hpp>
+#include "ReaK/geometry/shapes/geometry_3D.hpp"
+#include "ReaK/geometry/shapes/shape_3D.hpp"
 
-#include <ReaK/geometry/shapes/box.hpp>
-#include <ReaK/geometry/shapes/composite_shape_3D.hpp>
-#include <ReaK/geometry/shapes/cylinder.hpp>
-#include <ReaK/geometry/shapes/plane.hpp>
-#include <ReaK/geometry/shapes/sphere.hpp>
+#include "ReaK/geometry/shapes/box.hpp"
+#include "ReaK/geometry/shapes/composite_shape_3D.hpp"
+#include "ReaK/geometry/shapes/cylinder.hpp"
+#include "ReaK/geometry/shapes/plane.hpp"
+#include "ReaK/geometry/shapes/sphere.hpp"
 
-#include <ReaK/geometry/proximity/proxy_query_model.hpp>
+#include "ReaK/geometry/proximity/proxy_query_model.hpp"
 
 #include <Inventor/SbColor.h>                         // for SbColor
 #include <Inventor/SbVec3f.h>                         // for SbVec3f

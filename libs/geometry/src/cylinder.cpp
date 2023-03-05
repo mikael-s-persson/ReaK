@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/geometry/shapes/cylinder.hpp>
+#include "ReaK/geometry/shapes/cylinder.hpp"
 
 #include <cmath>
 

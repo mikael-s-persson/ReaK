@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/recorders/data_record_po.hpp>
+#include "ReaK/core/recorders/data_record_po.hpp"
 
 #include <iomanip>
 #include <sstream>

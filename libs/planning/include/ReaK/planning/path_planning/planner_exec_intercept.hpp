@@ -32,11 +32,11 @@
 #ifndef REAK_PLANNER_EXEC_INTERCEPT_HPP
 #define REAK_PLANNER_EXEC_INTERCEPT_HPP
 
-#include "planner_exec_engines.hpp"
+#include "ReaK/planning/path_planning/planner_exec_engines.hpp"
 
-#include "intercept_query.hpp"
+#include "ReaK/planning/path_planning/intercept_query.hpp"
 
-#include <ReaK/topologies/interpolation/trajectory_base.hpp>
+#include "ReaK/topologies/interpolation/trajectory_base.hpp"
 
 namespace ReaK::pp {
 

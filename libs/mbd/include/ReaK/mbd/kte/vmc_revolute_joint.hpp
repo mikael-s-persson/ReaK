@@ -44,7 +44,7 @@
 #ifndef REAK_VMC_REVOLUTE_JOINT_HPP
 #define REAK_VMC_REVOLUTE_JOINT_HPP
 
-#include "revolute_joint.hpp"
+#include "ReaK/mbd/kte/revolute_joint.hpp"
 
 namespace ReaK::kte {
 

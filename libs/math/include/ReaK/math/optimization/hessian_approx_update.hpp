@@ -33,9 +33,9 @@
 #ifndef REAK_HESSIAN_APPROX_UPDATE_HPP
 #define REAK_HESSIAN_APPROX_UPDATE_HPP
 
-#include <ReaK/core/base/defs.hpp>
-#include <ReaK/math/lin_alg/mat_alg.hpp>
-#include <ReaK/math/lin_alg/mat_num_exceptions.hpp>
+#include "ReaK/core/base/defs.hpp"
+#include "ReaK/math/lin_alg/mat_alg.hpp"
+#include "ReaK/math/lin_alg/mat_num_exceptions.hpp"
 
 #include <type_traits>
 #include <utility>

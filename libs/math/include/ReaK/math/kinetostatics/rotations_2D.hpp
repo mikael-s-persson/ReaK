@@ -36,11 +36,11 @@
 #ifndef REAK_ROTATIONS_2D_HPP
 #define REAK_ROTATIONS_2D_HPP
 
-#include <ReaK/math/lin_alg/mat_alg_skew_symmetric.hpp>
-#include <ReaK/math/lin_alg/mat_alg_square.hpp>
-#include <ReaK/math/lin_alg/mat_alg_symmetric.hpp>
-#include <ReaK/math/lin_alg/mat_concepts.hpp>
-#include <ReaK/math/lin_alg/vect_alg.hpp>
+#include "ReaK/math/lin_alg/mat_alg_skew_symmetric.hpp"
+#include "ReaK/math/lin_alg/mat_alg_square.hpp"
+#include "ReaK/math/lin_alg/mat_alg_symmetric.hpp"
+#include "ReaK/math/lin_alg/mat_concepts.hpp"
+#include "ReaK/math/lin_alg/vect_alg.hpp"
 
 #include <cassert>
 #include <type_traits>

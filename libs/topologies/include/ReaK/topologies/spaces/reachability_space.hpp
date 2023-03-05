@@ -34,10 +34,10 @@
 #ifndef REAK_REACHABILITY_SPACE_HPP
 #define REAK_REACHABILITY_SPACE_HPP
 
-#include "reachability_space_concept.hpp"
-#include "temporal_space.hpp"
+#include "ReaK/topologies/spaces/reachability_space_concept.hpp"
+#include "ReaK/topologies/spaces/temporal_space.hpp"
 
-#include <boost/concept_check.hpp>
+#include "boost/concept_check.hpp"
 
 namespace ReaK::pp {
 
