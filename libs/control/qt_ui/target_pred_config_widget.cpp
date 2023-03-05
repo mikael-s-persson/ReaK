@@ -52,9 +52,7 @@
 #include <tuple>
 #include <type_traits>
 
-namespace ReaK {
-
-namespace qt {
+namespace ReaK::qt {
 
 namespace detail {
 
@@ -63,14 +61,16 @@ struct inertia_tensor_storage_impl : public shared_object {
   mat<double, mat_structure::symmetric> inertia_tensor;
 
   inertia_tensor_storage_impl()
-      : inertia_tensor(1.0, 0.0, 0.0, 1.0, 0.0, 1.0){};
+      : inertia_tensor(1.0, 0.0, 0.0, 1.0, 0.0, 1.0) {}
 
-  virtual void save(ReaK::serialization::oarchive& A, unsigned int) const {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     A& RK_SERIAL_SAVE_WITH_NAME(inertia_tensor);
-  };
-  virtual void load(ReaK::serialization::iarchive& A, unsigned int) {
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
     A& RK_SERIAL_LOAD_WITH_NAME(inertia_tensor);
-  };
+  }
   RK_RTTI_MAKE_CONCRETE_1BASE(inertia_tensor_storage_impl, 0xBEEF0001, 1,
                               "inertia_tensor_storage_impl", shared_object)
 };
@@ -86,24 +86,26 @@ struct IMU_config_storage_impl : public shared_object {
       : IMU_orientation(),
         IMU_location(),
         earth_orientation(),
-        mag_field_direction(1.0, 0.0, 0.0){};
+        mag_field_direction(1.0, 0.0, 0.0) {}
 
-  virtual void save(ReaK::serialization::oarchive& A, unsigned int) const {
+  void save(ReaK::serialization::oarchive& A,
+            unsigned int /*unused*/) const override {
     A& RK_SERIAL_SAVE_WITH_NAME(IMU_orientation) &
         RK_SERIAL_SAVE_WITH_NAME(IMU_location) &
         RK_SERIAL_SAVE_WITH_NAME(earth_orientation) &
         RK_SERIAL_SAVE_WITH_NAME(mag_field_direction);
-  };
-  virtual void load(ReaK::serialization::iarchive& A, unsigned int) {
+  }
+  void load(ReaK::serialization::iarchive& A,
+            unsigned int /*unused*/) override {
     A& RK_SERIAL_LOAD_WITH_NAME(IMU_orientation) &
         RK_SERIAL_LOAD_WITH_NAME(IMU_location) &
         RK_SERIAL_LOAD_WITH_NAME(earth_orientation) &
         RK_SERIAL_LOAD_WITH_NAME(mag_field_direction);
-  };
+  }
   RK_RTTI_MAKE_CONCRETE_1BASE(IMU_config_storage_impl, 0xBEEF0002, 1,
                               "IMU_config_storage_impl", shared_object)
 };
-};  // namespace detail
+}  // namespace detail
 
 static QString last_used_path;
 
@@ -167,7 +169,7 @@ TargetPredConfigWidget::TargetPredConfigWidget(
     ot_inertia_win.setWindowTitle("Edit Inertia Tensor");
     ot_inertia_win.addDockWidget(Qt::RightDockWidgetArea, ot_inertia_widget);
     ot_inertia_win.addDockWidget(Qt::RightDockWidgetArea, ot_inertia_propedit);
-  };
+  }
 
   {
     ot_IMU_widget = new ObjectTreeWidget(ot_IMU_graph, ot_IMU_root);
@@ -181,7 +183,7 @@ TargetPredConfigWidget::TargetPredConfigWidget(
     ot_IMU_win.setWindowTitle("Edit IMU Configurations");
     ot_IMU_win.addDockWidget(Qt::RightDockWidgetArea, ot_IMU_widget);
     ot_IMU_win.addDockWidget(Qt::RightDockWidgetArea, ot_IMU_propedit);
-  };
+  }
 
   meas_out_opt.kind = recorder::data_stream_options::space_separated;
   meas_out_opt.file_name = "exp_results/robot_airship/";
@@ -192,7 +194,7 @@ TargetPredConfigWidget::TargetPredConfigWidget(
   pred_out_opt.file_name += std::string("pred_$d_$t.ssv");
 
   updateConfigs();
-};
+}
 
 TargetPredConfigWidget::~TargetPredConfigWidget() {
   stopStatePrediction();
@@ -200,20 +202,20 @@ TargetPredConfigWidget::~TargetPredConfigWidget() {
   delete static_cast<QScrollArea*>(this->QDockWidget::widget())->widget();
   delete this->QDockWidget::widget();
   delete ui;
-};
+}
 
 double TargetPredConfigWidget::getTimeStep() const {
   return ui->time_step_spin->value();
-};
+}
 
 double TargetPredConfigWidget::getMass() const {
   return ui->mass_spin->value();
-};
+}
 
 const mat<double, mat_structure::symmetric>&
 TargetPredConfigWidget::getInertiaTensor() const {
   return inertia_storage->inertia_tensor;
-};
+}
 
 mat<double, mat_structure::diagonal>
 TargetPredConfigWidget::getInputDisturbance() const {
@@ -221,82 +223,84 @@ TargetPredConfigWidget::getInputDisturbance() const {
   result(2, 2) = result(1, 1) = result(0, 0) = ui->Qf_spin->value();
   result(5, 5) = result(4, 4) = result(3, 3) = ui->Qt_spin->value();
   return result;
-};
+}
 
 mat<double, mat_structure::diagonal>
 TargetPredConfigWidget::getMeasurementNoise() const {
 
   std::size_t m_noise_size = 6;
-  if (ui->gyro_check->isChecked())
+  if (ui->gyro_check->isChecked()) {
     m_noise_size = 9;
-  if (ui->IMU_check->isChecked())
+  }
+  if (ui->IMU_check->isChecked()) {
     m_noise_size = 15;
+  }
 
   mat<double, mat_structure::diagonal> result(m_noise_size, true);
   result(2, 2) = result(1, 1) = result(0, 0) = ui->Rpos_spin->value();
   result(5, 5) = result(4, 4) = result(3, 3) = ui->Rang_spin->value();
   if (ui->gyro_check->isChecked()) {
     result(8, 8) = result(7, 7) = result(6, 6) = ui->Rgyro_spin->value();
-  };
+  }
   if (ui->IMU_check->isChecked()) {
     result(11, 11) = result(10, 10) = result(9, 9) = ui->Racc_spin->value();
     result(14, 14) = result(13, 13) = result(12, 12) = ui->Rmag_spin->value();
-  };
+  }
 
   return result;
-};
+}
 
 const unit_quat<double>& TargetPredConfigWidget::getIMUOrientation() const {
   return IMU_storage->IMU_orientation;
-};
+}
 
 const vect<double, 3>& TargetPredConfigWidget::getIMULocation() const {
   return IMU_storage->IMU_location;
-};
+}
 
 const unit_quat<double>& TargetPredConfigWidget::getEarthOrientation() const {
   return IMU_storage->earth_orientation;
-};
+}
 
 const vect<double, 3>& TargetPredConfigWidget::getMagFieldDirection() const {
   return IMU_storage->mag_field_direction;
-};
+}
 
 double TargetPredConfigWidget::getTimeHorizon() const {
   return ui->horizon_spin->value();
-};
+}
 
 double TargetPredConfigWidget::getPThreshold() const {
   return ui->Pthreshold_spin->value();
-};
+}
 
 std::string TargetPredConfigWidget::getServerAddress() const {
   return ui->ip_addr_edit->text().toStdString();
-};
+}
 
 int TargetPredConfigWidget::getPortNumber() const {
   return ui->port_spin->value();
-};
+}
 
 bool TargetPredConfigWidget::useRawUDP() const {
   return ui->raw_udp_radio->isChecked();
-};
+}
 
 bool TargetPredConfigWidget::useUDP() const {
   return ui->udp_radio->isChecked();
-};
+}
 
 bool TargetPredConfigWidget::useTCP() const {
   return ui->tcp_radio->isChecked();
-};
+}
 
 std::string TargetPredConfigWidget::getStartScript() const {
   return ui->start_script_edit->text().toStdString();
-};
+}
 
 void TargetPredConfigWidget::onConfigsChanged() {
 
-  typedef ctrl::satellite_predictor_options sat_opt;
+  using sat_opt = ctrl::satellite_predictor_options;
 
   sat_options.system_kind = 0;
   switch (ui->kf_model_selection->currentIndex()) {
@@ -327,12 +331,14 @@ void TargetPredConfigWidget::onConfigsChanged() {
     case 8:  // TSOSAIKF_emdJ
       sat_options.system_kind |= sat_opt::invar_mom_emdJ | sat_opt::TSOSAKF;
       break;
-  };
+  }
 
-  if (ui->gyro_check->isChecked())
+  if (ui->gyro_check->isChecked()) {
     sat_options.system_kind |= sat_opt::gyro_measures;
-  if (ui->IMU_check->isChecked())
+  }
+  if (ui->IMU_check->isChecked()) {
     sat_options.system_kind |= sat_opt::IMU_measures;
+  }
 
   switch (ui->predict_assumption_selection->currentIndex()) {
     case 0:  // No future measurements
@@ -344,7 +350,7 @@ void TargetPredConfigWidget::onConfigsChanged() {
     case 2:  // Full certainty
       sat_options.predict_assumption = sat_opt::full_certainty;
       break;
-  };
+  }
 
   sat_options.time_step = getTimeStep();
 
@@ -363,14 +369,14 @@ void TargetPredConfigWidget::onConfigsChanged() {
 
   sat_options.predict_time_horizon = getTimeHorizon();
   sat_options.predict_Pnorm_threshold = getPThreshold();
-};
+}
 
 void TargetPredConfigWidget::updateConfigs() {
 
   ui->kf_model_selection->disconnect(this, SLOT(onUpdateAvailableOptions(int)));
   ui->actionValuesChanged->disconnect(this, SLOT(onConfigsChanged()));
 
-  typedef ctrl::satellite_predictor_options sat_opt;
+  using sat_opt = ctrl::satellite_predictor_options;
 
   switch (sat_options.system_kind & 15) {
     case sat_opt::invariant:  // IEKF
@@ -400,7 +406,7 @@ void TargetPredConfigWidget::updateConfigs() {
       else
         ui->kf_model_selection->setCurrentIndex(5);
       break;
-  };
+  }
 
   ui->gyro_check->setChecked(sat_options.system_kind & sat_opt::gyro_measures);
   ui->IMU_check->setChecked((sat_options.system_kind & sat_opt::IMU_measures) ==
@@ -416,7 +422,7 @@ void TargetPredConfigWidget::updateConfigs() {
     case sat_opt::full_certainty:
       ui->predict_assumption_selection->setCurrentIndex(2);
       break;
-  };
+  }
 
   ui->time_step_spin->setValue(sat_options.time_step);
 
@@ -455,8 +461,8 @@ void TargetPredConfigWidget::updateConfigs() {
                                sat_options.measurement_noise(13, 13) +
                                sat_options.measurement_noise(14, 14)) /
                               3.0);
-    };
-  };
+    }
+  }
 
   IMU_storage->IMU_orientation = sat_options.IMU_orientation;
   IMU_storage->IMU_location = sat_options.IMU_location;
@@ -471,10 +477,9 @@ void TargetPredConfigWidget::updateConfigs() {
           SLOT(onUpdateAvailableOptions(int)));
   connect(ui->actionValuesChanged, SIGNAL(triggered()), this,
           SLOT(onConfigsChanged()));
-};
+}
 
 void TargetPredConfigWidget::onUpdateAvailableOptions(int filter_method) {
-
   switch (filter_method) {
     case 0:  // IEKF
       ui->IMU_check->setChecked(false);
@@ -485,8 +490,8 @@ void TargetPredConfigWidget::onUpdateAvailableOptions(int filter_method) {
     default:
       ui->IMU_check->setEnabled(false);  // always false (for now!)
       break;
-  };
-};
+  }
+}
 
 void TargetPredConfigWidget::savePredictorConfig() {
   QString fileName = QFileDialog::getSaveFileName(
@@ -494,13 +499,14 @@ void TargetPredConfigWidget::savePredictorConfig() {
       tr("Target Predictor Configurations (*.tpred.rkx *.tpred.rkb "
          "*.tpred.pbuf)"));
 
-  if (fileName == tr(""))
+  if (fileName == tr("")) {
     return;
+  }
 
   last_used_path = QFileInfo(fileName).absolutePath();
 
   savePredictorConfigurations(fileName.toStdString());
-};
+}
 
 void TargetPredConfigWidget::loadPredictorConfig() {
   QString fileName = QFileDialog::getOpenFileName(
@@ -508,13 +514,14 @@ void TargetPredConfigWidget::loadPredictorConfig() {
       tr("Target Predictor Configurations (*.tpred.rkx *.tpred.rkb "
          "*.tpred.pbuf)"));
 
-  if (fileName == tr(""))
+  if (fileName == tr("")) {
     return;
+  }
 
   last_used_path = QFileInfo(fileName).absolutePath();
 
   loadPredictorConfigurations(fileName.toStdString());
-};
+}
 
 void TargetPredConfigWidget::savePredictorConfigurations(
     const std::string& aFilename) {
@@ -528,8 +535,8 @@ void TargetPredConfigWidget::savePredictorConfigurations(
                              "Sorry, this file-type is not supported!",
                              QMessageBox::Ok);
     return;
-  };
-};
+  }
+}
 
 void TargetPredConfigWidget::loadPredictorConfigurations(
     const std::string& aFilename) {
@@ -541,29 +548,24 @@ void TargetPredConfigWidget::loadPredictorConfigurations(
                              "Sorry, this file-type is not supported!",
                              QMessageBox::Ok);
     return;
-  };
-
-  std::cout << " Got satellite model kind : " << sat_options.system_kind
-            << std::endl;
+  }
 
   updateConfigs();
-
-  std::cout << " After updateConfigs(), satellite model kind : "
-            << sat_options.system_kind << std::endl;
-};
+}
 
 ctrl::satellite_predictor_options
 TargetPredConfigWidget::getSatPredictorOptions() const {
   return sat_options;
-};
+}
 
 void TargetPredConfigWidget::saveInertiaTensor() {
   QString fileName = QFileDialog::getSaveFileName(
       this, tr("Save Inertia Information..."), last_used_path,
       tr("Target Inertia Information (*.rkx *.xml *.rkb *.pbuf)"));
 
-  if (fileName == tr(""))
+  if (fileName == tr("")) {
     return;
+  }
 
   last_used_path = QFileInfo(fileName).absolutePath();
 
@@ -576,20 +578,21 @@ void TargetPredConfigWidget::saveInertiaTensor() {
                              "Sorry, this file-type is not supported!",
                              QMessageBox::Ok);
     return;
-  };
-};
+  }
+}
 
 void TargetPredConfigWidget::editInertiaTensor() {
   ot_inertia_win.show();
-};
+}
 
 void TargetPredConfigWidget::loadInertiaTensor() {
   QString fileName = QFileDialog::getOpenFileName(
       this, tr("Open Inertia Information..."), last_used_path,
       tr("Target Inertia Information (*.rkx *.xml *.rkb *.pbuf)"));
 
-  if (fileName == tr(""))
+  if (fileName == tr("")) {
     return;
+  }
 
   last_used_path = QFileInfo(fileName).absolutePath();
 
@@ -600,18 +603,19 @@ void TargetPredConfigWidget::loadInertiaTensor() {
                              "Sorry, this file-type is not supported!",
                              QMessageBox::Ok);
     return;
-  };
+  }
 
   updateConfigs();
-};
+}
 
 void TargetPredConfigWidget::saveIMUConfig() {
   QString fileName = QFileDialog::getSaveFileName(
       this, tr("Save IMU Configurations..."), last_used_path,
       tr("Target IMU Configurations (*.rkx *.xml *.rkb *.pbuf)"));
 
-  if (fileName == tr(""))
+  if (fileName == tr("")) {
     return;
+  }
 
   last_used_path = QFileInfo(fileName).absolutePath();
 
@@ -624,20 +628,21 @@ void TargetPredConfigWidget::saveIMUConfig() {
                              "Sorry, this file-type is not supported!",
                              QMessageBox::Ok);
     return;
-  };
-};
+  }
+}
 
 void TargetPredConfigWidget::editIMUConfig() {
   ot_IMU_win.show();
-};
+}
 
 void TargetPredConfigWidget::loadIMUConfig() {
   QString fileName = QFileDialog::getOpenFileName(
       this, tr("Open IMU Configurations..."), last_used_path,
       tr("Target IMU Configurations (*.rkx *.xml *.rkb *.pbuf)"));
 
-  if (fileName == tr(""))
+  if (fileName == tr("")) {
     return;
+  }
 
   last_used_path = QFileInfo(fileName).absolutePath();
 
@@ -648,26 +653,26 @@ void TargetPredConfigWidget::loadIMUConfig() {
                              "Sorry, this file-type is not supported!",
                              QMessageBox::Ok);
     return;
-  };
+  }
 
   updateConfigs();
-};
+}
 
 namespace {
 
-typedef ReaK::ctrl::satellite_model_options::state_type sat3D_state_type;
-typedef ReaK::ctrl::satellite_model_options::covar_type sat3D_cov_type;
-typedef sat3D_cov_type::matrix_type sat3D_cov_matrix_type;
+using sat3D_state_type = ReaK::ctrl::satellite_model_options::state_type;
+using sat3D_cov_type = ReaK::ctrl::satellite_model_options::covar_type;
+using sat3D_cov_matrix_type = sat3D_cov_type::matrix_type;
 
 const sat3D_state_type& get_sat3D_state(const sat3D_state_type& x) {
   return x;
-};
+}
 
 template <typename StateTuple>
 const sat3D_state_type& get_sat3D_state(const StateTuple& x) {
   using ReaK::get;
   return get<0>(x);
-};
+}
 
 struct sat3D_meas_est_pred_to_recorders {
   std::shared_ptr<ReaK::recorder::data_recorder> meas_rec;
@@ -678,12 +683,12 @@ struct sat3D_meas_est_pred_to_recorders {
       const std::shared_ptr<ReaK::recorder::data_recorder>& aMeasRec,
       const std::shared_ptr<ReaK::recorder::data_recorder>& aEstRec,
       const std::shared_ptr<ReaK::recorder::data_recorder>& aPredRec)
-      : meas_rec(aMeasRec), est_rec(aEstRec), pred_rec(aPredRec){};
+      : meas_rec(aMeasRec), est_rec(aEstRec), pred_rec(aPredRec) {}
   ~sat3D_meas_est_pred_to_recorders() {
     (*meas_rec) << ReaK::recorder::data_recorder::flush;
     (*est_rec) << ReaK::recorder::data_recorder::flush;
     (*pred_rec) << ReaK::recorder::data_recorder::flush;
-  };
+  }
 
   template <typename BeliefStateType, typename InputBeliefType,
             typename OutputBeliefType>
@@ -698,8 +703,9 @@ struct sat3D_meas_est_pred_to_recorders {
                << get_velocity(x_mean) << get_ang_velocity(x_mean);
 
     vect_n<double> all_x = to_vect<double>(b.get_mean_state());
-    for (std::size_t l = 13; l < all_x.size(); ++l)
+    for (std::size_t l = 13; l < all_x.size(); ++l) {
       (*est_rec) << all_x[l];
+    }
 
     const sat3D_state_type& x_pred_mean =
         get_sat3D_state(b_pred.get_mean_state());
@@ -708,8 +714,9 @@ struct sat3D_meas_est_pred_to_recorders {
                 << get_ang_velocity(x_pred_mean);
 
     vect_n<double> all_x_pred = to_vect<double>(b_pred.get_mean_state());
-    for (std::size_t l = 13; l < all_x_pred.size(); ++l)
+    for (std::size_t l = 13; l < all_x_pred.size(); ++l) {
       (*pred_rec) << all_x_pred[l];
+    }
 
     const vect_n<double>& z = b_z.get_mean_state();
     (*meas_rec) << time << z << b_u.get_mean_state();
@@ -731,21 +738,23 @@ struct sat3D_meas_est_pred_to_recorders {
     } else {
       (*est_rec) << vect<double, 3>(0.0, 0.0, 0.0);
       (*pred_rec) << vect<double, 3>(0.0, 0.0, 0.0);
-    };
+    }
 
     const sat3D_cov_matrix_type& P_xx = b.get_covariance().get_matrix();
-    for (std::size_t l = 0; l < P_xx.get_row_count(); ++l)
+    for (std::size_t l = 0; l < P_xx.get_row_count(); ++l) {
       (*est_rec) << P_xx(l, l);
+    }
 
     const sat3D_cov_matrix_type& P_pred_xx =
         b_pred.get_covariance().get_matrix();
-    for (std::size_t l = 0; l < P_pred_xx.get_row_count(); ++l)
+    for (std::size_t l = 0; l < P_pred_xx.get_row_count(); ++l) {
       (*pred_rec) << P_pred_xx(l, l);
+    }
 
     (*meas_rec) << recorder::data_recorder::end_value_row;
     (*est_rec) << recorder::data_recorder::end_value_row;
     (*pred_rec) << recorder::data_recorder::end_value_row;
-  };
+  }
 };
 
 static std::atomic<bool> prediction_should_stop(false);
@@ -754,29 +763,28 @@ static std::thread prediction_executer = std::thread();
 template <typename Sat3DSystemType>
 struct prediction_updater {
 
-  typedef typename Sat3DSystemType::temporal_state_space_type TempSpaceType;
-  typedef typename Sat3DSystemType::belief_space_type BeliefSpaceType;
-  typedef
-      typename Sat3DSystemType::temporal_belief_space_type TempBeliefSpaceType;
-  typedef typename Sat3DSystemType::covar_type CovarType;
-  typedef typename CovarType::matrix_type CovarMatType;
+  using TempSpaceType = typename Sat3DSystemType::temporal_state_space_type;
+  using BeliefSpaceType = typename Sat3DSystemType::belief_space_type;
+  using TempBeliefSpaceType =
+      typename Sat3DSystemType::temporal_belief_space_type;
+  using CovarType = typename Sat3DSystemType::covar_type;
+  using CovarMatType = typename CovarType::matrix_type;
 
-  typedef typename Sat3DSystemType::state_belief_type StateBeliefType;
-  typedef typename Sat3DSystemType::input_belief_type InputBeliefType;
-  typedef typename Sat3DSystemType::output_belief_type OutputBeliefType;
+  using StateBeliefType = typename Sat3DSystemType::state_belief_type;
+  using InputBeliefType = typename Sat3DSystemType::input_belief_type;
+  using OutputBeliefType = typename Sat3DSystemType::output_belief_type;
 
-  typedef typename pp::topology_traits<TempBeliefSpaceType>::point_type
-      TempBeliefPointType;
+  using TempBeliefPointType =
+      typename pp::topology_traits<TempBeliefSpaceType>::point_type;
 
-  typedef pp::constant_trajectory<pp::vector_topology<vect_n<double>>>
-      InputTrajType;
+  using InputTrajType =
+      pp::constant_trajectory<pp::vector_topology<vect_n<double>>>;
 
-  typedef
-      typename ctrl::try_TSOSAIKF_belief_transfer_factory<Sat3DSystemType>::type
-          PredFactoryType;
-  typedef ctrl::belief_predicted_trajectory<BeliefSpaceType, PredFactoryType,
-                                            InputTrajType>
-      BeliefPredTrajType;
+  using PredFactoryType = typename ctrl::try_TSOSAIKF_belief_transfer_factory<
+      Sat3DSystemType>::type;
+  using BeliefPredTrajType =
+      ctrl::belief_predicted_trajectory<BeliefSpaceType, PredFactoryType,
+                                        InputTrajType>;
 
   std::promise<std::shared_ptr<BeliefPredTrajType>>
       predictor_promise; /* shared, sync'd by the promise-future mechanism */
@@ -803,15 +811,11 @@ struct prediction_updater {
         data_logger(aDataLogger),
         current_target_anim_time(aCurrentTargetAnimTime) {
     predictor_promise.swap(aPredictorPromise);
-  };
+  }
 
   int operator()() {
     using namespace ctrl;
     using namespace pp;
-
-#if 0
-    double diff_tolerance = 0.5;
-#endif
 
     bool promise_fulfilled = false;
 
@@ -843,7 +847,7 @@ struct prediction_updater {
         mat<double, mat_structure::square> P(b.get_covariance().get_matrix());
         set_block(P, sat_options.steady_param_covariance, 12, 12);
         b.set_covariance(CovarType(CovarMatType(P)));
-      };
+      }
 
       double last_time = 0.0;
       (*current_target_anim_time) = last_time;
@@ -860,9 +864,6 @@ struct prediction_updater {
         vect_n<double> z(nvr_in["p_x"], nvr_in["p_y"], nvr_in["p_z"],
                          nvr_in["q_0"], nvr_in["q_1"], nvr_in["q_2"],
                          nvr_in["q_3"]);
-
-        //       std::cout << " Meas. Position = " << vect<double,3>(z[0],z[1],z[2])
-        //                 << " Meas. Rotation = " << vect<double,4>(z[3],z[4],z[5],z[6]) << std::endl;
 
         try {
 
@@ -884,7 +885,7 @@ struct prediction_updater {
 
         } catch (recorder::out_of_bounds& e) {
           RK_UNUSED(e);
-        };
+        }
 
         b_z.set_mean_state(z);
         b_u.set_mean_state(vect_n<double>(nvr_in["f_x"], nvr_in["f_y"],
@@ -897,16 +898,15 @@ struct prediction_updater {
 
         current_Pnorm =
             norm_2(b.get_covariance().get_matrix()(range(0, 12), range(0, 12)));
-        //       current_Pnorm = norm_2(b.get_covariance().get_matrix());
-        std::cout << "Current P-norm = " << current_Pnorm << std::endl;
 
         last_time = nvr_in["time"];
         (*current_target_anim_time) = last_time;
-        if (init_time < -900.0)
+        if (init_time < -900.0) {
           init_time = last_time;
+        }
 
         data_logger.add_record(b, b, b_u, b_z, last_time);
-      };
+      }
 
       typename BeliefPredTrajType::assumption pred_assumpt =
           BeliefPredTrajType::no_measurements;
@@ -923,7 +923,7 @@ struct prediction_updater {
           // FIXME: make this into what it really should be (what is that? ... no sure)
           pred_assumpt = BeliefPredTrajType::most_likely_measurements;
           break;
-      };
+      }
 
       std::shared_ptr<BeliefPredTrajType> predictor(new BeliefPredTrajType(
           sat_temp_belief_space, TempBeliefPointType(last_time, b),
@@ -966,7 +966,7 @@ struct prediction_updater {
 
         } catch (ReaK::recorder::out_of_bounds& e) {
           RK_UNUSED(e);
-        };
+        }
 
         b_z.set_mean_state(z);
         b_u.set_mean_state(vect_n<double>(nvr_in["f_x"], nvr_in["f_y"],
@@ -983,31 +983,24 @@ struct prediction_updater {
         b_pred = predictor->get_point_at_time(last_time);
 
         data_logger.add_record(b, b_pred.pt, b_u, b_z, last_time);
-#if 0
-        if( predictor->get_temporal_space().get_space_topology().distance(b, b_pred.pt) > diff_tolerance )
-          predictor->set_initial_point(TempBeliefPointType(last_time, b));
-#endif
-      };
+      }
     } catch (std::exception& e) {
-      RK_NOTICE(1, " leaving the prediction updater loop with an error!");
       if (!promise_fulfilled) {
         predictor_promise.set_exception(ReaKaux::make_exception_ptr(
             std::runtime_error("Could not fulfill the promise of a predictor "
                                "due to some error during estimation!")));
-      };
+      }
       return 0;
-    };
-    RK_NOTICE(1, " leaving the prediction updater loop without error!");
+    }
     return 0;
-  };
+  }
 };
-};  // namespace
+}  // namespace
 
 template <typename Sat3DSystemType, typename TempSpaceType,
           typename BeliefPredTrajType>
-typename std::enable_if<
-    ctrl::is_augmented_ss_system<Sat3DSystemType>::value,
-    std::shared_ptr<TargetPredConfigWidget::trajectory_type>>::type
+std::enable_if_t<ctrl::is_augmented_ss_system_v<Sat3DSystemType>,
+                 std::shared_ptr<TargetPredConfigWidget::trajectory_type>>
 construct_wrapped_trajectory(
     std::shared_ptr<TempSpaceType> sat_temp_space,
     const std::shared_ptr<BeliefPredTrajType>& predictor,
@@ -1016,46 +1009,40 @@ construct_wrapped_trajectory(
   using namespace ctrl;
   using namespace pp;
 
-  typedef se3_1st_order_topology<double>::type BaseSpaceType;
-  typedef temporal_space<BaseSpaceType, time_poisson_topology,
-                         time_distance_only>
-      TemporalBaseSpaceType;
+  using BaseSpaceType = se3_1st_order_topology_t<double>;
+  using TemporalBaseSpaceType =
+      temporal_space<BaseSpaceType, time_poisson_topology, time_distance_only>;
 
 #define RK_D_INF std::numeric_limits<double>::infinity()
-  std::shared_ptr<TemporalBaseSpaceType> sat_base_temp_space(
-      new TemporalBaseSpaceType(
-          "satellite3D_temporal_space",
-          make_se3_space("satellite3D_state_space",
-                         vect<double, 3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
-                         vect<double, 3>(RK_D_INF, RK_D_INF, RK_D_INF),
-                         RK_D_INF, RK_D_INF),
-          time_poisson_topology("satellite3D_time_space", sat_options.time_step,
-                                sat_options.predict_time_horizon * 0.5)));
+  auto sat_base_temp_space = std::make_shared<TemporalBaseSpaceType>(
+      "satellite3D_temporal_space",
+      make_se3_space("satellite3D_state_space",
+                     vect<double, 3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
+                     vect<double, 3>(RK_D_INF, RK_D_INF, RK_D_INF), RK_D_INF,
+                     RK_D_INF),
+      time_poisson_topology("satellite3D_time_space", sat_options.time_step,
+                            sat_options.predict_time_horizon * 0.5));
 #undef RK_D_INF
 
-  typedef transformed_trajectory<TempSpaceType, BeliefPredTrajType,
-                                 maximum_likelihood_map>
-      MLTrajType;
-  typedef transformed_trajectory<TemporalBaseSpaceType, MLTrajType,
-                                 augmented_to_state_map>
-      BaseTrajType;
-  typedef trajectory_base<TemporalBaseSpaceType> StateTrajType;
-  typedef trajectory_wrapper<BaseTrajType> WrappedStateTrajType;
+  using MLTrajType = transformed_trajectory<TempSpaceType, BeliefPredTrajType,
+                                            maximum_likelihood_map>;
+  using BaseTrajType = transformed_trajectory<TemporalBaseSpaceType, MLTrajType,
+                                              augmented_to_state_map>;
+  using StateTrajType = trajectory_base<TemporalBaseSpaceType>;
+  using WrappedStateTrajType = trajectory_wrapper<BaseTrajType>;
 
   predictor->set_minimal_horizon(extended_time_horizon);
 
-  std::shared_ptr<MLTrajType> ML_traj(
-      new MLTrajType(sat_temp_space, predictor));
+  auto ML_traj = std::make_shared<MLTrajType>(sat_temp_space, predictor);
 
-  return std::shared_ptr<StateTrajType>(new WrappedStateTrajType(
-      "sat3D_predicted_traj", BaseTrajType(sat_base_temp_space, ML_traj)));
-};
+  return std::make_shared<WrappedStateTrajType>(
+      "sat3D_predicted_traj", BaseTrajType(sat_base_temp_space, ML_traj));
+}
 
 template <typename Sat3DSystemType, typename TempSpaceType,
           typename BeliefPredTrajType>
-typename std::enable_if<
-    !ctrl::is_augmented_ss_system<Sat3DSystemType>::value,
-    std::shared_ptr<TargetPredConfigWidget::trajectory_type>>::type
+std::enable_if_t<!ctrl::is_augmented_ss_system_v<Sat3DSystemType>,
+                 std::shared_ptr<TargetPredConfigWidget::trajectory_type>>
 construct_wrapped_trajectory(
     std::shared_ptr<TempSpaceType> sat_temp_space,
     const std::shared_ptr<BeliefPredTrajType>& predictor,
@@ -1064,45 +1051,42 @@ construct_wrapped_trajectory(
   using namespace pp;
   using namespace ctrl;
 
-  typedef transformed_trajectory<TempSpaceType, BeliefPredTrajType,
-                                 maximum_likelihood_map>
-      MLTrajType;
-  typedef TargetPredConfigWidget::trajectory_type StateTrajType;
-  typedef trajectory_wrapper<MLTrajType> WrappedStateTrajType;
+  using MLTrajType = transformed_trajectory<TempSpaceType, BeliefPredTrajType,
+                                            maximum_likelihood_map>;
+  using WrappedStateTrajType = trajectory_wrapper<MLTrajType>;
 
   predictor->set_minimal_horizon(extended_time_horizon);
-  std::shared_ptr<MLTrajType> ML_traj(
-      new MLTrajType(sat_temp_space, predictor));
+  auto ML_traj = std::make_shared<MLTrajType>(sat_temp_space, predictor);
 
-  return std::shared_ptr<StateTrajType>(
-      new WrappedStateTrajType("sat3D_predicted_traj", *ML_traj));
-};
+  return std::make_shared<WrappedStateTrajType>("sat3D_predicted_traj",
+                                                *ML_traj);
+}
 
 template <typename Sat3DSystemType>
-shared_ptr<TargetPredConfigWidget::trajectory_type> start_state_predictions(
-    std::shared_ptr<Sat3DSystemType> satellite3D_system,
-    const ctrl::satellite_predictor_options& sat_options,
-    std::shared_ptr<recorder::data_extractor> data_in,
-    sat3D_meas_est_pred_to_recorders data_logger,
-    std::atomic<double>* current_target_anim_time) {
+std::shared_ptr<TargetPredConfigWidget::trajectory_type>
+start_state_predictions(std::shared_ptr<Sat3DSystemType> satellite3D_system,
+                        const ctrl::satellite_predictor_options& sat_options,
+                        std::shared_ptr<recorder::data_extractor> data_in,
+                        sat3D_meas_est_pred_to_recorders data_logger,
+                        std::atomic<double>* current_target_anim_time) {
   using namespace ctrl;
   using namespace pp;
 
-  typedef typename Sat3DSystemType::belief_space_type BeliefSpaceType;
-  typedef constant_trajectory<vector_topology<vect_n<double>>> InputTrajType;
-  typedef typename try_TSOSAIKF_belief_transfer_factory<Sat3DSystemType>::type
-      PredFactoryType;
-  typedef belief_predicted_trajectory<BeliefSpaceType, PredFactoryType,
-                                      InputTrajType>
-      BeliefPredTrajType;
+  using BeliefSpaceType = typename Sat3DSystemType::belief_space_type;
+  using InputTrajType = constant_trajectory<vector_topology<vect_n<double>>>;
+  using PredFactoryType =
+      typename try_TSOSAIKF_belief_transfer_factory<Sat3DSystemType>::type;
+  using BeliefPredTrajType =
+      belief_predicted_trajectory<BeliefSpaceType, PredFactoryType,
+                                  InputTrajType>;
 
   prediction_should_stop = true;
-  if (prediction_executer.joinable())
+  if (prediction_executer.joinable()) {
     prediction_executer.join();
+  }
 
   std::promise<std::shared_ptr<BeliefPredTrajType>> predictor_promise;
-  std::future<std::shared_ptr<BeliefPredTrajType>> predictor_future =
-      predictor_promise.get_future();
+  auto predictor_future = predictor_promise.get_future();
 
   prediction_should_stop = false;
   prediction_executer = std::thread(prediction_updater<Sat3DSystemType>(
@@ -1118,29 +1102,29 @@ shared_ptr<TargetPredConfigWidget::trajectory_type> start_state_predictions(
   } catch (std::runtime_error& e) {
     RK_UNUSED(e);
     return std::shared_ptr<TargetPredConfigWidget::trajectory_type>();
-  };
-};
+  }
+}
 
 void TargetPredConfigWidget::startStatePrediction() {
-
   using namespace ctrl;
 
   // ---------- Create input data stream ----------
 
   recorder::data_stream_options data_in_opt;
 
-  if (useTCP())
+  if (useTCP()) {
     data_in_opt.kind = recorder::data_stream_options::tcp_stream;
-  else if (useUDP())
+  } else if (useUDP()) {
     data_in_opt.kind = recorder::data_stream_options::udp_stream;
-  else
+  } else {
     data_in_opt.kind = recorder::data_stream_options::raw_udp_stream;
+  }
 
   {
     std::stringstream ss;
     ss << getServerAddress() << ":" << getPortNumber();
     data_in_opt.file_name = ss.str();
-  };
+  }
 
   data_in_opt.time_sync_name = "time";
 
@@ -1158,13 +1142,9 @@ void TargetPredConfigWidget::startStatePrediction() {
                                                est_out_opt.create_recorder(),
                                                pred_out_opt.create_recorder());
 
-  //   std::cout << "Names that were imbued:" << std::endl;
-  //   for(std::size_t i = 0; i < names_in.size(); ++i)
-  //     std::cout << names_in[i] << std::endl;
-
   // ---------- Call impl function with the appropriate system ----------
 
-  typedef satellite_predictor_options sat_opt;
+  using sat_opt = satellite_predictor_options;
 
   if (sat_options.system_kind & sat_opt::gyro_measures) {
     switch (sat_options.system_kind & 15) {
@@ -1176,10 +1156,10 @@ void TargetPredConfigWidget::startStatePrediction() {
             data_logger, current_target_anim_time);
         break;
       case sat_opt::invar_mom_em:  // IMKF_em
-      //         *target_anim_traj = start_state_predictions(sat_options.get_gyro_em_airship_system(), sat_options,
-      //         data_in,
-      //           data_logger, current_target_anim_time);
-      //         break;
+        *target_anim_traj = start_state_predictions(
+            sat_options.get_gyro_em_airship_system(), sat_options, data_in,
+            data_logger, current_target_anim_time);
+        break;
       case sat_opt::invar_mom_emd:  // IMKF_emd
         *target_anim_traj = start_state_predictions(
             sat_options.get_gyro_emd_airship_system(), sat_options, data_in,
@@ -1190,7 +1170,7 @@ void TargetPredConfigWidget::startStatePrediction() {
             sat_options.get_gyro_emdJ_airship_system(), sat_options, data_in,
             data_logger, current_target_anim_time);
         break;
-    };
+    }
   } else {
     switch (sat_options.system_kind & 15) {
       case sat_opt::invariant:   // IEKF
@@ -1215,15 +1195,14 @@ void TargetPredConfigWidget::startStatePrediction() {
             sat_options.get_emdJ_airship_system(), sat_options, data_in,
             data_logger, current_target_anim_time);
         break;
-    };
-  };
-};
+    }
+  }
+}
 
 void TargetPredConfigWidget::stopStatePrediction() {
-
   prediction_should_stop = true;
   if (prediction_executer.joinable())
     prediction_executer.join();
-};
-};  // namespace qt
-};  // namespace ReaK
+}
+
+}  // namespace ReaK::qt

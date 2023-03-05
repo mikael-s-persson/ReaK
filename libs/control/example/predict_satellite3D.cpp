@@ -45,6 +45,7 @@
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
+#include "absl/log/log.h"
 
 // I/O options
 ABSL_FLAG(std::string, measurements, "",
@@ -684,10 +685,10 @@ int main(int argc, char** argv) {
             RK_SERIAL_LOAD_WITH_NAME(initial_motion);
       }
     } catch (std::exception& e) {
-      RK_ERROR(
-          "An exception occurred during the loading of the initial conditions! "
-          "what(): '"
-          << e.what() << "'.");
+      LOG(ERROR) << "An exception occurred during the loading of the initial "
+                    "conditions! "
+                    "what(): '"
+                 << e.what() << "'.";
       return 11;
     }
   }
@@ -715,10 +716,10 @@ int main(int argc, char** argv) {
           RK_SERIAL_LOAD_WITH_NAME(inertia_tensor);
     }
   } catch (std::exception& e) {
-    RK_ERROR(
-        "An exception occurred during the loading of the inertia matrix! "
-        "what(): '"
-        << e.what() << "'.");
+    LOG(ERROR)
+        << "An exception occurred during the loading of the inertia matrix! "
+           "what(): '"
+        << e.what() << "'.";
     return 12;
   }
 
@@ -742,10 +743,10 @@ int main(int argc, char** argv) {
           RK_SERIAL_LOAD_WITH_NAME(input_disturbance);
     }
   } catch (std::exception& e) {
-    RK_ERROR(
-        "An exception occurred during the loading of the input disturbance "
-        "covariance matrix! what(): '"
-        << e.what() << "'.");
+    LOG(ERROR)
+        << "An exception occurred during the loading of the input disturbance "
+           "covariance matrix! what(): '"
+        << e.what() << "'.";
     return 13;
   }
 
@@ -775,10 +776,10 @@ int main(int argc, char** argv) {
           RK_SERIAL_LOAD_WITH_NAME(measurement_noise);
     }
   } catch (std::exception& e) {
-    RK_ERROR(
-        "An exception occurred during the loading of the measurement noise "
-        "covariance matrix! what(): '"
-        << e.what() << "'.");
+    LOG(ERROR)
+        << "An exception occurred during the loading of the measurement noise "
+           "covariance matrix! what(): '"
+        << e.what() << "'.";
     return 14;
   }
 
@@ -802,10 +803,10 @@ int main(int argc, char** argv) {
             RK_SERIAL_LOAD_WITH_NAME(artificial_noise);
       }
     } catch (std::exception& e) {
-      RK_ERROR(
-          "An exception occurred during the loading of the artificial "
-          "measurement noise covariance matrix! what(): '"
-          << e.what() << "'.");
+      LOG(ERROR)
+          << "An exception occurred during the loading of the artificial "
+             "measurement noise covariance matrix! what(): '"
+          << e.what() << "'.";
       return 3;
     }
   }
@@ -844,10 +845,10 @@ int main(int argc, char** argv) {
             RK_SERIAL_LOAD_WITH_NAME(mag_field_direction);
       }
     } catch (std::exception& e) {
-      RK_ERROR(
-          "An exception occurred during the loading of the IMU configuration "
-          "file! what(): '"
-          << e.what() << "'.");
+      LOG(ERROR) << "An exception occurred during the loading of the IMU "
+                    "configuration "
+                    "file! what(): '"
+                 << e.what() << "'.";
       return 14;
     }
   }
@@ -878,9 +879,9 @@ int main(int argc, char** argv) {
 
         /* read off the position-orientation measurements. */
         if (meas.size() < 7) {
-          RK_ERROR(
-              "The measurement file does not even contain the position and "
-              "quaternion measurements!");
+          LOG(ERROR)
+              << "The measurement file does not even contain the position and "
+                 "quaternion measurements!";
           return 4;
         }
         meas_actual.pose = vect_n<double>(meas.begin(), meas.begin() + 7);
@@ -899,9 +900,9 @@ int main(int argc, char** argv) {
         /* read off the IMU/gyro angular velocity measurements. */
         if (absl::GetFlag(FLAGS_gyro) || absl::GetFlag(FLAGS_IMU)) {
           if (meas.size() < 3) {
-            RK_ERROR(
-                "The measurement file does not contain the angular velocity "
-                "measurements!");
+            LOG(ERROR)
+                << "The measurement file does not contain the angular velocity "
+                   "measurements!";
             return 4;
           }
           meas_actual.gyro = vect_n<double>(meas.begin(), meas.begin() + 3);
@@ -919,9 +920,9 @@ int main(int argc, char** argv) {
         /* read off the IMU accel-mag measurements. */
         if (absl::GetFlag(FLAGS_IMU)) {
           if (meas.size() < 6) {
-            RK_ERROR(
-                "The measurement file does not contain the accelerometer and "
-                "magnetometer measurements!");
+            LOG(ERROR) << "The measurement file does not contain the "
+                          "accelerometer and "
+                          "magnetometer measurements!";
             return 4;
           }
           meas_actual.IMU_a_m = vect_n<double>(meas.begin(), meas.begin() + 6);
@@ -941,9 +942,9 @@ int main(int argc, char** argv) {
 
         /* read off the input vector. */
         if (meas.size() < 6) {
-          RK_ERROR(
-              "The measurement file does not contain the input force-torque "
-              "vector measurements!");
+          LOG(ERROR)
+              << "The measurement file does not contain the input force-torque "
+                 "vector measurements!";
           return 4;
         }
         meas_actual.u = vect_n<double>(meas.begin(), meas.begin() + 6);
@@ -977,9 +978,9 @@ int main(int argc, char** argv) {
         }
       }
     } catch (recorder::out_of_bounds&) {
-      RK_ERROR(
-          "The measurement file does not appear to have the required number of "
-          "columns!");
+      LOG(ERROR) << "The measurement file does not appear to have the required "
+                    "number of "
+                    "columns!";
       return 4;
     } catch (recorder::end_of_record&) {}
   }
@@ -1049,9 +1050,9 @@ int main(int argc, char** argv) {
                                        "_invmid_mdl.rkx")) &
             RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
       } catch (...) {
-        RK_ERROR(
-            "An exception occurred during the saving the satellite system "
-            "file!");
+        LOG(ERROR)
+            << "An exception occurred during the saving the satellite system "
+               "file!";
         return 14;
       }
     } else if (!absl::GetFlag(FLAGS_monte_carlo)) {
@@ -1248,9 +1249,9 @@ int main(int argc, char** argv) {
                                        "_invmid_gyro_mdl.rkx")) &
             RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
       } catch (...) {
-        RK_ERROR(
-            "An exception occurred during the saving the satellite system "
-            "file!");
+        LOG(ERROR)
+            << "An exception occurred during the saving the satellite system "
+               "file!";
         return 14;
       }
     } else if (!absl::GetFlag(FLAGS_monte_carlo)) {
@@ -1451,9 +1452,9 @@ int main(int argc, char** argv) {
                                        "_invmid_IMU_mdl.rkx")) &
             RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
       } catch (...) {
-        RK_ERROR(
-            "An exception occurred during the saving the satellite system "
-            "file!");
+        LOG(ERROR)
+            << "An exception occurred during the saving the satellite system "
+               "file!";
         return 14;
       }
     } else if (!absl::GetFlag(FLAGS_monte_carlo)) {
@@ -1533,9 +1534,9 @@ int main(int argc, char** argv) {
       std::cout << "Running estimators on data series.." << std::flush;
 
       if (absl::GetFlag(FLAGS_iekf)) {
-        std::cerr << "Warning: The invariant extended Kalman filter (IEKF) is "
-                     "not available for full IMU measurements!"
-                  << std::endl;
+        LOG(ERROR) << "Warning: The invariant extended Kalman filter (IEKF) is "
+                      "not available for full IMU measurements!"
+                   << std::endl;
       }
 
       std::cout << "." << std::flush;
@@ -1591,9 +1592,9 @@ int main(int argc, char** argv) {
           << "emag_m" << recorder::data_recorder::end_name_row;
 
       if (absl::GetFlag(FLAGS_iekf)) {
-        std::cerr << "Warning: The invariant extended Kalman filter (IEKF) is "
-                     "not available for full IMU measurements!"
-                  << std::endl;
+        LOG(ERROR) << "Warning: The invariant extended Kalman filter (IEKF) is "
+                      "not available for full IMU measurements!"
+                   << std::endl;
       }
 
       std::cout << "Running Monte-Carlo Simulations..." << std::endl;

@@ -104,7 +104,6 @@ void nl_intpoint_method_tr_impl(
     Vector dx = x;
     mat_vect_adaptor<Vector> dx_mat(dx);
     minnorm_QR(Jac_h, dx_mat, mat_vect_adaptor<Vector>(e_s), abs_tol);
-    // RK_NOTICE(1," e_s = " << e_s << " dx = " << dx);
     x += dx;
     ht_value = h(x);
     fill_h_jac(Jac_h, x, ht_value);
@@ -278,8 +277,7 @@ void nl_intpoint_method_tr_impl(
     ValueType rho = (1.0 - mu) * 0.99;
 
     while ((++k <= max_iter) && (Err_value > abs_tol_mu)) {
-      solve_step(c, Jac_aug, v, norm_v, ValueType(0.9) * radius,
-                 abs_tol);  // RK_NOTICE(1," reached");
+      solve_step(c, Jac_aug, v, norm_v, ValueType(0.9) * radius, abs_tol);
       for (SizeType i = 0; i < K; ++i) {
         if (v[N + i] < -0.5 * tau) {
           v[N + i] = -0.5 * tau;
@@ -288,13 +286,11 @@ void nl_intpoint_method_tr_impl(
       r = Jac_aug * v;
 
       try {
-        null_space_QP_method(Jac_aug, r, H_aug, p_grad, p, abs_tol,
-                             radius);  // RK_NOTICE(1," reached");
+        null_space_QP_method(Jac_aug, r, H_aug, p_grad, p, abs_tol, radius);
       } catch (singularity_error&) {
         try {
-          // RK_NOTICE(4," falling back to PCG method...");
           projected_CG_method(Jac_aug, r, H_aug, p_grad, p, max_iter,
-                              abs_tol_mu);  // RK_NOTICE(1," reached");
+                              abs_tol_mu);
         } catch (maximum_iteration&) {}
       }
 
@@ -320,10 +316,6 @@ void nl_intpoint_method_tr_impl(
         p_s[i] = s[i] * p[i + N];
       }
       impose_limits(x, p_x);
-
-      // RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu << " abs_tol_mu = " << abs_tol_mu << " norm_p = " <<
-      // norm_p);
-      // RK_NOTICE(1," c = " << c << "\n J v = " << (Jac_aug * v));
 
       ValueType pHp = p * (H_aug * p);
       ValueType dm_p = c_norm_star - norm_2(c + Jac_aug * p);
@@ -356,18 +348,8 @@ void nl_intpoint_method_tr_impl(
       ValueType ct_norm_star =
           sqrt(norm_2_sqr(gt_value) + norm_2_sqr(ht_value));
 
-      // RK_NOTICE(1," gt_value = " << gt_value);
-      // RK_NOTICE(1," x = " << x << " s = " << s << " x_value = " << x_value << " log_s = " << log_s << " c_norm_star =
-      // " << c_norm_star << " mu = " << mu);
-      // RK_NOTICE(1," xt = " << xt << " st = " << st << " xt_value = " << xt_value << " log_st = " << log_st << "
-      // ct_norm_star = " << ct_norm_star);
-
       ValueType ared = x_value - xt_value - mu * (log_s - log_st) +
                        nu * (c_norm_star - ct_norm_star);
-
-      // RK_NOTICE(1," x_value = " << x_value << " xt_value = " << xt_value << " nu = " << nu << " log_s = " << log_s <<
-      // " log_st = " << log_st << " c_norm_star = " << c_norm_star << " ct_norm_star = " << ct_norm_star);
-      // RK_NOTICE(1," ared = " << ared << " pred = " << pred << " norm_p = " << norm_2(p_x));
 
       if ((pred > ValueType(0.0)) && (ared >= kappa * pred)) {
         // if(ared >= kappa * pred) {
@@ -395,18 +377,13 @@ void nl_intpoint_method_tr_impl(
         }
         p_grad[range(N, N + K)] = vect_scalar<ValueType>(K, -mu);
         linlsq_QR(transpose_view(Jac_aug), yz_mat,
-                  mat_vect_adaptor<Vector>(p_grad),
-                  abs_tol);  // RK_NOTICE(1," reached");
-        //          for(SizeType i = 0; i < K; ++i)
-        //            if(z[i] < ValueType(0.0))
-        //              z[i] = mu;
+                  mat_vect_adaptor<Vector>(p_grad), abs_tol);
         for (SizeType i = 0; i < K; ++i) {
           if (z[i] < ValueType(0.0)) {
             z[i] = mu / s[i];
           }
         }
         lt = x_grad - y * Jac_g - z * Jac_h;
-        // p_grad[range(0,N)] = x_grad + y * Jac_g + z * Jac_h;  // NOTE this is not part of original.
         norm_star = norm_2(lt) / sqrt(ValueType(N));
         fill_hessian(H, x, x_value, x_grad, p_x, lt - l);
         l = lt;
@@ -594,8 +571,6 @@ void nl_intpoint_method_ls_impl(
   min_s *= ValueType(-0.1);
 
   while (min_s > abs_tol) {
-    RK_NOTICE(1, " s = " << s << " x = " << x << " h = " << c_h
-                         << " Jac = " << Jac_h);
     Vector e_s(s);
     for (SizeType i = 0; i < K; ++i) {
       e_s[i] = min_s;
@@ -604,7 +579,6 @@ void nl_intpoint_method_ls_impl(
     Vector dx = x;
     mat_vect_adaptor<Vector> dx_mat(dx);
     minnorm_QR(Jac_h, dx_mat, mat_vect_adaptor<Vector>(e_s), abs_tol);
-    RK_NOTICE(1, " e_s = " << e_s << " dx = " << dx);
     x += dx;
     c_h = h(x);
     fill_h_jac(Jac_h, x, c_h);
@@ -628,10 +602,9 @@ void nl_intpoint_method_ls_impl(
   mat<ValueType, mat_structure::rectangular> Jac_g(M, N);
   fill_g_jac(Jac_g, x, c_g);
 
-  if ((M == 0) &&
-      (K ==
-       0)) {  // this means it is an unconstrained problem. TODO change this to dispatch on the
-              // type of the fill-hessian functor.
+  // This means it is an unconstrained problem.
+  // TODO change this to dispatch on the type of the fill-hessian functor.
+  if ((M == 0) && (K == 0)) {
     newton_method_ls_impl(
         f, df, fill_hessian, x, max_iter,
         line_search_expand_and_zoom<ValueType>(kappa, ValueType(0.9)),
@@ -781,8 +754,6 @@ void nl_intpoint_method_ls_impl(
     }
 
     ValueType abs_tol_mu = mu;
-    // if(abs_tol_mu < abs_tol)
-    // abs_tol_mu = abs_tol;
 
     auto rho = ValueType(0.1);
 
@@ -932,9 +903,9 @@ void nl_intpoint_method_ls_impl(
           zeta = (z[i] * s[i]) / sz_k;
         }
       }
-      if (zeta <
-          0.5) {  // this is just for numerical stability (takes the denominator where it will equalize the
-                  // quantities involved).
+      // this is just for numerical stability (takes the denominator where it will equalize the
+      // quantities involved).
+      if (zeta < 0.5) {
         sigma = (ValueType(1.0) - zeta) / (ValueType(20.0) * zeta);
       } else {
         sigma = ValueType(0.05) * ((ValueType(1.0) - zeta + abs_tol) / zeta);

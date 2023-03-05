@@ -274,10 +274,8 @@ void null_space_RRQP_method(
   if (lambda) {
     vect_n<ValueType> lam((c + G * x) * Y);
     mat_vect_adaptor<vect_n<ValueType>> lam_mat(lam);
-    RK_NOTICE(1, " reached!");
     ReaK::detail::backsub_R_impl(
         sub(transpose_view(L))(range(0, K), range(0, K)), lam_mat, abs_tol);
-    RK_NOTICE(1, " reached!");
     for (int i = 0; i < K; ++i) {
       (*lambda)[i] = lam[i];
     }

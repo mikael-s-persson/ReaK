@@ -50,9 +50,7 @@ TYPED_TEST(Vect3Test, Vect3Operators) {
   EXPECT_TRUE(gravity_acc.capacity());
   EXPECT_TRUE(!gravity_acc.empty());
 
-  auto it =
-      gravity_acc
-          .begin();  // RK_NOTICE(2,"Passed: " << passed << " should have 8.");
+  auto it = gravity_acc.begin();
   EXPECT_NEAR(*it, 0.0, std::numeric_limits<ValueType>::epsilon());
   EXPECT_EQ(gravity_acc.end() - it, 3);
   ++it;
@@ -138,9 +136,7 @@ TYPED_TEST(VectNTest, VectNOperators) {
   EXPECT_TRUE(gravity_acc.capacity());
   EXPECT_TRUE(!gravity_acc.empty());
 
-  auto it =
-      gravity_acc
-          .begin();  // RK_NOTICE(2,"Passed: " << passed << " should have 8.");
+  auto it = gravity_acc.begin();
   EXPECT_NEAR(*it, 0.0, std::numeric_limits<ValueType>::epsilon());
   EXPECT_EQ(gravity_acc.end() - it, 3);
   ++it;

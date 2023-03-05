@@ -183,7 +183,6 @@ void bcl_newton_method_tr_impl(
       ValueType predux = -(L_grad * p + ValueType(0.5) * (p * (La_H * p)));
 
       ValueType ratio = aredux / predux;
-      // RK_NOTICE(1," ratio = " << ratio << " kappa = " << kappa << " aredux = " << aredux << " norm_p = " << norm_p);
       if (ratio > ValueType(0.75)) {
         if (norm_p > ValueType(0.8) * radius) {
           radius *= ValueType(2.0);

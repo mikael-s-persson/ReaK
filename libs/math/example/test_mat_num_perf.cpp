@@ -31,10 +31,11 @@
 #include <ReaK/math/lin_alg/mat_svd_method.hpp>
 
 #include <chrono>
-
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+
+#include "absl/log/log.h"
 
 int main() {
 
@@ -69,7 +70,7 @@ int main() {
       } else if (i == 500) {
         inc = 50;
         m_inc = get_block(m_test, 0, inc + 1);
-      };
+      }
 
       m_test.set_row_count(i);
       set_block(m_test, m_inc, i - inc - 1);
@@ -113,7 +114,6 @@ int main() {
       t1 = high_resolution_clock::now();
       pseudoinvert_SVD(m_test, m_svd_inv, double(1E-15));
       dt[7] = high_resolution_clock::now() - t1;
-      ;
 
       mat<double, mat_structure::diagonal> m_jacobi_E(i);
       mat<double, mat_structure::square> m_jacobi_Q(i);
@@ -149,22 +149,21 @@ int main() {
                  << duration_cast<microseconds>(dt[9]).count() << "\t"
                  << duration_cast<microseconds>(dt[10]).count() << std::endl;
       std::cout << i << std::endl;
-    };
+    }
     std::cout << "Done!" << std::endl;
     out_stream.close();
 
   } catch (std::exception& e) {
-    RK_ERROR("An exception has occurred during the math_gen test: '" << e.what()
-                                                                     << "'");
+    LOG(ERROR) << "An exception has occurred during the math_gen test: '"
+               << e.what() << "'";
   } catch (...) {
-    RK_ERROR(
-        "An unexpected and unidentified exception has occurred during the "
-        "math_gen test.");
-  };
+    LOG(ERROR) << "An unexpected and unidentified exception has occurred "
+                  "during the math_gen test.";
+  }
 
-  RK_NOTICE(2, "There were " << passed
-                             << " successful tests passed on the math_gen "
-                                "library, out of 45 possible successes.");
+  std::cout << "There were " << passed
+            << " successful tests passed on the math_gen "
+               "library, out of 45 possible successes.";
 
   return 0;
-};
+}

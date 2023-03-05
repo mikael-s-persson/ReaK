@@ -146,7 +146,6 @@ int main(int argc, char** argv) {
          current_end_time += interp_time_step) {
       std::stringstream ss;
       ss << "test_interp_results/svp_interp_" << current_end_time << ".ssv";
-      RK_NOTICE(1, "Creating file: '" << ss.str() << "'");
       ReaK::recorder::ascii_recorder output_rec(ss.str());
       output_rec << "time"
                  << "pos"
@@ -172,7 +171,6 @@ int main(int argc, char** argv) {
          current_end_time += interp_time_step) {
       std::stringstream ss;
       ss << "test_interp_results/sap_interp_" << current_end_time << ".ssv";
-      RK_NOTICE(1, "Creating file: '" << ss.str() << "'");
       ReaK::recorder::ascii_recorder output_rec(ss.str());
       output_rec << "time"
                  << "pos"

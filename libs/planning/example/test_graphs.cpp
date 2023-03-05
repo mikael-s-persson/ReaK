@@ -35,6 +35,8 @@
 #include <boost/graph/adjacency_list_BC.hpp>
 #include <memory>
 
+#include "absl/log/log.h"
+
 using TopologyType = ReaK::pp::hyperbox_topology<ReaK::vect<double, 2>>;
 
 using PointType = TopologyType::point_type;
@@ -43,13 +45,13 @@ struct WorldGridVertexProperties {
   PointType pos;
 
   explicit WorldGridVertexProperties(const PointType& aPos = PointType())
-      : pos(aPos){};
+      : pos(aPos) {}
 };
 
 struct WorldGridEdgeProperties {
   double dist;
 
-  explicit WorldGridEdgeProperties(double aDist = double(0.0)) : dist(aDist){};
+  explicit WorldGridEdgeProperties(double aDist = double(0.0)) : dist(aDist) {}
 };
 
 template <typename Graph>
@@ -85,42 +87,42 @@ bool test_propgraph_functions(Graph& g) {
     VertexProp vp;
     put(vp_2_bundle, vp, pt);
     pts_v.push_back(add_vertex(vp, g));
-  };
+  }
 
   for (std::size_t i = 0; i < pts_v.size(); ++i) {
     if (g[pts_v[i]].pos != pts[i].pos) {
-      RK_ERROR("The position property of vertex "
-               << i << " was not preserved in the addition!");
+      LOG(ERROR) << "The position property of vertex " << i
+                 << " was not preserved in the addition!";
       return false;
-    };
-  };
+    }
+  }
 
   for (std::size_t i = 0; i < pts_v.size() / 2; ++i) {
     remove_vertex(pts_v[i], g);
-  };
+  }
 
   for (std::size_t i = pts_v.size() / 2; i < pts_v.size(); ++i) {
     if (get(vp_2_bundle, get_raw_vertex_property(g, pts_v[i])).pos !=
         get_raw_vertex_to_bundle(g, pts[i]).pos) {
-      RK_ERROR("The position property of vertex "
-               << i << " was not preserved after the removal!");
+      LOG(ERROR) << "The position property of vertex " << i
+                 << " was not preserved after the removal!";
       return false;
-    };
-  };
+    }
+  }
 
   for (std::size_t i = 0; i < pts_v.size() / 2; ++i) {
     VertexProp vp;
     vp_2_bundle[vp] = pts[i];
     pts_v[i] = add_vertex(std::move(vp), g);
-  };
+  }
 
   for (std::size_t i = 0; i < pts_v.size(); ++i) {
     if (g[pts_v[i]].pos != pts[i].pos) {
-      RK_ERROR("The position property of vertex "
-               << i << " was not preserved in the second addition!");
+      LOG(ERROR) << "The position property of vertex " << i
+                 << " was not preserved in the second addition!";
       return false;
-    };
-  };
+    }
+  }
 
   std::vector<WorldGridEdgeProperties> segs;
   segs.emplace_back(0.2);  // 0 to 1
@@ -140,27 +142,27 @@ bool test_propgraph_functions(Graph& g) {
     put(ep_2_bundle, ep, segs[i]);
     segs_e.push_back(
         add_edge(pts_v[i], pts_v[(i + 1) % pts_v.size()], ep, g).first);
-  };
+  }
 
   for (std::size_t i = 0; i < segs_e.size(); ++i) {
     if (g[segs_e[i]].dist != segs[i].dist) {
-      RK_ERROR("The dist property of edge "
-               << i << " was not preserved in the edge-addition!");
+      LOG(ERROR) << "The dist property of edge " << i
+                 << " was not preserved in the edge-addition!";
       return false;
-    };
-  };
+    }
+  }
 
   for (std::size_t i = 0; i < segs_e.size(); ++i) {
     if (get(ep_2_bundle, get_raw_edge_property(g, segs_e[i])).dist !=
         get_raw_edge_to_bundle(g, segs[i]).dist) {
-      RK_ERROR("The dist property of edge "
-               << i << " was not preserved in the edge-addition!");
+      LOG(ERROR) << "The dist property of edge " << i
+                 << " was not preserved in the edge-addition!";
       return false;
-    };
-  };
+    }
+  }
 
   return true;
-};
+}
 
 int main() {
 
@@ -213,4 +215,4 @@ int main() {
   }
 
   return 0;
-};
+}

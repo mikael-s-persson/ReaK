@@ -120,10 +120,6 @@ void unscented_kalman_predict(
       }
     }
     L_p = svd_U * svd_E;
-    RK_WARNING(
-        "A-Priori Covariance P, in UKF prediction is singular, SVD was used, "
-        "but this could hide a flaw in the "
-        "system's setup.");
   }
 
   ValueType lambda = alpha * alpha * (N + M + kappa) - N - M;
@@ -249,10 +245,6 @@ void unscented_kalman_update(
       }
     }
     L_p = svd_U * svd_E;
-    RK_WARNING(
-        "A-Posteriori Covariance P, in UKF update is singular, SVD was used, "
-        "but this could hide a flaw in the "
-        "system's setup.");
   }
 
   ValueType lambda = alpha * alpha * (N + M + kappa) - N - M;
@@ -327,10 +319,6 @@ void unscented_kalman_update(
     mat<ValueType, mat_structure::square> Pzz_pinv(P_zz.get_row_count());
     pseudoinvert_SVD(P_zz, Pzz_pinv);
     Kt = Pzz_pinv * Kt;
-    RK_WARNING(
-        "A-Posteriori Measurement Covariance Pzz, in UKF update is singular, "
-        "SVD was used, but this could hide "
-        "a flaw in the system's setup.");
     throw singularity_error(
         "'A-Posteriori Measurement Covariance Pzz, in UKF update'");
   }

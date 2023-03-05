@@ -9,7 +9,7 @@ target_link_libraries(test_mat_num reak_math)
 
 add_executable(test_mat_num_perf "test_mat_num_perf.cpp")
 ReaK_setup_target(test_mat_num_perf)
-target_link_libraries(test_mat_num_perf reak_math)
+target_link_libraries(test_mat_num_perf reak_math absl::log)
 
 add_executable(test_mat_are "test_mat_are.cpp")
 ReaK_setup_target(test_mat_are)

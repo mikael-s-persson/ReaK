@@ -35,13 +35,15 @@
 
 #include <FreeImage.h>
 
+#include "absl/log/log.h"
+
 //#define TESTING_ASTAR
 
 using namespace boost;
 
 class adstar_test_world {
  public:
-  typedef property<
+  using WorldGridVertexProperties = property<
       vertex_position_t, ReaK::vect<int, 3>,
       property<
           vertex_heuristic_t, double,
@@ -55,19 +57,18 @@ class adstar_test_world {
                                              adjacency_list_BC_traits<
                                                  vecBC, vecBC, bidirectionalS>::
                                                  vertex_descriptor,
-                                             no_property>>>>>>>
-      WorldGridVertexProperties;
+                                             no_property>>>>>>>;
 
-  typedef property<edge_weight_t, double, no_property> WorldGridEdgeProperties;
+  using WorldGridEdgeProperties = property<edge_weight_t, double, no_property>;
 
-  typedef adjacency_list_BC<vecBC, vecBC, bidirectionalS,
-                            WorldGridVertexProperties, WorldGridEdgeProperties>
-      WorldGridType;
+  using WorldGridType =
+      adjacency_list_BC<vecBC, vecBC, bidirectionalS, WorldGridVertexProperties,
+                        WorldGridEdgeProperties>;
 
-  typedef adjacency_list_BC_traits<
-      vecBC, vecBC, bidirectionalS>::vertex_descriptor VertexType;
-  typedef adjacency_list_BC_traits<vecBC, vecBC,
-                                   bidirectionalS>::edge_descriptor EdgeType;
+  using VertexType =
+      adjacency_list_BC_traits<vecBC, vecBC, bidirectionalS>::vertex_descriptor;
+  using EdgeType =
+      adjacency_list_BC_traits<vecBC, vecBC, bidirectionalS>::edge_descriptor;
 
  private:
   FIBITMAP* world_map_image;
@@ -99,8 +100,8 @@ class adstar_test_world {
       return (255.0 - target_pos[2]) * 10 - old_w;
     } else {
       return 0.0;
-    };
-  };
+    }
+  }
   void initEdgeWeight(EdgeType e) {
     ReaK::vect<int, 3> target_pos = get(m_position, target(e, grid));
 #ifdef TESTING_ASTAR
@@ -115,27 +116,29 @@ class adstar_test_world {
         put(m_weight, e, std::sqrt(2.0));
       else
         put(m_weight, e, 1.0);
-    };
-  };
+    }
+  }
 
  public:
   VertexType getStartNode() {
     return goal_pos;
-  };
+  }
 
   double adjustEpsilon(double aOldEpsilon, double aMaxWeightChange) {
-    if (aMaxWeightChange > 5)
+    if (aMaxWeightChange > 5) {
       return initial_epsilon;
-    else
+    } else {
       return (aOldEpsilon - 1.0) * 0.5 + 1.0;
-  };
+    }
+  }
 
   bool isGoalNotReached() {
-    if ((current_pos == goal_pos) || (blocked_periods > 10))
+    if ((current_pos == goal_pos) || (blocked_periods > 10)) {
       return false;
-    else
+    } else {
       return true;
-  };
+    }
+  }
 
   template <typename EdgeIter>
   std::pair<double, EdgeIter> checkChanges(EdgeIter out_iter) {
@@ -145,13 +148,14 @@ class adstar_test_world {
       double ei_change = updateEdgeWeight(*ei);
       if (std::abs(ei_change) > 1E-3) {
         *(out_iter++) = *ei;
-        if (std::abs(ei_change) > max_change)
+        if (std::abs(ei_change) > max_change) {
           max_change = std::abs(ei_change);
-      };
-    };
+        }
+      }
+    }
 
     return std::pair<double, EdgeIter>(max_change, out_iter);
-  };
+  }
 
   void updatePath() {
 
@@ -192,7 +196,7 @@ class adstar_test_world {
             color_bits[FI_RGBA_RED] = 255;
             color_bits[FI_RGBA_GREEN] = 140;
             color_bits[FI_RGBA_BLUE] = 30;  // orange color
-          };
+          }
           if (current_node == goal_pos) {
             color_bits[FI_RGBA_RED] = 0;
             color_bits[FI_RGBA_GREEN] = 255;
@@ -201,12 +205,12 @@ class adstar_test_world {
             color_bits[FI_RGBA_RED] = 0;
             color_bits[FI_RGBA_GREEN] = 0;
             color_bits[FI_RGBA_BLUE] = 255;  // blue color
-          };
-        };
+          }
+        }
         color_bits += bpp;
         color_bits_orig += bpp;
-      };
-    };
+      }
+    }
 
     VertexType v = current_pos;
     VertexType u = get(m_pred, v);
@@ -216,15 +220,15 @@ class adstar_test_world {
     while ((u != goal_pos) && (path.insert(u).second)) {
       ReaK::vect<int, 3> p = get(m_position, u);
       BYTE* color_bits = FreeImage_GetScanLine(world_map_output, p[1]);
+      // set this color to indicate the planned path.
       color_bits += bpp * p[0];
       color_bits[FI_RGBA_RED] = 255;
       color_bits[FI_RGBA_GREEN] = 0;
-      color_bits[FI_RGBA_BLUE] =
-          0;  // set this color to indicate the planned path.
+      color_bits[FI_RGBA_BLUE] = 0;
       total_distance += get(m_weight, edge(u, v, grid).first);
       v = u;
       u = get(m_pred, v);
-    };
+    }
     total_distance += get(m_weight, edge(u, v, grid).first);
     path.clear();
     std::stringstream ss;
@@ -241,13 +245,14 @@ class adstar_test_world {
       if (rhs_tmp < rhs_pos) {
         u = source(*ei, grid);
         rhs_pos = rhs_tmp;
-      };
-    };
+      }
+    }
     if (get(m_position, u)[2] == 255) {
       current_pos = u;
       blocked_periods = 0;
-    } else
+    } else {
       ++blocked_periods;
+    }
     current_time++;
     std::cout << "\rCurrently at: " << get(m_position, u)
               << " time: " << current_time << "                ";
@@ -266,11 +271,11 @@ class adstar_test_world {
                           double(pos[1] - current_coord[1])));
       } else {
         put(m_heuristic, *ui, 0.0);
-      };
-    };
+      }
+    }
 
     return;
-  };
+  }
 
   adstar_test_world(FIBITMAP* aWorldMapImage, double aInitialEpsilon)
       : world_map_image(aWorldMapImage),
@@ -292,10 +297,10 @@ class adstar_test_world {
     world_map_output = FreeImage_Clone(world_map_image);
     FreeImage_Unload(aWorldMapImage);
     if (!world_map_image) {
-      RK_ERROR(
-          "The world image could not be converted to a 24bit Bitmap image!");
+      LOG(ERROR)
+          << "The world image could not be converted to a 24bit Bitmap image!";
       throw int(0);
-    };
+    }
 
     bpp = FreeImage_GetLine(world_map_image) /
           FreeImage_GetWidth(world_map_image);
@@ -325,12 +330,12 @@ class adstar_test_world {
           // this is the goal position.
           pos[2] = 255;
           goal_pos = current_node;
-        };
+        }
         put(m_position, current_node, pos);
 
         color_bits += bpp;
-      };
-    };
+      }
+    }
 
     // std::pair<EdgeType,bool> ep = add_edge(vertex(0,grid),vertex(1,grid),1.0,grid);
 
@@ -349,7 +354,7 @@ class adstar_test_world {
                           double(pos[1] - current_coord[1])));
       } else {
         put(m_heuristic, *ui, 0.0);
-      };
+      }
       *hval_bits = int(get(m_heuristic, *ui)) % 256;
       hval_bits++;
 
@@ -358,129 +363,135 @@ class adstar_test_world {
       if (pos[1] > 0) {
         ep = add_edge(*ui, vertex((pos[1] - 1) * grid_width + pos[0], grid),
                       grid);
-        if (ep.second)
+        if (ep.second) {
           initEdgeWeight(ep.first);
+        }
         if (pos[0] > 0) {
           ep = add_edge(
               *ui, vertex((pos[1] - 1) * grid_width + pos[0] - 1, grid), grid);
           if (ep.second)
             initEdgeWeight(ep.first);
-        };
+        }
         if (pos[0] < grid_width - 1) {
           ep = add_edge(
               *ui, vertex((pos[1] - 1) * grid_width + pos[0] + 1, grid), grid);
           if (ep.second)
             initEdgeWeight(ep.first);
-        };
-      };
+        }
+      }
       if (pos[1] < grid_height - 1) {
         ep = add_edge(*ui, vertex((pos[1] + 1) * grid_width + pos[0], grid),
                       grid);
-        if (ep.second)
+        if (ep.second) {
           initEdgeWeight(ep.first);
+        }
         if (pos[0] > 0) {
           ep = add_edge(
               *ui, vertex((pos[1] + 1) * grid_width + pos[0] - 1, grid), grid);
-          if (ep.second)
+          if (ep.second) {
             initEdgeWeight(ep.first);
-        };
+          }
+        }
         if (pos[0] < grid_width - 1) {
           ep = add_edge(
               *ui, vertex((pos[1] + 1) * grid_width + pos[0] + 1, grid), grid);
-          if (ep.second)
+          if (ep.second) {
             initEdgeWeight(ep.first);
-        };
+          }
+        }
       };
       if (pos[0] > 0) {
         ep =
             add_edge(*ui, vertex(pos[1] * grid_width + pos[0] - 1, grid), grid);
-        if (ep.second)
+        if (ep.second) {
           initEdgeWeight(ep.first);
-      };
+        }
+      }
       if (pos[0] < grid_width - 1) {
         ep =
             add_edge(*ui, vertex(pos[1] * grid_width + pos[0] + 1, grid), grid);
-        if (ep.second)
+        if (ep.second) {
           initEdgeWeight(ep.first);
-      };
-    };
+        }
+      }
+    }
 
     FreeImage_Save(FIF_BMP, hval_image, "test_adstar_results_hval.bmp",
                    BMP_DEFAULT);
     FreeImage_Unload(hval_image);
-  };
+  }
 
   double getHeuristicValue(VertexType u) {
     return get(m_heuristic, u);
-  };
+  }
 
   struct visitor {
     adstar_test_world* parent;
-    explicit visitor(adstar_test_world* aParent) : parent(aParent){};
+    explicit visitor(adstar_test_world* aParent) : parent(aParent) {}
 
     template <typename Vertex, typename Graph>
     void initialize_vertex(Vertex u, const Graph& g) const {
       RK_UNUSED(u);
       RK_UNUSED(g);
-    };
+    }
     template <typename Vertex, typename Graph>
     void discover_vertex(Vertex u, const Graph& g) const {
       RK_UNUSED(u);
       RK_UNUSED(g);
-    };
+    }
     template <typename Vertex, typename Graph>
     void inconsistent_vertex(Vertex u, const Graph& g) const {
       RK_UNUSED(u);
       RK_UNUSED(g);
-    };
+    }
     template <typename Vertex, typename Graph>
     void examine_vertex(Vertex u, const Graph& g) const {
       RK_UNUSED(u);
       RK_UNUSED(g);
-    };
+    }
     template <typename Edge, typename Graph>
     void examine_edge(Edge e, const Graph& g) const {
       RK_UNUSED(e);
       RK_UNUSED(g);
-    };
+    }
     template <typename Edge, typename Graph>
     void edge_relaxed(Edge e, const Graph& g) const {
       RK_UNUSED(e);
       RK_UNUSED(g);
-    };
+    }
     template <typename Vertex, typename Graph>
     void forget_vertex(Vertex u, const Graph& g) const {
       RK_UNUSED(u);
       RK_UNUSED(g);
-    };
+    }
     template <typename Vertex, typename Graph>
     void finish_vertex(Vertex u, const Graph& g) const {
       RK_UNUSED(u);
       RK_UNUSED(g);
-    };
+    }
     template <typename Vertex, typename Graph>
     void recycle_vertex(Vertex u, const Graph& g) const {
       RK_UNUSED(u);
       RK_UNUSED(g);
-    };
+    }
     template <typename Graph>
     void publish_path(const Graph& g) const {
       RK_UNUSED(g);
       parent->updatePath();
-    };
+    }
     bool keep_going() const { return parent->isGoalNotReached; };
     template <typename EdgeIter, typename Graph>
     std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei,
                                                    const Graph& g) const {
       RK_UNUSED(g);
       return parent->checkChanges(ei);
-    };
+    }
     template <typename Graph>
     double adjust_epsilon(double old_eps, double w_change,
                           const Graph& g) const {
       RK_UNUSED(g);
       return parent->adjustEpsilon(old_eps, w_change);
-    };
+    }
   };
 
   void run() {
@@ -504,22 +515,24 @@ class adstar_test_world {
                                  get(vertex_key, grid), m_weight, m_color,
                                  initial_epsilon);
       blocked_periods = 0;
-    };
+    }
 #endif
-  };
+  }
 
   ~adstar_test_world() {
-    if (world_map_image)
+    if (world_map_image) {
       FreeImage_Unload(world_map_image);
-    if (world_map_output)
+    }
+    if (world_map_output) {
       FreeImage_Unload(world_map_output);
-  };
+    }
+  }
 };
 
 int main(int argc, char** argv) {
   if (argc < 3) {
 
-    std::cout
+    LOG(ERROR)
         << "Error: Arguments to the program were incorrect!" << std::endl
         << "Usage:" << std::endl
         << "\t\t./test_adstar [world_image_filename.bmp] [initial_epsilon]"
@@ -532,11 +545,11 @@ int main(int argc, char** argv) {
       FreeImage_Load(FIF_BMP, filename.c_str(), BMP_DEFAULT);
 
   if (!world_image) {
-    std::cout << "Error: the world image file could not be loaded! Make sure "
-                 "to provide a valid BMP file!"
-              << std::endl;
+    LOG(ERROR) << "Error: the world image file could not be loaded! Make sure "
+                  "to provide a valid BMP file!"
+               << std::endl;
     return 1;
-  };
+  }
 
   std::stringstream ss(argv[2]);
   double initial_epsilon;
@@ -548,11 +561,11 @@ int main(int argc, char** argv) {
     test_world.run();
 
   } catch (...) {
-    std::cout
+    LOG(ERROR)
         << "Error: An exception was thrown during the execution of this test!"
         << std::endl;
     return 1;
-  };
+  }
 
   return 0;
-};
+}

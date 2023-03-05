@@ -40,12 +40,6 @@
 #define M_PI 3.1415926535898
 #endif
 
-#define RK_EXTERN extern "C"
-
-#ifndef RK_VERBOSITY
-#define RK_VERBOSITY 5
-#endif
-
 #define RK_ORDER_LITTLE_ENDIAN 1
 #define RK_ORDER_BIG_ENDIAN 2
 #define RK_ORDER_PDP_ENDIAN 3
@@ -61,83 +55,6 @@
 #endif
 
 #endif  // __GNUC__
-
-#if defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) || \
-    (defined(__ICC) && (__ICC >= 600)) || defined(__ghs__)
-
-#define RK_CURRENT_FUNCTION __PRETTY_FUNCTION__
-
-#elif defined(__DMC__) && (__DMC__ >= 0x810)
-
-#define RK_CURRENT_FUNCTION __PRETTY_FUNCTION__
-
-#elif defined(__FUNCSIG__)
-
-#define RK_CURRENT_FUNCTION __FUNCSIG__
-
-#elif (defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 600)) || \
-    (defined(__IBMCPP__) && (__IBMCPP__ >= 500))
-
-#define RK_CURRENT_FUNCTION __FUNCTION__
-
-#elif defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
-
-#define RK_CURRENT_FUNCTION __FUNC__
-
-#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901)
-
-#define RK_CURRENT_FUNCTION __func__
-
-#else
-
-#define RK_CURRENT_FUNCTION "(unknown)"
-
-#endif
-
-/**
- * This function will convert an absolute path that goes through a folder named "ReaK" and
- * return a the path relative to that ReaK trunk folder.
- *
- * \param S Some string containing a full file/folder path.
- * \return string containing the file/folder path relative to the ReaK trunk folder.
- */
-inline std::string RK_RELATIVE_PATH(const std::string& S) {
-  for (unsigned int i = 0; i + 5 < S.size(); ++i) {
-    if (S.substr(i, 4) == "ReaK") {
-      return S.substr(i + 4);
-    }
-  }
-  return S;
-}
-
-/**
- * This MACRO expands into an output of at string as "ReaK/.../current_file.hpp:42" if put in
- * file "current_file.hpp" at line 42.
- */
-#define RK_HERE __FILE__ << ":" << __LINE__
-
-/**
- * This MACRO outputs to std::cout an error message containing the filename, line number, and message X.
- */
-#define RK_ERROR(X)                                          \
-  std::cout << RK_RELATIVE_PATH(__FILE__) << ":" << __LINE__ \
-            << " Error: " << X << std::endl
-
-/**
- * This MACRO outputs to std::cout a warning message containing the filename, line number, and message X.
- */
-#define RK_WARNING(X)                                        \
-  std::cout << RK_RELATIVE_PATH(__FILE__) << ":" << __LINE__ \
-            << " Warning: " << X << std::endl
-
-/**
- * This MACRO outputs to std::cout a notice message containing the filename, line number, and message Y,
- * only if the RK_VERBOSITY is set to lower higher than X.
- */
-#define RK_NOTICE(X, Y)                                                    \
-  if (X <= RK_VERBOSITY)                                                   \
-    std::cout << RK_RELATIVE_PATH(__FILE__) << ":" << __LINE__ << " " << Y \
-              << std::endl;
 
 /**
  * This MACRO is used to signify that a declared variable is not used, intentionally.

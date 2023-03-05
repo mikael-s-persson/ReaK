@@ -1,7 +1,7 @@
 
 add_executable(test_graphs "test_graphs.cpp")
 ReaK_setup_target(test_graphs)
-target_link_libraries(test_graphs reak_topologies)
+target_link_libraries(test_graphs reak_topologies absl::log)
 
 add_executable(test_vp_tree "test_vp_tree.cpp")
 ReaK_setup_target(test_vp_tree)

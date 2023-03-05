@@ -33,11 +33,7 @@
 
 #endif
 
-namespace ReaK {
-
-namespace pp {
-
-namespace detail {
+namespace ReaK::pp::detail {
 
 static void sap_Ndof_compute_interpolated_values_closedform(
     double start_position, double end_position, double start_velocity,
@@ -57,8 +53,9 @@ static void sap_Ndof_compute_interpolated_values_closedform(
 
   double dt_vp1_1st = abs(dv1);
   double sgn_vp1 = 1.0;
-  if (dv1 < 0.0)
+  if (dv1 < 0.0) {
     sgn_vp1 = -1.0;
+  }
   // we know that dt_vp_2nd = dt_vp_1st + dt_amax
   double dt_vp1 = dt_vp1_1st - max_acceleration;
   double dt_ap1 = max_acceleration;
@@ -66,12 +63,13 @@ static void sap_Ndof_compute_interpolated_values_closedform(
     // means that we don't have time to reach the maximum acceleration:
     dt_vp1 = 0.0;
     dt_ap1 = sqrt(max_acceleration * dt_vp1_1st);
-  };
+  }
 
   double dt_vp2_1st = abs(dv2);
   double sgn_vp2 = 1.0;
-  if (dv2 < 0.0)
+  if (dv2 < 0.0) {
     sgn_vp2 = -1.0;
+  }
   // we know that dt_vp_2nd = dt_vp_1st + dt_amax
   double dt_vp2 = dt_vp2_1st - max_acceleration;
   double dt_ap2 = max_acceleration;
@@ -79,7 +77,7 @@ static void sap_Ndof_compute_interpolated_values_closedform(
     // means that we don't have time to reach the maximum acceleration:
     dt_vp2 = 0.0;
     dt_ap2 = sqrt(max_acceleration * dt_vp2_1st);
-  };
+  }
 
   dt_total -= dt_vp2 + 2.0 * dt_ap2 + dt_vp1 + 2.0 * dt_ap1;
 
@@ -137,10 +135,10 @@ static void sap_Ndof_compute_interpolated_values_closedform(
       // result_vel  = peak_velocity - ( 0.5 * mdt * sgn_vp1 ) * mdt / max_acceleration;
       // result_acc  = mdt * sgn_vp1;
       // result_desc_jerk = -sgn_vp1;
-    };
+    }
 
     return;
-  };
+  }
 
   result_pos += (peak_velocity * (2.0 * dt_ap1 + dt_vp1) -
                  dt_ap1 * (dt_ap1 + dt_vp1) * (dt_ap1 + 0.5 * dt_vp1) *
@@ -158,7 +156,7 @@ static void sap_Ndof_compute_interpolated_values_closedform(
     result_pos += dt * peak_velocity / max_velocity;
 
     return;
-  };
+  }
 
   result_pos += dt_total * peak_velocity / max_velocity;
 
@@ -222,10 +220,10 @@ static void sap_Ndof_compute_interpolated_values_closedform(
       // result_vel  = end_velocity - ( 0.5 * mdt * sgn_vp2 ) * mdt / max_acceleration;
       // result_acc  = mdt * sgn_vp2;
       // result_desc_jerk = -sgn_vp2;
-    };
+    }
 
     return;
-  };
+  }
 
   // Expected end-conditions:
 
@@ -252,7 +250,7 @@ static void sap_Ndof_compute_interpolated_values_closedform(
           max_velocity;
   result_acc = 0.0;
   result_desc_jerk = 0.0;
-};
+}
 
 #ifdef RK_SAP_DETAIL_IMPLEMENTATION_USE_LOGGED_VERSION
 
@@ -275,8 +273,9 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
 
   double dt_vp1_1st = abs(dv1);
   double sgn_vp1 = 1.0;
-  if (dv1 < 0.0)
+  if (dv1 < 0.0) {
     sgn_vp1 = -1.0;
+  }
   // we know that dt_vp_2nd = dt_vp_1st + dt_amax
   double dt_vp1 = dt_vp1_1st - max_acceleration;
   double dt_ap1 = max_acceleration;
@@ -284,12 +283,13 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
     // means that we don't have time to reach the maximum acceleration:
     dt_vp1 = 0.0;
     dt_ap1 = sqrt(max_acceleration * dt_vp1_1st);
-  };
+  }
 
   double dt_vp2_1st = abs(dv2);
   double sgn_vp2 = 1.0;
-  if (dv2 < 0.0)
+  if (dv2 < 0.0) {
     sgn_vp2 = -1.0;
+  }
   // we know that dt_vp_2nd = dt_vp_1st + dt_amax
   double dt_vp2 = dt_vp2_1st - max_acceleration;
   double dt_ap2 = max_acceleration;
@@ -297,7 +297,7 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
     // means that we don't have time to reach the maximum acceleration:
     dt_vp2 = 0.0;
     dt_ap2 = sqrt(max_acceleration * dt_vp2_1st);
-  };
+  }
 
   dt_total -= dt_vp2 + 2.0 * dt_ap2 + dt_vp1 + 2.0 * dt_ap1;
 
@@ -311,8 +311,9 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
   if (dt_ap1 > std::numeric_limits<double>::epsilon()) {
     // Phase 1: in the jerk-up phase of velocity ramp-up.
     double descended_jerk = sgn_vp1;
-    if (dt < dt_ap1)
+    if (dt < dt_ap1) {
       dt_ap1 = dt;
+    }
 
     log_output
         << "-----------------------------------------------------------\n"
@@ -334,10 +335,10 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
         double exp_dv =
             (0.5 * exp_t * descended_jerk) * exp_t / max_acceleration;
         exp_delta_pos += 0.0001 * dt_ap1 * (result_vel + exp_dv) / max_velocity;
-      };
+      }
       log_output << " num-integrated delta_pos = " << exp_delta_pos
                  << std::endl;
-    };
+    }
 
     // assume result_acc == 0
     result_pos += (result_vel + (dt_ap1 * descended_jerk / 6.0) * dt_ap1 /
@@ -352,14 +353,16 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
                << " acc = " << result_acc << std::endl;
 
     dt -= dt_ap1;
-    if (dt <= std::numeric_limits<double>::epsilon())
+    if (dt <= std::numeric_limits<double>::epsilon()) {
       return;
+    }
 
     // Phase 2: in the constant accel phase of velocity ramp-up.
     if (dt_vp1 > std::numeric_limits<double>::epsilon()) {
       double descended_accel = result_acc / max_acceleration;
-      if (dt < dt_vp1)
+      if (dt < dt_vp1) {
         dt_vp1 = dt;
+      }
 
       log_output
           << "-----------------------------------------------------------\n"
@@ -378,10 +381,10 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
           double exp_dv = (exp_t * descended_accel);
           exp_delta_pos +=
               0.0001 * dt_vp1 * (result_vel + exp_dv) / max_velocity;
-        };
+        }
         log_output << " num-integrated delta_pos = " << exp_delta_pos
                    << std::endl;
-      };
+      }
 
       result_pos +=
           (result_vel + 0.5 * dt_vp1 * descended_accel) * dt_vp1 / max_velocity;
@@ -392,9 +395,10 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
                  << " vel = " << result_vel << std::endl;
 
       dt -= dt_vp1;
-      if (dt <= std::numeric_limits<double>::epsilon())
+      if (dt <= std::numeric_limits<double>::epsilon()) {
         return;
-    };
+      }
+    }
 
     // Phase 3: in the jerk-down phase of velocity ramp-up.
     descended_jerk = -sgn_vp1;
@@ -424,10 +428,10 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
         double exp_dv = (result_acc + 0.5 * exp_t * descended_jerk) * exp_t /
                         max_acceleration;
         exp_delta_pos += 0.0001 * dt_ap1 * (result_vel + exp_dv) / max_velocity;
-      };
+      }
       log_output << " num-integrated delta_pos = " << exp_delta_pos
                  << std::endl;
-    };
+    }
 
     result_pos += (result_vel +
                    (0.5 * result_acc + (1.0 / 6.0) * dt_ap1 * descended_jerk) *
@@ -444,13 +448,15 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
                << " acc = " << result_acc << std::endl;
 
     dt -= dt_ap1;
-    if (dt <= std::numeric_limits<double>::epsilon())
+    if (dt <= std::numeric_limits<double>::epsilon()) {
       return;
-  };
+    }
+  }
 
   // Phase 4: in the cruise phase.
-  if (dt < dt_total)
+  if (dt < dt_total) {
     dt_total = dt;
+  }
 
   log_output << "-----------------------------------------------------------\n"
              << " Phase 4: in the cruise phase.\n"
@@ -463,9 +469,9 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
     for (double exp_t = 0.0; exp_t < 1.00005 * dt_total;
          exp_t += 0.0001 * dt_total) {
       exp_delta_pos += 0.0001 * dt_total * result_vel / max_velocity;
-    };
+    }
     log_output << " num-integrated delta_pos = " << exp_delta_pos << std::endl;
-  };
+  }
 
   result_pos += dt_total * peak_velocity / max_velocity;
   result_vel = peak_velocity;
@@ -475,14 +481,16 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
   log_output << " pos = " << result_pos << std::endl;
 
   dt -= dt_total;
-  if (dt <= std::numeric_limits<double>::epsilon())
+  if (dt <= std::numeric_limits<double>::epsilon()) {
     return;
+  }
 
   if (dt_ap2 > std::numeric_limits<double>::epsilon()) {
     // Phase 5: in the jerk-up phase of velocity ramp-down.
     double descended_jerk = sgn_vp2;
-    if (dt < dt_ap2)
+    if (dt < dt_ap2) {
       dt_ap2 = dt;
+    }
 
     log_output
         << "-----------------------------------------------------------\n"
@@ -504,10 +512,10 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
         double exp_dv =
             (0.5 * exp_t * descended_jerk) * exp_t / max_acceleration;
         exp_delta_pos += 0.0001 * dt_ap2 * (result_vel + exp_dv) / max_velocity;
-      };
+      }
       log_output << " num-integrated delta_pos = " << exp_delta_pos
                  << std::endl;
-    };
+    }
 
     result_pos += (result_vel + (dt_ap2 * descended_jerk / 6.0) * dt_ap2 /
                                     max_acceleration) *
@@ -521,14 +529,16 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
                << " acc = " << result_acc << std::endl;
 
     dt -= dt_ap2;
-    if (dt <= std::numeric_limits<double>::epsilon())
+    if (dt <= std::numeric_limits<double>::epsilon()) {
       return;
+    }
 
     // Phase 6: in the constant accel phase of velocity ramp-down.
     if (dt_vp2 > std::numeric_limits<double>::epsilon()) {
       double descended_accel = result_acc / max_acceleration;
-      if (dt < dt_vp2)
+      if (dt < dt_vp2) {
         dt_vp2 = dt;
+      }
 
       log_output
           << "-----------------------------------------------------------\n"
@@ -547,10 +557,10 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
           double exp_dv = exp_t * descended_accel;
           exp_delta_pos +=
               0.0001 * dt_vp2 * (result_vel + exp_dv) / max_velocity;
-        };
+        }
         log_output << " num-integrated delta_pos = " << exp_delta_pos
                    << std::endl;
-      };
+      }
 
       result_pos +=
           (result_vel + 0.5 * dt_vp2 * descended_accel) * dt_vp2 / max_velocity;
@@ -561,14 +571,16 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
                  << " vel = " << result_vel << std::endl;
 
       dt -= dt_vp2;
-      if (dt <= std::numeric_limits<double>::epsilon())
+      if (dt <= std::numeric_limits<double>::epsilon()) {
         return;
-    };
+      }
+    }
 
     // Phase 7: in the jerk-down phase of velocity ramp-down.
     descended_jerk = -sgn_vp2;
-    if (dt < dt_ap2)
+    if (dt < dt_ap2) {
       dt_ap2 = dt;
+    }
 
     log_output
         << "-----------------------------------------------------------\n"
@@ -593,10 +605,10 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
         double exp_dv = (result_acc + 0.5 * exp_t * descended_jerk) * exp_t /
                         max_acceleration;
         exp_delta_pos += 0.0001 * dt_ap2 * (result_vel + exp_dv) / max_velocity;
-      };
+      }
       log_output << " num-integrated delta_pos = " << exp_delta_pos
                  << std::endl;
-    };
+    }
 
     result_pos += (result_vel +
                    (0.5 * result_acc + (1.0 / 6.0) * dt_ap2 * descended_jerk) *
@@ -611,8 +623,8 @@ static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
     log_output << " pos = " << result_pos << "\n"
                << " vel = " << result_vel << "\n"
                << " acc = " << result_acc << std::endl;
-  };
-};
+  }
+}
 
 void sap_Ndof_compute_interpolated_values(
     double start_position, double end_position, double start_velocity,
@@ -642,7 +654,7 @@ void sap_Ndof_compute_interpolated_values(
 
   log_output << "The calculation of the minimum delta-time has finished and "
                 "got the following:\n";
-};
+}
 
 #else
 
@@ -664,8 +676,9 @@ void sap_Ndof_compute_interpolated_values(
 
   double dt_vp1_1st = abs(dv1);
   double sgn_vp1 = 1.0;
-  if (dv1 < 0.0)
+  if (dv1 < 0.0) {
     sgn_vp1 = -1.0;
+  }
   // we know that dt_vp_2nd = dt_vp_1st + dt_amax
   double dt_vp1 = dt_vp1_1st - max_acceleration;
   double dt_ap1 = max_acceleration;
@@ -673,12 +686,13 @@ void sap_Ndof_compute_interpolated_values(
     // means that we don't have time to reach the maximum acceleration:
     dt_vp1 = 0.0;
     dt_ap1 = sqrt(max_acceleration * dt_vp1_1st);
-  };
+  }
 
   double dt_vp2_1st = abs(dv2);
   double sgn_vp2 = 1.0;
-  if (dv2 < 0.0)
+  if (dv2 < 0.0) {
     sgn_vp2 = -1.0;
+  }
   // we know that dt_vp_2nd = dt_vp_1st + dt_amax
   double dt_vp2 = dt_vp2_1st - max_acceleration;
   double dt_ap2 = max_acceleration;
@@ -686,15 +700,16 @@ void sap_Ndof_compute_interpolated_values(
     // means that we don't have time to reach the maximum acceleration:
     dt_vp2 = 0.0;
     dt_ap2 = sqrt(max_acceleration * dt_vp2_1st);
-  };
+  }
 
   dt_total -= dt_vp2 + 2.0 * dt_ap2 + dt_vp1 + 2.0 * dt_ap1;
 
   if (dt_ap1 > std::numeric_limits<double>::epsilon()) {
     // Phase 1: in the jerk-up phase of velocity ramp-up.
     double descended_jerk = sgn_vp1;
-    if (dt < dt_ap1)
+    if (dt < dt_ap1) {
       dt_ap1 = dt;
+    }
 
     // assume result_acc == 0
     result_pos += (result_vel + (dt_ap1 * descended_jerk / 6.0) * dt_ap1 /
@@ -705,14 +720,16 @@ void sap_Ndof_compute_interpolated_values(
     result_desc_jerk = descended_jerk;
 
     dt -= dt_ap1;
-    if (dt <= std::numeric_limits<double>::epsilon())
+    if (dt <= std::numeric_limits<double>::epsilon()) {
       return;
+    }
 
     // Phase 2: in the constant accel phase of velocity ramp-up.
     if (dt_vp1 > std::numeric_limits<double>::epsilon()) {
       double descended_accel = result_acc / max_acceleration;
-      if (dt < dt_vp1)
+      if (dt < dt_vp1) {
         dt_vp1 = dt;
+      }
 
       result_pos +=
           (result_vel + 0.5 * dt_vp1 * descended_accel) * dt_vp1 / max_velocity;
@@ -720,14 +737,16 @@ void sap_Ndof_compute_interpolated_values(
       result_desc_jerk = 0.0;
 
       dt -= dt_vp1;
-      if (dt <= std::numeric_limits<double>::epsilon())
+      if (dt <= std::numeric_limits<double>::epsilon()) {
         return;
-    };
+      }
+    }
 
     // Phase 3: in the jerk-down phase of velocity ramp-up.
     descended_jerk = -sgn_vp1;
-    if (dt < dt_ap1)
+    if (dt < dt_ap1) {
       dt_ap1 = dt;
+    }
 
     result_pos += (result_vel +
                    (0.5 * result_acc + (1.0 / 6.0) * dt_ap1 * descended_jerk) *
@@ -739,13 +758,15 @@ void sap_Ndof_compute_interpolated_values(
     result_desc_jerk = descended_jerk;
 
     dt -= dt_ap1;
-    if (dt <= std::numeric_limits<double>::epsilon())
+    if (dt <= std::numeric_limits<double>::epsilon()) {
       return;
-  };
+    }
+  }
 
   // Phase 4: in the cruise phase.
-  if (dt < dt_total)
+  if (dt < dt_total) {
     dt_total = dt;
+  }
 
   result_pos += dt_total * peak_velocity / max_velocity;
   result_vel = peak_velocity;
@@ -753,14 +774,16 @@ void sap_Ndof_compute_interpolated_values(
   result_desc_jerk = 0.0;
 
   dt -= dt_total;
-  if (dt <= std::numeric_limits<double>::epsilon())
+  if (dt <= std::numeric_limits<double>::epsilon()) {
     return;
+  }
 
   if (dt_ap2 > std::numeric_limits<double>::epsilon()) {
     // Phase 5: in the jerk-up phase of velocity ramp-down.
     double descended_jerk = sgn_vp2;
-    if (dt < dt_ap2)
+    if (dt < dt_ap2) {
       dt_ap2 = dt;
+    }
 
     result_pos += (result_vel + (dt_ap2 * descended_jerk / 6.0) * dt_ap2 /
                                     max_acceleration) *
@@ -770,14 +793,16 @@ void sap_Ndof_compute_interpolated_values(
     result_desc_jerk = descended_jerk;
 
     dt -= dt_ap2;
-    if (dt <= std::numeric_limits<double>::epsilon())
+    if (dt <= std::numeric_limits<double>::epsilon()) {
       return;
+    }
 
     // Phase 6: in the constant accel phase of velocity ramp-down.
     if (dt_vp2 > std::numeric_limits<double>::epsilon()) {
       double descended_accel = result_acc / max_acceleration;
-      if (dt < dt_vp2)
+      if (dt < dt_vp2) {
         dt_vp2 = dt;
+      }
 
       result_pos +=
           (result_vel + 0.5 * dt_vp2 * descended_accel) * dt_vp2 / max_velocity;
@@ -785,14 +810,16 @@ void sap_Ndof_compute_interpolated_values(
       result_desc_jerk = 0.0;
 
       dt -= dt_vp2;
-      if (dt <= std::numeric_limits<double>::epsilon())
+      if (dt <= std::numeric_limits<double>::epsilon()) {
         return;
-    };
+      }
+    }
 
     // Phase 7: in the jerk-down phase of velocity ramp-down.
     descended_jerk = -sgn_vp2;
-    if (dt < dt_ap2)
+    if (dt < dt_ap2) {
       dt_ap2 = dt;
+    }
 
     result_pos += (result_vel +
                    (0.5 * result_acc + (1.0 / 6.0) * dt_ap2 * descended_jerk) *
@@ -802,8 +829,8 @@ void sap_Ndof_compute_interpolated_values(
                   max_acceleration;
     result_acc += dt_ap2 * descended_jerk;
     result_desc_jerk = descended_jerk;
-  };
-};
+  }
+}
 
 #endif
 
@@ -820,8 +847,8 @@ inline void sap_Ndof_compute_ramp_dist_and_time(double v1, double v2,
   } else {
     dt = 2.0 * sqrt(amax * abs(v2 - v1));
     d_pos = 0.5 * dt * (v1 + v2) / vmax;
-  };
-};
+  }
+}
 
 #ifdef RK_SAP_DETAIL_IMPLEMENTATION_USE_LOGGED_VERSION
 
@@ -839,7 +866,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
                << " peak_velocity = " << peak_velocity << "\n"
                << " min-dt = 0.0" << std::endl;
     return 0.0;
-  };
+  }
 
   if ((abs(start_velocity) > max_velocity) ||
       (abs(end_velocity) > max_velocity)) {
@@ -848,11 +875,12 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
                << " peak_velocity = 0.0\n"
                << " min-dt = inf" << std::endl;
     return std::numeric_limits<double>::infinity();
-  };
+  }
 
   double sign_p1_p0 = 1.0;
-  if (start_position > end_position)
+  if (start_position > end_position) {
     sign_p1_p0 = -1.0;
+  }
   double sa_v0_v1_2 =
       sign_p1_p0 * max_acceleration * (start_velocity + end_velocity) * 0.5;
   double vm_p1_p0 = max_velocity * abs(end_position - start_position);
@@ -907,7 +935,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
                << (abs(delta_first_order) + dt_ramp1 + dt_ramp2) << std::endl;
     // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
     return abs(delta_first_order) + dt_ramp1 + dt_ramp2;
-  };
+  }
 
   //   try to assume that vp = sign(p1-p0) * v_max
   peak_velocity = -sign_p1_p0 * max_velocity;
@@ -935,7 +963,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
                << (abs(delta_first_order) + dt_ramp1 + dt_ramp2) << std::endl;
     // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
     return abs(delta_first_order) + dt_ramp1 + dt_ramp2;
-  };
+  }
 
   log_output << "-----------------------------------------------------------\n"
              << " looping on peak_velocity values ..." << std::endl;
@@ -957,7 +985,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
                << sign_p1_p0 * (end_position - start_position - cur_dp_ramp1 -
                                 cur_dp_ramp2)
                << std::endl;
-  };
+  }
 
   //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
   //   this assumes that we have
@@ -1008,7 +1036,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means that this root works for this case.
       return abs(peak_velocity - start_velocity) +
              abs(peak_velocity - end_velocity) + 2.0 * max_acceleration;
-    };
+    }
     peak_velocity = (-sign_p1_p0 * max_acceleration - sqrt(descrim)) * 0.5;
 
     log_output
@@ -1030,8 +1058,8 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means that this root works for this case.
       return abs(peak_velocity - start_velocity) +
              abs(peak_velocity - end_velocity) + 2.0 * max_acceleration;
-    };
-  };
+    }
+  }
 
   //   else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible for
   //   min-dt):
@@ -1068,7 +1096,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return abs(peak_velocity - start_velocity) +
              abs(peak_velocity - end_velocity) + 2.0 * max_acceleration;
-    };
+    }
     peak_velocity = (sign_p1_p0 * max_acceleration - sqrt(descrim)) * 0.5;
 
     log_output << "  peak_velocity = (sign_p1_p0 * am - sqrt(descrim)) * 0.5 = "
@@ -1089,8 +1117,8 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return abs(peak_velocity - start_velocity) +
              abs(peak_velocity - end_velocity) + 2.0 * max_acceleration;
-    };
-  };
+    }
+  }
 
   // if this point is reached, we have to assume that at least one of the acceleration pulse is too short.
 
@@ -1129,7 +1157,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
     // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
     return abs(delta_first_order) + abs(peak_velocity - end_velocity) +
            2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-  };
+  }
 
   //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
   //   this assumes that we have
@@ -1175,7 +1203,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means that this root works for this case.
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
+    }
     peak_velocity =
         (-sign_p1_p0 * max_acceleration / 3.0 - sqrt(descrim)) * 0.5;
 
@@ -1199,8 +1227,8 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means that this root works for this case.
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
-  };
+    }
+  }
 
   //   else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible for
   //   min-dt):
@@ -1242,7 +1270,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
+    }
     peak_velocity = (sign_p1_p0 * max_acceleration / 3.0 - sqrt(descrim)) * 0.5;
 
     log_output
@@ -1265,8 +1293,8 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
-  };
+    }
+  }
 
   // try to assume that abs(a1) = abs(vp - v1) and abs(a0) = a_max.
   // giving:
@@ -1304,7 +1332,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
     // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
     return abs(delta_first_order) + 2.0 * abs(peak_velocity - end_velocity) +
            abs(peak_velocity - start_velocity) + max_acceleration;
-  };
+  }
 
   //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
   //   this assumes that we have
@@ -1349,7 +1377,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means that this root works for this case.
       return 2.0 * abs(peak_velocity - end_velocity) +
              abs(peak_velocity - start_velocity) + max_acceleration;
-    };
+    }
     peak_velocity =
         (-sign_p1_p0 * max_acceleration / 3.0 - sqrt(descrim)) * 0.5;
 
@@ -1372,8 +1400,8 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means that this root works for this case.
       return 2.0 * abs(peak_velocity - end_velocity) +
              abs(peak_velocity - start_velocity) + max_acceleration;
-    };
-  };
+    }
+  }
 
   //   else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible for
   //   min-dt):
@@ -1414,7 +1442,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return 2.0 * abs(peak_velocity - end_velocity) +
              abs(peak_velocity - start_velocity) + max_acceleration;
-    };
+    }
     peak_velocity = (sign_p1_p0 * max_acceleration / 3.0 - sqrt(descrim)) * 0.5;
 
     log_output
@@ -1436,8 +1464,8 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return 2.0 * abs(peak_velocity - end_velocity) +
              abs(peak_velocity - start_velocity) + max_acceleration;
-    };
-  };
+    }
+  }
 
   // try to assume that abs(a0) = abs(vp - v0) and abs(a1) = abs(vp - v1).
   // giving:
@@ -1474,7 +1502,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
     // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
     return abs(delta_first_order) + 2.0 * abs(peak_velocity - end_velocity) +
            2.0 * abs(peak_velocity - start_velocity);
-  };
+  }
 
   //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
   //   this assumes that we have
@@ -1504,7 +1532,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
                << std::endl;
     return abs(peak_velocity - end_velocity) +
            2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-  };
+  }
 
   //   else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible for
   //   min-dt):
@@ -1539,7 +1567,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
                  << std::endl;
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
+    }
 
     log_output << "  'if((abs(vp) <= vm) && (-vp <= sign_p1_p0 * vs) && (-vp "
                   "<= sign_p1_p0 * ve))'"
@@ -1559,8 +1587,8 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
                  << std::endl;
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
-  };
+    }
+  }
 
   log_output << "-----------------------------------------------------------\n"
              << "Reached the end of the calculation and did not find a "
@@ -1570,7 +1598,7 @@ static double sap_Ndof_compute_min_delta_time_logged_version(
   // What the fuck!! This point should never be reached, unless the motion is completely impossible:
   peak_velocity = 0.0;
   return std::numeric_limits<double>::infinity();
-};
+}
 
 double sap_Ndof_compute_min_delta_time(
     double start_position, double end_position, double start_velocity,
@@ -1615,7 +1643,7 @@ double sap_Ndof_compute_min_delta_time(
              << "Descended-Jerk: " << result_desc_jerk << std::endl;
 
   return min_delta_time;
-};
+}
 
 #else
 
@@ -1630,13 +1658,13 @@ double sap_Ndof_compute_min_delta_time(
       (abs(end_velocity - start_velocity) < 1e-6 * max_acceleration)) {
     peak_velocity = start_velocity;
     return 0.0;
-  };
+  }
 
   if ((abs(start_velocity) > max_velocity) ||
       (abs(end_velocity) > max_velocity)) {
     peak_velocity = 0.0;
     return std::numeric_limits<double>::infinity();
-  };
+  }
 
   double sign_p1_p0 = 1.0;
   if (start_position > end_position)
@@ -1668,7 +1696,7 @@ double sap_Ndof_compute_min_delta_time(
   if (delta_first_order * peak_velocity > 0.0) {
     // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
     return abs(delta_first_order) + dt_ramp1 + dt_ramp2;
-  };
+  }
 
   //   try to assume that vp = sign(p1-p0) * v_max
   peak_velocity = -sign_p1_p0 * max_velocity;
@@ -1682,7 +1710,7 @@ double sap_Ndof_compute_min_delta_time(
   if (delta_first_order * peak_velocity > 0.0) {
     // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
     return abs(delta_first_order) + dt_ramp1 + dt_ramp2;
-  };
+  }
 
   //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
   //   this assumes that we have
@@ -1702,7 +1730,7 @@ double sap_Ndof_compute_min_delta_time(
       // this means that this root works for this case.
       return abs(peak_velocity - start_velocity) +
              abs(peak_velocity - end_velocity) + 2.0 * max_acceleration;
-    };
+    }
     peak_velocity = (-sign_p1_p0 * max_acceleration - sqrt(descrim)) * 0.5;
     if ((abs(peak_velocity) <= max_velocity) &&
         (sign_p1_p0 * peak_velocity >= sign_p1_p0 * start_velocity) &&
@@ -1710,8 +1738,8 @@ double sap_Ndof_compute_min_delta_time(
       // this means that this root works for this case.
       return abs(peak_velocity - start_velocity) +
              abs(peak_velocity - end_velocity) + 2.0 * max_acceleration;
-    };
-  };
+    }
+  }
 
   //   else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible for
   //   min-dt):
@@ -1727,7 +1755,7 @@ double sap_Ndof_compute_min_delta_time(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return abs(peak_velocity - start_velocity) +
              abs(peak_velocity - end_velocity) + 2.0 * max_acceleration;
-    };
+    }
     peak_velocity = (sign_p1_p0 * max_acceleration - sqrt(descrim)) * 0.5;
     if ((abs(peak_velocity) <= max_velocity) &&
         (sign_p1_p0 * peak_velocity <= sign_p1_p0 * start_velocity) &&
@@ -1735,8 +1763,8 @@ double sap_Ndof_compute_min_delta_time(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return abs(peak_velocity - start_velocity) +
              abs(peak_velocity - end_velocity) + 2.0 * max_acceleration;
-    };
-  };
+    }
+  }
 
   // if this point is reached, we have to assume that at least one of the acceleration pulse is too short.
 
@@ -1759,7 +1787,7 @@ double sap_Ndof_compute_min_delta_time(
     // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
     return abs(delta_first_order) + abs(peak_velocity - end_velocity) +
            2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-  };
+  }
 
   //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
   //   this assumes that we have
@@ -1783,7 +1811,7 @@ double sap_Ndof_compute_min_delta_time(
       // this means that this root works for this case.
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
+    }
     peak_velocity =
         (-sign_p1_p0 * max_acceleration / 3.0 - sqrt(descrim)) * 0.5;
 
@@ -1793,8 +1821,8 @@ double sap_Ndof_compute_min_delta_time(
       // this means that this root works for this case.
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
-  };
+    }
+  }
 
   //   else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible for
   //   min-dt):
@@ -1814,7 +1842,7 @@ double sap_Ndof_compute_min_delta_time(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
+    }
     peak_velocity = (sign_p1_p0 * max_acceleration / 3.0 - sqrt(descrim)) * 0.5;
 
     if ((abs(peak_velocity) <= max_velocity) &&
@@ -1823,8 +1851,8 @@ double sap_Ndof_compute_min_delta_time(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
-  };
+    }
+  }
 
   // try to assume that abs(a1) = abs(vp - v1) and abs(a0) = a_max.
   // giving:
@@ -1845,7 +1873,7 @@ double sap_Ndof_compute_min_delta_time(
     // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
     return abs(delta_first_order) + 2.0 * abs(peak_velocity - end_velocity) +
            abs(peak_velocity - start_velocity) + max_acceleration;
-  };
+  }
 
   //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
   //   this assumes that we have
@@ -1869,7 +1897,7 @@ double sap_Ndof_compute_min_delta_time(
       // this means that this root works for this case.
       return 2.0 * abs(peak_velocity - end_velocity) +
              abs(peak_velocity - start_velocity) + max_acceleration;
-    };
+    }
     peak_velocity =
         (-sign_p1_p0 * max_acceleration / 3.0 - sqrt(descrim)) * 0.5;
 
@@ -1879,8 +1907,8 @@ double sap_Ndof_compute_min_delta_time(
       // this means that this root works for this case.
       return 2.0 * abs(peak_velocity - end_velocity) +
              abs(peak_velocity - start_velocity) + max_acceleration;
-    };
-  };
+    }
+  }
 
   //   else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible for
   //   min-dt):
@@ -1900,7 +1928,7 @@ double sap_Ndof_compute_min_delta_time(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return 2.0 * abs(peak_velocity - end_velocity) +
              abs(peak_velocity - start_velocity) + max_acceleration;
-    };
+    }
     peak_velocity = (sign_p1_p0 * max_acceleration / 3.0 - sqrt(descrim)) * 0.5;
 
     if ((abs(peak_velocity) <= max_velocity) &&
@@ -1909,8 +1937,8 @@ double sap_Ndof_compute_min_delta_time(
       // this means there is a valid solution for which vp is still in the direction of (p1-p0):
       return 2.0 * abs(peak_velocity - end_velocity) +
              abs(peak_velocity - start_velocity) + max_acceleration;
-    };
-  };
+    }
+  }
 
   // try to assume that abs(a0) = abs(vp - v0) and abs(a1) = abs(vp - v1).
   // giving:
@@ -1930,7 +1958,7 @@ double sap_Ndof_compute_min_delta_time(
     // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
     return abs(delta_first_order) + 2.0 * abs(peak_velocity - end_velocity) +
            2.0 * abs(peak_velocity - start_velocity);
-  };
+  }
 
   //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
   //   this assumes that we have
@@ -1946,7 +1974,7 @@ double sap_Ndof_compute_min_delta_time(
     peak_velocity *= sign_p1_p0;
     return abs(peak_velocity - end_velocity) +
            2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-  };
+  }
 
   //   else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible for
   //   min-dt):
@@ -1963,7 +1991,7 @@ double sap_Ndof_compute_min_delta_time(
       peak_velocity *= sign_p1_p0;
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
+    }
 
     if ((abs(peak_velocity) <= max_velocity) &&
         (-peak_velocity <= sign_p1_p0 * start_velocity) &&
@@ -1972,13 +2000,13 @@ double sap_Ndof_compute_min_delta_time(
       peak_velocity *= -sign_p1_p0;
       return abs(peak_velocity - end_velocity) +
              2.0 * abs(peak_velocity - start_velocity) + max_acceleration;
-    };
-  };
+    }
+  }
 
   // What the fuck!! This point should never be reached, unless the motion is completely impossible:
   peak_velocity = 0.0;
   return std::numeric_limits<double>::infinity();
-};
+}
 
 #endif
 
@@ -1997,20 +2025,18 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
       (abs(end_velocity - start_velocity) < 1e-6 * max_acceleration)) {
     peak_velocity = start_velocity;
     return;
-  };
+  }
 
   if ((abs(start_velocity) > max_velocity) ||
       (abs(end_velocity) > max_velocity)) {
     peak_velocity = 0.0;
-    RK_NOTICE(1,
-              " Warning: violation of the velocity bounds was detected on SAP "
-              "interpolations!");
     return;
-  };
+  }
 
   double sign_p1_p0 = 1.0;
-  if (start_position > end_position)
+  if (start_position > end_position) {
     sign_p1_p0 = -1.0;
+  }
 
   // try to assume that a0 and a1 are a_max
   // giving:
@@ -2033,15 +2059,15 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
         (sign_p1_p0 * peak_velocity >= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity >= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     peak_velocity = 0.5 * (v0_v1_ts_sa - sqrt(descrim));
     if ((abs(peak_velocity) <= max_velocity) &&
         (sign_p1_p0 * peak_velocity >= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity >= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     // then, there was no suitable root in this region.
-  };
+  }
 
   // try to assume that vp is somewhere between v1 and v0 (i.e., ramp-up ramp-up or ramp-down ramp-down).
   if (end_velocity > start_velocity) {
@@ -2056,7 +2082,7 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
           (peak_velocity >= start_velocity) && (peak_velocity <= end_velocity))
         return;
       // then, the solution doesn't fit the assumption.
-    };
+    }
   } else {
     // ramp-down ramp-down
     v0_v1_ts_sa = end_velocity - start_velocity + delta_time - max_acceleration;
@@ -2066,11 +2092,13 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
     if (abs(v0_v1_ts_sa) > 1e-6 * max_velocity) {
       peak_velocity = (vm_p1_p0 + vsqr_avg - a_v0_v1_2) / v0_v1_ts_sa;
       if ((abs(peak_velocity) <= max_velocity) &&
-          (peak_velocity >= end_velocity) && (peak_velocity <= start_velocity))
+          (peak_velocity >= end_velocity) &&
+          (peak_velocity <= start_velocity)) {
         return;
+      }
       // then, the solution doesn't fit the assumption.
-    };
-  };
+    }
+  }
 
   // try to assume (the last case) that vp is less in the direction (p1-p0) and both v0 and v1.
   v0_v1_ts_sa = start_velocity + end_velocity +
@@ -2086,15 +2114,15 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
         (peak_velocity * sign_p1_p0 <= start_velocity * sign_p1_p0) &&
         (peak_velocity * sign_p1_p0 <= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     peak_velocity = 0.5 * (v0_v1_ts_sa - sqrt(descrim));
     if ((abs(peak_velocity) <= max_velocity) &&
         (peak_velocity * sign_p1_p0 <= start_velocity * sign_p1_p0) &&
         (peak_velocity * sign_p1_p0 <= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     // then, there was no suitable root in this region.
-  };
+  }
 
   // if this point is reached, we have to assume that at least one of the acceleration pulse is too short.
 
@@ -2121,15 +2149,15 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
         (sign_p1_p0 * peak_velocity >= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity >= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     peak_velocity = 0.5 * (v0_v1_ts_sa - sqrt(descrim));
     if ((abs(peak_velocity) <= max_velocity) &&
         (sign_p1_p0 * peak_velocity >= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity >= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     // then, there was no suitable root in this region.
-  };
+  }
 
   // try to assume that vp is somewhere between v1 and v0 (i.e., ramp-up ramp-up or ramp-down ramp-down).
   if (end_velocity > start_velocity) {
@@ -2148,15 +2176,15 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
           (peak_velocity >= start_velocity) &&
           (peak_velocity <= end_velocity)) {
         return;
-      };
+      }
       peak_velocity = 0.5 * (v0_v1_ts_sa - sqrt(descrim));
       if ((abs(peak_velocity) <= max_velocity) &&
           (peak_velocity >= start_velocity) &&
           (peak_velocity <= end_velocity)) {
         return;
-      };
+      }
       // then, the solution doesn't fit the assumption.
-    };
+    }
   } else {
     // ramp-down ramp-down
     v0_v1_ts_sa = 2.0 * (end_velocity - 2.0 * start_velocity + delta_time -
@@ -2173,16 +2201,16 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
           (peak_velocity <= start_velocity) &&
           (peak_velocity >= end_velocity)) {
         return;
-      };
+      }
       peak_velocity = 0.5 * (-v0_v1_ts_sa - sqrt(descrim));
       if ((abs(peak_velocity) <= max_velocity) &&
           (peak_velocity <= start_velocity) &&
           (peak_velocity >= end_velocity)) {
         return;
-      };
+      }
       // then, the solution doesn't fit the assumption.
-    };
-  };
+    }
+  }
 
   // try to assume (the last case) that vp is less in the direction (p1-p0) and both v0 and v1.
   v0_v1_ts_sa = (-2.0 * start_velocity - end_velocity +
@@ -2201,15 +2229,15 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
         (sign_p1_p0 * peak_velocity <= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity <= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     peak_velocity = 0.5 * (-v0_v1_ts_sa - sqrt(descrim));
     if ((abs(peak_velocity) <= max_velocity) &&
         (sign_p1_p0 * peak_velocity <= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity <= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     // then, there was no suitable root in this region.
-  };
+  }
 
   // try to assume that abs(a1) = abs(vp - v1) and abs(a0) = a_max.
   // giving:
@@ -2234,15 +2262,15 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
         (sign_p1_p0 * peak_velocity >= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity >= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     peak_velocity = 0.5 * (v0_v1_ts_sa - sqrt(descrim));
     if ((abs(peak_velocity) <= max_velocity) &&
         (sign_p1_p0 * peak_velocity >= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity >= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     // then, there was no suitable root in this region.
-  };
+  }
 
   // try to assume that vp is somewhere between v1 and v0 (i.e., ramp-up ramp-up or ramp-down ramp-down).
   if (end_velocity < start_velocity) {
@@ -2261,15 +2289,15 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
           (peak_velocity >= end_velocity) &&
           (peak_velocity <= start_velocity)) {
         return;
-      };
+      }
       peak_velocity = 0.5 * (v0_v1_ts_sa - sqrt(descrim));
       if ((abs(peak_velocity) <= max_velocity) &&
           (peak_velocity >= end_velocity) &&
           (peak_velocity <= start_velocity)) {
         return;
-      };
+      }
       // then, the solution doesn't fit the assumption.
-    };
+    }
   } else {
     // ramp-up ramp-up
     v0_v1_ts_sa = 2.0 * (start_velocity - 2.0 * end_velocity + delta_time -
@@ -2286,16 +2314,16 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
           (peak_velocity >= end_velocity) &&
           (peak_velocity <= start_velocity)) {
         return;
-      };
+      }
       peak_velocity = 0.5 * (-v0_v1_ts_sa - sqrt(descrim));
       if ((abs(peak_velocity) <= max_velocity) &&
           (peak_velocity >= end_velocity) &&
           (peak_velocity <= start_velocity)) {
         return;
-      };
+      }
       // then, the solution doesn't fit the assumption.
-    };
-  };
+    }
+  }
 
   // try to assume (the last case) that vp is less in the direction (p1-p0) and both v0 and v1.
   v0_v1_ts_sa = (-2.0 * end_velocity - start_velocity +
@@ -2314,15 +2342,15 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
         (sign_p1_p0 * peak_velocity <= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity <= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     peak_velocity = 0.5 * (-v0_v1_ts_sa - sqrt(descrim));
     if ((abs(peak_velocity) <= max_velocity) &&
         (sign_p1_p0 * peak_velocity <= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity <= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     // then, there was no suitable root in this region.
-  };
+  }
 
   // try to assume that abs(a0) = abs(vp - v0) and abs(a1) = abs(vp - v1).
   // giving:
@@ -2343,15 +2371,15 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
         (sign_p1_p0 * peak_velocity >= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity >= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     peak_velocity = 0.5 * (v0_v1_ts_sa - sqrt(descrim));
     if ((abs(peak_velocity) <= max_velocity) &&
         (sign_p1_p0 * peak_velocity >= start_velocity * sign_p1_p0) &&
         (sign_p1_p0 * peak_velocity >= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     // then, there was no suitable root in this region.
-  };
+  }
 
   // try to assume that vp is somewhere between v1 and v0 (i.e., ramp-up ramp-up or ramp-down ramp-down).
   if (end_velocity > start_velocity) {
@@ -2365,7 +2393,7 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
           (peak_velocity >= start_velocity) && (peak_velocity <= end_velocity))
         return;
       // then, the solution doesn't fit the assumption.
-    };
+    }
   } else {
     // ramp-down ramp-down
     v0_v1_ts_sa = 2.0 * end_velocity - 2.0 * start_velocity + delta_time;
@@ -2377,8 +2405,8 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
           (peak_velocity >= end_velocity) && (peak_velocity <= start_velocity))
         return;
       // then, the solution doesn't fit the assumption.
-    };
-  };
+    }
+  }
 
   // try to assume (the last case) that vp is less in the direction (p1-p0) and both v0 and v1.
   v0_v1_ts_sa = start_velocity + end_velocity - 0.5 * delta_time * sign_p1_p0;
@@ -2393,20 +2421,20 @@ void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
         (peak_velocity * sign_p1_p0 <= start_velocity * sign_p1_p0) &&
         (peak_velocity * sign_p1_p0 <= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     peak_velocity = 0.5 * (v0_v1_ts_sa - sqrt(descrim));
     if ((abs(peak_velocity) <= max_velocity) &&
         (peak_velocity * sign_p1_p0 <= start_velocity * sign_p1_p0) &&
         (peak_velocity * sign_p1_p0 <= end_velocity * sign_p1_p0)) {
       return;
-    };
+    }
     // then, there was no suitable root in this region.
-  };
+  }
 
   // What the fuck!! This point should never be reached, unless the motion is completely impossible:
   peak_velocity = 0.0;
   return;
-};
+}
 
 static void sap_Ndof_compute_peak_velocity_numsolve(
     double start_position, double end_position, double start_velocity,
@@ -2419,7 +2447,7 @@ static void sap_Ndof_compute_peak_velocity_numsolve(
       (abs(end_velocity - start_velocity) < 1e-6 * max_acceleration)) {
     peak_velocity = start_velocity;
     return;
-  };
+  }
 
   if ((abs(start_velocity) > max_velocity) ||
       (abs(end_velocity) > max_velocity)) {
@@ -2427,7 +2455,7 @@ static void sap_Ndof_compute_peak_velocity_numsolve(
     throw optim::infeasible_problem(
         "Violation of the velocity bounds on invocation of the SAP "
         "peak-velocity solver!");
-  };
+  }
 
   double sign_p1_p0 = 1.0;
   if (start_position > end_position)
@@ -2456,17 +2484,16 @@ static void sap_Ndof_compute_peak_velocity_numsolve(
       } else {
         cur_vp = orig_cur_vp;
         cur_pd = pd_calc(cur_vp);
-      };
-    };
+      }
+    }
     prev_vp = cur_vp;
     prev_pd = cur_pd;
-  };
+  }
 
   peak_velocity = 0.0;
   throw optim::infeasible_problem(
       "The SAP peak-velocity solver could not find a solution for the given "
       "boundary conditions!");
-};
-};  // namespace detail
-};  // namespace pp
-};  // namespace ReaK
+}
+
+}  // namespace ReaK::pp::detail

@@ -48,6 +48,7 @@
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
+#include "absl/log/log.h"
 
 // I/O options
 ABSL_FLAG(
@@ -1817,16 +1818,15 @@ int do_required_tasks(
                                      "_mdl.rkx")) &
           RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
     } catch (...) {
-      RK_ERROR(
-          "An exception occurred during the saving the satellite system file!");
+      LOG(ERROR) << "An exception occurred during the saving the satellite "
+                    "system file!";
       return 14;
     }
   } else if (absl::GetFlag(FLAGS_online_run)) {
 
     if (!data_in) {
-      RK_ERROR(
-          "Must have a defined input data-stream in order to run the estimator "
-          "online!");
+      LOG(ERROR) << "Must have a defined input data-stream in order to run the "
+                    "estimator online!";
       return 15;
     }
 
@@ -2036,7 +2036,7 @@ int main(int argc, char** argv) {
       data_in_opt = recorder::get_data_stream_options_from_flags(false);
       std::tie(data_in, names_in) = data_in_opt.create_extractor();
     } catch (std::invalid_argument& e) {
-      std::cerr
+      LOG(ERROR)
           << "Error! Creation of input data-stream failed! Invalid argument: "
           << e.what() << std::endl;
       return 2;
@@ -2063,7 +2063,7 @@ int main(int argc, char** argv) {
     }
 
   } catch (std::invalid_argument& e) {
-    std::cerr
+    LOG(ERROR)
         << "Error! Creation of output data-stream failed! Invalid argument: "
         << e.what() << std::endl;
     return 1;
@@ -2075,9 +2075,9 @@ int main(int argc, char** argv) {
   try {
     sat_options = ctrl::get_satellite_predictor_options_from_flags();
   } catch (std::exception& e) {
-    std::cerr << "Error! Creation of satellite modeling options failed! With "
-                 "exception: "
-              << e.what() << std::endl;
+    LOG(ERROR) << "Error! Creation of satellite modeling options failed! With "
+                  "exception: "
+               << e.what() << std::endl;
     return 2;
   }
 

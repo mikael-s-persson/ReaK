@@ -373,10 +373,7 @@ double sap_compute_min_delta_time(const PointType& start_point,
                                   const TimeSpace& t_space,
                                   double num_tol = 1E-6,
                                   unsigned int max_iter = 20) {
-
   double result = 0.0;
-  // RK_NOTICE(1,"*********  Starting Min-dt Iterations    *****************");
-
   double s2_rad = get_space<2>(space, t_space).get_radius();
   svp_peak_velocity_iteration(
       start_point, end_point, delta_first_order, peak_velocity, norm_delta,
@@ -405,10 +402,7 @@ double sap_compute_peak_velocity(
     double& norm_delta, double& beta, double delta_time, const DiffSpace& space,
     const TimeSpace& t_space, double num_tol = 1E-6,
     unsigned int max_iter = 20) {
-
   double slack = 0.0;
-  // RK_NOTICE(1,"*********  Starting No-slack Iterations  *****************");
-
   double s2_rad = get_space<2>(space, t_space).get_radius();
   svp_peak_velocity_iteration(
       start_point, end_point, delta_first_order, peak_velocity, norm_delta,
