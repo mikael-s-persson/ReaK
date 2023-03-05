@@ -1,11 +1,5 @@
 # project(ReaK_planning)
 
-find_package(BGLExtra REQUIRED)
-if(BGLEXTRA_FOUND)
-  message(STATUS "BGL-Extra was detected on this system: '${BGLEXTRA_INCLUDE_DIR}'")
-  include_directories(SYSTEM ${BGLEXTRA_INCLUDE_DIR})
-endif()
-
 find_package(Coin3D)
 if(COIN3D_FOUND)
   message(STATUS "Coin3D library components were found: '${COIN3D_LIBRARIES}'")

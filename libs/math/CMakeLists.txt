@@ -1,11 +1,5 @@
 # project(ReaK_math)
 
-# find_package(BGLExtra REQUIRED)
-# if(BGLEXTRA_FOUND)
-#   message(STATUS "BGL-Extra was detected on this system: '${BGLEXTRA_INCLUDE_DIR}'")
-#   include_directories(SYSTEM ${BGLEXTRA_INCLUDE_DIR})
-# endif()
-
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../core")
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../core/include")
 else()

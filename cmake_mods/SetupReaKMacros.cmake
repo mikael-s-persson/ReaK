@@ -58,6 +58,10 @@ add_subdirectory(third_party/abseil-cpp)
 # Process googletest's CMake build system
 add_subdirectory(third_party/googletest)
 
+# Process boost_graph_ext_mp's CMake build system
+add_subdirectory(third_party/boost_graph_ext_mp)
+include_directories(SYSTEM "third_party/boost_graph_ext_mp/include")
+
 # Look for Python (needed by Boost.Python):
 
 find_package(Python3 COMPONENTS Development)

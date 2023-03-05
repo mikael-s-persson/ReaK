@@ -44,7 +44,7 @@
 #include <boost/graph/graph_selectors.hpp>
 #include <boost/graph/graph_traits.hpp>
 
-#include <boost/graph/adjacency_list_BC.hpp>
+#include "boost/graph/adjacency_list_BC.hpp"
 
 namespace ReaK {
 
