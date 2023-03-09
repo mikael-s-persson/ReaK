@@ -1,0 +1,79 @@
+
+reak_cc_library(
+  NAME
+    systems
+  SRCS
+    "airship_assembled_models.cc"
+    "near_buoyant_airship_models.cc"
+    "quadrotor_system.cc"
+    "satellite_basic_models.cc"
+    "satellite_invar_models.cc"
+    "satellite_modeling_options.cc"
+  HDRS
+    "airship_assembled_models.h"
+    "airship_basic_mixins.h"
+    "airship_drag_mixins.h"
+    "airship_IMU_mixins.h"
+    "airship_sonar_mixins.h"
+    "airship_thruster_mixins.h"
+    "augmented_sss_concept.h"
+    "augmented_to_state_mapping.h"
+    "discrete_linear_sss_concept.h"
+    "discrete_sss_concept.h"
+    "discretized_lti_sys.h"
+    "invariant_system_concept.h"
+    "kte_nl_system.h"
+    "linear_ss_system_concept.h"
+    "lti_discrete_sys.h"
+    "lti_ss_system.h"
+    "near_buoyant_airship_models.h"
+    "num_int_dtnl_system.h"
+    "quadrotor_system.h"
+    "satellite_basic_models.h"
+    "satellite_invar_models.h"
+    "satellite_modeling_options.h"
+    "sss_exceptions.h"
+    "state_space_sys_concept.h"
+    "state_space_system_tuple.h"
+    "state_to_output_mapping.h"
+    "state_vector_concept.h"
+  DEPS
+    ReaK::spaces
+    ReaK::lin_alg
+    ReaK::kinetostatics
+  PUBLIC
+)
+
+reak_cc_library(
+  NAME
+    satellite_modeling_po
+  SRCS
+    "satellite_modeling_po.cc"
+  HDRS
+    "satellite_modeling_po.h"
+  DEPS
+    absl::flags
+    ReaK::systems
+)
+
+reak_cc_binary(
+  NAME
+    build_quadrotor_space
+  SRCS
+    "build_quadrotor_space.cc"
+  DEPS
+    ReaK::serialization
+    ReaK::spaces
+    ReaK::systems
+)
+
+reak_cc_binary(
+  NAME
+    quadrotor_scene
+  SRCS
+    "quadrotor_scene.cc"
+  DEPS
+    ReaK::serialization
+    ReaK::spaces
+    ReaK::systems
+)

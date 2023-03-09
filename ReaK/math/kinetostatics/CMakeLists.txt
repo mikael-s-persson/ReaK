@@ -1,0 +1,71 @@
+
+
+reak_cc_library(
+  NAME
+    kinetostatics
+  HDRS
+    "calibrate_frames_3D.h"
+    "frame_2D.h"
+    "frame_3D.h"
+    "gen_coord.h"
+    "kinetostatics.h"
+    "motion_jacobians.h"
+    "pose_2D.h"
+    "pose_3D.h"
+    "quat_alg.h"
+    "quat_num.h"
+    "rotations.h"
+    "rotations_2D.h"
+    "rotations_3D.h"
+  DEPS
+    ReaK::base
+    ReaK::lin_alg
+  PUBLIC
+)
+
+reak_cc_test(
+  NAME
+    rotations_test
+  SRCS
+    "rotations_test.cc"
+  DEPS
+    ReaK::lin_alg
+    ReaK::kinetostatics
+    GTest::gtest_main
+)
+
+reak_cc_test(
+  NAME
+    quat_alg_test
+  SRCS
+    "quat_alg_test.cc"
+  DEPS
+    ReaK::lin_alg
+    ReaK::kinetostatics
+    GTest::gtest_main
+)
+
+reak_cc_binary(
+  NAME
+    lie_group_num_test
+  SRCS
+    "lie_group_num_test.cc"
+  DEPS
+    ReaK::lin_alg
+    ReaK::kinetostatics
+)
+
+if(Python3_FOUND)
+  reak_cc_library(
+    NAME
+      py_kinetostatics
+    SRCS
+      "py_kinetostatics.cc"
+    DEPS
+      ReaK::kinetostatics
+      ${PYTHON_LIBRARIES}
+      ${Boost_LIBRARIES}
+      ${EXTRA_SYSTEM_LIBS}
+    PUBLIC
+  )
+endif()

@@ -1,0 +1,85 @@
+
+
+reak_cc_library(
+  NAME
+    optimization
+  HDRS
+    "augmented_lagrangian_methods.h"
+    "conjugate_gradient_methods.h"
+    "finite_diff_jacobians.h"
+    "function_types.h"
+    "gauss_newton_method.h"
+    "hessian_approx_update.h"
+    "jacobian_helper_functions.h"
+    "jacobian_transpose_method.h"
+    "levenberg_marquardt_method.h"
+    "limit_functions.h"
+    "line_search.h"
+    "mehrotra_method.h"
+    "nelder_mead_method.h"
+    "newton_methods.h"
+    "newton_search_directions.h"
+    "nl_interior_points_methods.h"
+    "optim_exceptions.h"
+    "quadratic_programs.h"
+    "quasi_newton_methods.h"
+    "sequential_qp_methods.h"
+    "simplex_method.h"
+    "trust_region_search.h"
+  DEPS
+    ReaK::base
+    ReaK::lin_alg
+  PUBLIC
+)
+
+reak_cc_binary(
+  NAME
+    lp_test
+  SRCS
+    "lp_test.cc"
+  DEPS
+    ReaK::serialization
+    ReaK::lin_alg
+    ReaK::optimization
+)
+
+reak_cc_binary(
+  NAME
+    qp_test
+  SRCS
+    "qp_test.cc"
+  DEPS
+    ReaK::lin_alg
+    ReaK::optimization
+)
+
+reak_cc_binary(
+  NAME
+    nlp_unconstrained_test
+  SRCS
+    "nlp_unconstrained_test.cc"
+  DEPS
+    ReaK::lin_alg
+    ReaK::optimization
+)
+
+reak_cc_binary(
+  NAME
+    nlp_constrained_test
+  SRCS
+    "nlp_constrained_test.cc"
+  DEPS
+    ReaK::lin_alg
+    ReaK::optimization
+)
+
+reak_cc_binary(
+  NAME
+    nllsq_test
+  SRCS
+    "nllsq_test.cc"
+  DEPS
+    ReaK::lin_alg
+    ReaK::optimization
+)
+

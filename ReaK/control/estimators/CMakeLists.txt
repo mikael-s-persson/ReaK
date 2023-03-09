@@ -1,0 +1,85 @@
+
+reak_cc_library(
+  NAME
+    estimators
+  HDRS
+    "aggregate_kalman_filter.h"
+    "belief_state_concept.h"
+    "belief_state_predictor.h"
+    "covar_topology.h"
+    "covariance_concept.h"
+    "covariance_info_matrix.h"
+    "covariance_matrix.h"
+    "decomp_covariance_matrix.h"
+    "discrete_ss_predicted_traj.h"
+    "gaussian_belief_space.h"
+    "gaussian_belief_state.h"
+    "hybrid_kalman_filter.h"
+    "invariant_aggregate_kalman_filter.h"
+    "invariant_kalman_bucy_filter.h"
+    "invariant_kalman_filter.h"
+    "invariant_symplectic_kalman_filter.h"
+    "kalman_bucy_filter.h"
+    "kalman_filter.h"
+    "maximum_likelihood_mapping.h"
+    "state_estimator_concept.h"
+    "state_observer_concept.h"
+    "symplectic_kalman_filter.h"
+    "tsos_aug_inv_kalman_filter.h"
+    "tsos_aug_kalman_filter.h"
+    "unscented_kalman_filter.h"
+  DEPS
+    ReaK::base
+    ReaK::lin_alg
+    ReaK::spaces
+  PUBLIC
+)
+
+reak_cc_binary(
+  NAME
+    estimate_airship
+  SRCS
+    "estimate_airship.cc"
+  DEPS
+    ReaK::base
+    ReaK::recorders_po
+    ReaK::lin_alg
+    ReaK::spaces
+    ReaK::estimators
+    ReaK::systems
+)
+
+reak_cc_binary(
+  NAME
+    estimate_satellite3D
+  SRCS
+    "estimate_satellite3D.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    absl::log
+    ReaK::base
+    ReaK::recorders_po
+    ReaK::lin_alg
+    ReaK::spaces
+    ReaK::estimators
+    ReaK::satellite_modeling_po
+    ReaK::systems
+)
+
+reak_cc_binary(
+  NAME
+    predict_satellite3D
+  SRCS
+    "predict_satellite3D.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    absl::log
+    ReaK::base
+    ReaK::recorders_po
+    ReaK::lin_alg
+    ReaK::spaces
+    ReaK::estimators
+    ReaK::systems
+)

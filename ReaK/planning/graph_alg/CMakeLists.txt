@@ -1,0 +1,51 @@
+
+
+reak_cc_library(
+  NAME
+    graph_alg
+  HDRS
+    "adaptive_star_neighborhood.h"
+    "adj_list_tree_overlay.h"
+    "adstar_search.h"
+    "any_graph.h"
+    "anytime_sbastar.h"
+    "avl_tree_detail.h"
+    "avl_tree.h"
+    "bgl_raw_property_graph.h"
+    "branch_and_bound_connector.h"
+    "fadprm.h"
+    "lazy_connector.h"
+    "lazy_sbastar.h"
+    "motion_graph_connector.h"
+    "neighborhood_functors.h"
+    "node_generators.h"
+    "prm_connector.h"
+    "probabilistic_roadmap.h"
+    "pruned_connector.h"
+    "rr_graph.h"
+    "rr_tree.h"
+    "rrt_star.h"
+    "sbastar_rrtstar.h"
+    "sbastar_search.h"
+    "sbmp_visitor_concepts.h"
+    "simple_graph_traits.h"
+    "tree_organizer_concept.h"
+  DEPS
+    ReaK::base
+    ReaK::lin_alg
+    ReaK::kinetostatics
+    ReaK::spaces
+    ReaK::interpolation
+  PUBLIC
+)
+
+reak_cc_test(
+  NAME
+    assoc_containers_test
+  SRCS
+    "assoc_containers_test.cc"
+  DEPS
+    ReaK::base
+    ReaK::graph_alg
+    GTest::gtest_main
+)

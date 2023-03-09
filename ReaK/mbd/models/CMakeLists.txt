@@ -1,0 +1,173 @@
+
+
+reak_cc_library(
+  NAME
+    models
+  SRCS
+    "free_floating_platform.cc"
+    "manip_3R3R_arm.cc"
+    "manip_3R_arm.cc"
+    "manip_clik_calculator.cc"
+    "manip_dynamics_model.cc"
+    "manip_ERA_arm.cc"
+    "manip_kinematics_helper.cc"
+    "manip_kinematics_model.cc"
+    "manip_P3R3R_arm.cc"
+    "manip_SCARA_arm.cc"
+    "manip_SSRMS_arm.cc"
+    "uav_kinematics.cc"
+  HDRS
+    "direct_kinematics_model.h"
+    "free_floating_platform.h"
+    "inverse_dynamics_model.h"
+    "inverse_kinematics_model.h"
+    "joint_space_limits.h"
+    "manip_3R3R_arm.h"
+    "manip_3R_arm.h"
+    "manip_clik_calculator.h"
+    "manip_dynamics_model.h"
+    "manip_ERA_arm.h"
+    "manip_kinematics_helper.h"
+    "manip_kinematics_model.h"
+    "manip_P3R3R_arm.h"
+    "manip_SCARA_arm.h"
+    "manip_SSRMS_arm.h"
+    "uav_kinematics.h"
+  DEPS
+    ReaK::base
+    ReaK::lin_alg
+    ReaK::kinetostatics
+    ReaK::kte
+  PUBLIC
+)
+
+reak_cc_library(
+  NAME
+    models_po
+  SRCS
+    "chaser_target_model_data.cc"
+    "chaser_target_model_data_po.cc"
+    "navigation_model_data.cc"
+  HDRS
+    "chaser_target_model_data.h"
+    "chaser_target_model_data_po.h"
+    "navigation_model_data.h"
+  DEPS
+    absl::flags
+    ReaK::base
+    ReaK::serialization
+    ReaK::lin_alg
+    ReaK::kinetostatics
+    ReaK::shapes
+    ReaK::proximity
+    ReaK::kte
+  PUBLIC
+)
+
+if(Python3_FOUND)
+  reak_cc_library(
+    NAME
+      py_models
+    SRCS
+      "py_models.cc"
+    DEPS
+      ReaK::models
+      ${PYTHON_LIBRARIES}
+      ${Boost_LIBRARIES}
+      ${EXTRA_SYSTEM_LIBS}
+    PUBLIC
+  )
+endif()
+
+reak_cc_binary(
+  NAME
+    build_airship3D_target
+  SRCS
+    "build_airship3D_target.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::base
+    ReaK::serialization
+    ReaK::lin_alg
+    ReaK::kinetostatics
+    ReaK::shapes
+    ReaK::proximity
+    ReaK::kte
+    ReaK::models
+    ReaK::models_po
+)
+
+reak_cc_binary(
+  NAME
+    build_P3R3R_model
+  SRCS
+    "build_P3R3R_model.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::base
+    ReaK::serialization
+    ReaK::lin_alg
+    ReaK::kinetostatics
+    ReaK::shapes
+    ReaK::proximity
+    ReaK::kte
+    ReaK::models
+    ReaK::models_po
+)
+
+reak_cc_binary(
+  NAME
+    get_CRS_rel_world_transform
+  SRCS
+    "get_CRS_rel_world_transform.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::base
+    ReaK::recorders_po
+    ReaK::lin_alg
+    ReaK::kinetostatics
+    ReaK::kte
+    ReaK::models
+    ReaK::models_po
+)
+
+reak_cc_binary(
+  NAME
+    pose_to_grapple
+  SRCS
+    "pose_to_grapple.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::base
+    ReaK::recorders_po
+    ReaK::lin_alg
+    ReaK::kinetostatics
+    ReaK::shapes
+    ReaK::proximity
+    ReaK::kte
+    ReaK::models
+    ReaK::models_po
+)
+
+reak_cc_binary(
+  NAME
+    CRS_jtctrl_to_EE
+  SRCS
+    "CRS_jtctrl_to_EE.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::base
+    ReaK::recorders_po
+    ReaK::lin_alg
+    ReaK::kinetostatics
+    ReaK::shapes
+    ReaK::proximity
+    ReaK::kte
+    ReaK::models
+    ReaK::models_po
+)

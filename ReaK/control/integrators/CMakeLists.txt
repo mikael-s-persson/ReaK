@@ -1,0 +1,21 @@
+
+reak_cc_library(
+  NAME
+    integrators
+  HDRS
+    "adams_BM3_integrator_sys.h"
+    "adams_BM5_integrator_sys.h"
+    "dormand_prince45_integrator_sys.h"
+    "euler_integrator_sys.h"
+    "fehlberg45_integrator_sys.h"
+    "hamming_iter_mod_integrator_sys.h"
+    "hamming_mod_integrator_sys.h"
+    "midpoint_integrator_sys.h"
+    "runge_kutta4_integrator_sys.h"
+    "runge_kutta5_integrator_sys.h"
+  DEPS
+    ReaK::base
+    ReaK::lin_alg
+    ReaK::spaces
+  PUBLIC
+)

@@ -1,0 +1,156 @@
+
+/*
+ *    Copyright 2014 Sven Mikael Persson
+ *
+ *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
+ *
+ *    This file is part of ReaK.
+ *
+ *    ReaK is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    ReaK is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with ReaK (as LICENSE in the root folder).
+ *    If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "ReaK/mbd/models/manip_P3R3R_arm.h"
+
+#include "ReaK/mbd/models/joint_space_limits.h"
+
+#include "ReaK/geometry/proximity/proxy_query_model.h"
+#include "ReaK/geometry/shapes/box.h"
+#include "ReaK/geometry/shapes/colored_model.h"
+#include "ReaK/geometry/shapes/coord_arrows_3D.h"
+#include "ReaK/geometry/shapes/sphere.h"
+
+#include "ReaK/core/serialization/archiver_factory.h"
+
+#include "ReaK/core/recorders/data_record_po.h"
+
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+
+// Model I/O options
+ABSL_FLAG(std::string, CRS_kin_model, "models/CRS_A465.model.rkx",
+          "Specify the input file for the kinematic model of the CRS robot "
+          "(default is 'models/CRS_A465.model.rkx').");
+
+int main(int argc, char** argv) {
+
+  using namespace ReaK;
+  using namespace geom;
+  using namespace kte;
+
+  absl::ParseCommandLine(argc, argv);
+
+  std::string CRS_mdl_fname = absl::GetFlag(FLAGS_CRS_kin_model);
+
+  std::shared_ptr<frame_3D<double>> base_frame;
+  std::shared_ptr<manip_P3R3R_kinematics> CRS_kte_model;
+  std::shared_ptr<joint_limits_collection<double>> joint_rate_limits;
+
+  try {
+    std::shared_ptr<colored_model_3D> mdl_geom;
+    std::shared_ptr<proxy_query_model_3D> mdl_prox;
+    (*serialization::open_iarchive(CRS_mdl_fname)) >> base_frame >>
+        CRS_kte_model >> joint_rate_limits >> mdl_geom >> mdl_prox;
+  } catch (std::exception& e) {
+    std::cerr << "An error occurred while trying to load the CRS robot's "
+                 "kinematics model! Got exception: '"
+              << e.what() << "'." << std::endl;
+    return 2;
+  }
+
+  recorder::data_stream_options data_in_opt =
+      recorder::get_data_stream_options_from_flags();
+
+  std::shared_ptr<recorder::data_extractor> data_in;
+  std::vector<std::string> data_in_names;
+  try {
+    std::tie(data_in, data_in_names) = data_in_opt.create_extractor();
+  } catch (std::exception& e) {
+    std::cerr << "An error occurred while trying to open the input data "
+                 "stream! Got exception: '"
+              << e.what() << "'." << std::endl;
+    return 3;
+  }
+
+  recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
+
+  try {
+    nvr_in["time"];
+    nvr_in["q_0"];
+    nvr_in["q_1"];
+    nvr_in["q_2"];
+    nvr_in["q_3"];
+    nvr_in["q_4"];
+    nvr_in["q_5"];
+    nvr_in["q_6"];
+  } catch (recorder::out_of_bounds& e) {
+    RK_UNUSED(e);
+    std::cerr << "Could not recognize the input data fields!" << std::endl;
+    return 4;
+  }
+
+  recorder::data_stream_options data_out_opt =
+      recorder::get_data_stream_options_from_flags(true);
+  data_out_opt.names.clear();
+  data_out_opt.add_name("time")
+      .add_name("pos_x")
+      .add_name("pos_y")
+      .add_name("pos_z")
+      .add_name("q0")
+      .add_name("q1")
+      .add_name("q2")
+      .add_name("q3")
+      .add_name("vel_x")
+      .add_name("vel_y")
+      .add_name("vel_z")
+      .add_name("avel_x")
+      .add_name("avel_y")
+      .add_name("avel_z");
+  std::shared_ptr<recorder::data_recorder> data_out =
+      data_out_opt.create_recorder();
+
+  try {
+    double prev_time = 0.0;
+    vect_n<double> prev_jtctrl(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    while (true) {
+      (*data_in) >> nvr_in;
+
+      vect_n<double> cur_jtctrl(nvr_in["q_0"], nvr_in["q_1"], nvr_in["q_2"],
+                                nvr_in["q_3"], nvr_in["q_4"], nvr_in["q_5"],
+                                nvr_in["q_6"]);
+      CRS_kte_model->setJointPositions(cur_jtctrl);
+      if (prev_time > 1e-6) {
+        double dt = nvr_in["time"] - prev_time;
+        CRS_kte_model->setJointVelocities((cur_jtctrl - prev_jtctrl) *
+                                          (1.0 / dt));
+      } else {
+        CRS_kte_model->setJointVelocities(vect_n<double>(7, 0.0));
+      }
+      CRS_kte_model->doDirectMotion();
+      frame_3D<double> cur_EE =
+          CRS_kte_model->getDependentFrame3D(0)->mFrame->getGlobalFrame();
+
+      (*data_out) << nvr_in["time"] << cur_EE.Position << cur_EE.Quat[0]
+                  << cur_EE.Quat[1] << cur_EE.Quat[2] << cur_EE.Quat[3]
+                  << cur_EE.Velocity << cur_EE.AngVelocity;
+      (*data_out) << recorder::data_recorder::end_value_row;
+    }
+  } catch (recorder::end_of_record& e) {
+    RK_UNUSED(e);
+  }
+
+  (*data_out) << recorder::data_recorder::flush;
+
+  return 0;
+}

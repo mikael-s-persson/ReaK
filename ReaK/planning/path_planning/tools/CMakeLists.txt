@@ -1,0 +1,42 @@
+
+
+reak_cc_binary(
+  NAME
+    CRS_planner_run
+  SRCS
+    "CRS_planner_run.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::base
+    ReaK::lin_alg
+    ReaK::spaces
+    ReaK::models
+    ReaK::models_po
+    ReaK::interpolation
+    ReaK::path_planning
+    ReaK::path_planning_po
+)
+
+reak_cc_binary(
+  NAME
+    X8_planner_run
+  SRCS
+    "X8_planner_run.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::base
+    ReaK::recorders
+    ReaK::lin_alg
+    ReaK::shapes
+    ReaK::kte
+    ReaK::models
+    ReaK::models_po
+    ReaK::spaces
+    ReaK::interpolation
+    ReaK::controllers
+    ReaK::path_planning
+    ReaK::path_planning_po
+    ReaK::systems
+)

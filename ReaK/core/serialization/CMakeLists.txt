@@ -1,0 +1,51 @@
+
+
+reak_cc_library(
+  NAME
+    serialization_base
+  HDRS
+    "archiver.h"
+    "archiving_exceptions.h"
+    "serializable.h"
+  DEPS
+    ReaK::base_macros
+    ReaK::rtti
+  PUBLIC
+)
+
+reak_cc_library(
+  NAME
+    serialization
+  SRCS
+    "archiver_factory.cc"
+    "bin_archiver.cc"
+    "objtree_archiver.cc"
+    "protobuf_archiver.cc"
+    "scheme_builder.cc"
+    "xml_archiver.cc"
+  HDRS
+    "archiver_factory.h"
+    "bin_archiver.h"
+    "objtree_archiver.h"
+    "protobuf_archiver.h"
+    "scheme_builder.h"
+    "type_schemes.h"
+    "xml_archiver.h"
+  DEPS
+    ReaK::serialization_base
+    ReaK::base_macros
+    ReaK::base
+    ReaK::endian_conversions
+    ReaK::rtti
+  PUBLIC
+)
+
+reak_cc_test(
+  NAME
+    serialization_test
+  SRCS
+    "serialization_test.cc"
+  DEPS
+    ReaK::serialization
+    GTest::gtest_main
+)

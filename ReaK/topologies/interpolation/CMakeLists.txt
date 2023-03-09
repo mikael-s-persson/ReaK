@@ -1,0 +1,139 @@
+
+reak_cc_library(
+  NAME
+    interpolation
+  SRCS
+    "sustained_acceleration_pulse_detail.cc"
+    "sustained_acceleration_pulse_Ndof_detail.cc"
+    "sustained_velocity_pulse_detail.cc"
+    "sustained_velocity_pulse_Ndof_detail.cc"
+  HDRS
+    "constant_trajectory.h"
+    "cubic_hermite_interp.h"
+    "discrete_point_path.h"
+    "discrete_point_trajectory.h"
+    "extrapolator_concept.h"
+    "generic_interpolator_factory.h"
+    "interpolated_topologies.h"
+    "interpolated_trajectory.h"
+    "interpolator_concept.h"
+    "linear_interp.h"
+    "path_base.h"
+    "path_wrapper.h"
+    "point_to_point_path.h"
+    "point_to_point_trajectory.h"
+    "predicted_trajectory_concept.h"
+    "quintic_hermite_interp.h"
+    "sap_metrics.h"
+    "sap_Ndof_metrics.h"
+    "sap_Ndof_reach_topologies.h"
+    "sap_Ndof_samplers.h"
+    "sap_reach_topologies.h"
+    "sap_samplers.h"
+    "seq_path_base.h"
+    "seq_path_wrapper.h"
+    "seq_trajectory_base.h"
+    "seq_trajectory_wrapper.h"
+    "sequential_path_concept.h"
+    "sequential_trajectory_concept.h"
+    "spatial_path_concept.h"
+    "spatial_trajectory_concept.h"
+    "sustained_acceleration_pulse.h"
+    "sustained_acceleration_pulse_detail.h"
+    "sustained_acceleration_pulse_Ndof.h"
+    "sustained_acceleration_pulse_Ndof_detail.h"
+    "sustained_velocity_pulse.h"
+    "sustained_velocity_pulse_detail.h"
+    "sustained_velocity_pulse_Ndof.h"
+    "sustained_velocity_pulse_Ndof_detail.h"
+    "svp_metrics.h"
+    "svp_Ndof_metrics.h"
+    "svp_Ndof_reach_topologies.h"
+    "svp_Ndof_samplers.h"
+    "svp_reach_topologies.h"
+    "svp_samplers.h"
+    "trajectory_base.h"
+    "transformed_trajectory.h"
+    "waypoint_container.h"
+  DEPS
+    ReaK::base
+    ReaK::lin_alg
+    ReaK::kinetostatics
+  PUBLIC
+)
+
+  
+reak_cc_binary(
+  NAME
+    interp_test
+  SRCS
+    "interp_test.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::recorders
+    ReaK::spaces
+    ReaK::interpolation
+)
+
+reak_cc_binary(
+  NAME
+    interp_mc_test
+  SRCS
+    "interp_mc_test.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::spaces
+    ReaK::interpolation
+)
+
+reak_cc_binary(
+  NAME
+    interp_lim_test
+  SRCS
+    "interp_lim_test.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::recorders
+    ReaK::spaces
+    ReaK::interpolation
+)
+
+reak_cc_binary(
+  NAME
+    interp_Ndof_test
+  SRCS
+    "interp_Ndof_test.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::recorders
+    ReaK::spaces
+    ReaK::interpolation
+)
+
+reak_cc_binary(
+  NAME
+    interp_topo_test
+  SRCS
+    "interp_topo_test.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::spaces
+    ReaK::interpolation
+)
+
+reak_cc_binary(
+  NAME
+    interp_topo_rand_test
+  SRCS
+    "interp_topo_rand_test.cc"
+  DEPS
+    absl::flags
+    absl::flags_parse
+    ReaK::spaces
+    ReaK::interpolation
+)
