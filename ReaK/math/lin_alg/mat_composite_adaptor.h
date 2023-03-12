@@ -78,7 +78,6 @@ template <typename LeftMatrix, typename RightMatrix>
 class mat_horiz_cat {
  public:
   using self = mat_horiz_cat<LeftMatrix, RightMatrix>;
-  using allocator_type = typename mat_traits<LeftMatrix>::allocator_type;
 
   using value_type = mat_value_type_t<LeftMatrix>;
 
@@ -97,8 +96,12 @@ class mat_horiz_cat {
   using size_type = mat_size_type_t<LeftMatrix>;
   using difference_type = typename mat_traits<LeftMatrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      MatStaticSizeIfExpectedEqual(mat_traits<LeftMatrix>::static_row_count,
+                                   mat_traits<RightMatrix>::static_row_count);
+  static constexpr unsigned int static_col_count =
+      MatStaticSizeIfConcat(mat_traits<LeftMatrix>::static_col_count,
+                            mat_traits<RightMatrix>::static_col_count);
   static constexpr mat_alignment::tag alignment =
       mat_traits<LeftMatrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
@@ -239,12 +242,6 @@ class mat_horiz_cat {
                           ml.get_col_count() + mr.get_col_count());
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return ml.get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -329,15 +326,15 @@ struct is_fully_writable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>> {
 };
 
 template <typename LeftMatrix, typename RightMatrix>
-struct is_resizable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>> {
+struct is_row_resizable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>>;
+  using type = is_row_resizable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>>;
 };
 
 template <typename LeftMatrix, typename RightMatrix>
-struct has_allocator_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = has_allocator_matrix<LeftMatrix>::value;
-  using type = has_allocator_matrix<LeftMatrix>;
+struct is_col_resizable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>> {
+  static constexpr bool value = false;
+  using type = is_col_resizable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>>;
 };
 
 /**
@@ -355,7 +352,6 @@ template <typename LeftMatrix, typename RightMatrix>
 class mat_ref_horiz_cat {
  public:
   using self = mat_ref_horiz_cat<LeftMatrix, RightMatrix>;
-  using allocator_type = typename mat_traits<LeftMatrix>::allocator_type;
 
   using value_type = mat_value_type_t<LeftMatrix>;
 
@@ -374,8 +370,12 @@ class mat_ref_horiz_cat {
   using size_type = mat_size_type_t<LeftMatrix>;
   using difference_type = typename mat_traits<LeftMatrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      MatStaticSizeIfExpectedEqual(mat_traits<LeftMatrix>::static_row_count,
+                                   mat_traits<RightMatrix>::static_row_count);
+  static constexpr unsigned int static_col_count =
+      MatStaticSizeIfConcat(mat_traits<LeftMatrix>::static_col_count,
+                            mat_traits<RightMatrix>::static_col_count);
   static constexpr mat_alignment::tag alignment =
       mat_traits<LeftMatrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
@@ -496,12 +496,6 @@ class mat_ref_horiz_cat {
                           ml->get_col_count() + mr->get_col_count());
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return ml->get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -589,15 +583,17 @@ struct is_fully_writable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> {
 };
 
 template <typename LeftMatrix, typename RightMatrix>
-struct is_resizable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> {
+struct is_row_resizable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>>;
+  using type =
+      is_row_resizable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>>;
 };
 
 template <typename LeftMatrix, typename RightMatrix>
-struct has_allocator_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = has_allocator_matrix<LeftMatrix>::value;
-  using type = has_allocator_matrix<LeftMatrix>;
+struct is_col_resizable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> {
+  static constexpr bool value = false;
+  using type =
+      is_col_resizable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>>;
 };
 
 /**
@@ -615,7 +611,6 @@ template <typename LeftMatrix, typename RightMatrix>
 class mat_const_ref_horiz_cat {
  public:
   using self = mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>;
-  using allocator_type = typename mat_traits<LeftMatrix>::allocator_type;
 
   using value_type = mat_value_type_t<LeftMatrix>;
 
@@ -634,8 +629,12 @@ class mat_const_ref_horiz_cat {
   using size_type = mat_size_type_t<LeftMatrix>;
   using difference_type = typename mat_traits<LeftMatrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      MatStaticSizeIfExpectedEqual(mat_traits<LeftMatrix>::static_row_count,
+                                   mat_traits<RightMatrix>::static_row_count);
+  static constexpr unsigned int static_col_count =
+      MatStaticSizeIfConcat(mat_traits<LeftMatrix>::static_col_count,
+                            mat_traits<RightMatrix>::static_col_count);
   static constexpr mat_alignment::tag alignment =
       mat_traits<LeftMatrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
@@ -714,12 +713,6 @@ class mat_const_ref_horiz_cat {
     return std::make_pair(ml->get_row_count(),
                           ml->get_col_count() + mr->get_col_count());
   }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return ml->get_allocator(); }
 };
 
 template <typename LeftMatrix, typename RightMatrix>
@@ -746,16 +739,19 @@ struct is_fully_writable_matrix<
 };
 
 template <typename LeftMatrix, typename RightMatrix>
-struct is_resizable_matrix<mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>> {
+struct is_row_resizable_matrix<
+    mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>> {
   static constexpr bool value = false;
   using type =
-      is_resizable_matrix<mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>>;
+      is_row_resizable_matrix<mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>>;
 };
 
 template <typename LeftMatrix, typename RightMatrix>
-struct has_allocator_matrix<mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = has_allocator_matrix<LeftMatrix>::value;
-  using type = has_allocator_matrix<LeftMatrix>;
+struct is_col_resizable_matrix<
+    mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>> {
+  static constexpr bool value = false;
+  using type =
+      is_col_resizable_matrix<mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>>;
 };
 
 /**
@@ -1057,7 +1053,6 @@ template <typename UpperMatrix, typename LowerMatrix>
 class mat_vert_cat {
  public:
   using self = mat_vert_cat<UpperMatrix, LowerMatrix>;
-  using allocator_type = typename mat_traits<UpperMatrix>::allocator_type;
 
   using value_type = mat_value_type_t<UpperMatrix>;
 
@@ -1076,8 +1071,12 @@ class mat_vert_cat {
   using size_type = mat_size_type_t<UpperMatrix>;
   using difference_type = typename mat_traits<UpperMatrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      MatStaticSizeIfConcat(mat_traits<UpperMatrix>::static_row_count,
+                            mat_traits<LowerMatrix>::static_row_count);
+  static constexpr unsigned int static_col_count =
+      MatStaticSizeIfExpectedEqual(mat_traits<UpperMatrix>::static_col_count,
+                                   mat_traits<LowerMatrix>::static_col_count);
   static constexpr mat_alignment::tag alignment =
       mat_traits<UpperMatrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
@@ -1216,12 +1215,6 @@ class mat_vert_cat {
                           mu.get_col_count());
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return mu.get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -1309,15 +1302,15 @@ struct is_fully_writable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>> {
 };
 
 template <typename UpperMatrix, typename LowerMatrix>
-struct is_resizable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>> {
+struct is_row_resizable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>>;
+  using type = is_row_resizable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>>;
 };
 
 template <typename UpperMatrix, typename LowerMatrix>
-struct has_allocator_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = has_allocator_matrix<UpperMatrix>::value;
-  using type = has_allocator_matrix<UpperMatrix>;
+struct is_col_resizable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>> {
+  static constexpr bool value = false;
+  using type = is_col_resizable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>>;
 };
 
 /**
@@ -1335,7 +1328,6 @@ template <typename UpperMatrix, typename LowerMatrix>
 class mat_ref_vert_cat {
  public:
   using self = mat_ref_vert_cat<UpperMatrix, LowerMatrix>;
-  using allocator_type = typename mat_traits<UpperMatrix>::allocator_type;
 
   using value_type = mat_value_type_t<UpperMatrix>;
 
@@ -1354,8 +1346,12 @@ class mat_ref_vert_cat {
   using size_type = mat_size_type_t<UpperMatrix>;
   using difference_type = typename mat_traits<UpperMatrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      MatStaticSizeIfConcat(mat_traits<UpperMatrix>::static_row_count,
+                            mat_traits<LowerMatrix>::static_row_count);
+  static constexpr unsigned int static_col_count =
+      MatStaticSizeIfExpectedEqual(mat_traits<UpperMatrix>::static_col_count,
+                                   mat_traits<LowerMatrix>::static_col_count);
   static constexpr mat_alignment::tag alignment =
       mat_traits<UpperMatrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
@@ -1462,12 +1458,6 @@ class mat_ref_vert_cat {
                           mu->get_col_count());
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return mu->get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -1556,15 +1546,17 @@ struct is_fully_writable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> {
 };
 
 template <typename UpperMatrix, typename LowerMatrix>
-struct is_resizable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> {
+struct is_row_resizable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>>;
+  using type =
+      is_row_resizable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>>;
 };
 
 template <typename UpperMatrix, typename LowerMatrix>
-struct has_allocator_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = has_allocator_matrix<UpperMatrix>::value;
-  using type = has_allocator_matrix<UpperMatrix>;
+struct is_col_resizable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> {
+  static constexpr bool value = false;
+  using type =
+      is_col_resizable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>>;
 };
 
 /**
@@ -1582,7 +1574,6 @@ template <typename UpperMatrix, typename LowerMatrix>
 class mat_const_ref_vert_cat {
  public:
   using self = mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>;
-  using allocator_type = typename mat_traits<UpperMatrix>::allocator_type;
 
   using value_type = mat_value_type_t<UpperMatrix>;
 
@@ -1601,8 +1592,12 @@ class mat_const_ref_vert_cat {
   using size_type = mat_size_type_t<UpperMatrix>;
   using difference_type = typename mat_traits<UpperMatrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      MatStaticSizeIfConcat(mat_traits<UpperMatrix>::static_row_count,
+                            mat_traits<LowerMatrix>::static_row_count);
+  static constexpr unsigned int static_col_count =
+      MatStaticSizeIfExpectedEqual(mat_traits<UpperMatrix>::static_col_count,
+                                   mat_traits<LowerMatrix>::static_col_count);
   static constexpr mat_alignment::tag alignment =
       mat_traits<UpperMatrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
@@ -1680,12 +1675,6 @@ class mat_const_ref_vert_cat {
     return std::make_pair(mu->get_row_count() + ml->get_row_count(),
                           mu->get_col_count());
   }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return mu->get_allocator(); }
 };
 
 template <typename UpperMatrix, typename LowerMatrix>
@@ -1712,16 +1701,19 @@ struct is_fully_writable_matrix<
 };
 
 template <typename UpperMatrix, typename LowerMatrix>
-struct is_resizable_matrix<mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>> {
+struct is_row_resizable_matrix<
+    mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>> {
   static constexpr bool value = false;
   using type =
-      is_resizable_matrix<mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>>;
+      is_row_resizable_matrix<mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>>;
 };
 
 template <typename UpperMatrix, typename LowerMatrix>
-struct has_allocator_matrix<mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = has_allocator_matrix<UpperMatrix>::value;
-  using type = has_allocator_matrix<UpperMatrix>;
+struct is_col_resizable_matrix<
+    mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>> {
+  static constexpr bool value = false;
+  using type =
+      is_col_resizable_matrix<mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>>;
 };
 
 /**

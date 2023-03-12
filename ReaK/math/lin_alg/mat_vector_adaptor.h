@@ -62,7 +62,6 @@ template <typename Vector>
 class mat_vect_adaptor<Vector, mat_alignment::column_major> {
  public:
   using self = mat_vect_adaptor<Vector, mat_alignment::column_major>;
-  using allocator_type = typename vect_traits<Vector>::allocator_type;
 
   using value_type = vect_value_type_t<Vector>;
 
@@ -79,8 +78,9 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
   using size_type = typename vect_traits<Vector>::size_type;
   using difference_type = typename vect_traits<Vector>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      vect_traits<Vector>::dimensions;
+  static constexpr unsigned int static_col_count = 1;
   static constexpr mat_alignment::tag alignment = mat_alignment::column_major;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
@@ -269,12 +269,6 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
     return {rowCount, colCount};
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return v->get_allocator(); }
-
   /** COL-MAJOR ONLY
 *Add-and-store operator with standard semantics.
 *\test PASSED
@@ -365,7 +359,6 @@ template <typename Vector>
 class mat_vect_adaptor<Vector, mat_alignment::row_major> {
  public:
   using self = mat_vect_adaptor<Vector, mat_alignment::row_major>;
-  using allocator_type = typename vect_traits<Vector>::allocator_type;
 
   using value_type = vect_value_type_t<Vector>;
 
@@ -382,8 +375,9 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
   using size_type = typename vect_traits<Vector>::size_type;
   using difference_type = typename vect_traits<Vector>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 1;
+  static constexpr unsigned int static_col_count =
+      vect_traits<Vector>::dimensions;
   static constexpr mat_alignment::tag alignment = mat_alignment::row_major;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
@@ -522,12 +516,6 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
     return std::make_pair(rowCount, colCount);
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return v->get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -633,15 +621,15 @@ struct is_fully_writable_matrix<mat_vect_adaptor<Vector, Alignment>> {
 };
 
 template <typename Vector, mat_alignment::tag Alignment>
-struct is_resizable_matrix<mat_vect_adaptor<Vector, Alignment>> {
+struct is_row_resizable_matrix<mat_vect_adaptor<Vector, Alignment>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_vect_adaptor<Vector, Alignment>>;
+  using type = is_row_resizable_matrix<mat_vect_adaptor<Vector, Alignment>>;
 };
 
 template <typename Vector, mat_alignment::tag Alignment>
-struct has_allocator_matrix<mat_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = has_allocator_vector<Vector>::value;
-  using type = has_allocator_vector<Vector>;
+struct is_col_resizable_matrix<mat_vect_adaptor<Vector, Alignment>> {
+  static constexpr bool value = false;
+  using type = is_col_resizable_matrix<mat_vect_adaptor<Vector, Alignment>>;
 };
 
 template <typename Vector,
@@ -652,7 +640,6 @@ template <typename Vector>
 class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
  public:
   using self = mat_const_vect_adaptor<Vector, mat_alignment::column_major>;
-  using allocator_type = typename vect_traits<Vector>::allocator_type;
 
   using value_type = vect_value_type_t<Vector>;
 
@@ -669,8 +656,9 @@ class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
   using size_type = typename vect_traits<Vector>::size_type;
   using difference_type = typename vect_traits<Vector>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      vect_traits<Vector>::dimensions;
+  static constexpr unsigned int static_col_count = 1;
   static constexpr mat_alignment::tag alignment = mat_alignment::column_major;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
@@ -761,12 +749,6 @@ class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
   }
 
   /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return v->get_allocator(); }
-
-  /**
    * Transposes the matrix M.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
@@ -793,7 +775,6 @@ template <typename Vector>
 class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
  public:
   using self = mat_const_vect_adaptor<Vector, mat_alignment::row_major>;
-  using allocator_type = typename vect_traits<Vector>::allocator_type;
 
   using value_type = vect_value_type_t<Vector>;
 
@@ -810,8 +791,9 @@ class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
   using size_type = typename vect_traits<Vector>::size_type;
   using difference_type = typename vect_traits<Vector>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 1;
+  static constexpr unsigned int static_col_count =
+      vect_traits<Vector>::dimensions;
   static constexpr mat_alignment::tag alignment = mat_alignment::row_major;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
@@ -902,12 +884,6 @@ class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
   }
 
   /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return v->get_allocator(); }
-
-  /**
    * Transposes the matrix M.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
@@ -950,15 +926,17 @@ struct is_fully_writable_matrix<mat_const_vect_adaptor<Vector, Alignment>> {
 };
 
 template <typename Vector, mat_alignment::tag Alignment>
-struct is_resizable_matrix<mat_const_vect_adaptor<Vector, Alignment>> {
+struct is_row_resizable_matrix<mat_const_vect_adaptor<Vector, Alignment>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_const_vect_adaptor<Vector, Alignment>>;
+  using type =
+      is_row_resizable_matrix<mat_const_vect_adaptor<Vector, Alignment>>;
 };
 
 template <typename Vector, mat_alignment::tag Alignment>
-struct has_allocator_matrix<mat_const_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = has_allocator_vector<Vector>::value;
-  using type = has_allocator_vector<Vector>;
+struct is_col_resizable_matrix<mat_const_vect_adaptor<Vector, Alignment>> {
+  static constexpr bool value = false;
+  using type =
+      is_col_resizable_matrix<mat_const_vect_adaptor<Vector, Alignment>>;
 };
 
 template <typename Vector>

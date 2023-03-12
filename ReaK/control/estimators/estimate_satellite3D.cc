@@ -939,11 +939,11 @@ void batch_KF_ML_meas_predict(
 }
 
 template <typename Sat3DSystemType, typename MLTrajType>
-typename std::enable_if<
-    ReaK::ctrl::is_augmented_ss_system<Sat3DSystemType>::value,
+std::enable_if_t<
+    ReaK::ctrl::is_augmented_ss_system_v<Sat3DSystemType>,
     std::shared_ptr<ReaK::pp::trajectory_base<ReaK::pp::temporal_space<
-        ReaK::pp::se3_1st_order_topology<double>::type,
-        ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only>>>>::type
+        ReaK::pp::se3_1st_order_topology_t<double>,
+        ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only>>>>
 construct_wrapped_trajectory(const std::shared_ptr<MLTrajType>& ML_traj,
                              double dt, double mtime) {
   using namespace ReaK;
@@ -955,23 +955,21 @@ construct_wrapped_trajectory(const std::shared_ptr<MLTrajType>& ML_traj,
       temporal_space<BaseSpaceType, time_poisson_topology, time_distance_only>;
 
 #define RK_D_INF std::numeric_limits<double>::infinity()
-  std::shared_ptr<TemporalBaseSpaceType> sat_base_temp_space(
-      new TemporalBaseSpaceType(
-          "satellite3D_temporal_space",
-          make_se3_space("satellite3D_state_space",
-                         vect<double, 3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
-                         vect<double, 3>(RK_D_INF, RK_D_INF, RK_D_INF),
-                         RK_D_INF, RK_D_INF),
-          time_poisson_topology("satellite3D_time_space", dt, mtime)));
+  auto sat_base_temp_space = std::make_shared<TemporalBaseSpaceType>(
+      "satellite3D_temporal_space",
+      make_se3_space("satellite3D_state_space",
+                     vect<double, 3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
+                     vect<double, 3>(RK_D_INF, RK_D_INF, RK_D_INF), RK_D_INF,
+                     RK_D_INF),
+      time_poisson_topology("satellite3D_time_space", dt, mtime));
 #undef RK_D_INF
 
   using BaseTrajType = transformed_trajectory<TemporalBaseSpaceType, MLTrajType,
                                               augmented_to_state_map>;
-  using StateTrajType = trajectory_base<TemporalBaseSpaceType>;
   using WrappedStateTrajType = trajectory_wrapper<BaseTrajType>;
 
-  return std::shared_ptr<StateTrajType>(new WrappedStateTrajType(
-      "sat3D_predicted_traj", BaseTrajType(sat_base_temp_space, ML_traj)));
+  return std::make_shared<WrappedStateTrajType>(
+      "sat3D_predicted_traj", BaseTrajType(sat_base_temp_space, ML_traj));
 }
 
 template <typename Sat3DSystemType, typename MLTrajType>
@@ -985,13 +983,10 @@ construct_wrapped_trajectory(const std::shared_ptr<MLTrajType>& ML_traj,
   using namespace ReaK;
   using namespace pp;
 
-  using StateTrajType = ReaK::pp::trajectory_base<ReaK::pp::temporal_space<
-      ReaK::pp::se3_1st_order_topology<double>::type,
-      ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only>>;
   using WrappedStateTrajType = trajectory_wrapper<MLTrajType>;
 
-  return std::shared_ptr<StateTrajType>(
-      new WrappedStateTrajType("sat3D_predicted_traj", *ML_traj));
+  return std::make_shared<WrappedStateTrajType>("sat3D_predicted_traj",
+                                                *ML_traj);
 }
 
 namespace {
@@ -1071,8 +1066,7 @@ struct prediction_updater {
         ReaK::pp::transformed_trajectory<TempSpaceType, BeliefPredTrajType,
                                          ReaK::ctrl::maximum_likelihood_map>;
 
-    std::shared_ptr<MLTrajType> ML_traj(
-        new MLTrajType(sat_temp_space, predictor));
+    auto ML_traj = std::make_shared<MLTrajType>(sat_temp_space, predictor);
 
     using BaseSpaceType = ReaK::pp::se3_1st_order_topology<double>::type;
     using TemporalBaseSpaceType =
@@ -1260,13 +1254,13 @@ void batch_KF_meas_predict_with_predictor(
   std::shared_ptr<TempBeliefSpaceType> sat_temp_belief_space =
       sat_sys.get_temporal_belief_space(0.0, sat_options.predict_time_horizon);
 
-  std::shared_ptr<BeliefPredTrajType> predictor(new BeliefPredTrajType(
+  auto predictor = std::make_shared<BeliefPredTrajType>(
       sat_temp_belief_space,
       TempBeliefPointType(meas_provider.get_current_time(), b),
       InputTrajType(vect_n<double>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)),
       PredFactoryType(sat_sys_ptr, CovarMatType(sat_options.input_disturbance),
                       CovarMatType(sat_options.measurement_noise)),
-      pred_assumpt));
+      pred_assumpt);
 
   std::atomic<double> current_target_anim_time =
       meas_provider.get_current_time();
@@ -1803,12 +1797,12 @@ int do_required_tasks(
       (absl::GetFlag(FLAGS_xml) + absl::GetFlag(FLAGS_protobuf) +
            absl::GetFlag(FLAGS_binary) >
        0)) {
-    traj_ptr = std::shared_ptr<RecTrajType>(new RecTrajType(
-        std::shared_ptr<sat3D_temp_space_type>(new sat3D_temp_space_type(
+    traj_ptr =
+        std::make_shared<RecTrajType>(std::make_shared<sat3D_temp_space_type>(
             "satellite3D_temporal_space", sat3D_state_space_type(),
             pp::time_poisson_topology("satellite3D_time_space",
                                       satellite3D_system->get_time_step(),
-                                      (end_time - start_time) * 0.5)))));
+                                      (end_time - start_time) * 0.5)));
   }
 
   if (absl::GetFlag(FLAGS_sat_generate_mdl_files)) {

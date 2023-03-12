@@ -52,8 +52,6 @@ struct vect_traits {
   using pointer = typename Vector::pointer;
   /** The type of a const-pointer to an element of the vector. */
   using const_pointer = typename Vector::const_pointer;
-  /** The type of the allocator used by the vector (void if none). */
-  using allocator_type = typename Vector::allocator_type;
 
   /** The type of a iterator through the vector. */
   using iterator = typename Vector::iterator;
@@ -66,7 +64,7 @@ struct vect_traits {
   using difference_type = typename Vector::difference_type;
 
   /** The dimension of the vector (0 if not known at compile-time). */
-  static constexpr std::size_t dimensions = Vector::dimensions;
+  static constexpr unsigned int dimensions = Vector::dimensions;
 };
 
 template <typename Vector, typename = void>

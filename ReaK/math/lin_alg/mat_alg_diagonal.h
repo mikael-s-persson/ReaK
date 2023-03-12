@@ -40,33 +40,23 @@
 
 namespace ReaK {
 
-template <mat_alignment::tag Alignment>
-struct mat_indexer<mat_structure::diagonal, Alignment> {
-  int rowCount;
-  explicit mat_indexer<mat_structure::diagonal, Alignment>(int aRowCount)
-      : rowCount(aRowCount) {}
-  int operator()(int i, int j) const { return i; }
-};
-
 /**
  * This class holds a diagonal matrix. This class will hold only the diagonal.
  *
- * Models: ReadableMatrixConcept, WritableMatrixConcept, ResizableMatrixConcept, and DynAllocMatrixConcept.
+ * Models: ReadableMatrixConcept, WritableMatrixConcept, and ResizableMatrixConcept.
  *
  * \tparam T Arithmetic type of the elements of the matrix.
  * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
  *mat_alignment::column_major (default).
- * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template <class T, mat_alignment::tag Alignment, typename Allocator>
-class mat<T, mat_structure::diagonal, Alignment, Allocator>
+template <class T, mat_alignment::tag Alignment, unsigned int RowCount>
+class mat<T, mat_structure::diagonal, Alignment, RowCount, RowCount>
     : public serializable {
  public:
-  using self = mat<T, mat_structure::diagonal, Alignment, Allocator>;
-  using allocator_type = Allocator;
+  using self = mat<T, mat_structure::diagonal, Alignment, RowCount, RowCount>;
 
   using value_type = T;
-  using container_type = std::vector<value_type, allocator_type>;
+  using container_type = std::vector<value_type>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -81,8 +71,8 @@ class mat<T, mat_structure::diagonal, Alignment, Allocator>
   using size_type = std::size_t;
   using difference_type = typename container_type::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = RowCount;
+  static constexpr unsigned int static_col_count = RowCount;
   static constexpr mat_alignment::tag alignment = Alignment;
   static constexpr mat_structure::tag structure = mat_structure::diagonal;
 
@@ -100,22 +90,19 @@ class mat<T, mat_structure::diagonal, Alignment, Allocator>
   /**
    * Constructor for a sized matrix.
    */
-  explicit mat(size_type aRowCount, value_type aFill = value_type(0),
-               const allocator_type& aAlloc = allocator_type())
-      : q(aRowCount, aFill, aAlloc), rowCount(aRowCount) {}
+  explicit mat(size_type aRowCount, value_type aFill = value_type(0))
+      : q(aRowCount, aFill), rowCount(aRowCount) {}
 
   /**
    * Default constructor: sets all to zero.
    */
-  explicit mat(const allocator_type& aAlloc = allocator_type())
-      : mat(0, value_type(0), aAlloc) {}
+  mat() : mat(0, value_type(0)) {}
 
   /**
    * Constructor for an identity matrix.
    */
-  mat(size_type aRowCount, bool aIdentity,
-      const allocator_type& aAlloc = allocator_type())
-      : mat(aRowCount, (aIdentity ? value_type(1) : value_type(0)), aAlloc) {}
+  mat(size_type aRowCount, bool aIdentity)
+      : mat(aRowCount, (aIdentity ? value_type(1) : value_type(0))) {}
 
   /**
    * Standard Copy Constructor with standard semantics.
@@ -132,24 +119,24 @@ class mat<T, mat_structure::diagonal, Alignment, Allocator>
    */
   template <typename Vector>
   explicit mat(
-      const Vector& V, const allocator_type& aAlloc = allocator_type(),
+      const Vector& V,
       std::enable_if_t<
           is_readable_vector_v<Vector> && !std::is_same_v<Vector, self>, void*>
           dummy = nullptr)
-      : q(V.begin(), V.end(), aAlloc), rowCount(V.size()) {}
+      : q(V.begin(), V.end()), rowCount(V.size()) {}
 
   /**
    * Constructor from a general matrix, copying only the diagonal part.
    */
   template <typename Matrix>
   explicit mat(
-      const Matrix& M, const allocator_type& aAlloc = allocator_type(),
+      const Matrix& M,
       std::enable_if_t<
           is_readable_matrix_v<Matrix> && !std::is_same_v<Matrix, self>, void*>
           dummy = nullptr)
       : q((M.get_row_count() < M.get_col_count() ? M.get_row_count()
                                                  : M.get_col_count()),
-          T(0.0), aAlloc),
+          T(0.0)),
         rowCount((M.get_row_count() < M.get_col_count() ? M.get_row_count()
                                                         : M.get_col_count())) {
     for (int i = 0; i < rowCount; ++i) {
@@ -157,10 +144,6 @@ class mat<T, mat_structure::diagonal, Alignment, Allocator>
     }
   }
 
-  /**
-   * Destructor.
-   * \test PASSED
-   */
   ~mat() override = default;
 
   /**
@@ -287,12 +270,6 @@ class mat<T, mat_structure::diagonal, Alignment, Allocator>
   void resize(const std::pair<size_type, size_type>& sz) {
     set_row_count(sz.first, true);
   }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return q.get_allocator(); }
 
   /*******************************************************************************
                            Assignment Operators
@@ -467,7 +444,7 @@ class mat<T, mat_structure::diagonal, Alignment, Allocator>
     if (aDiagOffset + aSizeOut > M.rowCount) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    self result(aSizeOut, value_type(0), M.get_allocator());
+    self result(aSizeOut, value_type(0));
     for (int i = 0; i < aSizeOut; ++i) {
       result.q[i] = M.q[i + aDiagOffset];
     }

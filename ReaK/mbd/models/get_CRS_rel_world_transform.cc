@@ -32,9 +32,9 @@ int main(int argc, char** argv) {
 
   named_value_row nvr_in = data_in->getFreshNamedValueRow();
 
-  std::shared_ptr<frame_3D<double>> base_frame(new frame_3D<double>());
+  auto base_frame = std::make_shared<frame_3D<double>>();
 
-  std::shared_ptr<manip_P3R3R_kinematics> kte_model(new manip_P3R3R_kinematics(
+  auto kte_model = std::make_shared<manip_P3R3R_kinematics>(
       "CRS_A465_kte_model",
       std::make_shared<frame_3D<double>>(
           base_frame, vect<double, 3>(0.0, -3.3, 0.3),  // aGlobalToBasePlate
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
           -1.83259571459, -3.14159265359),
       vect_n<double>(  // aJointUpperBounds
           3.0, 3.05432619099, 1.57079632679, 1.91986217719, 3.14159265359,
-          1.83259571459, 3.14159265359)));
+          1.83259571459, 3.14159265359));
 
   pose_3D<double> EE_to_marker(std::weak_ptr<pose_3D<double>>(),
                                vect<double, 3>(-0.033, 0.0, 0.107),

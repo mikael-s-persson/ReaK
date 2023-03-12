@@ -58,7 +58,6 @@ template <typename Matrix>
 class mat_row_slice {
  public:
   using self = mat_row_slice<Matrix>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -265,11 +264,6 @@ class mat_row_slice {
    * \test PASSED
    */
   const_reference operator()(int i) const { return (*m)(offset + i, colIndex); }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
 };
 
 template <typename Matrix>
@@ -291,12 +285,6 @@ struct is_resizable_vector<mat_row_slice<Matrix>> {
 };
 
 template <typename Matrix>
-struct has_allocator_vector<mat_row_slice<Matrix>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_vector<mat_row_slice<Matrix>>;
-};
-
-template <typename Matrix>
 struct vect_copy<mat_row_slice<Matrix>> {
   using type = vect_n<vect_value_type_t<mat_row_slice<Matrix>>>;
 };
@@ -312,7 +300,6 @@ template <typename Matrix>
 class mat_const_row_slice {
  public:
   using self = mat_const_row_slice<Matrix>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -444,11 +431,6 @@ class mat_const_row_slice {
    * \test PASSED
    */
   const_reference operator()(int i) const { return (*m)(offset + i, colIndex); }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
 };
 
 template <typename Matrix>
@@ -470,12 +452,6 @@ struct is_resizable_vector<mat_const_row_slice<Matrix>> {
 };
 
 template <typename Matrix>
-struct has_allocator_vector<mat_const_row_slice<Matrix>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_vector<mat_const_row_slice<Matrix>>;
-};
-
-template <typename Matrix>
 struct vect_copy<mat_const_row_slice<Matrix>> {
   using type = vect_n<vect_value_type_t<mat_const_row_slice<Matrix>>>;
 };
@@ -491,7 +467,6 @@ template <typename Matrix>
 class mat_col_slice {
  public:
   using self = mat_col_slice<Matrix>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -695,11 +670,6 @@ class mat_col_slice {
    * \test PASSED
    */
   const_reference operator()(int i) const { return (*m)(rowIndex, offset + i); }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
 };
 
 template <typename Matrix>
@@ -721,12 +691,6 @@ struct is_resizable_vector<mat_col_slice<Matrix>> {
 };
 
 template <typename Matrix>
-struct has_allocator_vector<mat_col_slice<Matrix>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_vector<mat_col_slice<Matrix>>;
-};
-
-template <typename Matrix>
 struct vect_copy<mat_col_slice<Matrix>> {
   using type = vect_n<vect_value_type_t<mat_col_slice<Matrix>>>;
 };
@@ -742,7 +706,6 @@ template <typename Matrix>
 class mat_const_col_slice {
  public:
   using self = mat_const_col_slice<Matrix>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -879,11 +842,6 @@ class mat_const_col_slice {
   const_reference operator()(size_type i) const {
     return (*m)(rowIndex, offset + i);
   }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
 };
 
 template <typename Matrix>
@@ -902,12 +860,6 @@ template <typename Matrix>
 struct is_resizable_vector<mat_const_col_slice<Matrix>> {
   static constexpr bool value = false;
   using type = is_resizable_vector<mat_const_col_slice<Matrix>>;
-};
-
-template <typename Matrix>
-struct has_allocator_vector<mat_const_col_slice<Matrix>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_vector<mat_const_col_slice<Matrix>>;
 };
 
 template <typename Matrix>

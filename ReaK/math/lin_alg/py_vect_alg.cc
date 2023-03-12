@@ -163,7 +163,7 @@ void export_vect_alg() {
       static_cast<bool (*)(const ReaK::vect<double, 4>&,
                            const ReaK::vect<double, 4>&)>(&ReaK::colinear));
 
-  class_<ReaK::vect_n<double, std::allocator<double>>>("VectorND")
+  class_<ReaK::vect_n<double>>("VectorND")
       .def(init<double, double, double>())
       .def(init<double, double, double, double>())
       .def(init<double, double, double, double, double>())
@@ -194,14 +194,11 @@ void export_vect_alg() {
       .def(self / double())
       .def(self *= double())
       .def(self /= double())
-      .def("__str__",
-           vect_to_string<ReaK::vect_n<double, std::allocator<double>>>)
-      .def("__len__", &ReaK::vect_n<double, std::allocator<double>>::size)
-      .def("__getitem__",
-           vect_getitem<ReaK::vect_n<double, std::allocator<double>>>)
-      .def("__setitem__",
-           vect_setitem<ReaK::vect_n<double, std::allocator<double>>>)
-      .def("resize", &ReaK::vect_n<double, std::allocator<double>>::resize);
+      .def("__str__", vect_to_string<ReaK::vect_n<double>>)
+      .def("__len__", &ReaK::vect_n<double>::size)
+      .def("__getitem__", vect_getitem<ReaK::vect_n<double>>)
+      .def("__setitem__", vect_setitem<ReaK::vect_n<double>>)
+      .def("resize", &ReaK::vect_n<double>::resize);
 
   def("norm_2_sqr",
       static_cast<double (*)(const ReaK::vect_n<double>&)>(&ReaK::norm_2_sqr));

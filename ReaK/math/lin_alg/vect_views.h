@@ -63,7 +63,6 @@ template <typename Vector>
 class vect_const_ref_view {
  public:
   using self = vect_const_ref_view<Vector>;
-  using allocator_type = typename vect_traits<Vector>::allocator_type;
 
   using value_type = vect_value_type_t<Vector>;
 
@@ -163,12 +162,6 @@ class vect_const_ref_view {
    * Returns a const-iterator to the one-past-last element of the vector.
    */
   const_iterator end() const noexcept { return v->begin() + offset + count; }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return v->get_allocator(); }
 };
 
 template <typename Vector>
@@ -189,12 +182,6 @@ struct is_resizable_vector<vect_const_ref_view<Vector>> {
   using type = is_resizable_vector<vect_const_ref_view<Vector>>;
 };
 
-template <typename Vector>
-struct has_allocator_vector<vect_const_ref_view<Vector>> {
-  static constexpr bool value = has_allocator_vector<Vector>::value;
-  using type = has_allocator_vector<Vector>;
-};
-
 /**
  * This class template constructs a sub-vector which represents part of the vector.
  * This class takes a reference to the given vector.
@@ -204,7 +191,6 @@ template <typename Vector>
 class vect_ref_view {
  public:
   using self = vect_ref_view<Vector>;
-  using allocator_type = typename vect_traits<Vector>::allocator_type;
 
   using value_type = vect_value_type_t<Vector>;
 
@@ -393,12 +379,6 @@ class vect_ref_view {
    * Returns a const-iterator to the one-past-last element of the vector.
    */
   const_iterator end() const noexcept { return v->begin() + offset + count; }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return v->get_allocator(); }
 };
 
 template <typename Vector>
@@ -419,12 +399,6 @@ struct is_resizable_vector<vect_ref_view<Vector>> {
   using type = is_resizable_vector<vect_ref_view<Vector>>;
 };
 
-template <typename Vector>
-struct has_allocator_vector<vect_ref_view<Vector>> {
-  static constexpr bool value = has_allocator_vector<Vector>::value;
-  using type = has_allocator_vector<Vector>;
-};
-
 /**
  * This class template constructs a sub-vector which represents part of the vector.
  * This class makes a copy of the given vector (it is mainly meant to harmonize syntax
@@ -435,7 +409,6 @@ template <typename Vector>
 class vect_copy_view {
  public:
   using self = vect_copy_view<Vector>;
-  using allocator_type = typename vect_traits<Vector>::allocator_type;
 
   using value_type = vect_value_type_t<Vector>;
 
@@ -659,12 +632,6 @@ class vect_copy_view {
    * Returns a const-iterator to the one-past-last element of the vector.
    */
   const_iterator end() const noexcept { return v.begin() + offset + count; }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return v.get_allocator(); }
 };
 
 template <typename Vector>
@@ -683,12 +650,6 @@ template <typename Vector>
 struct is_resizable_vector<vect_copy_view<Vector>> {
   static constexpr bool value = false;
   using type = is_resizable_vector<vect_copy_view<Vector>>;
-};
-
-template <typename Vector>
-struct has_allocator_vector<vect_copy_view<Vector>> {
-  static constexpr bool value = has_allocator_vector<Vector>::value;
-  using type = has_allocator_vector<Vector>;
 };
 
 template <typename Vector>

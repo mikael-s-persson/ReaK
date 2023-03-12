@@ -3,7 +3,7 @@
  *
  * This library implements the specialization of the mat<> template for a
  * general symmetric matrix (dynamic dimension). This matrix type fulfills the matrix
- * concepts of Readable, Writable, Resizable and DynAlloc, but not FullyWritable.
+ * concepts of Readable, Writable, and Resizable, but not FullyWritable.
  *
  * \author Mikael Persson <mikael.s.persson@gmail.com>
  * \date april 2011 (originally february 2010)
@@ -40,42 +40,24 @@
 
 namespace ReaK {
 
-//....not good, the following: (ill-defined)
-
-template <mat_alignment::tag Alignment>
-struct mat_indexer<mat_structure::symmetric, Alignment> {
-  int rowCount;
-  explicit mat_indexer<mat_structure::symmetric, Alignment>(int aRowCount)
-      : rowCount(aRowCount) {}
-  int mat_triangular_size(int Size) { return (Size * (Size - 1)) / 2 + Size; }
-  int operator()(int i, int j) const {
-    if (i > j) {
-      return mat_triangular_size(i) + j;
-    }
-    return mat_triangular_size(j) + i;
-  }
-};
-
 /**
  * This class holds a symmetric matrix. This class will hold only the upper-triangular part
  * since the lower part is assumed to be equal to the upper one.
  *
- * Models: ReadableMatrixConcept, WritableMatrixConcept, ResizableMatrixConcept, and DynAllocMatrixConcept.
+ * Models: ReadableMatrixConcept, WritableMatrixConcept, and ResizableMatrixConcept.
  *
  * \tparam T Arithmetic type of the elements of the matrix.
  * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
  *mat_alignment::column_major (default).
- * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-class mat<T, mat_structure::symmetric, Alignment, Allocator>
+template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
+class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
     : public serializable {
  public:
-  using self = mat<T, mat_structure::symmetric, Alignment, Allocator>;
-  using allocator_type = Allocator;
+  using self = mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>;
 
   using value_type = T;
-  using container_type = std::vector<value_type, allocator_type>;
+  using container_type = std::vector<value_type>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -90,8 +72,8 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = RowCount;
+  static constexpr unsigned int static_col_count = RowCount;
   static constexpr mat_alignment::tag alignment = Alignment;
   static constexpr mat_structure::tag structure = mat_structure::symmetric;
 
@@ -113,24 +95,21 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
    * Default constructor: sets all to zero.
    * \test PASSED
    */
-  explicit mat(const allocator_type& aAlloc = allocator_type())
-      : q(0, value_type(), aAlloc), rowCount(0) {}
+  mat() : q(0, value_type()), rowCount(0) {}
 
   /**
    * Constructor for a sized matrix.
    * \test PASSED
    */
-  explicit mat(size_type aRowCount, T aFill = 0,
-               const allocator_type& aAlloc = allocator_type())
-      : q(mat_triangular_size(aRowCount), aFill, aAlloc), rowCount(aRowCount) {}
+  explicit mat(size_type aRowCount, T aFill = 0)
+      : q(mat_triangular_size(aRowCount), aFill), rowCount(aRowCount) {}
 
   /**
    * Constructor for an identity matrix.
    * \test PASSED
    */
-  mat(size_type aRowCount, bool aIdentity,
-      const allocator_type& aAlloc = allocator_type())
-      : q(mat_triangular_size(aRowCount), T(0.0), aAlloc), rowCount(aRowCount) {
+  mat(size_type aRowCount, bool aIdentity)
+      : q(mat_triangular_size(aRowCount), T(0.0)), rowCount(aRowCount) {
     if (aIdentity) {
       int k = 0;
       for (int i = 0; i < rowCount; k += ++i) {
@@ -139,17 +118,9 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
     }
   }
 
-  /**
-   * Standard Copy Constructor with standard semantics.
-   * \test PASSED
-   */
-  mat(const self& M) : q(M.q), rowCount(M.rowCount) {}
-
-  /**
-   * Standard Copy Constructor with standard semantics.
-   * \test PASSED
-   */
-  mat(self&& M) noexcept : q(std::move(M.q)), rowCount(std::move(M.rowCount)) {}
+  /// Default Copy/Move Constructors.
+  mat(const self& M) = default;
+  mat(self&& M) noexcept = default;
 
   /**
    * The standard swap function (works with ADL).
@@ -225,10 +196,6 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
     }
   }
 
-  /**
-   * Destructor.
-   * \test PASSED
-   */
   ~mat() override = default;
 
   /**
@@ -392,12 +359,6 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
     set_row_count(sz.first, true);
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return q.get_allocator(); }
-
   /*******************************************************************************
                            Assignment Operators
   *******************************************************************************/
@@ -427,8 +388,9 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <mat_alignment::tag Align2, typename Alloc2>
-  self& operator+=(const mat<T, mat_structure::symmetric, Align2, Alloc2>& M) {
+  template <mat_alignment::tag Align2>
+  self& operator+=(
+      const mat<T, mat_structure::symmetric, Align2, RowCount, RowCount>& M) {
     if (M.get_row_count() != rowCount) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -445,8 +407,9 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <mat_alignment::tag Align2, typename Alloc2>
-  self& operator+=(const mat<T, mat_structure::diagonal, Align2, Alloc2>& M) {
+  template <mat_alignment::tag Align2>
+  self& operator+=(
+      const mat<T, mat_structure::diagonal, Align2, RowCount, RowCount>& M) {
     if (M.get_row_count() != rowCount) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -461,8 +424,9 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
    * Sub-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <mat_alignment::tag Align2, typename Alloc2>
-  self& operator-=(const mat<T, mat_structure::symmetric, Align2, Alloc2>& M) {
+  template <mat_alignment::tag Align2>
+  self& operator-=(
+      const mat<T, mat_structure::symmetric, Align2, RowCount, RowCount>& M) {
     if (M.get_row_count() != rowCount) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -479,8 +443,9 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <mat_alignment::tag Align2, typename Alloc2>
-  self& operator-=(const mat<T, mat_structure::diagonal, Align2, Alloc2>& M) {
+  template <mat_alignment::tag Align2>
+  self& operator-=(
+      const mat<T, mat_structure::diagonal, Align2, RowCount, RowCount>& M) {
     if (M.get_row_count() != rowCount) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -575,8 +540,7 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
   auto multiply_this_and_dense_mat(const Matrix& M2) const {
     using ValueType = mat_value_type_t<Matrix>;
     mat_product_result_t<self, Matrix> result{M2.get_row_count(),
-                                              M2.get_col_count(), ValueType(0),
-                                              M2.get_allocator()};
+                                              M2.get_col_count(), ValueType(0)};
     for (int k = 0, i = 0; i < rowCount; k += ++i) {
       for (int l = 0; l < M2.get_col_count(); ++l) {
         for (int j = 0; j < i; ++j) {
@@ -599,8 +563,7 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
   auto multiply_dense_and_this_mat(const Matrix& M1) const {
     using ValueType = mat_value_type_t<Matrix>;
     mat_product_result_t<Matrix, self> result{M1.get_row_count(),
-                                              M1.get_col_count(), ValueType(0),
-                                              M1.get_allocator()};
+                                              M1.get_col_count(), ValueType(0)};
     for (int k = 0, i = 0; i < M1.get_col_count(); k += ++i) {
       for (int l = 0; l < M1.get_row_count(); ++l) {
         for (int j = 0; j < i; ++j) {
@@ -621,7 +584,7 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
    * \throw std::range_error if the two matrix dimensions don't match.
    */
   auto multiply_with_same_mat(const self& M2) const {
-    mat_product_result_t<self, self> result{rowCount, T(0), get_allocator()};
+    mat_product_result_t<self, self> result{rowCount, T(0)};
     int k = 0;
     int i = 0;
     for (; i < rowCount; k += ++i) {
@@ -688,15 +651,15 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
    * \return The sub-matrix contained in this matrix.
    * \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
    */
-  friend mat<T, mat_structure::rectangular, Alignment, Allocator> get_block(
+  friend mat<T, mat_structure::rectangular, Alignment> get_block(
       const self& M, int aRowOffset, int aColOffset, int aRowCountOut,
       int aColCountOut) {
     if ((aRowOffset + aRowCountOut > M.rowCount) ||
         (aColOffset + aColCountOut > M.rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    mat<T, mat_structure::rectangular, Alignment, Allocator> result(
-        aRowCountOut, aColCountOut, T(0), M.get_allocator());
+    mat<T, mat_structure::rectangular, Alignment> result(aRowCountOut,
+                                                         aColCountOut, T(0));
     int k = mat_triangular_size(aColOffset);
     for (int j = 0; j < aColCountOut; k += (++j + aColOffset)) {
       int h = mat_triangular_size(aRowOffset);
@@ -721,14 +684,15 @@ class mat<T, mat_structure::symmetric, Alignment, Allocator>
    * \return The sub-matrix contained in this matrix.
    * \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
    */
-  friend mat<T, mat_structure::square, Alignment, Allocator> get_block(
-      const self& M, int aRowOffset, int aColOffset, int aSizeOut) {
+  friend mat<T, mat_structure::square, Alignment> get_block(const self& M,
+                                                            int aRowOffset,
+                                                            int aColOffset,
+                                                            int aSizeOut) {
     if ((aRowOffset + aSizeOut > M.rowCount) ||
         (aColOffset + aSizeOut > M.rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    mat<T, mat_structure::square, Alignment, Allocator> result(
-        aSizeOut, T(0), M.get_allocator());
+    mat<T, mat_structure::square, Alignment> result(aSizeOut, T(0));
     int k = mat_triangular_size(aColOffset);
     for (int j = 0; j < aSizeOut; k += (++j + aColOffset)) {
       int h = mat_triangular_size(aRowOffset);

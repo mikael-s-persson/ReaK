@@ -212,8 +212,7 @@ archive_object_header xml_iarchive::readHeader(
 
 xml_iarchive::xml_iarchive(const std::string& FileName) {
 
-  file_stream = std::shared_ptr<std::istream>(
-      new std::ifstream(FileName.c_str(), std::ios::in));
+  file_stream = std::make_shared<std::ifstream>(FileName.c_str(), std::ios::in);
 
   std::vector<unsigned int> typeID;
   archive_object_header global_hdr = readHeader("reak_serialization", typeID);
@@ -476,8 +475,8 @@ iarchive& xml_iarchive::load_string(
 
 xml_oarchive::xml_oarchive(const std::string& FileName) {
 
-  file_stream = std::shared_ptr<std::ostream>(
-      new std::ofstream(FileName.c_str(), std::ios::out));
+  file_stream =
+      std::make_shared<std::ofstream>(FileName.c_str(), std::ios::out);
 
   (*file_stream)
       << R"(<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>)"

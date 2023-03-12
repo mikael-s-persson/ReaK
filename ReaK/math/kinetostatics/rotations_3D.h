@@ -71,7 +71,6 @@ template <typename T>
 class rot_mat_3D {
  public:
   using self = rot_mat_3D<T>;
-  using allocator_type = void;
 
   using value_type = T;
   using container_type = void;
@@ -544,7 +543,6 @@ template <typename T>
 class quaternion {
  public:
   using self = quaternion<T>;
-  using allocator_type = void;
 
   using value_type = T;
   using container_type = void;
@@ -1415,7 +1413,6 @@ template <class T>
 class euler_angles_TB {
  public:
   using self = euler_angles_TB<T>;
-  using allocator_type = void;
 
   using value_type = T;
   using container_type = void;
@@ -2024,7 +2021,6 @@ template <class T>
 class axis_angle {
  public:
   using self = axis_angle<T>;
-  using allocator_type = void;
 
   using value_type = T;
   using container_type = void;
@@ -2717,7 +2713,6 @@ template <class T>
 class trans_mat_3D {
  public:
   using self = trans_mat_3D<T>;
-  using allocator_type = void;
 
   using value_type = T;
   using container_type = void;

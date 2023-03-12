@@ -328,11 +328,9 @@ TEST(SerializationTests, BinSerializers) {
       bin_oarchive output_arc(ss);
 
       obj_with_named_members obj_with_names;
-      std::shared_ptr<obj_with_named_members> ptr_with_names(
-          new obj_with_named_members());
+      auto ptr_with_names = std::make_shared<obj_with_named_members>();
       obj_with_unnamed_members obj_with_no_names;
-      std::shared_ptr<obj_with_unnamed_members> ptr_with_no_names(
-          new obj_with_unnamed_members());
+      auto ptr_with_no_names = std::make_shared<obj_with_unnamed_members>();
 
       EXPECT_NO_THROW(output_arc << obj_with_names);
       EXPECT_NO_THROW(output_arc << ptr_with_names);
@@ -413,11 +411,9 @@ TEST(SerializationTests, XmlSerializers) {
       xml_oarchive output_arc(ss);
 
       obj_with_named_members obj_with_names;
-      std::shared_ptr<obj_with_named_members> ptr_with_names(
-          new obj_with_named_members());
+      auto ptr_with_names = std::make_shared<obj_with_named_members>();
       obj_with_unnamed_members obj_with_no_names;
-      std::shared_ptr<obj_with_unnamed_members> ptr_with_no_names(
-          new obj_with_unnamed_members());
+      auto ptr_with_no_names = std::make_shared<obj_with_unnamed_members>();
 
       EXPECT_NO_THROW(output_arc << obj_with_names);
       EXPECT_NO_THROW(output_arc << ptr_with_names);
@@ -498,11 +494,9 @@ TEST(SerializationTests, ProtobufSerializers) {
       protobuf_oarchive output_arc(ss);
 
       obj_with_named_members obj_with_names;
-      std::shared_ptr<obj_with_named_members> ptr_with_names(
-          new obj_with_named_members());
+      auto ptr_with_names = std::make_shared<obj_with_named_members>();
       obj_with_unnamed_members obj_with_no_names;
-      std::shared_ptr<obj_with_unnamed_members> ptr_with_no_names(
-          new obj_with_unnamed_members());
+      auto ptr_with_no_names = std::make_shared<obj_with_unnamed_members>();
 
       EXPECT_NO_THROW(output_arc << obj_with_names);
       EXPECT_NO_THROW(output_arc << ptr_with_names);
@@ -584,11 +578,9 @@ TEST(SerializationTests, ObjTreeSerializers) {
                                   otree.get_root_node());
 
       obj_with_named_members obj_with_names;
-      std::shared_ptr<obj_with_named_members> ptr_with_names(
-          new obj_with_named_members());
+      auto ptr_with_names = std::make_shared<obj_with_named_members>();
       obj_with_unnamed_members obj_with_no_names;
-      std::shared_ptr<obj_with_unnamed_members> ptr_with_no_names(
-          new obj_with_unnamed_members());
+      auto ptr_with_no_names = std::make_shared<obj_with_unnamed_members>();
 
       EXPECT_NO_THROW(output_arc << obj_with_names);
       EXPECT_NO_THROW(output_arc << ptr_with_names);

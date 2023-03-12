@@ -85,6 +85,23 @@ enum tag {
 
 }  // namespace mat_structure
 
+/// Gets the static matrix size (either row or col) from two sizes that are expected to be equal
+/// at run-time. In other words, if either is non-zero (statically sized matrix dimension), it
+/// returns that value, expecting that the dynamically sized matrix will have the same size at
+/// run-time, thus it is safe to have a statically sized result.
+inline constexpr unsigned int MatStaticSizeIfExpectedEqual(unsigned int sz1,
+                                                           unsigned int sz2) {
+  return ((sz1 == 0 && sz2 == 0) ? 0 : std::max(sz1, sz2));
+}
+
+/// Gets the static matrix size (either row or col) from two sizes that will be concatenated.
+/// In other words, if either is zero (dynamically sized matrix dimension), it
+/// returns zero since no static overall size could be resolved in that case.
+inline constexpr unsigned int MatStaticSizeIfConcat(unsigned int sz1,
+                                                    unsigned int sz2) {
+  return ((sz1 == 0 || sz2 == 0) ? 0 : (sz1 + sz2));
+}
+
 /*
  * The following are ReaK::rtti class templates which are used to associate
  * type information to the matrix tags (mat_alignment::tag and mat_structure::tag).
@@ -254,8 +271,6 @@ struct mat_traits {
   using pointer = typename Matrix::pointer;
   /// The type for a const pointer to an element of the matrix.
   using const_pointer = typename Matrix::const_pointer;
-  /// The type of the allocator for the matrix (can be void if the matrix does not have an allocator).
-  using allocator_type = typename Matrix::allocator_type;
 
   /// The type of the row-iterator for the matrix (a row-iterator goes from one row to another (on the same column)).
   using row_iterator = typename Matrix::row_iterator;
@@ -275,9 +290,9 @@ struct mat_traits {
   using difference_type = typename Matrix::difference_type;
 
   /// The static row count. Should be 0 if the row count is dynamic.
-  static constexpr std::size_t static_row_count = Matrix::static_row_count;
+  static constexpr unsigned int static_row_count = Matrix::static_row_count;
   /// The static column count. Should be 0 if the column count is dynamic.
-  static constexpr std::size_t static_col_count = Matrix::static_col_count;
+  static constexpr unsigned int static_col_count = Matrix::static_col_count;
   /// The alignment tag.
   static constexpr mat_alignment::tag alignment = Matrix::alignment;
   /// The structure tag.

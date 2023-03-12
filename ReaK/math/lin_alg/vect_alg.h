@@ -75,18 +75,10 @@ class vect_component {
 
   explicit vect_component(const_reference Q = 0) noexcept : q(Q) {}
 
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
   value_type operator[](size_type i) const noexcept {
     return (i == Index ? q : value_type());
   }
 
-  /**
-   * Call operator, accessor for read only.
-   * \test PASSED
-   */
   value_type operator()(size_type i) const noexcept {
     return (i == Index ? q : value_type());
   }
@@ -123,14 +115,90 @@ class vect_component {
     q *= rhs;
     return *this;
   }
+
+  template <typename OtherScalar, unsigned int OtherIndex>
+  friend auto operator%(
+      const self& V1,
+      const vect_component<OtherScalar, OtherIndex>& V2) noexcept {
+    if constexpr (Index == OtherIndex) {
+      return value_type{0.0};
+    } else if constexpr (Index == 0) {
+      if constexpr (OtherIndex == 1) {
+        auto val = V1.q * V2.q;
+        return vect_component<decltype(val), 2>(val);
+      } else if constexpr (OtherIndex == 2) {
+        auto val = -V1.q * V2.q;
+        return vect_component<decltype(val), 1>(val);
+      } else {
+        static_assert(
+            OtherIndex <= 2,
+            "Cross product not supported for greater than 3 dimensions!");
+        return value_type{0.0};
+      }
+    } else if constexpr (Index == 1) {
+      if constexpr (OtherIndex == 0) {
+        auto val = -V1.q * V2.q;
+        return vect_component<decltype(val), 2>(val);
+      } else if constexpr (OtherIndex == 2) {
+        auto val = V1.q * V2.q;
+        return vect_component<decltype(val), 0>(val);
+      } else {
+        static_assert(
+            OtherIndex <= 2,
+            "Cross product not supported for greater than 3 dimensions!");
+        return value_type{0.0};
+      }
+    } else if constexpr (Index == 2) {
+      if constexpr (OtherIndex == 0) {
+        auto val = V1.q * V2.q;
+        return vect_component<decltype(val), 1>(val);
+      } else if constexpr (OtherIndex == 1) {
+        auto val = -V1.q * V2.q;
+        return vect_component<decltype(val), 0>(val);
+      } else {
+        static_assert(
+            OtherIndex <= 2,
+            "Cross product not supported for greater than 3 dimensions!");
+        return value_type{0.0};
+      }
+    } else {
+      static_assert(
+          Index <= 2,
+          "Cross product not supported for greater than 3 dimensions!");
+      return value_type{0.0};
+    }
+  }
+
+  friend auto operator%(const_reference S, const self& V) noexcept {
+    if constexpr (Index == 0) {
+      return vect_component<T, 1>(V.q * S);
+    } else if constexpr (Index == 1) {
+      return vect_component<T, 0>(-V.q * S);
+    } else {
+      static_assert(Index <= 1,
+                    "Cross product with scalar not supported for greater than "
+                    "2 dimensions!");
+      return value_type{0.0};
+    }
+  }
+
+  friend auto operator%(const self& V, const_reference S) noexcept {
+    if constexpr (Index == 0) {
+      return vect_component<value_type, 1>(-V.q * S);
+    } else if constexpr (Index == 1) {
+      return vect_component<value_type, 0>(V.q * S);
+    } else {
+      static_assert(Index <= 1,
+                    "Cross product with scalar not supported for greater than "
+                    "2 dimensions!");
+      return value_type{0.0};
+    }
+  }
 };
 
 static const vect_component<double, 0> vect_i = vect_component<double, 0>(1.0);
 static const vect_component<double, 1> vect_j = vect_component<double, 1>(1.0);
 static const vect_component<double, 2> vect_k = vect_component<double, 2>(1.0);
-
-template <typename T, typename Allocator>
-class vect_n;  // forward-declaration.
 
 /**
  * This class implements a fixed-size templated vector class which holds components of primitive type.
@@ -140,109 +208,122 @@ class vect {
  public:
   using self = vect<T, Size>;
 
+  static constexpr bool is_dynamic_size = (Size == 0);
+  using container_type =
+      std::conditional_t<is_dynamic_size, std::vector<T>, std::array<T, Size>>;
+
   using value_type = T;
-  using reference = T&;
-  using const_reference = const T&;
-  using pointer = T*;
-  using const_pointer = const T*;
-  using allocator_type = std::allocator<T>;
+  using reference = typename container_type::reference;
+  using const_reference = typename container_type::const_reference;
+  using pointer = typename container_type::pointer;
+  using const_pointer = typename container_type::const_pointer;
 
-  using iterator = typename std::array<T, Size>::iterator;
-  using const_iterator = typename std::array<T, Size>::const_iterator;
+  using iterator = typename container_type::iterator;
+  using const_iterator = typename container_type::const_iterator;
 
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = typename container_type::size_type;
+  using difference_type = typename container_type::difference_type;
 
   static constexpr std::size_t dimensions = Size;
 
   /// Components of the vector.
-  std::array<T, Size> q = {};
+  container_type q = {};
 
-  /**
-   * Returns the size of the vector.
-   */
-  size_type size() const noexcept { return Size; }
-  /**
-   * Returns the max-size of the vector.
-   */
-  size_type max_size() const noexcept { return Size; }
-  /**
-   * Returns the capacity of the vector.
-   */
-  size_type capacity() const noexcept { return Size; }
-  /**
-   * Resizes the vector.
-   */
-  void resize(size_type sz, T c = T()) const noexcept {}
-  /**
-   * Checks if the vector is empty.
-   */
-  bool empty() const noexcept { return false; }
-  /**
-   * Reserve a capacity for the vector.
-   */
-  void reserve(size_type sz) const noexcept {}
+  size_type size() const noexcept { return q.size(); }
+  size_type max_size() const noexcept {
+    if constexpr (!is_dynamic_size) {
+      return Size;
+    } else {
+      return q.max_size();
+    }
+  }
+  size_type capacity() const noexcept {
+    if constexpr (!is_dynamic_size) {
+      return Size;
+    } else {
+      return q.capacity();
+    }
+  }
+  void resize(size_type sz, T c = T()) noexcept(!is_dynamic_size) {
+    if constexpr (is_dynamic_size) {
+      q.resize(sz, c);
+    }
+  }
+  bool empty() const noexcept { return q.empty(); }
+  void reserve(size_type sz) noexcept(!is_dynamic_size) {
+    if constexpr (is_dynamic_size) {
+      q.reserve(sz);
+    }
+  }
 
-  /**
-   * Returns an iterator to the first element of the vector.
-   */
   iterator begin() noexcept { return q.begin(); }
-  /**
-   * Returns a const-iterator to the first element of the vector.
-   */
   const_iterator begin() const noexcept { return q.begin(); }
-  /**
-   * Returns an iterator to the one-past-last element of the vector.
-   */
   iterator end() noexcept { return q.end(); }
-  /**
-   * Returns a const-iterator to the one-past-last element of the vector.
-   */
   const_iterator end() const noexcept { return q.end(); }
 
-  /*******************************************************************************
-                           Constructors / Destructors
-  *******************************************************************************/
-  /**
-   * Default constructor: sets all to zero.
-   * \test PASSED
-   */
+  /// Default constructor: sets all to zero.
   vect() noexcept {
     for (auto& v : q) {
       v = value_type{};
     }
   }
 
-  template <typename U, typename Allocator>
-  vect(const vect_n<U, Allocator>& V) noexcept;  // NOLINT
-
-  /**
-   * Constructor from an array of values of type T.
-   * \test PASSED
-   */
-  explicit vect(const_pointer Q) noexcept {
-    for (auto& v : q) {
-      v = *Q++;
+  /// Constructor for a given size or dimension of vector, or single value,
+  /// or pointer to statically sized array of values.
+  template <typename U>
+  explicit vect(const U& value_or_size) noexcept {
+    if constexpr (is_dynamic_size) {
+      if constexpr (std::is_integral_v<U>) {
+        q.resize(value_or_size, value_type{});
+      } else {
+        q.resize(1);
+        q[0] = value_or_size;
+      }
+    } else if constexpr (std::is_pointer_v<U>) {
+      U p_val = value_or_size;
+      for (auto& v : q) {
+        v = *p_val++;
+      }
+    } else {
+      static_assert(Size == 1);
+      q[0] = value_or_size;
     }
   }
 
-  vect(const self& V) noexcept = default;
+  /// Constructor from an array of values of type "value_type".
+  explicit vect(const std::vector<value_type>& Q) : q(Q.begin(), Q.end()) {}
+
+  /// Constructor from a forward iterator of values of type "value_type".
+  template <typename InputIter>
+  explicit vect(
+      InputIter first,
+      std::enable_if_t<std::is_convertible_v<decltype(*first), value_type>,
+                       InputIter>
+          last)
+      : q(first, last) {}
+
+  vect(const self&) noexcept(!is_dynamic_size) = default;
+  vect(self&&) noexcept = default;
 
   template <typename U, unsigned int OtherSize>
-  explicit vect(const vect<U, OtherSize>& rhs) noexcept {
-    static_assert(Size >= OtherSize);
-    auto it = q.begin();
-    for (auto rhs_it = rhs.begin(); rhs_it < rhs.end(); ++it, ++rhs_it) {
-      *it = *rhs_it;
-    }
-    for (; it < q.end(); ++it) {
-      *it = value_type{};
+  vect(const vect<U, OtherSize>& rhs) noexcept {  // NOLINT
+    if constexpr (is_dynamic_size) {
+      q.resize(rhs.size());
+      std::copy(rhs.begin(), rhs.end(), q.begin());
+    } else {
+      static_assert(Size >= OtherSize);
+      std::copy(rhs.begin(), rhs.end(), q.begin());
+      std::fill(q.begin() + rhs.size(), q.begin() + Size, value_type{});
     }
   }
 
   template <typename U, unsigned int Index>
   explicit vect(const vect_component<U, Index>& rhs) noexcept : vect() {
-    static_assert(Size > Index);
+    if constexpr (is_dynamic_size) {
+      q.resize(Index, value_type{});
+    } else {
+      static_assert(Size > Index);
+    }
     q[Index] = rhs.q;
   }
 
@@ -260,14 +341,15 @@ class vect {
   }
 
  public:
-  /**
-   * Constructor for Size values.
-   * \test PASSED
-   */
+  /// Constructor for fixed number of values.
   template <typename... Args>
   vect(const value_type& a1, const value_type& a2,
        const Args&... args) noexcept {
-    static_assert(Size > sizeof...(Args) + 1);
+    if constexpr (is_dynamic_size) {
+      q.resize(sizeof...(Args) + 2);
+    } else {
+      static_assert(Size > sizeof...(Args) + 1);
+    }
     auto it = q.begin();
     set_value_impl(it, a1, a2, args...);
     for (; it < q.end(); ++it) {
@@ -275,131 +357,299 @@ class vect {
     }
   }
 
-  explicit vect(const value_type& a1) noexcept {
-    static_assert(Size == 1);
-    q[0] = a1;
-  }
-
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Array indexing operator, accessor for read/write.
-   * \test PASSED
-   */
   reference operator[](int i) noexcept { return q[i]; }
-
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
   const_reference operator[](int i) const noexcept { return q[i]; }
 
-  /**
-   * Sub-vector operator, accessor for read/write.
-   * \test PASSED
-   */
   vect_ref_view<self> operator[](const std::pair<int, int>& r) {
     return sub(*this)[r];
   }
-
-  /**
-   * Sub-vector operator, accessor for read only.
-   * \test PASSED
-   */
   vect_const_ref_view<self> operator[](const std::pair<int, int>& r) const {
     return sub(*this)[r];
   }
 
-  /**
-   * Array indexing operator, accessor for read/write.
-   * \test PASSED
-   */
   reference operator()(int i) noexcept { return q[i]; }
-
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
   const_reference operator()(int i) const noexcept { return q[i]; }
 
   /*******************************************************************************
                          Assignment Operators
-*******************************************************************************/
+  *******************************************************************************/
 
-  self& operator=(const self& V) noexcept = default;
+  self& operator=(const self& V) noexcept(!is_dynamic_size) = default;
+  self& operator=(self&& V) noexcept = default;
 
-  /**
-   * Standard assignment operator.
-   * \test PASSED
-   */
   template <typename Vector>
-  self& operator=(const Vector& V) {
+  self& operator=(const Vector& rhs) {
     static_assert(is_readable_vector_v<Vector>);
-    if (Size != V.size()) {
-      throw std::range_error("Vector size mismatch.");
+    if constexpr (is_dynamic_size) {
+      q.resize(rhs.size());
+    } else {
+      if (Size != rhs.size()) {
+        throw std::range_error("Vector size mismatch.");
+      }
     }
     for (size_type i = 0; i < Size; ++i) {
-      q[i] = V[i];
+      q[i] = rhs[i];
     }
     return *this;
   }
 
   template <typename U, unsigned int Index>
-  self& operator=(const vect_component<U, Index>& V) noexcept {
-    static_assert(Size > Index);
-    for (pointer p_i = q, p_end = q + Size; p_i < p_end; ++p_i) {
-      *p_i = value_type();
+  self& operator=(const vect_component<U, Index>& rhs) noexcept(
+      !is_dynamic_size) {
+    if constexpr (is_dynamic_size) {
+      q.resize(std::max<size_type>(q.size(), Index));
+    } else {
+      static_assert(Size > Index);
     }
-    q[Index] = V.q;
+    std::fill(q.begin(), q.end(), value_type{});
+    q[Index] = rhs.q;
   }
 
   template <typename U, unsigned int Index>
-  friend self operator+(self lhs,
-                        const vect_component<U, Index>& rhs) noexcept {
-    static_assert(Size > Index);
+  friend self operator+(self lhs, const vect_component<U, Index>& rhs) noexcept(
+      !is_dynamic_size) {
+    if constexpr (is_dynamic_size) {
+      if (Index >= lhs.q.size()) {
+        throw std::range_error("Vector size mismatch.");
+      }
+    } else {
+      static_assert(Size > Index);
+    }
     lhs.q[Index] += rhs.q;
     return lhs;
   }
 
   template <typename U, unsigned int Index>
   self& operator+=(const vect_component<U, Index>& rhs) noexcept {
-    static_assert(Size > Index);
+    if constexpr (is_dynamic_size) {
+      if (Index >= q.size()) {
+        throw std::range_error("Vector size mismatch.");
+      }
+    } else {
+      static_assert(Size > Index);
+    }
     q[Index] += rhs.q;
     return *this;
   }
 
   template <typename U, unsigned int Index>
   friend self operator+(const vect_component<U, Index>& lhs,
-                        self rhs) noexcept {
-    static_assert(Size > Index);
+                        self rhs) noexcept(!is_dynamic_size) {
+    if constexpr (is_dynamic_size) {
+      if (Index >= rhs.q.size()) {
+        throw std::range_error("Vector size mismatch.");
+      }
+    } else {
+      static_assert(Size > Index);
+    }
     rhs.q[Index] += lhs.q;
     return rhs;
   }
 
   template <typename U, unsigned int Index>
-  friend self operator-(self lhs,
-                        const vect_component<U, Index>& rhs) noexcept {
-    static_assert(Size > Index);
+  friend self operator-(self lhs, const vect_component<U, Index>& rhs) noexcept(
+      !is_dynamic_size) {
+    if constexpr (is_dynamic_size) {
+      if (Index >= lhs.q.size()) {
+        throw std::range_error("Vector size mismatch.");
+      }
+    } else {
+      static_assert(Size > Index);
+    }
     lhs.q[Index] -= rhs.q;
     return lhs;
   }
 
   template <typename U, unsigned int Index>
   self& operator-=(const vect_component<U, Index>& rhs) noexcept {
-    static_assert(Size > Index);
+    if constexpr (is_dynamic_size) {
+      if (Index >= q.size()) {
+        throw std::range_error("Vector size mismatch.");
+      }
+    } else {
+      static_assert(Size > Index);
+    }
     q[Index] -= rhs.q;
     return *this;
   }
 
   template <typename U, unsigned int Index>
   friend self operator-(const vect_component<U, Index>& lhs,
-                        const self& rhs) noexcept {
-    static_assert(Size > Index);
+                        const self& rhs) noexcept(!is_dynamic_size) {
+    if constexpr (is_dynamic_size) {
+      if (Index >= rhs.q.size()) {
+        throw std::range_error("Vector size mismatch.");
+      }
+    } else {
+      static_assert(Size > Index);
+    }
     self result = -rhs;
     result.q[Index] += lhs.q;
     return result;
+  }
+
+  /*******************************************************************************
+                           Special Vector Products / Operators
+  *******************************************************************************/
+
+  /// Cross-Product.
+  template <class U, unsigned int OtherSize>
+  friend auto operator%(
+      const self& lhs,
+      const vect<U, OtherSize>& rhs) noexcept(!is_dynamic_size) {
+    if constexpr (Size == 2) {
+      return lhs[0] * rhs[1] - lhs[1] * rhs[0];
+    } else {
+      if constexpr (is_dynamic_size) {
+        if (lhs.size() != 3) {
+          throw std::range_error(
+              "Cross-product only supported for dynamic vector of size 3.");
+        }
+        if (rhs.size() != 3) {
+          throw std::range_error(
+              "Cross-product only supported for dynamic vector of size 3.");
+        }
+      } else {
+        static_assert(
+            Size == 3,
+            "Cross-product only supported for static vector of size 2 or 3.");
+        static_assert(
+            OtherSize == 3,
+            "Cross-product only supported for static vector of size 2 or 3.");
+      }
+      return self(lhs[1] * rhs[2] - lhs[2] * rhs[1],
+                  lhs[2] * rhs[0] - lhs[0] * rhs[2],
+                  lhs[0] * rhs[1] - lhs[1] * rhs[0]);
+    }
+  }
+
+  /// Cross-Product.
+  friend self operator%(const_reference lhs,
+                        const self& rhs) noexcept(!is_dynamic_size) {
+    if constexpr (is_dynamic_size) {
+      if (rhs.size() != 2) {
+        throw std::range_error(
+            "Cross product with scalar not supported for other than 2 "
+            "dimensions!");
+      }
+    } else {
+      static_assert(Size == 2,
+                    "Cross product with scalar not supported for other than 2 "
+                    "dimensions!");
+    }
+    return self(-rhs[1] * lhs, rhs[0] * lhs);
+  }
+
+  /// Cross-Product.
+  friend self operator%(const self& lhs,
+                        const_reference rhs) noexcept(!is_dynamic_size) {
+    if constexpr (is_dynamic_size) {
+      if (rhs.size() != 2) {
+        throw std::range_error(
+            "Cross product with scalar not supported for other than 2 "
+            "dimensions!");
+      }
+    } else {
+      static_assert(Size == 2,
+                    "Cross product with scalar not supported for other than 2 "
+                    "dimensions!");
+    }
+    return self(lhs[1] * rhs, -lhs[0] * rhs);
+  }
+
+  /// Cross-Product.
+  template <typename U, unsigned int Index>
+  friend auto operator%(
+      const self& lhs,
+      const vect_component<U, Index>& rhs) noexcept(!is_dynamic_size) {
+    if constexpr (Size == 2) {
+      if constexpr (Index == 0) {
+        return -lhs[1] * rhs.q;
+      } else if constexpr (Index == 1) {
+        return lhs[0] * rhs.q;
+      } else {
+        static_assert(
+            Index <= 1,
+            "Cross-product only supported for vector components below 2.");
+        return value_type{};
+      }
+    } else {
+      if constexpr (is_dynamic_size) {
+        if (lhs.size() != 3) {
+          throw std::range_error(
+              "Cross-product only supported for dynamic vector of size 3.");
+        }
+      } else {
+        static_assert(
+            Size == 3,
+            "Cross-product only supported for static vector of size 2 or 3.");
+      }
+      if constexpr (Index == 0) {
+        return self(0.0, lhs[2] * rhs.q, -lhs[1] * rhs.q);
+      } else if constexpr (Index == 1) {
+        return self(-lhs[2] * rhs.q, 0.0, lhs[0] * rhs.q);
+      } else if constexpr (Index == 2) {
+        return self(lhs[1] * rhs.q, -lhs[0] * rhs.q, 0.0);
+      } else {
+        static_assert(
+            Index <= 2,
+            "Cross-product only supported for vector components below 3.");
+        return self{};
+      }
+    }
+  }
+
+  /// Cross-Product.
+  template <typename U, unsigned int Index>
+  friend auto operator%(const vect_component<U, Index>& lhs,
+                        const self& rhs) noexcept(!is_dynamic_size) {
+    if constexpr (Size == 2) {
+      if constexpr (Index == 0) {
+        return rhs[1] * lhs.q;
+      } else if constexpr (Index == 1) {
+        return -rhs[0] * lhs.q;
+      } else {
+        static_assert(
+            Index <= 1,
+            "Cross-product only supported for vector components below 2.");
+        return value_type{};
+      }
+    } else {
+      if constexpr (is_dynamic_size) {
+        if (rhs.size() != 3) {
+          throw std::range_error(
+              "Cross-product only supported for dynamic vector of size 3.");
+        }
+      } else {
+        static_assert(
+            Size == 3,
+            "Cross-product only supported for static vector of size 2 or 3.");
+      }
+      if constexpr (Index == 0) {
+        return self(0.0, -rhs[2] * lhs.q, rhs[1] * lhs.q);
+      } else if constexpr (Index == 1) {
+        return self(rhs[2] * lhs.q, 0.0, -rhs[0] * lhs.q);
+      } else if constexpr (Index == 2) {
+        return self(-rhs[1] * lhs.q, rhs[0] * lhs.q, 0.0);
+      } else {
+        static_assert(
+            Index <= 2,
+            "Cross-product only supported for vector components below 3.");
+        return self{};
+      }
+    }
+  }
+
+  friend auto diff(const self& v1, const self& v2) noexcept(!is_dynamic_size) {
+    return v1 - v2;
+  }
+
+  friend auto add(const self& v1, const self& v2) noexcept(!is_dynamic_size) {
+    return v1 + v2;
   }
 };
 
@@ -484,14 +734,8 @@ struct is_writable_vector<vect<T, Size>> {
 
 template <typename T, unsigned int Size>
 struct is_resizable_vector<vect<T, Size>> {
-  static constexpr bool value = false;
+  static constexpr bool value = (Size == 0);
   using type = is_resizable_vector<vect<T, Size>>;
-};
-
-template <typename T, unsigned int Size>
-struct has_allocator_vector<vect<T, Size>> {
-  static constexpr bool value = false;
-  using type = has_allocator_vector<vect<T, Size>>;
 };
 
 /*******************************************************************************
@@ -504,522 +748,15 @@ vect<T, sizeof...(Args) + 1> make_vect(const T& Q1,
   return {Q1, args...};
 }
 
-/*******************************************************************************
-                         Basic Operators
-*******************************************************************************/
+// This class implements a variable-size templated vector class which holds components of dimensional quantities.
+template <typename T>
+using vect_n = vect<T, 0>;
 
-/**
- * Sub two vectors. For functional interfaces.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-vect<T, Size> diff(const vect<T, Size>& v1, const vect<T, Size>& v2) noexcept {
-  return v1 - v2;
+template <typename T, typename... Args>
+vect<T, 0> make_vect_n(const T& Q1, const T& Q2, const T& Q3,
+                       const Args&... args) {
+  return vect<T, 0>(Q1, Q2, Q3, args...);
 }
-
-/**
- * Add two vectors. For functional interfaces.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-vect<T, Size> add(const vect<T, Size>& v1, const vect<T, Size>& v2) noexcept {
-  return v1 + v2;
-}
-
-/*******************************************************************************
-                         Special Vector Products / Operators
-*******************************************************************************/
-
-/**
- * 2D Cross-Product.
- * \test PASSED
- */
-template <class T>
-T operator%(const vect<T, 2>& V1, const vect<T, 2>& V2) noexcept {
-  return V1[0] * V2[1] - V1[1] * V2[0];
-}
-
-template <class T>
-T operator%(const vect_component<T, 0>& V1,
-            const vect_component<T, 0>& V2) noexcept {
-  return T(0.0);
-}
-
-template <class T>
-T operator%(const vect_component<T, 1>& V1,
-            const vect_component<T, 1>& V2) noexcept {
-  return T(0.0);
-}
-
-template <class T>
-vect_component<T, 2> operator%(const vect_component<T, 0>& V1,
-                               const vect_component<T, 1>& V2) noexcept {
-  return vect_component<T, 2>(V1.q * V2.q);
-}
-
-template <class T>
-vect_component<T, 2> operator%(const vect_component<T, 1>& V1,
-                               const vect_component<T, 0>& V2) noexcept {
-  return vect_component<T, 2>(-V1.q * V2.q);
-}
-
-/**
- * 2D Cross-Product.
- * \test PASSED
- */
-template <class T>
-vect<T, 2> operator%(const T& S, const vect<T, 2>& V) noexcept {
-  vect<T, 2> result;
-  result[0] = -V[1] * S;
-  result[1] = V[0] * S;
-  return result;
-}
-
-template <class T>
-vect_component<T, 1> operator%(const T& S,
-                               const vect_component<T, 0>& V) noexcept {
-  return vect_component<T, 1>(V.q * S);
-}
-
-template <class T>
-vect_component<T, 0> operator%(const T& S,
-                               const vect_component<T, 1>& V) noexcept {
-  return vect_component<T, 0>(-V.q * S);
-}
-
-/**
- * 2D Cross-Product.
- * \test PASSED
- */
-template <class T>
-vect<T, 2> operator%(const vect<T, 2>& V, const T& S) noexcept {
-  vect<T, 2> result;
-  result[0] = V[1] * S;
-  result[1] = -V[0] * S;
-  return result;
-}
-
-template <class T>
-vect_component<T, 1> operator%(const vect_component<T, 0>& V,
-                               const T& S) noexcept {
-  return vect_component<T, 1>(-V.q * S);
-}
-
-template <class T>
-vect_component<T, 0> operator%(const vect_component<T, 1>& V,
-                               const T& S) noexcept {
-  return vect_component<T, 0>(V.q * S);
-}
-
-/**
- * 3D Cross-Product.
- * \test PASSED
- */
-template <class T>
-vect<T, 3> operator%(const vect<T, 3>& V1, const vect<T, 3>& V2) noexcept {
-  vect<T, 3> result;
-  result[0] = V1[1] * V2[2] - V1[2] * V2[1];
-  result[1] = V1[2] * V2[0] - V1[0] * V2[2];
-  result[2] = V1[0] * V2[1] - V1[1] * V2[0];
-  return result;
-}
-
-template <class T>
-vect_component<T, 1> operator%(const vect_component<T, 0>& V1,
-                               const vect_component<T, 2>& V2) noexcept {
-  return vect_component<T, 1>(-V1.q * V2.q);
-}
-
-template <class T>
-vect_component<T, 1> operator%(const vect_component<T, 2>& V1,
-                               const vect_component<T, 0>& V2) noexcept {
-  return vect_component<T, 1>(V1.q * V2.q);
-}
-
-template <class T>
-vect_component<T, 0> operator%(const vect_component<T, 1>& V1,
-                               const vect_component<T, 2>& V2) noexcept {
-  return vect_component<T, 2>(V1.q * V2.q);
-}
-
-template <class T>
-vect_component<T, 0> operator%(const vect_component<T, 2>& V1,
-                               const vect_component<T, 1>& V2) noexcept {
-  return vect_component<T, 2>(-V1.q * V2.q);
-}
-
-template <class T>
-T operator%(const vect_component<T, 2>& V1,
-            const vect_component<T, 2>& V2) noexcept {
-  return T(0.0);
-}
-
-template <class T>
-vect<T, 3> operator%(const vect<T, 3>& V1,
-                     const vect_component<T, 0>& V2) noexcept {
-  vect<T, 3> result;
-  result[0] = T(0.0);
-  result[1] = V1[2] * V2.q;
-  result[2] = -V1[1] * V2.q;
-  return result;
-}
-
-template <class T>
-vect<T, 3> operator%(const vect<T, 3>& V1,
-                     const vect_component<T, 1>& V2) noexcept {
-  vect<T, 3> result;
-  result[0] = -V1[2] * V2.q;
-  result[1] = T(0.0);
-  result[2] = V1[0] * V2.q;
-  return result;
-}
-
-template <class T>
-vect<T, 3> operator%(const vect<T, 3>& V1,
-                     const vect_component<T, 2>& V2) noexcept {
-  vect<T, 3> result;
-  result[0] = V1[1] * V2.q;
-  result[1] = -V1[0] * V2.q;
-  result[2] = T(0.0);
-  return result;
-}
-
-template <class T>
-vect<T, 3> operator%(const vect_component<T, 0>& V1,
-                     const vect<T, 3>& V2) noexcept {
-  vect<T, 3> result;
-  result[0] = T(0.0);
-  result[1] = -V2[2] * V1.q;
-  result[2] = V2[1] * V1.q;
-  return result;
-}
-
-template <class T>
-vect<T, 3> operator%(const vect_component<T, 1>& V1,
-                     const vect<T, 3>& V2) noexcept {
-  vect<T, 3> result;
-  result[0] = V2[2] * V1.q;
-  result[1] = T(0.0);
-  result[2] = -V2[0] * V1.q;
-  return result;
-}
-
-template <class T>
-vect<T, 3> operator%(const vect_component<T, 2>& V1,
-                     const vect<T, 3>& V2) noexcept {
-  vect<T, 3> result;
-  result[0] = -V2[1] * V1.q;
-  result[1] = V2[0] * V1.q;
-  result[2] = T(0.0);
-  return result;
-}
-
-/**
- * This class implements a variable-size templated vector class which holds components of dimensional quantities.
- */
-template <typename T, typename Allocator = std::allocator<T>>
-class vect_n {
- public:
-  using self = vect_n<T, Allocator>;
-
-  using value_type = T;
-  using reference = typename std::vector<T, Allocator>::reference;
-  using const_reference = typename std::vector<T, Allocator>::const_reference;
-  using pointer = typename std::vector<T, Allocator>::pointer;
-  using const_pointer = typename std::vector<T, Allocator>::const_pointer;
-  using allocator_type = Allocator;
-
-  using iterator = typename std::vector<T, Allocator>::iterator;
-  using const_iterator = typename std::vector<T, Allocator>::const_iterator;
-
-  using size_type = typename std::vector<T, Allocator>::size_type;
-  using difference_type = typename std::vector<T, Allocator>::difference_type;
-
-  static constexpr std::size_t dimensions = 0;
-
-  std::vector<T, Allocator> q; /**< Components of the vector. */
-
-  /**
-   * Returns the size of the vector.
-   */
-  size_type size() const noexcept { return q.size(); }
-  /**
-   * Returns the max-size of the vector.
-   */
-  size_type max_size() const noexcept { return q.max_size(); }
-  /**
-   * Returns the capacity of the vector.
-   */
-  size_type capacity() const noexcept { return q.capacity(); }
-  /**
-   * Resizes the vector.
-   */
-  void resize(size_type sz, T c = T()) { q.resize(sz, c); }
-  /**
-   * Checks if the vector is empty.
-   */
-  bool empty() const noexcept { return q.empty(); }
-  /**
-   * Reserve a capacity for the vector.
-   */
-  void reserve(size_type sz) { q.reserve(sz); }
-
-  /**
-   * Returns an iterator to the first element of the vector.
-   */
-  iterator begin() noexcept { return q.begin(); }
-  /**
-   * Returns a const-iterator to the first element of the vector.
-   */
-  const_iterator begin() const noexcept { return q.begin(); }
-  /**
-   * Returns an iterator to the one-past-last element of the vector.
-   */
-  iterator end() noexcept { return q.end(); }
-  /**
-   * Returns a const-iterator to the one-past-last element of the vector.
-   */
-  const_iterator end() const noexcept { return q.end(); }
-
-  /*******************************************************************************
-                           Constructors / Destructors
-  *******************************************************************************/
-  /**
-   * Default constructor.
-   * \test PASSED
-   */
-  explicit vect_n(const allocator_type& aAlloc) : q(aAlloc) {}
-
-  vect_n() : q(allocator_type()) {}
-
-  /**
-   * Constructor for a given size or dimension of vector.
-   * \test PASSED
-   */
-  explicit vect_n(size_type aSize, const_reference Fill = value_type(),
-                  const allocator_type& aAlloc = allocator_type())
-      : q(aSize, Fill, aAlloc) {}
-
-  /**
-   * Constructor from an array of values of type "value_type".
-   * \test PASSED
-   */
-  template <typename OtherAllocator>
-  explicit vect_n(const std::vector<value_type, OtherAllocator>& Q,
-                  const allocator_type& aAlloc = allocator_type())
-      : q(Q.begin(), Q.end(), aAlloc) {}
-
-  /**
-   * Constructor from a forward iterator of values of type "value_type".
-   * \test PASSED
-   */
-  template <typename InputIter>
-  explicit vect_n(InputIter first, InputIter last,
-                  const allocator_type& aAlloc = allocator_type())
-      : q(first, last, aAlloc) {}
-
-  /**
-   * Standard Copy Constructor with standard semantics.
-   * \test PASSED
-   */
-  vect_n(const self& V) : q(V.begin(), V.end(), V.get_allocator()) {}
-
-  /**
-   * Allocator-agnostic Copy Constructor with standard semantics.
-   * \test PASSED
-   */
-  template <typename OtherAllocator>
-  explicit vect_n(const vect_n<value_type, OtherAllocator>& V,
-                  const allocator_type& aAlloc = allocator_type())
-      : q(V.begin(), V.end(), aAlloc) {}
-
-  /**
-   * Constructor from a fixed-length vector.
-   */
-  template <unsigned int Size>
-  explicit vect_n(const vect<value_type, Size>& V,
-                  const allocator_type& aAlloc = allocator_type())
-      : q(V.begin(), V.end(), aAlloc) {}
-
- private:
-  static void set_value_impl(iterator& pval, const_reference a1) noexcept {
-    *pval++ = a1;
-  }
-
-  template <typename... Args>
-  static void set_value_impl(iterator& pval, const_reference a1,
-                             const Args&... tail) noexcept {
-    *pval++ = a1;
-    set_value_impl(pval, tail...);
-  }
-
- public:
-  /**
-   * Constructor for Size values.
-   * \test PASSED
-   */
-  template <typename... Args>
-  vect_n(const_reference a1, const_reference a2, const_reference a3,
-         Args... args) noexcept
-      : q(3 + sizeof...(Args)) {
-    auto p_i = q.begin();
-    set_value_impl(p_i, a1, a2, a3, args...);
-  }
-
-  /*******************************************************************************
-                           Accessors and Methods
-  *******************************************************************************/
-
-  /**
-   * Array indexing operator, accessor for read/write. <
-   * \test PASSED
-   */
-  reference operator[](size_type i) noexcept { return q[i]; }
-
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
-  const_reference operator[](size_type i) const noexcept { return q[i]; }
-
-  /**
-   * Sub-vector operator, accessor for read/write.
-   * \test PASSED
-   */
-  vect_ref_view<self> operator[](
-      const std::pair<size_type, size_type>& r) noexcept {
-    return sub(*this)[r];
-  }
-
-  /**
-   * Sub-vector operator, accessor for read only.
-   * \test PASSED
-   */
-  vect_const_ref_view<self> operator[](
-      const std::pair<size_type, size_type>& r) const noexcept {
-    return sub(*this)[r];
-  }
-
-  /**
-   * Array indexing operator, accessor for read/write. <
-   * \test PASSED
-   */
-  reference operator()(size_type i) noexcept { return q[i]; }
-
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
-  const_reference operator()(size_type i) const noexcept { return q[i]; }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return q.get_allocator(); }
-
-  /*******************************************************************************
-                           Assignment Operators
-  *******************************************************************************/
-
-  /**
-   * Standard assignment operator.
-   * \test PASSED
-   */
-  self& operator=(const self& V) {
-    q.assign(V.q.begin(), V.q.end());
-    return *this;
-  }
-
-  /**
-   * Standard assignment operator.
-   * \test PASSED
-   */
-  template <typename Vector>
-  self& operator=(const Vector& V) {
-    static_assert(is_readable_vector_v<Vector>);
-    q.resize(V.size());
-    for (size_type i = 0; i < q.size(); ++i) {
-      q[i] = V[i];
-    }
-    return *this;
-  }
-};
-
-namespace rtti {
-
-template <typename T, typename Allocator>
-struct get_type_id<vect_n<T, Allocator>> {
-  static constexpr unsigned int ID = 0x00000010;
-  static constexpr auto type_name = std::string_view{"vect_n"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
-
-  using save_type = const vect_n<T, Allocator>&;
-  using load_type = vect_n<T, Allocator>&;
-};
-
-template <typename T, typename Allocator, typename Tail>
-struct get_type_info<vect_n<T, Allocator>, Tail> {
-  using type =
-      type_id<vect_n<T, Allocator>, typename get_type_info<T, Tail>::type>;
-  static constexpr auto type_name =
-      ct_concat_v<get_type_id<vect_n<T, Allocator>>::type_name,
-                  lsl_left_bracket, get_type_id<T>::type_name,
-                  lsl_right_bracket, get_type_name_tail<Tail>::value>;
-};
-}  // namespace rtti
-
-namespace serialization {
-template <typename T, typename Allocator>
-iarchive& operator>>(iarchive& in, vect_n<T, Allocator>& v) {
-  in >> v.q;
-  return in;
-}
-
-template <typename T, typename Allocator>
-iarchive& operator&(iarchive& in,
-                    const std::pair<std::string, vect_n<T, Allocator>&>& v) {
-  in& RK_SERIAL_LOAD_WITH_ALIAS(v.first, v.second.q);
-  return in;
-}
-
-template <typename T, typename Allocator>
-oarchive& operator<<(oarchive& out, const vect_n<T, Allocator>& v) {
-  out << v.q;
-  return out;
-}
-
-template <typename T, typename Allocator>
-oarchive& operator&(
-    oarchive& out,
-    const std::pair<std::string, const vect_n<T, Allocator>&>& v) {
-  out& RK_SERIAL_SAVE_WITH_ALIAS(v.first, v.second.q);
-  return out;
-}
-}  // namespace serialization
-
-template <typename T, typename Allocator>
-struct is_readable_vector<vect_n<T, Allocator>> {
-  static constexpr bool value = true;
-  using type = is_readable_vector<vect_n<T, Allocator>>;
-};
-
-template <typename T, typename Allocator>
-struct is_writable_vector<vect_n<T, Allocator>> {
-  static constexpr bool value = true;
-  using type = is_writable_vector<vect_n<T, Allocator>>;
-};
-
-template <typename T, typename Allocator>
-struct is_resizable_vector<vect_n<T, Allocator>> {
-  static constexpr bool value = true;
-  using type = is_resizable_vector<vect_n<T, Allocator>>;
-};
-
-template <typename T, typename Allocator>
-struct has_allocator_vector<vect_n<T, Allocator>> {
-  static constexpr bool value = true;
-  using type = has_allocator_vector<vect_n<T, Allocator>>;
-};
 
 template <typename Vector>
 struct vect_copy<vect_ref_view<Vector>> {
@@ -1030,27 +767,6 @@ template <typename Vector>
 struct vect_copy<vect_const_ref_view<Vector>> {
   using type = vect_n<vect_value_type_t<Vector>>;
 };
-
-/*******************************************************************************
-                         Basic Constructors
-*******************************************************************************/
-
-template <typename T, typename... Args>
-vect_n<T> make_vect_n(const T& Q1, const T& Q2, const T& Q3,
-                      const Args&... args) {
-  return vect_n<T>(Q1, Q2, Q3, args...);
-}
-
-template <typename T, unsigned int Size>
-template <typename U, typename Allocator>
-vect<T, Size>::vect(const vect_n<U, Allocator>& V) noexcept {
-  if (Size > V.size()) {
-    std::copy(V.begin(), V.end(), q.begin());
-    std::fill(q.begin() + V.size(), q.begin() + Size, T());
-  } else {
-    std::copy(V.begin(), V.begin() + Size, q.begin());
-  }
-}
 
 /**
  * This class implements a variable-size templated vector class in which all vector-elements
@@ -1066,7 +782,6 @@ class vect_scalar {
   using const_reference = const T&;
   using pointer = T*;
   using const_pointer = const T*;
-  using allocator_type = std::allocator<T>;
 
   using iterator = void;
   using const_iterator = vect_index_const_iter<self>;
@@ -1076,78 +791,110 @@ class vect_scalar {
 
   static constexpr std::size_t dimensions = Size;
 
+  static constexpr bool is_dynamic_size = (Size == 0);
+
  private:
-  value_type q; /**< Components of the vector. */
+  struct data_alone {
+    value_type q;
+  };
+  struct data_with_count {
+    value_type q;
+    size_type count;
+  };
+  using storage_type =
+      std::conditional_t<is_dynamic_size, data_with_count, data_alone>;
+
+  storage_type data;
+
  public:
-  /**
-   * Returns the size of the vector.
-   */
-  size_type size() const noexcept { return Size; }
-  /**
-   * Returns the max-size of the vector.
-   */
-  size_type max_size() const noexcept { return Size; }
-  /**
-   * Returns the capacity of the vector.
-   */
-  size_type capacity() const noexcept { return Size; }
-  /**
-   * Resizes the vector.
-   */
-  void resize(size_type sz, T c = T()) noexcept {}
-  /**
-   * Checks if the vector is empty.
-   */
-  bool empty() const noexcept { return true; }
-  /**
-   * Reserve a capacity for the vector.
-   */
+  /// Returns the size of the vector.
+  size_type size() const noexcept {
+    if constexpr (is_dynamic_size) {
+      return data.count;
+    } else {
+      return Size;
+    }
+  }
+  /// Returns the max-size of the vector.
+  size_type max_size() const noexcept {
+    if constexpr (is_dynamic_size) {
+      return std::numeric_limits<size_type>::max();
+    } else {
+      return Size;
+    }
+  }
+  /// Returns the capacity of the vector.
+  size_type capacity() const noexcept {
+    if constexpr (is_dynamic_size) {
+      return std::numeric_limits<size_type>::max();
+    } else {
+      return Size;
+    }
+  }
+  /// Resizes the vector.
+  void resize(size_type sz, T c = T()) noexcept {
+    if constexpr (is_dynamic_size) {
+      data.count = sz;
+    }
+  }
+  /// Checks if the vector is empty.
+  bool empty() const noexcept {
+    if constexpr (is_dynamic_size) {
+      return data.count == 0;
+    }
+    return false;
+  }
+  /// Reserve a capacity for the vector.
   void reserve(size_type sz) const noexcept {}
 
-  /**
-   * Returns a const-iterator to the first element of the vector.
-   */
+  /// Returns a const-iterator to the first element of the vector.
   const_iterator begin() const noexcept { return const_iterator(*this, 0); }
-  /**
-   * Returns a const-iterator to the one-past-last element of the vector.
-   */
-  const_iterator end() const noexcept { return const_iterator(*this, Size); }
+  /// Returns a const-iterator to the one-past-last element of the vector.
+  const_iterator end() const noexcept {
+    if constexpr (is_dynamic_size) {
+      return const_iterator(*this, data.count);
+    } else {
+      return const_iterator(*this, Size);
+    }
+  }
 
   /*******************************************************************************
                            Constructors / Destructors
   *******************************************************************************/
 
-  /**
-   * Constructor for a given value for the vector.
-   * \test PASSED
-   */
-  explicit vect_scalar(const_reference aFill = value_type()) noexcept
-      : q(aFill) {}
+  /// Constructor for a given value for the vector.
+  explicit vect_scalar(const_reference aFill) noexcept { data.q = aFill; }
+
+  explicit vect_scalar(
+      size_type aSize,
+      const_reference aFill = value_type()) noexcept(is_dynamic_size) {
+    data.q = aFill;
+    if constexpr (is_dynamic_size) {
+      data.count = aSize;
+    } else {
+      if (aSize != Size) {
+        throw std::range_error("Vector size mismatch!");
+      }
+    }
+  }
+
+  vect_scalar() : vect_scalar(value_type{}) {}
 
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
-  const_reference operator[](size_type i) const noexcept { return q; }
+  /// Array indexing operator, accessor for read only.
+  const_reference operator[](size_type i) const noexcept { return data.q; }
 
-  /**
-   * Sub-vector operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-vector operator, accessor for read only.
   vect_const_ref_view<self> operator[](
       const std::pair<size_type, size_type>& r) const noexcept {
     return sub(*this)[r];
   }
 
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
-  const_reference operator()(size_type i) const noexcept { return q; }
+  /// Array indexing operator, accessor for read only.
+  const_reference operator()(size_type i) const noexcept { return data.q; }
 };
 
 template <typename T, std::size_t Size>
@@ -1169,136 +916,15 @@ struct is_resizable_vector<vect_scalar<T, Size>> {
 };
 
 template <typename T, std::size_t Size>
-struct has_allocator_vector<vect_scalar<T, Size>> {
-  static constexpr bool value = false;
-  using type = has_allocator_vector<vect_scalar<T, Size>>;
-};
-
-template <typename T, std::size_t Size>
 struct vect_copy<vect_scalar<T, Size>> {
   using type = vect_n<T>;
-};
-
-/**
- * This class implements a variable-size templated vector class in which all vector-elements
- * have the same value.
- */
-template <typename T>
-class vect_scalar<T, 0> {
- public:
-  using self = vect_scalar<T, 0>;
-
-  using value_type = T;
-  using reference = T&;
-  using const_reference = const T&;
-  using pointer = T*;
-  using const_pointer = const T*;
-  using allocator_type = std::allocator<T>;
-
-  using iterator = void;
-  using const_iterator = vect_index_const_iter<self>;
-
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
-
-  static constexpr std::size_t dimensions = 0;
-
- private:
-  value_type q; /**< Components of the vector. */
-  size_type count;
-
- public:
-  /**
-   * Returns the size of the vector.
-   */
-  size_type size() const noexcept { return count; }
-  /**
-   * Returns the max-size of the vector.
-   */
-  size_type max_size() const noexcept {
-    return std::numeric_limits<size_type>::max();
-  }
-  /**
-   * Returns the capacity of the vector.
-   */
-  size_type capacity() const noexcept {
-    return std::numeric_limits<size_type>::max();
-  }
-  /**
-   * Resizes the vector.
-   */
-  void resize(size_type sz, T c = T()) noexcept {
-    count = sz;
-    q = c;
-  }
-  /**
-   * Checks if the vector is empty.
-   */
-  bool empty() const noexcept { return (count == 0); }
-  /**
-   * Reserve a capacity for the vector.
-   */
-  void reserve(size_type sz) const noexcept {}
-
-  /**
-   * Returns a const-iterator to the first element of the vector.
-   */
-  const_iterator begin() const noexcept { return const_iterator(*this, 0); }
-  /**
-   * Returns a const-iterator to the one-past-last element of the vector.
-   */
-  const_iterator end() const noexcept { return const_iterator(*this, count); }
-
-  /*******************************************************************************
-                           Constructors / Destructors
-  *******************************************************************************/
-  /**
-   * Default constructor.
-   * \test PASSED
-   */
-  vect_scalar() noexcept : q(), count(0) {}
-
-  /**
-   * Constructor for a given size or dimension of vector.
-   * \test PASSED
-   */
-  explicit vect_scalar(size_type aSize,
-                       const_reference aFill = value_type()) noexcept
-      : q(aFill), count(aSize) {}
-
-  /*******************************************************************************
-                           Accessors and Methods
-  *******************************************************************************/
-
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
-  const_reference operator[](size_type i) const noexcept { return q; }
-
-  /**
-   * Sub-vector operator, accessor for read only.
-   * \test PASSED
-   */
-  vect_const_ref_view<self> operator[](
-      const std::pair<size_type, size_type>& r) const noexcept {
-    return sub(*this)[r];
-  }
-
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
-  const_reference operator()(size_type i) const noexcept { return q; }
 };
 
 /*******************************************************************************
                          Basic Functions
 *******************************************************************************/
 
-/**
- * Square magnitude of the vector.
- */
+/// Square magnitude of the vector.
 template <typename Vector>
 std::enable_if_t<is_readable_vector_v<Vector>, vect_value_type_t<Vector>>
 norm_2_sqr(const Vector& v) noexcept {
@@ -1309,9 +935,7 @@ norm_2_sqr(const Vector& v) noexcept {
   return sum;
 }
 
-/**
- * Magnitude of the vector.
- */
+/// Magnitude of the vector.
 template <typename Vector>
 std::enable_if_t<is_readable_vector_v<Vector>, vect_value_type_t<Vector>>
 norm_2(const Vector& v) noexcept {
@@ -1319,9 +943,7 @@ norm_2(const Vector& v) noexcept {
   return sqrt(norm_2_sqr(v));
 }
 
-/**
- * Infinite norm of the vector.
- */
+/// Infinite norm of the vector.
 template <typename Vector>
 std::enable_if_t<is_readable_vector_v<Vector>, vect_value_type_t<Vector>>
 norm_inf(const Vector& v) noexcept {
@@ -1335,9 +957,7 @@ norm_inf(const Vector& v) noexcept {
   return result;
 }
 
-/**
- * Square magnitude of the vector.
- */
+/// Square magnitude of the vector.
 template <typename Vector>
 std::enable_if_t<is_readable_vector_v<Vector>, vect_value_type_t<Vector>>
 norm_1(const Vector& v) noexcept {
@@ -1349,18 +969,13 @@ norm_1(const Vector& v) noexcept {
   return sum;
 }
 
-/**
- * Unit vector in the same direction.
- */
+/// Unit vector in the same direction.
 template <typename Vector>
 auto unit(const Vector& v) {
   return v / norm_2(v);
 }
 
-/**
- * Checks if two vectors are colinear.
- * \test PASSED
- */
+/// Checks if two vectors are colinear.
 template <typename Vector1, typename Vector2>
 bool colinear(const Vector1& v1, const Vector2& v2) noexcept {
   using ValueType = vect_value_type_t<Vector1>;
@@ -1381,10 +996,7 @@ bool colinear(const Vector1& v1, const Vector2& v2) noexcept {
                          Basic Operators
 *******************************************************************************/
 
-/**
- * Standard add-and-store operator.
- * \test PASSED
- */
+/// Standard add-and-store operator.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_writable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  Vector1&>
@@ -1398,10 +1010,7 @@ operator+=(Vector1& v1, const Vector2& v2) {
   return v1;
 }
 
-/**
- * Standard sub-and-store operator.
- * \test PASSED
- */
+/// Standard sub-and-store operator.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_writable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  Vector1&>
@@ -1415,10 +1024,7 @@ operator-=(Vector1& v1, const Vector2& v2) {
   return v1;
 }
 
-/**
- * Scalar multiply-and-store operator for gain.
- * \test PASSED
- */
+/// Scalar multiply-and-store operator for gain.
 template <typename T, typename Vector>
 std::enable_if_t<is_writable_vector_v<Vector> && !is_readable_vector_v<T>,
                  Vector&>
@@ -1430,10 +1036,7 @@ operator*=(Vector& v, const T& S) noexcept {
   return v;
 }
 
-/**
- * Scalar divide-and-store operator for gain.
- * \test PASSED
- */
+/// Scalar divide-and-store operator for gain.
 template <typename T, typename Vector>
 std::enable_if_t<is_writable_vector_v<Vector> && !is_readable_vector_v<T>,
                  Vector&>
@@ -1445,10 +1048,7 @@ operator/=(Vector& v, const T& S) noexcept {
   return v;
 }
 
-/**
- * Add two vectors.
- * \test PASSED
- */
+/// Add two vectors.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_writable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  vect_copy_t<Vector1>>
@@ -1462,10 +1062,7 @@ operator+(const Vector1& v1, const Vector2& v2) {
   return result;
 }
 
-/**
- * Invert the vector.
- * \test PASSED
- */
+/// Invert the vector.
 template <typename Vector>
 std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator-(
     const Vector& v) {
@@ -1477,10 +1074,7 @@ std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator-(
   return result;
 }
 
-/**
- * Sub two vectors.
- * \test PASSED
- */
+/// Sub two vectors.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  vect_copy_t<Vector1>>
@@ -1494,10 +1088,7 @@ operator-(const Vector1& v1, const Vector2& v2) {
   return result;
 }
 
-/**
- * Dot Product.
- * \test PASSED
- */
+/// Dot Product.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  vect_value_type_t<Vector1>>
@@ -1512,10 +1103,7 @@ operator*(const Vector1& v1, const Vector2& v2) {
   return result;
 }
 
-/**
- * Scalar-vector product.
- * \test PASSED
- */
+/// Scalar-vector product.
 template <typename T, typename Vector>
 std::enable_if_t<is_readable_vector_v<Vector> && !is_readable_vector_v<T> &&
                      !is_readable_matrix_v<T>,
@@ -1527,10 +1115,7 @@ operator*(const Vector& v, const T& S) {
   return result;
 }
 
-/**
- * Scalar-vector product.
- * \test PASSED
- */
+/// Scalar-vector product.
 template <typename T, typename Vector>
 std::enable_if_t<is_readable_vector_v<Vector> && !is_readable_vector_v<T> &&
                      !is_readable_matrix_v<T>,
@@ -1542,10 +1127,7 @@ operator*(const T& S, const Vector& v) {
   return result;
 }
 
-/**
- * Scalar-vector division.
- * \test PASSED
- */
+/// Scalar-vector division.
 template <typename T, typename Vector>
 std::enable_if_t<is_readable_vector_v<Vector> && !is_readable_vector_v<T> &&
                      !is_readable_matrix_v<T>,
@@ -1557,10 +1139,7 @@ operator/(const Vector& v, const T& S) {
   return result;
 }
 
-/**
- * Element-wise product of two vectors.
- * \test PASSED
- */
+/// Element-wise product of two vectors.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_writable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  vect_copy_t<Vector1>>
@@ -1576,34 +1155,11 @@ elem_product(const Vector1& v1, const Vector2& v2) {
   return result;
 }
 
-/**
- * Sub two vectors. For functional interfaces.
- * \test PASSED
- */
-template <typename T, typename Allocator>
-vect_n<T, Allocator> diff(const vect_n<T, Allocator>& v1,
-                          const vect_n<T, Allocator>& v2) {
-  return v1 - v2;
-}
-
-/**
- * Add two vectors. For functional interfaces.
- * \test PASSED
- */
-template <typename T, typename Allocator>
-vect_n<T, Allocator> add(const vect_n<T, Allocator>& v1,
-                         const vect_n<T, Allocator>& v2) {
-  return v1 + v2;
-}
-
 /*******************************************************************************
                          Comparison Operators
 *******************************************************************************/
 
-/**
- * Equality Comparison operator, component-wise.
- * \test PASSED
- */
+/// Equality Comparison operator, component-wise.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  bool>
@@ -1619,10 +1175,7 @@ operator==(const Vector1& v1, const Vector2& v2) noexcept {
   return true;
 }
 
-/**
- * Inequality Comparison operator, component-wise.
- * \test PASSED
- */
+/// Inequality Comparison operator, component-wise.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  bool>
@@ -1638,10 +1191,7 @@ operator!=(const Vector1& v1, const Vector2& v2) noexcept {
   return false;
 }
 
-/**
- * Greater-than Comparison operator, Euclidean norm.
- * \test PASSED
- */
+/// Greater-than Comparison operator, Euclidean norm.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  bool>
@@ -1649,10 +1199,7 @@ operator>(const Vector1& v1, const Vector2& v2) noexcept {
   return (norm_2_sqr(v1) > norm_2_sqr(v2));
 }
 
-/**
- * Smaller-than Comparison operator, Euclidean norm.
- * \test PASSED
- */
+/// Smaller-than Comparison operator, Euclidean norm.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  bool>
@@ -1660,10 +1207,7 @@ operator<(const Vector1& v1, const Vector2& v2) noexcept {
   return (norm_2_sqr(v1) < norm_2_sqr(v2));
 }
 
-/**
- * Greater-or-equal Comparison operator, Euclidean norm.
- * \test PASSED
- */
+/// Greater-or-equal Comparison operator, Euclidean norm.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  bool>
@@ -1671,10 +1215,7 @@ operator>=(const Vector1& v1, const Vector2& v2) noexcept {
   return (norm_2_sqr(v1) >= norm_2_sqr(v2));
 }
 
-/**
- * Smaller-or-equal Comparison operator, Euclidean norm.
- * \test PASSED
- */
+/// Smaller-or-equal Comparison operator, Euclidean norm.
 template <typename Vector1, typename Vector2>
 std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
                  bool>
@@ -1682,13 +1223,9 @@ operator<=(const Vector1& v1, const Vector2& v2) noexcept {
   return (norm_2_sqr(v1) <= norm_2_sqr(v2));
 }
 
-/**
- * Prints a variable-size vector to an output stream as "(v1; v2; v3; ..; vN)".
- * \test PASSED
- */
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>, std::ostream&> operator<<(
-    std::ostream& out_stream, const Vector& V) {
+/// Prints a variable-size vector to an output stream as "(v1; v2; v3; ..; vN)".
+template <typename T, unsigned int Size>
+std::ostream& operator<<(std::ostream& out_stream, const vect<T, Size>& V) {
   out_stream << "(";
   if (V.size() > 0) {
     out_stream << V[0];
@@ -1699,37 +1236,20 @@ std::enable_if_t<is_readable_vector_v<Vector>, std::ostream&> operator<<(
   return out_stream << ")";
 }
 
-/**
- * Reads a variable-size vector to an input stream as "(v1; v2; v3; ..; vN)".
- * \test PASSED
- */
-template <typename T>
-std::istream& operator>>(std::istream& in_stream, vect_n<T>& V) {
-  std::string tmp_str;
-  std::getline(in_stream, tmp_str, '(');  // skip to opening bracket.
-  std::getline(in_stream, tmp_str, ')');  // read to closing bracket.
-  int sz = std::count(tmp_str.begin(), tmp_str.end(), ';') + 1;
-  std::stringstream ss(tmp_str);
-  V.resize(sz);
-  std::string tmp2;
-  for (int i = 0; ss >> V[i]; ++i) {
-    std::getline(ss, tmp2, ';');
-  }
-  return in_stream;
-}
-
-/**
- * Reads a variable-size vector to an input stream as "(v1; v2; v3; ..; vN)".
- * \test PASSED
- */
+/// Reads a variable-size vector to an input stream as "(v1; v2; v3; ..; vN)".
 template <typename T, unsigned int Size>
 std::istream& operator>>(std::istream& in_stream, vect<T, Size>& V) {
   std::string tmp_str;
   std::getline(in_stream, tmp_str, '(');  // skip to opening bracket.
   std::getline(in_stream, tmp_str, ')');  // read to closing bracket.
+  int sz = Size;
+  if constexpr (Size == 0) {
+    sz = std::count(tmp_str.begin(), tmp_str.end(), ';') + 1;
+    V.resize(sz);
+  }
   std::stringstream ss(tmp_str);
   std::string tmp2;
-  for (int i = 0; (i < Size) && (ss >> V[i]); ++i) {
+  for (int i = 0; (i < sz) && (ss >> V[i]); ++i) {
     std::getline(ss, tmp2, ';');
   }
   return in_stream;

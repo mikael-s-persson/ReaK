@@ -83,97 +83,97 @@ int main(int argc, char** argv) {
 
     // CRS_A465 geometries:
 
-    std::shared_ptr<coord_arrows_3D> robot_base_arrows(new coord_arrows_3D(
+    auto robot_base_arrows = std::make_shared<coord_arrows_3D>(
         "robot_base_arrows", std::shared_ptr<frame_3D<double>>(),
-        pose_3D<double>(), 0.3));
-    std::shared_ptr<coord_arrows_3D> track_joint_arrows(new coord_arrows_3D(
+        pose_3D<double>(), 0.3);
+    auto track_joint_arrows = std::make_shared<coord_arrows_3D>(
         "track_joint_arrows", std::shared_ptr<frame_3D<double>>(),
-        pose_3D<double>(), 0.3));
-    std::shared_ptr<coord_arrows_3D> arm_joint_1_arrows(new coord_arrows_3D(
+        pose_3D<double>(), 0.3);
+    auto arm_joint_1_arrows = std::make_shared<coord_arrows_3D>(
         "arm_joint_1_arrows", std::shared_ptr<frame_3D<double>>(),
-        pose_3D<double>(), 0.3));
-    std::shared_ptr<coord_arrows_3D> arm_joint_2_arrows(new coord_arrows_3D(
+        pose_3D<double>(), 0.3);
+    auto arm_joint_2_arrows = std::make_shared<coord_arrows_3D>(
         "arm_joint_2_arrows", std::shared_ptr<frame_3D<double>>(),
-        pose_3D<double>(), 0.3));
-    std::shared_ptr<coord_arrows_3D> arm_joint_3_arrows(new coord_arrows_3D(
+        pose_3D<double>(), 0.3);
+    auto arm_joint_3_arrows = std::make_shared<coord_arrows_3D>(
         "arm_joint_3_arrows", std::shared_ptr<frame_3D<double>>(),
-        pose_3D<double>(), 0.3));
-    std::shared_ptr<coord_arrows_3D> arm_joint_4_arrows(new coord_arrows_3D(
+        pose_3D<double>(), 0.3);
+    auto arm_joint_4_arrows = std::make_shared<coord_arrows_3D>(
         "arm_joint_4_arrows", std::shared_ptr<frame_3D<double>>(),
-        pose_3D<double>(), 0.3));
-    std::shared_ptr<coord_arrows_3D> arm_joint_5_arrows(new coord_arrows_3D(
+        pose_3D<double>(), 0.3);
+    auto arm_joint_5_arrows = std::make_shared<coord_arrows_3D>(
         "arm_joint_5_arrows", std::shared_ptr<frame_3D<double>>(),
-        pose_3D<double>(), 0.3));
-    std::shared_ptr<coord_arrows_3D> arm_joint_6_arrows(new coord_arrows_3D(
+        pose_3D<double>(), 0.3);
+    auto arm_joint_6_arrows = std::make_shared<coord_arrows_3D>(
         "arm_joint_6_arrows", std::shared_ptr<frame_3D<double>>(),
-        pose_3D<double>(), 0.3));
+        pose_3D<double>(), 0.3);
 
-    std::shared_ptr<capped_cylinder> link1_cyl(new capped_cylinder(
+    auto link1_cyl = std::make_shared<capped_cylinder>(
         "link1_cyl", std::shared_ptr<frame_3D<double>>(),
         pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                         vect<double, 3>(0.0, 0.0, 0.15), quaternion<double>()),
-        0.3, 0.1));
-    std::shared_ptr<capped_cylinder> joint2_cyl(new capped_cylinder(
+        0.3, 0.1);
+    auto joint2_cyl = std::make_shared<capped_cylinder>(
         "joint2_cyl", std::shared_ptr<frame_3D<double>>(),
         pose_3D<double>(
             std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.0, 0.3302),
             axis_angle<double>(M_PI * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
                 .getQuaternion()),
-        0.34, 0.09));
-    std::shared_ptr<capped_cylinder> link2_cyl(new capped_cylinder(
+        0.34, 0.09);
+    auto link2_cyl = std::make_shared<capped_cylinder>(
         "link2_cyl", std::shared_ptr<frame_3D<double>>(),
         pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                         vect<double, 3>(0.0, 0.0, 0.15), quaternion<double>()),
-        0.3, 0.07));
-    std::shared_ptr<capped_cylinder> link3_cyl(new capped_cylinder(
+        0.3, 0.07);
+    auto link3_cyl = std::make_shared<capped_cylinder>(
         "link3_cyl", std::shared_ptr<frame_3D<double>>(),
         pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                         vect<double, 3>(0.0, 0.0, 0.165), quaternion<double>()),
-        0.33, 0.07));
-    std::shared_ptr<capped_cylinder> link3_wire_cyl(new capped_cylinder(
+        0.33, 0.07);
+    auto link3_wire_cyl = std::make_shared<capped_cylinder>(
         "link3_wire_cyl", std::shared_ptr<frame_3D<double>>(),
         pose_3D<double>(
             std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.1, 0.05),
             axis_angle<double>(M_PI * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
                 .getQuaternion()),
-        0.15, 0.075));
-    std::shared_ptr<capped_cylinder> link5_cyl(
-        new capped_cylinder("link5_cyl", std::shared_ptr<frame_3D<double>>(),
-                            pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
-                                            vect<double, 3>(0.0, 0.0, 0.0381),
-                                            quaternion<double>()),
-                            0.0762, 0.05));
-    std::shared_ptr<sphere> EE_sphere(
-        new sphere("EE_sphere", std::shared_ptr<frame_3D<double>>(),
-                   pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
-                                   vect<double, 3>(-0.04, 0.0, 0.05),
-                                   quaternion<double>()),
-                   0.11));
+        0.15, 0.075);
+    auto link5_cyl = std::make_shared<capped_cylinder>(
+        "link5_cyl", std::shared_ptr<frame_3D<double>>(),
+        pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
+                        vect<double, 3>(0.0, 0.0, 0.0381),
+                        quaternion<double>()),
+        0.0762, 0.05);
+    auto EE_sphere = std::make_shared<sphere>(
+        "EE_sphere", std::shared_ptr<frame_3D<double>>(),
+        pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
+                        vect<double, 3>(-0.04, 0.0, 0.05),
+                        quaternion<double>()),
+        0.11);
 
-    std::shared_ptr<box> EE_bumblebee(
-        new box("EE_bumblebee", std::shared_ptr<frame_3D<double>>(),
-                pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
-                                vect<double, 3>(-0.105, 0.0, 0.0483),
-                                quaternion<double>()),
-                vect<double, 3>(0.04, 0.14, 0.04)));
-    std::shared_ptr<box> EE_bumblebee_support(
-        new box("EE_bumblebee_support", std::shared_ptr<frame_3D<double>>(),
-                pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
-                                vect<double, 3>(-0.0525, 0.0, 0.0393),
-                                quaternion<double>()),
-                vect<double, 3>(0.065, 0.06, 0.03)));
-    std::shared_ptr<box> EE_gripper_box(
-        new box("EE_gripper_box", std::shared_ptr<frame_3D<double>>(),
-                pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
-                                vect<double, 3>(0.0, 0.0, 0.0669),
-                                quaternion<double>()),
-                vect<double, 3>(0.04, 0.08, 0.1338)));
-    std::shared_ptr<box> EE_gripper_fingers(
-        new box("EE_gripper_fingers", std::shared_ptr<frame_3D<double>>(),
-                pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
-                                vect<double, 3>(0.0, 0.0, 0.1588),
-                                quaternion<double>()),
-                vect<double, 3>(0.02, 0.01, 0.05)));
+    auto EE_bumblebee = std::make_shared<box>(
+        "EE_bumblebee", std::shared_ptr<frame_3D<double>>(),
+        pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
+                        vect<double, 3>(-0.105, 0.0, 0.0483),
+                        quaternion<double>()),
+        vect<double, 3>(0.04, 0.14, 0.04));
+    auto EE_bumblebee_support = std::make_shared<box>(
+        "EE_bumblebee_support", std::shared_ptr<frame_3D<double>>(),
+        pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
+                        vect<double, 3>(-0.0525, 0.0, 0.0393),
+                        quaternion<double>()),
+        vect<double, 3>(0.065, 0.06, 0.03));
+    auto EE_gripper_box = std::make_shared<box>(
+        "EE_gripper_box", std::shared_ptr<frame_3D<double>>(),
+        pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
+                        vect<double, 3>(0.0, 0.0, 0.0669),
+                        quaternion<double>()),
+        vect<double, 3>(0.04, 0.08, 0.1338));
+    auto EE_gripper_fingers = std::make_shared<box>(
+        "EE_gripper_fingers", std::shared_ptr<frame_3D<double>>(),
+        pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
+                        vect<double, 3>(0.0, 0.0, 0.1588),
+                        quaternion<double>()),
+        vect<double, 3>(0.02, 0.01, 0.05));
 
     kte_geom_model = std::make_shared<kte_chain_geometry_3D>("CRS_A465_kte");
 
@@ -236,33 +236,31 @@ int main(int argc, char** argv) {
 
   if (absl::GetFlag(FLAGS_kte_model) || absl::GetFlag(FLAGS_all_assembled)) {
 
-    std::shared_ptr<frame_3D<double>> base_frame(new frame_3D<double>());
+    auto base_frame = std::make_shared<frame_3D<double>>();
 
-    std::shared_ptr<manip_P3R3R_kinematics> kte_model(
-        new manip_P3R3R_kinematics(
-            "CRS_A465_kte_model",
-            std::make_shared<frame_3D<double>>(
-                base_frame,
-                vect<double, 3>(0.0, -3.3, 0.3),  // aGlobalToBasePlate
-                axis_angle<double>(M_PI * 0.5, vect<double, 3>(0.0, 0.0, 1.0))
-                    .getQuaternion(),  // align the x-axis along the track.
-                vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
-                vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
-                vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0)),
-            0.3302,          // aBaseToShoulder
-            0.3048,          // aShoulderToElbowDist
-            0.1500,          // aElbowToJoint4
-            0.1802,          // aJoint4ToWrist
-            0.0762,          // aWristToFlange
-            vect_n<double>(  // aJointLowerBounds
-                0.0, -3.05432619099, -1.57079632679, -1.91986217719,
-                -3.14159265359, -1.83259571459, -3.14159265359),
-            vect_n<double>(  // aJointUpperBounds
-                3.0, 3.05432619099, 1.57079632679, 1.91986217719, 3.14159265359,
-                1.83259571459, 3.14159265359)));
+    auto kte_model = std::make_shared<manip_P3R3R_kinematics>(
+        "CRS_A465_kte_model",
+        std::make_shared<frame_3D<double>>(
+            base_frame, vect<double, 3>(0.0, -3.3, 0.3),  // aGlobalToBasePlate
+            axis_angle<double>(M_PI * 0.5, vect<double, 3>(0.0, 0.0, 1.0))
+                .getQuaternion(),  // align the x-axis along the track.
+            vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
+            vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
+            vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0)),
+        0.3302,          // aBaseToShoulder
+        0.3048,          // aShoulderToElbowDist
+        0.1500,          // aElbowToJoint4
+        0.1802,          // aJoint4ToWrist
+        0.0762,          // aWristToFlange
+        vect_n<double>(  // aJointLowerBounds
+            0.0, -3.05432619099, -1.57079632679, -1.91986217719, -3.14159265359,
+            -1.83259571459, -3.14159265359),
+        vect_n<double>(  // aJointUpperBounds
+            3.0, 3.05432619099, 1.57079632679, 1.91986217719, 3.14159265359,
+            1.83259571459, 3.14159265359));
 
-    std::shared_ptr<joint_limits_collection<double>> joint_rate_limits(
-        new joint_limits_collection<double>("CRS_A465_joint_limits"));
+    auto joint_rate_limits = std::make_shared<joint_limits_collection<double>>(
+        "CRS_A465_joint_limits");
 
     joint_rate_limits->gen_speed_limits.resize(7);
     joint_rate_limits->gen_speed_limits[0] = 0.8;

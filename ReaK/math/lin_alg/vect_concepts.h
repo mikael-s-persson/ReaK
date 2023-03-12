@@ -188,48 +188,6 @@ struct is_resizable_vector<std::vector<T>> {
   using type = is_resizable_vector<std::vector<T>>;
 };
 
-/**
- * This concept class defines what makes a vector a resizable vector, that is,
- * a vector whose size can be changed at run-time.
- *
- * Valid Expressions (in addition to those of ResizableVectorConcept):
- *
- * al = v.get_allocator();   the allocator object can be obtained.
- *
- * \tparam Vector The vector type.
- */
-template <typename Vector>
-struct DynAllocVectorConcept : ResizableVectorConcept<Vector> {
-  Vector v;
-
-  typename vect_traits<Vector>::allocator_type al;
-
-  BOOST_CONCEPT_USAGE(DynAllocVectorConcept) { al = v.get_allocator(); };
-};
-
-/**
- * This meta-function evaluates whether a Vector class fulfills the DynAllocVectorConcept,
- * however, it does not attempt to instantiate the Concept template (because no technique can
- * be used to catch the failed instantiation properly), instead, the default version results
- * in a false value, and the implementer of a vector class is required to provide a specialization
- * if he wants this meta-function to evaluate to true for that new vector class.
- */
-template <typename Vector>
-struct has_allocator_vector {
-  static constexpr bool value = false;
-  using type = has_allocator_vector<Vector>;
-};
-
-template <typename Vector>
-static constexpr bool has_allocator_vector_v =
-    has_allocator_vector<Vector>::value;
-
-template <typename T>
-struct has_allocator_vector<std::vector<T>> {
-  static constexpr bool value = true;
-  using type = has_allocator_vector<std::vector<T>>;
-};
-
 }  // namespace ReaK
 
 #endif  // REAK_MATH_LIN_ALG_VECT_CONCEPTS_H_

@@ -79,7 +79,6 @@ class householder_matrix {
   using value_type = vect_value_type_t<Vector>;
   using size_type = typename vect_traits<Vector>::size_type;
   using difference_type = typename vect_traits<Vector>::difference_type;
-  using allocator_type = typename vect_traits<Vector>::allocator_type;
 
   using pointer = typename vect_traits<Vector>::pointer;
   using const_pointer = typename vect_traits<Vector>::const_pointer;
@@ -93,8 +92,9 @@ class householder_matrix {
   using row_iterator = void;
   using const_row_iterator = void;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      vect_traits<Vector>::dimensions;
+  static constexpr unsigned int static_col_count = static_row_count;
   static constexpr mat_alignment::tag alignment = mat_alignment::column_major;
   static constexpr mat_structure::tag structure = mat_structure::symmetric;
 
@@ -251,12 +251,6 @@ class householder_matrix {
   }
 
   /**
-   * Returns the allocator object of the underlying container, which is none at all in this case.
-   * \return the allocator object of the underlying container, which is none at all in this case.
-   */
-  allocator_type get_allocator() const { return v.get_allocator(); }
-
-  /**
    * Matrix indexing accessor for read-only access.
    * \param i Row index.
    * \param j Column index.
@@ -323,15 +317,15 @@ struct is_writable_matrix<householder_matrix<Vector>> {
 };
 
 template <typename Vector>
-struct is_resizable_matrix<householder_matrix<Vector>> {
+struct is_row_resizable_matrix<householder_matrix<Vector>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<householder_matrix<Vector>>;
+  using type = is_row_resizable_matrix<householder_matrix<Vector>>;
 };
 
 template <typename Vector>
-struct has_allocator_matrix<householder_matrix<Vector>> {
-  static constexpr bool value = has_allocator_vector<Vector>::value;
-  using type = has_allocator_matrix<householder_matrix<Vector>>;
+struct is_col_resizable_matrix<householder_matrix<Vector>> {
+  static constexpr bool value = false;
+  using type = is_col_resizable_matrix<householder_matrix<Vector>>;
 };
 
 template <typename Vector>

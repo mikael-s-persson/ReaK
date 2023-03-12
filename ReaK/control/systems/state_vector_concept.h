@@ -139,22 +139,6 @@ struct is_state_vector {
 template <typename StateVector>
 static constexpr bool is_state_vector_v = is_state_vector_v<StateVector>;
 
-template <typename T, typename Allocator>
-struct state_vector_traits<vect_n<T, Allocator>> {
-  using state_type = vect_n<T, Allocator>;
-  using state_difference_type = vect_n<T, Allocator>;
-  using value_type = typename vect_traits<vect_n<T, Allocator>>::value_type;
-  using size_type = typename vect_traits<vect_n<T, Allocator>>::size_type;
-
-  static constexpr std::size_t dimensions = vect_traits<state_type>::dimensions;
-};
-
-template <typename T, typename Allocator>
-struct is_state_vector<vect_n<T, Allocator>> {
-  static constexpr bool value = true;
-  using type = is_state_vector<vect_n<T, Allocator>>;
-};
-
 template <typename T, unsigned int Size>
 struct state_vector_traits<vect<T, Size>> {
   using state_type = vect<T, Size>;

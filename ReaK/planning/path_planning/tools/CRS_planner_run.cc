@@ -349,11 +349,10 @@ void CRS_execute_dynamic_planner(
   using target_jt_space_type =
       typename target_proxy_applicator_type::joint_space_type;
 
-  std::shared_ptr<target_proxy_applicator_type> target_proxy_applicator(
-      new target_proxy_applicator_type(
-          make_any_model_applicator<target_jt_space_type>(
-              manip_direct_kin_map(scene_data.target_kin_model)),
-          target_state_traj));
+  auto target_proxy_applicator = std::make_shared<target_proxy_applicator_type>(
+      make_any_model_applicator<target_jt_space_type>(
+          manip_direct_kin_map(scene_data.target_kin_model)),
+      target_state_traj);
 
   workspace->add_proxy_model_updater(target_proxy_applicator);
 
@@ -378,7 +377,7 @@ void CRS_execute_dynamic_planner(
       transformed_trajectory<dynamic_super_space_type, sat_trajectory_type,
                              temporal_dkik_map_type>;
 
-  std::shared_ptr<mapped_traj_type> mapped_goal_traj(new mapped_traj_type(
+  auto mapped_goal_traj = std::make_shared<mapped_traj_type>(
       std::shared_ptr<dynamic_super_space_type>(&(workspace->get_super_space()),
                                                 null_deleter()),
       target_state_traj,
@@ -386,7 +385,7 @@ void CRS_execute_dynamic_planner(
           manip_direct_kin_map(scene_data.target_kin_model),
           rlIK_map_type(
               chaser_concrete_model,
-              joint_limits_mapping<double>(scene_data.chaser_jt_limits))))));
+              joint_limits_mapping<double>(scene_data.chaser_jt_limits)))));
 
   execute_intercept_planner(workspace, plan_options, workspace_dims + 1,
                             target_state_traj->get_end_time(),
@@ -416,7 +415,7 @@ void CRS_execute_dynamic_planner(
     typedef discrete_point_trajectory< temporal_space_type > trajectory_type;
     typedef trajectory_wrapper<trajectory_type> wrapped_traj_type;
     
-    std::shared_ptr< wrapped_traj_type > tmp_sol_traj(new wrapped_traj_type("chaser_sol_trajectory", trajectory_type()));
+    auto tmp_sol_traj = std::make_shared<wrapped_traj_type>("chaser_sol_trajectory", trajectory_type());
     
     trajectory_type& sol_traj = tmp_sol_traj->get_underlying_trajectory();
     
@@ -637,7 +636,7 @@ int main(int argc, char** argv) {
       try {
         using wrapped_traj_type = trajectory_wrapper<
             discrete_point_trajectory<sat_temporal_space_type>>;
-        std::shared_ptr<wrapped_traj_type> tmp_traj(new wrapped_traj_type());
+        auto tmp_traj = std::make_shared<wrapped_traj_type>();
 
         (*serialization::open_iarchive(
             absl::GetFlag(FLAGS_target_trajectory))) &

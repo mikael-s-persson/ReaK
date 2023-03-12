@@ -55,7 +55,6 @@ class quat {
   using const_reference = const T&;
   using pointer = T*;
   using const_pointer = const T*;
-  using allocator_type = void;
 
   using iterator = typename std::array<value_type, 4>::iterator;
   using const_iterator = typename std::array<value_type, 4>::const_iterator;
@@ -756,7 +755,6 @@ class unit_quat : public quat<T> {
   using const_reference = const T&;
   using pointer = T*;
   using const_pointer = const T*;
-  using allocator_type = void;
 
   using iterator = typename quat<T>::iterator;
   using const_iterator = typename quat<T>::const_iterator;
@@ -1054,6 +1052,16 @@ unit_quat<T> exp(const vect<T, 3>& x) noexcept {
   return {cos(theta), fact * x[0], fact * x[1], fact * x[2]};
 }
 
+template <typename T>
+std::ostream& operator<<(std::ostream& out_stream, const quat<T>& Q) {
+  out_stream << "(";
+  out_stream << Q[0];
+  for (int i = 1; i < Q.size(); ++i) {
+    out_stream << "; " << Q[i];
+  }
+  return out_stream << ")";
+}
+
 namespace serialization {
 
 /// Loading a quaternion value.
@@ -1131,12 +1139,6 @@ struct is_resizable_vector<quat<T>> {
 };
 
 template <typename T>
-struct has_allocator_vector<quat<T>> {
-  static constexpr bool value = false;
-  using type = has_allocator_vector<quat<T>>;
-};
-
-template <typename T>
 struct is_readable_vector<unit_quat<T>> {
   static constexpr bool value = true;
   using type = is_readable_vector<unit_quat<T>>;
@@ -1152,12 +1154,6 @@ template <typename T>
 struct is_resizable_vector<unit_quat<T>> {
   static constexpr bool value = false;
   using type = is_resizable_vector<unit_quat<T>>;
-};
-
-template <typename T>
-struct has_allocator_vector<unit_quat<T>> {
-  static constexpr bool value = false;
-  using type = has_allocator_vector<unit_quat<T>>;
 };
 
 namespace detail {

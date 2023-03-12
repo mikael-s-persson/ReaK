@@ -78,53 +78,49 @@ int main(int argc, char** argv) {
   using namespace geom;
   using namespace kte;
 
-  std::shared_ptr<frame_3D<double>> global_base(new frame_3D<double>());
+  auto global_base = std::make_shared<frame_3D<double>>();
 
   //  Output from calibration program:
   global_base->Position = vect<double, 3>(0.176438, -0.356764, -0.0521845);
   global_base->Quat = quaternion<double>(
       vect<double, 4>(0.999986, 0.00301881, -0.00257751, 0.00343278));
 
-  std::shared_ptr<frame_3D<double>> airship3D_frame(new frame_3D<double>());
+  auto airship3D_frame = std::make_shared<frame_3D<double>>();
 
-  std::shared_ptr<frame_3D<double>> airship3D_output_frame(
-      new frame_3D<double>());
+  auto airship3D_output_frame = std::make_shared<frame_3D<double>>();
 
-  std::shared_ptr<jacobian_3D_3D<double>> airship3D_joint_jac(
-      new jacobian_3D_3D<double>());
+  auto airship3D_joint_jac = std::make_shared<jacobian_3D_3D<double>>();
 
-  std::shared_ptr<free_joint_3D> airship3D_joint(
-      new free_joint_3D("airship3D_joint", airship3D_frame, global_base,
-                        airship3D_output_frame, airship3D_joint_jac));
+  auto airship3D_joint = std::make_shared<free_joint_3D>(
+      "airship3D_joint", airship3D_frame, global_base, airship3D_output_frame,
+      airship3D_joint_jac);
 
-  std::shared_ptr<joint_dependent_frame_3D> airship3D_dep_frame(
-      new joint_dependent_frame_3D(airship3D_output_frame));
+  auto airship3D_dep_frame =
+      std::make_shared<joint_dependent_frame_3D>(airship3D_output_frame);
   airship3D_dep_frame->add_joint(airship3D_frame, airship3D_joint_jac);
 
-  std::shared_ptr<inertia_3D> airship3D_inertia(
-      new inertia_3D("airship3D_inertia", airship3D_dep_frame, 1.0,
-                     mat<double, mat_structure::symmetric>(
-                         mat<double, mat_structure::identity>(3))));
+  auto airship3D_inertia = std::make_shared<inertia_3D>(
+      "airship3D_inertia", airship3D_dep_frame, 1.0,
+      mat<double, mat_structure::symmetric>(
+          mat<double, mat_structure::identity>(3)));
 
-  std::shared_ptr<driving_actuator_3D> airship3D_actuator(
-      new driving_actuator_3D("airship3D_actuator", airship3D_frame,
-                              airship3D_joint));
+  auto airship3D_actuator = std::make_shared<driving_actuator_3D>(
+      "airship3D_actuator", airship3D_frame, airship3D_joint);
 
-  std::shared_ptr<position_measure_3D> airship3D_position(
-      new position_measure_3D("airship3D_position", airship3D_frame));
+  auto airship3D_position = std::make_shared<position_measure_3D>(
+      "airship3D_position", airship3D_frame);
 
-  std::shared_ptr<rotation_measure_3D> airship3D_rotation(
-      new rotation_measure_3D("airship3D_rotation", airship3D_frame));
+  auto airship3D_rotation = std::make_shared<rotation_measure_3D>(
+      "airship3D_rotation", airship3D_frame);
 
-  std::shared_ptr<kte_map_chain> airship3D_model(
-      new kte_map_chain("airship3D_model"));
+  auto airship3D_model = std::make_shared<kte_map_chain>("airship3D_model");
 
   (*airship3D_model) << airship3D_position << airship3D_rotation
                      << airship3D_actuator << airship3D_joint
                      << airship3D_inertia;
 
-  std::shared_ptr<manipulator_dynamics_model> airship3D_dyn_model(
-      new manipulator_dynamics_model("airship3D_dyn_model"));
+  auto airship3D_dyn_model =
+      std::make_shared<manipulator_dynamics_model>("airship3D_dyn_model");
   airship3D_dyn_model->setModel(airship3D_model);
   (*airship3D_dyn_model) << airship3D_frame;
   (*airship3D_dyn_model)
@@ -140,51 +136,50 @@ int main(int argc, char** argv) {
 
   double gr_beta = gr_arc_length / gr_radius;
 
-  std::shared_ptr<frame_3D<double>> airship3D_grasp_frame(new frame_3D<double>(
+  auto airship3D_grasp_frame = std::make_shared<frame_3D<double>>(
       airship3D_output_frame,
       vect<double, 3>(gr_radius * std::cos(gr_beta), 0.0,
                       gr_radius * std::sin(gr_beta)),
       quaternion<double>::yrot(-0.5 * M_PI - gr_beta).getQuaternion(),
       vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
       vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
-      vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0)));
+      vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0));
   airship3D_grasp_frame->Position +=
       airship3D_grasp_frame->Quat * (-0.3 * vect_k);
 
-  std::shared_ptr<joint_dependent_frame_3D> airship3D_dep_grasp_frame(
-      new joint_dependent_frame_3D(airship3D_grasp_frame));
+  auto airship3D_dep_grasp_frame =
+      std::make_shared<joint_dependent_frame_3D>(airship3D_grasp_frame);
   airship3D_dep_grasp_frame->add_joint(airship3D_frame, airship3D_joint_jac);
 
-  std::shared_ptr<sphere> hull(new sphere(
-      "airship3D_hull", airship3D_output_frame, pose_3D<double>(), 0.93));
+  auto hull = std::make_shared<sphere>("airship3D_hull", airship3D_output_frame,
+                                       pose_3D<double>(), 0.93);
 
-  std::shared_ptr<box> grapple(new box(
+  auto grapple = std::make_shared<box>(
       "airship3D_grapple", airship3D_output_frame,
       pose_3D<double>(
           std::shared_ptr<pose_3D<double>>(),
           vect<double, 3>((gr_radius + 0.05) * std::cos(gr_beta), 0.0,
                           (gr_radius + 0.05) * std::sin(gr_beta)),
           quaternion<double>::yrot(-0.5 * M_PI - gr_beta).getQuaternion()),
-      vect<double, 3>(0.08, 0.003, 0.1)));
+      vect<double, 3>(0.08, 0.003, 0.1));
 
-  std::shared_ptr<coord_arrows_3D> grapple_arrows(
-      new coord_arrows_3D("airship3D_grapple_arrows", airship3D_grasp_frame,
-                          pose_3D<double>(), 0.3));
+  auto grapple_arrows = std::make_shared<coord_arrows_3D>(
+      "airship3D_grapple_arrows", airship3D_grasp_frame, pose_3D<double>(),
+      0.3);
 
-  std::shared_ptr<colored_model_3D> geom_mdl =
-      std::make_shared<colored_model_3D>("airship3D_geom_render");
+  auto geom_mdl = std::make_shared<colored_model_3D>("airship3D_geom_render");
   (*geom_mdl)
       .addAnchor(airship3D_output_frame)
       .addElement(color(0, 0, 0), grapple_arrows)
       .addElement(color(1, 1, 1), hull)
       .addElement(color(0.2, 0.2, 0.2), grapple);
 
-  std::shared_ptr<proxy_query_model_3D> proxy_mdl =
+  auto proxy_mdl =
       std::make_shared<proxy_query_model_3D>("airship3D_geom_render");
   (*proxy_mdl).addShape(hull);
 
-  std::shared_ptr<manipulator_kinematics_model> airship3D_kin_model(
-      new manipulator_kinematics_model("airship3D_kin_model"));
+  auto airship3D_kin_model =
+      std::make_shared<manipulator_kinematics_model>("airship3D_kin_model");
   airship3D_kin_model->setModel(airship3D_model);
   (*airship3D_kin_model) << airship3D_frame;
   (*airship3D_kin_model) << airship3D_dep_grasp_frame;

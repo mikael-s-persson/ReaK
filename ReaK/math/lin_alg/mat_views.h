@@ -54,7 +54,6 @@ template <typename Matrix>
 class mat_copy_sub_block {
  public:
   using self = mat_copy_sub_block<Matrix>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -71,8 +70,8 @@ class mat_copy_sub_block {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
@@ -232,12 +231,6 @@ class mat_copy_sub_block {
     return {rowCount, colCount};
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m.get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -324,22 +317,21 @@ struct is_fully_writable_matrix<mat_copy_sub_block<Matrix>> {
 };
 
 template <typename Matrix>
-struct is_resizable_matrix<mat_copy_sub_block<Matrix>> {
+struct is_row_resizable_matrix<mat_copy_sub_block<Matrix>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_copy_sub_block<Matrix>>;
+  using type = is_row_resizable_matrix<mat_copy_sub_block<Matrix>>;
 };
 
 template <typename Matrix>
-struct has_allocator_matrix<mat_copy_sub_block<Matrix>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_matrix<Matrix>;
+struct is_col_resizable_matrix<mat_copy_sub_block<Matrix>> {
+  static constexpr bool value = false;
+  using type = is_col_resizable_matrix<mat_copy_sub_block<Matrix>>;
 };
 
 template <typename Matrix>
 class mat_sub_block {
  public:
   using self = mat_sub_block<Matrix>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -356,8 +348,8 @@ class mat_sub_block {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
@@ -498,12 +490,6 @@ class mat_sub_block {
     return {rowCount, colCount};
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -590,22 +576,21 @@ struct is_fully_writable_matrix<mat_sub_block<Matrix>> {
 };
 
 template <typename Matrix>
-struct is_resizable_matrix<mat_sub_block<Matrix>> {
+struct is_row_resizable_matrix<mat_sub_block<Matrix>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_sub_block<Matrix>>;
+  using type = is_row_resizable_matrix<mat_sub_block<Matrix>>;
 };
 
 template <typename Matrix>
-struct has_allocator_matrix<mat_sub_block<Matrix>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_matrix<Matrix>;
+struct is_col_resizable_matrix<mat_sub_block<Matrix>> {
+  static constexpr bool value = false;
+  using type = is_col_resizable_matrix<mat_sub_block<Matrix>>;
 };
 
 template <typename Matrix>
 class mat_const_sub_block {
  public:
   using self = mat_const_sub_block<Matrix>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -622,8 +607,8 @@ class mat_const_sub_block {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
@@ -725,12 +710,6 @@ class mat_const_sub_block {
   std::pair<size_type, size_type> size() const noexcept {
     return {rowCount, colCount};
   }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return (*m).get_allocator(); }
 };
 
 template <typename Matrix>
@@ -752,15 +731,15 @@ struct is_fully_writable_matrix<mat_const_sub_block<Matrix>> {
 };
 
 template <typename Matrix>
-struct is_resizable_matrix<mat_const_sub_block<Matrix>> {
+struct is_row_resizable_matrix<mat_const_sub_block<Matrix>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_const_sub_block<Matrix>>;
+  using type = is_row_resizable_matrix<mat_const_sub_block<Matrix>>;
 };
 
 template <typename Matrix>
-struct has_allocator_matrix<mat_const_sub_block<Matrix>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_matrix<Matrix>;
+struct is_col_resizable_matrix<mat_const_sub_block<Matrix>> {
+  static constexpr bool value = false;
+  using type = is_col_resizable_matrix<mat_const_sub_block<Matrix>>;
 };
 
 template <typename Matrix>
@@ -857,7 +836,6 @@ template <typename Matrix>
 class mat_copy_sub_sym_block<Matrix, mat_structure::symmetric> {
  public:
   using self = mat_sub_sym_block<Matrix, mat_structure::symmetric>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -874,8 +852,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::symmetric> {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::symmetric;
 
@@ -1011,12 +989,6 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::symmetric> {
   std::pair<size_type, size_type> size() const noexcept {
     return {rowCount, rowCount};
   }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m.get_allocator(); }
 
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
@@ -1123,7 +1095,6 @@ template <typename Matrix>
 class mat_sub_sym_block<Matrix, mat_structure::symmetric> {
  public:
   using self = mat_sub_sym_block<Matrix, mat_structure::symmetric>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -1140,8 +1111,8 @@ class mat_sub_sym_block<Matrix, mat_structure::symmetric> {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::symmetric;
 
@@ -1266,12 +1237,6 @@ class mat_sub_sym_block<Matrix, mat_structure::symmetric> {
     return {rowCount, rowCount};
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -1370,7 +1335,6 @@ template <typename Matrix>
 class mat_const_sub_sym_block<Matrix, mat_structure::symmetric> {
  public:
   using self = mat_const_sub_sym_block<Matrix, mat_structure::symmetric>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -1387,8 +1351,8 @@ class mat_const_sub_sym_block<Matrix, mat_structure::symmetric> {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::symmetric;
 
@@ -1478,12 +1442,6 @@ class mat_const_sub_sym_block<Matrix, mat_structure::symmetric> {
   }
 
   /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
-
-  /**
    * Transposes the matrix M.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
@@ -1522,7 +1480,6 @@ template <typename Matrix>
 class mat_copy_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
  public:
   using self = mat_sub_sym_block<Matrix, mat_structure::skew_symmetric>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -1539,8 +1496,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::skew_symmetric;
 
@@ -1677,12 +1634,6 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
     return {rowCount, rowCount};
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m.get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -1767,7 +1718,6 @@ template <typename Matrix>
 class mat_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
  public:
   using self = mat_sub_sym_block<Matrix, mat_structure::skew_symmetric>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -1784,8 +1734,8 @@ class mat_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::skew_symmetric;
 
@@ -1911,12 +1861,6 @@ class mat_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
     return {rowCount, rowCount};
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -1995,7 +1939,6 @@ template <typename Matrix>
 class mat_const_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
  public:
   using self = mat_const_sub_sym_block<Matrix, mat_structure::skew_symmetric>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -2012,8 +1955,8 @@ class mat_const_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::skew_symmetric;
 
@@ -2103,12 +2046,6 @@ class mat_const_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
   }
 
   /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
-
-  /**
    * Returns the trace of matrix M.
    * \param M A matrix.
    * \return the trace of matrix M.
@@ -2120,7 +2057,6 @@ template <typename Matrix>
 class mat_copy_sub_sym_block<Matrix, mat_structure::diagonal> {
  public:
   using self = mat_copy_sub_sym_block<Matrix, mat_structure::diagonal>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -2137,8 +2073,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::diagonal> {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::diagonal;
 
@@ -2275,12 +2211,6 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::diagonal> {
     return {rowCount, rowCount};
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m.get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -2375,7 +2305,6 @@ template <typename Matrix>
 class mat_sub_sym_block<Matrix, mat_structure::diagonal> {
  public:
   using self = mat_sub_sym_block<Matrix, mat_structure::diagonal>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -2392,8 +2321,8 @@ class mat_sub_sym_block<Matrix, mat_structure::diagonal> {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::diagonal;
 
@@ -2512,12 +2441,6 @@ class mat_sub_sym_block<Matrix, mat_structure::diagonal> {
     return {rowCount, rowCount};
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
-
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
    * \test PASSED
@@ -2617,7 +2540,6 @@ template <typename Matrix>
 class mat_const_sub_sym_block<Matrix, mat_structure::diagonal> {
  public:
   using self = mat_const_sub_sym_block<Matrix, mat_structure::diagonal>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -2634,8 +2556,8 @@ class mat_const_sub_sym_block<Matrix, mat_structure::diagonal> {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 0;
+  static constexpr unsigned int static_col_count = 0;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_structure::diagonal;
 
@@ -2724,12 +2646,6 @@ class mat_const_sub_sym_block<Matrix, mat_structure::diagonal> {
   }
 
   /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
-
-  /**
    * Transposes the matrix M.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
@@ -2784,15 +2700,17 @@ struct is_fully_writable_matrix<mat_copy_sub_sym_block<Matrix, Structure>> {
 };
 
 template <typename Matrix, mat_structure::tag Structure>
-struct is_resizable_matrix<mat_copy_sub_sym_block<Matrix, Structure>> {
+struct is_row_resizable_matrix<mat_copy_sub_sym_block<Matrix, Structure>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_copy_sub_sym_block<Matrix, Structure>>;
+  using type =
+      is_row_resizable_matrix<mat_copy_sub_sym_block<Matrix, Structure>>;
 };
 
 template <typename Matrix, mat_structure::tag Structure>
-struct has_allocator_matrix<mat_copy_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_matrix<Matrix>;
+struct is_col_resizable_matrix<mat_copy_sub_sym_block<Matrix, Structure>> {
+  static constexpr bool value = false;
+  using type =
+      is_col_resizable_matrix<mat_copy_sub_sym_block<Matrix, Structure>>;
 };
 
 template <typename Matrix, mat_structure::tag Structure>
@@ -2814,15 +2732,15 @@ struct is_fully_writable_matrix<mat_sub_sym_block<Matrix, Structure>> {
 };
 
 template <typename Matrix, mat_structure::tag Structure>
-struct is_resizable_matrix<mat_sub_sym_block<Matrix, Structure>> {
+struct is_row_resizable_matrix<mat_sub_sym_block<Matrix, Structure>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_sub_sym_block<Matrix, Structure>>;
+  using type = is_row_resizable_matrix<mat_sub_sym_block<Matrix, Structure>>;
 };
 
 template <typename Matrix, mat_structure::tag Structure>
-struct has_allocator_matrix<mat_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_matrix<Matrix>;
+struct is_col_resizable_matrix<mat_sub_sym_block<Matrix, Structure>> {
+  static constexpr bool value = false;
+  using type = is_col_resizable_matrix<mat_sub_sym_block<Matrix, Structure>>;
 };
 
 template <typename Matrix, mat_structure::tag Structure>
@@ -2845,15 +2763,17 @@ struct is_fully_writable_matrix<mat_const_sub_sym_block<Matrix, Structure>> {
 };
 
 template <typename Matrix, mat_structure::tag Structure>
-struct is_resizable_matrix<mat_const_sub_sym_block<Matrix, Structure>> {
+struct is_row_resizable_matrix<mat_const_sub_sym_block<Matrix, Structure>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_const_sub_sym_block<Matrix, Structure>>;
+  using type =
+      is_row_resizable_matrix<mat_const_sub_sym_block<Matrix, Structure>>;
 };
 
 template <typename Matrix, mat_structure::tag Structure>
-struct has_allocator_matrix<mat_const_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_matrix<Matrix>;
+struct is_col_resizable_matrix<mat_const_sub_sym_block<Matrix, Structure>> {
+  static constexpr bool value = false;
+  using type =
+      is_col_resizable_matrix<mat_const_sub_sym_block<Matrix, Structure>>;
 };
 
 template <typename Matrix>

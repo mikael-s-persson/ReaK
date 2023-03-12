@@ -45,10 +45,10 @@ int main() {
   using namespace ReaK;
   using namespace geom;
 
-  std::shared_ptr<frame_3D<double>> out_frame(new frame_3D<double>());
+  auto out_frame = std::make_shared<frame_3D<double>>();
 
-  std::shared_ptr<coord_arrows_3D> body_frame_arrows(new coord_arrows_3D(
-      "body_frame_arrows", out_frame, pose_3D<double>(), 0.3));
+  auto body_frame_arrows = std::make_shared<coord_arrows_3D>(
+      "body_frame_arrows", out_frame, pose_3D<double>(), 0.3);
 
   pose_3D<double> xz_pose(std::weak_ptr<pose_3D<double>>(),
                           vect<double, 3>(0.0, 0.0, 0.0),
@@ -59,32 +59,32 @@ int main() {
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.117, 0.0, -0.117),
       quaternion<double>::yrot(M_PI * 0.75).getQuaternion()));
 
-  std::shared_ptr<capped_cylinder> armLF(
-      new capped_cylinder("X8_armLF", out_frame, armLF_pose, 0.331, 0.02));
+  auto armLF = std::make_shared<capped_cylinder>("X8_armLF", out_frame,
+                                                 armLF_pose, 0.331, 0.02);
 
   pose_3D<double> armRF_pose = xz_pose;
   armRF_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.117, 0.0, 0.117),
       quaternion<double>::yrot(M_PI * 0.25).getQuaternion()));
 
-  std::shared_ptr<capped_cylinder> armRF(
-      new capped_cylinder("X8_armRF", out_frame, armRF_pose, 0.331, 0.02));
+  auto armRF = std::make_shared<capped_cylinder>("X8_armRF", out_frame,
+                                                 armRF_pose, 0.331, 0.02);
 
   pose_3D<double> armRB_pose = xz_pose;
   armRB_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(-0.117, 0.0, 0.117),
       quaternion<double>::yrot(-M_PI * 0.25).getQuaternion()));
 
-  std::shared_ptr<capped_cylinder> armRB(
-      new capped_cylinder("X8_armRB", out_frame, armRB_pose, 0.331, 0.02));
+  auto armRB = std::make_shared<capped_cylinder>("X8_armRB", out_frame,
+                                                 armRB_pose, 0.331, 0.02);
 
   pose_3D<double> armLB_pose = xz_pose;
   armLB_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(-0.117, 0.0, -0.117),
       quaternion<double>::yrot(-M_PI * 0.75).getQuaternion()));
 
-  std::shared_ptr<capped_cylinder> armLB(
-      new capped_cylinder("X8_armLB", out_frame, armLB_pose, 0.331, 0.02));
+  auto armLB = std::make_shared<capped_cylinder>("X8_armLB", out_frame,
+                                                 armLB_pose, 0.331, 0.02);
 
   armLF_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.0, 0.1655),
@@ -99,14 +99,14 @@ int main() {
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.0, 0.1655),
       quaternion<double>::xrot(M_PI * 0.5).getQuaternion()));
 
-  std::shared_ptr<capped_cylinder> motorLF(
-      new capped_cylinder("X8_motorLF", out_frame, armLF_pose, 0.1, 0.03));
-  std::shared_ptr<capped_cylinder> motorRF(
-      new capped_cylinder("X8_motorRF", out_frame, armRF_pose, 0.1, 0.03));
-  std::shared_ptr<capped_cylinder> motorRB(
-      new capped_cylinder("X8_motorRB", out_frame, armRB_pose, 0.1, 0.03));
-  std::shared_ptr<capped_cylinder> motorLB(
-      new capped_cylinder("X8_motorLB", out_frame, armLB_pose, 0.1, 0.03));
+  auto motorLF = std::make_shared<capped_cylinder>("X8_motorLF", out_frame,
+                                                   armLF_pose, 0.1, 0.03);
+  auto motorRF = std::make_shared<capped_cylinder>("X8_motorRF", out_frame,
+                                                   armRF_pose, 0.1, 0.03);
+  auto motorRB = std::make_shared<capped_cylinder>("X8_motorRB", out_frame,
+                                                   armRB_pose, 0.1, 0.03);
+  auto motorLB = std::make_shared<capped_cylinder>("X8_motorLB", out_frame,
+                                                   armLB_pose, 0.1, 0.03);
 
   armLF_pose.addBefore(pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                                        vect<double, 3>(0.0, 0.0, 0.05),
@@ -121,14 +121,14 @@ int main() {
                                        vect<double, 3>(0.0, 0.0, 0.05),
                                        quaternion<double>()));
 
-  std::shared_ptr<cylinder> UrotorLF(
-      new cylinder("X8_UrotorLF", out_frame, armLF_pose, 0.01, 0.202));
-  std::shared_ptr<cylinder> UrotorRF(
-      new cylinder("X8_UrotorRF", out_frame, armRF_pose, 0.01, 0.202));
-  std::shared_ptr<cylinder> UrotorRB(
-      new cylinder("X8_UrotorRB", out_frame, armRB_pose, 0.01, 0.202));
-  std::shared_ptr<cylinder> UrotorLB(
-      new cylinder("X8_UrotorLB", out_frame, armLB_pose, 0.01, 0.202));
+  auto UrotorLF = std::make_shared<cylinder>("X8_UrotorLF", out_frame,
+                                             armLF_pose, 0.01, 0.202);
+  auto UrotorRF = std::make_shared<cylinder>("X8_UrotorRF", out_frame,
+                                             armRF_pose, 0.01, 0.202);
+  auto UrotorRB = std::make_shared<cylinder>("X8_UrotorRB", out_frame,
+                                             armRB_pose, 0.01, 0.202);
+  auto UrotorLB = std::make_shared<cylinder>("X8_UrotorLB", out_frame,
+                                             armLB_pose, 0.01, 0.202);
 
   armLF_pose.addBefore(pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                                        vect<double, 3>(0.0, 0.0, -0.1),
@@ -143,17 +143,17 @@ int main() {
                                        vect<double, 3>(0.0, 0.0, -0.1),
                                        quaternion<double>()));
 
-  std::shared_ptr<cylinder> LrotorLF(
-      new cylinder("X8_LrotorLF", out_frame, armLF_pose, 0.01, 0.19));
-  std::shared_ptr<cylinder> LrotorRF(
-      new cylinder("X8_LrotorRF", out_frame, armRF_pose, 0.01, 0.19));
-  std::shared_ptr<cylinder> LrotorRB(
-      new cylinder("X8_LrotorRB", out_frame, armRB_pose, 0.01, 0.19));
-  std::shared_ptr<cylinder> LrotorLB(
-      new cylinder("X8_LrotorLB", out_frame, armLB_pose, 0.01, 0.19));
+  auto LrotorLF = std::make_shared<cylinder>("X8_LrotorLF", out_frame,
+                                             armLF_pose, 0.01, 0.19);
+  auto LrotorRF = std::make_shared<cylinder>("X8_LrotorRF", out_frame,
+                                             armRF_pose, 0.01, 0.19);
+  auto LrotorRB = std::make_shared<cylinder>("X8_LrotorRB", out_frame,
+                                             armRB_pose, 0.01, 0.19);
+  auto LrotorLB = std::make_shared<cylinder>("X8_LrotorLB", out_frame,
+                                             armLB_pose, 0.01, 0.19);
 
-  std::shared_ptr<box> body_case(new box("X8_box", out_frame, pose_3D<double>(),
-                                         vect<double, 3>(0.15, 0.15, 0.15)));
+  auto body_case = std::make_shared<box>("X8_box", out_frame, pose_3D<double>(),
+                                         vect<double, 3>(0.15, 0.15, 0.15));
 
   pose_3D<double> skid_pose = xz_pose;
   skid_pose.addBefore(pose_3D<double>(
@@ -164,21 +164,20 @@ int main() {
                                       vect<double, 3>(0.15, 0.0, 0.0),
                                       quaternion<double>()));
 
-  std::shared_ptr<capped_cylinder> Lskid(
-      new capped_cylinder("X8_Lskid", out_frame, skid_pose, 0.3, 0.01));
+  auto Lskid = std::make_shared<capped_cylinder>("X8_Lskid", out_frame,
+                                                 skid_pose, 0.3, 0.01);
 
   skid_pose.addBefore(pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                                       vect<double, 3>(-0.3, 0.0, 0.0),
                                       quaternion<double>()));
 
-  std::shared_ptr<capped_cylinder> Rskid(
-      new capped_cylinder("X8_Rskid", out_frame, skid_pose, 0.3, 0.01));
+  auto Rskid = std::make_shared<capped_cylinder>("X8_Rskid", out_frame,
+                                                 skid_pose, 0.3, 0.01);
 
-  std::shared_ptr<sphere> proxy_sphere(
-      new sphere("X8_proxy_sphere", out_frame, pose_3D<double>(), 0.6));
+  auto proxy_sphere = std::make_shared<sphere>("X8_proxy_sphere", out_frame,
+                                               pose_3D<double>(), 0.6);
 
-  std::shared_ptr<colored_model_3D> geom_model =
-      std::make_shared<colored_model_3D>("X8_model_render");
+  auto geom_model = std::make_shared<colored_model_3D>("X8_model_render");
 
   (*geom_model)
       //.addElement(color(0,0,0),global_frame_arrows)

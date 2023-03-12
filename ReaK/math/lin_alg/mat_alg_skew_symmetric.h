@@ -3,7 +3,7 @@
  *
  * This library implements the specialization of the mat<> template for a
  * skew-symmetric matrix (dynamic dimension). This matrix type fulfills the matrix
- * concepts of Readable, Writable, Resizable and DynAlloc, but not FullyWritable.
+ * concepts of Readable, Writable, and Resizable, but not FullyWritable.
  *
  * \author Mikael Persson <mikael.s.persson@gmail.com>
  * \date april 2011 (originally february 2010)
@@ -45,22 +45,21 @@ namespace ReaK {
  * This class holds a skew-symmetric matrix. This class will hold only the strict upper-triangular part
  * since the lower part is assumed to be equal to the negative of the upper one.
  *
- * Models: ReadableMatrixConcept, WritableMatrixConcept, ResizableMatrixConcept, and DynAllocMatrixConcept.
+ * Models: ReadableMatrixConcept, WritableMatrixConcept, and ResizableMatrixConcept.
  *
  * \tparam T Arithmetic type of the elements of the matrix.
  * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
  *mat_alignment::column_major (default).
- * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
+template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
+class mat<T, mat_structure::skew_symmetric, Alignment, RowCount, RowCount>
     : public serializable {
  public:
-  using self = mat<T, mat_structure::skew_symmetric, Alignment, Allocator>;
-  using allocator_type = Allocator;
+  using self =
+      mat<T, mat_structure::skew_symmetric, Alignment, RowCount, RowCount>;
 
   using value_type = T;
-  using container_type = std::vector<value_type, allocator_type>;
+  using container_type = std::vector<value_type>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -75,14 +74,14 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = RowCount;
+  static constexpr unsigned int static_col_count = RowCount;
   static constexpr mat_alignment::tag alignment = Alignment;
   static constexpr mat_structure::tag structure = mat_structure::skew_symmetric;
 
  private:
   /// Holds the array of scalar entries.
-  std::vector<T, Allocator> q;
+  container_type q;
   /// Holds the dimension, both row and column count are equal to size.
   size_type rowCount;
 
@@ -98,29 +97,18 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
    * Default constructor: sets all to zero.
    * \test PASSED
    */
-  explicit mat(const allocator_type& aAlloc = allocator_type())
-      : q(0, value_type(0), aAlloc), rowCount(0) {}
+  mat() : q(0, value_type(0)), rowCount(0) {}
 
   /**
    * Constructor for a sized matrix.
    * \test PASSED
    */
-  explicit mat(size_type aRowCount, value_type aFill = 0,
-               const allocator_type& aAlloc = allocator_type())
-      : q(mat_triangular_size(aRowCount - 1), aFill, aAlloc),
-        rowCount(aRowCount) {}
+  explicit mat(size_type aRowCount, value_type aFill = value_type{})
+      : q(mat_triangular_size(aRowCount - 1), aFill), rowCount(aRowCount) {}
 
-  /**
-   * Standard Copy Constructor with standard semantics.
-   * \test PASSED
-   */
-  mat(const self& M) : q(M.q), rowCount(M.rowCount) {}
-
-  /**
-   * Standard Copy Constructor with standard semantics.
-   * \test PASSED
-   */
-  mat(self&& M) noexcept : q(std::move(M.q)), rowCount(std::move(M.rowCount)) {}
+  /// Default Copy/Move Constructors.
+  mat(const self& M) = default;
+  mat(self&& M) noexcept = default;
 
   /**
    * Explicit constructor from any type of matrix. The "(M - M.transpose) / 2" is applied to guarantee skew-symmetry.
@@ -128,7 +116,7 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
    */
   template <typename Matrix>
   explicit mat(
-      const Matrix& M, const allocator_type& aAlloc = allocator_type(),
+      const Matrix& M,
       std::enable_if_t<
           is_readable_matrix_v<Matrix> && !std::is_same_v<Matrix, self>, void*>
           dummy = nullptr)
@@ -137,7 +125,7 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
                                          ? M.get_row_count()
                                          : M.get_col_count()) -
               1),
-          value_type(0), aAlloc),
+          value_type(0)),
         rowCount(static_cast<size_type>(M.get_row_count() > M.get_col_count()
                                             ? M.get_row_count()
                                             : M.get_col_count())) {
@@ -169,26 +157,19 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
    * Constructor from a symmetric matrix, i.e., takes the skew-symmetric part of a symmetric matrix, which is null.
    * \test PASSED
    */
-  template <mat_alignment::tag Align2, typename Alloc2>
-  explicit mat(
-      const mat<value_type, mat_structure::symmetric, Align2, Alloc2>& M,
-      const allocator_type& aAlloc = allocator_type())
-      : q(mat_triangular_size(M.get_row_count() - 1), value_type(0), aAlloc),
+  template <mat_alignment::tag Align2>
+  explicit mat(const mat<value_type, mat_structure::symmetric, Align2, RowCount,
+                         RowCount>& M)
+      : q(mat_triangular_size(M.get_row_count() - 1), value_type(0)),
         rowCount(M.get_row_count()) {}
 
-  /**
-   * Destructor.
-   * \test PASSED
-   */
   ~mat() override = default;
 
   /**
    * Constructs a 2x2 skew-symmetric matrix from one element.
    * \test PASSED
    */
-  explicit mat(const_reference a12,
-               const allocator_type& aAlloc = allocator_type())
-      : q(1, value_type(0), aAlloc), rowCount(2) {
+  explicit mat(const_reference a12) : q(1, value_type(0)), rowCount(2) {
     q[0] = a12;
   }
 
@@ -196,9 +177,8 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
    * Constructs a 3x3 skew-symmetric matrix from 3 elements.
    * \test PASSED
    */
-  mat(const_reference a12, const_reference a13, const_reference a23,
-      const allocator_type& aAlloc = allocator_type())
-      : q(3, value_type(0), aAlloc), rowCount(3) {
+  mat(const_reference a12, const_reference a13, const_reference a23)
+      : q(3, value_type(0)), rowCount(3) {
     q[0] = a12;
     q[1] = a13;
     q[2] = a23;
@@ -209,9 +189,8 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
    * \test PASSED
    */
   mat(const_reference a12, const_reference a13, const_reference a14,
-      const_reference a23, const_reference a24, const_reference a34,
-      const allocator_type& aAlloc = allocator_type())
-      : q(6, value_type(0), aAlloc), rowCount(4) {
+      const_reference a23, const_reference a24, const_reference a34)
+      : q(6, value_type(0)), rowCount(4) {
     q[0] = a12;
     q[1] = a13;
     q[2] = a23;
@@ -225,9 +204,7 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
    * \throw std::range_error if the size of the vector is not 3.
    * \test PASSED
    */
-  explicit mat(const vect_n<T>& V,
-               const allocator_type& aAlloc = allocator_type())
-      : q(3, value_type(0), aAlloc), rowCount(3) {
+  explicit mat(const vect_n<T>& V) : q(3, value_type(0)), rowCount(3) {
     if (V.size() != 3) {
       throw std::range_error(
           "To construct a skew-matrix from a vector, that vector must have "
@@ -242,9 +219,7 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
    * Explicit constructor of a skew-symmetric matrix from a 3D vector (cross-product matrix).
    * \test PASSED
    */
-  explicit mat(const vect<T, 3>& V,
-               const allocator_type& aAlloc = allocator_type())
-      : q(3, value_type(0), aAlloc), rowCount(3) {
+  explicit mat(const vect<T, 3>& V) : q(3, value_type(0)), rowCount(3) {
     q[0] = -V[2];
     q[1] = V[1];
     q[2] = -V[0];
@@ -383,12 +358,6 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
     set_row_count(sz.first, true);
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return q.get_allocator(); }
-
   /*******************************************************************************
                            Assignment Operators
   *******************************************************************************/
@@ -484,7 +453,7 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
    * \test PASSED
    */
   self operator-() const {
-    self result(rowCount, value_type(0), q.get_allocator());
+    self result(rowCount, value_type(0));
     auto it = result.q.begin();
     for (auto cit = q.begin(); cit != q.end(); ++it, ++cit) {
       *it -= *cit;
@@ -516,8 +485,7 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
   auto multiply_this_and_dense_mat(const Matrix& M2) const {
     using ValueType = mat_value_type_t<Matrix>;
     mat_product_result_t<self, Matrix> result{M2.get_row_count(),
-                                              M2.get_col_count(), ValueType(0),
-                                              M2.get_allocator()};
+                                              M2.get_col_count(), ValueType(0)};
     int k = 0;
     int i = 1;
     for (; i < rowCount; k += i++) {
@@ -543,8 +511,7 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
   auto multiply_dense_and_this_mat(const Matrix& M1) const {
     using ValueType = mat_value_type_t<Matrix>;
     mat_product_result_t<Matrix, self> result{M1.get_row_count(),
-                                              M1.get_col_count(), ValueType(0),
-                                              M1.get_allocator()};
+                                              M1.get_col_count(), ValueType(0)};
     int k = 0;
     int i = 1;
     for (; i < rowCount; k += i++) {
@@ -566,8 +533,7 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
    * \test PASSED
    */
   auto multiply_with_same_mat(const self& M2) const {
-    mat_product_result_t<self, self> result{rowCount, value_type(0),
-                                            get_allocator()};
+    mat_product_result_t<self, self> result{rowCount, value_type(0)};
     int k = 0;
     int i = 1;
     for (; i < rowCount; k += i++) {
@@ -651,7 +617,7 @@ class mat<T, mat_structure::skew_symmetric, Alignment, Allocator>
     if (aDiagOffset + aSizeOut > M.rowCount) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    self result(aSizeOut, value_type(0), M.get_allocator());
+    self result(aSizeOut, value_type(0));
     int k = mat_triangular_size(aDiagOffset);
     int k_out = 0;
     for (int i = 1; i < aSizeOut; k += (i + aDiagOffset), k_out += i++) {

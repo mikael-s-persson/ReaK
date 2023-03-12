@@ -81,7 +81,6 @@ class givens_rot_matrix {
   using value_type = T;
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
-  using allocator_type = void;
 
   using pointer = T*;
   using const_pointer = const T*;
@@ -95,8 +94,8 @@ class givens_rot_matrix {
   using row_iterator = void;
   using const_row_iterator = void;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = 2;
+  static constexpr unsigned int static_col_count = 2;
   static constexpr mat_alignment::tag alignment = mat_alignment::column_major;
   static constexpr mat_structure::tag structure = mat_structure::orthogonal;
 
@@ -184,12 +183,6 @@ class givens_rot_matrix {
   }
 
   /**
-   * Returns the allocator object of the underlying container, which is none at all in this case.
-   * \return the allocator object of the underlying container, which is none at all in this case.
-   */
-  allocator_type get_allocator() const {}
-
-  /**
    * Matrix indexing accessor for read-only access.
    * \param i Row index.
    * \param j Column index.
@@ -255,15 +248,15 @@ struct is_writable_matrix<givens_rot_matrix<T>> {
 };
 
 template <typename T>
-struct is_resizable_matrix<givens_rot_matrix<T>> {
+struct is_row_resizable_matrix<givens_rot_matrix<T>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<givens_rot_matrix<T>>;
+  using type = is_row_resizable_matrix<givens_rot_matrix<T>>;
 };
 
 template <typename T>
-struct has_allocator_matrix<givens_rot_matrix<T>> {
+struct is_col_resizable_matrix<givens_rot_matrix<T>> {
   static constexpr bool value = false;
-  using type = has_allocator_matrix<givens_rot_matrix<T>>;
+  using type = is_col_resizable_matrix<givens_rot_matrix<T>>;
 };
 
 template <typename T>

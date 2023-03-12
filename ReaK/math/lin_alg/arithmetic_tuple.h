@@ -203,15 +203,31 @@ class arithmetic_tuple : public std::tuple<T...> {
   arithmetic_tuple(U&&... u)  // NOLINT
       : arithmetic_tuple_base_class(std::forward<U>(u)...) {}
 
+  // Catch construction with other tuples, down-cast to std::tuple and let it
+  // figure out if the param-pack matches <T...> or if it's just the first element.
+  template <typename... U>
+  arithmetic_tuple(arithmetic_tuple<U...>& rhs)  // NOLINT
+      : arithmetic_tuple_base_class(static_cast<const std::tuple<U...>&>(rhs)) {
+  }
+
+  template <typename... U>
+  arithmetic_tuple(const arithmetic_tuple<U...>& rhs)  // NOLINT
+      : arithmetic_tuple_base_class(static_cast<const std::tuple<U...>&>(rhs)) {
+  }
+
+  template <typename... U>
+  arithmetic_tuple(arithmetic_tuple<U...>&& rhs)  // NOLINT
+      : arithmetic_tuple_base_class(static_cast<std::tuple<U...>&&>(rhs)) {}
+
   arithmetic_tuple(const self&) = default;
+  arithmetic_tuple(self& rhs)
+      : arithmetic_tuple(static_cast<const self&>(rhs)) {}
   arithmetic_tuple(self&&) noexcept = default;
   arithmetic_tuple& operator=(const self&) = default;
   arithmetic_tuple& operator=(self&&) noexcept = default;
 
   arithmetic_tuple_base_class& base() { return *this; }
   const arithmetic_tuple_base_class& base() const { return *this; }
-
-  // TODO: missing other standard-specified constructors (with other tuple types, and std::pair).
 
   /**
    * This function template is an overload of the addition operator on arithmetic-tuples.

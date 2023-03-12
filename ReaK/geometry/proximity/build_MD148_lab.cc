@@ -79,66 +79,66 @@ int main(int argc, char** argv) {
   using namespace ReaK;
   using namespace geom;
 
-  std::shared_ptr<colored_model_3D> MD148_basic_lab(
-      new colored_model_3D("MD148_basic_lab_render"));
-  std::shared_ptr<proxy_query_model_3D> MD148_lab_proxy(
-      new proxy_query_model_3D("MD148_basic_lab_proxy"));
+  auto MD148_basic_lab =
+      std::make_shared<colored_model_3D>("MD148_basic_lab_render");
+  auto MD148_lab_proxy =
+      std::make_shared<proxy_query_model_3D>("MD148_basic_lab_proxy");
 
-  std::shared_ptr<plane> lab_floor(new plane(
+  auto lab_floor = std::make_shared<plane>(
       "MD148_floor", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                       vect<double, 3>(-0.8, -1.0, 0.0), quaternion<double>()),
-      vect<double, 2>(4.0, 6.0)));
+      vect<double, 2>(4.0, 6.0));
 
-  std::shared_ptr<plane> lab_n_wall(new plane(
+  auto lab_n_wall = std::make_shared<plane>(
       "MD148_north_wall", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(1.2, -1.0, 1.5),
           axis_angle<double>(M_PI * 0.5, vect<double, 3>(0.0, -1.0, 0.0))
               .getQuaternion()),
-      vect<double, 2>(3.0, 6.0)));
+      vect<double, 2>(3.0, 6.0));
 
-  std::shared_ptr<plane> lab_w_wall(new plane(
+  auto lab_w_wall = std::make_shared<plane>(
       "MD148_west_wall", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(-0.8, 2.0, 1.5),
           axis_angle<double>(M_PI * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
               .getQuaternion()),
-      vect<double, 2>(4.0, 3.0)));
+      vect<double, 2>(4.0, 3.0));
 
-  std::shared_ptr<box> lab_robot_track(new box(
+  auto lab_robot_track = std::make_shared<box>(
       "MD148_robot_track", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                       vect<double, 3>(0.0, -1.71, 0.15), quaternion<double>()),
-      vect<double, 3>(0.4, 3.42, 0.3)));
+      vect<double, 3>(0.4, 3.42, 0.3));
 
-  std::shared_ptr<plane> lab_operator_wall(new plane(
+  auto lab_operator_wall = std::make_shared<plane>(
       "MD148_operator_wall", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(-0.8, -3.5, 1.5),
           axis_angle<double>(M_PI * 0.5, vect<double, 3>(-1.0, 0.0, 0.0))
               .getQuaternion()),
-      vect<double, 2>(4.0, 3.0)));
+      vect<double, 2>(4.0, 3.0));
 
-  std::shared_ptr<capped_cylinder> lab_robot_track_left(new capped_cylinder(
+  auto lab_robot_track_left = std::make_shared<capped_cylinder>(
       "MD148_robot_track_left", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.1, -1.71, 0.15),
           axis_angle<double>(M_PI * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
               .getQuaternion()),
-      3.42, 0.18));
+      3.42, 0.18);
 
-  std::shared_ptr<capped_cylinder> lab_robot_track_right(new capped_cylinder(
+  auto lab_robot_track_right = std::make_shared<capped_cylinder>(
       "MD148_robot_track_right", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(-0.1, -1.71, 0.15),
           axis_angle<double>(M_PI * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
               .getQuaternion()),
-      3.42, 0.18));
+      3.42, 0.18);
 
-  std::shared_ptr<coord_arrows_3D> lab_global_arrows(new coord_arrows_3D(
+  auto lab_global_arrows = std::make_shared<coord_arrows_3D>(
       "global_frame_arrows", std::shared_ptr<pose_3D<double>>(),
-      pose_3D<double>(), 1.0));
+      pose_3D<double>(), 1.0);
 
   (*MD148_basic_lab)
       .addElement(color(0, 0, 0), lab_global_arrows)

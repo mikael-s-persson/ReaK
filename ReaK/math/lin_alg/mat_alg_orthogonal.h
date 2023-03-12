@@ -34,24 +34,6 @@
 
 namespace ReaK {
 
-template <>
-struct mat_indexer<mat_structure::orthogonal, mat_alignment::column_major> {
-  int rowCount;
-  explicit mat_indexer<mat_structure::orthogonal, mat_alignment::column_major>(
-      int aRowCount)
-      : rowCount(aRowCount) {}
-  int operator()(int i, int j) const { return j * rowCount + i; }
-};
-
-template <>
-struct mat_indexer<mat_structure::orthogonal, mat_alignment::row_major> {
-  int rowCount;
-  explicit mat_indexer<mat_structure::orthogonal, mat_alignment::row_major>(
-      int aRowCount)
-      : rowCount(aRowCount) {}
-  int operator()(int i, int j) const { return i * rowCount + j; }
-};
-
 }  // namespace ReaK
 
 #endif  // REAK_MATH_LIN_ALG_MAT_ALG_ORTHOGONAL_H_

@@ -3,7 +3,7 @@
  *
  * This header declares the various concepts to which a Matrix class can be expected
  * to fulfill. These concepts include ReadableMatrixConcept, WritableMatrixConcept,
- * ResizableMatrixConcept, and DynAllocMatrixConcept. All these concepts are also
+ * and ResizableMatrixConcept. All these concepts are also
  * paired with meta-functions that can evaluate whether a Matrix class fulfill the
  * concept or not, and return a compile-time constant bool (on the model of
  * std::bool_constant class). Note that these meta-functions cannot really check the
@@ -151,80 +151,75 @@ static constexpr bool is_fully_writable_matrix_v =
 
 /**
  * This concept will fail to be instantiated if the Matrix class does not model
- * the resizable matrix concept, meaning that its row and column counts can be
- * set to some values which results in the matrix having at least that row or
- * column count (the functions are set_row_count() and set_col_count()).
+ * the row-resizable matrix concept, meaning that its row counts can be
+ * set to some values which results in the matrix having at least that row
+ * count (the functions are set_row_count()).
  *
  * Required expressions for Matrix m:
- *  m.set_col_count(s)  can set the number of columns of the matrix.
  *  m.set_row_count(s)  can set the number of rows of the matrix.
  */
 template <typename Matrix>
-struct ResizableMatrixConcept {
+struct RowResizableMatrixConcept {
   Matrix m;
 
   mat_size_type_t<Matrix> sz;
 
-  BOOST_CONCEPT_USAGE(ResizableMatrixConcept) {
-    m.set_row_count(sz);
-    m.set_col_count(sz);
-  }
+  BOOST_CONCEPT_USAGE(RowResizableMatrixConcept) { m.set_row_count(sz); }
 };
 
 /**
- * This meta-function evaluates whether a Matrix class fulfills the ResizableMatrixConcept,
+ * This meta-function evaluates whether a Matrix class fulfills the RowResizableMatrixConcept,
  * however, it does not attempt to instantiate the Concept template (because no technique can
  * be used to catch the failed instantiation properly), instead, the default version results
  * in a false value, and the implementer of a matrix class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
 template <typename Matrix>
-struct is_resizable_matrix {
+struct is_row_resizable_matrix {
   using value_type = bool;
   static constexpr bool value = false;
-  using type = is_resizable_matrix<Matrix>;
+  using type = is_row_resizable_matrix<Matrix>;
 };
 
 template <typename Matrix>
-static constexpr bool is_resizable_matrix_v =
-    is_resizable_matrix<Matrix>::value;
+static constexpr bool is_row_resizable_matrix_v =
+    is_row_resizable_matrix<Matrix>::value;
 
 /**
  * This concept will fail to be instantiated if the Matrix class does not model
- * the dynamically allocated matrix concept, meaning that it stores its elements in
- * dynamically allocated memory. The only requirement to fulfill this concept is
- * to be able to obtain the allocate object associated to a matrix (here "allocator" is
- * used with the exact same meaning as "STL allocators").
+ * the column-resizable matrix concept, meaning that its column counts can be
+ * set to some values which results in the matrix having at least that
+ * column count (the functions are set_col_count()).
  *
  * Required expressions for Matrix m:
- *  al = m.get_allocator()  can obtain the allocator object of the matrix.
+ *  m.set_col_count(s)  can set the number of columns of the matrix.
  */
 template <typename Matrix>
-struct DynAllocMatrixConcept : ResizableMatrixConcept<Matrix> {
+struct ColResizableMatrixConcept {
   Matrix m;
 
-  typename mat_traits<Matrix>::allocator_type al;
+  mat_size_type_t<Matrix> sz;
 
-  BOOST_CONCEPT_USAGE(DynAllocMatrixConcept) { al = m.get_allocator(); }
+  BOOST_CONCEPT_USAGE(ColResizableMatrixConcept) { m.set_col_count(sz); }
 };
 
 /**
- * This meta-function evaluates whether a Matrix class fulfills the DynAllocMatrixConcept,
+ * This meta-function evaluates whether a Matrix class fulfills the ColResizableMatrixConcept,
  * however, it does not attempt to instantiate the Concept template (because no technique can
  * be used to catch the failed instantiation properly), instead, the default version results
  * in a false value, and the implementer of a matrix class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
 template <typename Matrix>
-struct has_allocator_matrix {
+struct is_col_resizable_matrix {
   using value_type = bool;
   static constexpr bool value = false;
-  using type = has_allocator_matrix<Matrix>;
+  using type = is_col_resizable_matrix<Matrix>;
 };
 
 template <typename Matrix>
-static constexpr bool has_allocator_matrix_v =
-    has_allocator_matrix<Matrix>::value;
+static constexpr bool is_col_resizable_matrix_v =
+    is_col_resizable_matrix<Matrix>::value;
 
 /**
  * This meta-function evaluates whether a Matrix class is a square matrix. The implementer of

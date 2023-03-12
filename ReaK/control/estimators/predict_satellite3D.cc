@@ -1154,8 +1154,8 @@ int main(int argc, char** argv) {
       set_frame_3D(x_init, initial_motion);
       std::map<std::string, std::shared_ptr<recorder::ascii_recorder>>
           results_map;
-      std::shared_ptr<recorder::ascii_recorder> ground_truth_stats(
-          new recorder::ascii_recorder(output_stem_name + "_meas_stddevs.ssv"));
+      auto ground_truth_stats = std::make_shared<recorder::ascii_recorder>(
+          output_stem_name + "_meas_stddevs.ssv");
       (*ground_truth_stats) << "ep_x"
                             << "ep_y"
                             << "ep_z"
@@ -1358,9 +1358,8 @@ int main(int argc, char** argv) {
       set_frame_3D(x_init, initial_motion);
       std::map<std::string, std::shared_ptr<recorder::ascii_recorder>>
           results_map;
-      std::shared_ptr<recorder::ascii_recorder> ground_truth_stats(
-          new recorder::ascii_recorder(output_stem_name +
-                                       "_meas_gyro_stddevs.ssv"));
+      auto ground_truth_stats = std::make_shared<recorder::ascii_recorder>(
+          output_stem_name + "_meas_gyro_stddevs.ssv");
       (*ground_truth_stats) << "ep_x"
                             << "ep_y"
                             << "ep_z"
@@ -1566,9 +1565,8 @@ int main(int argc, char** argv) {
       set_frame_3D(x_init, initial_motion);
       std::map<std::string, std::shared_ptr<recorder::ascii_recorder>>
           results_map;
-      std::shared_ptr<recorder::ascii_recorder> ground_truth_stats(
-          new recorder::ascii_recorder(output_stem_name +
-                                       "_meas_IMU_stddevs.ssv"));
+      auto ground_truth_stats = std::make_shared<recorder::ascii_recorder>(
+          output_stem_name + "_meas_IMU_stddevs.ssv");
       (*ground_truth_stats)
           << "ep_x"
           << "ep_y"

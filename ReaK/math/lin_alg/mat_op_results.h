@@ -174,22 +174,27 @@ struct product_result_structure<mat_structure::identity,
                                         mat_structure::identity>;
 };
 
+template <unsigned int RowCount1, unsigned int ColCount1,
+          unsigned int RowCount2, unsigned int ColCount2>
+struct product_result_size {
+  static constexpr unsigned int static_row_count = RowCount1;
+  static constexpr unsigned int static_col_count = ColCount2;
+};
+
 template <bool AreTheseMatrices, typename ResultValueType, typename Matrix1,
           typename Matrix2>
 struct mat_product_result_impl {
+  using result_size =
+      product_result_size<mat_traits<Matrix1>::static_row_count,
+                          mat_traits<Matrix1>::static_col_count,
+                          mat_traits<Matrix2>::static_row_count,
+                          mat_traits<Matrix2>::static_col_count>;
   using type =
       mat<ResultValueType,
-          detail::product_result_structure<
-              mat_traits<Matrix1>::structure,
-              mat_traits<Matrix2>::structure>::type::value,
-          mat_traits<Matrix1>::alignment,
-          typename std::allocator_traits<std::conditional_t<
-              has_allocator_matrix_v<Matrix1>,
-              typename mat_traits<Matrix1>::allocator_type,
-              std::conditional_t<has_allocator_matrix<Matrix2>::value,
-                                 typename mat_traits<Matrix2>::allocator_type,
-                                 std::allocator<ResultValueType>>>>::
-              template rebind_alloc<ResultValueType>>;
+          product_result_structure<mat_traits<Matrix1>::structure,
+                                   mat_traits<Matrix2>::structure>::type::value,
+          mat_traits<Matrix1>::alignment, result_size::static_row_count,
+          result_size::static_col_count>;
 };
 
 template <typename ResultValueType, typename Matrix1, typename Matrix2>
@@ -401,22 +406,30 @@ struct addition_result_structure<mat_structure::skew_symmetric,
                                          mat_structure::skew_symmetric>;
 };
 
+template <unsigned int RowCount1, unsigned int ColCount1,
+          unsigned int RowCount2, unsigned int ColCount2>
+struct addition_result_size {
+  static constexpr unsigned int static_row_count =
+      MatStaticSizeIfExpectedEqual(RowCount1, RowCount2);
+  static constexpr unsigned int static_col_count =
+      MatStaticSizeIfExpectedEqual(ColCount1, ColCount2);
+};
+
 template <bool AreTheseMatrices, typename ResultValueType, typename Matrix1,
           typename Matrix2>
 struct mat_addition_result_impl {
+  using result_size =
+      addition_result_size<mat_traits<Matrix1>::static_row_count,
+                           mat_traits<Matrix1>::static_col_count,
+                           mat_traits<Matrix2>::static_row_count,
+                           mat_traits<Matrix2>::static_col_count>;
   using type =
       mat<ResultValueType,
           detail::addition_result_structure<
               mat_traits<Matrix1>::structure,
               mat_traits<Matrix2>::structure>::type::value,
-          mat_traits<Matrix1>::alignment,
-          typename std::allocator_traits<std::conditional_t<
-              has_allocator_matrix<Matrix1>::value,
-              typename mat_traits<Matrix1>::allocator_type,
-              std::conditional_t<has_allocator_matrix<Matrix2>::value,
-                                 typename mat_traits<Matrix2>::allocator_type,
-                                 std::allocator<ResultValueType>>>>::
-              template rebind_alloc<ResultValueType>>;
+          mat_traits<Matrix1>::alignment, result_size::static_row_count,
+          result_size::static_col_count>;
 };
 
 template <typename ResultValueType, typename Matrix1, typename Matrix2>
@@ -427,12 +440,10 @@ struct mat_addition_result_impl<false, ResultValueType, Matrix1, Matrix2> {
 
 template <typename Matrix1, typename Matrix2>
 struct mat_product_result {
-  using M1ValueType = typename std::conditional<
-      is_readable_matrix_v<Matrix1>, mat_traits<Matrix1>,
-      mat_traits<mat<double, mat_structure::rectangular>>>::type::value_type;
-  using M2ValueType = typename std::conditional<
-      is_readable_matrix_v<Matrix2>, mat_traits<Matrix2>,
-      mat_traits<mat<double, mat_structure::rectangular>>>::type::value_type;
+  using M1ValueType = std::conditional_t<is_readable_matrix_v<Matrix1>,
+                                         mat_value_type_t<Matrix1>, double>;
+  using M2ValueType = std::conditional_t<is_readable_matrix_v<Matrix2>,
+                                         mat_value_type_t<Matrix2>, double>;
   using ResultValueType =
       decltype(std::declval<M1ValueType>() * std::declval<M2ValueType>() +
                std::declval<M1ValueType>() * std::declval<M2ValueType>());
@@ -447,12 +458,10 @@ using mat_product_result_t =
 
 template <typename Matrix1, typename Matrix2>
 struct mat_addition_result {
-  using M1ValueType = typename std::conditional<
-      is_readable_matrix_v<Matrix1>, mat_traits<Matrix1>,
-      mat_traits<mat<double, mat_structure::rectangular>>>::type::value_type;
-  using M2ValueType = typename std::conditional<
-      is_readable_matrix_v<Matrix2>, mat_traits<Matrix2>,
-      mat_traits<mat<double, mat_structure::rectangular>>>::type::value_type;
+  using M1ValueType = std::conditional_t<is_readable_matrix_v<Matrix1>,
+                                         mat_value_type_t<Matrix1>, double>;
+  using M2ValueType = std::conditional_t<is_readable_matrix_v<Matrix2>,
+                                         mat_value_type_t<Matrix2>, double>;
   using ResultValueType =
       decltype(std::declval<M1ValueType>() + std::declval<M2ValueType>());
   using type = typename detail::mat_addition_result_impl<

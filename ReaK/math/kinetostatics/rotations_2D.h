@@ -59,7 +59,6 @@ template <typename T>
 class rot_mat_2D {
  public:
   using self = rot_mat_2D<T>;
-  using allocator_type = void;
 
   using value_type = T;
   using container_type = void;
@@ -470,7 +469,6 @@ template <typename T>
 class trans_mat_2D {
  public:
   using self = trans_mat_2D<T>;
-  using allocator_type = void;
 
   using value_type = T;
   using container_type = void;

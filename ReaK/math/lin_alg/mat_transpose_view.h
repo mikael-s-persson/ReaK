@@ -42,7 +42,6 @@ template <typename Matrix>
 class mat_const_transpose_view {
  public:
   using self = mat_const_transpose_view<Matrix>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -59,8 +58,10 @@ class mat_const_transpose_view {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      mat_traits<Matrix>::static_col_count;
+  static constexpr unsigned int static_col_count =
+      mat_traits<Matrix>::static_row_count;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_traits<Matrix>::structure;
 
@@ -110,12 +111,6 @@ class mat_const_transpose_view {
   std::pair<size_type, size_type> size() const noexcept {
     return {m->get_col_count(), m->get_row_count()};
   }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return (*m).get_allocator(); }
 
   /**
    * General negation operator for any type of matrices. This is a default operator
@@ -172,15 +167,15 @@ struct is_fully_writable_matrix<mat_const_transpose_view<Matrix>> {
 };
 
 template <typename Matrix>
-struct is_resizable_matrix<mat_const_transpose_view<Matrix>> {
+struct is_row_resizable_matrix<mat_const_transpose_view<Matrix>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_const_transpose_view<Matrix>>;
+  using type = is_row_resizable_matrix<mat_const_transpose_view<Matrix>>;
 };
 
 template <typename Matrix>
-struct has_allocator_matrix<mat_const_transpose_view<Matrix>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_matrix<Matrix>;
+struct is_col_resizable_matrix<mat_const_transpose_view<Matrix>> {
+  static constexpr bool value = false;
+  using type = is_col_resizable_matrix<mat_const_transpose_view<Matrix>>;
 };
 
 template <typename Matrix>
@@ -208,7 +203,6 @@ template <typename Matrix>
 class mat_transpose_view {
  public:
   using self = mat_transpose_view<Matrix>;
-  using allocator_type = typename mat_traits<Matrix>::allocator_type;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -225,8 +219,10 @@ class mat_transpose_view {
   using size_type = mat_size_type_t<Matrix>;
   using difference_type = typename mat_traits<Matrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      mat_traits<Matrix>::static_col_count;
+  static constexpr unsigned int static_col_count =
+      mat_traits<Matrix>::static_row_count;
   static constexpr mat_alignment::tag alignment = mat_traits<Matrix>::alignment;
   static constexpr mat_structure::tag structure = mat_traits<Matrix>::structure;
 
@@ -305,12 +301,6 @@ class mat_transpose_view {
   std::pair<size_type, size_type> size() const noexcept {
     return {m->get_col_count(), m->get_row_count()};
   }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m->get_allocator(); }
 
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
@@ -410,15 +400,15 @@ struct is_fully_writable_matrix<mat_transpose_view<Matrix>> {
 };
 
 template <typename Matrix>
-struct is_resizable_matrix<mat_transpose_view<Matrix>> {
-  static constexpr bool value = is_resizable_matrix_v<Matrix>;
-  using type = is_resizable_matrix<Matrix>;
+struct is_row_resizable_matrix<mat_transpose_view<Matrix>> {
+  static constexpr bool value = is_col_resizable_matrix_v<Matrix>;
+  using type = is_col_resizable_matrix<Matrix>;
 };
 
 template <typename Matrix>
-struct has_allocator_matrix<mat_transpose_view<Matrix>> {
-  static constexpr bool value = has_allocator_matrix<Matrix>::value;
-  using type = has_allocator_matrix<Matrix>;
+struct is_col_resizable_matrix<mat_transpose_view<Matrix>> {
+  static constexpr bool value = is_row_resizable_matrix_v<Matrix>;
+  using type = is_row_resizable_matrix<Matrix>;
 };
 
 template <typename Matrix>

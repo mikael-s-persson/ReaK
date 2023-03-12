@@ -40,8 +40,8 @@ namespace ReaK::serialization {
 
 bin_iarchive::bin_iarchive(const std::string& FileName) {
 
-  file_stream = std::shared_ptr<std::istream>(
-      new std::ifstream(FileName.c_str(), std::ios::binary | std::ios::in));
+  file_stream = std::make_shared<std::ifstream>(
+      FileName.c_str(), std::ios::binary | std::ios::in);
 
   std::string header;
   *this >> header;
@@ -286,8 +286,8 @@ iarchive& bin_iarchive::load_string(
 }
 
 bin_oarchive::bin_oarchive(const std::string& FileName) {
-  file_stream = std::shared_ptr<std::ostream>(
-      new std::ofstream(FileName.c_str(), std::ios::binary | std::ios::out));
+  file_stream = std::make_shared<std::ofstream>(
+      FileName.c_str(), std::ios::binary | std::ios::out);
 
   *this << std::string("reak_serialization::bin_archive");
   unsigned int version = 2;

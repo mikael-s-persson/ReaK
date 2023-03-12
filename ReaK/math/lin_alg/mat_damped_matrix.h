@@ -49,7 +49,6 @@ template <typename SquareMatrix, typename DiagMatrix>
 class mat_damped_matrix {
  public:
   using self = mat_damped_matrix<SquareMatrix, DiagMatrix>;
-  using allocator_type = typename mat_traits<SquareMatrix>::allocator_type;
 
   using value_type = mat_value_type_t<SquareMatrix>;
 
@@ -68,8 +67,10 @@ class mat_damped_matrix {
   using size_type = mat_size_type_t<SquareMatrix>;
   using difference_type = typename mat_traits<SquareMatrix>::difference_type;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count =
+      MatStaticSizeIfExpectedEqual(mat_traits<SquareMatrix>::static_row_count,
+                                   mat_traits<DiagMatrix>::static_row_count);
+  static constexpr unsigned int static_col_count = static_row_count;
   static constexpr mat_alignment::tag alignment =
       mat_traits<SquareMatrix>::alignment;
   static constexpr mat_structure::tag structure =
@@ -157,12 +158,6 @@ class mat_damped_matrix {
   std::pair<size_type, size_type> size() const noexcept {
     return {m_sqr->get_row_count(), m_sqr->get_col_count()};
   }
-
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return m_sqr->get_allocator(); }
 };
 
 template <typename SquareMatrix, typename DiagMatrix>
@@ -186,15 +181,17 @@ struct is_fully_writable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
 };
 
 template <typename SquareMatrix, typename DiagMatrix>
-struct is_resizable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
+struct is_row_resizable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
   static constexpr bool value = false;
-  using type = is_resizable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>>;
+  using type =
+      is_row_resizable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>>;
 };
 
 template <typename SquareMatrix, typename DiagMatrix>
-struct has_allocator_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
-  static constexpr bool value = has_allocator_matrix<SquareMatrix>::value;
-  using type = has_allocator_matrix<SquareMatrix>;
+struct is_col_resizable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
+  static constexpr bool value = false;
+  using type =
+      is_col_resizable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>>;
 };
 
 template <typename SquareMatrix, typename DiagMatrix>

@@ -66,50 +66,76 @@ namespace ReaK {
  * \tparam Structure Enum which defines the structure of the matrix, see mat_structure::tag.
  * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
  *mat_alignment::column_major (default).
- * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
+ * \tparam RowCount Compile-time row count (on stack), or 0 for dynamically sized (on heap).
+ * \tparam ColCount Compile-time column count (on stack), or 0 for dynamically sized (on heap).
  */
 template <typename T, mat_structure::tag Structure = mat_structure::rectangular,
           mat_alignment::tag Alignment = mat_alignment::column_major,
-          typename Allocator = std::allocator<T>>
+          unsigned int RowCount = 0, unsigned int ColCount = 0>
 class mat {
   char this_specialization_is_not_available_or_possible[0];  // NOLINT
 };
 
 template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, typename Allocator>
-struct is_readable_matrix<mat<T, Structure, Alignment, Allocator>> {
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount>
+struct is_readable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>> {
   using value_type = bool;
   static constexpr bool value = true;
-  using type = is_readable_matrix<mat<T, Structure, Alignment, Allocator>>;
+  using type =
+      is_readable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
 };
 
 template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, typename Allocator>
-struct is_writable_matrix<mat<T, Structure, Alignment, Allocator>> {
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount>
+struct is_writable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>> {
   using value_type = bool;
-  static constexpr bool value = true;
-  using type = is_writable_matrix<mat<T, Structure, Alignment, Allocator>>;
+  static constexpr bool value = (Structure != mat_structure::identity) &&
+                                (Structure != mat_structure::nil) &&
+                                (Structure != mat_structure::permutation);
+  using type =
+      is_writable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
 };
 
 template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, typename Allocator>
-struct is_resizable_matrix<mat<T, Structure, Alignment, Allocator>> {
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount>
+struct is_fully_writable_matrix<
+    mat<T, Structure, Alignment, RowCount, ColCount>> {
   using value_type = bool;
-  static constexpr bool value = true;
-  using type = is_resizable_matrix<mat<T, Structure, Alignment, Allocator>>;
+  static constexpr bool value = (Structure == mat_structure::rectangular) ||
+                                (Structure == mat_structure::square);
+  using type = is_fully_writable_matrix<
+      mat<T, Structure, Alignment, RowCount, ColCount>>;
 };
 
 template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, typename Allocator>
-struct has_allocator_matrix<mat<T, Structure, Alignment, Allocator>> {
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount>
+struct is_row_resizable_matrix<
+    mat<T, Structure, Alignment, RowCount, ColCount>> {
   using value_type = bool;
-  static constexpr bool value = true;
-  using type = has_allocator_matrix<mat<T, Structure, Alignment, Allocator>>;
+  static constexpr bool value = (RowCount == 0);
+  using type =
+      is_row_resizable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
 };
 
 template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, typename Allocator>
-struct mat_product_priority<mat<T, Structure, Alignment, Allocator>> {
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount>
+struct is_col_resizable_matrix<
+    mat<T, Structure, Alignment, RowCount, ColCount>> {
+  using value_type = bool;
+  static constexpr bool value = (ColCount == 0);
+  using type =
+      is_col_resizable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
+};
+
+template <typename T, mat_structure::tag Structure,
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount>
+struct mat_product_priority<mat<T, Structure, Alignment, RowCount, ColCount>> {
   using value_type = std::size_t;
   static constexpr std::size_t value =
       detail::product_priority<Structure>::value;
@@ -117,8 +143,9 @@ struct mat_product_priority<mat<T, Structure, Alignment, Allocator>> {
 };
 
 template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, typename Allocator>
-struct mat_addition_priority<mat<T, Structure, Alignment, Allocator>> {
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount>
+struct mat_addition_priority<mat<T, Structure, Alignment, RowCount, ColCount>> {
   using value_type = std::size_t;
   static constexpr std::size_t value =
       detail::addition_priority<Structure>::value;
@@ -126,142 +153,48 @@ struct mat_addition_priority<mat<T, Structure, Alignment, Allocator>> {
 };
 
 template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, typename Allocator>
-struct is_square_matrix<mat<T, Structure, Alignment, Allocator>> {
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount>
+struct is_square_matrix<mat<T, Structure, Alignment, RowCount, ColCount>> {
   using value_type = bool;
-  static constexpr bool value = ((Structure != mat_structure::rectangular &&
-                                  (Structure != mat_structure::nil)));
-  using type = is_square_matrix<mat<T, Structure, Alignment, Allocator>>;
+  static constexpr bool value =
+      ((Structure != mat_structure::rectangular &&
+        (Structure != mat_structure::nil))) ||
+      ((RowCount != 0) && (ColCount != 0) && (RowCount == ColCount));
+  using type =
+      is_square_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
 };
 
 template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, typename Allocator>
-struct is_symmetric_matrix<mat<T, Structure, Alignment, Allocator>> {
-  using value_type = bool;
-  static constexpr bool value = ((Structure == mat_structure::symmetric) ||
-                                 (Structure == mat_structure::diagonal) ||
-                                 (Structure == mat_structure::tridiagonal) ||
-                                 (Structure == mat_structure::identity));
-  using type = is_symmetric_matrix<mat<T, Structure, Alignment, Allocator>>;
-};
-
-template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, typename Allocator>
-struct is_diagonal_matrix<mat<T, Structure, Alignment, Allocator>> {
-  using value_type = bool;
-  static constexpr bool value = ((Structure == mat_structure::diagonal ||
-                                  (Structure == mat_structure::identity)));
-  using type = is_diagonal_matrix<mat<T, Structure, Alignment, Allocator>>;
-};
-
-template <typename T, mat_structure::tag Structure = mat_structure::rectangular,
-          unsigned int RowCount = 1, unsigned int ColCount = RowCount,
-          mat_alignment::tag Alignment = mat_alignment::column_major>
-class mat_fix {
-  char this_specialization_is_not_available_or_possible[0];  // NOLINT
-};
-
-template <typename T, mat_structure::tag Structure, unsigned int RowCount,
-          unsigned int ColCount, mat_alignment::tag Alignment>
-struct is_readable_matrix<
-    mat_fix<T, Structure, RowCount, ColCount, Alignment>> {
-  using value_type = bool;
-  static constexpr bool value = true;
-  using type =
-      is_readable_matrix<mat_fix<T, Structure, RowCount, ColCount, Alignment>>;
-};
-
-template <typename T, mat_structure::tag Structure, unsigned int RowCount,
-          unsigned int ColCount, mat_alignment::tag Alignment>
-struct is_writable_matrix<
-    mat_fix<T, Structure, RowCount, ColCount, Alignment>> {
-  using value_type = bool;
-  static constexpr bool value = true;
-  using type =
-      is_writable_matrix<mat_fix<T, Structure, RowCount, ColCount, Alignment>>;
-};
-
-template <typename T, mat_structure::tag Structure, unsigned int RowCount,
-          unsigned int ColCount, mat_alignment::tag Alignment>
-struct is_resizable_matrix<
-    mat_fix<T, Structure, RowCount, ColCount, Alignment>> {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type =
-      is_resizable_matrix<mat_fix<T, Structure, RowCount, ColCount, Alignment>>;
-};
-
-template <typename T, mat_structure::tag Structure, unsigned int RowCount,
-          unsigned int ColCount, mat_alignment::tag Alignment>
-struct has_allocator_matrix<
-    mat_fix<T, Structure, RowCount, ColCount, Alignment>> {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type = has_allocator_matrix<
-      mat_fix<T, Structure, RowCount, ColCount, Alignment>>;
-};
-
-template <typename T, mat_structure::tag Structure, unsigned int RowCount,
-          unsigned int ColCount, mat_alignment::tag Alignment>
-struct mat_product_priority<
-    mat_fix<T, Structure, RowCount, ColCount, Alignment>> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value =
-      detail::product_priority<Structure>::value;
-  using type = detail::product_priority<Structure>;
-};
-
-template <typename T, mat_structure::tag Structure, unsigned int RowCount,
-          unsigned int ColCount, mat_alignment::tag Alignment>
-struct mat_addition_priority<
-    mat_fix<T, Structure, RowCount, ColCount, Alignment>> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value =
-      detail::addition_priority<Structure>::value;
-  using type = detail::addition_priority<Structure>;
-};
-
-template <typename T, mat_structure::tag Structure, unsigned int RowCount,
-          unsigned int ColCount, mat_alignment::tag Alignment>
-struct is_square_matrix<mat_fix<T, Structure, RowCount, ColCount, Alignment>> {
-  using value_type = bool;
-  static constexpr bool value = (RowCount == ColCount);
-  using type =
-      is_square_matrix<mat_fix<T, Structure, RowCount, ColCount, Alignment>>;
-};
-
-template <typename T, mat_structure::tag Structure, unsigned int RowCount,
-          unsigned int ColCount, mat_alignment::tag Alignment>
-struct is_symmetric_matrix<
-    mat_fix<T, Structure, RowCount, ColCount, Alignment>> {
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount>
+struct is_symmetric_matrix<mat<T, Structure, Alignment, RowCount, ColCount>> {
   using value_type = bool;
   static constexpr bool value = ((Structure == mat_structure::symmetric) ||
                                  (Structure == mat_structure::diagonal) ||
                                  (Structure == mat_structure::tridiagonal) ||
                                  (Structure == mat_structure::identity));
   using type =
-      is_symmetric_matrix<mat_fix<T, Structure, RowCount, ColCount, Alignment>>;
+      is_symmetric_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
 };
 
-template <typename T, mat_structure::tag Structure, unsigned int RowCount,
-          unsigned int ColCount, mat_alignment::tag Alignment>
-struct is_diagonal_matrix<
-    mat_fix<T, Structure, RowCount, ColCount, Alignment>> {
+template <typename T, mat_structure::tag Structure,
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount>
+struct is_diagonal_matrix<mat<T, Structure, Alignment, RowCount, ColCount>> {
   using value_type = bool;
   static constexpr bool value = ((Structure == mat_structure::diagonal ||
                                   (Structure == mat_structure::identity)));
   using type =
-      is_diagonal_matrix<mat_fix<T, Structure, RowCount, ColCount, Alignment>>;
+      is_diagonal_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
 };
-
-template <mat_structure::tag Structure, mat_alignment::tag Alignment>
-struct mat_indexer {};
 
 namespace rtti {
 
 template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, typename Allocator>
-struct get_type_id<mat<T, Structure, Alignment, Allocator>> {
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount>
+struct get_type_id<mat<T, Structure, Alignment, RowCount, ColCount>> {
   static constexpr unsigned int ID = 0x00000012;
   static constexpr auto type_name = std::string_view{"mat"};
   static construct_ptr CreatePtr() noexcept { return nullptr; }
@@ -271,56 +204,25 @@ struct get_type_id<mat<T, Structure, Alignment, Allocator>> {
 };
 
 template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, typename Allocator, typename Tail>
-struct get_type_info<mat<T, Structure, Alignment, Allocator>, Tail> {
+          mat_alignment::tag Alignment, unsigned int RowCount,
+          unsigned int ColCount, typename Tail>
+struct get_type_info<mat<T, Structure, Alignment, RowCount, ColCount>, Tail> {
+  using structure_ic = std::integral_constant<mat_structure::tag, Structure>;
+  using alignment_ic = std::integral_constant<mat_alignment::tag, Alignment>;
+  using row_count_ic = std::integral_constant<unsigned int, RowCount>;
+  using col_count_ic = std::integral_constant<unsigned int, ColCount>;
+  using arg_type_info_seq =
+      std::conditional_t<(RowCount == 0) && (ColCount == 0),
+                         get_type_info_seq<T, structure_ic, alignment_ic>,
+                         get_type_info_seq<T, structure_ic, alignment_ic,
+                                           row_count_ic, col_count_ic>>;
   using type =
-      type_id<mat<T, Structure, Alignment, Allocator>,
-              typename get_type_info_seq<
-                  T, std::integral_constant<mat_structure::tag, Structure>,
-                  std::integral_constant<mat_alignment::tag, Alignment>>::
-                  template with_tail<Tail>::type::type>;
+      type_id<mat<T, Structure, Alignment, RowCount, ColCount>,
+              typename arg_type_info_seq::template with_tail<Tail>::type::type>;
   static constexpr auto type_name = ct_concat_v<
-      get_type_id<mat<T, Structure, Alignment, Allocator>>::type_name,
-      lsl_left_bracket,
-      get_type_info_seq<
-          T, std::integral_constant<mat_structure::tag, Structure>,
-          std::integral_constant<mat_alignment::tag, Alignment>>::type_name,
-      lsl_right_bracket, get_type_name_tail<Tail>::value>;
-};
-
-template <typename T, mat_structure::tag Structure, unsigned int RowCount,
-          unsigned int ColCount, mat_alignment::tag Alignment>
-struct get_type_id<mat_fix<T, Structure, RowCount, ColCount, Alignment>> {
-  static constexpr unsigned int ID = 0x00000013;
-  static constexpr auto type_name = std::string_view{"mat_fix"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
-
-  using save_type = const serializable&;
-  using load_type = serializable&;
-};
-
-template <typename T, mat_structure::tag Structure, unsigned int RowCount,
-          unsigned int ColCount, mat_alignment::tag Alignment, typename Tail>
-struct get_type_info<mat_fix<T, Structure, RowCount, ColCount, Alignment>,
-                     Tail> {
-  using type =
-      type_id<mat_fix<T, Structure, RowCount, ColCount, Alignment>,
-              typename get_type_info_seq<
-                  T, std::integral_constant<mat_structure::tag, Structure>,
-                  std::integral_constant<unsigned int, RowCount>,
-                  std::integral_constant<unsigned int, ColCount>,
-                  std::integral_constant<mat_alignment::tag, Alignment>>::
-                  template with_tail<Tail>::type::type>;
-  static constexpr auto type_name = ct_concat_v<
-      get_type_id<
-          mat_fix<T, Structure, RowCount, ColCount, Alignment>>::type_name,
-      lsl_left_bracket,
-      get_type_info_seq<
-          T, std::integral_constant<mat_structure::tag, Structure>,
-          std::integral_constant<unsigned int, RowCount>,
-          std::integral_constant<unsigned int, ColCount>,
-          std::integral_constant<mat_alignment::tag, Alignment>>::type_name,
-      lsl_right_bracket, get_type_name_tail<Tail>::value>;
+      get_type_id<mat<T, Structure, Alignment, RowCount, ColCount>>::type_name,
+      lsl_left_bracket, arg_type_info_seq::type_name, lsl_right_bracket,
+      get_type_name_tail<Tail>::value>;
 };
 
 }  // namespace rtti

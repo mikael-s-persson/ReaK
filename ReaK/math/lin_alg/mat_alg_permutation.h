@@ -49,14 +49,13 @@ namespace ReaK {
  * \tparam T Arithmetic type of the elements of the matrix.
  * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
  *mat_alignment::column_major (default).
- * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-class mat<T, mat_structure::permutation, Alignment, Allocator>
+template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
+class mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>
     : public serializable {
  public:
-  using self = mat<T, mat_structure::permutation, Alignment, Allocator>;
-  using allocator_type = Allocator;
+  using self =
+      mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>;
 
   using value_type = T;
   using size_type = std::size_t;
@@ -73,8 +72,8 @@ class mat<T, mat_structure::permutation, Alignment, Allocator>
   using col_iterator = void;
   using const_col_iterator = void;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = RowCount;
+  static constexpr unsigned int static_col_count = RowCount;
   static constexpr mat_alignment::tag alignment = Alignment;
   static constexpr mat_structure::tag structure = mat_structure::permutation;
 
@@ -187,12 +186,6 @@ class mat<T, mat_structure::permutation, Alignment, Allocator>
     rowCount = aColCount;
     idx.resize(rowCount);
   }
-
-  /**
-   * Get the allocator object of the underlying container.
-   * \return The allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return idx.get_allocator(); }
 
   /**
    * Get the index of the row that should be in-place of the given row index.
@@ -336,51 +329,6 @@ struct mat_permutation {
 template <typename T>
 using mat_permutation_t = typename mat_permutation<T>::type;
 
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_readable_matrix<
-    mat<T, mat_structure::permutation, Alignment, Allocator>> {
-  using value_type = bool;
-  static constexpr bool value = true;
-  using type = is_readable_matrix<
-      mat<T, mat_structure::permutation, Alignment, Allocator>>;
-};
-
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_writable_matrix<
-    mat<T, mat_structure::permutation, Alignment, Allocator>> {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type = is_writable_matrix<
-      mat<T, mat_structure::permutation, Alignment, Allocator>>;
-};
-
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_resizable_matrix<
-    mat<T, mat_structure::permutation, Alignment, Allocator>> {
-  using value_type = bool;
-  static constexpr bool value = true;
-  using type = is_resizable_matrix<
-      mat<T, mat_structure::permutation, Alignment, Allocator>>;
-};
-
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct has_allocator_matrix<
-    mat<T, mat_structure::permutation, Alignment, Allocator>> {
-  using value_type = bool;
-  static constexpr bool value = true;
-  using type = has_allocator_matrix<
-      mat<T, mat_structure::permutation, Alignment, Allocator>>;
-};
-
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_square_matrix<
-    mat<T, mat_structure::permutation, Alignment, Allocator>> {
-  using value_type = bool;
-  static constexpr bool value = true;
-  using type = is_square_matrix<
-      mat<T, mat_structure::permutation, Alignment, Allocator>>;
-};
-
 /**
  * Column-vector multiplication, returns a permutated vector.
  * \param M some permutation matrix.
@@ -389,9 +337,9 @@ struct is_square_matrix<
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template <typename T, typename Vector, mat_alignment::tag Alignment,
-          typename Allocator>
+          unsigned int RowCount>
 std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
-    const mat<T, mat_structure::permutation, Alignment, Allocator>& M,
+    const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>& M,
     const Vector& V) {
   if (V.size() != M.get_col_count()) {
     throw std::range_error("Matrix dimension mismatch.");
@@ -412,10 +360,11 @@ std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template <typename T, typename Vector, mat_alignment::tag Alignment,
-          typename Allocator>
+          unsigned int RowCount>
 std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
     const Vector& V,
-    const mat<T, mat_structure::permutation, Alignment, Allocator>& M) {
+    const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>&
+        M) {
   if (V.size() != M.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
   }
@@ -434,12 +383,14 @@ std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
  * \return A square matrix.
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
+template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
 std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
-                 mat<T, mat_structure::square, Alignment, Allocator>>
-operator*(const mat<T, mat_structure::permutation, Alignment, Allocator>& M,
-          const T& S) {
-  mat<T, mat_structure::square, Alignment, Allocator> result(M.get_row_count());
+                 mat<T, mat_structure::square, Alignment, RowCount, RowCount>>
+operator*(
+    const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>& M,
+    const T& S) {
+  mat<T, mat_structure::square, Alignment, RowCount, RowCount> result(
+      M.get_row_count());
   for (int i = 0; i < M.get_row_count(); ++i) {
     result(i, M[i]) = S;
   }
@@ -453,12 +404,13 @@ operator*(const mat<T, mat_structure::permutation, Alignment, Allocator>& M,
  * \return A square matrix.
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
+template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
 std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
-                 mat<T, mat_structure::square, Alignment, Allocator>>
-operator*(const T& S,
-          const mat<T, mat_structure::permutation, Alignment, Allocator>& M) {
-  mat<T, mat_structure::square, Alignment, Allocator> result(M.get_row_count());
+                 mat<T, mat_structure::square, Alignment, RowCount, RowCount>>
+operator*(const T& S, const mat<T, mat_structure::permutation, Alignment,
+                                RowCount, RowCount>& M) {
+  mat<T, mat_structure::square, Alignment, RowCount, RowCount> result(
+      M.get_row_count());
   for (int i = 0; i < M.get_row_count(); ++i) {
     result(i, M[i]) = S;
   }
@@ -472,20 +424,21 @@ operator*(const T& S,
  * \return A permuted matrix.
  * \throw std::range_error if matrices' dimensions are not proper for multiplication.
  */
-template <typename T, mat_alignment::tag Alignment, typename Allocator,
+template <typename T, mat_alignment::tag Alignment, unsigned int RowCount,
           typename Matrix>
-std::enable_if_t<!is_readable_matrix_v<Matrix> &&
-                     (mat_product_priority_v<Matrix> <
-                      mat_product_priority_v<mat<T, mat_structure::permutation,
-                                                 Alignment, Allocator>>),
-                 mat<T, mat_structure::rectangular, Alignment, Allocator>>
-operator*(const Matrix& M1,
-          const mat<T, mat_structure::permutation, Alignment, Allocator>& M2) {
+std::enable_if_t<
+    !is_readable_matrix_v<Matrix> &&
+        (mat_product_priority_v<Matrix> <
+         mat_product_priority_v<mat<T, mat_structure::permutation, Alignment,
+                                    RowCount, RowCount>>),
+    mat<T, mat_structure::rectangular, Alignment>>
+operator*(const Matrix& M1, const mat<T, mat_structure::permutation, Alignment,
+                                      RowCount, RowCount>& M2) {
   if (M1.get_col_count() != M2.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
   }
-  mat<T, mat_structure::rectangular, Alignment, Allocator> result(
-      M1.get_row_count(), M1.get_col_count());
+  mat<T, mat_structure::rectangular, Alignment> result(M1.get_row_count(),
+                                                       M1.get_col_count());
   for (int i = 0; i < result.get_col_count(); ++i) {
     for (int j = 0; j < result.get_row_count(); ++j) {
       result(j, M2[i]) = M1(j, i);
@@ -501,20 +454,22 @@ operator*(const Matrix& M1,
  * \return A permuted matrix.
  * \throw std::range_error if matrices' dimensions are not proper for multiplication.
  */
-template <typename T, mat_alignment::tag Alignment, typename Allocator,
+template <typename T, mat_alignment::tag Alignment, unsigned int RowCount,
           typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix> &&
-                     (mat_product_priority_v<Matrix> <
-                      mat_product_priority_v<mat<T, mat_structure::permutation,
-                                                 Alignment, Allocator>>),
-                 mat<T, mat_structure::rectangular, Alignment, Allocator>>
-operator*(const mat<T, mat_structure::permutation, Alignment, Allocator>& M1,
-          const Matrix& M2) {
+std::enable_if_t<
+    is_readable_matrix_v<Matrix> &&
+        (mat_product_priority_v<Matrix> <
+         mat_product_priority_v<mat<T, mat_structure::permutation, Alignment,
+                                    RowCount, RowCount>>),
+    mat<T, mat_structure::rectangular, Alignment>>
+operator*(
+    const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>& M1,
+    const Matrix& M2) {
   if (M1.get_col_count() != M2.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
   }
-  mat<T, mat_structure::rectangular, Alignment, Allocator> result(
-      M2.get_row_count(), M2.get_col_count());
+  mat<T, mat_structure::rectangular, Alignment> result(M2.get_row_count(),
+                                                       M2.get_col_count());
   for (int j = 0; j < result.get_row_count(); ++j) {
     for (int i = 0; i < result.get_col_count(); ++i) {
       result(j, i) = M2(M1[j], i);

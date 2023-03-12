@@ -21,14 +21,14 @@ int main(int argc, char** argv) {
   using namespace pp;
   using namespace ctrl;
 
-  std::shared_ptr<quadrotor_system> quad_sys(new quadrotor_system(
+  auto quad_sys = std::make_shared<quadrotor_system>(
       "Quadrotor_system",
       2.025,  // aMass,
       mat<double, mat_structure::symmetric>(
           mat<double, mat_structure::diagonal>(
               vect<double, 3>(0.0613, 0.0612, 0.1115))),  // aInertiaMoment
       mat<double, mat_structure::diagonal>(vect<double, 3>(0.1, 0.1, 0.1)),
-      mat<double, mat_structure::diagonal>(vect<double, 3>(0.1, 0.1, 0.1))));
+      mat<double, mat_structure::diagonal>(vect<double, 3>(0.1, 0.1, 0.1)));
 
   vect<double, 3> min_corner(0.0, 0.0, -5.0);  // min corner
   vect<double, 3> max_corner(5.0, 5.0, 0.0);   // max corner
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
       IHAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
                      position_only_sampler>;
 
-  std::shared_ptr<IHAQR_space_type> quad_space(new IHAQR_space_type(
+  auto quad_space = std::make_shared<IHAQR_space_type>(
       "Quadrotor_IHAQR_topology", quad_sys,
       make_se3_space("Quadrotor_state_space",
                      min_corner,  // min corner
@@ -68,17 +68,17 @@ int main(int argc, char** argv) {
       vect<double, 4>(100.0, 25.0, 25.0, 25.0),  // aInputBandwidth
       mat<double, mat_structure::diagonal>(weightR_mat * Rscale),
       mat<double, mat_structure::diagonal>(weightQ_mat * Qscale),
-      0.01,   // aTimeStep = 0.1,
-      20.0,   // aMaxTimeHorizon = 10.0,
-      0.1));  // aGoalProximityThreshold = 1.0)
+      0.01,  // aTimeStep = 0.1,
+      20.0,  // aMaxTimeHorizon = 10.0,
+      0.1);  // aGoalProximityThreshold = 1.0)
 
   using MEAQR_space_type =
       MEAQR_topology<quadrotor_system::state_space_type, quadrotor_system,
                      position_only_sampler>;
 
-  std::shared_ptr<MEAQR_space_type> quad_MEAQR_space(
-      new MEAQR_space_type("QuadRotor_MEAQR_topology", quad_space,
-                           0.01));  // IdleToCostRatio
+  auto quad_MEAQR_space =
+      std::make_shared<MEAQR_space_type>("QuadRotor_MEAQR_topology", quad_space,
+                                         0.01);  // IdleToCostRatio
 
   xml_oarchive file_out("models/quadrotor_spaces.xml");
 

@@ -264,9 +264,7 @@ operator*(const Matrix1& M1, const Matrix2& M2) {
     return result;
   } else {
     // rect and rect
-    static_assert(is_resizable_matrix_v<result_type>);
-    result_type result(M1);
-    result.set_col_count(M2.get_col_count());
+    result_type result(M1.get_row_count(), M2.get_col_count());
     detail::dense_mat_multiply_impl(M1, M2, result);
     return result;
   }

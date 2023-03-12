@@ -51,14 +51,12 @@ namespace ReaK {
  * \tparam T Arithmetic type of the elements of the matrix.
  * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
  *mat_alignment::column_major (default).
- * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-class mat<T, mat_structure::identity, Alignment, Allocator>
+template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
+class mat<T, mat_structure::identity, Alignment, RowCount, RowCount>
     : public serializable {
  public:
-  using self = mat<T, mat_structure::identity, Alignment, Allocator>;
-  using allocator_type = void;
+  using self = mat<T, mat_structure::identity, Alignment, RowCount, RowCount>;
 
   using value_type = T;
   using container_type = void;
@@ -76,8 +74,8 @@ class mat<T, mat_structure::identity, Alignment, Allocator>
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = RowCount;
+  static constexpr unsigned int static_col_count = RowCount;
   static constexpr mat_alignment::tag alignment = Alignment;
   static constexpr mat_structure::tag structure = mat_structure::identity;
 
@@ -265,55 +263,20 @@ mat<T, mat_structure::identity> mat_ident(int aRowCount) {
   return mat<T, mat_structure::identity>(aRowCount);
 }
 
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_readable_matrix<
-    mat<T, mat_structure::identity, Alignment, Allocator>> {
-  using value_type = bool;
-  static constexpr bool value = true;
-  using type =
-      is_readable_matrix<mat<T, mat_structure::identity, Alignment, Allocator>>;
-};
-
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_writable_matrix<
-    mat<T, mat_structure::identity, Alignment, Allocator>> {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type =
-      is_writable_matrix<mat<T, mat_structure::identity, Alignment, Allocator>>;
-};
-
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_resizable_matrix<
-    mat<T, mat_structure::identity, Alignment, Allocator>> {
-  using value_type = bool;
-  static constexpr bool value = true;
-  using type = is_resizable_matrix<
-      mat<T, mat_structure::identity, Alignment, Allocator>>;
-};
-
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct has_allocator_matrix<
-    mat<T, mat_structure::identity, Alignment, Allocator>> {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type = has_allocator_matrix<
-      mat<T, mat_structure::identity, Alignment, Allocator>>;
-};
-
 /**
  * Scalar multiplication, always results in a scalar matrix.
  * \param M some matrix.
  * \param S some scalar.
  * \return Scalar matrix.
  */
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
+template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
 std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
-                 mat<T, mat_structure::scalar, Alignment, Allocator>>
-operator*(const mat<T, mat_structure::identity, Alignment, Allocator>& M,
-          const T& S) {
-  return mat<T, mat_structure::scalar, Alignment, Allocator>(M.get_row_count(),
-                                                             S);
+                 mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>>
+operator*(
+    const mat<T, mat_structure::identity, Alignment, RowCount, RowCount>& M,
+    const T& S) {
+  return mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>(
+      M.get_row_count(), S);
 }
 
 /**
@@ -322,13 +285,14 @@ operator*(const mat<T, mat_structure::identity, Alignment, Allocator>& M,
  * \param M a null-matrix.
  * \return Scalar matrix.
  */
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
+template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
 std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
-                 mat<T, mat_structure::scalar, Alignment, Allocator>>
-operator*(const T& S,
-          const mat<T, mat_structure::identity, Alignment, Allocator>& M) {
-  return mat<T, mat_structure::scalar, Alignment, Allocator>(M.get_row_count(),
-                                                             S);
+                 mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>>
+operator*(
+    const T& S,
+    const mat<T, mat_structure::identity, Alignment, RowCount, RowCount>& M) {
+  return mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>(
+      M.get_row_count(), S);
 }
 
 }  // namespace ReaK

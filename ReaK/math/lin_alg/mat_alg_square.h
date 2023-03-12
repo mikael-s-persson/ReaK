@@ -4,7 +4,7 @@
  * This library implements the specialization of the mat<> template for a
  * general square matrix (dynamic dimension) of both column-major and
  * row-major alignment. This matrix type fulfills all the general matrix
- * concepts (Readable, Writable, Fully-Writable, Resizable and DynAlloc).
+ * concepts (Readable, Writable, Fully-Writable, and Resizable).
  *
  * This library also implements transposition of matrices via alignment
  * switching (switching from column-major to row-major, or vice versa). This
@@ -47,35 +47,25 @@
 
 namespace ReaK {
 
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_fully_writable_matrix<
-    mat<T, mat_structure::square, Alignment, Allocator>> {
-  static constexpr bool value = true;
-  using type = is_fully_writable_matrix<
-      mat<T, mat_structure::square, Alignment, Allocator>>;
-};
-
 /**
  * This class template specialization implements a matrix with square structure
  * and column-major alignment. This class is serializable and registered to the ReaK::rtti
  * system. This matrix type is dynamically resizable.
  *
  * Models: ReadableMatrixConcept, WritableMatrixConcept, FullyWritableMatrixConcept,
- * ResizableMatrixConcept, and DynAllocMatrixConcept.
+ * and ResizableMatrixConcept.
  *
  * \tparam T Arithmetic type of the elements of the matrix.
- * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template <typename T, typename Allocator>
-class mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
-    : public serializable {
+template <typename T, unsigned int RowCount>
+class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
+          RowCount> : public serializable {
  public:
-  using self =
-      mat<T, mat_structure::square, mat_alignment::column_major, Allocator>;
-  using allocator_type = Allocator;
+  using self = mat<T, mat_structure::square, mat_alignment::column_major,
+                   RowCount, RowCount>;
 
   using value_type = T;
-  using container_type = std::vector<value_type, allocator_type>;
+  using container_type = std::vector<value_type>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -91,14 +81,14 @@ class mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = RowCount;
+  static constexpr unsigned int static_col_count = RowCount;
   static constexpr mat_alignment::tag alignment = mat_alignment::column_major;
   static constexpr mat_structure::tag structure = mat_structure::square;
 
  private:
   /// Array which holds all the values of the matrix (dimension: rowCount x colCount).
-  std::vector<value_type, allocator_type> q;
+  container_type q;
   /// Row Count.
   size_type rowCount;
 
@@ -111,21 +101,18 @@ class mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
    * Default constructor: sets all to zero.
    * \test PASSED
    */
-  explicit mat(const allocator_type& aAlloc = allocator_type())
-      : q(0, value_type(), aAlloc), rowCount(0) {}
+  mat() : q(0, value_type()), rowCount(0) {}
 
   /**
    * Constructor for a sized matrix.
    * \test PASSED
    */
-  explicit mat(size_type aRowCount, const value_type& aFill = value_type(),
-               const allocator_type& aAlloc = allocator_type())
-      : q(aRowCount * aRowCount, aFill, aAlloc), rowCount(aRowCount) {}
+  explicit mat(size_type aRowCount, const value_type& aFill = value_type())
+      : q(aRowCount * aRowCount, aFill), rowCount(aRowCount) {}
 
   mat(size_type aRowCount, size_type aColCount,
-      const value_type& aFill = value_type(),
-      const allocator_type& aAlloc = allocator_type())
-      : mat(aRowCount, aFill, aAlloc) {
+      const value_type& aFill = value_type())
+      : mat(aRowCount, aFill) {
     if (aRowCount != aColCount) {
       throw std::range_error("Matrix dimension are not square.");
     }
@@ -135,9 +122,8 @@ class mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
    * Constructor for an identity matrix.
    * \test PASSED
    */
-  mat(size_type aRowCount, bool aIdentity,
-      const allocator_type& aAlloc = allocator_type())
-      : q(aRowCount * aRowCount, 0, aAlloc), rowCount(aRowCount) {
+  mat(size_type aRowCount, bool aIdentity)
+      : q(aRowCount * aRowCount, 0), rowCount(aRowCount) {
     if (aIdentity) {
       int minN = rowCount * (rowCount + 1);
       for (int i = 0; i < minN; i += rowCount + 1) {
@@ -163,35 +149,10 @@ class mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
    * \test PASSED
    */
   template <typename Matrix>
-  explicit mat(const Matrix& M, const allocator_type& aAlloc = allocator_type(),
-               std::enable_if_t<is_readable_matrix_v<Matrix> &&
-                                    !has_allocator_matrix_v<Matrix>,
-                                void*>
-                   dummy = nullptr)
-      : q(M.get_row_count() * M.get_row_count(), T(0.0), aAlloc),
-        rowCount(M.get_row_count()) {
-    if (M.get_col_count() != M.get_row_count()) {
-      throw std::range_error("Matrix is not square!");
-    }
-    auto it = q.begin();
-    for (int j = 0; j < rowCount; ++j) {
-      for (int i = 0; i < rowCount; ++i, ++it) {
-        *it = M(i, j);
-      }
-    }
-  }
-
-  /**
-   * Explicit constructor from a any type of matrix.
-   * \test PASSED
-   */
-  template <typename Matrix>
   explicit mat(
       const Matrix& M,
-      std::enable_if_t<
-          is_readable_matrix_v<Matrix> && has_allocator_matrix_v<Matrix>, void*>
-          dummy = nullptr)
-      : q(M.get_row_count() * M.get_row_count(), T(0.0), M.get_allocator()),
+      std::enable_if_t<is_readable_matrix_v<Matrix>, void*> dummy = nullptr)
+      : q(M.get_row_count() * M.get_row_count(), T(0.0)),
         rowCount(M.get_row_count()) {
     if (M.get_col_count() != M.get_row_count()) {
       throw std::range_error("Matrix is not square!");
@@ -519,12 +480,6 @@ class mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
     return {first_col(rit), last_col(rit)};
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return q.get_allocator(); }
-
   /*******************************************************************************
                            Assignment Operators
   *******************************************************************************/
@@ -621,20 +576,19 @@ class mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
-  friend mat<T, mat_structure::square, mat_alignment::row_major, Allocator>
-  transpose(const self& M) {
-    return mat<T, mat_structure::square, mat_alignment::row_major, Allocator>(
-        M.q, M.rowCount);
+  friend auto transpose(const self& M) {
+    return mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
+               RowCount>(M.q, M.rowCount);
   }
   /**
    * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
-  friend mat<T, mat_structure::square, mat_alignment::row_major, Allocator>
-  transpose_move(self& M) {
+  friend auto transpose_move(self& M) {
     using std::swap;
-    mat<T, mat_structure::square, mat_alignment::row_major, Allocator> result;
+    mat<T, mat_structure::square, mat_alignment::row_major, RowCount, RowCount>
+        result;
     swap(result, M.q, M.rowCount);
     return result;
   }
@@ -644,10 +598,10 @@ class mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
-  friend mat<T, mat_structure::square, mat_alignment::row_major, Allocator>
-  transpose(self&& M) {
+  friend auto transpose(self&& M) {
     using std::swap;
-    mat<T, mat_structure::square, mat_alignment::row_major, Allocator> result;
+    mat<T, mat_structure::square, mat_alignment::row_major, RowCount, RowCount>
+        result;
     swap(result, M.q, M.rowCount);
     return result;
   }
@@ -688,21 +642,19 @@ class mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
  * system. This matrix type is dynamically resizable.
  *
  * Models: ReadableMatrixConcept, WritableMatrixConcept, FullyWritableMatrixConcept,
- * ResizableMatrixConcept, and DynAllocMatrixConcept.
+ * and ResizableMatrixConcept.
  *
  * \tparam T Arithmetic type of the elements of the matrix.
- * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template <typename T, typename Allocator>
-class mat<T, mat_structure::square, mat_alignment::row_major, Allocator>
-    : public serializable {
+template <typename T, unsigned int RowCount>
+class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
+          RowCount> : public serializable {
  public:
-  using self =
-      mat<T, mat_structure::square, mat_alignment::row_major, Allocator>;
-  using allocator_type = Allocator;
+  using self = mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
+                   RowCount>;
 
   using value_type = T;
-  using container_type = std::vector<value_type, allocator_type>;
+  using container_type = std::vector<value_type>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -718,14 +670,14 @@ class mat<T, mat_structure::square, mat_alignment::row_major, Allocator>
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  static constexpr std::size_t static_row_count = 0;
-  static constexpr std::size_t static_col_count = 0;
+  static constexpr unsigned int static_row_count = RowCount;
+  static constexpr unsigned int static_col_count = RowCount;
   static constexpr mat_alignment::tag alignment = mat_alignment::row_major;
   static constexpr mat_structure::tag structure = mat_structure::square;
 
  private:
   /// Array which holds all the values of the matrix (dimension: rowCount x colCount).
-  std::vector<value_type, allocator_type> q;
+  container_type q;
   size_type rowCount;
 
  public:
@@ -737,21 +689,18 @@ class mat<T, mat_structure::square, mat_alignment::row_major, Allocator>
    * Default constructor: sets all to zero.
    * \test PASSED
    */
-  explicit mat(const allocator_type& aAlloc = allocator_type())
-      : q(0, value_type(), aAlloc), rowCount(0) {}
+  mat() : q(0, value_type()), rowCount(0) {}
 
   /**
    * Constructor for a sized matrix.
    * \test PASSED
    */
-  explicit mat(size_type aRowCount, const value_type& aFill = value_type(),
-               const allocator_type& aAlloc = allocator_type())
-      : q(aRowCount * aRowCount, aFill, aAlloc), rowCount(aRowCount) {}
+  explicit mat(size_type aRowCount, const value_type& aFill = value_type())
+      : q(aRowCount * aRowCount, aFill), rowCount(aRowCount) {}
 
   mat(size_type aRowCount, size_type aColCount,
-      const value_type& aFill = value_type(),
-      const allocator_type& aAlloc = allocator_type())
-      : mat(aRowCount, aFill, aAlloc) {
+      const value_type& aFill = value_type())
+      : mat(aRowCount, aFill) {
     if (aRowCount != aColCount) {
       throw std::range_error("Matrix dimension are not square.");
     }
@@ -761,9 +710,8 @@ class mat<T, mat_structure::square, mat_alignment::row_major, Allocator>
    * Constructor for an identity matrix.
    * \test PASSED
    */
-  mat(size_type aRowCount, bool aIdentity,
-      const allocator_type& aAlloc = allocator_type())
-      : q(aRowCount * aRowCount, 0, aAlloc), rowCount(aRowCount) {
+  mat(size_type aRowCount, bool aIdentity)
+      : q(aRowCount * aRowCount, 0), rowCount(aRowCount) {
     if (aIdentity) {
       int minN = rowCount * (rowCount + 1);
       for (int i = 0; i < minN; i += rowCount + 1) {
@@ -772,16 +720,8 @@ class mat<T, mat_structure::square, mat_alignment::row_major, Allocator>
     }
   }
 
-  /**
-   * Standard Copy Constructor with standard semantics.
-   * \test PASSED
-   */
+  /// Default Copy/Move Constructors.
   mat(const self& M) = default;
-
-  /**
-   * Standard Copy Constructor with standard semantics.
-   * \test PASSED
-   */
   mat(self&& M) noexcept = default;
 
   /**
@@ -1127,12 +1067,6 @@ class mat<T, mat_structure::square, mat_alignment::row_major, Allocator>
     return {first_col(rit), last_col(rit)};
   }
 
-  /**
-   * Returns the allocator object of the underlying container.
-   * \return the allocator object of the underlying container.
-   */
-  allocator_type get_allocator() const { return q.get_allocator(); }
-
   /*******************************************************************************
                            Assignment Operators
   *******************************************************************************/
@@ -1229,20 +1163,19 @@ class mat<T, mat_structure::square, mat_alignment::row_major, Allocator>
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
-  friend mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
-  transpose(const self& M) {
-    return mat<T, mat_structure::square, mat_alignment::column_major,
-               Allocator>(M.q, M.rowCount);
+  friend auto transpose(const self& M) {
+    return mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
+               RowCount>(M.q, M.rowCount);
   }
   /**
    * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
-  friend mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
-  transpose_move(self& M) {
+  friend auto transpose_move(self& M) {
     using std::swap;
-    mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
+    mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
+        RowCount>
         result;
     swap(result, M.q, M.rowCount);
     return result;
@@ -1253,10 +1186,10 @@ class mat<T, mat_structure::square, mat_alignment::row_major, Allocator>
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
-  friend mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
-  transpose(self&& M) {
+  friend auto transpose(self&& M) {
     using std::swap;
-    mat<T, mat_structure::square, mat_alignment::column_major, Allocator>
+    mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
+        RowCount>
         result;
     swap(result, M.q, M.rowCount);
     return result;

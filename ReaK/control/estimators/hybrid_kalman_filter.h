@@ -172,12 +172,13 @@ void hybrid_kalman_filter_step(
     }
   }
 
-  integ.setStateRateFunc(std::shared_ptr<state_rate_function<ValueType>>(
-      new detail::kalman_bucy_system<ValueType, LinearSystem, StateSpaceType,
-                                     InputCovType, OutputCovType>(
+  integ.setStateRateFunc(
+      std::make_shared<
+          detail::kalman_bucy_system<ValueType, LinearSystem, StateSpaceType,
+                                     InputCovType, OutputCovType>>(
           sys, state_space, to_vect<ValueType>(b_u.get_mean_state()),
           to_vect<ValueType>(b_z.get_mean_state()), b_u.get_covariance(),
-          b_z.get_covariance())));
+          b_z.get_covariance()));
 
   integ.integrate(t + dt);
 
