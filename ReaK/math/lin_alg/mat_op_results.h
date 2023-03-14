@@ -174,25 +174,28 @@ struct product_result_structure<mat_structure::identity,
                                         mat_structure::identity>;
 };
 
-template <unsigned int RowCount1, unsigned int ColCount1,
+template <bool IsSquare, unsigned int RowCount1, unsigned int ColCount1,
           unsigned int RowCount2, unsigned int ColCount2>
 struct product_result_size {
-  static constexpr unsigned int static_row_count = RowCount1;
-  static constexpr unsigned int static_col_count = ColCount2;
+  static constexpr unsigned int static_common_count = MatStaticSizeIfExpectedEqual(RowCount1, ColCount2);
+  static constexpr unsigned int static_row_count = (IsSquare ? static_common_count : RowCount1);
+  static constexpr unsigned int static_col_count = (IsSquare ? static_common_count : ColCount2);
 };
 
 template <bool AreTheseMatrices, typename ResultValueType, typename Matrix1,
           typename Matrix2>
 struct mat_product_result_impl {
+  static constexpr mat_structure::tag result_structure = product_result_structure<mat_traits<Matrix1>::structure, mat_traits<Matrix2>::structure>::type::value;
+  static constexpr bool is_result_square = (result_structure != mat_structure::rectangular && result_structure != mat_structure::nil);
   using result_size =
-      product_result_size<mat_traits<Matrix1>::static_row_count,
+      product_result_size<is_result_square,
+                          mat_traits<Matrix1>::static_row_count,
                           mat_traits<Matrix1>::static_col_count,
                           mat_traits<Matrix2>::static_row_count,
                           mat_traits<Matrix2>::static_col_count>;
   using type =
       mat<ResultValueType,
-          product_result_structure<mat_traits<Matrix1>::structure,
-                                   mat_traits<Matrix2>::structure>::type::value,
+          result_structure,
           mat_traits<Matrix1>::alignment, result_size::static_row_count,
           result_size::static_col_count>;
 };

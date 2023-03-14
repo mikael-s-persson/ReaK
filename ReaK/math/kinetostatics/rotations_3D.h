@@ -85,11 +85,11 @@ class rot_mat_3D {
   using row_iterator = void;
   using const_row_iterator = void;
 
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = int;
+  using difference_type = int;
 
-  static constexpr std::size_t static_row_count = 3;
-  static constexpr std::size_t static_col_count = 3;
+  static constexpr unsigned int static_row_count = 3;
+  static constexpr unsigned int static_col_count = 3;
   static constexpr mat_alignment::tag alignment = mat_alignment::column_major;
   static constexpr mat_structure::tag structure = mat_structure::orthogonal;
 
@@ -220,8 +220,8 @@ class rot_mat_3D {
     return q[j * 3 + i];
   }
 
-  size_type get_row_count() const noexcept { return 3; }
-  size_type get_col_count() const noexcept { return 3; }
+  int get_row_count() const noexcept { return 3; }
+  int get_col_count() const noexcept { return 3; }
 
   /*******************************************************************************
                          Assignment Operators
@@ -555,8 +555,8 @@ class quaternion {
   using iterator = void;
   using const_iterator = void;
 
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = int;
+  using difference_type = int;
 
  private:
   std::array<value_type, 4> q = {};
@@ -969,7 +969,7 @@ class quaternion {
    * Array indexing operator, accessor for read only.
    * \test PASSED
    */
-  const_reference operator[](size_type i) const noexcept {
+  const_reference operator[](int i) const noexcept {
     assert(i < 4);
     return q[i];
   }
@@ -1422,8 +1422,8 @@ class euler_angles_TB {
   using pointer = T*;
   using const_pointer = const T*;
 
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = int;
+  using difference_type = int;
 
  private:
   std::array<value_type, 3> q;
@@ -2030,8 +2030,8 @@ class axis_angle {
   using pointer = T*;
   using const_pointer = const T*;
 
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = int;
+  using difference_type = int;
 
  private:
   value_type mAngle;
@@ -2727,11 +2727,11 @@ class trans_mat_3D {
   using row_iterator = void;
   using const_row_iterator = void;
 
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = int;
+  using difference_type = int;
 
-  static constexpr std::size_t static_row_count = 4;
-  static constexpr std::size_t static_col_count = 4;
+  static constexpr unsigned int static_row_count = 4;
+  static constexpr unsigned int static_col_count = 4;
   static constexpr mat_alignment::tag alignment = mat_alignment::column_major;
   static constexpr mat_structure::tag structure = mat_structure::orthogonal;
 
@@ -3023,7 +3023,7 @@ class trans_mat_3D {
    * Array indexing operator, accessor for read only.
    * \test PASSED
    */
-  const_reference operator[](size_type i) const noexcept {
+  const_reference operator[](int i) const noexcept {
     assert(i < 16);
     return q[i];
   }
@@ -3032,13 +3032,13 @@ class trans_mat_3D {
    * Array double-indexing operator, ith row and jth column, accessor for read only.
    * \test PASSED
    */
-  const_reference operator()(size_type i, size_type j) const noexcept {
+  const_reference operator()(int i, int j) const noexcept {
     assert((i < 4) || (j < 4));
     return q[j * 4 + i];
   }
 
-  size_type get_row_count() const noexcept { return 4; }
-  size_type get_col_count() const noexcept { return 4; }
+  int get_row_count() const noexcept { return 4; }
+  int get_col_count() const noexcept { return 4; }
 
   /*******************************************************************************
                          Assignment Operators

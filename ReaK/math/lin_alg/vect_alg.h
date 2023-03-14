@@ -69,17 +69,17 @@ class vect_component {
   using value_type = T;
   using reference = T&;
   using const_reference = const T&;
-  using size_type = std::size_t;
+  using size_type = int;
 
   value_type q;
 
   explicit vect_component(const_reference Q = 0) noexcept : q(Q) {}
 
-  value_type operator[](size_type i) const noexcept {
+  value_type operator[](int i) const noexcept {
     return (i == Index ? q : value_type());
   }
 
-  value_type operator()(size_type i) const noexcept {
+  value_type operator()(int i) const noexcept {
     return (i == Index ? q : value_type());
   }
 
@@ -221,36 +221,36 @@ class vect {
   using iterator = typename container_type::iterator;
   using const_iterator = typename container_type::const_iterator;
 
-  using size_type = typename container_type::size_type;
-  using difference_type = typename container_type::difference_type;
+  using size_type = int;
+  using difference_type = int;
 
   static constexpr std::size_t dimensions = Size;
 
   /// Components of the vector.
   container_type q = {};
 
-  size_type size() const noexcept { return q.size(); }
-  size_type max_size() const noexcept {
+  int size() const noexcept { return q.size(); }
+  int max_size() const noexcept {
     if constexpr (!is_dynamic_size) {
       return Size;
     } else {
       return q.max_size();
     }
   }
-  size_type capacity() const noexcept {
+  int capacity() const noexcept {
     if constexpr (!is_dynamic_size) {
       return Size;
     } else {
       return q.capacity();
     }
   }
-  void resize(size_type sz, T c = T()) noexcept(!is_dynamic_size) {
+  void resize(int sz, T c = T()) noexcept(!is_dynamic_size) {
     if constexpr (is_dynamic_size) {
       q.resize(sz, c);
     }
   }
   bool empty() const noexcept { return q.empty(); }
-  void reserve(size_type sz) noexcept(!is_dynamic_size) {
+  void reserve(int sz) noexcept(!is_dynamic_size) {
     if constexpr (is_dynamic_size) {
       q.reserve(sz);
     }
@@ -391,7 +391,7 @@ class vect {
         throw std::range_error("Vector size mismatch.");
       }
     }
-    for (size_type i = 0; i < Size; ++i) {
+    for (int i = 0; i < Size; ++i) {
       q[i] = rhs[i];
     }
     return *this;
@@ -401,7 +401,7 @@ class vect {
   self& operator=(const vect_component<U, Index>& rhs) noexcept(
       !is_dynamic_size) {
     if constexpr (is_dynamic_size) {
-      q.resize(std::max<size_type>(q.size(), Index));
+      q.resize(std::max<int>(q.size(), Index));
     } else {
       static_assert(Size > Index);
     }
@@ -772,7 +772,7 @@ struct vect_copy<vect_const_ref_view<Vector>> {
  * This class implements a variable-size templated vector class in which all vector-elements
  * have the same value.
  */
-template <typename T, std::size_t Size = 0>
+template <typename T, int Size = 0>
 class vect_scalar {
  public:
   using self = vect_scalar<T>;
@@ -786,8 +786,8 @@ class vect_scalar {
   using iterator = void;
   using const_iterator = vect_index_const_iter<self>;
 
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = int;
+  using difference_type = int;
 
   static constexpr std::size_t dimensions = Size;
 
@@ -799,7 +799,7 @@ class vect_scalar {
   };
   struct data_with_count {
     value_type q;
-    size_type count;
+    int count;
   };
   using storage_type =
       std::conditional_t<is_dynamic_size, data_with_count, data_alone>;
@@ -808,7 +808,7 @@ class vect_scalar {
 
  public:
   /// Returns the size of the vector.
-  size_type size() const noexcept {
+  int size() const noexcept {
     if constexpr (is_dynamic_size) {
       return data.count;
     } else {
@@ -816,23 +816,23 @@ class vect_scalar {
     }
   }
   /// Returns the max-size of the vector.
-  size_type max_size() const noexcept {
+  int max_size() const noexcept {
     if constexpr (is_dynamic_size) {
-      return std::numeric_limits<size_type>::max();
+      return std::numeric_limits<int>::max();
     } else {
       return Size;
     }
   }
   /// Returns the capacity of the vector.
-  size_type capacity() const noexcept {
+  int capacity() const noexcept {
     if constexpr (is_dynamic_size) {
-      return std::numeric_limits<size_type>::max();
+      return std::numeric_limits<int>::max();
     } else {
       return Size;
     }
   }
   /// Resizes the vector.
-  void resize(size_type sz, T c = T()) noexcept {
+  void resize(int sz, T c = T()) noexcept {
     if constexpr (is_dynamic_size) {
       data.count = sz;
     }
@@ -845,7 +845,7 @@ class vect_scalar {
     return false;
   }
   /// Reserve a capacity for the vector.
-  void reserve(size_type sz) const noexcept {}
+  void reserve(int sz) const noexcept {}
 
   /// Returns a const-iterator to the first element of the vector.
   const_iterator begin() const noexcept { return const_iterator(*this, 0); }
@@ -866,7 +866,7 @@ class vect_scalar {
   explicit vect_scalar(const_reference aFill) noexcept { data.q = aFill; }
 
   explicit vect_scalar(
-      size_type aSize,
+      int aSize,
       const_reference aFill = value_type()) noexcept(is_dynamic_size) {
     data.q = aFill;
     if constexpr (is_dynamic_size) {
@@ -885,37 +885,37 @@ class vect_scalar {
   *******************************************************************************/
 
   /// Array indexing operator, accessor for read only.
-  const_reference operator[](size_type i) const noexcept { return data.q; }
+  const_reference operator[](int i) const noexcept { return data.q; }
 
   /// Sub-vector operator, accessor for read only.
   vect_const_ref_view<self> operator[](
-      const std::pair<size_type, size_type>& r) const noexcept {
+      const std::pair<int, int>& r) const noexcept {
     return sub(*this)[r];
   }
 
   /// Array indexing operator, accessor for read only.
-  const_reference operator()(size_type i) const noexcept { return data.q; }
+  const_reference operator()(int i) const noexcept { return data.q; }
 };
 
-template <typename T, std::size_t Size>
+template <typename T, int Size>
 struct is_readable_vector<vect_scalar<T, Size>> {
   static constexpr bool value = true;
   using type = is_readable_vector<vect_scalar<T, Size>>;
 };
 
-template <typename T, std::size_t Size>
+template <typename T, int Size>
 struct is_writable_vector<vect_scalar<T, Size>> {
   static constexpr bool value = false;
   using type = is_writable_vector<vect_scalar<T, Size>>;
 };
 
-template <typename T, std::size_t Size>
+template <typename T, int Size>
 struct is_resizable_vector<vect_scalar<T, Size>> {
   static constexpr bool value = (Size == 0);
   using type = is_resizable_vector<vect_scalar<T, Size>>;
 };
 
-template <typename T, std::size_t Size>
+template <typename T, int Size>
 struct vect_copy<vect_scalar<T, Size>> {
   using type = vect_n<T>;
 };

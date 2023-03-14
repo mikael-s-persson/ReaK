@@ -317,7 +317,7 @@ using mat_value_type_t = typename mat_value_type<Matrix>::type;
 
 template <typename Matrix, typename = void>
 struct mat_size_type {
-  using type = std::size_t;
+  using type = int;
 };
 
 // Only get size type without relying on mat_traits.
@@ -350,205 +350,205 @@ namespace detail {
 
 template <mat_structure::tag Structure>
 struct product_priority {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 0;
+  using value_type = int;
+  static constexpr int value = 0;
   using type = product_priority<Structure>;
 };
 
 template <mat_structure::tag Structure>
-static constexpr std::size_t product_priority_v =
+static constexpr int product_priority_v =
     product_priority<Structure>::value;
 
 template <>
 struct product_priority<mat_structure::rectangular> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 1;
+  using value_type = int;
+  static constexpr int value = 1;
   using type = product_priority<mat_structure::rectangular>;
 };
 
 template <>
 struct product_priority<mat_structure::square> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 2;
+  using value_type = int;
+  static constexpr int value = 2;
   using type = product_priority<mat_structure::square>;
 };
 
 template <>
 struct product_priority<mat_structure::symmetric> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 10;
+  using value_type = int;
+  static constexpr int value = 10;
   using type = product_priority<mat_structure::symmetric>;
 };
 
 template <>
 struct product_priority<mat_structure::skew_symmetric> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 11;
+  using value_type = int;
+  static constexpr int value = 11;
   using type = product_priority<mat_structure::skew_symmetric>;
 };
 
 template <>
 struct product_priority<mat_structure::diagonal> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 40;
+  using value_type = int;
+  static constexpr int value = 40;
   using type = product_priority<mat_structure::diagonal>;
 };
 
 template <>
 struct product_priority<mat_structure::scalar> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 41;
+  using value_type = int;
+  static constexpr int value = 41;
   using type = product_priority<mat_structure::scalar>;
 };
 
 template <>
 struct product_priority<mat_structure::upper_triangular> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 20;
+  using value_type = int;
+  static constexpr int value = 20;
   using type = product_priority<mat_structure::upper_triangular>;
 };
 
 template <>
 struct product_priority<mat_structure::lower_triangular> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 21;
+  using value_type = int;
+  static constexpr int value = 21;
   using type = product_priority<mat_structure::lower_triangular>;
 };
 
 template <>
 struct product_priority<mat_structure::orthogonal> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 3;
+  using value_type = int;
+  static constexpr int value = 3;
   using type = product_priority<mat_structure::orthogonal>;
 };
 
 template <>
 struct product_priority<mat_structure::tridiagonal> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 30;
+  using value_type = int;
+  static constexpr int value = 30;
   using type = product_priority<mat_structure::tridiagonal>;
 };
 
 template <>
 struct product_priority<mat_structure::nil> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 50;
+  using value_type = int;
+  static constexpr int value = 50;
   using type = product_priority<mat_structure::nil>;
 };
 
 template <>
 struct product_priority<mat_structure::identity> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 49;
+  using value_type = int;
+  static constexpr int value = 49;
   using type = product_priority<mat_structure::identity>;
 };
 
 template <>
 struct product_priority<mat_structure::permutation> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 48;
+  using value_type = int;
+  static constexpr int value = 48;
   using type = product_priority<mat_structure::permutation>;
 };
 
 template <mat_structure::tag Structure>
 struct addition_priority {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 0;
+  using value_type = int;
+  static constexpr int value = 0;
   using type = addition_priority<Structure>;
 };
 
 template <mat_structure::tag Structure>
-static constexpr std::size_t addition_priority_v =
+static constexpr int addition_priority_v =
     addition_priority<Structure>::value;
 
 template <>
 struct addition_priority<mat_structure::rectangular> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 1;
+  using value_type = int;
+  static constexpr int value = 1;
   using type = addition_priority<mat_structure::rectangular>;
 };
 
 template <>
 struct addition_priority<mat_structure::square> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 2;
+  using value_type = int;
+  static constexpr int value = 2;
   using type = addition_priority<mat_structure::square>;
 };
 
 template <>
 struct addition_priority<mat_structure::symmetric> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 10;
+  using value_type = int;
+  static constexpr int value = 10;
   using type = addition_priority<mat_structure::symmetric>;
 };
 
 template <>
 struct addition_priority<mat_structure::skew_symmetric> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 11;
+  using value_type = int;
+  static constexpr int value = 11;
   using type = addition_priority<mat_structure::skew_symmetric>;
 };
 
 template <>
 struct addition_priority<mat_structure::diagonal> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 40;
+  using value_type = int;
+  static constexpr int value = 35;
   using type = addition_priority<mat_structure::diagonal>;
 };
 
 template <>
 struct addition_priority<mat_structure::scalar> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 40;
+  using value_type = int;
+  static constexpr int value = 40;
   using type = addition_priority<mat_structure::scalar>;
 };
 
 template <>
 struct addition_priority<mat_structure::identity> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 40;
+  using value_type = int;
+  static constexpr int value = 40;
   using type = addition_priority<mat_structure::identity>;
 };
 
 template <>
 struct addition_priority<mat_structure::permutation> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 3;
+  using value_type = int;
+  static constexpr int value = 3;
   using type = addition_priority<mat_structure::permutation>;
 };
 
 template <>
 struct addition_priority<mat_structure::upper_triangular> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 20;
+  using value_type = int;
+  static constexpr int value = 20;
   using type = addition_priority<mat_structure::upper_triangular>;
 };
 
 template <>
 struct addition_priority<mat_structure::lower_triangular> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 21;
+  using value_type = int;
+  static constexpr int value = 21;
   using type = addition_priority<mat_structure::lower_triangular>;
 };
 
 template <>
 struct addition_priority<mat_structure::orthogonal> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 3;
+  using value_type = int;
+  static constexpr int value = 3;
   using type = addition_priority<mat_structure::orthogonal>;
 };
 
 template <>
 struct addition_priority<mat_structure::tridiagonal> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 30;
+  using value_type = int;
+  static constexpr int value = 30;
   using type = addition_priority<mat_structure::tridiagonal>;
 };
 
 template <>
 struct addition_priority<mat_structure::nil> {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 50;
+  using value_type = int;
+  static constexpr int value = 50;
   using type = addition_priority<mat_structure::nil>;
 };
 
@@ -557,25 +557,25 @@ struct addition_priority<mat_structure::nil> {
 // Specialized in mat_alg_general.
 template <typename Matrix>
 struct mat_product_priority {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 0;
+  using value_type = int;
+  static constexpr int value = 0;
   using type = mat_product_priority<Matrix>;
 };
 
 template <typename Matrix>
-static constexpr std::size_t mat_product_priority_v =
+static constexpr int mat_product_priority_v =
     mat_product_priority<Matrix>::value;
 
 // Specialized in mat_alg_general.
 template <typename Matrix>
 struct mat_addition_priority {
-  using value_type = std::size_t;
-  static constexpr std::size_t value = 0;
+  using value_type = int;
+  static constexpr int value = 0;
   using type = mat_addition_priority<Matrix>;
 };
 
 template <typename Matrix>
-static constexpr std::size_t mat_addition_priority_v =
+static constexpr int mat_addition_priority_v =
     mat_addition_priority<Matrix>::value;
 
 }  // namespace ReaK

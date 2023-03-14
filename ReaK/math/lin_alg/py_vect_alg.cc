@@ -44,12 +44,12 @@ using namespace boost::python;
 namespace PyReaK {
 
 template <typename Vector>
-double vect_getitem(const Vector& v, std::size_t i) {
+double vect_getitem(const Vector& v, int i) {
   return v[i];
 }
 
 template <typename Vector>
-void vect_setitem(Vector& v, std::size_t i, double d) {
+void vect_setitem(Vector& v, int i, double d) {
   v[i] = d;
 }
 

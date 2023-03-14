@@ -95,20 +95,20 @@ class mat_const_transpose_view {
    * \return number of rows of the matrix.
    * \test PASSED
    */
-  size_type get_row_count() const noexcept { return m->get_col_count(); }
+  int get_row_count() const noexcept { return m->get_col_count(); }
   /**
    * Gets the column-count (number of columns) of the matrix.
    * \return number of columns of the matrix.
    * \test PASSED
    */
-  size_type get_col_count() const noexcept { return m->get_row_count(); }
+  int get_col_count() const noexcept { return m->get_row_count(); }
 
   /**
    * Gets the row-count and column-count of the matrix, as a std::pair of values.
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<size_type, size_type> size() const noexcept {
+  std::pair<int, int> size() const noexcept {
     return {m->get_col_count(), m->get_row_count()};
   }
 
@@ -271,34 +271,34 @@ class mat_transpose_view {
    * \return number of rows of the matrix.
    * TEST PASSED
    */
-  size_type get_row_count() const noexcept { return m->get_col_count(); }
+  int get_row_count() const noexcept { return m->get_col_count(); }
   /**
    * Gets the column-count (number of columns) of the matrix.
    * \return number of columns of the matrix.
    * TEST PASSED
    */
-  size_type get_col_count() const noexcept { return m->get_row_count(); }
+  int get_col_count() const noexcept { return m->get_row_count(); }
 
   /**
    * Sets the row-count (number of rows) of the matrix.
    * \return number of rows of the matrix.
    * TEST PASSED
    */
-  void set_row_count(size_type aRowCount) { m->set_col_count(aRowCount); }
+  void set_row_count(int aRowCount) { m->set_col_count(aRowCount); }
 
   /**
    * Sets the column-count (number of columns) of the matrix.
    * \return number of columns of the matrix.
    * TEST PASSED
    */
-  void get_col_count(size_type aColCount) { m->set_row_count(aColCount); }
+  void get_col_count(int aColCount) { m->set_row_count(aColCount); }
 
   /**
    * Gets the row-count and column-count of the matrix, as a std::pair of values.
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<size_type, size_type> size() const noexcept {
+  std::pair<int, int> size() const noexcept {
     return {m->get_col_count(), m->get_row_count()};
   }
 

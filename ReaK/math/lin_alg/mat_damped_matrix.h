@@ -37,14 +37,12 @@
 
 namespace ReaK {
 
-/**
- * This class template forms the addition of two matrices, one diagonal and one square.
- *
- * Models: ReadableMatrixConcept.
- *
- * \tparam SquareMatrix Matrix type for the left matrix.
- * \tparam DiagMatrix Matrix type for the right matrix.
- */
+/// This class template forms the addition of two matrices, one diagonal and one square.
+///
+/// Models: ReadableMatrixConcept.
+///
+/// \tparam SquareMatrix Matrix type for the left matrix.
+/// \tparam DiagMatrix Matrix type for the right matrix.
 template <typename SquareMatrix, typename DiagMatrix>
 class mat_damped_matrix {
  public:
@@ -80,11 +78,9 @@ class mat_damped_matrix {
   const SquareMatrix* m_sqr;  ///< Holds the left part of the matrix.
   const DiagMatrix* m_diag;   ///< Holds the right part of the matrix.
  public:
-  /**
-   * Parametrized constructor.
-   * \param aML Matrix to fill the left part of the matrix.
-   * \param aMR Matrix to fill the right part of the matrix.
-   */
+  /// Parametrized constructor.
+  /// \param aML Matrix to fill the left part of the matrix.
+  /// \param aMR Matrix to fill the right part of the matrix.
   mat_damped_matrix(const SquareMatrix& aMSqr, const DiagMatrix& aMDiag)
       : m_sqr(&aMSqr), m_diag(&aMDiag) {
     if (m_sqr->get_row_count() != m_diag->get_row_count()) {
@@ -96,13 +92,10 @@ class mat_damped_matrix {
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Matrix indexing accessor for read-only access.
-   * \param i Row index.
-   * \param j Column index.
-   * \return the element at the given position.
-   * \test PASSED
-   */
+  /// Matrix indexing accessor for read-only access.
+  /// \param i Row index.
+  /// \param j Column index.
+  /// \return the element at the given position.
   value_type operator()(int i, int j) const {
     if (i == j) {
       return (*m_sqr)(i, i) + (*m_diag)(i, i);
@@ -110,52 +103,34 @@ class mat_damped_matrix {
     return (*m_sqr)(i, j);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_sub_block<self> operator()(const std::pair<int, int>& r,
                                        const std::pair<int, int>& c) const {
     return sub(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_col_slice<self> operator()(int r,
                                        const std::pair<int, int>& c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_row_slice<self> operator()(const std::pair<int, int>& r,
                                        int c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Gets the row-count (number of rows) of the matrix.
-   * \return number of rows of the matrix.
-   * \test PASSED
-   */
-  size_type get_row_count() const noexcept { return m_sqr->get_row_count(); }
-  /**
-   * Gets the column-count (number of columns) of the matrix.
-   * \return number of columns of the matrix.
-   * \test PASSED
-   */
-  size_type get_col_count() const noexcept { return m_sqr->get_col_count(); }
+  /// Gets the row-count (number of rows) of the matrix.
+  /// \return number of rows of the matrix.
+  int get_row_count() const noexcept { return m_sqr->get_row_count(); }
+  /// Gets the column-count (number of columns) of the matrix.
+  /// \return number of columns of the matrix.
+  int get_col_count() const noexcept { return m_sqr->get_col_count(); }
 
-  /**
-   * Gets the row-count and column-count of the matrix, as a std::pair of values.
-   * \return the row-count and column-count of the matrix, as a std::pair of values.
-   * \test PASSED
-   */
-  std::pair<size_type, size_type> size() const noexcept {
+  /// Gets the row-count and column-count of the matrix, as a std::pair of values.
+  /// \return the row-count and column-count of the matrix, as a std::pair of values.
+  std::pair<int, int> size() const noexcept {
     return {m_sqr->get_row_count(), m_sqr->get_col_count()};
   }
 };

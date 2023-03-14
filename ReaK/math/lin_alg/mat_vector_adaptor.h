@@ -86,9 +86,9 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
 
  private:
   Vector* v;           ///< Holds the reference to the vector.
-  size_type offset;    ///< Holds the offset to start from in the vector.
-  size_type rowCount;  ///< Holds the number of rows in the matrix.
-  size_type colCount;  ///< Holds the number of columns in the matrix.
+  int offset;    ///< Holds the offset to start from in the vector.
+  int rowCount;  ///< Holds the number of rows in the matrix.
+  int colCount;  ///< Holds the number of columns in the matrix.
  public:
   /**
    * Constructs the adaptor with a given vector, taking the entire vector as the unique
@@ -104,8 +104,8 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
    * \param aColCount The column-count of the resulting matrix.
    * \param aOffset The index into the vector from which to start the matrix elements.
    */
-  mat_vect_adaptor(Vector& aV, size_type aRowCount, size_type aColCount,
-                   size_type aOffset = 0)
+  mat_vect_adaptor(Vector& aV, int aRowCount, int aColCount,
+                   int aOffset = 0)
       : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) {}
   /**
    * Standard copy-constructor (shallow).
@@ -135,9 +135,9 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
         (rhs.get_col_count() != colCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
     }
-    size_type it = offset;
-    for (size_type j = 0; j < colCount; ++j) {
-      for (size_type i = 0; i < rowCount; ++i, ++it) {
+    int it = offset;
+    for (int j = 0; j < colCount; ++j) {
+      for (int i = 0; i < rowCount; ++i, ++it) {
         (*v)[it] = rhs(i, j);
       }
     }
@@ -154,9 +154,9 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
         (rhs.get_col_count() != colCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
     }
-    size_type it = offset;
-    for (size_type j = 0; j < colCount; ++j) {
-      for (size_type i = 0; i < rowCount; ++i, ++it) {
+    int it = offset;
+    for (int j = 0; j < colCount; ++j) {
+      for (int i = 0; i < rowCount; ++i, ++it) {
         (*v)[it] = rhs(i, j);
       }
     }
@@ -243,29 +243,29 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
    * \return number of rows of the matrix.
    * \test PASSED
    */
-  size_type get_row_count() const noexcept { return rowCount; }
+  int get_row_count() const noexcept { return rowCount; }
   /**
    * Gets the column-count (number of columns) of the matrix.
    * \return number of columns of the matrix.
    * \test PASSED
    */
-  size_type get_col_count() const noexcept { return colCount; }
+  int get_col_count() const noexcept { return colCount; }
 
   /**
    * Sets the row-count (number of rows) of the matrix (however, it actually does nothing).
    */
-  void set_row_count(size_type /*unused*/) noexcept {}
+  void set_row_count(int /*unused*/) noexcept {}
   /**
    * Sets the column-count (number of columns) of the matrix (however, it actually does nothing).
    */
-  void set_col_count(size_type /*unused*/) noexcept {}
+  void set_col_count(int /*unused*/) noexcept {}
 
   /**
    * Gets the row-count and column-count of the matrix, as a std::pair of values.
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<size_type, size_type> size() const noexcept {
+  std::pair<int, int> size() const noexcept {
     return {rowCount, colCount};
   }
 
@@ -279,9 +279,9 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    size_type it = offset;
-    for (size_type j = 0; j < colCount; ++j) {
-      for (size_type i = 0; i < rowCount; ++i, ++it) {
+    int it = offset;
+    for (int j = 0; j < colCount; ++j) {
+      for (int i = 0; i < rowCount; ++i, ++it) {
         (*v)[it] += M(i, j);
       }
     }
@@ -298,9 +298,9 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    size_type it = offset;
-    for (size_type j = 0; j < colCount; ++j) {
-      for (size_type i = 0; i < rowCount; ++i, ++it) {
+    int it = offset;
+    for (int j = 0; j < colCount; ++j) {
+      for (int i = 0; i < rowCount; ++i, ++it) {
         (*v)[it] -= M(i, j);
       }
     }
@@ -312,7 +312,7 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
    * \test PASSED
    */
   self& operator*=(const value_type& S) {
-    for (size_type it = offset; it < offset + rowCount * colCount; ++it) {
+    for (int it = offset; it < offset + rowCount * colCount; ++it) {
       (*v)[it] *= S;
     }
     return *this;
@@ -383,9 +383,9 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
 
  private:
   Vector* v;           ///< Holds the reference to the vector.
-  size_type offset;    ///< Holds the offset to start from in the vector.
-  size_type rowCount;  ///< Holds the number of rows in the matrix.
-  size_type colCount;  ///< Holds the number of columns in the matrix.
+  int offset;    ///< Holds the offset to start from in the vector.
+  int rowCount;  ///< Holds the number of rows in the matrix.
+  int colCount;  ///< Holds the number of columns in the matrix.
  public:
   /**
    * Constructs the adaptor with a given vector, taking the entire vector as the unique
@@ -401,8 +401,8 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
    * \param aColCount The column-count of the resulting matrix.
    * \param aOffset The index into the vector from which to start the matrix elements.
    */
-  mat_vect_adaptor(Vector& aV, size_type aRowCount, size_type aColCount,
-                   size_type aOffset = 0)
+  mat_vect_adaptor(Vector& aV, int aRowCount, int aColCount,
+                   int aOffset = 0)
       : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) {}
   /**
    * Standard copy-constructor (shallow).
@@ -432,9 +432,9 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
         (rhs.get_col_count() != colCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
     }
-    size_type it = offset;
-    for (size_type i = 0; i < rowCount; ++i) {
-      for (size_type j = 0; j < colCount; ++j, ++it) {
+    int it = offset;
+    for (int i = 0; i < rowCount; ++i) {
+      for (int j = 0; j < colCount; ++j, ++it) {
         (*v)[it] = rhs(i, j);
       }
     }
@@ -451,9 +451,9 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
         (rhs.get_col_count() != colCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
     }
-    size_type it = offset;
-    for (size_type i = 0; i < rowCount; ++i) {
-      for (size_type j = 0; j < colCount; ++j, ++it) {
+    int it = offset;
+    for (int i = 0; i < rowCount; ++i) {
+      for (int j = 0; j < colCount; ++j, ++it) {
         (*v)[it] = rhs(i, j);
       }
     }
@@ -471,7 +471,7 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
    * \return the element at the given position.
    * \test PASSED
    */
-  reference operator()(size_type i, size_type j) {
+  reference operator()(int i, int j) {
     return (*v)[offset + i * colCount + j];
   }
   /**
@@ -481,7 +481,7 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
    * \return the element at the given position.
    * \test PASSED
    */
-  const_reference operator()(size_type i, size_type j) const {
+  const_reference operator()(int i, int j) const {
     return (*v)[offset + i * colCount + j];
   }
 
@@ -490,29 +490,29 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
    * \return number of rows of the matrix.
    * \test PASSED
    */
-  size_type get_row_count() const noexcept { return rowCount; }
+  int get_row_count() const noexcept { return rowCount; }
   /**
    * Gets the column-count (number of columns) of the matrix.
    * \return number of columns of the matrix.
    * \test PASSED
    */
-  size_type get_col_count() const noexcept { return colCount; }
+  int get_col_count() const noexcept { return colCount; }
 
   /**
    * Sets the row-count (number of rows) of the matrix (however, it actually does nothing).
    */
-  void set_row_count(size_type /*unused*/) noexcept {}
+  void set_row_count(int /*unused*/) noexcept {}
   /**
    * Sets the column-count (number of columns) of the matrix (however, it actually does nothing).
    */
-  void set_col_count(size_type /*unused*/) noexcept {}
+  void set_col_count(int /*unused*/) noexcept {}
 
   /**
    * Gets the row-count and column-count of the matrix, as a std::pair of values.
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<size_type, size_type> size() const noexcept {
+  std::pair<int, int> size() const noexcept {
     return std::make_pair(rowCount, colCount);
   }
 
@@ -526,9 +526,9 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    size_type it = offset;
-    for (size_type i = 0; i < rowCount; ++i) {
-      for (size_type j = 0; j < colCount; ++j, ++it) {
+    int it = offset;
+    for (int i = 0; i < rowCount; ++i) {
+      for (int j = 0; j < colCount; ++j, ++it) {
         (*v)[it] += M(i, j);
       }
     }
@@ -545,9 +545,9 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    size_type it = offset;
-    for (size_type i = 0; i < rowCount; ++i) {
-      for (size_type j = 0; j < colCount; ++j, ++it) {
+    int it = offset;
+    for (int i = 0; i < rowCount; ++i) {
+      for (int j = 0; j < colCount; ++j, ++it) {
         (*v)[it] -= M(i, j);
       }
     }
@@ -559,7 +559,7 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
    * \test PASSED
    */
   self& operator*=(const value_type& S) {
-    for (size_type it = offset; it < offset + rowCount * colCount; ++it) {
+    for (int it = offset; it < offset + rowCount * colCount; ++it) {
       (*v)[it] *= S;
     }
     return *this;
@@ -664,14 +664,14 @@ class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
 
  private:
   const Vector* v;     ///< Holds the reference to the vector.
-  size_type offset;    ///< Holds the offset to start from in the vector.
-  size_type rowCount;  ///< Holds the number of rows in the matrix.
-  size_type colCount;  ///< Holds the number of columns in the matrix.
+  int offset;    ///< Holds the offset to start from in the vector.
+  int rowCount;  ///< Holds the number of rows in the matrix.
+  int colCount;  ///< Holds the number of columns in the matrix.
 
   self& operator=(const self&);  // non-assignable.
 
   explicit mat_const_vect_adaptor(Vector&&);
-  mat_const_vect_adaptor(Vector&&, size_type, size_type, size_type aOffset = 0);
+  mat_const_vect_adaptor(Vector&&, int, int, int aOffset = 0);
 
  public:
   /**
@@ -688,8 +688,8 @@ class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
    * \param aColCount The column-count of the resulting matrix.
    * \param aOffset The index into the vector from which to start the matrix elements.
    */
-  mat_const_vect_adaptor(const Vector& aV, size_type aRowCount,
-                         size_type aColCount, size_type aOffset = 0)
+  mat_const_vect_adaptor(const Vector& aV, int aRowCount,
+                         int aColCount, int aOffset = 0)
       : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) {}
   /**
    * Standard copy-constructor (shallow).
@@ -731,20 +731,20 @@ class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
    * \return number of rows of the matrix.
    * \test PASSED
    */
-  size_type get_row_count() const noexcept { return rowCount; }
+  int get_row_count() const noexcept { return rowCount; }
   /**
    * Gets the column-count (number of columns) of the matrix.
    * \return number of columns of the matrix.
    * \test PASSED
    */
-  size_type get_col_count() const noexcept { return colCount; }
+  int get_col_count() const noexcept { return colCount; }
 
   /**
    * Gets the row-count and column-count of the matrix, as a std::pair of values.
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<size_type, size_type> size() const noexcept {
+  std::pair<int, int> size() const noexcept {
     return {rowCount, colCount};
   }
 
@@ -799,14 +799,14 @@ class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
 
  private:
   const Vector* v;
-  size_type offset;
-  size_type rowCount;
-  size_type colCount;
+  int offset;
+  int rowCount;
+  int colCount;
 
   self& operator=(const self&);  // non-assignable.
 
   explicit mat_const_vect_adaptor(Vector&&);
-  mat_const_vect_adaptor(Vector&&, size_type, size_type, size_type aOffset = 0);
+  mat_const_vect_adaptor(Vector&&, int, int, int aOffset = 0);
 
  public:
   /**
@@ -823,8 +823,8 @@ class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
    * \param aColCount The column-count of the resulting matrix.
    * \param aOffset The index into the vector from which to start the matrix elements.
    */
-  mat_const_vect_adaptor(const Vector& aV, size_type aRowCount,
-                         size_type aColCount, size_type aOffset = 0)
+  mat_const_vect_adaptor(const Vector& aV, int aRowCount,
+                         int aColCount, int aOffset = 0)
       : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) {}
   /**
    * Standard copy-constructor (shallow).
@@ -857,7 +857,7 @@ class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
    * \return the element at the given position.
    * \test PASSED
    */
-  const_reference operator()(size_type i, size_type j) const {
+  const_reference operator()(int i, int j) const {
     return (*v)[offset + i * colCount + j];
   }
 
@@ -866,20 +866,20 @@ class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
    * \return number of rows of the matrix.
    * \test PASSED
    */
-  size_type get_row_count() const noexcept { return rowCount; }
+  int get_row_count() const noexcept { return rowCount; }
   /**
    * Gets the column-count (number of columns) of the matrix.
    * \return number of columns of the matrix.
    * \test PASSED
    */
-  size_type get_col_count() const noexcept { return colCount; }
+  int get_col_count() const noexcept { return colCount; }
 
   /**
    * Gets the row-count and column-count of the matrix, as a std::pair of values.
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<size_type, size_type> size() const noexcept {
+  std::pair<int, int> size() const noexcept {
     return {rowCount, colCount};
   }
 
@@ -941,17 +941,15 @@ struct is_col_resizable_matrix<mat_const_vect_adaptor<Vector, Alignment>> {
 
 template <typename Vector>
 struct mat_vect_adaptor_factory {
-  using size_type = typename vect_traits<Vector>::size_type;
-
   Vector& v;
   explicit mat_vect_adaptor_factory(Vector& aV) : v(aV) {}
   mat_vect_adaptor<Vector, mat_alignment::row_major> operator()(
-      size_type rowCount, const std::pair<size_type, size_type>& cols) {
+      int rowCount, const std::pair<int, int>& cols) {
     return mat_vect_adaptor<Vector, mat_alignment::row_major>(
         v, rowCount, cols.second - cols.first, cols.first);
   }
   mat_vect_adaptor<Vector, mat_alignment::column_major> operator()(
-      const std::pair<size_type, size_type>& rows, size_type colCount) {
+      const std::pair<int, int>& rows, int colCount) {
     return mat_vect_adaptor<Vector, mat_alignment::column_major>(
         v, rows.second - rows.first, colCount, rows.first);
   }
@@ -959,17 +957,15 @@ struct mat_vect_adaptor_factory {
 
 template <typename Vector>
 struct mat_const_vect_adaptor_factory {
-  using size_type = typename vect_traits<Vector>::size_type;
-
   const Vector& v;
   explicit mat_const_vect_adaptor_factory(const Vector& aV) : v(aV) {}
   mat_const_vect_adaptor<Vector, mat_alignment::row_major> operator()(
-      size_type rowCount, const std::pair<size_type, size_type>& cols) {
+      int rowCount, const std::pair<int, int>& cols) {
     return mat_const_vect_adaptor<Vector, mat_alignment::row_major>(
         v, rowCount, cols.second - cols.first, cols.first);
   }
   mat_const_vect_adaptor<Vector, mat_alignment::column_major> operator()(
-      const std::pair<size_type, size_type>& rows, size_type colCount) {
+      const std::pair<int, int>& rows, int colCount) {
     return mat_const_vect_adaptor<Vector, mat_alignment::column_major>(
         v, rows.second - rows.first, colCount, rows.first);
   }

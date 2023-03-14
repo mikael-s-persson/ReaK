@@ -73,11 +73,11 @@ class rot_mat_2D {
   using row_iterator = void;
   using const_row_iterator = void;
 
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = int;
+  using difference_type = int;
 
-  static constexpr std::size_t static_row_count = 2;
-  static constexpr std::size_t static_col_count = 2;
+  static constexpr unsigned int static_row_count = 2;
+  static constexpr unsigned int static_col_count = 2;
   static constexpr mat_alignment::tag alignment = mat_alignment::column_major;
   static constexpr mat_structure::tag structure = mat_structure::orthogonal;
 
@@ -208,8 +208,8 @@ class rot_mat_2D {
     return q[i];
   }
 
-  size_type get_row_count() const noexcept { return 2; }
-  size_type get_col_count() const noexcept { return 2; }
+  int get_row_count() const noexcept { return 2; }
+  int get_col_count() const noexcept { return 2; }
 
   /*******************************************************************************
                          Assignment Operators
@@ -483,11 +483,11 @@ class trans_mat_2D {
   using row_iterator = void;
   using const_row_iterator = void;
 
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = int;
+  using difference_type = int;
 
-  static constexpr std::size_t static_row_count = 3;
-  static constexpr std::size_t static_col_count = 3;
+  static constexpr unsigned int static_row_count = 3;
+  static constexpr unsigned int static_col_count = 3;
   static constexpr mat_alignment::tag alignment = mat_alignment::column_major;
   static constexpr mat_structure::tag structure = mat_structure::square;
 
@@ -662,8 +662,8 @@ class trans_mat_2D {
     return q[j * 3 + i];
   }
 
-  size_type get_row_count() const noexcept { return 3; }
-  size_type get_col_count() const noexcept { return 3; }
+  int get_row_count() const noexcept { return 3; }
+  int get_col_count() const noexcept { return 3; }
 
   /*******************************************************************************
                          Assignment Operators
@@ -748,10 +748,10 @@ class trans_mat_2D {
           "Matrix M's row count is not 3, 2D transformation impossible!");
     }
     Matrix result(M2);
-    for (size_type i = 0; i < 3; ++i) {
-      for (size_type jj = 0; jj < result.get_col_count(); ++jj) {
+    for (int i = 0; i < 3; ++i) {
+      for (int jj = 0; jj < result.get_col_count(); ++jj) {
         result(i, jj) = 0;
-        for (size_type j = 0; j < 3; ++j) {
+        for (int j = 0; j < 3; ++j) {
           result(i, jj) += M1.q[j * 3 + i] * M2(j, jj);
         }
       }
@@ -771,10 +771,10 @@ class trans_mat_2D {
           "Matrix M1's column count is not 3, 2D transformation impossible!");
     }
     Matrix result(M1.get_row_count(), 3);
-    for (size_type i = 0; i < result.get_row_count(); ++i) {
-      for (size_type jj = 0; jj < 3; ++jj) {
+    for (int i = 0; i < result.get_row_count(); ++i) {
+      for (int jj = 0; jj < 3; ++jj) {
         result(i, jj) = 0;
-        for (size_type j = 0; j < 3; ++j) {
+        for (int j = 0; j < 3; ++j) {
           result(i, jj) += M1(i, j) * M2.q[jj * 3 + j];
         }
       }

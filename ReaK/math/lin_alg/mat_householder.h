@@ -54,31 +54,29 @@ void householder_prod(const householder_matrix<Vector>& P, Matrix& A);
 template <typename Matrix, typename Vector>
 void householder_prod(Matrix& A, const householder_matrix<Vector>& P);
 
-/**
- * This class represents a Householder reflection as a NxN matrix. It can be constructed
- * by providing the column-vector u such that the resulting Householder reflection H has
- * the effect of zero-ing all but the first element: H * u = (a, 0) (where u is a column-vector
- * and a is some scalar value). To apply a Householder reflection efficiently, it is preferred
- * to use the householder_prod function templates, although this Householder reflection matrix models
- * a readable matrix concept and can thus be involved in other matrix arithmetic (although rarely
- * useful). In order to apply the Householder reflection to a matrix with larger dimensions, which
- * is most often the case, one can use the classes provided in mat_views.hpp and
- * mat_composite_adaptor.hpp to create such sub-matrices and composites of them to extract only
- * the rows or columns affected by the reflection (the resulting sub-matrix (or matrix-view)
- * should have the appropriate dimensions). This class also provides friend functions to
- * perform the transposition of the Householder reflection (and effectively, its inverse).
- *
- * Models: ReadableMatrixConcept.
- *
- * \tparam Vector The vector type to store the householder vector.
- */
+/// This class represents a Householder reflection as a NxN matrix. It can be constructed
+/// by providing the column-vector u such that the resulting Householder reflection H has
+/// the effect of zero-ing all but the first element: H * u = (a, 0) (where u is a column-vector
+/// and a is some scalar value). To apply a Householder reflection efficiently, it is preferred
+/// to use the householder_prod function templates, although this Householder reflection matrix models
+/// a readable matrix concept and can thus be involved in other matrix arithmetic (although rarely
+/// useful). In order to apply the Householder reflection to a matrix with larger dimensions, which
+/// is most often the case, one can use the classes provided in mat_views.hpp and
+/// mat_composite_adaptor.hpp to create such sub-matrices and composites of them to extract only
+/// the rows or columns affected by the reflection (the resulting sub-matrix (or matrix-view)
+/// should have the appropriate dimensions). This class also provides friend functions to
+/// perform the transposition of the Householder reflection (and effectively, its inverse).
+///
+/// Models: ReadableMatrixConcept.
+///
+/// \tparam Vector The vector type to store the householder vector.
 template <typename Vector>
 class householder_matrix {
  public:
   using self = householder_matrix<Vector>;
   using value_type = vect_value_type_t<Vector>;
-  using size_type = typename vect_traits<Vector>::size_type;
-  using difference_type = typename vect_traits<Vector>::difference_type;
+  using size_type = int;
+  using difference_type = int;
 
   using pointer = typename vect_traits<Vector>::pointer;
   using const_pointer = typename vect_traits<Vector>::const_pointer;
@@ -153,13 +151,11 @@ class householder_matrix {
   }
 
  public:
-  /**
-   * Set the Householder reflection by providing a column-vector u such that the
-   * resulting Householder reflection H has the effect of zero-ing the second element: H * u = (a, 0).
-   * \tparam Vector2 A readable vector type.
-   * \param aE The vector from which to calculate the Householder reflection (vector u).
-   * \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
-   */
+  /// Set the Householder reflection by providing a column-vector u such that the
+  /// resulting Householder reflection H has the effect of zero-ing the second element: H * u = (a, 0).
+  /// \tparam Vector2 A readable vector type.
+  /// \param aE The vector from which to calculate the Householder reflection (vector u).
+  /// \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
   template <typename Vector2>
   void set(const Vector2& aE, const value_type& NumTol = value_type(1E-8)) {
     static_assert(is_readable_vector_v<Vector2>);
@@ -167,14 +163,12 @@ class householder_matrix {
     v = aE;
     calculate_hhv(NumTol);
   }
-  /**
-   * Set the Householder reflection by providing a column-vector u such that the
-   * resulting Householder reflection H has the effect of zero-ing the first element: H * u = (0, a).
-   * \note This constructs an "opposite" Householder reflection (can be useful for row elimintations).
-   * \tparam Vector2 A readable vector type.
-   * \param aE The vector from which to calculate the Householder reflection (vector u).
-   * \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
-   */
+  /// Set the Householder reflection by providing a column-vector u such that the
+  /// resulting Householder reflection H has the effect of zero-ing the first element: H * u = (0, a).
+  /// \note This constructs an "opposite" Householder reflection (can be useful for row elimintations).
+  /// \tparam Vector2 A readable vector type.
+  /// \param aE The vector from which to calculate the Householder reflection (vector u).
+  /// \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
   template <typename Vector2>
   void set_inv(const Vector2& aE, const value_type& NumTol = value_type(1E-8)) {
     static_assert(is_readable_vector_v<Vector2>);
@@ -182,22 +176,18 @@ class householder_matrix {
     v = aE;
     calculate_inv_hhv(NumTol);
   }
-  /**
-   * Default constructor.
-   */
+  /// Default constructor.
   explicit householder_matrix(const value_type& aBeta,
                               const Vector& aV = Vector())
       : beta(aBeta), v(aV) {}
 
   householder_matrix() : householder_matrix(value_type(0.0)) {}
 
-  /**
-   * Constructs the Householder reflection by providing a column-vector u such that the
-   * resulting Householder reflection H has the effect of zero-ing the second element: H * u = (a, 0).
-   * \tparam Vector2 A readable vector type.
-   * \param aE The vector from which to calculate the Householder reflection (vector u).
-   * \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
-   */
+  /// Constructs the Householder reflection by providing a column-vector u such that the
+  /// resulting Householder reflection H has the effect of zero-ing the second element: H * u = (a, 0).
+  /// \tparam Vector2 A readable vector type.
+  /// \param aE The vector from which to calculate the Householder reflection (vector u).
+  /// \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
   template <typename Vector2>
   explicit householder_matrix(const Vector2& aE,
                               const value_type& NumTol = value_type(1E-8))
@@ -206,57 +196,39 @@ class householder_matrix {
     calculate_hhv(NumTol);
   }
 
-  /**
-   * Standard copy-constructor.
-   */
+  /// Standard copy-constructor.
   householder_matrix(const self& rhs) : beta(rhs.beta), v(rhs.v) {}
 
-  /**
-   * Standard swap function.
-   */
+  /// Standard swap function.
   friend void swap(self& lhs, self& rhs) noexcept {
     using std::swap;
     swap(lhs.beta, rhs.beta);
     swap(lhs.v, rhs.v);
   }
 
-  /**
-   * Standard assignment operator (copy-and-swap and move-and-swap).
-   */
+  /// Standard assignment operator (copy-and-swap and move-and-swap).
   self& operator=(self rhs) {
     swap(*this, rhs);
     return *this;
   }
 
-  /**
-   * Gets the row-count (number of rows) of the matrix.
-   * \return number of rows of the matrix.
-   * \test PASSED
-   */
-  size_type get_row_count() const { return v.size(); }
-  /**
-   * Gets the column-count (number of columns) of the matrix.
-   * \return number of columns of the matrix.
-   * \test PASSED
-   */
-  size_type get_col_count() const { return v.size(); }
+  /// Gets the row-count (number of rows) of the matrix.
+  /// \return number of rows of the matrix.
+  int get_row_count() const { return v.size(); }
+  /// Gets the column-count (number of columns) of the matrix.
+  /// \return number of columns of the matrix.
+  int get_col_count() const { return v.size(); }
 
-  /**
-   * Gets the row-count and column-count of the matrix, as a std::pair of values.
-   * \return the row-count and column-count of the matrix, as a std::pair of values.
-   * \test PASSED
-   */
-  std::pair<size_type, size_type> size() const noexcept {
+  /// Gets the row-count and column-count of the matrix, as a std::pair of values.
+  /// \return the row-count and column-count of the matrix, as a std::pair of values.
+  std::pair<int, int> size() const noexcept {
     return std::make_pair(v.size(), v.size());
   }
 
-  /**
-   * Matrix indexing accessor for read-only access.
-   * \param i Row index.
-   * \param j Column index.
-   * \return the element at the given position.
-   * \test PASSED
-   */
+  /// Matrix indexing accessor for read-only access.
+  /// \param i Row index.
+  /// \param j Column index.
+  /// \return the element at the given position.
   value_type operator()(int i, int j) const {
     return (i == j ? value_type(1.0) : value_type(0.0)) - beta * v[i] * v[j];
   }
@@ -277,28 +249,22 @@ class householder_matrix {
     return result;
   }
 
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
+  /// Transposes the matrix M.
+  /// \param M The matrix to be transposed.
+  /// \return The transpose of M.
   friend const self& transpose(const self& M) { return M; }
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
+  /// Transposes the matrix M.
+  /// \param M The matrix to be transposed.
+  /// \return The transpose of M.
   friend self transpose_move(self& M) {
     self result;
     swap(M, result);
     return result;
   }
 
-  /**
-   * Returns the trace of the matrix M.
-   * \param M The matrix.
-   * \return The trace of M.
-   */
+  /// Returns the trace of the matrix M.
+  /// \param M The matrix.
+  /// \return The trace of M.
   friend value_type trace(const self& M) {
     return value_type(M.v.size()) - M.beta * (M.v * M.v);
   }
@@ -330,13 +296,13 @@ struct is_col_resizable_matrix<householder_matrix<Vector>> {
 
 template <typename Vector>
 struct mat_product_priority<householder_matrix<Vector>> {
-  static constexpr std::size_t value =
+  static constexpr int value =
       detail::product_priority<mat_structure::diagonal>::value + 1;
 };
 
 template <typename Vector>
 struct mat_addition_priority<householder_matrix<Vector>> {
-  static constexpr std::size_t value =
+  static constexpr int value =
       detail::addition_priority<mat_structure::square>::value;
 };
 
@@ -358,15 +324,13 @@ struct is_diagonal_matrix<householder_matrix<Vector>> {
   using type = is_diagonal_matrix<householder_matrix<Vector>>;
 };
 
-/**
- * This function template allows for efficient post-multiplication of a matrix with a
- * Householder reflection matrix. This is generally more efficient then to perform a generic
- * matrix multiplication (and it is done in-place).
- * \tparam Matrix A fully-writable matrix type.
- * \tparam Vector A vector-type which is compatible with the value-type of the Matrix type (for arithmetic).
- * \param A The matrix to be multiplied by the Householder reflection, stores, as output, the resulting matrix.
- * \param P The Householder reflection which will post-multiply A.
- */
+/// This function template allows for efficient post-multiplication of a matrix with a
+/// Householder reflection matrix. This is generally more efficient then to perform a generic
+/// matrix multiplication (and it is done in-place).
+/// \tparam Matrix A fully-writable matrix type.
+/// \tparam Vector A vector-type which is compatible with the value-type of the Matrix type (for arithmetic).
+/// \param A The matrix to be multiplied by the Householder reflection, stores, as output, the resulting matrix.
+/// \param P The Householder reflection which will post-multiply A.
 template <typename Matrix, typename Vector>
 void householder_prod(Matrix& A, const householder_matrix<Vector>& P) {
   static_assert(is_fully_writable_matrix_v<Matrix>);
@@ -387,15 +351,13 @@ void householder_prod(Matrix& A, const householder_matrix<Vector>& P) {
   }
 }
 
-/**
- * This function template allows for efficient pre-multiplication of a matrix with a
- * Householder reflection matrix. This is generally more efficient then to perform a generic
- * matrix multiplication (and it is done in-place).
- * \tparam Matrix A fully-writable matrix type.
- * \tparam Vector A vector-type which is compatible with the value-type of the Matrix type (for arithmetic).
- * \param A The matrix to be multiplied by the Householder reflection, stores, as output, the resulting matrix.
- * \param P The Householder reflection which will pre-multiply A.
- */
+/// This function template allows for efficient pre-multiplication of a matrix with a
+/// Householder reflection matrix. This is generally more efficient then to perform a generic
+/// matrix multiplication (and it is done in-place).
+/// \tparam Matrix A fully-writable matrix type.
+/// \tparam Vector A vector-type which is compatible with the value-type of the Matrix type (for arithmetic).
+/// \param A The matrix to be multiplied by the Householder reflection, stores, as output, the resulting matrix.
+/// \param P The Householder reflection which will pre-multiply A.
 template <typename Matrix, typename Vector>
 void householder_prod(const householder_matrix<Vector>& P, Matrix& A) {
   static_assert(is_fully_writable_matrix_v<Matrix>);

@@ -42,17 +42,15 @@
 
 namespace ReaK {
 
-/**
- * This class implements a place-holder or interface-implementation to represent
- * a nil matrix (all entries zero). This is useful to build for example a
- * block-matrix with some zero-matrix blocks, and, of course, the storage is minimal.
- *
- * Models: ReadableMatrixConcept and ResizableMatrixConcept.
- *
- * \tparam T Arithmetic type of the elements of the matrix.
- * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
- *mat_alignment::column_major (default).
- */
+/// This class implements a place-holder or interface-implementation to represent
+/// a nil matrix (all entries zero). This is useful to build for example a
+/// block-matrix with some zero-matrix blocks, and, of course, the storage is minimal.
+///
+/// Models: ReadableMatrixConcept and ResizableMatrixConcept.
+///
+/// \tparam T Arithmetic type of the elements of the matrix.
+/// \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
+/// mat_alignment::column_major (default).
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
 class mat<T, mat_structure::nil, Alignment, RowCount, ColCount>
@@ -73,8 +71,8 @@ class mat<T, mat_structure::nil, Alignment, RowCount, ColCount>
   using col_iterator = void;
   using const_col_iterator = void;
 
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = int;
+  using difference_type = int;
 
   static constexpr unsigned int static_row_count = RowCount;
   static constexpr unsigned int static_col_count = ColCount;
@@ -82,150 +80,149 @@ class mat<T, mat_structure::nil, Alignment, RowCount, ColCount>
   static constexpr mat_structure::tag structure = mat_structure::nil;
 
  private:
-  size_type rowCount;  ///< Row Count.
-  size_type colCount;  ///< Column Count.
+  struct row_dynamic {
+    int rowCount = 0;
+  };
+  struct row_static {};
+  /// Hold run-time size rowCount.
+  std::conditional_t<(RowCount == 0), row_dynamic, row_static> row_data;
+  struct col_dynamic {
+    int colCount = 0;
+  };
+  struct col_static {};
+  /// Hold run-time size colCount.
+  std::conditional_t<(ColCount == 0), col_dynamic, col_static> col_data;
  public:
-  /**
-   * Default constructor. Sets dimensions to zero.
-   */
-  mat() : rowCount(0), colCount(0) {}
-  /**
-   * Constructs a null matrix to the given dimensions.
-   */
-  mat(size_type aRowCount, size_type aColCount)
-      : rowCount(aRowCount), colCount(aColCount) {}
-
-  mat(const self& rhs) : rowCount(rhs.rowCount), colCount(rhs.colCount) {}
-  /**
-   * Default destructor.
-   */
-  ~mat() override = default;
-
-  friend void swap(self& lhs, self& rhs) noexcept {
-    using std::swap;
-    swap(lhs.rowCount, rhs.rowCount);
-    swap(lhs.colCount, rhs.colCount);
+  /// Default constructor. Sets dimensions to zero.
+  mat() = default;
+  /// Constructs a null matrix to the given dimensions.
+  mat(int aRowCount, int aColCount) {
+    if constexpr (RowCount == 0) {
+      row_data.rowCount = aRowCount;
+    } else {
+      if (aRowCount != RowCount) {
+        throw std::range_error("Row count mismatch!");
+      }
+    }
+    if constexpr (ColCount == 0) {
+      col_data.colCount = aColCount;
+    } else {
+      if (aColCount != ColCount) {
+        throw std::range_error("Col count mismatch!");
+      }
+    }
   }
+
+  mat(const self& rhs) = default;
+  mat(self&& rhs) = default;
+  self& operator=(const self& rhs) = default;
+  self& operator=(self&& rhs) = default;
+  ~mat() override = default;
 
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Matrix indexing accessor for read-only access.
-   * \param i Row index.
-   * \param j Column index.
-   * \return the element at the given position.
-   * \test PASSED
-   */
-  const_reference operator()(size_type i, size_type j) const { return T(0.0); }
+  /// Matrix indexing accessor for read-only access.
+  /// \param i Row index.
+  /// \param j Column index.
+  /// \return the element at the given position.
+  const_reference operator()(int i, int j) const { return T(0.0); }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_sub_block<self> operator()(
-      const std::pair<size_type, size_type>& r,
-      const std::pair<size_type, size_type>& c) const {
+      const std::pair<int, int>& r,
+      const std::pair<int, int>& c) const {
     return sub(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_col_slice<self> operator()(
-      size_type r, const std::pair<size_type, size_type>& c) const {
+      int r, const std::pair<int, int>& c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
-  mat_const_row_slice<self> operator()(const std::pair<size_type, size_type>& r,
-                                       size_type c) const {
+  /// Sub-matrix operator, accessor for read only.
+  mat_const_row_slice<self> operator()(const std::pair<int, int>& r,
+                                       int c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Gets the row-count (number of rows) of the matrix.
-   * \return number of rows of the matrix.
-   * \test PASSED
-   */
-  size_type get_row_count() const { return rowCount; }
-
-  /**
-   * Sets the row-count (number of rows) of the matrix.
-   * \param aRowCount new number of rows for the matrix.
-   * \param aPreserveData If true, the resizing will preserve all the data it can.
-   * \test PASSED
-   */
-  void set_row_count(size_type aRowCount, bool aPreserveData = false) {
-    RK_UNUSED(aPreserveData);
-    rowCount = aRowCount;
+  /// Gets the row-count (number of rows) of the matrix.
+  /// \return number of rows of the matrix.
+  int get_row_count() const {
+    if constexpr (RowCount == 0) {
+      return row_data.rowCount;
+    } else {
+      return RowCount;
+    }
   }
 
-  /**
-   * Gets the column-count (number of columns) of the matrix.
-   * \return number of columns of the matrix.
-   * \test PASSED
-   */
-  size_type get_col_count() const { return colCount; }
-
-  /**
-   * Sets the column-count (number of columns) of the matrix.
-   * \param aColCount new number of columns for the matrix.
-   * \param aPreserveData If true, the resizing will preserve all the data it can.
-   * \test PASSED
-   */
-  void set_col_count(size_type aColCount, bool aPreserveData = false) {
-    RK_UNUSED(aPreserveData);
-    colCount = aColCount;
+  /// Sets the row-count (number of rows) of the matrix.
+  /// \param aRowCount new number of rows for the matrix.
+  /// \param aPreserveData If true, the resizing will preserve all the data it can.
+  void set_row_count(int aRowCount, bool /*unused*/ = false) {
+    if constexpr (RowCount == 0) {
+      row_data.rowCount = aRowCount;
+    } else {
+      if (aRowCount != RowCount) {
+        throw std::range_error("Row count mismatch!");
+      }
+    }
   }
 
-  /**
-   * Negate the matrix, has no effect of course.
-   * \return This matrix, by constant reference.
-   * \test PASSED
-   */
+  /// Gets the column-count (number of columns) of the matrix.
+  /// \return number of columns of the matrix.
+  int get_col_count() const {
+    if constexpr (ColCount == 0) {
+      return col_data.colCount;
+    } else {
+      return ColCount;
+    }
+  }
+
+  /// Sets the column-count (number of columns) of the matrix.
+  /// \param aColCount new number of columns for the matrix.
+  /// \param aPreserveData If true, the resizing will preserve all the data it can.
+  void set_col_count(int aColCount, bool /*unused*/ = false) {
+    if constexpr (ColCount == 0) {
+      col_data.colCount = aColCount;
+    } else {
+      if (aColCount != ColCount) {
+        throw std::range_error("Col count mismatch!");
+      }
+    }
+  }
+
+  /// Negate the matrix, has no effect of course.
+  /// \return This matrix, by constant reference.
   const self& operator-() const { return *this; }
 
-  /**
-   * Transposes the matrix M.
-   * \param rhs The nil matrix to be transposed.
-   * \return The transpose of rhs.
-   */
-  friend self transpose(self rhs) {
-    using std::swap;
-    swap(rhs.colCount, rhs.rowCount);
-    return rhs;
+  /// Transposes the matrix M.
+  /// \param rhs The nil matrix to be transposed.
+  /// \return The transpose of rhs.
+  friend auto transpose(const self& rhs) {
+    return mat<value_type, mat_structure::nil, Alignment, ColCount, RowCount>(rhs.get_col_count(), rhs.get_row_count());
   }
 
-  /**
-   * Transposes the matrix M.
-   * \param rhs The nil matrix to be transposed.
-   * \return The transpose of rhs.
-   */
-  friend self transpose_move(self& rhs) {
-    self result(rhs.colCount, rhs.rowCount);
-    return result;
+  /// Transposes the matrix M.
+  /// \param rhs The nil matrix to be transposed.
+  /// \return The transpose of rhs.
+  friend auto transpose_move(self& rhs) {
+    return transpose(rhs);
   }
 
-  /**
-   * Returns the trace of the matrix.
-   * \return the trace of the matrix.
-   */
+  /// Returns the trace of the matrix.
+  /// \return the trace of the matrix.
   friend value_type trace(const self& /*unused*/) { return value_type(0); }
 
-  /**
-   * Appends the matrix 'rhs' to the end of the matrix 'lhs', which are both nil matrices.
-   * \param lhs The nil matrix to which to append the other.
-   * \param rhs The nil matrix to be appended to 'lhs'.
-   */
-  friend void append_block_diag(self& lhs, const self& rhs) {
-    lhs.colCount += rhs.colCount;
-    lhs.rowCount += rhs.rowCount;
+  /// Appends the matrix 'rhs' to the end of the matrix 'lhs', which are both nil matrices.
+  /// \param lhs The nil matrix to which to append the other.
+  /// \param rhs The nil matrix to be appended to 'lhs'.
+  template <unsigned int SubRowCount, unsigned int SubColCount>
+  friend void append_block_diag(self& lhs, const mat<value_type, mat_structure::nil, Alignment, SubRowCount, SubColCount>& rhs) {
+    lhs.set_col_count(lhs.get_col_count() + rhs.get_col_count());
+    lhs.set_row_count(lhs.get_row_count() + rhs.get_row_count());
   }
 
   /*******************************************************************************
@@ -234,10 +231,20 @@ class mat<T, mat_structure::nil, Alignment, RowCount, ColCount>
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    A& RK_SERIAL_SAVE_WITH_NAME(rowCount) & RK_SERIAL_SAVE_WITH_NAME(colCount);
+    if constexpr (RowCount == 0) {
+      A & RK_SERIAL_SAVE_WITH_ALIAS("rowCount", row_data.rowCount);
+    }
+    if constexpr (ColCount == 0) {
+      A & RK_SERIAL_SAVE_WITH_ALIAS("colCount", col_data.colCount);
+    }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    A& RK_SERIAL_LOAD_WITH_NAME(rowCount) & RK_SERIAL_LOAD_WITH_NAME(colCount);
+    if constexpr (RowCount == 0) {
+      A & RK_SERIAL_LOAD_WITH_ALIAS("rowCount", row_data.rowCount);
+    }
+    if constexpr (ColCount == 0) {
+      A & RK_SERIAL_LOAD_WITH_ALIAS("colCount", col_data.colCount);
+    }
   }
 
   RK_RTTI_REGISTER_CLASS_1BASE(self, 1, serializable)

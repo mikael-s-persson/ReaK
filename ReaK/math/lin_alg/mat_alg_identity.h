@@ -41,22 +41,21 @@
 
 namespace ReaK {
 
-/**
- * This class implements a place-holder or interface-implementation to represent
- * a identity matrix (all entries zero except diagonal is all unity). This is useful to build for example a
- * block-matrix with some identity-matrix blocks, and, of course, requires minimal storage space.
- *
- * Models: ReadableMatrixConcept and ResizableMatrixConcept.
- *
- * \tparam T Arithmetic type of the elements of the matrix.
- * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
- *mat_alignment::column_major (default).
- */
+/// This class implements a place-holder or interface-implementation to represent
+/// a identity matrix (all entries zero except diagonal is all unity). This is useful to build for example a
+/// block-matrix with some identity-matrix blocks, and, of course, requires minimal storage space.
+///
+/// Models: ReadableMatrixConcept and ResizableMatrixConcept.
+///
+/// \tparam T Arithmetic type of the elements of the matrix.
+/// \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
+/// mat_alignment::column_major (default).
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
 class mat<T, mat_structure::identity, Alignment, RowCount, RowCount>
     : public serializable {
  public:
   using self = mat<T, mat_structure::identity, Alignment, RowCount, RowCount>;
+  static constexpr bool is_dynamic_size = (RowCount == 0);
 
   using value_type = T;
   using container_type = void;
@@ -71,8 +70,8 @@ class mat<T, mat_structure::identity, Alignment, RowCount, RowCount>
   using col_iterator = void;
   using const_col_iterator = void;
 
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using size_type = int;
+  using difference_type = int;
 
   static constexpr unsigned int static_row_count = RowCount;
   static constexpr unsigned int static_col_count = RowCount;
@@ -80,42 +79,40 @@ class mat<T, mat_structure::identity, Alignment, RowCount, RowCount>
   static constexpr mat_structure::tag structure = mat_structure::identity;
 
  private:
-  size_type rowCount;  ///< Row Count.
+  struct dynamic_data {
+    int rowCount = 0;
+  };
+  struct static_data {};
+  /// Hold run-time size rowCount.
+  std::conditional_t<is_dynamic_size, dynamic_data, static_data> data;
  public:
-  /**
-   * Default constructor. Sets dimensions to zero.
-   */
-  mat() : rowCount(0) {}
-  /**
-   * Constructs an identity matrix to the given dimensions.
-   */
-  explicit mat(size_type aRowCount) : rowCount(aRowCount) {}
-
-  mat(const self& rhs) : rowCount(rhs.rowCount) {}
-  /**
-   * Default destructor.
-   */
-  ~mat() override = default;
-
-  /**
-   * Standard swap function (works with ADL).
-   */
-  friend void swap(self& lhs, self& rhs) noexcept {
-    using std::swap;
-    swap(lhs.rowCount, rhs.rowCount);
+  /// Default constructor. Sets dimensions to zero.
+  mat() = default;
+  /// Constructs an identity matrix to the given dimensions.
+  explicit mat(int aRowCount) {
+    if constexpr (is_dynamic_size) {
+      data.rowCount = aRowCount;
+    } else {
+      if (aRowCount != RowCount) {
+        throw std::range_error("Row count mismatch!");
+      }
+    }
   }
+
+  mat(const self& rhs) = default;
+  mat(self&& rhs) = default;
+  self& operator=(const self& rhs) = default;
+  self& operator=(self&& rhs) = default;
+  ~mat() override = default;
 
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Matrix indexing accessor for read-only access.
-   * \param i Row index.
-   * \param j Column index.
-   * \return the element at the given position.
-   * \test PASSED
-   */
+  /// Matrix indexing accessor for read-only access.
+  /// \param i Row index.
+  /// \param j Column index.
+  /// \return the element at the given position.
   const_reference operator()(int i, int j) const {
     if (i == j) {
       return value_type(1);
@@ -123,116 +120,90 @@ class mat<T, mat_structure::identity, Alignment, RowCount, RowCount>
     return value_type(0);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_sub_block<self> operator()(const std::pair<int, int>& r,
                                        const std::pair<int, int>& c) const {
     return sub(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_col_slice<self> operator()(int r,
                                        const std::pair<int, int>& c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_row_slice<self> operator()(const std::pair<int, int>& r,
                                        int c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Gets the row-count (number of rows) of the matrix.
-   * \return number of rows of the matrix.
-   * \test PASSED
-   */
-  size_type get_row_count() const { return rowCount; }
-
-  /**
-   * Sets the row-count (number of rows) of the matrix.
-   * \param aRowCount new number of rows for the matrix.
-   * \param aPreserveData If true, the resizing will preserve all the data it can.
-   * \test PASSED
-   */
-  void set_row_count(size_type aRowCount, bool aPreserveData = false) {
-    RK_UNUSED(aPreserveData);
-    rowCount = aRowCount;
+  /// Gets the row-count (number of rows) of the matrix.
+  /// \return number of rows of the matrix.
+  int get_row_count() const {
+    if constexpr (is_dynamic_size) {
+      return data.rowCount;
+    } else {
+      return RowCount;
+    }
   }
 
-  /**
-   * Gets the column-count (number of columns) of the matrix.
-   * \return number of columns of the matrix.
-   * \test PASSED
-   */
-  size_type get_col_count() const { return rowCount; }
-
-  /**
-   * Sets the column-count (number of columns) of the matrix.
-   * \param aColCount new number of columns for the matrix.
-   * \param aPreserveData If true, the resizing will preserve all the data it can.
-   * \test PASSED
-   */
-  void set_col_count(size_type aColCount, bool aPreserveData = false) {
-    RK_UNUSED(aPreserveData);
-    rowCount = aColCount;
+  /// Sets the row-count (number of rows) of the matrix.
+  /// \param aRowCount new number of rows for the matrix.
+  /// \param aPreserveData If true, the resizing will preserve all the data it can.
+  void set_row_count(int aRowCount, bool /*unused*/ = false) {
+    if constexpr (is_dynamic_size) {
+      data.rowCount = aRowCount;
+    } else {
+      if (aRowCount != RowCount) {
+        throw std::range_error("Row count mismatch!");
+      }
+    }
   }
 
-  /**
-   * Negate the matrix.
-   * \return This matrix, by constant reference.
-   * \test PASSED
-   */
+  /// Gets the column-count (number of columns) of the matrix.
+  /// \return number of columns of the matrix.
+  int get_col_count() const { return get_row_count(); }
+
+  /// Sets the column-count (number of columns) of the matrix.
+  /// \param aColCount new number of columns for the matrix.
+  /// \param aPreserveData If true, the resizing will preserve all the data it can.
+  void set_col_count(int aColCount, bool /*unused*/ = false) {
+    set_row_count(aColCount);
+  }
+
+  /// Negate the matrix.
+  /// \return This matrix, by constant reference.
   mat<value_type, mat_structure::scalar> operator-() const {
-    return mat<value_type, mat_structure::scalar>(rowCount, value_type(-1));
+    return mat<value_type, mat_structure::scalar, Alignment, RowCount, RowCount>(get_row_count(), value_type(-1));
   }
 
-  /**
-   * Transpose the matrix.
-   * \param rhs the matrix to be transposed.
-   * \return The rhs matrix, by value.
-   * \test PASSED
-   */
+  /// Transpose the matrix.
+  /// \param rhs the matrix to be transposed.
+  /// \return The rhs matrix, by value.
   friend self transpose(const self& rhs) { return rhs; }
 
-  /**
-   * Transpose and move the matrix.
-   * \param rhs the matrix to be transposed and moved (emptied).
-   * \return The rhs matrix, by value.
-   * \test PASSED
-   */
+  /// Transpose and move the matrix.
+  /// \param rhs the matrix to be transposed and moved (emptied).
+  /// \return The rhs matrix, by value.
   friend self transpose_move(self& rhs) {
     self result;
     swap(result, rhs);
     return result;
   }
 
-  /**
-   * Returns the trace of a matrix.
-   * \param M A matrix.
-   * \return the trace of matrix M.
-   * \test PASSED
-   */
+  /// Returns the trace of a matrix.
+  /// \param M A matrix.
+  /// \return the trace of matrix M.
   friend value_type trace(const self& M) {
-    return static_cast<value_type>(M.rowCount);
+    return static_cast<value_type>(M.get_row_count());
   }
 
-  /**
-   * Appends a matrix to another.
-   * \param lhs the matrix to which 'rhs' will be appended to.
-   * \param rhs the matrix to append to 'lhs'.
-   * \test PASSED
-   */
+  /// Appends a matrix to another.
+  /// \param lhs the matrix to which 'rhs' will be appended to.
+  /// \param rhs the matrix to append to 'lhs'.
   friend void append_block_diag(self& lhs, const self& rhs) {
-    lhs.rowCount += rhs.rowCount;
+    lhs.set_row_count(lhs.get_row_count() + rhs.get_row_count());
   }
 
   /*******************************************************************************
@@ -241,10 +212,14 @@ class mat<T, mat_structure::identity, Alignment, RowCount, RowCount>
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    A& RK_SERIAL_SAVE_WITH_NAME(rowCount);
+    if constexpr (is_dynamic_size) {
+      A& RK_SERIAL_SAVE_WITH_ALIAS("rowCount", data.rowCount);
+    }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    A& RK_SERIAL_LOAD_WITH_NAME(rowCount);
+    if constexpr (is_dynamic_size) {
+      A& RK_SERIAL_LOAD_WITH_ALIAS("rowCount", data.rowCount);
+    }
   }
 
   RK_RTTI_REGISTER_CLASS_1BASE(self, 1, serializable)
@@ -263,12 +238,10 @@ mat<T, mat_structure::identity> mat_ident(int aRowCount) {
   return mat<T, mat_structure::identity>(aRowCount);
 }
 
-/**
- * Scalar multiplication, always results in a scalar matrix.
- * \param M some matrix.
- * \param S some scalar.
- * \return Scalar matrix.
- */
+/// Scalar multiplication, always results in a scalar matrix.
+/// \param M some matrix.
+/// \param S some scalar.
+/// \return Scalar matrix.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
 std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
                  mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>>
@@ -279,12 +252,10 @@ operator*(
       M.get_row_count(), S);
 }
 
-/**
- * Scalar multiplication, always results in a scalar matrix.
- * \param S some scalar.
- * \param M a null-matrix.
- * \return Scalar matrix.
- */
+/// Scalar multiplication, always results in a scalar matrix.
+/// \param S some scalar.
+/// \param M a null-matrix.
+/// \return Scalar matrix.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
 std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
                  mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>>

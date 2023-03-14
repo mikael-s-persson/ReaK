@@ -34,6 +34,7 @@
 
 #include "ReaK/math/lin_alg/mat_alg_general.h"
 #include "ReaK/math/lin_alg/mat_alg_identity.h"
+#include "ReaK/math/lin_alg/mat_op_results.h"
 
 #include <type_traits>
 
@@ -56,11 +57,12 @@ class mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>
  public:
   using self =
       mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>;
+  static constexpr bool is_dynamic_size = (RowCount == 0);
 
   using value_type = T;
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
-  using container_type = std::vector<size_type>;
+  using size_type = int;
+  using difference_type = int;
+  using container_type = std::conditional_t<is_dynamic_size, std::vector<int>, std::array<int, RowCount>>;
 
   using reference = void;
   using const_reference = T;
@@ -78,148 +80,145 @@ class mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>
   static constexpr mat_structure::tag structure = mat_structure::permutation;
 
  private:
-  container_type idx;
-  size_type rowCount;
+  struct dynamic_data {
+    container_type idx = {};
+    int rowCount = 0;
+  };
+  struct static_data {
+    container_type idx = {};
+  };
+  /// Array which holds all the permuted indices of the matrix (dimension: rowCount).
+  std::conditional_t<is_dynamic_size, dynamic_data, static_data> data;
 
  public:
-  /**
-   * Default constructor. Sets dimensions to zero.
-   */
-  mat() : rowCount(0) {}
-  /**
-   * Constructs an identity matrix to the given dimensions.
-   */
-  explicit mat(size_type aRowCount) : idx(aRowCount), rowCount(aRowCount) {
-    for (size_type i = 0; i < rowCount; ++i) {
-      idx[i] = i;
+  /// Default constructor. Sets dimensions to zero.
+  mat() = default;
+  mat(const self& rhs) = default;
+  mat(self&& rhs) = default;
+  self& operator=(const self& rhs) = default;
+  self& operator=(self&& rhs) = default;
+  ~mat() override = default;
+  /// Constructs an identity matrix to the given dimensions.
+  explicit mat(int aRowCount) {
+    if constexpr (is_dynamic_size) {
+      data.idx.resize(aRowCount);
+      data.rowCount = aRowCount;
+    } else {
+      if (aRowCount != RowCount) {
+        throw std::range_error("Row count mismatch!");
+      }
     }
-  }
-
-  /**
-   * Standard swap function (works with ADL).
-   */
-  friend void swap(self& lhs, self& rhs) noexcept {
-    using std::swap;
-    lhs.idx.swap(rhs.idx);
-    swap(lhs.rowCount, rhs.rowCount);
+    for (int i = 0; i < aRowCount; ++i) {
+      data.idx[i] = i;
+    }
   }
 
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Matrix indexing accessor for read-only access.
-   * \param i Row index.
-   * \param j Column index.
-   * \return the element at the given position.
-   * \test PASSED
-   */
+  /// Matrix indexing accessor for read-only access.
+  /// \param i Row index.
+  /// \param j Column index.
+  /// \return the element at the given position.
   const_reference operator()(int i, int j) const {
-    if (idx[i] == j) {
+    if (data.idx[i] == j) {
       return value_type(1);
     }
     return value_type(0);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_sub_block<self> operator()(const std::pair<int, int>& r,
                                        const std::pair<int, int>& c) const {
     return sub(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_col_slice<self> operator()(int r,
                                        const std::pair<int, int>& c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_row_slice<self> operator()(const std::pair<int, int>& r,
                                        int c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Gets the row-count (number of rows) of the matrix.
-   * \return number of rows of the matrix.
-   * \test PASSED
-   */
-  size_type get_row_count() const { return rowCount; }
-
-  /**
-   * Sets the row-count (number of rows) of the matrix.
-   * \param aRowCount new number of rows for the matrix.
-   * \param aPreserveData If true, the resizing will preserve all the data it can.
-   * \test PASSED
-   */
-  void set_row_count(size_type aRowCount, bool aPreserveData = false) {
-    RK_UNUSED(aPreserveData);
-    rowCount = aRowCount;
-    idx.resize(rowCount);
+  /// Gets the row-count (number of rows) of the matrix.
+  /// \return number of rows of the matrix.
+  int get_row_count() const {
+    if constexpr (is_dynamic_size) {
+      return data.rowCount;
+    } else {
+      return RowCount;
+    }
   }
 
-  /**
-   * Gets the column-count (number of columns) of the matrix.
-   * \return number of columns of the matrix.
-   * \test PASSED
-   */
-  size_type get_col_count() const { return rowCount; }
-
-  /**
-   * Sets the column-count (number of columns) of the matrix.
-   * \param aColCount new number of columns for the matrix.
-   * \param aPreserveData If true, the resizing will preserve all the data it can.
-   * \test PASSED
-   */
-  void set_col_count(size_type aColCount, bool aPreserveData = false) {
-    RK_UNUSED(aPreserveData);
-    rowCount = aColCount;
-    idx.resize(rowCount);
+  /// Sets the row-count (number of rows) of the matrix.
+  /// \param aRowCount new number of rows for the matrix.
+  /// \param aPreserveData If true, the resizing will preserve all the data it can.
+  void set_row_count(int aRowCount, bool /*unused*/ = false) {
+    if constexpr (is_dynamic_size) {
+      data.idx.resize(aRowCount);
+      if (aRowCount < data.rowCount) {
+        // Only choice is to reset to identity.
+        for (int i = 0; i < aRowCount; ++i) {
+          data.idx[i] = i;
+        }
+      } else if (aRowCount > data.rowCount) {
+        // Set new elements to identity.
+        for (int i = data.rowCount; i < aRowCount; ++i) {
+          data.idx[i] = i;
+        }
+      }
+      data.rowCount = aRowCount;
+    } else {
+      if (aRowCount != RowCount) {
+        throw std::range_error("Row count mismatch!");
+      }
+    }
   }
 
-  /**
-   * Get the index of the row that should be in-place of the given row index.
-   * Note that for column swap this mapping can simply be applied in reverse, that is,
-   * the returned index is the index of the original column that should appear at the
-   * given destination column index.
-   * \param i The index of the original row (or destination column).
-   * \return the index of the destination row (or original column).
-   */
-  int operator[](int i) const { return idx[i]; }
+  /// Gets the column-count (number of columns) of the matrix.
+  /// \return number of columns of the matrix.
+  int get_col_count() const { return get_row_count(); }
 
-  /**
-   * Append a row swap to this permutation matrix.
-   * Essentially equivalent to permute(i,j) * (this).
-   * \param i The first row involved in the swap.
-   * \param j The second row involved in the swap.
-   */
+  /// Sets the column-count (number of columns) of the matrix.
+  /// \param aColCount new number of columns for the matrix.
+  /// \param aPreserveData If true, the resizing will preserve all the data it can.
+  void set_col_count(int aColCount, bool /*unused*/ = false) {
+    set_row_count(aColCount);
+  }
+
+  /// Get the index of the row that should be in-place of the given row index.
+  /// Note that for column swap this mapping can simply be applied in reverse, that is,
+  /// the returned index is the index of the original column that should appear at the
+  /// given destination column index.
+  /// \param i The index of the original row (or destination column).
+  /// \return the index of the destination row (or original column).
+  int operator[](int i) const { return data.idx[i]; }
+
+  /// Append a row swap to this permutation matrix.
+  /// Essentially equivalent to permute(i,j) * (this).
+  /// \param i The first row involved in the swap.
+  /// \param j The second row involved in the swap.
   void add_row_swap(int i, int j) {
     if (i == j) {
       return;
     }
     using std::swap;
-    swap(idx[i], idx[j]);
+    swap(data.idx[i], data.idx[j]);
   }
 
-  /**
-   * Append a column swap to this permutation matrix.
-   * Essentially equivalent to (this) * permute(i,j).
-   * Note also that it is generally more efficient to add row swaps (for example, if
-   * you want to accumulated many column swaps, it is more efficient to accumulated them
-   * as row swaps and then invert (or transpose) the final permutation matrix).
-   * \param i The first column involved in the swap.
-   * \param j The second column involved in the swap.
-   */
+  /// Append a column swap to this permutation matrix.
+  /// Essentially equivalent to (this) * permute(i,j).
+  /// Note also that it is generally more efficient to add row swaps (for example, if
+  /// you want to accumulated many column swaps, it is more efficient to accumulated them
+  /// as row swaps and then invert (or transpose) the final permutation matrix).
+  /// \param i The first column involved in the swap.
+  /// \param j The second column involved in the swap.
   void add_column_swap(int i, int j) {
     if (i == j) {
       return;
@@ -227,77 +226,63 @@ class mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>
     using std::swap;
     int p_i = 0;
     int p_j = 0;
-    for (int k = 0; k < rowCount; ++k) {
-      if (idx[k] == i) {
+    for (int k = 0; k < get_row_count(); ++k) {
+      if (data.idx[k] == i) {
         p_i = k;
       }
-      if (idx[k] == j) {
+      if (data.idx[k] == j) {
         p_j = k;
       }
     }
-    swap(idx[p_i], idx[p_j]);
+    swap(data.idx[p_i], data.idx[p_j]);
   }
 
-  /**
-   * Negate the matrix.
-   * \return This matrix, by constant reference.
-   * \test PASSED
-   */
-  mat<value_type, mat_structure::scalar> operator-() const {
-    return mat<value_type, mat_structure::scalar>(rowCount, value_type(-1));
+  /// Negate the matrix. Loses the permutation structure.
+  auto operator-() const {
+    return -mat<value_type, mat_structure::square, Alignment, RowCount, RowCount>(*this);
   }
 
   friend self operator*(const self& M1, const self& M2) {
-    if (M1.get_row_count() != M2.get_row_count()) {
-      throw std::range_error("Matrix dimensions mismatch!");
+    if constexpr (is_dynamic_size) {
+      if (M1.get_row_count() != M2.get_row_count()) {
+        throw std::range_error("Matrix dimensions mismatch!");
+      }
     }
     self result(M1.get_row_count());
     for (int i = 0; i < M1.get_row_count(); ++i) {
-      result.idx[i] = M2.idx[M1.idx[i]];
+      result.data.idx[i] = M2.data.idx[M1.data.idx[i]];
     }
     return result;
   }
 
-  /**
-   * Transpose the matrix.
-   * \param rhs the matrix to be transposed.
-   * \return The transpose matrix, by value.
-   * \test PASSED
-   */
+  /// Transpose the matrix.
+  /// \param rhs the matrix to be transposed.
+  /// \return The transpose matrix, by value.
   friend self transpose(const self& rhs) {
-    self result(rhs.rowCount);
-    for (int i = 0; i < rhs.rowCount; ++i) {
-      result.idx[rhs.idx[i]] = i;
+    self result(rhs.get_row_count());
+    for (int i = 0; i < rhs.get_row_count(); ++i) {
+      result.data.idx[rhs.data.idx[i]] = i;
     }
     return result;
   }
 
-  /**
-   * Transpose and move the matrix.
-   * \param rhs the matrix to be transposed and moved (emptied).
-   * \return The transpose matrix, by value.
-   * \test PASSED
-   */
+  /// Transpose and move the matrix.
+  /// \param rhs the matrix to be transposed and moved (emptied).
+  /// \return The transpose matrix, by value.
   friend self transpose_move(const self& rhs) { return transpose(rhs); }
 
-  /**
-   * Invert the matrix.
-   * \param rhs the matrix to be inverted.
-   * \return The inverse matrix, by value.
-   * \test PASSED
-   */
+  /// Invert the matrix.
+  /// \param rhs the matrix to be inverted.
+  /// \return The inverse matrix, by value.
   friend self invert(const self& rhs) { return transpose(rhs); }
 
-  /**
-   * Returns the trace of a matrix.
-   * \param M A matrix.
-   * \return the trace of matrix M.
-   * \test PASSED
-   */
+  /// Returns the trace of a matrix.
+  /// \param M A matrix.
+  /// \return the trace of matrix M.
   friend value_type trace(const self& M) {
     value_type result(0);
     for (int i = 0; i < M.rowCount; ++i) {
-      if (M.idx[i] == i) {
+      if (M.data.idx[i] == i) {
         result += value_type(1);
       }
     }
@@ -310,12 +295,16 @@ class mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    A& RK_SERIAL_SAVE_WITH_NAME(idx) &
-        std::pair<std::string, size_type>("rowCount", rowCount);
+    A & RK_SERIAL_SAVE_WITH_ALIAS("idx", data.idx);
+    if constexpr (is_dynamic_size) {
+      A & RK_SERIAL_SAVE_WITH_ALIAS("rowCount", data.rowCount);
+    }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    A& RK_SERIAL_LOAD_WITH_NAME(idx) &
-        std::pair<std::string, size_type&>("rowCount", rowCount);
+    A & RK_SERIAL_LOAD_WITH_ALIAS("idx", data.idx);
+    if constexpr (is_dynamic_size) {
+      A & RK_SERIAL_LOAD_WITH_ALIAS("rowCount", data.rowCount);
+    }
   }
 
   RK_RTTI_REGISTER_CLASS_1BASE(self, 1, serializable)
@@ -329,13 +318,11 @@ struct mat_permutation {
 template <typename T>
 using mat_permutation_t = typename mat_permutation<T>::type;
 
-/**
- * Column-vector multiplication, returns a permutated vector.
- * \param M some permutation matrix.
- * \param V some vector.
- * \return A permutated vector.
- * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
- */
+/// Column-vector multiplication, returns a permutated vector.
+/// \param M some permutation matrix.
+/// \param V some vector.
+/// \return A permutated vector.
+/// \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
 template <typename T, typename Vector, mat_alignment::tag Alignment,
           unsigned int RowCount>
 std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
@@ -352,13 +339,11 @@ std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
   return result;
 }
 
-/**
- * Row-vector multiplication with permutation matrix, returns a permutated vector.
- * \param V some row-vector.
- * \param M some permutation matrix.
- * \return A permutated vector.
- * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
- */
+/// Row-vector multiplication with permutation matrix, returns a permutated vector.
+/// \param V some row-vector.
+/// \param M some permutation matrix.
+/// \return A permutated vector.
+/// \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
 template <typename T, typename Vector, mat_alignment::tag Alignment,
           unsigned int RowCount>
 std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
@@ -376,13 +361,11 @@ std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
   return result;
 }
 
-/**
- * Scalar multiplication of a permutation matrix.
- * \param M some permutation matrix.
- * \param S some scalar.
- * \return A square matrix.
- * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
- */
+/// Scalar multiplication of a permutation matrix.
+/// \param M some permutation matrix.
+/// \param S some scalar.
+/// \return A square matrix.
+/// \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
 std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
                  mat<T, mat_structure::square, Alignment, RowCount, RowCount>>
@@ -397,13 +380,11 @@ operator*(
   return result;
 }
 
-/**
- * Scalar multiplication of a permutation matrix.
- * \param S some scalar.
- * \param M some permutation matrix.
- * \return A square matrix.
- * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
- */
+/// Scalar multiplication of a permutation matrix.
+/// \param S some scalar.
+/// \param M some permutation matrix.
+/// \return A square matrix.
+/// \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
 std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
                  mat<T, mat_structure::square, Alignment, RowCount, RowCount>>
@@ -417,27 +398,24 @@ operator*(const T& S, const mat<T, mat_structure::permutation, Alignment,
   return result;
 }
 
-/**
- * Matrix multiplication with permutation matrix (column permutation).
- * \param M1 some matrix.
- * \param M2 a permutation-matrix.
- * \return A permuted matrix.
- * \throw std::range_error if matrices' dimensions are not proper for multiplication.
- */
+/// Matrix multiplication with permutation matrix (column permutation).
+/// \param M1 some matrix.
+/// \param M2 a permutation-matrix.
+/// \return A permuted matrix.
+/// \throw std::range_error if matrices' dimensions are not proper for multiplication.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount,
           typename Matrix>
 std::enable_if_t<
-    !is_readable_matrix_v<Matrix> &&
+    is_readable_matrix_v<Matrix> &&
         (mat_product_priority_v<Matrix> <
          mat_product_priority_v<mat<T, mat_structure::permutation, Alignment,
                                     RowCount, RowCount>>),
-    mat<T, mat_structure::rectangular, Alignment>>
-operator*(const Matrix& M1, const mat<T, mat_structure::permutation, Alignment,
-                                      RowCount, RowCount>& M2) {
+    mat_product_result_t<Matrix, mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>>>
+operator*(const Matrix& M1, const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>& M2) {
   if (M1.get_col_count() != M2.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
   }
-  mat<T, mat_structure::rectangular, Alignment> result(M1.get_row_count(),
+  mat_product_result_t<Matrix, mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>> result(M1.get_row_count(),
                                                        M1.get_col_count());
   for (int i = 0; i < result.get_col_count(); ++i) {
     for (int j = 0; j < result.get_row_count(); ++j) {
@@ -447,13 +425,11 @@ operator*(const Matrix& M1, const mat<T, mat_structure::permutation, Alignment,
   return result;
 }
 
-/**
- * Matrix multiplication with permutation matrix (row permutation).
- * \param M1 a permutation-matrix.
- * \param M2 some matrix.
- * \return A permuted matrix.
- * \throw std::range_error if matrices' dimensions are not proper for multiplication.
- */
+/// Matrix multiplication with permutation matrix (row permutation).
+/// \param M1 a permutation-matrix.
+/// \param M2 some matrix.
+/// \return A permuted matrix.
+/// \throw std::range_error if matrices' dimensions are not proper for multiplication.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount,
           typename Matrix>
 std::enable_if_t<
@@ -461,14 +437,14 @@ std::enable_if_t<
         (mat_product_priority_v<Matrix> <
          mat_product_priority_v<mat<T, mat_structure::permutation, Alignment,
                                     RowCount, RowCount>>),
-    mat<T, mat_structure::rectangular, Alignment>>
+    mat_product_result_t<mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>, Matrix>>
 operator*(
     const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>& M1,
     const Matrix& M2) {
   if (M1.get_col_count() != M2.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
   }
-  mat<T, mat_structure::rectangular, Alignment> result(M2.get_row_count(),
+  mat_product_result_t<mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>, Matrix> result(M2.get_row_count(),
                                                        M2.get_col_count());
   for (int j = 0; j < result.get_row_count(); ++j) {
     for (int i = 0; i < result.get_col_count(); ++i) {

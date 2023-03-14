@@ -47,25 +47,24 @@
 
 namespace ReaK {
 
-/**
- * This class template specialization implements a matrix with rectangular structure
- * and column-major alignment. This class is serializable and registered to the ReaK::rtti
- * system. This matrix type is dynamically resizable.
- *
- * Models: ReadableMatrixConcept, WritableMatrixConcept, FullyWritableMatrixConcept,
- * and ResizableMatrixConcept.
- *
- * \tparam T Arithmetic type of the elements of the matrix.
- */
+/// This class template specialization implements a matrix with rectangular structure
+/// and column-major alignment. This class is serializable and registered to the ReaK::rtti
+/// system. This matrix type is dynamically resizable.
+///
+/// Models: ReadableMatrixConcept, WritableMatrixConcept, FullyWritableMatrixConcept,
+/// and ResizableMatrixConcept.
+///
+/// \tparam T Arithmetic type of the elements of the matrix.
 template <typename T, unsigned int RowCount, unsigned int ColCount>
 class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
           ColCount> : public serializable {
  public:
   using self = mat<T, mat_structure::rectangular, mat_alignment::column_major,
                    RowCount, ColCount>;
+  static constexpr bool is_dynamic_size = (RowCount == 0 || ColCount == 0);
 
   using value_type = T;
-  using container_type = std::vector<value_type>;
+  using container_type = std::conditional_t<is_dynamic_size, std::vector<value_type>, std::array<value_type, RowCount * ColCount>>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -78,8 +77,8 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   using row_iterator = typename container_type::iterator;
   using const_row_iterator = typename container_type::const_iterator;
 
-  using size_type = typename container_type::size_type;
-  using difference_type = typename container_type::difference_type;
+  using size_type = int;
+  using difference_type = int;
 
   static constexpr unsigned int static_row_count = RowCount;
   static constexpr unsigned int static_col_count = ColCount;
@@ -87,338 +86,307 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
  private:
+  struct dynamic_data {
+    container_type q = {};
+    int rowCount = 0;
+    int colCount = 0;
+  };
+  struct static_data {
+    container_type q = {};
+  };
   /// Array which holds all the values of the matrix (dimension: rowCount x colCount).
-  container_type q;
-  size_type rowCount;
-  size_type colCount;
+  std::conditional_t<is_dynamic_size, dynamic_data, static_data> data;
 
  public:
   /*******************************************************************************
                            Constructors / Destructors
   *******************************************************************************/
 
-  /**
-   * Default constructor: sets all to zero.
-   * \test PASSED
-   */
-  mat() : q(0, value_type()), rowCount(0), colCount(0) {}
+  /// Default constructor: sets all to zero.
+  mat() : data() {}
 
-  /**
-   * Constructor for a sized matrix.
-   * \test PASSED
-   */
-  mat(size_type aRowCount, size_type aColCount,
-      const value_type& aFill = value_type())
-      : q(aRowCount * aColCount, aFill),
-        rowCount(aRowCount),
-        colCount(aColCount) {}
+  /// Constructor for a sized matrix.
+  mat(int aRowCount, int aColCount,
+      const value_type& aFill = value_type(0.0)) {
+    if constexpr (is_dynamic_size) {
+      if constexpr (RowCount != 0) {
+        if (aRowCount != RowCount) {
+          throw std::range_error("Row count mismatch!");
+        }
+      } else if constexpr (ColCount != 0) {
+        if (aColCount != ColCount) {
+          throw std::range_error("Col count mismatch!");
+        }
+      }
+      data.q.resize(aRowCount * aColCount, aFill);
+      data.rowCount = aRowCount;
+      data.colCount = aColCount;
+    } else {
+      if (aRowCount != RowCount) {
+        throw std::range_error("Row count mismatch!");
+      }
+      if (aColCount != ColCount) {
+        throw std::range_error("Col count mismatch!");
+      }
+      std::fill(data.q.begin(), data.q.end(), aFill);
+    }
+  }
 
-  /**
-   * Constructor for an identity matrix.
-   * \test PASSED
-   */
-  mat(size_type aRowCount, size_type aColCount, bool aIdentity)
-      : q(aRowCount * aColCount, 0), rowCount(aRowCount), colCount(aColCount) {
+  /// Constructor for an identity matrix.
+  mat(int aRowCount, int aColCount, bool aIdentity)
+      : mat(aRowCount, aColCount, value_type(0.0)) {
     if (aIdentity) {
+      const int rowCount = get_row_count();
+      const int colCount = get_col_count();
       int minN = (colCount < rowCount ? colCount : rowCount) * (rowCount + 1);
       for (int i = 0; i < minN; i += rowCount + 1) {
-        q[i] = 1;
+        data.q[i] = 1;
       }
     }
   }
 
   /// Default Copy/Move Constructors.
-  mat(const self& M) = default;
-  mat(self&& M) noexcept = default;
+  mat(const self& rhs) = default;
+  mat(self&& rhs) = default;
+  self& operator=(const self& rhs) = default;
+  self& operator=(self&& rhs) = default;
+  ~mat() override = default;
 
-  /**
-   * Explicit constructor from a any type of matrix.
-   * \test PASSED
-   */
+  /// Explicit constructor from a any type of matrix.
   template <typename Matrix>
   mat(const Matrix& M,  // NOLINT
       std::enable_if_t<
           is_readable_matrix_v<Matrix> && !std::is_same_v<Matrix, self>, void*>
           dummy = nullptr)
-      : q(M.get_row_count() * M.get_col_count(), T(0.0)),
-        rowCount(M.get_row_count()),
-        colCount(M.get_col_count()) {
-    auto it = q.begin();
-    for (int j = 0; j < colCount; ++j) {
-      for (int i = 0; i < rowCount; ++i, ++it) {
+      : mat(M.get_row_count(), M.get_col_count(), T(0.0)) {
+    auto it = data.q.begin();
+    for (int j = 0; j < get_col_count(); ++j) {
+      for (int i = 0; i < get_row_count(); ++i, ++it) {
         *it = M(i, j);
       }
     }
   }
 
-  /**
-   * Constructor from a vector of column major values.
-   */
-  mat(const container_type& Q, size_type aRowCount, size_type aColCount)
-      : q(Q), rowCount(aRowCount), colCount(aColCount) {}
-
-  /**
-   * Destructor.
-   * \test PASSED
-   */
-  ~mat() override = default;
-
-  /**
-   * Constructs a 2x2 matrix from four elements.
-   * \test PASSED
-   */
-  mat(const value_type& a11, const value_type& a12, const value_type& a21,
-      const value_type& a22)
-      : q(4), rowCount(2), colCount(2) {
-    q[0] = a11;
-    q[1] = a21;
-    q[2] = a12;
-    q[3] = a22;
+  /// Constructor from a vector of column major values.
+  mat(const container_type& Q, int aRowCount, int aColCount)
+      : mat(aRowCount, aColCount) {
+    std::copy(Q.begin(), Q.end(), data.q.begin());
   }
 
-  /**
-   * Constructs a 3x3 matrix from nine elements.
-   * \test PASSED
-   */
+  /// Constructs a 2x2 matrix from four elements.
+  mat(const value_type& a11, const value_type& a12, const value_type& a21,
+      const value_type& a22)
+      : mat(2, 2) {
+    data.q[0] = a11;
+    data.q[1] = a21;
+    data.q[2] = a12;
+    data.q[3] = a22;
+  }
+
+  /// Constructs a 3x3 matrix from nine elements.
   mat(const value_type& a11, const value_type& a12, const value_type& a13,
       const value_type& a21, const value_type& a22, const value_type& a23,
       const value_type& a31, const value_type& a32, const value_type& a33)
-      : q(9), rowCount(3), colCount(3) {
-    q[0] = a11;
-    q[1] = a21;
-    q[2] = a31;
-    q[3] = a12;
-    q[4] = a22;
-    q[5] = a32;
-    q[6] = a13;
-    q[7] = a23;
-    q[8] = a33;
+      : mat(3, 3) {
+    data.q[0] = a11;
+    data.q[1] = a21;
+    data.q[2] = a31;
+    data.q[3] = a12;
+    data.q[4] = a22;
+    data.q[5] = a32;
+    data.q[6] = a13;
+    data.q[7] = a23;
+    data.q[8] = a33;
   }
 
-  /**
-   * Constructs a 4x4 matrix from sixteen elements.
-   * \test PASSED
-   */
+  /// Constructs a 4x4 matrix from sixteen elements.
   mat(const value_type& a11, const value_type& a12, const value_type& a13,
       const value_type& a14, const value_type& a21, const value_type& a22,
       const value_type& a23, const value_type& a24, const value_type& a31,
       const value_type& a32, const value_type& a33, const value_type& a34,
       const value_type& a41, const value_type& a42, const value_type& a43,
       const value_type& a44)
-      : q(16), rowCount(4), colCount(4) {
-    q[0] = a11;
-    q[1] = a21;
-    q[2] = a31;
-    q[3] = a41;
-    q[4] = a12;
-    q[5] = a22;
-    q[6] = a32;
-    q[7] = a42;
-    q[8] = a13;
-    q[9] = a23;
-    q[10] = a33;
-    q[11] = a43;
-    q[12] = a14;
-    q[13] = a24;
-    q[14] = a34;
-    q[15] = a44;
+      : mat(4, 4) {
+    data.q[0] = a11;
+    data.q[1] = a21;
+    data.q[2] = a31;
+    data.q[3] = a41;
+    data.q[4] = a12;
+    data.q[5] = a22;
+    data.q[6] = a32;
+    data.q[7] = a42;
+    data.q[8] = a13;
+    data.q[9] = a23;
+    data.q[10] = a33;
+    data.q[11] = a43;
+    data.q[12] = a14;
+    data.q[13] = a24;
+    data.q[14] = a34;
+    data.q[15] = a44;
   }
 
-  /**
-   * The standard swap function (works with ADL).
-   */
+  /// The standard swap function (works with ADL).
   friend void swap(self& m1, self& m2) noexcept {
     using std::swap;
-    swap(m1.q, m2.q);
-    swap(m1.rowCount, m2.rowCount);
-    swap(m1.colCount, m2.colCount);
+    swap(m1.data.q, m2.data.q);
+    if constexpr (is_dynamic_size) {
+      swap(m1.data.rowCount, m2.data.rowCount);
+      swap(m1.data.colCount, m2.data.colCount);
+    }
   }
 
-  /**
-   * A swap function to swap the matrix with a container of values to fill the matrix.
-   * \param m1 The matrix to swap with the container.
-   * \param q2 The container that will be swapped with m1's internal container.
-   * \param rowCount2 The row-count corresponding to q2's data.
-   * \param colCount2 The column-count corresponding to q2's data.
-   */
-  friend void swap(self& m1, container_type& q2, size_type& rowCount2,
-                   size_type& colCount2) noexcept {
+  friend void swap(self& m1, container_type& q2, int& rowCount2,
+                   int& colCount2) noexcept {
     using std::swap;
-    swap(m1.q, q2);
-    swap(m1.rowCount, rowCount2);
-    swap(m1.colCount, colCount2);
-  }
-
-  /**
-   * Standard copy-assignment operator (and move-assignment operator, for C++0x). Uses the copy-and-swap (and
-   * move-and-swap) idiom.
-   */
-  self& operator=(self rhs) {
-    swap(*this, rhs);
-    return *this;
+    swap(m1.data.q, q2);
+    if constexpr (is_dynamic_size) {
+      swap(m1.data.rowCount, rowCount2);
+      swap(m1.data.colCount, colCount2);
+    }
   }
 
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Matrix indexing accessor for read-write access.
-   * \param i Row index.
-   * \param j Column index.
-   * \return the element at the given position.
-   * \test PASSED
-   */
-  reference operator()(int i, int j) { return q[j * rowCount + i]; }
-  /**
-   * Matrix indexing accessor for read-only access.
-   * \param i Row index.
-   * \param j Column index.
-   * \return the element at the given position.
-   * \test PASSED
-   */
-  const_reference operator()(int i, int j) const { return q[j * rowCount + i]; }
+  /// Matrix indexing accessor for read-write access.
+  /// \param i Row index.
+  /// \param j Column index.
+  /// \return the element at the given position.
+  reference operator()(int i, int j) { return data.q[j * get_row_count() + i]; }
+  /// Matrix indexing accessor for read-only access.
+  /// \param i Row index.
+  /// \param j Column index.
+  /// \return the element at the given position.
+  const_reference operator()(int i, int j) const { return data.q[j * get_row_count() + i]; }
 
-  /**
-   * Sub-matrix operator, accessor for read/write.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read/write.
   mat_sub_block<self> operator()(const std::pair<int, int>& r,
                                  const std::pair<int, int>& c) {
     return sub(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_sub_block<self> operator()(const std::pair<int, int>& r,
                                        const std::pair<int, int>& c) const {
     return sub(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read/write.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read/write.
   mat_col_slice<self> operator()(int r, const std::pair<int, int>& c) {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_col_slice<self> operator()(int r,
                                        const std::pair<int, int>& c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read/write.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read/write.
   mat_row_slice<self> operator()(const std::pair<int, int>& r, int c) {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_row_slice<self> operator()(const std::pair<int, int>& r,
                                        int c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Gets the row-count (number of rows) of the matrix.
-   * \return number of rows of the matrix.
-   * \test PASSED
-   */
-  size_type get_row_count() const noexcept { return rowCount; }
-  /**
-   * Gets the column-count (number of columns) of the matrix.
-   * \return number of columns of the matrix.
-   * \test PASSED
-   */
-  size_type get_col_count() const noexcept { return colCount; }
-
-  /**
-   * Gets the row-count and column-count of the matrix, as a std::pair of values.
-   * \return the row-count and column-count of the matrix, as a std::pair of values.
-   * \test PASSED
-   */
-  std::pair<size_type, size_type> size() const noexcept {
-    return {rowCount, colCount};
+  /// Gets the row-count (number of rows) of the matrix.
+  /// \return number of rows of the matrix.
+  int get_row_count() const noexcept {
+    if constexpr (RowCount == 0) {
+      return data.rowCount;
+    } else {
+      return RowCount;
+    }
   }
-  /**
-   * Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
-   * \param sz new dimensions for the matrix.
-   * \test PASSED
-   */
-  void resize(const std::pair<size_type, size_type>& sz) {
+  /// Gets the column-count (number of columns) of the matrix.
+  /// \return number of columns of the matrix.
+  int get_col_count() const noexcept {
+    if constexpr (ColCount == 0) {
+      return data.colCount;
+    } else {
+      return ColCount;
+    }
+  }
+
+  /// Gets the row-count and column-count of the matrix, as a std::pair of values.
+  /// \return the row-count and column-count of the matrix, as a std::pair of values.
+  std::pair<int, int> size() const noexcept {
+    return {get_row_count(), get_col_count()};
+  }
+  /// Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
+  /// \param sz new dimensions for the matrix.
+  void resize(const std::pair<int, int>& sz) {
     set_row_count(sz.first, true);
     set_col_count(sz.second, true);
   }
 
-  /**
-   * Sets the row-count (number of rows) of the matrix.
-   * \param aRowCount new number of rows for the matrix.
-   * \param aPreserveData If true, the resizing will preserve all the data it can.
-   * \test PASSED
-   */
-  void set_row_count(size_type aRowCount, bool aPreserveData = false) {
-    if (aPreserveData) {
-      if (aRowCount > rowCount) {
-        for (int i = 0; i < colCount; ++i) {
-          q.insert(q.begin() + i * aRowCount, aRowCount - rowCount,
-                   value_type(0.0));
-        }
-      } else if (aRowCount < rowCount) {
-        for (int i = 1; i < colCount; ++i) {
-          for (int j = 0; j < aRowCount; ++j) {
-            q[i * aRowCount + j] = q[i * rowCount + j];
-          }
-        }
+  /// Sets the row-count (number of rows) of the matrix.
+  /// \param aRowCount new number of rows for the matrix.
+  /// \param aPreserveData If true, the resizing will preserve all the data it can.
+  void set_row_count(int aRowCount, bool aPreserveData = false) {
+    if constexpr (RowCount != 0) {
+      if (aRowCount != RowCount) {
+        throw std::range_error("Row count mismatch!");
       }
     } else {
-      q.resize(colCount * aRowCount, value_type(0.0));
+      if (aPreserveData) {
+        if (aRowCount > data.rowCount) {
+          for (int i = 0; i < data.colCount; ++i) {
+            data.q.insert(data.q.begin() + i * aRowCount, aRowCount - data.rowCount,
+                     value_type(0.0));
+          }
+        } else if (aRowCount < data.rowCount) {
+          for (int i = 1; i < data.colCount; ++i) {
+            for (int j = 0; j < aRowCount; ++j) {
+              data.q[i * aRowCount + j] = data.q[i * data.rowCount + j];
+            }
+          }
+        }
+      } else {
+        data.q.resize(data.colCount * aRowCount, value_type(0.0));
+      }
+      data.rowCount = aRowCount;
     }
-    rowCount = aRowCount;
   }
 
-  /**
-   * Sets the column-count (number of columns) of the matrix.
-   * \param aColCount new number of columns for the matrix.
-   * \param aPreserveData If true, the resizing will preserve all the data it can.
-   * \test PASSED
-   */
-  void set_col_count(size_type aColCount, bool aPreserveData = false) {
-    RK_UNUSED(aPreserveData);
-    q.resize(aColCount * rowCount, value_type(0.0));
-    colCount = aColCount;
+  /// Sets the column-count (number of columns) of the matrix.
+  /// \param aColCount new number of columns for the matrix.
+  /// \param aPreserveData If true, the resizing will preserve all the data it can.
+  void set_col_count(int aColCount, bool /*aPreserveData*/ = false) {
+    if constexpr (ColCount != 0) {
+      if (aColCount != ColCount) {
+        throw std::range_error("Col count mismatch!");
+      }
+    } else {
+      data.q.resize(aColCount * data.rowCount, value_type(0.0));
+      data.colCount = aColCount;
+    }
   }
 
-  row_iterator first_row() { return q.begin(); }
-  const_row_iterator first_row() const { return q.begin(); }
-  row_iterator last_row() { return q.begin() + rowCount; }
-  const_row_iterator last_row() const { return q.begin() + rowCount; }
+  row_iterator first_row() { return data.q.begin(); }
+  const_row_iterator first_row() const { return data.q.begin(); }
+  row_iterator last_row() { return data.q.begin() + get_row_count(); }
+  const_row_iterator last_row() const { return data.q.begin() + get_row_count(); }
   row_iterator first_row(col_iterator cit) {
-    int diff = cit.base() - q.begin();
-    return q.begin() + ((diff / rowCount) * rowCount);
+    int diff = cit.base() - data.q.begin();
+    return data.q.begin() + ((diff / get_row_count()) * get_row_count());
   }
   const_row_iterator first_row(const_col_iterator cit) const {
-    int diff = cit.base() - q.begin();
-    return q.begin() + ((diff / rowCount) * rowCount);
+    int diff = cit.base() - data.q.begin();
+    return data.q.begin() + ((diff / get_row_count()) * get_row_count());
   }
   row_iterator last_row(col_iterator cit) {
-    int diff = cit.base() - q.begin();
-    return q.begin() + ((diff / rowCount + 1) * rowCount);
+    int diff = cit.base() - data.q.begin();
+    return data.q.begin() + ((diff / get_row_count() + 1) * get_row_count());
   }
   const_row_iterator last_row(const_col_iterator cit) const {
-    int diff = cit.base() - q.begin();
-    return q.begin() + ((diff / rowCount + 1) * rowCount);
+    int diff = cit.base() - data.q.begin();
+    return data.q.begin() + ((diff / get_row_count() + 1) * get_row_count());
   }
   std::pair<row_iterator, row_iterator> rows() {
     return {first_row(), last_row()};
@@ -434,27 +402,27 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
     return {first_row(cit), last_row(cit)};
   }
 
-  col_iterator first_col() { return {q.begin(), rowCount}; }
-  const_col_iterator first_col() const { return {q.begin(), rowCount}; }
+  col_iterator first_col() { return {data.q.begin(), get_row_count()}; }
+  const_col_iterator first_col() const { return {data.q.begin(), get_row_count()}; }
   col_iterator last_col() {
-    return {q.begin() + colCount * rowCount, rowCount};
+    return {data.q.begin() + get_col_count() * get_row_count(), get_row_count()};
   }
   const_col_iterator last_col() const {
-    return {q.begin() + colCount * rowCount, rowCount};
+    return {data.q.begin() + get_col_count() * get_row_count(), get_row_count()};
   }
   col_iterator first_col(row_iterator rit) {
-    return {q.begin() + ((rit - q.begin()) % rowCount), rowCount};
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()), get_row_count()};
   }
   const_col_iterator first_col(const_row_iterator rit) const {
-    return {q.begin() + ((rit - q.begin()) % rowCount), rowCount};
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()), get_row_count()};
   }
   col_iterator last_col(row_iterator rit) {
-    return {q.begin() + ((rit - q.begin()) % rowCount) + colCount * rowCount,
-            rowCount};
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()) + get_col_count() * get_row_count(),
+            get_row_count()};
   }
   const_col_iterator last_col(const_row_iterator rit) const {
-    return {q.begin() + ((rit - q.begin()) % rowCount) + colCount * rowCount,
-            rowCount};
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()) + get_col_count() * get_row_count(),
+            get_row_count()};
   }
   std::pair<col_iterator, col_iterator> cols() {
     return {first_col(), last_col()};
@@ -474,11 +442,8 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
                            Assignment Operators
   *******************************************************************************/
 
-  /** COL-MAJOR ONLY
-   * Standard Assignment operator with standard semantics.
-   * Strong exception-safety.
-   * \test PASSED
-   */
+  /// Standard Assignment operator with standard semantics.
+  /// Strong exception-safety.
   template <typename Matrix>
   self& operator=(const Matrix& M) {
     self tmp(M);
@@ -486,117 +451,102 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
     return *this;
   }
 
-  /** COL-MAJOR ONLY
-   * Add-and-store operator with standard semantics.
-   * \test PASSED
-   */
+  /// Add-and-store operator with standard semantics.
   template <typename Matrix>
   self& operator+=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
+    if ((M.get_col_count() != get_col_count()) || (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    auto it = q.begin();
-    for (int j = 0; j < colCount; ++j) {
-      for (int i = 0; i < rowCount; ++i, ++it) {
+    auto it = data.q.begin();
+    for (int j = 0; j < get_col_count(); ++j) {
+      for (int i = 0; i < get_row_count(); ++i, ++it) {
         *it += M(i, j);
       }
     }
     return *this;
   }
 
-  /** COL-MAJOR ONLY
-   * Sub-and-store operator with standard semantics.
-   * \test PASSED
-   */
+  /// Sub-and-store operator with standard semantics.
   template <typename Matrix>
   self& operator-=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
+    if ((M.get_col_count() != get_col_count()) || (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    auto it = q.begin();
-    for (int j = 0; j < colCount; ++j) {
-      for (int i = 0; i < rowCount; ++i, ++it) {
+    auto it = data.q.begin();
+    for (int j = 0; j < get_col_count(); ++j) {
+      for (int i = 0; i < get_row_count(); ++i, ++it) {
         *it -= M(i, j);
       }
     }
     return *this;
   }
 
-  /** WORKS FOR ALL
-   * Scalar-multiply-and-store operator with standard semantics.
-   * \test PASSED
-   */
-  self& operator*=(const value_type& S) {
-    for (auto it = q.begin(); it != q.end(); ++it) {
-      *it *= S;
+  /// Multiply-and-store operator with standard semantics.
+  template <typename RhsType>
+  self& operator*=(const RhsType& rhs) {
+    if constexpr (is_readable_matrix_v<RhsType>) {
+      self result(*this * rhs);
+      swap(*this, result);
+      return *this;
+    } else {
+      for (auto& x : data.q) {
+        x *= rhs;
+      }
+      return *this;
     }
-    return *this;
   }
 
-  /** WORKS FOR ALL
-   * General Matrix multiplication.
-   * \test PASSED
-   */
-  template <typename Matrix>
-  std::enable_if_t<is_readable_matrix_v<Matrix>, self&> operator*=(
-      const Matrix& M) {
-    self result = *this * M;
-    swap(*this, result);
-    return *this;
-  }
-
-  /** WORKS FOR ALL
-   * General negation operator for any type of matrices. This is a default operator
-   * that will be called if no better special-purpose overload exists.
-   * \return General column-major matrix.
-   * \test PASSED
-   */
+  /// General negation operator for any type of matrices. This is a default operator
+  /// that will be called if no better special-purpose overload exists.
+  /// \return General column-major matrix.
   self operator-() const {
     self result(*this);
-    auto itr = result.q.begin();
-    for (auto it = q.begin(); it != q.end(); ++it, ++itr) {
+    auto itr = result.data.q.begin();
+    for (auto it = data.q.begin(); it != data.q.end(); ++it, ++itr) {
       *itr = -(*it);
     }
     return result;
   }
 
-  /**
-   * Transposes the matrix M by a simple copy with a change of alignment.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
+  /// Transposes the matrix M by a simple copy with a change of alignment.
+  /// \param M The matrix to be transposed.
+  /// \return The transpose of M.
   friend auto transpose(const self& M) {
     return mat<T, mat_structure::rectangular, mat_alignment::row_major,
-               ColCount, RowCount>(M.q, M.colCount, M.rowCount);
+               ColCount, RowCount>(M.data.q, M.get_col_count(), M.get_row_count());
   }
 
-  /**
-   * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
+  /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
+  /// \param M The matrix to be transposed.
+  /// \return The transpose of M.
   friend auto transpose_move(self& M) {
-    mat<T, mat_structure::rectangular, mat_alignment::row_major, ColCount,
-        RowCount>
-        result;
+    mat<T, mat_structure::rectangular, mat_alignment::row_major, ColCount, RowCount> result;
     using std::swap;
-    swap(result, M.q, M.colCount, M.rowCount);
+    if constexpr (is_dynamic_size) {
+      swap(result, M.data.q, M.data.colCount, M.data.rowCount);
+    } else {
+      int colCount = M.get_col_count();
+      int rowCount = M.get_row_count();
+      swap(result, M.data.q, colCount, rowCount);
+    }
     return result;
   }
 
-  /**
-   * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
+  /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
+  /// \param M The matrix to be transposed.
+  /// \return The transpose of M.
   friend auto transpose(self&& M) {
-    mat<T, mat_structure::rectangular, mat_alignment::row_major, ColCount,
-        RowCount>
-        result;
+    mat<T, mat_structure::rectangular, mat_alignment::row_major, ColCount, RowCount> result;
     using std::swap;
-    swap(result, M.q, M.colCount, M.rowCount);
+    if constexpr (is_dynamic_size) {
+      swap(result, M.data.q, M.data.colCount, M.data.rowCount);
+    } else {
+      int colCount = M.get_col_count();
+      int rowCount = M.get_row_count();
+      swap(result, M.data.q, colCount, rowCount);
+    }
     return result;
   }
 
@@ -606,14 +556,22 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    A& std::pair<std::string, const std::vector<T>&>("q", q) &
-        std::pair<std::string, std::size_t>("rowCount", rowCount) &
-        std::pair<std::string, std::size_t>("colCount", colCount);
+    if constexpr (is_dynamic_size) {
+      A & std::pair<std::string, const container_type&>("q", data.q) &
+          std::pair<std::string, int>("rowCount", data.rowCount) &
+          std::pair<std::string, int>("colCount", data.colCount);
+    } else {
+      A & std::pair<std::string, const container_type&>("q", data.q);
+    }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    A& std::pair<std::string, std::vector<T>&>("q", q) &
-        std::pair<std::string, std::size_t&>("rowCount", rowCount) &
-        std::pair<std::string, std::size_t&>("colCount", colCount);
+    if constexpr (is_dynamic_size) {
+      A & std::pair<std::string, container_type&>("q", data.q) &
+          std::pair<std::string, int&>("rowCount", data.rowCount) &
+          std::pair<std::string, int&>("colCount", data.colCount);
+    } else {
+      A & std::pair<std::string, container_type&>("q", data.q);
+    }
   }
 
   RK_RTTI_REGISTER_CLASS_1BASE(self, 1, serializable)
@@ -637,7 +595,8 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   mat<mat_value_type_t<Matrix>, mat_structure::rectangular> transpose(         \
       const SUBMATRIX<Matrix>& M) {                                            \
     using ValueType = mat_value_type_t<Matrix>;                                \
-    mat<ValueType, mat_structure::rectangular> result{M.colCount, M.rowCount}; \
+    mat<ValueType, mat_structure::rectangular> result{                         \
+        M.get_col_count(), M.get_row_count()};                                 \
     for (int j = 0; j < result.get_col_count(); ++j) {                         \
       for (int i = 0; i < result.get_row_count(); ++i) {                       \
         result(i, j) = M(j, i);                                                \
@@ -650,7 +609,8 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   mat<mat_value_type_t<Matrix>, mat_structure::rectangular> transpose_move(    \
       const SUBMATRIX<Matrix>& M) {                                            \
     using ValueType = mat_value_type_t<Matrix>;                                \
-    mat<ValueType, mat_structure::rectangular> result{M.colCount, M.rowCount}; \
+    mat<ValueType, mat_structure::rectangular> result{                         \
+        M.get_col_count(), M.get_row_count()};                                 \
     for (int j = 0; j < result.get_col_count(); ++j) {                         \
       for (int i = 0; i < result.get_row_count(); ++i) {                       \
         result(i, j) = M(j, i);                                                \
@@ -667,25 +627,24 @@ RK_CREATE_SUBMATRIX_MINUS_TRANSPOSE_OPERATORS(mat_const_sub_block)
 
 #undef RK_CREATE_SUBMATRIX_MINUS_TRANSPOSE_OPERATORS
 
-/**
- * This class template specialization implements a matrix with rectangular structure
- * and row-major alignment. This class is serializable and registered to the ReaK::rtti
- * system. This matrix type is dynamically resizable.
- *
- * Models: ReadableMatrixConcept, WritableMatrixConcept, FullyWritableMatrixConcept,
- * and ResizableMatrixConcept.
- *
- * \tparam T Arithmetic type of the elements of the matrix.
- */
+/// This class template specialization implements a matrix with rectangular structure
+/// and row-major alignment. This class is serializable and registered to the ReaK::rtti
+/// system. This matrix type is dynamically resizable.
+///
+/// Models: ReadableMatrixConcept, WritableMatrixConcept, FullyWritableMatrixConcept,
+/// and ResizableMatrixConcept.
+///
+/// \tparam T Arithmetic type of the elements of the matrix.
 template <typename T, unsigned int RowCount, unsigned int ColCount>
 class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
           ColCount> : public serializable {
  public:
   using self = mat<T, mat_structure::rectangular, mat_alignment::row_major,
                    RowCount, ColCount>;
+  static constexpr bool is_dynamic_size = (RowCount == 0 || ColCount == 0);
 
   using value_type = T;
-  using container_type = std::vector<value_type>;
+  using container_type = std::conditional_t<is_dynamic_size, std::vector<value_type>, std::array<value_type, RowCount * ColCount>>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -698,8 +657,8 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
   using col_iterator = typename container_type::iterator;
   using const_col_iterator = typename container_type::const_iterator;
 
-  using size_type = typename container_type::size_type;
-  using difference_type = typename container_type::difference_type;
+  using size_type = int;
+  using difference_type = int;
 
   static constexpr unsigned int static_row_count = RowCount;
   static constexpr unsigned int static_col_count = ColCount;
@@ -707,342 +666,310 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
  private:
+  struct dynamic_data {
+    container_type q = {};
+    int rowCount = 0;
+    int colCount = 0;
+  };
+  struct static_data {
+    container_type q = {};
+  };
   /// Array which holds all the values of the matrix (dimension: rowCount x colCount).
-  container_type q;
-  /// Row Count.
-  size_type rowCount;
-  /// Column Count.
-  size_type colCount;
+  std::conditional_t<is_dynamic_size, dynamic_data, static_data> data;
 
  public:
   /*******************************************************************************
                            Constructors / Destructors
   *******************************************************************************/
 
-  /**
-   * Default constructor: sets all to zero.
-   * \test PASSED
-   */
-  mat() : q(0, value_type(0)), rowCount(0), colCount(0) {}
+  /// Default constructor: sets all to zero.
+  mat() : data() {}
 
-  /**
-   * Constructor for a sized matrix.
-   * \test PASSED
-   */
-  mat(size_type aRowCount, size_type aColCount,
-      const value_type& aFill = value_type())
-      : q(aRowCount * aColCount, aFill),
-        rowCount(aRowCount),
-        colCount(aColCount) {}
+  /// Constructor for a sized matrix.
+  mat(int aRowCount, int aColCount,
+      const value_type& aFill = value_type(0)) {
+    if constexpr (is_dynamic_size) {
+      if constexpr (RowCount != 0) {
+        if (aRowCount != RowCount) {
+          throw std::range_error("Row count mismatch!");
+        }
+      } else if constexpr (ColCount != 0) {
+        if (aColCount != ColCount) {
+          throw std::range_error("Col count mismatch!");
+        }
+      }
+      data.q.resize(aRowCount * aColCount, aFill);
+      data.rowCount = aRowCount;
+      data.colCount = aColCount;
+    } else {
+      if (aRowCount != RowCount) {
+        throw std::range_error("Row count mismatch!");
+      }
+      if (aColCount != ColCount) {
+        throw std::range_error("Col count mismatch!");
+      }
+      std::fill(data.q.begin(), data.q.end(), aFill);
+    }
+  }
 
-  /**
-   * Constructor for an identity matrix.
-   * \test PASSED
-   */
-  mat(size_type aRowCount, size_type aColCount, bool aIdentity)
-      : q(aRowCount * aColCount, 0), rowCount(aRowCount), colCount(aColCount) {
+  /// Constructor for an identity matrix.
+  mat(int aRowCount, int aColCount, bool aIdentity)
+      : mat(aRowCount, aColCount, value_type(0)) {
     if (aIdentity) {
-      int minN = (colCount < rowCount ? colCount : rowCount) * (colCount + 1);
-      for (int i = 0; i < minN; i += colCount + 1) {
-        q[i] = 1;
+      int minN = (get_col_count() < get_row_count() ? get_col_count() : get_row_count()) * (get_col_count() + 1);
+      for (int i = 0; i < minN; i += get_col_count() + 1) {
+        data.q[i] = value_type(1);
       }
     }
   }
 
   /// Default Copy/Move Constructors.
-  mat(const self& M) = default;
-  mat(self&& M) noexcept = default;
+  mat(const self& rhs) = default;
+  mat(self&& rhs) = default;
+  self& operator=(const self& rhs) = default;
+  self& operator=(self&& rhs) = default;
+  ~mat() override = default;
 
-  /**
-   * Explicit constructor from a any type of matrix.
-   * \test PASSED
-   */
+  /// Explicit constructor from a any type of matrix.
   template <typename Matrix>
   explicit mat(
       const Matrix& M,
       std::enable_if_t<
           is_readable_matrix_v<Matrix> && !std::is_same_v<Matrix, self>, void*>
           dummy = nullptr)
-      : q(M.get_row_count() * M.get_col_count(), T(0.0)),
-        rowCount(M.get_row_count()),
-        colCount(M.get_col_count()) {
-    auto it = q.begin();
-    for (int i = 0; i < rowCount; ++i) {
-      for (int j = 0; j < colCount; ++j, ++it) {
+      : mat(M.get_row_count(), M.get_col_count(), value_type(0)) {
+    auto it = data.q.begin();
+    for (int i = 0; i < get_row_count(); ++i) {
+      for (int j = 0; j < get_col_count(); ++j, ++it) {
         *it = M(i, j);
       }
     }
   }
 
-  /**
-   * Constructor from a vector of column major values.
-   */
-  mat(container_type Q, size_type aRowCount, size_type aColCount)
-      : q(std::move(Q)), rowCount(aRowCount), colCount(aColCount) {}
-
-  /**
-   * Destructor.
-   * \test PASSED
-   */
-  ~mat() override = default;
-
-  /**
-   * Constructs a 2x2 matrix from four elements.
-   * \test PASSED
-   */
-  mat(const value_type& a11, const value_type& a12, const value_type& a21,
-      const value_type& a22)
-      : q(4), rowCount(2), colCount(2) {
-    q[0] = a11;
-    q[1] = a12;
-    q[2] = a21;
-    q[3] = a22;
+  /// Constructor from a vector of column major values.
+  mat(container_type Q, int aRowCount, int aColCount) {
+    data.q = std::move(Q);
+    if constexpr (is_dynamic_size) {
+      data.rowCount = aRowCount;
+      data.colCount = aColCount;
+    }
   }
 
-  /**
-   * Constructs a 3x3 matrix from nine elements.
-   * \test PASSED
-   */
+  /// Constructs a 2x2 matrix from four elements.
+  mat(const value_type& a11, const value_type& a12, const value_type& a21,
+      const value_type& a22)
+      : mat(2, 2) {
+    data.q[0] = a11;
+    data.q[1] = a12;
+    data.q[2] = a21;
+    data.q[3] = a22;
+  }
+
+  /// Constructs a 3x3 matrix from nine elements.
   mat(const value_type& a11, const value_type& a12, const value_type& a13,
       const value_type& a21, const value_type& a22, const value_type& a23,
       const value_type& a31, const value_type& a32, const value_type& a33)
-      : q(9), rowCount(3), colCount(3) {
-    q[0] = a11;
-    q[1] = a12;
-    q[2] = a13;
-    q[3] = a21;
-    q[4] = a22;
-    q[5] = a23;
-    q[6] = a31;
-    q[7] = a32;
-    q[8] = a33;
+      : mat(3, 3) {
+    data.q[0] = a11;
+    data.q[1] = a12;
+    data.q[2] = a13;
+    data.q[3] = a21;
+    data.q[4] = a22;
+    data.q[5] = a23;
+    data.q[6] = a31;
+    data.q[7] = a32;
+    data.q[8] = a33;
   }
 
-  /**
-   * Constructs a 4x4 matrix from sixteen elements.
-   * \test PASSED
-   */
+  /// Constructs a 4x4 matrix from sixteen elements.
   mat(const value_type& a11, const value_type& a12, const value_type& a13,
       const value_type& a14, const value_type& a21, const value_type& a22,
       const value_type& a23, const value_type& a24, const value_type& a31,
       const value_type& a32, const value_type& a33, const value_type& a34,
       const value_type& a41, const value_type& a42, const value_type& a43,
       const value_type& a44)
-      : q(16), rowCount(4), colCount(4) {
-    q[0] = a11;
-    q[1] = a12;
-    q[2] = a13;
-    q[3] = a14;
-    q[4] = a21;
-    q[5] = a22;
-    q[6] = a23;
-    q[7] = a24;
-    q[8] = a31;
-    q[9] = a32;
-    q[10] = a33;
-    q[11] = a34;
-    q[12] = a41;
-    q[13] = a42;
-    q[14] = a43;
-    q[15] = a44;
+      : mat(4, 4) {
+    data.q[0] = a11;
+    data.q[1] = a12;
+    data.q[2] = a13;
+    data.q[3] = a14;
+    data.q[4] = a21;
+    data.q[5] = a22;
+    data.q[6] = a23;
+    data.q[7] = a24;
+    data.q[8] = a31;
+    data.q[9] = a32;
+    data.q[10] = a33;
+    data.q[11] = a34;
+    data.q[12] = a41;
+    data.q[13] = a42;
+    data.q[14] = a43;
+    data.q[15] = a44;
   }
 
-  /**
-   * The standard swap function (works with ADL).
-   */
+  /// The standard swap function (works with ADL).
   friend void swap(self& m1, self& m2) noexcept {
     using std::swap;
-    swap(m1.q, m2.q);
-    swap(m1.rowCount, m2.rowCount);
-    swap(m1.colCount, m2.colCount);
+    swap(m1.data.q, m2.data.q);
+    if constexpr (is_dynamic_size) {
+      swap(m1.data.rowCount, m2.data.rowCount);
+      swap(m1.data.colCount, m2.data.colCount);
+    }
   }
 
-  /**
-   * A swap function to swap the matrix with a container of values to fill the matrix.
-   * \param m1 The matrix to swap with the container.
-   * \param q2 The container that will be swapped with m1's internal container.
-   * \param rowCount2 The row-count corresponding to q2's data.
-   * \param colCount2 The column-count corresponding to q2's data.
-   */
-  friend void swap(self& m1, container_type& q2, size_type& rowCount2,
-                   size_type& colCount2) noexcept {
+  friend void swap(self& m1, container_type& q2, int& rowCount2,
+                   int& colCount2) noexcept {
     using std::swap;
-    swap(m1.q, q2);
-    swap(m1.rowCount, rowCount2);
-    swap(m1.colCount, colCount2);
-  }
-
-  /**
-   * Standard copy-assignment operator (and move-assignment operator, for C++0x). Uses the copy-and-swap (and
-   * move-and-swap) idiom.
-   */
-  self& operator=(self rhs) {
-    swap(*this, rhs);
-    return *this;
+    swap(m1.data.q, q2);
+    if constexpr (is_dynamic_size) {
+      swap(m1.data.rowCount, rowCount2);
+      swap(m1.data.colCount, colCount2);
+    }
   }
 
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Matrix indexing accessor for read-write access.
-   * \param i Row index.
-   * \param j Column index.
-   * \return the element at the given position.
-   * \test PASSED
-   */
-  reference operator()(int i, int j) { return q[i * colCount + j]; }
-  /**
-   * Matrix indexing accessor for read-only access.
-   * \param i Row index.
-   * \param j Column index.
-   * \return the element at the given position.
-   * \test PASSED
-   */
-  const_reference operator()(int i, int j) const { return q[i * colCount + j]; }
+  /// Matrix indexing accessor for read-write access.
+  /// \param i Row index.
+  /// \param j Column index.
+  /// \return the element at the given position.
+  reference operator()(int i, int j) { return data.q[i * get_col_count() + j]; }
+  /// Matrix indexing accessor for read-only access.
+  /// \param i Row index.
+  /// \param j Column index.
+  /// \return the element at the given position.
+  const_reference operator()(int i, int j) const { return data.q[i * get_col_count() + j]; }
 
-  /**
-   * Sub-matrix operator, accessor for read/write.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read/write.
   mat_sub_block<self> operator()(const std::pair<int, int>& r,
                                  const std::pair<int, int>& c) {
     return sub(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_sub_block<self> operator()(const std::pair<int, int>& r,
                                        const std::pair<int, int>& c) const {
     return sub(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read/write.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read/write.
   mat_col_slice<self> operator()(int r, const std::pair<int, int>& c) {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_col_slice<self> operator()(int r,
                                        const std::pair<int, int>& c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read/write.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read/write.
   mat_row_slice<self> operator()(const std::pair<int, int>& r, int c) {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Sub-matrix operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Sub-matrix operator, accessor for read only.
   mat_const_row_slice<self> operator()(const std::pair<int, int>& r,
                                        int c) const {
     return slice(*this)(r, c);
   }
 
-  /**
-   * Gets the row-count (number of rows) of the matrix.
-   * \return number of rows of the matrix.
-   * \test PASSED
-   */
-  size_type get_row_count() const noexcept { return rowCount; }
-  /**
-   * Gets the column-count (number of columns) of the matrix.
-   * \return number of columns of the matrix.
-   * \test PASSED
-   */
-  size_type get_col_count() const noexcept { return colCount; }
-
-  /**
-   * Gets the row-count and column-count of the matrix, as a std::pair of values.
-   * \return the row-count and column-count of the matrix, as a std::pair of values.
-   * \test PASSED
-   */
-  std::pair<size_type, size_type> size() const noexcept {
-    return {rowCount, colCount};
+  /// Gets the row-count (number of rows) of the matrix.
+  /// \return number of rows of the matrix.
+  int get_row_count() const noexcept {
+    if constexpr (RowCount == 0) {
+      return data.rowCount;
+    } else {
+      return RowCount;
+    }
   }
-  /**
-   * Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
-   * \param sz new dimensions for the matrix.
-   * \test PASSED
-   */
-  void resize(const std::pair<size_type, size_type>& sz) {
+  /// Gets the column-count (number of columns) of the matrix.
+  /// \return number of columns of the matrix.
+  int get_col_count() const noexcept {
+    if constexpr (ColCount == 0) {
+      return data.colCount;
+    } else {
+      return ColCount;
+    }
+  }
+
+  /// Gets the row-count and column-count of the matrix, as a std::pair of values.
+  /// \return the row-count and column-count of the matrix, as a std::pair of values.
+  std::pair<int, int> size() const noexcept {
+    return {get_row_count(), get_col_count()};
+  }
+  /// Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
+  /// \param sz new dimensions for the matrix.
+  void resize(const std::pair<int, int>& sz) {
     set_col_count(sz.second, true);
     set_row_count(sz.first, true);
   }
 
-  /**
-   * Sets the column-count (number of columns) of the matrix.
-   * \param aColCount new number of columns for the matrix.
-   * \param aPreserveData If true, the resizing will preserve all the data it can.
-   * \test PASSED
-   */
-  void set_col_count(size_type aColCount, bool aPreserveData = false) {
-    if (aPreserveData) {
-      if (aColCount > colCount) {
-        for (int i = rowCount; i != 0; --i) {
-          q.insert(q.begin() + i * colCount, aColCount - colCount,
-                   value_type(0.0));
-        }
-      } else if (aColCount < colCount) {
-        for (int i = rowCount; i != 0; --i) {
-          q.erase(q.begin() + (i - 1) * colCount + aColCount,
-                  q.begin() + i * colCount);
-        }
+  /// Sets the column-count (number of columns) of the matrix.
+  /// \param aColCount new number of columns for the matrix.
+  /// \param aPreserveData If true, the resizing will preserve all the data it can.
+  void set_col_count(int aColCount, bool aPreserveData = false) {
+    if constexpr (ColCount != 0) {
+      if (aColCount != ColCount) {
+        throw std::range_error("Col count mismatch!");
       }
     } else {
-      q.resize(rowCount * aColCount, value_type(0.0));
+      if (aPreserveData) {
+        if (aColCount > get_col_count()) {
+          for (int i = get_row_count(); i != 0; --i) {
+            data.q.insert(data.q.begin() + i * get_col_count(), aColCount - get_col_count(),
+                     value_type(0.0));
+          }
+        } else if (aColCount < get_col_count()) {
+          for (int i = get_row_count(); i != 0; --i) {
+            data.q.erase(data.q.begin() + (i - 1) * get_col_count() + aColCount,
+                    data.q.begin() + i * get_col_count());
+          }
+        }
+      } else {
+        data.q.resize(get_row_count() * aColCount, value_type(0.0));
+      }
+      data.colCount = aColCount;
     }
-    colCount = aColCount;
   }
 
-  /**
-   * Sets the row-count (number of rows) of the matrix.
-   * \param aRowCount new number of rows for the matrix.
-   * \param aPreserveData If true, the resizing will preserve all the data it can.
-   * \test PASSED
-   */
-  void set_row_count(size_type aRowCount, bool aPreserveData = false) {
-    RK_UNUSED(aPreserveData);
-    q.resize(aRowCount * colCount, value_type(0.0));
-    rowCount = aRowCount;
+  /// Sets the row-count (number of rows) of the matrix.
+  /// \param aRowCount new number of rows for the matrix.
+  /// \param aPreserveData If true, the resizing will preserve all the data it can.
+  void set_row_count(int aRowCount, bool /*unused*/ = false) {
+    if constexpr (RowCount != 0) {
+      if (aRowCount != RowCount) {
+        throw std::range_error("Row count mismatch!");
+      }
+    } else {
+      data.q.resize(aRowCount * get_col_count(), value_type(0.0));
+      data.rowCount = aRowCount;
+    }
   }
 
-  row_iterator first_row() { return {q.begin(), colCount}; }
-  const_row_iterator first_row() const { return {q.begin(), colCount}; }
+  row_iterator first_row() { return {data.q.begin(), get_col_count()}; }
+  const_row_iterator first_row() const { return {data.q.begin(), get_col_count()}; }
   row_iterator last_row() {
-    return {q.begin() + colCount * rowCount, colCount};
+    return {data.q.begin() + get_col_count() * get_row_count(), get_col_count()};
   }
   const_row_iterator last_row() const {
-    return {q.begin() + colCount * rowCount, colCount};
+    return {data.q.begin() + get_col_count() * get_row_count(), get_col_count()};
   }
   row_iterator first_row(col_iterator cit) {
-    return {q.begin() + ((cit - q.begin()) % colCount), colCount};
+    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()), get_col_count()};
   }
   const_row_iterator first_row(const_col_iterator cit) const {
-    return {q.begin() + ((cit - q.begin()) % colCount), colCount};
+    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()), get_col_count()};
   }
   row_iterator last_row(col_iterator cit) {
-    return {q.begin() + ((cit - q.begin()) % colCount) + colCount * rowCount,
-            colCount};
+    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()) + get_col_count() * get_row_count(),
+            get_col_count()};
   }
   const_row_iterator last_row(const_col_iterator cit) const {
-    return {q.begin() + ((cit - q.begin()) % colCount) + colCount * rowCount,
-            colCount};
+    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()) + get_col_count() * get_row_count(),
+            get_col_count()};
   }
   std::pair<row_iterator, row_iterator> rows() {
     return {first_row(), last_row()};
@@ -1058,27 +985,27 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
     return {first_row(cit), last_row(cit)};
   }
 
-  col_iterator first_col() { return {q.begin()}; }
-  const_col_iterator first_col() const { return {q.begin()}; }
-  col_iterator last_col() { return {q.begin() + colCount * rowCount}; }
+  col_iterator first_col() { return {data.q.begin()}; }
+  const_col_iterator first_col() const { return {data.q.begin()}; }
+  col_iterator last_col() { return {data.q.begin() + get_col_count() * get_row_count()}; }
   const_col_iterator last_col() const {
-    return {q.begin() + colCount * rowCount};
+    return {data.q.begin() + get_col_count() * get_row_count()};
   }
   col_iterator first_col(row_iterator rit) {
-    int diff = rit.base() - q.begin();
-    return q.begin() + ((diff / colCount) * colCount);
+    int diff = rit.base() - data.q.begin();
+    return data.q.begin() + ((diff / get_col_count()) * get_col_count());
   }
   const_col_iterator first_col(const_row_iterator rit) const {
-    int diff = rit.base() - q.begin();
-    return q.begin() + ((diff / colCount) * colCount);
+    int diff = rit.base() - data.q.begin();
+    return data.q.begin() + ((diff / get_col_count()) * get_col_count());
   }
   col_iterator last_col(row_iterator rit) {
-    int diff = rit.base() - q.begin();
-    return q.begin() + ((diff / colCount + 1) * colCount);
+    int diff = rit.base() - data.q.begin();
+    return data.q.begin() + ((diff / get_col_count() + 1) * get_col_count());
   }
   const_col_iterator last_col(const_row_iterator rit) const {
-    int diff = rit.base() - q.begin();
-    return q.begin() + ((diff / colCount + 1) * colCount);
+    int diff = rit.base() - data.q.begin();
+    return data.q.begin() + ((diff / get_col_count() + 1) * get_col_count());
   }
   std::pair<col_iterator, col_iterator> cols() {
     return {first_col(), last_col()};
@@ -1098,11 +1025,8 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
                            Assignment Operators
   *******************************************************************************/
 
-  /** ROW-MAJOR ONLY
-   * Standard Assignment operator with standard semantics.
-   * Strong exception safety.
-   * \test PASSED
-   */
+  /// Standard Assignment operator with standard semantics.
+  /// Strong exception safety.
   template <typename Matrix>
   self& operator=(const Matrix& M) {
     self tmp(M);
@@ -1110,117 +1034,102 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
     return *this;
   }
 
-  /** ROW-MAJOR ONLY
-   * Add-and-store operator with standard semantics.
-   * \test PASSED
-   */
+  /// Add-and-store operator with standard semantics.
   template <typename Matrix>
   self& operator+=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
+    if ((M.get_col_count() != get_col_count()) || (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    auto it = q.begin();
-    for (int i = 0; i < rowCount; ++i) {
-      for (int j = 0; j < colCount; ++j, ++it) {
+    auto it = data.q.begin();
+    for (int i = 0; i < get_row_count(); ++i) {
+      for (int j = 0; j < get_col_count(); ++j, ++it) {
         *it += M(i, j);
       }
     }
     return *this;
   }
 
-  /** ROW-MAJOR ONLY
-   * Sub-and-store operator with standard semantics.
-   * \test PASSED
-   */
+  /// Sub-and-store operator with standard semantics.
   template <typename Matrix>
   self& operator-=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
+    if ((M.get_col_count() != get_col_count()) || (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    auto it = q.begin();
-    for (int i = 0; i < rowCount; ++i) {
-      for (int j = 0; j < colCount; ++j, ++it) {
+    auto it = data.q.begin();
+    for (int i = 0; i < get_row_count(); ++i) {
+      for (int j = 0; j < get_col_count(); ++j, ++it) {
         *it -= M(i, j);
       }
     }
     return *this;
   }
 
-  /** WORKS FOR ALL
-   * Scalar-multiply-and-store operator with standard semantics.
-   * \test PASSED
-   */
-  self& operator*=(const value_type& S) {
-    for (auto& v : q) {
-      v *= S;
+  /// Multiply-and-store operator with standard semantics.
+  template <typename RhsType>
+  self& operator*=(const RhsType& rhs) {
+    if constexpr (is_readable_matrix_v<RhsType>) {
+      self result(*this * rhs);
+      swap(*this, result);
+      return *this;
+    } else {
+      for (auto& x : data.q) {
+        x *= rhs;
+      }
+      return *this;
     }
-    return *this;
   }
 
-  /** WORKS FOR ALL
-   * General Matrix multiplication.
-   * \test PASSED
-   */
-  template <typename Matrix>
-  std::enable_if_t<is_readable_matrix_v<Matrix>, self&> operator*=(
-      const Matrix& M) {
-    self result = *this * M;
-    swap(*this, result);
-    return *this;
-  }
-
-  /** WORKS FOR ALL
-   * General negation operator for any type of matrices. This is a default operator
-   * that will be called if no better special-purpose overload exists.
-   * \return General column-major matrix.
-   * \test PASSED
-   */
+  /// General negation operator for any type of matrices. This is a default operator
+  /// that will be called if no better special-purpose overload exists.
+  /// \return General column-major matrix.
   self operator-() const {
     self result(*this);
-    auto itr = result.q.begin();
-    for (auto it = q.begin(); it != q.end(); ++it, ++itr) {
+    auto itr = result.data.q.begin();
+    for (auto it = data.q.begin(); it != data.q.end(); ++it, ++itr) {
       *itr = -(*it);
     }
     return result;
   }
 
-  /**
-   * Transposes the matrix M by a simple copy with a change of alignment.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
+  /// Transposes the matrix M by a simple copy with a change of alignment.
+  /// \param M The matrix to be transposed.
+  /// \return The transpose of M.
   friend auto transpose(const self& M) {
     return mat<T, mat_structure::rectangular, mat_alignment::column_major,
-               ColCount, RowCount>(M.q, M.colCount, M.rowCount);
+               ColCount, RowCount>(M.data.q, M.get_col_count(), M.get_row_count());
   }
 
-  /**
-   * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
+  /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
+  /// \param M The matrix to be transposed.
+  /// \return The transpose of M.
   friend auto transpose_move(self& M) {
-    mat<T, mat_structure::rectangular, mat_alignment::column_major, ColCount,
-        RowCount>
-        result;
+    mat<T, mat_structure::rectangular, mat_alignment::column_major, ColCount, RowCount> result;
     using std::swap;
-    swap(result, M.q, M.colCount, M.rowCount);
+    if constexpr (is_dynamic_size) {
+      swap(result, M.data.q, M.data.colCount, M.data.rowCount);
+    } else {
+      int rowCount = RowCount;
+      int colCount = ColCount;
+      swap(result, M.data.q, colCount, rowCount);
+    }
     return result;
   }
 
-  /**
-   * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
+  /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
+  /// \param M The matrix to be transposed.
+  /// \return The transpose of M.
   friend auto transpose(self&& M) {
-    mat<T, mat_structure::rectangular, mat_alignment::column_major, ColCount,
-        RowCount>
-        result;
+    mat<T, mat_structure::rectangular, mat_alignment::column_major, ColCount, RowCount> result;
     using std::swap;
-    swap(result, M.q, M.colCount, M.rowCount);
+    if constexpr (is_dynamic_size) {
+      swap(result, M.data.q, M.data.colCount, M.data.rowCount);
+    } else {
+      int rowCount = RowCount;
+      int colCount = ColCount;
+      swap(result, M.data.q, colCount, rowCount);
+    }
     return result;
   }
 
@@ -1230,43 +1139,46 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    A& std::pair<std::string, const std::vector<T>&>("q", q) &
-        std::pair<std::string, std::size_t>("rowCount", rowCount) &
-        std::pair<std::string, std::size_t>("colCount", colCount);
+    if constexpr (is_dynamic_size) {
+      A& std::pair<std::string, const container_type&>("q", data.q) &
+          std::pair<std::string, int>("rowCount", data.rowCount) &
+          std::pair<std::string, int>("colCount", data.colCount);
+    } else {
+      A& std::pair<std::string, const container_type&>("q", data.q);
+    }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    A& std::pair<std::string, std::vector<T>&>("q", q) &
-        std::pair<std::string, std::size_t&>("rowCount", rowCount) &
-        std::pair<std::string, std::size_t&>("colCount", colCount);
+    if constexpr (is_dynamic_size) {
+      A& std::pair<std::string, container_type&>("q", data.q) &
+          std::pair<std::string, int&>("rowCount", data.rowCount) &
+          std::pair<std::string, int&>("colCount", data.colCount);
+    } else {
+      A& std::pair<std::string, container_type&>("q", data.q);
+    }
   }
 
   RK_RTTI_REGISTER_CLASS_1BASE(self, 1, serializable)
 };
 
-/**
- * Extracts a sub-matrix from this matrix.
- * \param M Matrix from which the sub-matrix is obtained.
- * \param aRowOffset Number of rows before the start of the sub-matrix rows.
- * \param aColOffset Number of columns before the start of the sub-matrix columns.
- * \param aRowCountOut Number of rows of the sub-matrix.
- * \param aColCountOut Number of columns of the sub-matrix.
- * \return The sub-matrix contained in this matrix.
- * \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
- * \test PASSED
- */
+/// Extracts a sub-matrix from this matrix.
+/// \param M Matrix from which the sub-matrix is obtained.
+/// \param aRowOffset Number of rows before the start of the sub-matrix rows.
+/// \param aColOffset Number of columns before the start of the sub-matrix columns.
+/// \param aRowCountOut Number of rows of the sub-matrix.
+/// \param aColCountOut Number of columns of the sub-matrix.
+/// \return The sub-matrix contained in this matrix.
+/// \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
 mat<T, mat_structure::rectangular, Alignment, RowCount, ColCount> get_block(
     const mat<T, Structure, Alignment, RowCount, ColCount>& M,
-    std::size_t aRowOffset, std::size_t aColOffset, std::size_t aRowCountOut,
-    std::size_t aColCountOut) {
+    int aRowOffset, int aColOffset, int aRowCountOut, int aColCountOut) {
   if ((aRowOffset + aRowCountOut > M.get_row_count()) ||
       (aColOffset + aColCountOut > M.get_col_count())) {
     throw std::range_error("Matrix dimension mismatch.");
   }
-  mat<T, mat_structure::rectangular, Alignment, RowCount, ColCount> result(
-      aRowCountOut, aColCountOut);
+  mat<T, mat_structure::rectangular, Alignment> result(aRowCountOut, aColCountOut);
   for (int i = 0; i < aRowCountOut; ++i) {
     for (int j = 0; j < aColCountOut; ++j) {
       result(i, j) = M(i + aRowOffset, j + aColOffset);
@@ -1275,14 +1187,12 @@ mat<T, mat_structure::rectangular, Alignment, RowCount, ColCount> get_block(
   return result;
 }
 
-/** Sets the sub-part of this matrix to a sub-matrix.
- * \param M The matrix into which the sub-matrix should be set.
- * \param subM A sub-matrix of any type that will be written in the sub-part of this matrix.
- * \param aRowOffset Number of rows before the start of the sub-matrix rows.
- * \param aColOffset Number of columns before the start of the sub-matrix columns.
- * \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
- * \test PASSED
- */
+/// Sets the sub-part of this matrix to a sub-matrix.
+/// \param M The matrix into which the sub-matrix should be set.
+/// \param subM A sub-matrix of any type that will be written in the sub-part of this matrix.
+/// \param aRowOffset Number of rows before the start of the sub-matrix rows.
+/// \param aColOffset Number of columns before the start of the sub-matrix columns.
+/// \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount, typename Matrix>
@@ -1290,7 +1200,7 @@ std::enable_if_t<((Structure == mat_structure::rectangular) ||
                   (Structure == mat_structure::square)) &&
                  is_readable_matrix_v<Matrix>>
 set_block(mat<T, Structure, Alignment, RowCount, ColCount>& M,
-          const Matrix& subM, std::size_t aRowOffset, std::size_t aColOffset) {
+          const Matrix& subM, int aRowOffset, int aColOffset) {
   if ((aRowOffset + subM.get_row_count() > M.get_row_count()) ||
       (aColOffset + subM.get_col_count() > M.get_col_count())) {
     throw std::range_error("Matrix dimension mismatch.");
