@@ -23,6 +23,7 @@
 
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/core/base/defs.h"
+#include "ReaK/math/lin_alg/mat_matchers.h"
 
 #include <cstdio>
 #include <fstream>
@@ -32,6 +33,10 @@
 
 namespace ReaK {
 namespace {
+
+using ::ReaK::testing::MatrixIsIdentity;
+using ::ReaK::testing::MatrixIsNear;
+using ::ReaK::testing::MatrixIsNull;
 
 template <typename M>
 M CreateM1234() {
@@ -61,25 +66,19 @@ using SpecialMatrixTestTypes = ::testing::Types<double, float>;
 TYPED_TEST_SUITE(SpecialMatrixTest, SpecialMatrixTestTypes);
 
 TYPED_TEST(SpecialMatrixTest, IdentityAndNull) {
-  using std::abs;
   using Scalar = TypeParam;
   const Scalar tolerance = this->tolerance;
 
   mat<Scalar, mat_structure::rectangular> m_ident(2, 2, true);
-  EXPECT_TRUE(abs(m_ident(0, 0) - 1.0) < tolerance);
-  EXPECT_TRUE(abs(m_ident(0, 1)) < tolerance);
-  EXPECT_TRUE(abs(m_ident(1, 0)) < tolerance);
-  EXPECT_TRUE(abs(m_ident(1, 1) - 1.0) < tolerance);
-
-  EXPECT_TRUE(is_identity_mat(m_ident, tolerance));
+  EXPECT_THAT(m_ident, MatrixIsIdentity(tolerance));
 
   mat_identity_t<Scalar> m_ident2(2);
-  EXPECT_TRUE(is_identity_mat(m_ident2, tolerance));
+  EXPECT_THAT(m_ident2, MatrixIsIdentity(tolerance));
 
   mat_null_t<Scalar> m_zeroes(2, 2);
-  EXPECT_TRUE(is_null_mat(m_zeroes, tolerance));
-  EXPECT_TRUE(is_null_mat(m_zeroes * m_ident2, tolerance));
-  EXPECT_TRUE(is_null_mat(m_ident2 * m_zeroes, tolerance));
+  EXPECT_THAT(m_zeroes, MatrixIsNull(tolerance));
+  EXPECT_THAT(m_zeroes * m_ident2, MatrixIsNull(tolerance));
+  EXPECT_THAT(m_ident2 * m_zeroes, MatrixIsNull(tolerance));
 }
 
 TYPED_TEST(SpecialMatrixTest, IdentityVsNull) {
@@ -87,23 +86,23 @@ TYPED_TEST(SpecialMatrixTest, IdentityVsNull) {
   const Scalar tolerance = this->tolerance;
   mat_identity_t<Scalar> m_ident2(2);
   mat_null_t<Scalar> m_zeroes(2, 2);
-  EXPECT_TRUE(is_identity_mat((m_zeroes * m_ident2) + m_ident2, tolerance));
-  EXPECT_TRUE(is_identity_mat((m_ident2 * m_zeroes) + m_ident2, tolerance));
-  EXPECT_TRUE(is_identity_mat((m_zeroes + m_zeroes) + m_ident2, tolerance));
-  EXPECT_TRUE(is_identity_mat(m_ident2 - (m_zeroes + m_zeroes), tolerance));
-  EXPECT_TRUE(is_identity_mat(m_ident2 + (m_zeroes - m_zeroes), tolerance));
-  EXPECT_TRUE(is_identity_mat(-((m_zeroes - m_zeroes) - m_ident2), tolerance));
+  EXPECT_THAT((m_zeroes * m_ident2) + m_ident2, MatrixIsIdentity(tolerance));
+  EXPECT_THAT((m_ident2 * m_zeroes) + m_ident2, MatrixIsIdentity(tolerance));
+  EXPECT_THAT((m_zeroes + m_zeroes) + m_ident2, MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident2 - (m_zeroes + m_zeroes), MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident2 + (m_zeroes - m_zeroes), MatrixIsIdentity(tolerance));
+  EXPECT_THAT(-((m_zeroes - m_zeroes) - m_ident2), MatrixIsIdentity(tolerance));
 }
 
 TYPED_TEST(SpecialMatrixTest, IdentityVsIdentity) {
   using Scalar = TypeParam;
   const Scalar tolerance = this->tolerance;
   mat_identity_t<Scalar> m_ident2(2);
-  EXPECT_TRUE(is_identity_mat((m_ident2 + m_ident2) * 0.5, tolerance));
-  EXPECT_TRUE(is_identity_mat(0.5 * (m_ident2 + m_ident2), tolerance));
-  EXPECT_TRUE(is_identity_mat(m_ident2 * m_ident2, tolerance));
-  EXPECT_TRUE(is_identity_mat((m_ident2 - m_ident2) + m_ident2, tolerance));
-  EXPECT_TRUE(is_identity_mat(m_ident2 + (m_ident2 - m_ident2), tolerance));
+  EXPECT_THAT((m_ident2 + m_ident2) * 0.5, MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m_ident2 + m_ident2), MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident2 * m_ident2, MatrixIsIdentity(tolerance));
+  EXPECT_THAT((m_ident2 - m_ident2) + m_ident2, MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident2 + (m_ident2 - m_ident2), MatrixIsIdentity(tolerance));
 }
 
 template <typename MatDense>
@@ -147,23 +146,22 @@ TYPED_TEST_SUITE(DenseTest, DenseTestTypes);
 TYPED_TEST(DenseTest, Transpose) {
   const auto tolerance = this->tolerance;
   auto& m1234 = this->m1234;
-  using std::abs;
-  EXPECT_TRUE(abs(m1234(0, 0) - 1.0) < tolerance);
-  EXPECT_TRUE(abs(m1234(0, 1) - 2.0) < tolerance);
-  EXPECT_TRUE(abs(m1234(1, 0) - 3.0) < tolerance);
-  EXPECT_TRUE(abs(m1234(1, 1) - 4.0) < tolerance);
+  EXPECT_NEAR(m1234(0, 0), 1.0, tolerance);
+  EXPECT_NEAR(m1234(0, 1), 2.0, tolerance);
+  EXPECT_NEAR(m1234(1, 0), 3.0, tolerance);
+  EXPECT_NEAR(m1234(1, 1), 4.0, tolerance);
 
   m1234 = transpose(m1234);
-  EXPECT_TRUE(abs(m1234(0, 0) - 1.0) < tolerance);
-  EXPECT_TRUE(abs(m1234(0, 1) - 3.0) < tolerance);
-  EXPECT_TRUE(abs(m1234(1, 0) - 2.0) < tolerance);
-  EXPECT_TRUE(abs(m1234(1, 1) - 4.0) < tolerance);
+  EXPECT_NEAR(m1234(0, 0), 1.0, tolerance);
+  EXPECT_NEAR(m1234(0, 1), 3.0, tolerance);
+  EXPECT_NEAR(m1234(1, 0), 2.0, tolerance);
+  EXPECT_NEAR(m1234(1, 1), 4.0, tolerance);
 
   m1234 = transpose_move(m1234);
-  EXPECT_TRUE(abs(m1234(0, 0) - 1.0) < tolerance);
-  EXPECT_TRUE(abs(m1234(0, 1) - 2.0) < tolerance);
-  EXPECT_TRUE(abs(m1234(1, 0) - 3.0) < tolerance);
-  EXPECT_TRUE(abs(m1234(1, 1) - 4.0) < tolerance);
+  EXPECT_NEAR(m1234(0, 0), 1.0, tolerance);
+  EXPECT_NEAR(m1234(0, 1), 2.0, tolerance);
+  EXPECT_NEAR(m1234(1, 0), 3.0, tolerance);
+  EXPECT_NEAR(m1234(1, 1), 4.0, tolerance);
 }
 
 TYPED_TEST(DenseTest, Operators) {
@@ -171,16 +169,16 @@ TYPED_TEST(DenseTest, Operators) {
   const auto& m1234 = this->m1234;
   const auto& m1234_inv = this->m1234_inv;
   mat_identity_t<typename TestFixture::Scalar> m_ident2(2);
-  EXPECT_TRUE(is_identity_mat(m1234_inv * m1234, tolerance));
-  EXPECT_TRUE(is_identity_mat(0.5 * (m1234_inv * m1234 + m1234_inv * m1234),
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat((m1234_inv * m1234 + m1234_inv * m1234) * 0.5,
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      (m1234_inv * m1234 - m1234_inv * m1234) + m_ident2, tolerance));
-  EXPECT_TRUE(is_null_mat(m1234_inv * m1234 - m1234_inv * m1234, tolerance));
-  EXPECT_TRUE(
-      is_null_mat(m1234_inv * m1234 + (-(m1234_inv * m1234)), tolerance));
+  EXPECT_THAT(m1234_inv * m1234, MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m1234_inv * m1234 + m1234_inv * m1234),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT((m1234_inv * m1234 + m1234_inv * m1234) * 0.5,
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT((m1234_inv * m1234 - m1234_inv * m1234) + m_ident2,
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m1234_inv * m1234 - m1234_inv * m1234, MatrixIsNull(tolerance));
+  EXPECT_THAT(m1234_inv * m1234 + (-(m1234_inv * m1234)),
+              MatrixIsNull(tolerance));
 }
 
 TYPED_TEST(DenseTest, VsDiagonal) {
@@ -191,16 +189,16 @@ TYPED_TEST(DenseTest, VsDiagonal) {
   mat<Scalar, mat_structure::diagonal, TestFixture::Alignment,
       TestFixture::RowCount, TestFixture::RowCount>
       m_ident_diag(2, Scalar{1.0});
-  EXPECT_TRUE(is_identity_mat(m1234_inv * (m_ident_diag * m1234), tolerance));
-  EXPECT_TRUE(is_identity_mat(m1234_inv * (m1234 * m_ident_diag), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat(0.5 * (m1234 * m1234_inv + m_ident_diag), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat(0.5 * (m_ident_diag + m1234 * m1234_inv), tolerance));
-  EXPECT_TRUE(is_identity_mat(m_ident_diag + (m1234 * m1234_inv - m_ident_diag),
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat(m_ident_diag + (m_ident_diag - m1234 * m1234_inv),
-                              tolerance));
+  EXPECT_THAT(m1234_inv * (m_ident_diag * m1234), MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m1234_inv * (m1234 * m_ident_diag), MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m1234 * m1234_inv + m_ident_diag),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m_ident_diag + m1234 * m1234_inv),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident_diag + (m1234 * m1234_inv - m_ident_diag),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident_diag + (m_ident_diag - m1234 * m1234_inv),
+              MatrixIsIdentity(tolerance));
 }
 
 TYPED_TEST(DenseTest, VsScalarMat) {
@@ -211,16 +209,18 @@ TYPED_TEST(DenseTest, VsScalarMat) {
   mat<Scalar, mat_structure::scalar, TestFixture::Alignment,
       TestFixture::RowCount, TestFixture::RowCount>
       m_ident_scalar(2, Scalar{1.0});
-  EXPECT_TRUE(is_identity_mat(m1234_inv * (m_ident_scalar * m1234), tolerance));
-  EXPECT_TRUE(is_identity_mat(m1234_inv * (m1234 * m_ident_scalar), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat(0.5 * (m1234 * m1234_inv + m_ident_scalar), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat(0.5 * (m_ident_scalar + m1234 * m1234_inv), tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      m_ident_scalar + (m1234 * m1234_inv - m_ident_scalar), tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      m_ident_scalar + (m_ident_scalar - m1234 * m1234_inv), tolerance));
+  EXPECT_THAT(m1234_inv * (m_ident_scalar * m1234),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m1234_inv * (m1234 * m_ident_scalar),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m1234 * m1234_inv + m_ident_scalar),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m_ident_scalar + m1234 * m1234_inv),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident_scalar + (m1234 * m1234_inv - m_ident_scalar),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident_scalar + (m_ident_scalar - m1234 * m1234_inv),
+              MatrixIsIdentity(tolerance));
 }
 
 TYPED_TEST(DenseTest, VsIdentity) {
@@ -230,14 +230,16 @@ TYPED_TEST(DenseTest, VsIdentity) {
   mat<typename TestFixture::Scalar, mat_structure::identity,
       TestFixture::Alignment, TestFixture::RowCount, TestFixture::RowCount>
       m_ident2(2);
-  EXPECT_TRUE(is_identity_mat(m1234_inv * (m_ident2 * m1234), tolerance));
-  EXPECT_TRUE(is_identity_mat(m1234_inv * (m1234 * m_ident2), tolerance));
-  EXPECT_TRUE(is_identity_mat(0.5 * (m1234 * m1234_inv + m_ident2), tolerance));
-  EXPECT_TRUE(is_identity_mat(0.5 * (m_ident2 + m1234 * m1234_inv), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat(m_ident2 + (m1234 * m1234_inv - m_ident2), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat(m_ident2 + (m_ident2 - m1234 * m1234_inv), tolerance));
+  EXPECT_THAT(m1234_inv * (m_ident2 * m1234), MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m1234_inv * (m1234 * m_ident2), MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m1234 * m1234_inv + m_ident2),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m_ident2 + m1234 * m1234_inv),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident2 + (m1234 * m1234_inv - m_ident2),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident2 + (m_ident2 - m1234 * m1234_inv),
+              MatrixIsIdentity(tolerance));
 }
 
 TYPED_TEST(DenseTest, VsNull) {
@@ -247,12 +249,12 @@ TYPED_TEST(DenseTest, VsNull) {
   mat<typename TestFixture::Scalar, mat_structure::nil, TestFixture::Alignment,
       TestFixture::RowCount, TestFixture::RowCount>
       m_zeroes(2, 2);
-  EXPECT_TRUE(is_null_mat(m1234 * m_zeroes, tolerance));
-  EXPECT_TRUE(is_null_mat(m_zeroes * m1234, tolerance));
-  EXPECT_TRUE(is_identity_mat(m_zeroes - m1234_inv * (-m1234), tolerance));
-  EXPECT_TRUE(is_identity_mat(m1234_inv * m1234 - m_zeroes, tolerance));
-  EXPECT_TRUE(is_identity_mat(m1234_inv * m1234 + m_zeroes, tolerance));
-  EXPECT_TRUE(is_identity_mat(m_zeroes + m1234_inv * m1234, tolerance));
+  EXPECT_THAT(m1234 * m_zeroes, MatrixIsNull(tolerance));
+  EXPECT_THAT(m_zeroes * m1234, MatrixIsNull(tolerance));
+  EXPECT_THAT(m_zeroes - m1234_inv * (-m1234), MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m1234_inv * m1234 - m_zeroes, MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m1234_inv * m1234 + m_zeroes, MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_zeroes + m1234_inv * m1234, MatrixIsIdentity(tolerance));
 }
 
 template <typename MatDenseAndDense>
@@ -391,22 +393,20 @@ TYPED_TEST(DenseDenseTest, Operators) {
   const auto& m1234_inv_1 = this->m1234_inv_1;
   const auto& m1234_2 = this->m1234_2;
   const auto& m1234_inv_2 = this->m1234_inv_2;
-  EXPECT_TRUE(is_identity_mat(m1234_inv_1 * ((m1234_inv_2 * m1234_2) * m1234_1),
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat(m1234_inv_1 * (m1234_1 * (m1234_inv_2 * m1234_2)),
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      0.5 * (m1234_1 * m1234_inv_1 + (m1234_inv_2 * m1234_2)), tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      0.5 * ((m1234_inv_2 * m1234_2) + m1234_1 * m1234_inv_1), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat((m1234_inv_2 * m1234_2) +
-                          (m1234_1 * m1234_inv_1 - (m1234_inv_2 * m1234_2)),
-                      tolerance));
-  EXPECT_TRUE(
-      is_identity_mat((m1234_inv_2 * m1234_2) +
-                          ((m1234_inv_2 * m1234_2) - m1234_1 * m1234_inv_1),
-                      tolerance));
+  EXPECT_THAT(m1234_inv_1 * ((m1234_inv_2 * m1234_2) * m1234_1),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m1234_inv_1 * (m1234_1 * (m1234_inv_2 * m1234_2)),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m1234_1 * m1234_inv_1 + (m1234_inv_2 * m1234_2)),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * ((m1234_inv_2 * m1234_2) + m1234_1 * m1234_inv_1),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT((m1234_inv_2 * m1234_2) +
+                  (m1234_1 * m1234_inv_1 - (m1234_inv_2 * m1234_2)),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT((m1234_inv_2 * m1234_2) +
+                  ((m1234_inv_2 * m1234_2) - m1234_1 * m1234_inv_1),
+              MatrixIsIdentity(tolerance));
 }
 
 template <typename MatSym>
@@ -436,18 +436,17 @@ TYPED_TEST(SymmetricTest, Operators) {
   const auto& m123_sym = this->m123_sym;
   const auto& m123_inv_sym = this->m123_inv_sym;
   mat_identity_t<typename TestFixture::Scalar> m_ident2(2);
-  EXPECT_TRUE(is_identity_mat(m123_inv_sym * m123_sym, tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      0.5 * (m123_inv_sym * m123_sym + m123_inv_sym * m123_sym), tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      (m123_inv_sym * m123_sym + m123_inv_sym * m123_sym) * 0.5, tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      (m123_inv_sym * m123_sym - m123_inv_sym * m123_sym) + m_ident2,
-      tolerance));
-  EXPECT_TRUE(is_null_mat(m123_inv_sym * m123_sym - m123_inv_sym * m123_sym,
-                          tolerance));
-  EXPECT_TRUE(is_null_mat(
-      m123_inv_sym * m123_sym + (-(m123_inv_sym * m123_sym)), tolerance));
+  EXPECT_THAT(m123_inv_sym * m123_sym, MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m123_inv_sym * m123_sym + m123_inv_sym * m123_sym),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT((m123_inv_sym * m123_sym + m123_inv_sym * m123_sym) * 0.5,
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT((m123_inv_sym * m123_sym - m123_inv_sym * m123_sym) + m_ident2,
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m123_inv_sym * m123_sym - m123_inv_sym * m123_sym,
+              MatrixIsNull(tolerance));
+  EXPECT_THAT(m123_inv_sym * m123_sym + (-(m123_inv_sym * m123_sym)),
+              MatrixIsNull(tolerance));
 }
 
 TYPED_TEST(SymmetricTest, VsDiagonal) {
@@ -458,18 +457,18 @@ TYPED_TEST(SymmetricTest, VsDiagonal) {
   mat<Scalar, mat_structure::diagonal, TestFixture::Alignment,
       TestFixture::RowCount, TestFixture::RowCount>
       m_ident_diag(2, Scalar{1.0});
-  EXPECT_TRUE(
-      is_identity_mat(m123_inv_sym * (m_ident_diag * m123_sym), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat(m123_inv_sym * (m123_sym * m_ident_diag), tolerance));
-  EXPECT_TRUE(is_identity_mat(0.5 * (m123_sym * m123_inv_sym + m_ident_diag),
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat(0.5 * (m_ident_diag + m123_sym * m123_inv_sym),
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      m_ident_diag + (m123_sym * m123_inv_sym - m_ident_diag), tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      m_ident_diag + (m_ident_diag - m123_sym * m123_inv_sym), tolerance));
+  EXPECT_THAT(m123_inv_sym * (m_ident_diag * m123_sym),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m123_inv_sym * (m123_sym * m_ident_diag),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m123_sym * m123_inv_sym + m_ident_diag),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m_ident_diag + m123_sym * m123_inv_sym),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident_diag + (m123_sym * m123_inv_sym - m_ident_diag),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident_diag + (m_ident_diag - m123_sym * m123_inv_sym),
+              MatrixIsIdentity(tolerance));
 }
 
 TYPED_TEST(SymmetricTest, VsScalarMat) {
@@ -480,18 +479,18 @@ TYPED_TEST(SymmetricTest, VsScalarMat) {
   mat<Scalar, mat_structure::scalar, TestFixture::Alignment,
       TestFixture::RowCount, TestFixture::RowCount>
       m_ident_scalar(2, Scalar{1.0});
-  EXPECT_TRUE(
-      is_identity_mat(m123_inv_sym * (m_ident_scalar * m123_sym), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat(m123_inv_sym * (m123_sym * m_ident_scalar), tolerance));
-  EXPECT_TRUE(is_identity_mat(0.5 * (m123_sym * m123_inv_sym + m_ident_scalar),
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat(0.5 * (m_ident_scalar + m123_sym * m123_inv_sym),
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      m_ident_scalar + (m123_sym * m123_inv_sym - m_ident_scalar), tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      m_ident_scalar + (m_ident_scalar - m123_sym * m123_inv_sym), tolerance));
+  EXPECT_THAT(m123_inv_sym * (m_ident_scalar * m123_sym),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m123_inv_sym * (m123_sym * m_ident_scalar),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m123_sym * m123_inv_sym + m_ident_scalar),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m_ident_scalar + m123_sym * m123_inv_sym),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident_scalar + (m123_sym * m123_inv_sym - m_ident_scalar),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident_scalar + (m_ident_scalar - m123_sym * m123_inv_sym),
+              MatrixIsIdentity(tolerance));
 }
 
 TYPED_TEST(SymmetricTest, VsIdentity) {
@@ -501,16 +500,18 @@ TYPED_TEST(SymmetricTest, VsIdentity) {
   mat<typename TestFixture::Scalar, mat_structure::identity,
       TestFixture::Alignment, TestFixture::RowCount, TestFixture::RowCount>
       m_ident2(2);
-  EXPECT_TRUE(is_identity_mat(m123_inv_sym * (m_ident2 * m123_sym), tolerance));
-  EXPECT_TRUE(is_identity_mat(m123_inv_sym * (m123_sym * m_ident2), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat(0.5 * (m123_sym * m123_inv_sym + m_ident2), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat(0.5 * (m_ident2 + m123_sym * m123_inv_sym), tolerance));
-  EXPECT_TRUE(is_identity_mat(m_ident2 + (m123_sym * m123_inv_sym - m_ident2),
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat(m_ident2 + (m_ident2 - m123_sym * m123_inv_sym),
-                              tolerance));
+  EXPECT_THAT(m123_inv_sym * (m_ident2 * m123_sym),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m123_inv_sym * (m123_sym * m_ident2),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m123_sym * m123_inv_sym + m_ident2),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m_ident2 + m123_sym * m123_inv_sym),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident2 + (m123_sym * m123_inv_sym - m_ident2),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_ident2 + (m_ident2 - m123_sym * m123_inv_sym),
+              MatrixIsIdentity(tolerance));
 }
 
 TYPED_TEST(SymmetricTest, VsNull) {
@@ -520,13 +521,13 @@ TYPED_TEST(SymmetricTest, VsNull) {
   mat<typename TestFixture::Scalar, mat_structure::nil, TestFixture::Alignment,
       TestFixture::RowCount, TestFixture::RowCount>
       m_zeroes(2, 2);
-  EXPECT_TRUE(is_null_mat(m123_sym * m_zeroes, tolerance));
-  EXPECT_TRUE(is_null_mat(m_zeroes * m123_sym, tolerance));
-  EXPECT_TRUE(
-      is_identity_mat(m_zeroes - m123_inv_sym * (-m123_sym), tolerance));
-  EXPECT_TRUE(is_identity_mat(m123_inv_sym * m123_sym - m_zeroes, tolerance));
-  EXPECT_TRUE(is_identity_mat(m123_inv_sym * m123_sym + m_zeroes, tolerance));
-  EXPECT_TRUE(is_identity_mat(m_zeroes + m123_inv_sym * m123_sym, tolerance));
+  EXPECT_THAT(m123_sym * m_zeroes, MatrixIsNull(tolerance));
+  EXPECT_THAT(m_zeroes * m123_sym, MatrixIsNull(tolerance));
+  EXPECT_THAT(m_zeroes - m123_inv_sym * (-m123_sym),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m123_inv_sym * m123_sym - m_zeroes, MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m123_inv_sym * m123_sym + m_zeroes, MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m_zeroes + m123_inv_sym * m123_sym, MatrixIsIdentity(tolerance));
 }
 
 template <typename MatSymAndDense>
@@ -657,27 +658,24 @@ TYPED_TEST(SymmetricDenseTest, Operators) {
   const auto& m123_inv_sym = this->m123_inv_sym;
   const auto& m1234 = this->m1234;
   const auto& m1234_inv = this->m1234_inv;
-  EXPECT_TRUE(is_identity_mat(m1234_inv * ((m123_sym * m123_inv_sym) * m1234),
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat(m1234_inv * (m1234 * (m123_sym * m123_inv_sym)),
-                              tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      0.5 * (m1234 * m1234_inv + (m123_sym * m123_inv_sym)), tolerance));
-  EXPECT_TRUE(is_identity_mat(
-      0.5 * ((m123_sym * m123_inv_sym) + m1234 * m1234_inv), tolerance));
-  EXPECT_TRUE(
-      is_identity_mat((m123_sym * m123_inv_sym) +
-                          (m1234 * m1234_inv - (m123_sym * m123_inv_sym)),
-                      tolerance));
-  EXPECT_TRUE(
-      is_identity_mat((m123_sym * m123_inv_sym) +
-                          ((m123_sym * m123_inv_sym) - m1234 * m1234_inv),
-                      tolerance));
+  EXPECT_THAT(m1234_inv * ((m123_sym * m123_inv_sym) * m1234),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(m1234_inv * (m1234 * (m123_sym * m123_inv_sym)),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * (m1234 * m1234_inv + (m123_sym * m123_inv_sym)),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT(0.5 * ((m123_sym * m123_inv_sym) + m1234 * m1234_inv),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT((m123_sym * m123_inv_sym) +
+                  (m1234 * m1234_inv - (m123_sym * m123_inv_sym)),
+              MatrixIsIdentity(tolerance));
+  EXPECT_THAT((m123_sym * m123_inv_sym) +
+                  ((m123_sym * m123_inv_sym) - m1234 * m1234_inv),
+              MatrixIsIdentity(tolerance));
 }
 
 TEST(MatAlg, MatOperatorTests) {
   constexpr double tolerance = std::numeric_limits<double>::epsilon();
-  using std::abs;
 
   mat<double, mat_structure::rectangular> m1234(1.0, 2.0, 3.0, 4.0);
   mat<double, mat_structure::rectangular> m1234_inv(-2.0, 1.0, 1.5, -0.5);
@@ -693,55 +691,56 @@ TEST(MatAlg, MatOperatorTests) {
   std::array<double, 4> f4321 = {4.0, 3.0, 2.0, 1.0};
   std::vector<double> v4321(f4321.begin(), f4321.end());
   mat<double> m4321(v4321, 2, 2);
-  EXPECT_TRUE((is_null_mat(m4321 - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321, MatrixIsNear(m4321_orig, tolerance));
 
   mat<double> m4321_cpy(m4321);
-  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy, MatrixIsNear(m4321_orig, tolerance));
 
   m4321_cpy = m4321;
-  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy, MatrixIsNear(m4321_orig, tolerance));
 
   m4321_cpy += mat<double>(2, 2, true);
-  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy - m4321_orig, MatrixIsIdentity(tolerance));
 
   m4321_cpy += mat_identity_t<double>(2);
-  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig - mat<double>(2, 2, true),
-                               tolerance)));
+  EXPECT_THAT(m4321_cpy - m4321_orig - mat<double>(2, 2, true),
+              MatrixIsIdentity(tolerance));
 
   m4321_cpy -= mat<double>(2, 2, true);
-  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy - m4321_orig, MatrixIsIdentity(tolerance));
 
   m4321_cpy -= mat_identity_t<double>(2);
-  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy - m4321_orig, MatrixIsNull(tolerance));
 
   m4321_cpy *= 2.0;
-  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy - m4321_orig, MatrixIsNear(m4321_orig, tolerance));
 
   m4321_cpy = m4321_cpy * double(0.5);
-  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy, MatrixIsNear(m4321_orig, tolerance));
 
   m4321_cpy = m4321_cpy + mat<double>(2, 2, true);
-  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy - m4321_orig, MatrixIsIdentity(tolerance));
 
   m4321_cpy = m4321_cpy + mat_identity_t<double>(2);
-  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig - mat<double>(2, 2, true),
-                               tolerance)));
+  EXPECT_THAT(m4321_cpy - m4321_orig - mat<double>(2, 2, true),
+              MatrixIsIdentity(tolerance));
 
   m4321_cpy = m4321_cpy - mat<double>(2, 2, true);
-  EXPECT_TRUE((is_identity_mat(m4321_cpy - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy - m4321_orig, MatrixIsIdentity(tolerance));
 
   m4321_cpy = m4321_cpy - mat_identity_t<double>(2);
-  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig, tolerance)));
-  EXPECT_TRUE((is_null_mat((-m4321_cpy) + m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy, MatrixIsNear(m4321_orig, tolerance));
+  EXPECT_THAT((-m4321_cpy) + m4321_orig, MatrixIsNull(tolerance));
 
   m4321_cpy = m4321_cpy * mat_identity_t<double>(2);
-  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy, MatrixIsNear(m4321_orig, tolerance));
 
+  // Testing comparators.
   EXPECT_TRUE((m4321_cpy == m4321));
   EXPECT_TRUE((m4321_cpy != mat<double>(2, 2, true)));
   EXPECT_TRUE((m4321_cpy != mat_identity_t<double>(2)));
 
-  EXPECT_TRUE((is_null_mat(m4321_cpy - m4321_orig, tolerance)));
+  EXPECT_THAT(m4321_cpy, MatrixIsNear(m4321_orig, tolerance));
   vect_n<double> v85 = m4321_cpy * vect_n<double>(1.0, 1.0);
   EXPECT_NEAR(v85[0], 6.0, tolerance);
   EXPECT_NEAR(v85[1], 4.0, tolerance);
@@ -751,63 +750,65 @@ TEST(MatAlg, MatOperatorTests) {
 
   mat<double, mat_structure::rectangular> m_ident3(3, 3, true);
   set_block(m_ident3, m4321_cpy, 1, 1);
-  EXPECT_TRUE(((abs(m_ident3(0, 0) - 1.0) < tolerance) &&
-               (abs(m_ident3(0, 1) - 0.0) < tolerance) &&
-               (abs(m_ident3(0, 2) - 0.0) < tolerance) &&
-               (abs(m_ident3(1, 0) - 0.0) < tolerance) &&
-               (abs(m_ident3(1, 1) - 4.0) < tolerance) &&
-               (abs(m_ident3(1, 2) - 2.0) < tolerance) &&
-               (abs(m_ident3(2, 0) - 0.0) < tolerance) &&
-               (abs(m_ident3(2, 1) - 3.0) < tolerance) &&
-               (abs(m_ident3(2, 2) - 1.0) < tolerance)));
+  EXPECT_NEAR(m_ident3(0, 0), 1.0, tolerance);
+  EXPECT_NEAR(m_ident3(0, 1), 0.0, tolerance);
+  EXPECT_NEAR(m_ident3(0, 2), 0.0, tolerance);
+  EXPECT_NEAR(m_ident3(1, 0), 0.0, tolerance);
+  EXPECT_NEAR(m_ident3(1, 1), 4.0, tolerance);
+  EXPECT_NEAR(m_ident3(1, 2), 2.0, tolerance);
+  EXPECT_NEAR(m_ident3(2, 0), 0.0, tolerance);
+  EXPECT_NEAR(m_ident3(2, 1), 3.0, tolerance);
+  EXPECT_NEAR(m_ident3(2, 2), 1.0, tolerance);
 
   m4321_cpy = get_block(m_ident3, 1, 1, 2, 2);
-  EXPECT_TRUE(((abs(m4321_cpy(0, 0) - 4.0) < tolerance) &&
-               (abs(m4321_cpy(0, 1) - 2.0) < tolerance) &&
-               (abs(m4321_cpy(1, 0) - 3.0) < tolerance) &&
-               (abs(m4321_cpy(1, 1) - 1.0) < tolerance)));
+  EXPECT_NEAR(m4321_cpy(0, 0), 4.0, tolerance);
+  EXPECT_NEAR(m4321_cpy(0, 1), 2.0, tolerance);
+  EXPECT_NEAR(m4321_cpy(1, 0), 3.0, tolerance);
+  EXPECT_NEAR(m4321_cpy(1, 1), 1.0, tolerance);
   mat<double, mat_structure::rectangular> m4321_trans((transpose(m4321_cpy)));
-  EXPECT_TRUE(((abs(m4321_trans(0, 0) - 4.0) < tolerance) &&
-               (abs(m4321_trans(0, 1) - 3.0) < tolerance) &&
-               (abs(m4321_trans(1, 0) - 2.0) < tolerance) &&
-               (abs(m4321_trans(1, 1) - 1.0) < tolerance)));
+  EXPECT_NEAR(m4321_trans(0, 0), 4.0, tolerance);
+  EXPECT_NEAR(m4321_trans(0, 1), 3.0, tolerance);
+  EXPECT_NEAR(m4321_trans(1, 0), 2.0, tolerance);
+  EXPECT_NEAR(m4321_trans(1, 1), 1.0, tolerance);
   mat<double, mat_structure::symmetric> m4321_sym =
       mat<double, mat_structure::symmetric>(m4321_cpy);
-  EXPECT_TRUE(((abs(m4321_sym(0, 0) - 4.0) < tolerance) &&
-               (abs(m4321_sym(0, 1) - 2.5) < tolerance) &&
-               (abs(m4321_sym(1, 0) - 2.5) < tolerance) &&
-               (abs(m4321_sym(1, 1) - 1.0) < tolerance)));
+  EXPECT_NEAR(m4321_sym(0, 0), 4.0, tolerance);
+  EXPECT_NEAR(m4321_sym(0, 1), 2.5, tolerance);
+  EXPECT_NEAR(m4321_sym(1, 0), 2.5, tolerance);
+  EXPECT_NEAR(m4321_sym(1, 1), 1.0, tolerance);
   mat<double, mat_structure::skew_symmetric> m4321_skew =
       mat<double, mat_structure::skew_symmetric>(m4321_cpy);
   const mat<double, mat_structure::skew_symmetric>& m4321_skew_ref = m4321_skew;
-  EXPECT_TRUE(((abs(m4321_skew_ref(0, 0) - 0.0) < tolerance) &&
-               (abs(m4321_skew_ref(0, 1) + 0.5) < tolerance) &&
-               (abs(m4321_skew_ref(1, 0) - 0.5) < tolerance) &&
-               (abs(m4321_skew_ref(1, 1) - 0.0) < tolerance)));
+  EXPECT_NEAR(m4321_skew_ref(0, 0), 0.0, tolerance);
+  EXPECT_NEAR(m4321_skew_ref(0, 1), -0.5, tolerance);
+  EXPECT_NEAR(m4321_skew_ref(1, 0), 0.5, tolerance);
+  EXPECT_NEAR(m4321_skew_ref(1, 1), 0.0, tolerance);
 
   mat<double, mat_structure::diagonal> m123(vect_n<double>(1.0, 2.0, 3.0));
   const mat<double, mat_structure::diagonal>& m123_ref = m123;
-  EXPECT_TRUE(
-      ((abs(m123_ref(0, 0) - 1.0) < tolerance) &&
-       (abs(m123_ref(1, 1) - 2.0) < tolerance) &&
-       (abs(m123_ref(2, 2) - 3.0) < tolerance) &&
-       (abs(m123_ref(0, 1)) < tolerance) && (abs(m123_ref(0, 2)) < tolerance) &&
-       (abs(m123_ref(1, 0)) < tolerance) && (abs(m123_ref(1, 2)) < tolerance) &&
-       (abs(m123_ref(2, 0)) < tolerance) && (abs(m123_ref(2, 1)) < tolerance)));
+  EXPECT_NEAR(m123_ref(0, 0), 1.0, tolerance);
+  EXPECT_NEAR(m123_ref(1, 1), 2.0, tolerance);
+  EXPECT_NEAR(m123_ref(2, 2), 3.0, tolerance);
+  EXPECT_NEAR(m123_ref(0, 1), 0.0, tolerance);
+  EXPECT_NEAR(m123_ref(0, 2), 0.0, tolerance);
+  EXPECT_NEAR(m123_ref(1, 0), 0.0, tolerance);
+  EXPECT_NEAR(m123_ref(1, 2), 0.0, tolerance);
+  EXPECT_NEAR(m123_ref(2, 0), 0.0, tolerance);
+  EXPECT_NEAR(m123_ref(2, 1), 0.0, tolerance);
 
   mat<double, mat_structure::skew_symmetric> m123_skew =
       mat<double, mat_structure::skew_symmetric>(vect_n<double>(1.0, 2.0, 3.0));
   const mat<double, mat_structure::skew_symmetric>& m123_skew_ref = m123_skew;
-  EXPECT_TRUE(((abs(m123_skew_ref(0, 0)) < tolerance) &&
-               (abs(m123_skew_ref(1, 1)) < tolerance) &&
-               (abs(m123_skew_ref(2, 2)) < tolerance) &&
-               (abs(m123_skew_ref(0, 1) + 3.0) < tolerance) &&
-               (abs(m123_skew_ref(0, 2) - 2.0) < tolerance) &&
-               (abs(m123_skew_ref(1, 0) - 3.0) < tolerance) &&
-               (abs(m123_skew_ref(1, 2) + 1.0) < tolerance) &&
-               (abs(m123_skew_ref(2, 0) + 2.0) < tolerance) &&
-               (abs(m123_skew_ref(2, 1) - 1.0) < tolerance)));
-};
+  EXPECT_NEAR(m123_skew_ref(0, 0), 0.0, tolerance);
+  EXPECT_NEAR(m123_skew_ref(1, 1), 0.0, tolerance);
+  EXPECT_NEAR(m123_skew_ref(2, 2), 0.0, tolerance);
+  EXPECT_NEAR(m123_skew_ref(0, 1), -3.0, tolerance);
+  EXPECT_NEAR(m123_skew_ref(0, 2), 2.0, tolerance);
+  EXPECT_NEAR(m123_skew_ref(1, 0), 3.0, tolerance);
+  EXPECT_NEAR(m123_skew_ref(1, 2), -1.0, tolerance);
+  EXPECT_NEAR(m123_skew_ref(2, 0), -2.0, tolerance);
+  EXPECT_NEAR(m123_skew_ref(2, 1), 1.0, tolerance);
+}
 
 }  // namespace
 }  // namespace ReaK

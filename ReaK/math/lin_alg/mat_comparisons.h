@@ -1,11 +1,9 @@
-/**
- * \file mat_comparisons.h
- *
- * This library provides several functions to compute the various matrix comparisons.
- *
- * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
- * \date September 2011
- */
+/// \file mat_comparisons.h
+///
+/// This library provides several functions to compute the various matrix comparisons.
+///
+/// \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+/// \date September 2011
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -39,15 +37,13 @@
 
 namespace ReaK {
 
-/**
- * This function template computes the element-wise comparison of two matrices.
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \param M1 A matrix for which the 1-norm is sought.
- * \param M2 A matrix for which the 1-norm is sought.
- * \param NumTol The numerical tolerance to consider a value to be zero.
- * \return true iff both matrices are the same, within the given tolerance.
- */
+/// This function template computes the element-wise comparison of two matrices.
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \param M1 A matrix for which the 1-norm is sought.
+/// \param M2 A matrix for which the 1-norm is sought.
+/// \param NumTol The numerical tolerance to consider a value to be zero.
+/// \return true iff both matrices are the same, within the given tolerance.
 template <typename Matrix1, typename Matrix2>
 bool is_equal_mat(
     const Matrix1& M1, const Matrix2& M2,
@@ -72,13 +68,11 @@ bool is_equal_mat(
   return true;
 }
 
-/**
- * Verifies that the matrix A is diagonal up to a tolerance.
- * \tparam Matrix A readable matrix type.
- * \param A A matrix to verify for being diagonal.
- * \param NumTol The numerical tolerance to consider a value to be zero.
- * \return true iff the matrix is diagonal, within the given tolerance.
- */
+/// Verifies that the matrix A is diagonal up to a tolerance.
+/// \tparam Matrix A readable matrix type.
+/// \param A A matrix to verify for being diagonal.
+/// \param NumTol The numerical tolerance to consider a value to be zero.
+/// \return true iff the matrix is diagonal, within the given tolerance.
 template <class Matrix>
 bool is_diagonal(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                       mat_value_type_t<Matrix>(1E-8)) {
@@ -100,13 +94,11 @@ bool is_diagonal(const Matrix& A, mat_value_type_t<Matrix> NumTol =
   return true;
 }
 
-/**
- * Verifies that the matrix A is symmetric up to a tolerance.
- * \tparam Matrix A readable matrix type.
- * \param A A matrix to verify for being symmetric.
- * \param NumTol The numerical tolerance to consider a value to be zero.
- * \return true iff the matrix is symmetric, within the given tolerance.
- */
+/// Verifies that the matrix A is symmetric up to a tolerance.
+/// \tparam Matrix A readable matrix type.
+/// \param A A matrix to verify for being symmetric.
+/// \param NumTol The numerical tolerance to consider a value to be zero.
+/// \return true iff the matrix is symmetric, within the given tolerance.
 template <class Matrix>
 bool is_symmetric(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                        mat_value_type_t<Matrix>(1E-8)) {
@@ -128,13 +120,11 @@ bool is_symmetric(const Matrix& A, mat_value_type_t<Matrix> NumTol =
   return true;
 }
 
-/**
- * Verifies that the matrix A is the identity up to a tolerance.
- * \tparam Matrix A readable matrix type.
- * \param A A matrix to verify for being the identity.
- * \param NumTol The numerical tolerance to consider a value to be zero.
- * \return true iff the matrix is the identity, within the given tolerance.
- */
+/// Verifies that the matrix A is the identity up to a tolerance.
+/// \tparam Matrix A readable matrix type.
+/// \param A A matrix to verify for being the identity.
+/// \param NumTol The numerical tolerance to consider a value to be zero.
+/// \return true iff the matrix is the identity, within the given tolerance.
 template <class Matrix>
 bool is_identity_mat(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                           mat_value_type_t<Matrix>(1E-8)) {
@@ -163,13 +153,11 @@ bool is_identity_mat(const Matrix& A, mat_value_type_t<Matrix> NumTol =
   return true;
 }
 
-/**
- * Verifies that the matrix A is null up to a tolerance.
- * \tparam Matrix A readable matrix type.
- * \param A A matrix to verify for being null.
- * \param NumTol The numerical tolerance to consider a value to be zero.
- * \return true iff the matrix is null, within the given tolerance.
- */
+/// Verifies that the matrix A is null up to a tolerance.
+/// \tparam Matrix A readable matrix type.
+/// \param A A matrix to verify for being null.
+/// \param NumTol The numerical tolerance to consider a value to be zero.
+/// \return true iff the matrix is null, within the given tolerance.
 template <class Matrix>
 bool is_null_mat(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                       mat_value_type_t<Matrix>(1E-8)) {
@@ -187,13 +175,11 @@ bool is_null_mat(const Matrix& A, mat_value_type_t<Matrix> NumTol =
   return true;
 }
 
-/**
- * Verifies that the matrix A is upper-triangular up to a tolerance.
- * \tparam Matrix A readable matrix type.
- * \param A A matrix to verify for being upper-triangular.
- * \param NumTol The numerical tolerance to consider a value to be zero.
- * \return true iff the matrix is upper-triangular, within the given tolerance.
- */
+/// Verifies that the matrix A is upper-triangular up to a tolerance.
+/// \tparam Matrix A readable matrix type.
+/// \param A A matrix to verify for being upper-triangular.
+/// \param NumTol The numerical tolerance to consider a value to be zero.
+/// \return true iff the matrix is upper-triangular, within the given tolerance.
 template <class Matrix>
 bool is_upper_triangular(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                               mat_value_type_t<Matrix>(1E-8)) {
@@ -216,13 +202,11 @@ bool is_upper_triangular(const Matrix& A, mat_value_type_t<Matrix> NumTol =
   return true;
 }
 
-/**
- * Verifies that the matrix A is lower-triangular up to a tolerance.
- * \tparam Matrix A readable matrix type.
- * \param A A matrix to verify for being lower-triangular.
- * \param NumTol The numerical tolerance to consider a value to be zero.
- * \return true iff the matrix is lower-triangular, within the given tolerance.
- */
+/// Verifies that the matrix A is lower-triangular up to a tolerance.
+/// \tparam Matrix A readable matrix type.
+/// \param A A matrix to verify for being lower-triangular.
+/// \param NumTol The numerical tolerance to consider a value to be zero.
+/// \return true iff the matrix is lower-triangular, within the given tolerance.
 template <class Matrix>
 bool is_lower_triangular(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                               mat_value_type_t<Matrix>(1E-8)) {
@@ -241,13 +225,11 @@ bool is_lower_triangular(const Matrix& A, mat_value_type_t<Matrix> NumTol =
   return true;
 }
 
-/**
- * Verifies that the matrix A is upper-hessenberg up to a tolerance.
- * \tparam Matrix A readable matrix type.
- * \param A A matrix to verify for being upper-hessenberg.
- * \param NumTol The numerical tolerance to consider a value to be zero.
- * \return true iff the matrix is upper-hessenberg, within the given tolerance.
- */
+/// Verifies that the matrix A is upper-hessenberg up to a tolerance.
+/// \tparam Matrix A readable matrix type.
+/// \param A A matrix to verify for being upper-hessenberg.
+/// \param NumTol The numerical tolerance to consider a value to be zero.
+/// \return true iff the matrix is upper-hessenberg, within the given tolerance.
 template <class Matrix>
 bool is_upper_hessenberg(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                               mat_value_type_t<Matrix>(1E-8)) {
@@ -270,13 +252,11 @@ bool is_upper_hessenberg(const Matrix& A, mat_value_type_t<Matrix> NumTol =
   return true;
 }
 
-/**
- * Verifies that the matrix A is lower-hessenberg up to a tolerance.
- * \tparam Matrix A readable matrix type.
- * \param A A matrix to verify for being lower-hessenberg.
- * \param NumTol The numerical tolerance to consider a value to be zero.
- * \return true iff the matrix is lower-hessenberg, within the given tolerance.
- */
+/// Verifies that the matrix A is lower-hessenberg up to a tolerance.
+/// \tparam Matrix A readable matrix type.
+/// \param A A matrix to verify for being lower-hessenberg.
+/// \param NumTol The numerical tolerance to consider a value to be zero.
+/// \return true iff the matrix is lower-hessenberg, within the given tolerance.
 template <class Matrix>
 bool is_lower_hessenberg(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                               mat_value_type_t<Matrix>(1E-8)) {
@@ -295,13 +275,11 @@ bool is_lower_hessenberg(const Matrix& A, mat_value_type_t<Matrix> NumTol =
   return true;
 }
 
-/**
- * Verifies that the matrix A is tri-diagonal up to a tolerance.
- * \tparam Matrix A readable matrix type.
- * \param A A matrix to verify for being tri-diagonal.
- * \param NumTol The numerical tolerance to consider a value to be zero.
- * \return true iff the matrix is tri-diagonal, within the given tolerance.
- */
+/// Verifies that the matrix A is tri-diagonal up to a tolerance.
+/// \tparam Matrix A readable matrix type.
+/// \param A A matrix to verify for being tri-diagonal.
+/// \param NumTol The numerical tolerance to consider a value to be zero.
+/// \return true iff the matrix is tri-diagonal, within the given tolerance.
 template <class Matrix>
 bool is_tri_diagonal(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                           mat_value_type_t<Matrix>(1E-8)) {

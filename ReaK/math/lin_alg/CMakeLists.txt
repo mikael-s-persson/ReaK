@@ -61,6 +61,17 @@ reak_cc_library(
   PUBLIC
 )
 
+reak_cc_library(
+  NAME
+    lin_alg_matchers
+  HDRS
+    "mat_matchers.h"
+  DEPS
+    GTest::gmock
+    ReaK::lin_alg
+  PUBLIC
+)
+
 reak_cc_test(
   NAME
     vect_alg_test
@@ -78,6 +89,7 @@ reak_cc_test(
     "mat_alg_test.cc"
   DEPS
     ReaK::lin_alg
+    ReaK::lin_alg_matchers
     GTest::gtest_main
 )
 
@@ -88,6 +100,7 @@ reak_cc_test(
     "mat_num_test.cc"
   DEPS
     ReaK::lin_alg
+    ReaK::lin_alg_matchers
     GTest::gtest_main
 )
 
