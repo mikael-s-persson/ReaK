@@ -227,9 +227,7 @@ class mat_copy_sub_block {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, colCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, colCount}; }
 
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
@@ -379,8 +377,8 @@ class mat_sub_block {
    * \param aRowOffset The row-offset from the start of the matrix.
    * \param aColOffset The column-offset from the start of the matrix.
    */
-  mat_sub_block(Matrix& aM, int aRowCount, int aColCount,
-                int aRowOffset = 0, int aColOffset = 0)
+  mat_sub_block(Matrix& aM, int aRowCount, int aColCount, int aRowOffset = 0,
+                int aColOffset = 0)
       : m(&aM),
         rowOffset(aRowOffset),
         colOffset(aColOffset),
@@ -486,9 +484,7 @@ class mat_sub_block {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, colCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, colCount}; }
 
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
@@ -638,9 +634,8 @@ class mat_const_sub_block {
    * \param aRowOffset The row-offset from the start of the matrix.
    * \param aColOffset The column-offset from the start of the matrix.
    */
-  mat_const_sub_block(const Matrix& aM, int aRowCount,
-                      int aColCount, int aRowOffset = 0,
-                      int aColOffset = 0)
+  mat_const_sub_block(const Matrix& aM, int aRowCount, int aColCount,
+                      int aRowOffset = 0, int aColOffset = 0)
       : m(&aM),
         rowOffset(aRowOffset),
         colOffset(aColOffset),
@@ -707,9 +702,7 @@ class mat_const_sub_block {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, colCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, colCount}; }
 };
 
 template <typename Matrix>
@@ -746,9 +739,8 @@ template <typename Matrix>
 struct mat_copy_sub_block_factory {
   Matrix m;
   explicit mat_copy_sub_block_factory(Matrix&& aM) : m(std::move(aM)) {}
-  mat_copy_sub_block<Matrix> operator()(
-      const std::pair<int, int>& rows,
-      const std::pair<int, int>& cols) {
+  mat_copy_sub_block<Matrix> operator()(const std::pair<int, int>& rows,
+                                        const std::pair<int, int>& cols) {
     return mat_copy_sub_block<Matrix>(std::move(m), rows.second - rows.first,
                                       cols.second - cols.first, rows.first,
                                       cols.first);
@@ -759,9 +751,8 @@ template <typename Matrix>
 struct mat_sub_block_factory {
   Matrix& m;
   explicit mat_sub_block_factory(Matrix& aM) : m(aM) {}
-  mat_sub_block<Matrix> operator()(
-      const std::pair<int, int>& rows,
-      const std::pair<int, int>& cols) {
+  mat_sub_block<Matrix> operator()(const std::pair<int, int>& rows,
+                                   const std::pair<int, int>& cols) {
     return mat_sub_block<Matrix>(m, rows.second - rows.first,
                                  cols.second - cols.first, rows.first,
                                  cols.first);
@@ -772,9 +763,8 @@ template <typename Matrix>
 struct mat_const_sub_block_factory {
   const Matrix& m;
   explicit mat_const_sub_block_factory(const Matrix& aM) : m(aM) {}
-  mat_const_sub_block<Matrix> operator()(
-      const std::pair<int, int>& rows,
-      const std::pair<int, int>& cols) {
+  mat_const_sub_block<Matrix> operator()(const std::pair<int, int>& rows,
+                                         const std::pair<int, int>& cols) {
     return mat_const_sub_block<Matrix>(m, rows.second - rows.first,
                                        cols.second - cols.first, rows.first,
                                        cols.first);
@@ -874,8 +864,7 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::symmetric> {
    * \param aSize The number of rows for the sub-block.
    * \param aOffset The row-offset from the start of the matrix.
    */
-  mat_copy_sub_sym_block(const Matrix& aM, int aSize,
-                         int aOffset = 0)
+  mat_copy_sub_sym_block(const Matrix& aM, int aSize, int aOffset = 0)
       : m(aM), offset(aOffset), rowCount(aSize) {}
 
   /**
@@ -980,9 +969,7 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::symmetric> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, rowCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, rowCount}; }
 
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
@@ -1227,9 +1214,7 @@ class mat_sub_sym_block<Matrix, mat_structure::symmetric> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, rowCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, rowCount}; }
 
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
@@ -1368,8 +1353,7 @@ class mat_const_sub_sym_block<Matrix, mat_structure::symmetric> {
    * \param aSize The number of rows for the sub-block.
    * \param aOffset The row-offset from the start of the matrix.
    */
-  mat_const_sub_sym_block(const Matrix& aM, int aSize,
-                          int aOffset = 0)
+  mat_const_sub_sym_block(const Matrix& aM, int aSize, int aOffset = 0)
       : m(&aM), offset(aOffset), rowCount(aSize) {}
 
   /**
@@ -1431,9 +1415,7 @@ class mat_const_sub_sym_block<Matrix, mat_structure::symmetric> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, rowCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, rowCount}; }
 
   /**
    * Transposes the matrix M.
@@ -1518,8 +1500,7 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
    * \param aSize The number of rows for the sub-block.
    * \param aOffset The row-offset from the start of the matrix.
    */
-  mat_copy_sub_sym_block(const Matrix& aM, int aSize,
-                         int aOffset = 0)
+  mat_copy_sub_sym_block(const Matrix& aM, int aSize, int aOffset = 0)
       : m(aM), offset(aOffset), rowCount(aSize) {}
 
   /**
@@ -1624,9 +1605,7 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, rowCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, rowCount}; }
 
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
@@ -1851,9 +1830,7 @@ class mat_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, rowCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, rowCount}; }
 
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
@@ -1972,8 +1949,7 @@ class mat_const_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
    * \param aSize The number of rows for the sub-block.
    * \param aOffset The row-offset from the start of the matrix.
    */
-  mat_const_sub_sym_block(const Matrix& aM, int aSize,
-                          int aOffset = 0)
+  mat_const_sub_sym_block(const Matrix& aM, int aSize, int aOffset = 0)
       : m(&aM), offset(aOffset), rowCount(aSize) {}
 
   /**
@@ -1989,8 +1965,7 @@ class mat_const_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
   self& operator=(const self&) = delete;
 
   explicit mat_const_sub_sym_block(Matrix&& aM) = delete;
-  mat_const_sub_sym_block(Matrix&& aM, int aSize,
-                          int aOffset = 0) = delete;
+  mat_const_sub_sym_block(Matrix&& aM, int aSize, int aOffset = 0) = delete;
 
   /**
    * Standard swap function (shallow).
@@ -2035,9 +2010,7 @@ class mat_const_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, rowCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, rowCount}; }
 
   /**
    * Returns the trace of matrix M.
@@ -2097,8 +2070,7 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::diagonal> {
    * \param aSize The number of rows for the sub-block.
    * \param aOffset The row-offset from the start of the matrix.
    */
-  mat_copy_sub_sym_block(const Matrix& aM, int aSize,
-                         int aOffset = 0)
+  mat_copy_sub_sym_block(const Matrix& aM, int aSize, int aOffset = 0)
       : m(aM), offset(aOffset), rowCount(aSize) {}
 
   /**
@@ -2201,9 +2173,7 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::diagonal> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, rowCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, rowCount}; }
 
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
@@ -2431,9 +2401,7 @@ class mat_sub_sym_block<Matrix, mat_structure::diagonal> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, rowCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, rowCount}; }
 
   /** COL-MAJOR ONLY
    * Add-and-store operator with standard semantics.
@@ -2573,8 +2541,7 @@ class mat_const_sub_sym_block<Matrix, mat_structure::diagonal> {
    * \param aSize The number of rows for the sub-block.
    * \param aOffset The row-offset from the start of the matrix.
    */
-  mat_const_sub_sym_block(const Matrix& aM, int aSize,
-                          int aOffset = 0)
+  mat_const_sub_sym_block(const Matrix& aM, int aSize, int aOffset = 0)
       : m(&aM), offset(aOffset), rowCount(aSize) {}
 
   /**
@@ -2635,9 +2602,7 @@ class mat_const_sub_sym_block<Matrix, mat_structure::diagonal> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, rowCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, rowCount}; }
 
   /**
    * Transposes the matrix M.
@@ -2774,8 +2739,7 @@ template <typename Matrix>
 struct mat_copy_sub_sym_block_factory {
   Matrix m;
   explicit mat_copy_sub_sym_block_factory(Matrix&& aM) : m(std::move(aM)) {}
-  mat_copy_sub_sym_block<Matrix> operator()(
-      const std::pair<int, int>& rows) {
+  mat_copy_sub_sym_block<Matrix> operator()(const std::pair<int, int>& rows) {
     return mat_copy_sub_sym_block<Matrix>(std::move(m),
                                           rows.second - rows.first, rows.first);
   }
@@ -2785,8 +2749,7 @@ template <typename Matrix>
 struct mat_sub_sym_block_factory {
   Matrix& m;
   explicit mat_sub_sym_block_factory(Matrix& aM) : m(aM) {}
-  mat_sub_sym_block<Matrix> operator()(
-      const std::pair<int, int>& rows) {
+  mat_sub_sym_block<Matrix> operator()(const std::pair<int, int>& rows) {
     return mat_sub_sym_block<Matrix>(m, rows.second - rows.first, rows.first);
   }
 };
@@ -2795,8 +2758,7 @@ template <typename Matrix>
 struct mat_const_sub_sym_block_factory {
   const Matrix& m;
   explicit mat_const_sub_sym_block_factory(const Matrix& aM) : m(aM) {}
-  mat_const_sub_sym_block<Matrix> operator()(
-      const std::pair<int, int>& rows) {
+  mat_const_sub_sym_block<Matrix> operator()(const std::pair<int, int>& rows) {
     return mat_const_sub_sym_block<Matrix>(m, rows.second - rows.first,
                                            rows.first);
   }

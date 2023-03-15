@@ -275,6 +275,11 @@ class vect {
     if constexpr (is_dynamic_size) {
       if constexpr (std::is_integral_v<U>) {
         q.resize(value_or_size, value_type{});
+      } else if constexpr (is_readable_vector_v<U>) {
+        q.resize(value_or_size.size());
+        for (int i = 0; i < q.size(); ++i) {
+          q[i] = value_or_size[i];
+        }
       } else {
         q.resize(1);
         q[0] = value_or_size;
@@ -283,6 +288,13 @@ class vect {
       U p_val = value_or_size;
       for (auto& v : q) {
         v = *p_val++;
+      }
+    } else if constexpr (is_readable_vector_v<U>) {
+      if (Size != value_or_size.size()) {
+        throw std::range_error("Vector size mismatch.");
+      }
+      for (int i = 0; i < q.size(); ++i) {
+        q[i] = value_or_size[i];
       }
     } else {
       static_assert(Size == 1);
@@ -342,11 +354,16 @@ class vect {
 
  public:
   /// Constructor for fixed number of values.
-  template <typename... Args>
-  vect(const value_type& a1, const value_type& a2,
-       const Args&... args) noexcept {
+  template <typename Arg1, typename Arg2, typename... Args>
+  vect(const Arg1& a1, const Arg2& a2,
+       const Args&... args) noexcept(!is_dynamic_size) {
     if constexpr (is_dynamic_size) {
-      q.resize(sizeof...(Args) + 2);
+      if constexpr (std::is_integral_v<Arg1> && (sizeof...(Args) == 0)) {
+        q.resize(a1, a2);
+        return;
+      } else {
+        q.resize(sizeof...(Args) + 2);
+      }
     } else {
       static_assert(Size > sizeof...(Args) + 1);
     }
@@ -391,7 +408,7 @@ class vect {
         throw std::range_error("Vector size mismatch.");
       }
     }
-    for (int i = 0; i < Size; ++i) {
+    for (int i = 0; i < q.size(); ++i) {
       q[i] = rhs[i];
     }
     return *this;
@@ -865,9 +882,8 @@ class vect_scalar {
   /// Constructor for a given value for the vector.
   explicit vect_scalar(const_reference aFill) noexcept { data.q = aFill; }
 
-  explicit vect_scalar(
-      int aSize,
-      const_reference aFill = value_type()) noexcept(is_dynamic_size) {
+  explicit vect_scalar(int aSize, const_reference aFill =
+                                      value_type()) noexcept(is_dynamic_size) {
     data.q = aFill;
     if constexpr (is_dynamic_size) {
       data.count = aSize;

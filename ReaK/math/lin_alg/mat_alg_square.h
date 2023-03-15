@@ -64,7 +64,9 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   static constexpr bool is_dynamic_size = (RowCount == 0);
 
   using value_type = T;
-  using container_type = std::conditional_t<is_dynamic_size, std::vector<value_type>, std::array<value_type, RowCount * RowCount>>;
+  using container_type =
+      std::conditional_t<is_dynamic_size, std::vector<value_type>,
+                         std::array<value_type, RowCount * RowCount>>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -117,8 +119,7 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
     }
   }
 
-  mat(int aRowCount, int aColCount,
-      const value_type& aFill = value_type())
+  mat(int aRowCount, int aColCount, const value_type& aFill = value_type())
       : mat(aRowCount, aFill) {
     if (aRowCount != aColCount) {
       throw std::range_error("Matrix dimension are not square.");
@@ -126,8 +127,7 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   }
 
   /// Constructor for an identity matrix.
-  mat(int aRowCount, bool aIdentity)
-      : mat(aRowCount) {
+  mat(int aRowCount, bool aIdentity) : mat(aRowCount) {
     if (aIdentity) {
       int minN = get_row_count() * (get_row_count() + 1);
       for (int i = 0; i < minN; i += get_row_count() + 1) {
@@ -232,8 +232,7 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   /// \param m1 The matrix to swap with the container.
   /// \param q2 The container that will be swapped with m1's internal container.
   /// \param rowCount2 The row-count corresponding to q2's data.
-  friend void swap(self& m1, container_type& q2,
-                   int& rowCount2) noexcept {
+  friend void swap(self& m1, container_type& q2, int& rowCount2) noexcept {
     using std::swap;
     swap(m1.data.q, q2);
     if constexpr (is_dynamic_size) {
@@ -254,7 +253,9 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   /// \param i Row index.
   /// \param j Column index.
   /// \return the element at the given position.
-  const_reference operator()(int i, int j) const { return data.q[j * get_row_count() + i]; }
+  const_reference operator()(int i, int j) const {
+    return data.q[j * get_row_count() + i];
+  }
 
   /// Sub-matrix operator, accessor for read/write.
   mat_sub_block<self> operator()(const std::pair<int, int>& r,
@@ -310,9 +311,7 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   }
   /// Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
   /// \param sz new dimensions for the matrix.
-  void resize(const std::pair<int, int>& sz) {
-    set_row_count(sz.first, true);
-  }
+  void resize(const std::pair<int, int>& sz) { set_row_count(sz.first, true); }
 
   /// Sets the row-count (number of rows) of the matrix.
   /// \param aRowCount new number of rows for the matrix.
@@ -326,13 +325,13 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
       if (aPreserveData) {
         if (aRowCount > get_row_count()) {
           for (int i = get_row_count(); i != 0; --i) {
-            data.q.insert(data.q.begin() + i * get_row_count(), aRowCount - get_row_count(),
-                     value_type(0));
+            data.q.insert(data.q.begin() + i * get_row_count(),
+                          aRowCount - get_row_count(), value_type(0));
           }
         } else if (aRowCount < get_row_count()) {
           for (int i = get_row_count(); i != 0; --i) {
             data.q.erase(data.q.begin() + (i - 1) * get_row_count() + aRowCount,
-                    data.q.begin() + i * get_row_count());
+                         data.q.begin() + i * get_row_count());
           }
         } else {
           return;
@@ -353,7 +352,9 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   row_iterator first_row() { return data.q.begin(); }
   const_row_iterator first_row() const { return data.q.begin(); }
   row_iterator last_row() { return data.q.begin() + get_row_count(); }
-  const_row_iterator last_row() const { return data.q.begin() + get_row_count(); }
+  const_row_iterator last_row() const {
+    return data.q.begin() + get_row_count();
+  }
   row_iterator first_row(col_iterator cit) {
     int diff = cit.base() - data.q.begin();
     return data.q.begin() + ((diff / get_row_count()) * get_row_count());
@@ -385,25 +386,33 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   }
 
   col_iterator first_col() { return {data.q.begin(), get_row_count()}; }
-  const_col_iterator first_col() const { return {data.q.begin(), get_row_count()}; }
+  const_col_iterator first_col() const {
+    return {data.q.begin(), get_row_count()};
+  }
   col_iterator last_col() {
-    return {data.q.begin() + get_row_count() * get_row_count(), get_row_count()};
+    return {data.q.begin() + get_row_count() * get_row_count(),
+            get_row_count()};
   }
   const_col_iterator last_col() const {
-    return {data.q.begin() + get_row_count() * get_row_count(), get_row_count()};
+    return {data.q.begin() + get_row_count() * get_row_count(),
+            get_row_count()};
   }
   col_iterator first_col(row_iterator rit) {
-    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()), get_row_count()};
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()),
+            get_row_count()};
   }
   const_col_iterator first_col(const_row_iterator rit) const {
-    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()), get_row_count()};
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()),
+            get_row_count()};
   }
   col_iterator last_col(row_iterator rit) {
-    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()) + get_row_count() * get_row_count(),
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()) +
+                get_row_count() * get_row_count(),
             get_row_count()};
   }
   const_col_iterator last_col(const_row_iterator rit) const {
-    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()) + get_row_count() * get_row_count(),
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()) +
+                get_row_count() * get_row_count(),
             get_row_count()};
   }
   std::pair<col_iterator, col_iterator> cols() {
@@ -437,7 +446,8 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   template <typename Matrix>
   self& operator+=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != get_row_count()) || (M.get_row_count() != get_row_count())) {
+    if ((M.get_col_count() != get_row_count()) ||
+        (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
     auto it = data.q.begin();
@@ -453,7 +463,8 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   template <typename Matrix>
   self& operator-=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != get_row_count()) || (M.get_row_count() != get_row_count())) {
+    if ((M.get_col_count() != get_row_count()) ||
+        (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
     auto it = data.q.begin();
@@ -548,15 +559,15 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    A & std::pair<std::string, const container_type&>("q", data.q);
+    A& std::pair<std::string, const container_type&>("q", data.q);
     if constexpr (is_dynamic_size) {
-      A & std::pair<std::string, int>("rowCount", data.rowCount);
+      A& std::pair<std::string, int>("rowCount", data.rowCount);
     }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    A & std::pair<std::string, container_type&>("q", data.q);
+    A& std::pair<std::string, container_type&>("q", data.q);
     if constexpr (is_dynamic_size) {
-      A & std::pair<std::string, int&>("rowCount", data.rowCount);
+      A& std::pair<std::string, int&>("rowCount", data.rowCount);
     }
   }
 
@@ -580,7 +591,9 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   static constexpr bool is_dynamic_size = (RowCount == 0);
 
   using value_type = T;
-  using container_type = std::conditional_t<is_dynamic_size, std::vector<value_type>, std::array<value_type, RowCount * RowCount>>;
+  using container_type =
+      std::conditional_t<is_dynamic_size, std::vector<value_type>,
+                         std::array<value_type, RowCount * RowCount>>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -633,8 +646,7 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
     }
   }
 
-  mat(int aRowCount, int aColCount,
-      const value_type& aFill = value_type(0.0))
+  mat(int aRowCount, int aColCount, const value_type& aFill = value_type(0.0))
       : mat(aRowCount, aFill) {
     if (aRowCount != aColCount) {
       throw std::range_error("Matrix dimension are not square.");
@@ -642,8 +654,7 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   }
 
   /// Constructor for an identity matrix.
-  mat(int aRowCount, bool aIdentity)
-      : mat(aRowCount) {
+  mat(int aRowCount, bool aIdentity) : mat(aRowCount) {
     if (aIdentity) {
       int minN = get_row_count() * (get_row_count() + 1);
       for (int i = 0; i < minN; i += get_row_count() + 1) {
@@ -749,8 +760,7 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   /// \param m1 The matrix to swap with the container.
   /// \param q2 The container that will be swapped with m1's internal container.
   /// \param rowCount2 The row-count corresponding to q2's data.
-  friend void swap(self& m1, container_type& q2,
-                   int& rowCount2) noexcept {
+  friend void swap(self& m1, container_type& q2, int& rowCount2) noexcept {
     using std::swap;
     swap(m1.data.q, q2);
     if constexpr (is_dynamic_size) {
@@ -782,27 +792,24 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   }
 
   /// Sub-matrix operator, accessor for read only.
-  mat_const_sub_block<self> operator()(
-      const std::pair<int, int>& r,
-      const std::pair<int, int>& c) const {
+  mat_const_sub_block<self> operator()(const std::pair<int, int>& r,
+                                       const std::pair<int, int>& c) const {
     return sub(*this)(r, c);
   }
 
   /// Sub-matrix operator, accessor for read/write.
-  mat_col_slice<self> operator()(int r,
-                                 const std::pair<int, int>& c) {
+  mat_col_slice<self> operator()(int r, const std::pair<int, int>& c) {
     return slice(*this)(r, c);
   }
 
   /// Sub-matrix operator, accessor for read only.
-  mat_const_col_slice<self> operator()(
-      int r, const std::pair<int, int>& c) const {
+  mat_const_col_slice<self> operator()(int r,
+                                       const std::pair<int, int>& c) const {
     return slice(*this)(r, c);
   }
 
   /// Sub-matrix operator, accessor for read/write.
-  mat_row_slice<self> operator()(const std::pair<int, int>& r,
-                                 int c) {
+  mat_row_slice<self> operator()(const std::pair<int, int>& r, int c) {
     return slice(*this)(r, c);
   }
 
@@ -832,9 +839,7 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   }
   /// Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
   /// \param sz new dimensions for the matrix.
-  void resize(const std::pair<int, int>& sz) {
-    set_col_count(sz.first, true);
-  }
+  void resize(const std::pair<int, int>& sz) { set_col_count(sz.first, true); }
 
   /// Sets the column-count (number of columns) of the matrix.
   /// \param aColCount new number of columns for the matrix.
@@ -848,18 +853,18 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
       if (aPreserveData) {
         if (aColCount > data.rowCount) {
           for (int i = data.rowCount; i != 0; --i) {
-            data.q.insert(data.q.begin() + i * data.rowCount, aColCount - data.rowCount,
-                     value_type(0.0));
+            data.q.insert(data.q.begin() + i * data.rowCount,
+                          aColCount - data.rowCount, value_type(0.0));
           }
         } else if (aColCount < data.rowCount) {
           for (int i = data.rowCount; i != 0; --i) {
             data.q.erase(data.q.begin() + (i - 1) * data.rowCount + aColCount,
-                    data.q.begin() + i * data.rowCount);
+                         data.q.begin() + i * data.rowCount);
           }
         } else {
           return;
         }
-      } 
+      }
       data.q.resize(aColCount * aColCount, value_type(0));
       data.rowCount = aColCount;
     }
@@ -873,25 +878,33 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   }
 
   row_iterator first_row() { return {data.q.begin(), get_row_count()}; }
-  const_row_iterator first_row() const { return {data.q.begin(), get_row_count()}; }
+  const_row_iterator first_row() const {
+    return {data.q.begin(), get_row_count()};
+  }
   row_iterator last_row() {
-    return {data.q.begin() + get_row_count() * get_row_count(), get_row_count()};
+    return {data.q.begin() + get_row_count() * get_row_count(),
+            get_row_count()};
   }
   const_row_iterator last_row() const {
-    return {data.q.begin() + get_row_count() * get_row_count(), get_row_count()};
+    return {data.q.begin() + get_row_count() * get_row_count(),
+            get_row_count()};
   }
   row_iterator first_row(col_iterator cit) {
-    return {data.q.begin() + ((cit - data.q.begin()) % get_row_count()), get_row_count()};
+    return {data.q.begin() + ((cit - data.q.begin()) % get_row_count()),
+            get_row_count()};
   }
   const_row_iterator first_row(const_col_iterator cit) const {
-    return {data.q.begin() + ((cit - data.q.begin()) % get_row_count()), get_row_count()};
+    return {data.q.begin() + ((cit - data.q.begin()) % get_row_count()),
+            get_row_count()};
   }
   row_iterator last_row(col_iterator cit) {
-    return {data.q.begin() + ((cit - data.q.begin()) % get_row_count()) + get_row_count() * get_row_count(),
+    return {data.q.begin() + ((cit - data.q.begin()) % get_row_count()) +
+                get_row_count() * get_row_count(),
             get_row_count()};
   }
   const_row_iterator last_row(const_col_iterator cit) const {
-    return {data.q.begin() + ((cit - data.q.begin()) % get_row_count()) + get_row_count() * get_row_count(),
+    return {data.q.begin() + ((cit - data.q.begin()) % get_row_count()) +
+                get_row_count() * get_row_count(),
             get_row_count()};
   }
   std::pair<row_iterator, row_iterator> rows() {
@@ -910,7 +923,9 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
 
   col_iterator first_col() { return {data.q.begin()}; }
   const_col_iterator first_col() const { return {data.q.begin()}; }
-  col_iterator last_col() { return {data.q.begin() + get_row_count() * get_row_count()}; }
+  col_iterator last_col() {
+    return {data.q.begin() + get_row_count() * get_row_count()};
+  }
   const_col_iterator last_col() const {
     return {data.q.begin() + get_row_count() * get_row_count()};
   }
@@ -961,7 +976,8 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   template <typename Matrix>
   self& operator+=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != get_row_count()) || (M.get_row_count() != get_row_count())) {
+    if ((M.get_col_count() != get_row_count()) ||
+        (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
     auto it = data.q.begin();
@@ -977,7 +993,8 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   template <typename Matrix>
   self& operator-=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != get_row_count()) || (M.get_row_count() != get_row_count())) {
+    if ((M.get_col_count() != get_row_count()) ||
+        (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
     auto it = data.q.begin();
@@ -1028,7 +1045,9 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   /// \return The transpose of M.
   friend auto transpose_move(self& M) {
     using std::swap;
-    mat<T, mat_structure::square, mat_alignment::column_major, RowCount, RowCount> result;
+    mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
+        RowCount>
+        result;
     if constexpr (is_dynamic_size) {
       swap(result, M.data.q, M.data.rowCount);
     } else {
@@ -1043,7 +1062,9 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   /// \return The transpose of M.
   friend auto transpose(self&& M) {
     using std::swap;
-    mat<T, mat_structure::square, mat_alignment::column_major, RowCount, RowCount> result;
+    mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
+        RowCount>
+        result;
     if constexpr (is_dynamic_size) {
       swap(result, M.data.q, M.data.rowCount);
     } else {
@@ -1070,15 +1091,15 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    A & std::pair<std::string, const container_type&>("q", data.q);
+    A& std::pair<std::string, const container_type&>("q", data.q);
     if constexpr (is_dynamic_size) {
-      A & std::pair<std::string, int>("rowCount", data.rowCount);
+      A& std::pair<std::string, int>("rowCount", data.rowCount);
     }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    A & std::pair<std::string, container_type&>("q", data.q);
+    A& std::pair<std::string, container_type&>("q", data.q);
     if constexpr (is_dynamic_size) {
-      A & std::pair<std::string, int&>("rowCount", data.rowCount);
+      A& std::pair<std::string, int&>("rowCount", data.rowCount);
     }
   }
 

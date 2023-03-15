@@ -64,7 +64,9 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   static constexpr bool is_dynamic_size = (RowCount == 0 || ColCount == 0);
 
   using value_type = T;
-  using container_type = std::conditional_t<is_dynamic_size, std::vector<value_type>, std::array<value_type, RowCount * ColCount>>;
+  using container_type =
+      std::conditional_t<is_dynamic_size, std::vector<value_type>,
+                         std::array<value_type, RowCount * ColCount>>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -106,8 +108,7 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   mat() : data() {}
 
   /// Constructor for a sized matrix.
-  mat(int aRowCount, int aColCount,
-      const value_type& aFill = value_type(0.0)) {
+  mat(int aRowCount, int aColCount, const value_type& aFill = value_type(0.0)) {
     if constexpr (is_dynamic_size) {
       if constexpr (RowCount != 0) {
         if (aRowCount != RowCount) {
@@ -258,7 +259,9 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   /// \param i Row index.
   /// \param j Column index.
   /// \return the element at the given position.
-  const_reference operator()(int i, int j) const { return data.q[j * get_row_count() + i]; }
+  const_reference operator()(int i, int j) const {
+    return data.q[j * get_row_count() + i];
+  }
 
   /// Sub-matrix operator, accessor for read/write.
   mat_sub_block<self> operator()(const std::pair<int, int>& r,
@@ -337,8 +340,8 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
       if (aPreserveData) {
         if (aRowCount > data.rowCount) {
           for (int i = 0; i < data.colCount; ++i) {
-            data.q.insert(data.q.begin() + i * aRowCount, aRowCount - data.rowCount,
-                     value_type(0.0));
+            data.q.insert(data.q.begin() + i * aRowCount,
+                          aRowCount - data.rowCount, value_type(0.0));
           }
         } else if (aRowCount < data.rowCount) {
           for (int i = 1; i < data.colCount; ++i) {
@@ -371,7 +374,9 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   row_iterator first_row() { return data.q.begin(); }
   const_row_iterator first_row() const { return data.q.begin(); }
   row_iterator last_row() { return data.q.begin() + get_row_count(); }
-  const_row_iterator last_row() const { return data.q.begin() + get_row_count(); }
+  const_row_iterator last_row() const {
+    return data.q.begin() + get_row_count();
+  }
   row_iterator first_row(col_iterator cit) {
     int diff = cit.base() - data.q.begin();
     return data.q.begin() + ((diff / get_row_count()) * get_row_count());
@@ -403,25 +408,33 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   }
 
   col_iterator first_col() { return {data.q.begin(), get_row_count()}; }
-  const_col_iterator first_col() const { return {data.q.begin(), get_row_count()}; }
+  const_col_iterator first_col() const {
+    return {data.q.begin(), get_row_count()};
+  }
   col_iterator last_col() {
-    return {data.q.begin() + get_col_count() * get_row_count(), get_row_count()};
+    return {data.q.begin() + get_col_count() * get_row_count(),
+            get_row_count()};
   }
   const_col_iterator last_col() const {
-    return {data.q.begin() + get_col_count() * get_row_count(), get_row_count()};
+    return {data.q.begin() + get_col_count() * get_row_count(),
+            get_row_count()};
   }
   col_iterator first_col(row_iterator rit) {
-    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()), get_row_count()};
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()),
+            get_row_count()};
   }
   const_col_iterator first_col(const_row_iterator rit) const {
-    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()), get_row_count()};
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()),
+            get_row_count()};
   }
   col_iterator last_col(row_iterator rit) {
-    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()) + get_col_count() * get_row_count(),
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()) +
+                get_col_count() * get_row_count(),
             get_row_count()};
   }
   const_col_iterator last_col(const_row_iterator rit) const {
-    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()) + get_col_count() * get_row_count(),
+    return {data.q.begin() + ((rit - data.q.begin()) % get_row_count()) +
+                get_col_count() * get_row_count(),
             get_row_count()};
   }
   std::pair<col_iterator, col_iterator> cols() {
@@ -455,7 +468,8 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   template <typename Matrix>
   self& operator+=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != get_col_count()) || (M.get_row_count() != get_row_count())) {
+    if ((M.get_col_count() != get_col_count()) ||
+        (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
     auto it = data.q.begin();
@@ -471,7 +485,8 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   template <typename Matrix>
   self& operator-=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != get_col_count()) || (M.get_row_count() != get_row_count())) {
+    if ((M.get_col_count() != get_col_count()) ||
+        (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
     auto it = data.q.begin();
@@ -515,14 +530,17 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   /// \return The transpose of M.
   friend auto transpose(const self& M) {
     return mat<T, mat_structure::rectangular, mat_alignment::row_major,
-               ColCount, RowCount>(M.data.q, M.get_col_count(), M.get_row_count());
+               ColCount, RowCount>(M.data.q, M.get_col_count(),
+                                   M.get_row_count());
   }
 
   /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
   /// \param M The matrix to be transposed.
   /// \return The transpose of M.
   friend auto transpose_move(self& M) {
-    mat<T, mat_structure::rectangular, mat_alignment::row_major, ColCount, RowCount> result;
+    mat<T, mat_structure::rectangular, mat_alignment::row_major, ColCount,
+        RowCount>
+        result;
     using std::swap;
     if constexpr (is_dynamic_size) {
       swap(result, M.data.q, M.data.colCount, M.data.rowCount);
@@ -538,7 +556,9 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   /// \param M The matrix to be transposed.
   /// \return The transpose of M.
   friend auto transpose(self&& M) {
-    mat<T, mat_structure::rectangular, mat_alignment::row_major, ColCount, RowCount> result;
+    mat<T, mat_structure::rectangular, mat_alignment::row_major, ColCount,
+        RowCount>
+        result;
     using std::swap;
     if constexpr (is_dynamic_size) {
       swap(result, M.data.q, M.data.colCount, M.data.rowCount);
@@ -557,66 +577,66 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
     if constexpr (is_dynamic_size) {
-      A & std::pair<std::string, const container_type&>("q", data.q) &
+      A& std::pair<std::string, const container_type&>("q", data.q) &
           std::pair<std::string, int>("rowCount", data.rowCount) &
           std::pair<std::string, int>("colCount", data.colCount);
     } else {
-      A & std::pair<std::string, const container_type&>("q", data.q);
+      A& std::pair<std::string, const container_type&>("q", data.q);
     }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     if constexpr (is_dynamic_size) {
-      A & std::pair<std::string, container_type&>("q", data.q) &
+      A& std::pair<std::string, container_type&>("q", data.q) &
           std::pair<std::string, int&>("rowCount", data.rowCount) &
           std::pair<std::string, int&>("colCount", data.colCount);
     } else {
-      A & std::pair<std::string, container_type&>("q", data.q);
+      A& std::pair<std::string, container_type&>("q", data.q);
     }
   }
 
   RK_RTTI_REGISTER_CLASS_1BASE(self, 1, serializable)
 };
 
-#define RK_CREATE_SUBMATRIX_MINUS_TRANSPOSE_OPERATORS(SUBMATRIX)               \
-  template <typename Matrix>                                                   \
-  mat<mat_value_type_t<Matrix>, mat_structure::rectangular> operator-(         \
-      const SUBMATRIX<Matrix>& rhs) {                                          \
-    using ValueType = mat_value_type_t<Matrix>;                                \
-    mat<ValueType, mat_structure::rectangular> result{rhs};                    \
-    for (int j = 0; j < result.get_col_count(); ++j) {                         \
-      for (int i = 0; i < result.get_row_count(); ++i) {                       \
-        result(i, j) = -result(i, j);                                          \
-      }                                                                        \
-    }                                                                          \
-    return result;                                                             \
-  }                                                                            \
-                                                                               \
-  template <typename Matrix>                                                   \
-  mat<mat_value_type_t<Matrix>, mat_structure::rectangular> transpose(         \
-      const SUBMATRIX<Matrix>& M) {                                            \
-    using ValueType = mat_value_type_t<Matrix>;                                \
-    mat<ValueType, mat_structure::rectangular> result{                         \
-        M.get_col_count(), M.get_row_count()};                                 \
-    for (int j = 0; j < result.get_col_count(); ++j) {                         \
-      for (int i = 0; i < result.get_row_count(); ++i) {                       \
-        result(i, j) = M(j, i);                                                \
-      }                                                                        \
-    }                                                                          \
-    return result;                                                             \
-  }                                                                            \
-                                                                               \
-  template <typename Matrix>                                                   \
-  mat<mat_value_type_t<Matrix>, mat_structure::rectangular> transpose_move(    \
-      const SUBMATRIX<Matrix>& M) {                                            \
-    using ValueType = mat_value_type_t<Matrix>;                                \
-    mat<ValueType, mat_structure::rectangular> result{                         \
-        M.get_col_count(), M.get_row_count()};                                 \
-    for (int j = 0; j < result.get_col_count(); ++j) {                         \
-      for (int i = 0; i < result.get_row_count(); ++i) {                       \
-        result(i, j) = M(j, i);                                                \
-      }                                                                        \
-    }                                                                          \
-    return result;                                                             \
+#define RK_CREATE_SUBMATRIX_MINUS_TRANSPOSE_OPERATORS(SUBMATRIX)            \
+  template <typename Matrix>                                                \
+  mat<mat_value_type_t<Matrix>, mat_structure::rectangular> operator-(      \
+      const SUBMATRIX<Matrix>& rhs) {                                       \
+    using ValueType = mat_value_type_t<Matrix>;                             \
+    mat<ValueType, mat_structure::rectangular> result{rhs};                 \
+    for (int j = 0; j < result.get_col_count(); ++j) {                      \
+      for (int i = 0; i < result.get_row_count(); ++i) {                    \
+        result(i, j) = -result(i, j);                                       \
+      }                                                                     \
+    }                                                                       \
+    return result;                                                          \
+  }                                                                         \
+                                                                            \
+  template <typename Matrix>                                                \
+  mat<mat_value_type_t<Matrix>, mat_structure::rectangular> transpose(      \
+      const SUBMATRIX<Matrix>& M) {                                         \
+    using ValueType = mat_value_type_t<Matrix>;                             \
+    mat<ValueType, mat_structure::rectangular> result{M.get_col_count(),    \
+                                                      M.get_row_count()};   \
+    for (int j = 0; j < result.get_col_count(); ++j) {                      \
+      for (int i = 0; i < result.get_row_count(); ++i) {                    \
+        result(i, j) = M(j, i);                                             \
+      }                                                                     \
+    }                                                                       \
+    return result;                                                          \
+  }                                                                         \
+                                                                            \
+  template <typename Matrix>                                                \
+  mat<mat_value_type_t<Matrix>, mat_structure::rectangular> transpose_move( \
+      const SUBMATRIX<Matrix>& M) {                                         \
+    using ValueType = mat_value_type_t<Matrix>;                             \
+    mat<ValueType, mat_structure::rectangular> result{M.get_col_count(),    \
+                                                      M.get_row_count()};   \
+    for (int j = 0; j < result.get_col_count(); ++j) {                      \
+      for (int i = 0; i < result.get_row_count(); ++i) {                    \
+        result(i, j) = M(j, i);                                             \
+      }                                                                     \
+    }                                                                       \
+    return result;                                                          \
   }
 
 RK_CREATE_SUBMATRIX_MINUS_TRANSPOSE_OPERATORS(mat_copy_sub_block)
@@ -644,7 +664,9 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
   static constexpr bool is_dynamic_size = (RowCount == 0 || ColCount == 0);
 
   using value_type = T;
-  using container_type = std::conditional_t<is_dynamic_size, std::vector<value_type>, std::array<value_type, RowCount * ColCount>>;
+  using container_type =
+      std::conditional_t<is_dynamic_size, std::vector<value_type>,
+                         std::array<value_type, RowCount * ColCount>>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -686,8 +708,7 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
   mat() : data() {}
 
   /// Constructor for a sized matrix.
-  mat(int aRowCount, int aColCount,
-      const value_type& aFill = value_type(0)) {
+  mat(int aRowCount, int aColCount, const value_type& aFill = value_type(0)) {
     if constexpr (is_dynamic_size) {
       if constexpr (RowCount != 0) {
         if (aRowCount != RowCount) {
@@ -716,7 +737,9 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
   mat(int aRowCount, int aColCount, bool aIdentity)
       : mat(aRowCount, aColCount, value_type(0)) {
     if (aIdentity) {
-      int minN = (get_col_count() < get_row_count() ? get_col_count() : get_row_count()) * (get_col_count() + 1);
+      int minN = (get_col_count() < get_row_count() ? get_col_count()
+                                                    : get_row_count()) *
+                 (get_col_count() + 1);
       for (int i = 0; i < minN; i += get_col_count() + 1) {
         data.q[i] = value_type(1);
       }
@@ -840,7 +863,9 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
   /// \param i Row index.
   /// \param j Column index.
   /// \return the element at the given position.
-  const_reference operator()(int i, int j) const { return data.q[i * get_col_count() + j]; }
+  const_reference operator()(int i, int j) const {
+    return data.q[i * get_col_count() + j];
+  }
 
   /// Sub-matrix operator, accessor for read/write.
   mat_sub_block<self> operator()(const std::pair<int, int>& r,
@@ -919,13 +944,13 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
       if (aPreserveData) {
         if (aColCount > get_col_count()) {
           for (int i = get_row_count(); i != 0; --i) {
-            data.q.insert(data.q.begin() + i * get_col_count(), aColCount - get_col_count(),
-                     value_type(0.0));
+            data.q.insert(data.q.begin() + i * get_col_count(),
+                          aColCount - get_col_count(), value_type(0.0));
           }
         } else if (aColCount < get_col_count()) {
           for (int i = get_row_count(); i != 0; --i) {
             data.q.erase(data.q.begin() + (i - 1) * get_col_count() + aColCount,
-                    data.q.begin() + i * get_col_count());
+                         data.q.begin() + i * get_col_count());
           }
         }
       } else {
@@ -950,25 +975,33 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
   }
 
   row_iterator first_row() { return {data.q.begin(), get_col_count()}; }
-  const_row_iterator first_row() const { return {data.q.begin(), get_col_count()}; }
+  const_row_iterator first_row() const {
+    return {data.q.begin(), get_col_count()};
+  }
   row_iterator last_row() {
-    return {data.q.begin() + get_col_count() * get_row_count(), get_col_count()};
+    return {data.q.begin() + get_col_count() * get_row_count(),
+            get_col_count()};
   }
   const_row_iterator last_row() const {
-    return {data.q.begin() + get_col_count() * get_row_count(), get_col_count()};
+    return {data.q.begin() + get_col_count() * get_row_count(),
+            get_col_count()};
   }
   row_iterator first_row(col_iterator cit) {
-    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()), get_col_count()};
+    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()),
+            get_col_count()};
   }
   const_row_iterator first_row(const_col_iterator cit) const {
-    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()), get_col_count()};
+    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()),
+            get_col_count()};
   }
   row_iterator last_row(col_iterator cit) {
-    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()) + get_col_count() * get_row_count(),
+    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()) +
+                get_col_count() * get_row_count(),
             get_col_count()};
   }
   const_row_iterator last_row(const_col_iterator cit) const {
-    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()) + get_col_count() * get_row_count(),
+    return {data.q.begin() + ((cit - data.q.begin()) % get_col_count()) +
+                get_col_count() * get_row_count(),
             get_col_count()};
   }
   std::pair<row_iterator, row_iterator> rows() {
@@ -987,7 +1020,9 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
 
   col_iterator first_col() { return {data.q.begin()}; }
   const_col_iterator first_col() const { return {data.q.begin()}; }
-  col_iterator last_col() { return {data.q.begin() + get_col_count() * get_row_count()}; }
+  col_iterator last_col() {
+    return {data.q.begin() + get_col_count() * get_row_count()};
+  }
   const_col_iterator last_col() const {
     return {data.q.begin() + get_col_count() * get_row_count()};
   }
@@ -1038,7 +1073,8 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
   template <typename Matrix>
   self& operator+=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != get_col_count()) || (M.get_row_count() != get_row_count())) {
+    if ((M.get_col_count() != get_col_count()) ||
+        (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
     auto it = data.q.begin();
@@ -1054,7 +1090,8 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
   template <typename Matrix>
   self& operator-=(const Matrix& M) {
     BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
-    if ((M.get_col_count() != get_col_count()) || (M.get_row_count() != get_row_count())) {
+    if ((M.get_col_count() != get_col_count()) ||
+        (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
     auto it = data.q.begin();
@@ -1098,14 +1135,17 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
   /// \return The transpose of M.
   friend auto transpose(const self& M) {
     return mat<T, mat_structure::rectangular, mat_alignment::column_major,
-               ColCount, RowCount>(M.data.q, M.get_col_count(), M.get_row_count());
+               ColCount, RowCount>(M.data.q, M.get_col_count(),
+                                   M.get_row_count());
   }
 
   /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
   /// \param M The matrix to be transposed.
   /// \return The transpose of M.
   friend auto transpose_move(self& M) {
-    mat<T, mat_structure::rectangular, mat_alignment::column_major, ColCount, RowCount> result;
+    mat<T, mat_structure::rectangular, mat_alignment::column_major, ColCount,
+        RowCount>
+        result;
     using std::swap;
     if constexpr (is_dynamic_size) {
       swap(result, M.data.q, M.data.colCount, M.data.rowCount);
@@ -1121,7 +1161,9 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
   /// \param M The matrix to be transposed.
   /// \return The transpose of M.
   friend auto transpose(self&& M) {
-    mat<T, mat_structure::rectangular, mat_alignment::column_major, ColCount, RowCount> result;
+    mat<T, mat_structure::rectangular, mat_alignment::column_major, ColCount,
+        RowCount>
+        result;
     using std::swap;
     if constexpr (is_dynamic_size) {
       swap(result, M.data.q, M.data.colCount, M.data.rowCount);
@@ -1172,13 +1214,14 @@ template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
 mat<T, mat_structure::rectangular, Alignment, RowCount, ColCount> get_block(
-    const mat<T, Structure, Alignment, RowCount, ColCount>& M,
-    int aRowOffset, int aColOffset, int aRowCountOut, int aColCountOut) {
+    const mat<T, Structure, Alignment, RowCount, ColCount>& M, int aRowOffset,
+    int aColOffset, int aRowCountOut, int aColCountOut) {
   if ((aRowOffset + aRowCountOut > M.get_row_count()) ||
       (aColOffset + aColCountOut > M.get_col_count())) {
     throw std::range_error("Matrix dimension mismatch.");
   }
-  mat<T, mat_structure::rectangular, Alignment> result(aRowCountOut, aColCountOut);
+  mat<T, mat_structure::rectangular, Alignment> result(aRowCountOut,
+                                                       aColCountOut);
   for (int i = 0; i < aRowCountOut; ++i) {
     for (int j = 0; j < aColCountOut; ++j) {
       result(i, j) = M(i + aRowOffset, j + aColOffset);

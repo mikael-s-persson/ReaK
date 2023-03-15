@@ -22,6 +22,7 @@
  */
 
 #include "ReaK/core/base/defs.h"
+#include "ReaK/core/base/global_rng.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_cholesky.h"
 #include "ReaK/math/lin_alg/mat_gaussian_elim.h"
@@ -45,12 +46,14 @@ int main() {
 
   unsigned int passed = 0;
 
+  global_rng_type& rng = get_global_rng();
+  std::uniform_real_distribution<double> uni_dist(-1.0, 1.0);
+
   try {
 
     unsigned int inc(1);
     mat<double, mat_structure::symmetric> m_test(2.0, -1.0, 0.0, 2.0, -1.0,
                                                  2.0);
-    mat<double, mat_structure::symmetric> m_inc(2.0, -1.0, 2.0);
     high_resolution_clock::time_point t1;
     std::array<high_resolution_clock::duration, 11> dt;
 
@@ -63,17 +66,31 @@ int main() {
     for (unsigned int i = 3; i <= 1000; i += inc) {
       if (i == 50) {
         inc = 10;
-        m_inc = get_block(m_test, 0, inc + 1);
       } else if (i == 100) {
         inc = 20;
-        m_inc = get_block(m_test, 0, inc + 1);
       } else if (i == 500) {
         inc = 50;
-        m_inc = get_block(m_test, 0, inc + 1);
       }
 
+      // Generate random positive-definition matrix by creating a random positive
+      // definite set of eigenvalues, and then rotating every combination of rows
+      // and columns by a random givens rotation.
+      vect_n<double> rand_diag(i);
+      for (double& x : rand_diag) {
+        x = -std::log(
+            std::min(0.999, std::max(0.001, std::abs(uni_dist(rng)))));
+      }
+      mat<double, mat_structure::square> m_tmp{
+          mat<double, mat_structure::diagonal>(rand_diag)};
+      for (int j = 0; j < i; ++j) {
+        for (int k = j + 1; k < i; ++k) {
+          givens_rot_matrix<double> rand_rot{uni_dist(rng), uni_dist(rng)};
+          givens_rot_prod(m_tmp, rand_rot, j, k);
+          givens_rot_prod(rand_rot, m_tmp, k, j);
+        }
+      }
       m_test.set_row_count(i);
-      set_block(m_test, m_inc, i - inc - 1);
+      m_test = m_tmp;
 
       mat<double, mat_structure::square> m_gauss_inv(i);
       t1 = high_resolution_clock::now();
@@ -124,10 +141,7 @@ int main() {
       mat<double, mat_structure::diagonal> m_qr_E(i);
       mat<double, mat_structure::square> m_qr_Q(i);
       t1 = high_resolution_clock::now();
-      eigensolve_SymQR(
-          m_test, m_qr_Q, m_qr_E,
-          double(
-              1E-15));  // this iterates forever!! (well, for a long time at least)
+      eigensolve_SymQR(m_test, m_qr_Q, m_qr_E, double(1E-15));
       dt[9] = high_resolution_clock::now() - t1;
 
       mat<double, mat_structure::diagonal> m_svd_E(i);

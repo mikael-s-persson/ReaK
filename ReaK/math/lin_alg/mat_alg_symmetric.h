@@ -56,7 +56,9 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   static constexpr bool is_dynamic_size = (RowCount == 0);
 
   using value_type = T;
-  using container_type = std::conditional_t<is_dynamic_size, std::vector<value_type>, std::array<value_type, RowCount * RowCount>>;
+  using container_type =
+      std::conditional_t<is_dynamic_size, std::vector<value_type>,
+                         std::array<value_type, RowCount * RowCount>>;
 
   using reference = typename container_type::reference;
   using const_reference = typename container_type::const_reference;
@@ -76,7 +78,9 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   static constexpr mat_alignment::tag alignment = Alignment;
   static constexpr mat_structure::tag structure = mat_structure::symmetric;
 
-  template <typename OtherT, mat_structure::tag OtherStructure, mat_alignment::tag OtherAlignment, unsigned int OtherRowCount, unsigned int OtherColCount>
+  template <typename OtherT, mat_structure::tag OtherStructure,
+            mat_alignment::tag OtherAlignment, unsigned int OtherRowCount,
+            unsigned int OtherColCount>
   friend class mat;
 
  private:
@@ -115,8 +119,7 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   }
 
   /// Constructor for an identity matrix.
-  mat(int aRowCount, bool aIdentity)
-      : mat(aRowCount) {
+  mat(int aRowCount, bool aIdentity) : mat(aRowCount) {
     if (aIdentity) {
       int k = 0;
       for (int i = 0; i < get_row_count(); k += ++i) {
@@ -194,8 +197,7 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   }
 
   /// Constructs a 2x2 symmetric matrix from three elements.
-  mat(const_reference a11, const_reference a12, const_reference a22)
-      : mat(2) {
+  mat(const_reference a11, const_reference a12, const_reference a22) : mat(2) {
     data.q[0] = a11;
     data.q[1] = a12;
     data.q[2] = a22;
@@ -317,9 +319,7 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   }
   /// Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
   /// \param sz new dimensions for the matrix.
-  void resize(const std::pair<int, int>& sz) {
-    set_row_count(sz.first);
-  }
+  void resize(const std::pair<int, int>& sz) { set_row_count(sz.first); }
 
   /*******************************************************************************
                            Assignment Operators
@@ -336,8 +336,8 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
 
   /// Add-and-store operator with standard semantics.
   template <mat_alignment::tag Align2>
-  self& operator+=(
-      const mat<value_type, mat_structure::symmetric, Align2, RowCount, RowCount>& M) {
+  self& operator+=(const mat<value_type, mat_structure::symmetric, Align2,
+                             RowCount, RowCount>& M) {
     if (M.get_row_count() != get_row_count()) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -352,8 +352,8 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
 
   /// Add-and-store operator with standard semantics.
   template <mat_alignment::tag Align2>
-  self& operator+=(
-      const mat<value_type, mat_structure::diagonal, Align2, RowCount, RowCount>& M) {
+  self& operator+=(const mat<value_type, mat_structure::diagonal, Align2,
+                             RowCount, RowCount>& M) {
     if (M.get_row_count() != get_row_count()) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -366,8 +366,8 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
 
   /// Sub-and-store operator with standard semantics.
   template <mat_alignment::tag Align2>
-  self& operator-=(
-      const mat<value_type, mat_structure::symmetric, Align2, RowCount, RowCount>& M) {
+  self& operator-=(const mat<value_type, mat_structure::symmetric, Align2,
+                             RowCount, RowCount>& M) {
     if (M.get_row_count() != get_row_count()) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -382,8 +382,8 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
 
   /// Add-and-store operator with standard semantics.
   template <mat_alignment::tag Align2>
-  self& operator-=(
-      const mat<value_type, mat_structure::diagonal, Align2, RowCount, RowCount>& M) {
+  self& operator-=(const mat<value_type, mat_structure::diagonal, Align2,
+                             RowCount, RowCount>& M) {
     if (M.get_row_count() != get_row_count()) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -466,7 +466,8 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   /// \throw std::range_error if the two matrix dimensions don't match.
   template <typename Matrix>
   auto multiply_this_and_dense_mat(const Matrix& M2) const {
-    mat_product_result_t<self, Matrix> result{M2.get_row_count(), M2.get_col_count()};
+    mat_product_result_t<self, Matrix> result{M2.get_row_count(),
+                                              M2.get_col_count()};
     for (int k = 0, i = 0; i < get_row_count(); k += ++i) {
       for (int l = 0; l < M2.get_col_count(); ++l) {
         for (int j = 0; j < i; ++j) {
@@ -485,7 +486,8 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   /// \throw std::range_error if the two matrix dimensions don't match.
   template <typename Matrix>
   auto multiply_dense_and_this_mat(const Matrix& M1) const {
-    mat_product_result_t<Matrix, self> result{M1.get_row_count(), M1.get_col_count()};
+    mat_product_result_t<Matrix, self> result{M1.get_row_count(),
+                                              M1.get_col_count()};
     for (int k = 0, i = 0; i < M1.get_col_count(); k += ++i) {
       for (int l = 0; l < M1.get_row_count(); ++l) {
         for (int j = 0; j < i; ++j) {
@@ -574,7 +576,8 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
         (aColOffset + aColCountOut > M.get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    mat<value_type, mat_structure::rectangular, Alignment> result(aRowCountOut, aColCountOut);
+    mat<value_type, mat_structure::rectangular, Alignment> result(aRowCountOut,
+                                                                  aColCountOut);
     int k = mat_triangular_size(aColOffset);
     for (int j = 0; j < aColCountOut; k += (++j + aColOffset)) {
       int h = mat_triangular_size(aRowOffset);
@@ -597,10 +600,8 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   /// \param aSizeOut Number of rows and columns of the sub-matrix.
   /// \return The sub-matrix contained in this matrix.
   /// \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
-  friend mat<value_type, mat_structure::square, Alignment> get_block(const self& M,
-                                                            int aRowOffset,
-                                                            int aColOffset,
-                                                            int aSizeOut) {
+  friend mat<value_type, mat_structure::square, Alignment> get_block(
+      const self& M, int aRowOffset, int aColOffset, int aSizeOut) {
     if ((aRowOffset + aSizeOut > M.get_row_count()) ||
         (aColOffset + aSizeOut > M.get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
@@ -627,7 +628,8 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   /// \param aSizeOut Number of rows/columns of the sub-matrix.
   /// \return The symmetric sub-matrix contained in this matrix.
   /// \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
-  friend mat<value_type, mat_structure::symmetric, Alignment> get_block(const self& M, int aDiagOffset, int aSizeOut) {
+  friend mat<value_type, mat_structure::symmetric, Alignment> get_block(
+      const self& M, int aDiagOffset, int aSizeOut) {
     if (aDiagOffset + aSizeOut > M.get_row_count()) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -648,13 +650,17 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   /// \return This matrix, by reference.
   /// \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
   template <unsigned int SubRowCount>
-  friend self& set_block(self& M, const mat<value_type, mat_structure::symmetric, Alignment, SubRowCount, SubRowCount>& subM, int aDiagOffset) {
+  friend self& set_block(self& M,
+                         const mat<value_type, mat_structure::symmetric,
+                                   Alignment, SubRowCount, SubRowCount>& subM,
+                         int aDiagOffset) {
     if (aDiagOffset + subM.get_row_count() > M.get_row_count()) {
       throw std::range_error("Matrix dimension mismatch.");
     }
     int k = mat_triangular_size(aDiagOffset);
     int k_in = 0;
-    for (int i = 0; i < subM.get_row_count(); k_in += ++i, k += (i + aDiagOffset)) {
+    for (int i = 0; i < subM.get_row_count();
+         k_in += ++i, k += (i + aDiagOffset)) {
       for (int j = 0; j <= i; ++j) {
         M.data.q[k + j + aDiagOffset] = subM.data.q[k_in + j];
       }
@@ -666,7 +672,9 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   /// \param lhs The symmetric matrix to which to append the other.
   /// \param rhs The symmetric matrix to be appended to 'lhs'.
   template <unsigned int SubRowCount>
-  friend void append_block_diag(self& lhs, const mat<value_type, mat_structure::symmetric, Alignment, SubRowCount, SubRowCount>& rhs) {
+  friend void append_block_diag(
+      self& lhs, const mat<value_type, mat_structure::symmetric, Alignment,
+                           SubRowCount, SubRowCount>& rhs) {
     static_assert(is_dynamic_size);
     int oldCount = lhs.get_row_count();
     lhs.set_row_count(oldCount + rhs.get_row_count());
@@ -705,15 +713,15 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    A & std::pair<std::string, const container_type&>("q", data.q);
+    A& std::pair<std::string, const container_type&>("q", data.q);
     if constexpr (is_dynamic_size) {
-      A & std::pair<std::string, int>("rowCount", data.rowCount);
+      A& std::pair<std::string, int>("rowCount", data.rowCount);
     }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    A & std::pair<std::string, container_type&>("q", data.q);
+    A& std::pair<std::string, container_type&>("q", data.q);
     if constexpr (is_dynamic_size) {
-      A & std::pair<std::string, int&>("rowCount", data.rowCount);
+      A& std::pair<std::string, int&>("rowCount", data.rowCount);
     }
   }
 

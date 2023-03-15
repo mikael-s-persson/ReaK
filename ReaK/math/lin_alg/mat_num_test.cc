@@ -369,21 +369,21 @@ TEST(MatNum, MatDecompositionsTests) {
   mat<double, mat_structure::square> m_test_Q(
       mat<double, mat_structure::identity>(3));
 
-  EXPECT_NO_THROW((detail::symmetric_QR_step(m_test_R, &m_test_Q, 1e-6)));
+  EXPECT_NO_THROW((detail::symmetric_QR_step(m_test_R, &m_test_Q)));
   EXPECT_TRUE(is_identity_mat(m_test_Q * transpose(m_test_Q),
                               10.0 * std::numeric_limits<double>::epsilon()));
   EXPECT_TRUE(
       is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test),
                   50.0 * std::numeric_limits<double>::epsilon()));
 
-  EXPECT_NO_THROW((detail::symmetric_QR_step(m_test_R, &m_test_Q, 1e-6)));
+  EXPECT_NO_THROW((detail::symmetric_QR_step(m_test_R, &m_test_Q)));
   EXPECT_TRUE(is_identity_mat(m_test_Q * transpose(m_test_Q),
                               10.0 * std::numeric_limits<double>::epsilon()));
   EXPECT_TRUE(
       is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test),
                   50.0 * std::numeric_limits<double>::epsilon()));
 
-  EXPECT_NO_THROW((detail::symmetric_QR_step(m_test_R, &m_test_Q, 1e-6)));
+  EXPECT_NO_THROW((detail::symmetric_QR_step(m_test_R, &m_test_Q)));
   EXPECT_TRUE(is_identity_mat(m_test_Q * transpose(m_test_Q),
                               10.0 * std::numeric_limits<double>::epsilon()));
   EXPECT_TRUE(

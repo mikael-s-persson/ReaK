@@ -76,7 +76,9 @@ class mat<T, mat_structure::diagonal, Alignment, RowCount, RowCount>
   static constexpr mat_alignment::tag alignment = Alignment;
   static constexpr mat_structure::tag structure = mat_structure::diagonal;
 
-  template <typename OtherT, mat_structure::tag OtherStructure, mat_alignment::tag OtherAlignment, unsigned int OtherRowCount, unsigned int OtherColCount>
+  template <typename OtherT, mat_structure::tag OtherStructure,
+            mat_alignment::tag OtherAlignment, unsigned int OtherRowCount,
+            unsigned int OtherColCount>
   friend class mat;
 
  private:
@@ -218,9 +220,7 @@ class mat<T, mat_structure::diagonal, Alignment, RowCount, RowCount>
   }
   /// Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
   /// \param sz new dimensions for the matrix.
-  void resize(const std::pair<int, int>& sz) {
-    set_row_count(sz.first);
-  }
+  void resize(const std::pair<int, int>& sz) { set_row_count(sz.first); }
 
   /*******************************************************************************
                            Assignment Operators
@@ -305,9 +305,7 @@ class mat<T, mat_structure::diagonal, Alignment, RowCount, RowCount>
 
   /// Negation operator with standard semantics.
   /// \return the negative of this matrix sum.
-  self operator-() const {
-    return self(-q);
-  }
+  self operator-() const { return self(-q); }
 
   /// Substraction operator with standard semantics.
   /// \param M the other matrix to be substracted from this.
@@ -351,7 +349,9 @@ class mat<T, mat_structure::diagonal, Alignment, RowCount, RowCount>
   /// \param aSizeOut Number of rows/columns of the sub-matrix.
   /// \return The diagonal sub-matrix contained in this matrix.
   /// \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
-  friend mat<value_type, mat_structure::diagonal> get_block(const self& M, int aDiagOffset, int aSizeOut) {
+  friend mat<value_type, mat_structure::diagonal> get_block(const self& M,
+                                                            int aDiagOffset,
+                                                            int aSizeOut) {
     if (aDiagOffset + aSizeOut > M.get_row_count()) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -369,7 +369,10 @@ class mat<T, mat_structure::diagonal, Alignment, RowCount, RowCount>
   /// \return This matrix, by reference.
   /// \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
   template <unsigned int SubRowCount>
-  friend self& set_block(self& M, const mat<value_type, mat_structure::diagonal, Alignment, SubRowCount, SubRowCount>& subM, int aDiagOffset) {
+  friend self& set_block(self& M,
+                         const mat<value_type, mat_structure::diagonal,
+                                   Alignment, SubRowCount, SubRowCount>& subM,
+                         int aDiagOffset) {
     if (aDiagOffset + subM.get_row_count() > M.get_row_count()) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -429,10 +432,10 @@ class mat<T, mat_structure::diagonal, Alignment, RowCount, RowCount>
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    A & RK_SERIAL_SAVE_WITH_NAME(q);
+    A& RK_SERIAL_SAVE_WITH_NAME(q);
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    A & RK_SERIAL_LOAD_WITH_NAME(q);
+    A& RK_SERIAL_LOAD_WITH_NAME(q);
   }
 
   RK_RTTI_REGISTER_CLASS_1BASE(self, 1, serializable)

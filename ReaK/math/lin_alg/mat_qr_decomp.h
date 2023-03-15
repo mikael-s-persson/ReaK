@@ -94,7 +94,7 @@ void orthogonalize_StableGramSchmidt(Matrix& A, bool Normalize = false,
   int N = A.get_row_count();
   int M = A.get_col_count();
   ValueType u;
-  vect_n<ValueType> v(Normalize ? M : 0);
+  vect_n<ValueType> v(Normalize ? 0 : M);
 
   for (int i = 0; i < M; ++i) {
     for (int j = 0; j < i; ++j) {

@@ -104,20 +104,19 @@ class givens_rot_matrix {
   void calculate_givens(const value_type& NumTol) {
     using std::abs;
     using std::sqrt;
-    if (abs(s) < NumTol * abs(c)) {
+    const value_type cs_norm = sqrt(c * c + s * s);
+    if (cs_norm < NumTol) {
       c = value_type(1.0);
       s = value_type(0.0);
       return;
     }
 
     if (abs(c) < abs(s)) {
-      value_type tau = -c / s;
-      s = value_type(1.0) / sqrt(value_type(1.0) + tau * tau);
-      c = s * tau;
+      s = s / cs_norm;
+      c = -c / cs_norm;
     } else {
-      value_type tau = -s / c;
-      c = value_type(1.0) / sqrt(value_type(1.0) + tau * tau);
-      s = c * tau;
+      c = c / cs_norm;
+      s = -s / cs_norm;
     }
   }
 
@@ -161,9 +160,7 @@ class givens_rot_matrix {
 
   /// Gets the row-count and column-count of the matrix, as a std::pair of values.
   /// \return the row-count and column-count of the matrix, as a std::pair of values.
-  std::pair<int, int> size() const noexcept {
-    return std::make_pair(2, 2);
-  }
+  std::pair<int, int> size() const noexcept { return std::make_pair(2, 2); }
 
   /// Matrix indexing accessor for read-only access.
   /// \param i Row index.

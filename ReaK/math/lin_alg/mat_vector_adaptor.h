@@ -86,9 +86,9 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
 
  private:
   Vector* v;           ///< Holds the reference to the vector.
-  int offset;    ///< Holds the offset to start from in the vector.
-  int rowCount;  ///< Holds the number of rows in the matrix.
-  int colCount;  ///< Holds the number of columns in the matrix.
+  int offset;          ///< Holds the offset to start from in the vector.
+  int rowCount;        ///< Holds the number of rows in the matrix.
+  int colCount;        ///< Holds the number of columns in the matrix.
  public:
   /**
    * Constructs the adaptor with a given vector, taking the entire vector as the unique
@@ -104,8 +104,7 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
    * \param aColCount The column-count of the resulting matrix.
    * \param aOffset The index into the vector from which to start the matrix elements.
    */
-  mat_vect_adaptor(Vector& aV, int aRowCount, int aColCount,
-                   int aOffset = 0)
+  mat_vect_adaptor(Vector& aV, int aRowCount, int aColCount, int aOffset = 0)
       : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) {}
   /**
    * Standard copy-constructor (shallow).
@@ -265,9 +264,7 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, colCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, colCount}; }
 
   /** COL-MAJOR ONLY
 *Add-and-store operator with standard semantics.
@@ -383,9 +380,9 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
 
  private:
   Vector* v;           ///< Holds the reference to the vector.
-  int offset;    ///< Holds the offset to start from in the vector.
-  int rowCount;  ///< Holds the number of rows in the matrix.
-  int colCount;  ///< Holds the number of columns in the matrix.
+  int offset;          ///< Holds the offset to start from in the vector.
+  int rowCount;        ///< Holds the number of rows in the matrix.
+  int colCount;        ///< Holds the number of columns in the matrix.
  public:
   /**
    * Constructs the adaptor with a given vector, taking the entire vector as the unique
@@ -401,8 +398,7 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
    * \param aColCount The column-count of the resulting matrix.
    * \param aOffset The index into the vector from which to start the matrix elements.
    */
-  mat_vect_adaptor(Vector& aV, int aRowCount, int aColCount,
-                   int aOffset = 0)
+  mat_vect_adaptor(Vector& aV, int aRowCount, int aColCount, int aOffset = 0)
       : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) {}
   /**
    * Standard copy-constructor (shallow).
@@ -471,9 +467,7 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
    * \return the element at the given position.
    * \test PASSED
    */
-  reference operator()(int i, int j) {
-    return (*v)[offset + i * colCount + j];
-  }
+  reference operator()(int i, int j) { return (*v)[offset + i * colCount + j]; }
   /**
    * Matrix indexing accessor for read-only access.
    * \param i Row index.
@@ -664,9 +658,9 @@ class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
 
  private:
   const Vector* v;     ///< Holds the reference to the vector.
-  int offset;    ///< Holds the offset to start from in the vector.
-  int rowCount;  ///< Holds the number of rows in the matrix.
-  int colCount;  ///< Holds the number of columns in the matrix.
+  int offset;          ///< Holds the offset to start from in the vector.
+  int rowCount;        ///< Holds the number of rows in the matrix.
+  int colCount;        ///< Holds the number of columns in the matrix.
 
   self& operator=(const self&);  // non-assignable.
 
@@ -688,8 +682,8 @@ class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
    * \param aColCount The column-count of the resulting matrix.
    * \param aOffset The index into the vector from which to start the matrix elements.
    */
-  mat_const_vect_adaptor(const Vector& aV, int aRowCount,
-                         int aColCount, int aOffset = 0)
+  mat_const_vect_adaptor(const Vector& aV, int aRowCount, int aColCount,
+                         int aOffset = 0)
       : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) {}
   /**
    * Standard copy-constructor (shallow).
@@ -744,9 +738,7 @@ class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, colCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, colCount}; }
 
   /**
    * Transposes the matrix M.
@@ -823,8 +815,8 @@ class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
    * \param aColCount The column-count of the resulting matrix.
    * \param aOffset The index into the vector from which to start the matrix elements.
    */
-  mat_const_vect_adaptor(const Vector& aV, int aRowCount,
-                         int aColCount, int aOffset = 0)
+  mat_const_vect_adaptor(const Vector& aV, int aRowCount, int aColCount,
+                         int aOffset = 0)
       : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) {}
   /**
    * Standard copy-constructor (shallow).
@@ -879,9 +871,7 @@ class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
    * \return the row-count and column-count of the matrix, as a std::pair of values.
    * \test PASSED
    */
-  std::pair<int, int> size() const noexcept {
-    return {rowCount, colCount};
-  }
+  std::pair<int, int> size() const noexcept { return {rowCount, colCount}; }
 
   /**
    * Transposes the matrix M.

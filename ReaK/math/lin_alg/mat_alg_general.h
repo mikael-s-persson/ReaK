@@ -137,8 +137,7 @@ template <typename T, mat_structure::tag Structure,
           unsigned int ColCount>
 struct mat_product_priority<mat<T, Structure, Alignment, RowCount, ColCount>> {
   using value_type = int;
-  static constexpr int value =
-      detail::product_priority<Structure>::value;
+  static constexpr int value = detail::product_priority<Structure>::value;
   using type = detail::product_priority<Structure>;
 };
 
@@ -147,8 +146,7 @@ template <typename T, mat_structure::tag Structure,
           unsigned int ColCount>
 struct mat_addition_priority<mat<T, Structure, Alignment, RowCount, ColCount>> {
   using value_type = int;
-  static constexpr int value =
-      detail::addition_priority<Structure>::value;
+  static constexpr int value = detail::addition_priority<Structure>::value;
   using type = detail::addition_priority<Structure>;
 };
 

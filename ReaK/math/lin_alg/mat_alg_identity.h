@@ -85,6 +85,7 @@ class mat<T, mat_structure::identity, Alignment, RowCount, RowCount>
   struct static_data {};
   /// Hold run-time size rowCount.
   std::conditional_t<is_dynamic_size, dynamic_data, static_data> data;
+
  public:
   /// Default constructor. Sets dimensions to zero.
   mat() = default;
@@ -175,7 +176,8 @@ class mat<T, mat_structure::identity, Alignment, RowCount, RowCount>
   /// Negate the matrix.
   /// \return This matrix, by constant reference.
   mat<value_type, mat_structure::scalar> operator-() const {
-    return mat<value_type, mat_structure::scalar, Alignment, RowCount, RowCount>(get_row_count(), value_type(-1));
+    return mat<value_type, mat_structure::scalar, Alignment, RowCount,
+               RowCount>(get_row_count(), value_type(-1));
   }
 
   /// Transpose the matrix.

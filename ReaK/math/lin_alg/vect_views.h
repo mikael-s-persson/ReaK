@@ -103,8 +103,7 @@ class vect_const_ref_view {
    * \param aCount The number of elements for the sub-vector.
    * \param aOffset The offset from the start of the vector.
    */
-  vect_const_ref_view(const Vector& aV, int aCount,
-                      int aOffset = 0) noexcept
+  vect_const_ref_view(const Vector& aV, int aCount, int aOffset = 0) noexcept
       : v(&aV), offset(aOffset), count(aCount) {}
 
   /*******************************************************************************
@@ -309,8 +308,7 @@ class vect_ref_view {
    * Sub-vector operator, accessor for read only.
    * \test PASSED
    */
-  vect_ref_view<self> operator[](
-      const std::pair<int, int>& r) noexcept {
+  vect_ref_view<self> operator[](const std::pair<int, int>& r) noexcept {
     return vect_ref_view<self>(*this, r.second - r.first, r.first);
   }
 
@@ -562,8 +560,7 @@ class vect_copy_view {
    * Sub-vector operator, accessor for read only.
    * \test PASSED
    */
-  vect_ref_view<self> operator[](
-      const std::pair<int, int>& r) noexcept {
+  vect_ref_view<self> operator[](const std::pair<int, int>& r) noexcept {
     return vect_ref_view<self>(*this, r.second - r.first, r.first);
   }
 
@@ -656,8 +653,7 @@ struct vect_copy_view_factory {
   Vector v;
   explicit vect_copy_view_factory(const Vector& aV) : v(aV) {}
   explicit vect_copy_view_factory(Vector&& aV) : v(std::move(aV)) {}
-  vect_copy_view<Vector> operator[](
-      const std::pair<int, int>& indices) {
+  vect_copy_view<Vector> operator[](const std::pair<int, int>& indices) {
     return vect_copy_view<Vector>(std::move(v), indices.second - indices.first,
                                   indices.first);
   }

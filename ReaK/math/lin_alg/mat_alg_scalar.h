@@ -225,9 +225,7 @@ class mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>
   }
   /// Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
   /// \param sz new dimensions for the matrix.
-  void resize(const std::pair<int, int>& sz) {
-    set_row_count(sz.first);
-  }
+  void resize(const std::pair<int, int>& sz) { set_row_count(sz.first); }
 
   /*******************************************************************************
                            Assignment Operators
@@ -338,7 +336,8 @@ class mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>
     if (aDiagOffset + aSizeOut > M.get_row_count()) {
       throw std::range_error("Matrix dimension mismatch.");
     }
-    return mat<value_type, mat_structure::scalar>(aSizeOut, value_type(M.data.q));
+    return mat<value_type, mat_structure::scalar>(aSizeOut,
+                                                  value_type(M.data.q));
   }
 
   /// Transposes the matrix M (which has no effect since M is scalar, simply copies it).
@@ -363,7 +362,9 @@ class mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>
   /// Returns the trace of matrix M.
   /// \param M A scalar matrix.
   /// \return the trace of matrix M.
-  friend value_type trace(const self& M) { return M.get_row_count() * M.data.q; }
+  friend value_type trace(const self& M) {
+    return M.get_row_count() * M.data.q;
+  }
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces
@@ -371,15 +372,15 @@ class mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    A & RK_SERIAL_SAVE_WITH_ALIAS("q", data.q);
+    A& RK_SERIAL_SAVE_WITH_ALIAS("q", data.q);
     if constexpr (is_dynamic_size) {
-      A & RK_SERIAL_SAVE_WITH_ALIAS("rowCount", data.rowCount);
+      A& RK_SERIAL_SAVE_WITH_ALIAS("rowCount", data.rowCount);
     }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    A & RK_SERIAL_LOAD_WITH_ALIAS("q", data.q);
+    A& RK_SERIAL_LOAD_WITH_ALIAS("q", data.q);
     if constexpr (is_dynamic_size) {
-      A & RK_SERIAL_LOAD_WITH_ALIAS("rowCount", data.rowCount);
+      A& RK_SERIAL_LOAD_WITH_ALIAS("rowCount", data.rowCount);
     }
   }
 

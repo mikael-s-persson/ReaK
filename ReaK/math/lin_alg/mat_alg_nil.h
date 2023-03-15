@@ -92,6 +92,7 @@ class mat<T, mat_structure::nil, Alignment, RowCount, ColCount>
   struct col_static {};
   /// Hold run-time size colCount.
   std::conditional_t<(ColCount == 0), col_dynamic, col_static> col_data;
+
  public:
   /// Default constructor. Sets dimensions to zero.
   mat() = default;
@@ -130,15 +131,14 @@ class mat<T, mat_structure::nil, Alignment, RowCount, ColCount>
   const_reference operator()(int i, int j) const { return T(0.0); }
 
   /// Sub-matrix operator, accessor for read only.
-  mat_const_sub_block<self> operator()(
-      const std::pair<int, int>& r,
-      const std::pair<int, int>& c) const {
+  mat_const_sub_block<self> operator()(const std::pair<int, int>& r,
+                                       const std::pair<int, int>& c) const {
     return sub(*this)(r, c);
   }
 
   /// Sub-matrix operator, accessor for read only.
-  mat_const_col_slice<self> operator()(
-      int r, const std::pair<int, int>& c) const {
+  mat_const_col_slice<self> operator()(int r,
+                                       const std::pair<int, int>& c) const {
     return slice(*this)(r, c);
   }
 
@@ -202,15 +202,14 @@ class mat<T, mat_structure::nil, Alignment, RowCount, ColCount>
   /// \param rhs The nil matrix to be transposed.
   /// \return The transpose of rhs.
   friend auto transpose(const self& rhs) {
-    return mat<value_type, mat_structure::nil, Alignment, ColCount, RowCount>(rhs.get_col_count(), rhs.get_row_count());
+    return mat<value_type, mat_structure::nil, Alignment, ColCount, RowCount>(
+        rhs.get_col_count(), rhs.get_row_count());
   }
 
   /// Transposes the matrix M.
   /// \param rhs The nil matrix to be transposed.
   /// \return The transpose of rhs.
-  friend auto transpose_move(self& rhs) {
-    return transpose(rhs);
-  }
+  friend auto transpose_move(self& rhs) { return transpose(rhs); }
 
   /// Returns the trace of the matrix.
   /// \return the trace of the matrix.
@@ -220,7 +219,9 @@ class mat<T, mat_structure::nil, Alignment, RowCount, ColCount>
   /// \param lhs The nil matrix to which to append the other.
   /// \param rhs The nil matrix to be appended to 'lhs'.
   template <unsigned int SubRowCount, unsigned int SubColCount>
-  friend void append_block_diag(self& lhs, const mat<value_type, mat_structure::nil, Alignment, SubRowCount, SubColCount>& rhs) {
+  friend void append_block_diag(
+      self& lhs, const mat<value_type, mat_structure::nil, Alignment,
+                           SubRowCount, SubColCount>& rhs) {
     lhs.set_col_count(lhs.get_col_count() + rhs.get_col_count());
     lhs.set_row_count(lhs.get_row_count() + rhs.get_row_count());
   }
@@ -232,18 +233,18 @@ class mat<T, mat_structure::nil, Alignment, RowCount, ColCount>
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
     if constexpr (RowCount == 0) {
-      A & RK_SERIAL_SAVE_WITH_ALIAS("rowCount", row_data.rowCount);
+      A& RK_SERIAL_SAVE_WITH_ALIAS("rowCount", row_data.rowCount);
     }
     if constexpr (ColCount == 0) {
-      A & RK_SERIAL_SAVE_WITH_ALIAS("colCount", col_data.colCount);
+      A& RK_SERIAL_SAVE_WITH_ALIAS("colCount", col_data.colCount);
     }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     if constexpr (RowCount == 0) {
-      A & RK_SERIAL_LOAD_WITH_ALIAS("rowCount", row_data.rowCount);
+      A& RK_SERIAL_LOAD_WITH_ALIAS("rowCount", row_data.rowCount);
     }
     if constexpr (ColCount == 0) {
-      A & RK_SERIAL_LOAD_WITH_ALIAS("colCount", col_data.colCount);
+      A& RK_SERIAL_LOAD_WITH_ALIAS("colCount", col_data.colCount);
     }
   }
 

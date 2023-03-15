@@ -62,7 +62,8 @@ class mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>
   using value_type = T;
   using size_type = int;
   using difference_type = int;
-  using container_type = std::conditional_t<is_dynamic_size, std::vector<int>, std::array<int, RowCount>>;
+  using container_type = std::conditional_t<is_dynamic_size, std::vector<int>,
+                                            std::array<int, RowCount>>;
 
   using reference = void;
   using const_reference = T;
@@ -239,7 +240,8 @@ class mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>
 
   /// Negate the matrix. Loses the permutation structure.
   auto operator-() const {
-    return -mat<value_type, mat_structure::square, Alignment, RowCount, RowCount>(*this);
+    return -mat<value_type, mat_structure::square, Alignment, RowCount,
+                RowCount>(*this);
   }
 
   friend self operator*(const self& M1, const self& M2) {
@@ -295,15 +297,15 @@ class mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    A & RK_SERIAL_SAVE_WITH_ALIAS("idx", data.idx);
+    A& RK_SERIAL_SAVE_WITH_ALIAS("idx", data.idx);
     if constexpr (is_dynamic_size) {
-      A & RK_SERIAL_SAVE_WITH_ALIAS("rowCount", data.rowCount);
+      A& RK_SERIAL_SAVE_WITH_ALIAS("rowCount", data.rowCount);
     }
   }
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    A & RK_SERIAL_LOAD_WITH_ALIAS("idx", data.idx);
+    A& RK_SERIAL_LOAD_WITH_ALIAS("idx", data.idx);
     if constexpr (is_dynamic_size) {
-      A & RK_SERIAL_LOAD_WITH_ALIAS("rowCount", data.rowCount);
+      A& RK_SERIAL_LOAD_WITH_ALIAS("rowCount", data.rowCount);
     }
   }
 
@@ -410,13 +412,16 @@ std::enable_if_t<
         (mat_product_priority_v<Matrix> <
          mat_product_priority_v<mat<T, mat_structure::permutation, Alignment,
                                     RowCount, RowCount>>),
-    mat_product_result_t<Matrix, mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>>>
-operator*(const Matrix& M1, const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>& M2) {
+    mat_product_result_t<Matrix, mat<T, mat_structure::permutation, Alignment,
+                                     RowCount, RowCount>>>
+operator*(const Matrix& M1, const mat<T, mat_structure::permutation, Alignment,
+                                      RowCount, RowCount>& M2) {
   if (M1.get_col_count() != M2.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
   }
-  mat_product_result_t<Matrix, mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>> result(M1.get_row_count(),
-                                                       M1.get_col_count());
+  mat_product_result_t<
+      Matrix, mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>>
+      result(M1.get_row_count(), M1.get_col_count());
   for (int i = 0; i < result.get_col_count(); ++i) {
     for (int j = 0; j < result.get_row_count(); ++j) {
       result(j, M2[i]) = M1(j, i);
@@ -437,15 +442,18 @@ std::enable_if_t<
         (mat_product_priority_v<Matrix> <
          mat_product_priority_v<mat<T, mat_structure::permutation, Alignment,
                                     RowCount, RowCount>>),
-    mat_product_result_t<mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>, Matrix>>
+    mat_product_result_t<
+        mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>,
+        Matrix>>
 operator*(
     const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>& M1,
     const Matrix& M2) {
   if (M1.get_col_count() != M2.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
   }
-  mat_product_result_t<mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>, Matrix> result(M2.get_row_count(),
-                                                       M2.get_col_count());
+  mat_product_result_t<
+      mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>, Matrix>
+      result(M2.get_row_count(), M2.get_col_count());
   for (int j = 0; j < result.get_row_count(); ++j) {
     for (int i = 0; i < result.get_col_count(); ++i) {
       result(j, i) = M2(M1[j], i);

@@ -50,8 +50,7 @@ namespace detail {
 
 /* TESTED and works. Golub & vanLoan Alg-8.3.2 */
 template <typename Matrix1, typename Matrix2>
-void symmetric_QR_step(Matrix1& T, Matrix2* Z,
-                       mat_value_type_t<Matrix1> NumTol) {
+void symmetric_QR_step(Matrix1& T, Matrix2* Z) {
   using ValueType = mat_value_type_t<Matrix1>;
   using std::sqrt;
 
@@ -64,7 +63,8 @@ void symmetric_QR_step(Matrix1& T, Matrix2* Z,
   ValueType x = T(0, 0) - mu;
   ValueType z = T(1, 0);
   for (int k = 0; k < N - 1; ++k) {
-    givens_rot_matrix<ValueType> g(x, z, NumTol);
+    givens_rot_matrix<ValueType> g(x, z,
+                                   std::numeric_limits<ValueType>::epsilon());
 
     mat_sub_block<Matrix1> subT1(
         T, 2, (k < N - 2 ? (k > 0 ? 4 : 3) : (k > 0 ? 3 : 2)), k,
@@ -93,6 +93,7 @@ void symmetric_QRalg_impl(Matrix1& T, Matrix2* Z,
                           mat_value_type_t<Matrix1> NumTol = 1E-8) {
   using ValueType = mat_value_type_t<Matrix1>;
   using std::abs;
+  using std::sqrt;
 
   int N = T.get_row_count();
 
@@ -100,7 +101,11 @@ void symmetric_QRalg_impl(Matrix1& T, Matrix2* Z,
   for (int i = 0; i < N; ++i) {
     absNumTol = abs(T(i, i));
   }
-  absNumTol *= NumTol / N;
+  absNumTol /= N;
+  // Best relative tolerance is the square root of epsilon for the scalar type
+  // since the QR step involves a division by the square-root off-diagonal term.
+  absNumTol *=
+      std::max(NumTol, sqrt(std::numeric_limits<ValueType>::epsilon()));
 
   detail::decompose_TriDiag_impl(T, Z, absNumTol);
 
@@ -141,10 +146,10 @@ void symmetric_QRalg_impl(Matrix1& T, Matrix2* Z,
     if (Z) {
       mat_sub_block<Matrix2> subZ(*Z, Z->get_row_count(), q - p + 1, 0, p);
       mat_sub_block<Matrix1> subT(T, q - p + 1, q - p + 1, p, p);
-      symmetric_QR_step(subT, &subZ, absNumTol);
+      symmetric_QR_step(subT, &subZ);
     } else {
       mat_sub_block<Matrix1> subT(T, q - p + 1, q - p + 1, p, p);
-      symmetric_QR_step(subT, static_cast<Matrix2*>(nullptr), absNumTol);
+      symmetric_QR_step(subT, static_cast<Matrix2*>(nullptr));
     }
   }
 }

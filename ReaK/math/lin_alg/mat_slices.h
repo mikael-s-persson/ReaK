@@ -74,9 +74,9 @@ class mat_row_slice {
 
  private:
   Matrix* m;           ///< Holds the reference to the matrix object.
-  int offset;    ///< Holds the offset from the start of the column.
-  int colIndex;  ///< Holds the index of column of the slice.
-  int count;     ///< Holds the number of elements of the column to take.
+  int offset;          ///< Holds the offset from the start of the column.
+  int colIndex;        ///< Holds the index of column of the slice.
+  int count;           ///< Holds the number of elements of the column to take.
  public:
   /// Constructs the row-slice from a matrix M, taking the entire first column.
   /// \param aM The matrix from which to take the slice.
@@ -89,8 +89,7 @@ class mat_row_slice {
   /// \param aColIndex The column to use for the slice.
   /// \param aOffset The offset into the column used for the slice.
   /// \param aCount The number of elements to take in the slice.
-  mat_row_slice(Matrix& aM, int aColIndex, int aOffset,
-                int aCount)
+  mat_row_slice(Matrix& aM, int aColIndex, int aOffset, int aCount)
       : m(&aM), offset(aOffset), colIndex(aColIndex), count(aCount) {}
 
   /// Standard copy-constructor (shallow).
@@ -262,9 +261,9 @@ class mat_const_row_slice {
 
  private:
   const Matrix* m;     ///< Holds the reference to the matrix object.
-  int offset;    ///< Holds the offset from the start of the column.
-  int colIndex;  ///< Holds the index of column of the slice.
-  int count;     ///< Holds the number of elements of the column to take.
+  int offset;          ///< Holds the offset from the start of the column.
+  int colIndex;        ///< Holds the index of column of the slice.
+  int count;           ///< Holds the number of elements of the column to take.
 
   self& operator=(const self&);  // non-assignable.
 
@@ -283,8 +282,7 @@ class mat_const_row_slice {
   /// \param aColIndex The column to use for the slice.
   /// \param aOffset The offset into the column used for the slice.
   /// \param aCount The number of elements to take in the slice.
-  mat_const_row_slice(const Matrix& aM, int aColIndex, int aOffset,
-                      int aCount)
+  mat_const_row_slice(const Matrix& aM, int aColIndex, int aOffset, int aCount)
       : m(&aM), offset(aOffset), colIndex(aColIndex), count(aCount) {}
 
   /// Standard copy-constructor (shallow).
@@ -394,9 +392,9 @@ class mat_col_slice {
 
  private:
   Matrix* m;           ///< Holds the reference to the matrix object.
-  int offset;    ///< Holds the offset from the start of the row.
-  int rowIndex;  ///< Holds the index of row of the slice.
-  int count;     ///< Holds the number of elements of the row to take.
+  int offset;          ///< Holds the offset from the start of the row.
+  int rowIndex;        ///< Holds the index of row of the slice.
+  int count;           ///< Holds the number of elements of the row to take.
  public:
   /// Constructs the column-slice from a matrix M, taking the entire first row.
   /// \param aM The matrix from which to take the slice.
@@ -409,8 +407,7 @@ class mat_col_slice {
   /// \param aRowIndex The row to use for the slice.
   /// \param aOffset The offset into the row used for the slice.
   /// \param aCount The number of elements to take in the slice.
-  mat_col_slice(Matrix& aM, int aRowIndex, int aOffset,
-                int aCount)
+  mat_col_slice(Matrix& aM, int aRowIndex, int aOffset, int aCount)
       : m(&aM), offset(aOffset), rowIndex(aRowIndex), count(aCount) {}
 
   /// Standard copy-constructor (shallow).
@@ -579,9 +576,9 @@ class mat_const_col_slice {
 
  private:
   const Matrix* m;     ///< Holds the reference to the matrix object.
-  int offset;    ///< Holds the offset from the start of the row.
-  int rowIndex;  ///< Holds the index of row of the slice.
-  int count;     ///< Holds the number of elements of the row to take.
+  int offset;          ///< Holds the offset from the start of the row.
+  int rowIndex;        ///< Holds the index of row of the slice.
+  int count;           ///< Holds the number of elements of the row to take.
 
   self& operator=(const self&);  // non-assignable.
 
@@ -600,8 +597,7 @@ class mat_const_col_slice {
   /// \param aRowIndex The row to use for the slice.
   /// \param aOffset The offset into the row used for the slice.
   /// \param aCount The number of elements to take in the slice.
-  mat_const_col_slice(const Matrix& aM, int aRowIndex, int aOffset,
-                      int aCount)
+  mat_const_col_slice(const Matrix& aM, int aRowIndex, int aOffset, int aCount)
       : m(&aM), offset(aOffset), rowIndex(aRowIndex), count(aCount) {}
 
   /// Standard copy-constructor (shallow).
@@ -650,20 +646,15 @@ class mat_const_col_slice {
   *******************************************************************************/
 
   /// Array indexing operator, accessor for read only.
-  const_reference operator[](int i) const {
-    return (*m)(rowIndex, offset + i);
-  }
+  const_reference operator[](int i) const { return (*m)(rowIndex, offset + i); }
 
   /// Sub-vector operator, accessor for read only.
-  vect_const_ref_view<self> operator[](
-      const std::pair<int, int>& r) const {
+  vect_const_ref_view<self> operator[](const std::pair<int, int>& r) const {
     return sub(*this)[r];
   }
 
   /// Array indexing operator, accessor for read only.
-  const_reference operator()(int i) const {
-    return (*m)(rowIndex, offset + i);
-  }
+  const_reference operator()(int i) const { return (*m)(rowIndex, offset + i); }
 };
 
 template <typename Matrix>

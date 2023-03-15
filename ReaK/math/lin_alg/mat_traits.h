@@ -356,8 +356,7 @@ struct product_priority {
 };
 
 template <mat_structure::tag Structure>
-static constexpr int product_priority_v =
-    product_priority<Structure>::value;
+static constexpr int product_priority_v = product_priority<Structure>::value;
 
 template <>
 struct product_priority<mat_structure::rectangular> {
@@ -458,8 +457,7 @@ struct addition_priority {
 };
 
 template <mat_structure::tag Structure>
-static constexpr int addition_priority_v =
-    addition_priority<Structure>::value;
+static constexpr int addition_priority_v = addition_priority<Structure>::value;
 
 template <>
 struct addition_priority<mat_structure::rectangular> {
