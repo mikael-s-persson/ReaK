@@ -32,15 +32,15 @@ reak_cc_library(
   PUBLIC
 )
 
-reak_cc_binary(
+reak_cc_test(
   NAME
     lp_test
   SRCS
     "lp_test.cc"
   DEPS
-    ReaK::serialization
     ReaK::lin_alg
     ReaK::optimization
+    GTest::gtest_main
 )
 
 reak_cc_binary(
