@@ -470,4 +470,3 @@ else
   error('This example is not available!');
 end  
 
-

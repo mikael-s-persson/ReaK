@@ -4,29 +4,20 @@
 The MATLAB function DAREX is designed to generate all examples of
 discrete-time algebraic Riccati equations (DARE)
 
-          T T T -
-              1 T T(I) 0 = DR(X) = A X A - X -
-                                   (A X B + S)(R + B X B)(B X A + S) +
-                                   Q
+                  T            T               T    -1  T       T
+(I)  0 = DR(X) = A X A - X - (A X B + S) (R + B X B)  (B X A + S ) + Q
 
-                                   collected in[1]
-                                       .Here,
-                       A, Q,
-                       and X are n - by - n matrices, B and S are n - by - m,
-                       and R is m - by -
-                           m.The coefficient matrices Q and R are
-                           symmetric and usually,
-                       the required solution matrix X is symmetric,
-                       too.The
-                       coefficient matrix Q is often given in factored form as
+collected in [1]. Here, A, Q, and X are n-by-n matrices, B and S are
+n-by-m, and R is m-by-m. The coefficient matrices Q and R are symmetric
+and usually, the required solution matrix X is symmetric, too. The
+coefficient matrix Q is often given in factored form as 
 
-                       T(II) Q = C Q0 C,
+                T 
+(II)     Q  =  C  Q0 C,
 
-                       where C is p - by - n and Q0 is p - by -
-                           p.This factorization often arises
-                           in(but is not limited to)
-                               DARE coming from control theory.Also,
-                       if R is nonsingular, the DARE(I) is equivalent to 
+where C is p-by-n and Q0 is p-by-p. This factorization often arises
+in (but is not limited to) DARE coming from control theory. Also, if R
+is nonsingular, the DARE (I) is equivalent to 
 
                           T             T             -1 
 (III)   0  =  DR(X)  =  AA X AA - X - AA X G (I + X G)  X AA + QQ 
@@ -44,7 +35,7 @@ properties, for instance in control theory one is usually concerned
 with the "stabilizing" solution of (I), i.e., a solution such that the
 "feedback gain matrix" 
                                  -1  T       T
-(V)	F  =  A  -  B (R + B X B)  (B X A + S )
+(V) F  =  A  -  B (R + B X B)  (B X A + S )
  
 has all its eigenvalues inside the unit circle.
 
@@ -62,7 +53,7 @@ IMPLEMENTATION:
 All benchmark examples from [1] can be created by the matlab function
 DAREX. The calling sequence is
 
-	[A,B,Q,R,S,X,parout,G,C,Q0]=darex(index,parin)
+  [A,B,Q,R,S,X,parout,G,C,Q0]=darex(index,parin)
 
 where any number of output parameters less than or equal to 10 is
 allowed. The input parameter 'index' is the number of the required
@@ -77,7 +68,7 @@ A detailed description of all input and output parameters of DAREX
 is given in the prolog of the MATLAB function DAREX which is shown,
 for instance, by the command
 
-	>> help darex
+  >> help darex
 
 in a MATLAB environment. Some examples of how to use DAREX are given
 in the Section EXAMPLES below.
@@ -100,26 +91,26 @@ CONTENTS:
 
 You can receive the file darex_m.tar.Z by anonymous ftp at
 
-	ftp.tu-chemnitz.de
+  ftp.tu-chemnitz.de
 
 from the directory
 
-	pub/Local/mathematik/Benner
+  pub/Local/mathematik/Benner
 
 (observe the capital "L" in Local !) where you can also receive a
 postscript version of the preprint [1] (this file is called blm2.ps.Z).
 
 Then by decompressing darex_m.tar.Z via
 
-	uncompress darex_m.tar.Z
+  uncompress darex_m.tar.Z
 
 or
 
-	compress -d darex_m.tar.Z
+  compress -d darex_m.tar.Z
 
 and extracting the resulting file darex.tar by
 
-	tar xf darex_m.tar
+  tar xf darex_m.tar
 
 a directory darex_m is created containing the following files : 
 

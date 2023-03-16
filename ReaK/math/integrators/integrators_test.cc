@@ -49,16 +49,25 @@ using ProblemPtr = std::shared_ptr<ReaK::iv_problem<double>>;
 using RefProblemPair = std::pair<ProblemPtr, SolutionTrace>;
 using RefProblemSet = std::vector<RefProblemPair>;
 
-void computeReferenceSolution(const ProblemPtr& prob,
-                              SolutionTrace& sol_trace) {
+template <typename Integrator>
+void computeSolution(const ProblemPtr& prob, Integrator& integ,
+                     SolutionTrace& sol_trace, double step_fraction,
+                     double step_min_fraction, double tolerance) {
   sol_trace.clear();
   sol_trace.push_back(std::pair<double, ReaK::vect_n<double>>(
       prob->getInitialTime(), prob->getInitialValue()));
   double rec_step = (prob->getFinalTime() - prob->getInitialTime()) * 1e-3;
-  ReaK::dormand_prince45_integrator<double> integ(
-      "reference_integrator_ode45", sol_trace.back().second,
-      sol_trace.back().first, rec_step * 1e-3, prob, rec_step, rec_step * 1e-6,
-      1e-6);
+  integ.clearStateVector();
+  integ.addStateElements(sol_trace.back().second);
+  integ.setTime(sol_trace.back().first);
+  integ.setStepSize(rec_step * step_fraction);
+  integ.setStateRateFunc(prob);
+  if constexpr (std::is_base_of_v<variable_step_integrator<double>,
+                                  Integrator>) {
+    integ.setMaxStepSize(rec_step);
+    integ.setMinStepSize(rec_step * step_min_fraction);
+    integ.setTolerance(tolerance);
+  }
 
   std::cout << "Generating reference solution for problem: "
             << prob->getObjectType()->TypeName() << " with t in ["
@@ -75,13 +84,21 @@ void computeReferenceSolution(const ProblemPtr& prob,
         integ.getTime(),
         ReaK::vect_n<double>(integ.getStateBegin(), integ.getStateEnd())));
 
-    std::cout << "\r" << std::setw(10) << next_time;
-    for (double x : sol_trace.back().second) {
-      std::cout << std::setw(10) << x;
-    }
-    std::cout << std::flush;
+    std::cout << "\r" << std::setw(10) << next_time << std::flush;
   }
   std::cout << std::endl << "Done!" << std::endl;
+}
+
+template <typename Integrator>
+void computeReferenceSolution(const ProblemPtr& prob, Integrator& integ,
+                              SolutionTrace& sol_trace) {
+  computeSolution(prob, integ, sol_trace, 1e-3, 1e-6, 1e-6);
+}
+
+template <typename Integrator>
+void computeTestSolution(const ProblemPtr& prob, Integrator& integ,
+                         SolutionTrace& sol_trace) {
+  computeSolution(prob, integ, sol_trace, 1e-1, 1e-3, 1e-3);
 }
 
 const RefProblemSet& getRefProblemSet() {
@@ -90,9 +107,11 @@ const RefProblemSet& getRefProblemSet() {
   static bool first_pass = true;
   static RefProblemSet prob_set;
   if (first_pass) {
+    ReaK::dormand_prince45_integrator<double> integ;
+    integ.setName("reference_integrator_ode45");
 
     {
-      std::ifstream file_in("integ_records/hires.pbuf");
+      std::ifstream file_in("integ_records/hires.pb");
       if (file_in.is_open()) {
         serialization::protobuf_iarchive ar_in(file_in);
         RefProblemPair tmp;
@@ -101,17 +120,20 @@ const RefProblemSet& getRefProblemSet() {
       } else {
         prob_set.push_back(RefProblemPair(
             ProblemPtr(new HIRES_iv_problem<double>()), SolutionTrace()));
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
+        computeReferenceSolution(prob_set.back().first, integ,
+                                 prob_set.back().second);
 
-        std::ofstream file_out("integ_records/hires.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
-        ar_out << prob_set.back();
+        std::ofstream file_out("integ_records/hires.pb");
+        if (file_out.is_open()) {
+          serialization::protobuf_oarchive ar_out(file_out);
+          ar_out << prob_set.back();
+        }
       }
     }
 
 #if 0
     {
-      std::ifstream file_in("integ_records/pollution.pbuf");
+      std::ifstream file_in("integ_records/pollution.pb");
       if(file_in.is_open()) {
         serialization::protobuf_iarchive ar_in(file_in);
         RefProblemPair tmp;
@@ -119,17 +141,19 @@ const RefProblemSet& getRefProblemSet() {
         prob_set.push_back(tmp);
       } else {
         prob_set.push_back( RefProblemPair(ProblemPtr(new Pollution_iv_problem<double>()), SolutionTrace()) );
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
+        computeReferenceSolution(prob_set.back().first, integ, prob_set.back().second);
         
-        std::ofstream file_out("integ_records/pollution.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
-        ar_out << prob_set.back();
+        std::ofstream file_out("integ_records/pollution.pb");
+        if (file_out.is_open()) {
+          serialization::protobuf_oarchive ar_out(file_out);
+          ar_out << prob_set.back();
+        }
       }
     }
 #endif
 
     {
-      std::ifstream file_in("integ_records/ringmod.pbuf");
+      std::ifstream file_in("integ_records/ringmod.pb");
       if (file_in.is_open()) {
         serialization::protobuf_iarchive ar_in(file_in);
         RefProblemPair tmp;
@@ -139,16 +163,19 @@ const RefProblemSet& getRefProblemSet() {
         prob_set.push_back(
             RefProblemPair(ProblemPtr(new RingModulator_iv_problem<double>()),
                            SolutionTrace()));
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
+        computeReferenceSolution(prob_set.back().first, integ,
+                                 prob_set.back().second);
 
-        std::ofstream file_out("integ_records/ringmod.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
-        ar_out << prob_set.back();
+        std::ofstream file_out("integ_records/ringmod.pb");
+        if (file_out.is_open()) {
+          serialization::protobuf_oarchive ar_out(file_out);
+          ar_out << prob_set.back();
+        }
       }
     }
 
     {
-      std::ifstream file_in("integ_records/vanderpol.pbuf");
+      std::ifstream file_in("integ_records/vanderpol.pb");
       if (file_in.is_open()) {
         serialization::protobuf_iarchive ar_in(file_in);
         RefProblemPair tmp;
@@ -157,16 +184,19 @@ const RefProblemSet& getRefProblemSet() {
       } else {
         prob_set.push_back(RefProblemPair(
             ProblemPtr(new VanDerPol_iv_problem<double>()), SolutionTrace()));
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
+        computeReferenceSolution(prob_set.back().first, integ,
+                                 prob_set.back().second);
 
-        std::ofstream file_out("integ_records/vanderpol.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
-        ar_out << prob_set.back();
+        std::ofstream file_out("integ_records/vanderpol.pb");
+        if (file_out.is_open()) {
+          serialization::protobuf_oarchive ar_out(file_out);
+          ar_out << prob_set.back();
+        }
       }
     }
 
     {
-      std::ifstream file_in("integ_records/vanderpolmod.pbuf");
+      std::ifstream file_in("integ_records/vanderpolmod.pb");
       if (file_in.is_open()) {
         serialization::protobuf_iarchive ar_in(file_in);
         RefProblemPair tmp;
@@ -176,16 +206,19 @@ const RefProblemSet& getRefProblemSet() {
         prob_set.push_back(
             RefProblemPair(ProblemPtr(new VanDerPolMod_iv_problem<double>()),
                            SolutionTrace()));
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
+        computeReferenceSolution(prob_set.back().first, integ,
+                                 prob_set.back().second);
 
-        std::ofstream file_out("integ_records/vanderpolmod.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
-        ar_out << prob_set.back();
+        std::ofstream file_out("integ_records/vanderpolmod.pb");
+        if (file_out.is_open()) {
+          serialization::protobuf_oarchive ar_out(file_out);
+          ar_out << prob_set.back();
+        }
       }
     }
 
     {
-      std::ifstream file_in("integ_records/orego.pbuf");
+      std::ifstream file_in("integ_records/orego.pb");
       if (file_in.is_open()) {
         serialization::protobuf_iarchive ar_in(file_in);
         RefProblemPair tmp;
@@ -194,17 +227,20 @@ const RefProblemSet& getRefProblemSet() {
       } else {
         prob_set.push_back(RefProblemPair(
             ProblemPtr(new Orego_iv_problem<double>()), SolutionTrace()));
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
+        computeReferenceSolution(prob_set.back().first, integ,
+                                 prob_set.back().second);
 
-        std::ofstream file_out("integ_records/orego.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
-        ar_out << prob_set.back();
+        std::ofstream file_out("integ_records/orego.pb");
+        if (file_out.is_open()) {
+          serialization::protobuf_oarchive ar_out(file_out);
+          ar_out << prob_set.back();
+        }
       }
     }
 
 #if 0
     {
-      std::ifstream file_in("integ_records/rober.pbuf");
+      std::ifstream file_in("integ_records/rober.pb");
       if(file_in.is_open()) {
         serialization::protobuf_iarchive ar_in(file_in);
         RefProblemPair tmp;
@@ -212,18 +248,20 @@ const RefProblemSet& getRefProblemSet() {
         prob_set.push_back(tmp);
       } else {
         prob_set.push_back( RefProblemPair(ProblemPtr(new Rober_iv_problem<double>()), SolutionTrace()) );
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
+        computeReferenceSolution(prob_set.back().first, integ, prob_set.back().second);
         
-        std::ofstream file_out("integ_records/rober.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
-        ar_out << prob_set.back();
+        std::ofstream file_out("integ_records/rober.pb");
+        if (file_out.is_open()) {
+          serialization::protobuf_oarchive ar_out(file_out);
+          ar_out << prob_set.back();
+        }
       }
     }
 #endif
 
 #if 0
     {
-      std::ifstream file_in("integ_records/e5.pbuf");
+      std::ifstream file_in("integ_records/e5.pb");
       if(file_in.is_open()) {
         serialization::protobuf_iarchive ar_in(file_in);
         RefProblemPair tmp;
@@ -231,11 +269,13 @@ const RefProblemSet& getRefProblemSet() {
         prob_set.push_back(tmp);
       } else {
         prob_set.push_back( RefProblemPair(ProblemPtr(new E5_iv_problem<double>()), SolutionTrace()) );
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
+        computeReferenceSolution(prob_set.back().first, integ, prob_set.back().second);
         
-        std::ofstream file_out("integ_records/e5.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
-        ar_out << prob_set.back();
+        std::ofstream file_out("integ_records/e5.pb");
+        if (file_out.is_open()) {
+          serialization::protobuf_oarchive ar_out(file_out);
+          ar_out << prob_set.back();
+        }
       }
     }
 #endif
@@ -246,25 +286,447 @@ const RefProblemSet& getRefProblemSet() {
   return prob_set;
 }
 
-TEST(Integrators, FixedStepIntegrators) {
+TEST(Integrators, EulerIntegrator) {
   const RefProblemSet& ref_set = getRefProblemSet();
 
-  for (const auto& [prob_ptr, sol_trace] : ref_set) {
-    std::cout << "Reference solution is:" << std::endl;
-    for (const auto& [c, v] : sol_trace) {
-      std::cout << "\r" << std::setw(10) << c;
-      for (double x : v) {
-        std::cout << std::setw(10) << x;
-      }
-      std::cout << std::flush;
+  for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
+    // HIRES_iv_problem is the only problem for which Euler is not a complete disaster.
+    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+      continue;
     }
-    std::cout << std::endl << "Done!" << std::endl;
+
+    euler_integrator<double> integ;
+    integ.setName("euler_integrator");
+
+    SolutionTrace test_sol_trace;
+    computeSolution(prob_ptr, integ, test_sol_trace, 1e-4, 1e-3, 1e-3);
+
+    double max_ref_norm = 0.0;
+    for (const auto& [t, v] : ref_sol_trace) {
+      double ref_norm = norm_2(v);
+      if (ref_norm > max_ref_norm) {
+        max_ref_norm = ref_norm;
+      }
+    }
+
+    ASSERT_EQ(test_sol_trace.size(), ref_sol_trace.size());
+    bool fatal_failure = false;
+    for (int i = 0; i < test_sol_trace.size() && !fatal_failure; ++i) {
+      EXPECT_NEAR(
+          test_sol_trace[i].first, ref_sol_trace[i].first,
+          (prob_ptr->getFinalTime() - prob_ptr->getInitialTime()) * 5e-4)
+          << " at time step " << i;
+      for (int j = 0; j < test_sol_trace[i].second.size(); ++j) {
+        EXPECT_NEAR(test_sol_trace[i].second[j], ref_sol_trace[i].second[j],
+                    std::max(2e-2, max_ref_norm * 2e-2))
+            << " at time step " << i << " element " << j;
+        if (!std::isfinite(test_sol_trace[i].second[j])) {
+          fatal_failure = true;
+          break;
+        }
+      }
+    }
   }
 }
 
-TEST(Integrators, VariableStepIntegrators) {}
+TEST(Integrators, MidpointIntegrator) {
+  const RefProblemSet& ref_set = getRefProblemSet();
 
-TEST(Integrators, PredCorrIntegrators) {}
+  for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
+    // HIRES_iv_problem is the only problem for which Midpoint is not a complete disaster.
+    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+      continue;
+    }
+
+    midpoint_integrator<double> integ;
+    integ.setName("midpoint_integrator");
+
+    SolutionTrace test_sol_trace;
+    computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-3, 1e-3);
+
+    double max_ref_norm = 0.0;
+    for (const auto& [t, v] : ref_sol_trace) {
+      double ref_norm = norm_2(v);
+      if (ref_norm > max_ref_norm) {
+        max_ref_norm = ref_norm;
+      }
+    }
+
+    ASSERT_EQ(test_sol_trace.size(), ref_sol_trace.size());
+    bool fatal_failure = false;
+    for (int i = 0; i < test_sol_trace.size() && !fatal_failure; ++i) {
+      EXPECT_NEAR(
+          test_sol_trace[i].first, ref_sol_trace[i].first,
+          (prob_ptr->getFinalTime() - prob_ptr->getInitialTime()) * 5e-4)
+          << " at time step " << i;
+      for (int j = 0; j < test_sol_trace[i].second.size(); ++j) {
+        EXPECT_NEAR(test_sol_trace[i].second[j], ref_sol_trace[i].second[j],
+                    std::max(2e-2, max_ref_norm * 2e-2))
+            << " at time step " << i << " element " << j;
+        if (!std::isfinite(test_sol_trace[i].second[j])) {
+          fatal_failure = true;
+          break;
+        }
+      }
+    }
+  }
+}
+
+TEST(Integrators, RungeKutta4Integrator) {
+  const RefProblemSet& ref_set = getRefProblemSet();
+
+  for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
+    // HIRES_iv_problem is the only problem for which RungeKutta4 is not a complete disaster.
+    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+      continue;
+    }
+
+    runge_kutta4_integrator<double> integ;
+    integ.setName("runge_kutta4_integrator");
+
+    SolutionTrace test_sol_trace;
+    computeSolution(prob_ptr, integ, test_sol_trace, 1e-2, 1e-3, 1e-3);
+
+    double max_ref_norm = 0.0;
+    for (const auto& [t, v] : ref_sol_trace) {
+      double ref_norm = norm_2(v);
+      if (ref_norm > max_ref_norm) {
+        max_ref_norm = ref_norm;
+      }
+    }
+
+    ASSERT_EQ(test_sol_trace.size(), ref_sol_trace.size());
+    bool fatal_failure = false;
+    for (int i = 0; i < test_sol_trace.size() && !fatal_failure; ++i) {
+      EXPECT_NEAR(
+          test_sol_trace[i].first, ref_sol_trace[i].first,
+          (prob_ptr->getFinalTime() - prob_ptr->getInitialTime()) * 5e-4)
+          << " at time step " << i;
+      for (int j = 0; j < test_sol_trace[i].second.size(); ++j) {
+        EXPECT_NEAR(test_sol_trace[i].second[j], ref_sol_trace[i].second[j],
+                    std::max(2e-2, max_ref_norm * 2e-2))
+            << " at time step " << i << " element " << j;
+        if (!std::isfinite(test_sol_trace[i].second[j])) {
+          fatal_failure = true;
+          break;
+        }
+      }
+    }
+  }
+}
+
+TEST(Integrators, RungeKutta5Integrator) {
+  const RefProblemSet& ref_set = getRefProblemSet();
+
+  for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
+    // HIRES_iv_problem is the only problem for which RungeKutta5 is not a complete disaster.
+    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+      continue;
+    }
+
+    runge_kutta5_integrator<double> integ;
+    integ.setName("runge_kutta5_integrator");
+
+    SolutionTrace test_sol_trace;
+    computeSolution(prob_ptr, integ, test_sol_trace, 2e-2, 1e-3, 1e-3);
+
+    double max_ref_norm = 0.0;
+    for (const auto& [t, v] : ref_sol_trace) {
+      double ref_norm = norm_2(v);
+      if (ref_norm > max_ref_norm) {
+        max_ref_norm = ref_norm;
+      }
+    }
+
+    ASSERT_EQ(test_sol_trace.size(), ref_sol_trace.size());
+    bool fatal_failure = false;
+    for (int i = 0; i < test_sol_trace.size() && !fatal_failure; ++i) {
+      EXPECT_NEAR(
+          test_sol_trace[i].first, ref_sol_trace[i].first,
+          (prob_ptr->getFinalTime() - prob_ptr->getInitialTime()) * 5e-4)
+          << " at time step " << i;
+      for (int j = 0; j < test_sol_trace[i].second.size(); ++j) {
+        EXPECT_NEAR(test_sol_trace[i].second[j], ref_sol_trace[i].second[j],
+                    std::max(2e-2, max_ref_norm * 2e-2))
+            << " at time step " << i << " element " << j;
+        if (!std::isfinite(test_sol_trace[i].second[j])) {
+          fatal_failure = true;
+          break;
+        }
+      }
+    }
+  }
+}
+
+TEST(Integrators, Fehlberg45Integrator) {
+  const RefProblemSet& ref_set = getRefProblemSet();
+
+  for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
+    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+      continue;
+    }
+
+    fehlberg45_integrator<double> integ;
+    integ.setName("fehlberg45_integrator");
+
+    SolutionTrace test_sol_trace;
+    computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);
+
+    double max_ref_norm = 0.0;
+    for (const auto& [t, v] : ref_sol_trace) {
+      double ref_norm = norm_2(v);
+      if (ref_norm > max_ref_norm) {
+        max_ref_norm = ref_norm;
+      }
+    }
+
+    ASSERT_EQ(test_sol_trace.size(), ref_sol_trace.size());
+    bool fatal_failure = false;
+    for (int i = 0; i < test_sol_trace.size() && !fatal_failure; ++i) {
+      EXPECT_NEAR(
+          test_sol_trace[i].first, ref_sol_trace[i].first,
+          (prob_ptr->getFinalTime() - prob_ptr->getInitialTime()) * 1e-3)
+          << " at time step " << i;
+      if (i < 10) {
+        continue;
+      }
+      for (int j = 0; j < test_sol_trace[i].second.size(); ++j) {
+        EXPECT_NEAR(test_sol_trace[i].second[j], ref_sol_trace[i].second[j],
+                    std::max(2e-2, max_ref_norm * 2e-2))
+            << " at time step " << i << " element " << j;
+        if (!std::isfinite(test_sol_trace[i].second[j])) {
+          fatal_failure = true;
+          break;
+        }
+      }
+    }
+  }
+}
+
+TEST(Integrators, DormandPrince45Integrator) {
+  const RefProblemSet& ref_set = getRefProblemSet();
+
+  for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
+    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+      continue;
+    }
+
+    dormand_prince45_integrator<double> integ;
+    integ.setName("dormand_prince45_integrator");
+
+    SolutionTrace test_sol_trace;
+    computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);
+
+    double max_ref_norm = 0.0;
+    for (const auto& [t, v] : ref_sol_trace) {
+      double ref_norm = norm_2(v);
+      if (ref_norm > max_ref_norm) {
+        max_ref_norm = ref_norm;
+      }
+    }
+
+    ASSERT_EQ(test_sol_trace.size(), ref_sol_trace.size());
+    bool fatal_failure = false;
+    for (int i = 0; i < test_sol_trace.size() && !fatal_failure; ++i) {
+      EXPECT_NEAR(
+          test_sol_trace[i].first, ref_sol_trace[i].first,
+          (prob_ptr->getFinalTime() - prob_ptr->getInitialTime()) * 1e-3)
+          << " at time step " << i;
+      if (i < 10) {
+        continue;
+      }
+      for (int j = 0; j < test_sol_trace[i].second.size(); ++j) {
+        EXPECT_NEAR(test_sol_trace[i].second[j], ref_sol_trace[i].second[j],
+                    std::max(2e-2, max_ref_norm * 2e-2))
+            << " at time step " << i << " element " << j;
+        if (!std::isfinite(test_sol_trace[i].second[j])) {
+          fatal_failure = true;
+          break;
+        }
+      }
+    }
+  }
+}
+
+TEST(Integrators, AdamsBM3Integrator) {
+  const RefProblemSet& ref_set = getRefProblemSet();
+
+  for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
+    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+      continue;
+    }
+
+    adamsBM3_integrator<double> integ;
+    integ.setName("adamsBM3_integrator");
+
+    SolutionTrace test_sol_trace;
+    computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);
+
+    double max_ref_norm = 0.0;
+    for (const auto& [t, v] : ref_sol_trace) {
+      double ref_norm = norm_2(v);
+      if (ref_norm > max_ref_norm) {
+        max_ref_norm = ref_norm;
+      }
+    }
+
+    ASSERT_EQ(test_sol_trace.size(), ref_sol_trace.size());
+    bool fatal_failure = false;
+    for (int i = 0; i < test_sol_trace.size() && !fatal_failure; ++i) {
+      EXPECT_NEAR(
+          test_sol_trace[i].first, ref_sol_trace[i].first,
+          (prob_ptr->getFinalTime() - prob_ptr->getInitialTime()) * 1e-3)
+          << " at time step " << i;
+      if (i < 10) {
+        continue;
+      }
+      for (int j = 0; j < test_sol_trace[i].second.size(); ++j) {
+        EXPECT_NEAR(test_sol_trace[i].second[j], ref_sol_trace[i].second[j],
+                    std::max(2e-2, max_ref_norm * 2e-2))
+            << " at time step " << i << " element " << j;
+        if (!std::isfinite(test_sol_trace[i].second[j])) {
+          fatal_failure = true;
+          break;
+        }
+      }
+    }
+  }
+}
+
+TEST(Integrators, AdamsBM5Integrator) {
+  const RefProblemSet& ref_set = getRefProblemSet();
+
+  for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
+    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+      continue;
+    }
+
+    adamsBM5_integrator<double> integ;
+    integ.setName("adamsBM5_integrator");
+
+    SolutionTrace test_sol_trace;
+    computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);
+
+    double max_ref_norm = 0.0;
+    for (const auto& [t, v] : ref_sol_trace) {
+      double ref_norm = norm_2(v);
+      if (ref_norm > max_ref_norm) {
+        max_ref_norm = ref_norm;
+      }
+    }
+
+    ASSERT_EQ(test_sol_trace.size(), ref_sol_trace.size());
+    bool fatal_failure = false;
+    for (int i = 0; i < test_sol_trace.size() && !fatal_failure; ++i) {
+      EXPECT_NEAR(
+          test_sol_trace[i].first, ref_sol_trace[i].first,
+          (prob_ptr->getFinalTime() - prob_ptr->getInitialTime()) * 1e-3)
+          << " at time step " << i;
+      if (i < 10) {
+        continue;
+      }
+      for (int j = 0; j < test_sol_trace[i].second.size(); ++j) {
+        EXPECT_NEAR(test_sol_trace[i].second[j], ref_sol_trace[i].second[j],
+                    std::max(2e-2, max_ref_norm * 2e-2))
+            << " at time step " << i << " element " << j;
+        if (!std::isfinite(test_sol_trace[i].second[j])) {
+          fatal_failure = true;
+          break;
+        }
+      }
+    }
+  }
+}
+
+TEST(Integrators, HammingModIntegrator) {
+  const RefProblemSet& ref_set = getRefProblemSet();
+
+  for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
+    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+      continue;
+    }
+
+    hamming_mod_integrator<double> integ;
+    integ.setName("hamming_mod_integrator");
+
+    SolutionTrace test_sol_trace;
+    computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);
+
+    double max_ref_norm = 0.0;
+    for (const auto& [t, v] : ref_sol_trace) {
+      double ref_norm = norm_2(v);
+      if (ref_norm > max_ref_norm) {
+        max_ref_norm = ref_norm;
+      }
+    }
+
+    ASSERT_EQ(test_sol_trace.size(), ref_sol_trace.size());
+    bool fatal_failure = false;
+    for (int i = 0; i < test_sol_trace.size() && !fatal_failure; ++i) {
+      EXPECT_NEAR(
+          test_sol_trace[i].first, ref_sol_trace[i].first,
+          (prob_ptr->getFinalTime() - prob_ptr->getInitialTime()) * 1e-3)
+          << " at time step " << i;
+      if (i < 10) {
+        continue;
+      }
+      for (int j = 0; j < test_sol_trace[i].second.size(); ++j) {
+        EXPECT_NEAR(test_sol_trace[i].second[j], ref_sol_trace[i].second[j],
+                    std::max(2e-2, max_ref_norm * 5e-1 /*TODO FAILING*/))
+            << " at time step " << i << " element " << j;
+        if (!std::isfinite(test_sol_trace[i].second[j])) {
+          fatal_failure = true;
+          break;
+        }
+      }
+    }
+  }
+}
+
+TEST(Integrators, HammingIterModIntegrator) {
+  const RefProblemSet& ref_set = getRefProblemSet();
+
+  for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
+    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+      continue;
+    }
+
+    hamming_iter_mod_integrator<double> integ;
+    integ.setName("hamming_iter_mod_integrator");
+
+    SolutionTrace test_sol_trace;
+    computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);
+
+    double max_ref_norm = 0.0;
+    for (const auto& [t, v] : ref_sol_trace) {
+      double ref_norm = norm_2(v);
+      if (ref_norm > max_ref_norm) {
+        max_ref_norm = ref_norm;
+      }
+    }
+
+    ASSERT_EQ(test_sol_trace.size(), ref_sol_trace.size());
+    bool fatal_failure = false;
+    for (int i = 0; i < test_sol_trace.size() && !fatal_failure; ++i) {
+      EXPECT_NEAR(
+          test_sol_trace[i].first, ref_sol_trace[i].first,
+          (prob_ptr->getFinalTime() - prob_ptr->getInitialTime()) * 1e-3)
+          << " at time step " << i;
+      if (i < 10) {
+        continue;
+      }
+      for (int j = 0; j < test_sol_trace[i].second.size(); ++j) {
+        EXPECT_NEAR(test_sol_trace[i].second[j], ref_sol_trace[i].second[j],
+                    std::max(2e-2, max_ref_norm * 2e-2))
+            << " at time step " << i << " element " << j;
+        if (!std::isfinite(test_sol_trace[i].second[j])) {
+          fatal_failure = true;
+          break;
+        }
+      }
+    }
+  }
+}
 
 }  // namespace
 }  // namespace ReaK

@@ -83,4 +83,3 @@ H2norm = norm(H2);
 
 KU = (H0norm*Qnorm + 2*sqrt(H0norm*H2norm)*Anorm + H2norm*Gnorm)/Xnorm; 
 KL = (H0norm*Qnorm + 2*H1norm*Anorm + H2norm*Gnorm)/Xnorm; 
-

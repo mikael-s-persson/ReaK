@@ -1019,7 +1019,8 @@ void hamming_iter_mod_integrator<T>::integrate(double aEndTime) {
               T(9.0 / 121.0);
       ErrorEst = 0.0;
       for (unsigned int j = 0; j < prevM.q.size(); ++j) {
-        ErrorEst += sqr_mag(hamming_mod_integrator<T>::mM.q[j] - prevM.q[j]);
+        ErrorEst += (hamming_mod_integrator<T>::mM.q[j] - prevM.q[j]) *
+                    (hamming_mod_integrator<T>::mM.q[j] - prevM.q[j]);
       }
       ErrorEst = std::sqrt(ErrorEst);
       prevM.q.swap(hamming_mod_integrator<T>::mM.q);

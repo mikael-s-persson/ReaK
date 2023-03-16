@@ -700,7 +700,12 @@ struct get_type_info<vect<T, Size>, Tail> {
 namespace serialization {
 template <typename T, unsigned int Size>
 iarchive& operator>>(iarchive& in, vect<T, Size>& v) {
-  for (unsigned int i = 0; i != Size; ++i) {
+  if constexpr (Size == 0) {
+    int sz = 0;
+    in >> sz;
+    v.resize(sz);
+  }
+  for (int i = 0; i != v.size(); ++i) {
     in >> v[i];
   }
   return in;
@@ -709,7 +714,14 @@ iarchive& operator>>(iarchive& in, vect<T, Size>& v) {
 template <typename T, unsigned int Size>
 iarchive& operator&(iarchive& in,
                     const std::pair<std::string, vect<T, Size>&>& v) {
-  for (unsigned int i = 0; i != Size; ++i) {
+  if constexpr (Size == 0) {
+    int sz = 0;
+    std::stringstream s_stream;
+    s_stream << v.first << "_count";
+    in& RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), sz);
+    v.second.resize(sz);
+  }
+  for (int i = 0; i != v.second.size(); ++i) {
     std::stringstream s_stream;
     s_stream << v.first << "_q[" << i << "]";
     in& RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), v.second[i]);
@@ -719,7 +731,10 @@ iarchive& operator&(iarchive& in,
 
 template <typename T, unsigned int Size>
 oarchive& operator<<(oarchive& out, const vect<T, Size>& v) {
-  for (unsigned int i = 0; i != Size; ++i) {
+  if constexpr (Size == 0) {
+    out << v.size();
+  }
+  for (int i = 0; i != v.size(); ++i) {
     out << v[i];
   }
   return out;
@@ -728,7 +743,12 @@ oarchive& operator<<(oarchive& out, const vect<T, Size>& v) {
 template <typename T, unsigned int Size>
 oarchive& operator&(oarchive& out,
                     const std::pair<std::string, const vect<T, Size>&>& v) {
-  for (unsigned int i = 0; i != Size; ++i) {
+  if constexpr (Size == 0) {
+    std::stringstream s_stream;
+    s_stream << v.first << "_count";
+    out& RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), v.second.size());
+  }
+  for (int i = 0; i != v.second.size(); ++i) {
     std::stringstream s_stream;
     s_stream << v.first << "_q[" << i << "]";
     out& RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), v.second[i]);

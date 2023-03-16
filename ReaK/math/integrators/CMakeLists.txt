@@ -25,4 +25,10 @@ reak_cc_test(
     ReaK::lin_alg
     ReaK::math_integrators
     GTest::gtest_main
+  TESTDATA
+    "integ_records/hires.pb"
+    "integ_records/orego.pb"
+    "integ_records/ringmod.pb"
+    "integ_records/vanderpol.pb"
+    "integ_records/vanderpolmod.pb"
 )

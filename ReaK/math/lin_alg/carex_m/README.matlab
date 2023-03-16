@@ -21,7 +21,7 @@ extremal properties, for instance in control theory one is usually
 concerned with the "stabilizing" solution of (I), i.e., a solution
 such that the "feedback gain matrix"
 
-	F  =  A  -  G X
+     F  =  A  -  G X
  
 has all its eigenvalues in the open left half plane.
 The benchmark collection [1] consists of examples which can be used for
@@ -38,7 +38,7 @@ IMPLEMENTATION:
 All benchmark examples from [1] can be created by the matlab function
 CAREX. The calling sequence is
 
-	[A,G,Q,X,parout,B,R,C,Q0]=carex(index,parin)
+     [A,G,Q,X,parout,B,R,C,Q0]=carex(index,parin)
 
 where any number of output parameters less than 10 is allowed. 'index'
 is the number of the required example corresponding to [1].
@@ -49,7 +49,7 @@ A detailed description of all input and output parameters of CAREX
 is given in the prolog of the MATLAB function CAREX which is shown,
 for instance, by the command
 
-	>> help carex
+     >> help carex
 
 in a MATLAB environment. Some examples of how to use CAREX are given
 in the Section EXAMPLES below.
@@ -59,7 +59,7 @@ too (in the output argument X). This returned solution is generally
 the "stabilizing" solution in the control-theoretic sense, i.e., the
 feedback gain matrix
 
-	F  =  A  -  G X
+     F  =  A  -  G X
 
 has all its eigenvalues in the open left half plane.
 If such an analytical solution is available, the upper and lower bounds of
@@ -81,26 +81,26 @@ CONTENTS:
 
 You can receive the file carex_m.tar.Z by anonymous ftp at
 
-	ftp.tu-chemnitz.de
+     ftp.tu-chemnitz.de
 
 from the directory
 
-	pub/Local/mathematik/Benner
+     pub/Local/mathematik/Benner
 
 (observe the capital "L" in Local !) where you can also receive a
 postscript version of the preprint [1] (this file is called blm1.ps.Z).
 
 Then by decompressing carex_m.tar.Z via
 
-	uncompress carex_m.tar.Z
+     uncompress carex_m.tar.Z
 
 or
 
-	compress -d carex_m.tar.Z
+     compress -d carex_m.tar.Z
 
 and extracting the resulting file carex.tar by
 
-	tar xf carex_m.tar
+     tar xf carex_m.tar
 
 a directory carex_m is created containing the following files : 
 
@@ -175,7 +175,7 @@ B =
 R =
 
      1  
-	
+     
 >>
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -184,8 +184,8 @@ The first three components of the vector 'parout' contain in consecutive
 order n, m, and p. The next two components are the 2-norm and 2-norm
 condition number of the Hamiltonian matrix 
 
-	    (  A  -G  )
-	H = (         )  
+         (  A  -G  )
+     H = (         )  
             ( -Q  -A' )
 
 corresponding to the CARE (I). parout(6:7) contains the 2-norm and 2-norm

@@ -284,6 +284,7 @@ endfunction()
 # COPTS: List of private compile options
 # DEFINES: List of public defines
 # LINKOPTS: List of link options
+# TESTDATA: List of data files needed for the test.
 #
 # Note:
 # By default, reak_cc_test will always create a binary named reak_${NAME}.
@@ -304,7 +305,7 @@ function(reak_cc_test)
   cmake_parse_arguments(REAK_CC_TEST
     ""
     "NAME"
-    "SRCS;COPTS;DEFINES;LINKOPTS;DEPS"
+    "SRCS;COPTS;DEFINES;LINKOPTS;DEPS;TESTDATA"
     ${ARGN}
   )
 
@@ -318,7 +319,17 @@ function(reak_cc_test)
 
   target_link_libraries(${_NAME} PUBLIC ${REAK_CC_TEST_DEPS} PRIVATE ${REAK_CC_TEST_LINKOPTS})
 
-  add_test(NAME ${_NAME} COMMAND ${_NAME})
+  add_test(NAME ${_NAME} COMMAND "${CMAKE_CURRENT_BINARY_DIR}/${_NAME}")
+  
+  foreach(_testdata_file ${REAK_CC_TEST_TESTDATA})
+    get_filename_component(_testdata_file_dir ${_testdata_file} DIRECTORY)
+    add_custom_command(TARGET ${_NAME} PRE_BUILD
+      COMMAND ${CMAKE_COMMAND} -E 
+      make_directory "${CMAKE_CURRENT_BINARY_DIR}/${_testdata_file_dir}")
+    add_custom_command(TARGET ${_NAME} PRE_BUILD
+      COMMAND ${CMAKE_COMMAND} -E 
+      copy "${CMAKE_CURRENT_SOURCE_DIR}/${_testdata_file}" "${CMAKE_CURRENT_BINARY_DIR}/${_testdata_file_dir}")
+  endforeach()
   
   if(REAK_ENABLE_CLANG_TIDY)
     set_target_properties(${_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
@@ -370,8 +381,6 @@ function(reak_cc_binary)
   target_compile_options(${_NAME} PRIVATE ${REAK_CC_BIN_COPTS})
 
   target_link_libraries(${_NAME} PUBLIC ${REAK_CC_BIN_DEPS} PRIVATE ${REAK_CC_BIN_LINKOPTS})
-
-  add_test(NAME ${_NAME} COMMAND ${_NAME})
   
   if(REAK_ENABLE_CLANG_TIDY)
     set_target_properties(${_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
