@@ -6,7 +6,7 @@
 /// \date March 2023
 
 /*
- *    Copyright 2011 Sven Mikael Persson
+ *    Copyright 2023 Sven Mikael Persson
  *
  *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
  *

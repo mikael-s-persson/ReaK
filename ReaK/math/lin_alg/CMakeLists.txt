@@ -66,6 +66,7 @@ reak_cc_library(
     lin_alg_matchers
   HDRS
     "mat_matchers.h"
+    "vect_matchers.h"
   DEPS
     GTest::gmock
     ReaK::lin_alg

@@ -21,378 +21,323 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cmath>
-#include "ReaK/math/optimization/line_search.h"
-
-#include "ReaK/math/optimization/finite_diff_jacobians.h"
-
+#include "ReaK/core/base/global_rng.h"
+#include "ReaK/math/lin_alg/vect_matchers.h"
 #include "ReaK/math/optimization/conjugate_gradient_methods.h"
 #include "ReaK/math/optimization/nelder_mead_method.h"
 #include "ReaK/math/optimization/quasi_newton_methods.h"
 #include "ReaK/math/optimization/trust_region_search.h"
+#include "gtest/gtest.h"
 
-#include "ReaK/core/base/global_rng.h"
-
+#include <cmath>
 #include <iostream>
+#include <sstream>
 
-static int evalCount;
-static int gradCount;
+namespace ReaK::optim {
+namespace {
 
-double max_truss_section_stress(double x) {
-  double sigma1 = 0.8165 / x;
-  double sigma2 = 1.1154 / (1 - x);
-  evalCount++;
-  return (sigma1 > sigma2 ? sigma1 : sigma2);
+using ::ReaK::testing::VectorIsNear;
+
+const double desired_tolerance = 1e-8;
+const double expected_tolerance = 1e-7;
+
+class NLPUnconstrainedProblemsTest : public ::testing::Test {
+ protected:
+  NLPUnconstrainedProblemsTest();
+
+  std::string GetProblemDescription(int i) {
+    std::stringstream ss;
+    ss << "Function #" << i << " called: '" << func_names[i] << "'"
+       << std::endl;
+    return ss.str();
+  }
+
+  using FunctionPtr = std::function<double(const vect<double, 2>&)>;
+  using GradFunctionPtr =
+      std::function<vect<double, 2>(const vect<double, 2>&)>;
+
+  int eval_count = 0;
+  int grad_count = 0;
+
+  std::vector<FunctionPtr> funcs;
+  std::vector<GradFunctionPtr> func_grads;
+  std::vector<vect<double, 2>> func_sols;
+  std::vector<vect<double, 2>> func_starts;
+  std::vector<std::string> func_names;
 };
 
-double banana_function(const ReaK::vect<double, 2>& x) {
-  evalCount++;
-  return (1.0 - x[0]) * (1.0 - x[0]) +
-         100.0 * (x[1] - x[0] * x[0]) * (x[1] - x[0] * x[0]);
-};
+NLPUnconstrainedProblemsTest::NLPUnconstrainedProblemsTest() {
+  func_names.emplace_back("Easy Function");
+  mat<double, mat_structure::symmetric, mat_alignment::column_major, 2, 2> Q(
+      10.0, -2.0, 1.0);
+  funcs.emplace_back([this, Q](const vect<double, 2>& x) {
+    ++(this->eval_count);
+    return x * (Q * x);
+  });
+  func_grads.emplace_back([this, Q](const vect<double, 2>& x) {
+    ++(this->grad_count);
+    return vect<double, 2>(2.0 * (Q * x));
+  });
+  func_sols.emplace_back(0.0, 0.0);
+  func_starts.emplace_back(0.5, 1.0);
 
-ReaK::vect<double, 2> banana_function_grad(const ReaK::vect<double, 2>& x) {
-  gradCount++;
-  return {2.0 * (x[0] - 1.0) - 400.0 * x[0] * (x[1] - x[0] * x[0]),
-          200.0 * (x[1] - x[0] * x[0])};
-};
+  func_names.emplace_back("Banana Function");
+  funcs.emplace_back([this](const vect<double, 2>& x) {
+    ++(this->eval_count);
+    return (1.0 - x[0]) * (1.0 - x[0]) +
+           100.0 * (x[1] - x[0] * x[0]) * (x[1] - x[0] * x[0]);
+  });
+  func_grads.emplace_back([this](const vect<double, 2>& x) {
+    ++(this->grad_count);
+    return vect<double, 2>{
+        2.0 * (x[0] - 1.0) - 400.0 * x[0] * (x[1] - x[0] * x[0]),
+        200.0 * (x[1] - x[0] * x[0])};
+  });
+  func_sols.emplace_back(1.0, 1.0);
+  func_starts.emplace_back(0.5, 0.75);
+}
 
-double easy_function(const ReaK::vect<double, 2>& x) {
-  evalCount++;
-  static ReaK::mat<double, ReaK::mat_structure::symmetric> Q(10.0, -2.0, 1.0);
-  return x * (Q * x);
-};
+// TODO BROKEN!
+TEST_F(NLPUnconstrainedProblemsTest, DISABLED_NelderMeadMethod) {
+  std::unordered_set<std::string> expected_failures = {};
+  vect<double, 2> x;
+  for (int i = 0; i < funcs.size(); ++i) {
+    if (expected_failures.count(func_names[i]) == 1) {
+      std::cout << "Skipping known failure: '" << func_names[i] << "'"
+                << std::endl;
+      continue;
+    }
+    x = func_starts[i];
+    eval_count = 0;
+    grad_count = 0;
+    double initial_spread = 2.0;
+    EXPECT_NO_THROW(nelder_mead_method(funcs[i], x, initial_spread,
+                                       get_global_rng(), desired_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(x, VectorIsNear(func_sols[i], expected_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(func_grads[i](x),
+                VectorIsNear(vect<double, 2>(0.0, 0.0), expected_tolerance))
+        << GetProblemDescription(i);
+  }
+}
 
-ReaK::vect<double, 2> easy_function_grad(const ReaK::vect<double, 2>& x) {
-  gradCount++;
-  static ReaK::mat<double, ReaK::mat_structure::symmetric> Q(10.0, -2.0, 1.0);
-  return 2.0 * (Q * x);
-};
+// TODO BROKEN!
+TEST_F(NLPUnconstrainedProblemsTest, DISABLED_BFGSMethod) {
+  std::unordered_set<std::string> expected_failures = {};
+  vect<double, 2> x;
+  for (int i = 0; i < funcs.size(); ++i) {
+    if (expected_failures.count(func_names[i]) == 1) {
+      std::cout << "Skipping known failure: '" << func_names[i] << "'"
+                << std::endl;
+      continue;
+    }
+    x = func_starts[i];
+    eval_count = 0;
+    grad_count = 0;
+    EXPECT_NO_THROW(bfgs_method(funcs[i], func_grads[i], x, 100,
+                                desired_tolerance, desired_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(x, VectorIsNear(func_sols[i], expected_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(func_grads[i](x),
+                VectorIsNear(vect<double, 2>(0.0, 0.0), expected_tolerance))
+        << GetProblemDescription(i);
+  }
+}
 
-int main() {
+// TODO BROKEN!
+TEST_F(NLPUnconstrainedProblemsTest, DISABLED_DFPMethod) {
+  std::unordered_set<std::string> expected_failures = {};
+  vect<double, 2> x;
+  for (int i = 0; i < funcs.size(); ++i) {
+    if (expected_failures.count(func_names[i]) == 1) {
+      std::cout << "Skipping known failure: '" << func_names[i] << "'"
+                << std::endl;
+      continue;
+    }
+    x = func_starts[i];
+    eval_count = 0;
+    grad_count = 0;
+    EXPECT_NO_THROW(dfp_method(funcs[i], func_grads[i], x, 100,
+                               desired_tolerance, desired_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(x, VectorIsNear(func_sols[i], expected_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(func_grads[i](x),
+                VectorIsNear(vect<double, 2>(0.0, 0.0), expected_tolerance))
+        << GetProblemDescription(i);
+  }
+}
 
-  std::cout
-      << "The actual optimal parameter from analytical calculation is 0.42264."
-      << std::endl;
+// TODO BROKEN!
+TEST_F(NLPUnconstrainedProblemsTest, DISABLED_BroydenClassMethod) {
+  std::unordered_set<std::string> expected_failures = {};
+  vect<double, 2> x;
+  for (int i = 0; i < funcs.size(); ++i) {
+    if (expected_failures.count(func_names[i]) == 1) {
+      std::cout << "Skipping known failure: '" << func_names[i] << "'"
+                << std::endl;
+      continue;
+    }
+    x = func_starts[i];
+    eval_count = 0;
+    grad_count = 0;
+    EXPECT_NO_THROW(broyden_class_method(funcs[i], func_grads[i], x, 100, 0.5,
+                                         desired_tolerance, desired_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(x, VectorIsNear(func_sols[i], expected_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(func_grads[i](x),
+                VectorIsNear(vect<double, 2>(0.0, 0.0), expected_tolerance))
+        << GetProblemDescription(i);
+  }
+}
 
-  evalCount = 0;
-  double l = 0.30;
-  double u = 0.48;
-  ReaK::optim::dichotomous_search(max_truss_section_stress, l, u, 0.0018);
-  std::cout << "The Dichotomous Search has found: " << ((l + u) * 0.5);
-  std::cout << " with " << evalCount << " cost function evaluations."
-            << std::endl;
+TEST_F(NLPUnconstrainedProblemsTest, FletcherReevesConjGradMethod) {
+  std::unordered_set<std::string> expected_failures = {};
+  vect<double, 2> x;
+  for (int i = 0; i < funcs.size(); ++i) {
+    if (expected_failures.count(func_names[i]) == 1) {
+      std::cout << "Skipping known failure: '" << func_names[i] << "'"
+                << std::endl;
+      continue;
+    }
+    x = func_starts[i];
+    eval_count = 0;
+    grad_count = 0;
+    EXPECT_NO_THROW(non_linear_conj_grad_method(
+        funcs[i], func_grads[i], x, 400, fletcher_reeves_beta(),
+        line_search_expand_and_zoom<double>(1e-4, 0.1), desired_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(x, VectorIsNear(func_sols[i], expected_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(func_grads[i](x),
+                VectorIsNear(vect<double, 2>(0.0, 0.0), expected_tolerance))
+        << GetProblemDescription(i);
+  }
+}
 
-  evalCount = 0;
-  l = 0.30;
-  u = 0.48;
-  ReaK::optim::golden_section_search(max_truss_section_stress, l, u, 0.0018);
-  std::cout << "The Golden Section Search has found: " << ((l + u) * 0.5);
-  std::cout << " with " << evalCount << " cost function evaluations."
-            << std::endl;
+TEST_F(NLPUnconstrainedProblemsTest, PolakRibiereConjGradMethod) {
+  std::unordered_set<std::string> expected_failures = {};
+  vect<double, 2> x;
+  for (int i = 0; i < funcs.size(); ++i) {
+    if (expected_failures.count(func_names[i]) == 1) {
+      std::cout << "Skipping known failure: '" << func_names[i] << "'"
+                << std::endl;
+      continue;
+    }
+    x = func_starts[i];
+    eval_count = 0;
+    grad_count = 0;
+    EXPECT_NO_THROW(non_linear_conj_grad_method(
+        funcs[i], func_grads[i], x, 200, polak_ribiere_beta(),
+        line_search_expand_and_zoom<double>(1e-4, 0.1), desired_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(x, VectorIsNear(func_sols[i], expected_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(func_grads[i](x),
+                VectorIsNear(vect<double, 2>(0.0, 0.0), expected_tolerance))
+        << GetProblemDescription(i);
+  }
+}
 
-  evalCount = 0;
-  l = 0.30;
-  u = 0.48;
-  ReaK::optim::fibonacci_search(max_truss_section_stress, l, u, 0.0018);
-  std::cout << "The Fibonacci Search has found: " << ((l + u) * 0.5);
-  std::cout << " with " << evalCount << " cost function evaluations."
-            << std::endl;
+TEST_F(NLPUnconstrainedProblemsTest, HestenesStiefelConjGradMethod) {
+  std::unordered_set<std::string> expected_failures = {};
+  vect<double, 2> x;
+  for (int i = 0; i < funcs.size(); ++i) {
+    if (expected_failures.count(func_names[i]) == 1) {
+      std::cout << "Skipping known failure: '" << func_names[i] << "'"
+                << std::endl;
+      continue;
+    }
+    x = func_starts[i];
+    eval_count = 0;
+    grad_count = 0;
+    EXPECT_NO_THROW(non_linear_conj_grad_method(
+        funcs[i], func_grads[i], x, 300, hestenes_stiefel_beta(),
+        line_search_expand_and_zoom<double>(1e-4, 0.1), desired_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(x, VectorIsNear(func_sols[i], expected_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(func_grads[i](x),
+                VectorIsNear(vect<double, 2>(0.0, 0.0), expected_tolerance))
+        << GetProblemDescription(i);
+  }
+}
 
-  ReaK::mat<double, ReaK::mat_structure::rectangular> J(1, 1);
-  double x = 0.5;
+TEST_F(NLPUnconstrainedProblemsTest, DaiYuanConjGradMethod) {
+  std::unordered_set<std::string> expected_failures = {};
+  vect<double, 2> x;
+  for (int i = 0; i < funcs.size(); ++i) {
+    if (expected_failures.count(func_names[i]) == 1) {
+      std::cout << "Skipping known failure: '" << func_names[i] << "'"
+                << std::endl;
+      continue;
+    }
+    x = func_starts[i];
+    eval_count = 0;
+    grad_count = 0;
+    EXPECT_NO_THROW(non_linear_conj_grad_method(
+        funcs[i], func_grads[i], x, 200, dai_yuan_beta(),
+        line_search_expand_and_zoom<double>(1e-4, 0.1), desired_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(x, VectorIsNear(func_sols[i], expected_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(func_grads[i](x),
+                VectorIsNear(vect<double, 2>(0.0, 0.0), expected_tolerance))
+        << GetProblemDescription(i);
+  }
+}
 
-  std::cout << "Jacobian at point x = 0.5 is:" << std::endl;
-  ReaK::optim::compute_jacobian_2pts_forward(max_truss_section_stress, x,
-                                             max_truss_section_stress(x), J);
-  std::cout << "  2-pts Forward: " << J << std::endl;
+TEST_F(NLPUnconstrainedProblemsTest, HagerZhangConjGradMethod) {
+  std::unordered_set<std::string> expected_failures = {};
+  vect<double, 2> x;
+  for (int i = 0; i < funcs.size(); ++i) {
+    if (expected_failures.count(func_names[i]) == 1) {
+      std::cout << "Skipping known failure: '" << func_names[i] << "'"
+                << std::endl;
+      continue;
+    }
+    x = func_starts[i];
+    eval_count = 0;
+    grad_count = 0;
+    EXPECT_NO_THROW(non_linear_conj_grad_method(
+        funcs[i], func_grads[i], x, 200, hager_zhang_beta(),
+        line_search_expand_and_zoom<double>(1e-4, 0.1), desired_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(x, VectorIsNear(func_sols[i], expected_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(func_grads[i](x),
+                VectorIsNear(vect<double, 2>(0.0, 0.0), expected_tolerance))
+        << GetProblemDescription(i);
+  }
+}
 
-  ReaK::optim::compute_jacobian_2pts_central(max_truss_section_stress, x,
-                                             max_truss_section_stress(x), J);
-  std::cout << "  2-pts Central: " << J << std::endl;
+TEST_F(NLPUnconstrainedProblemsTest, SR1TrustRegionQuasiNewtonMethod) {
+  std::unordered_set<std::string> expected_failures = {};
+  vect<double, 2> x;
+  for (int i = 0; i < funcs.size(); ++i) {
+    if (expected_failures.count(func_names[i]) == 1) {
+      std::cout << "Skipping known failure: '" << func_names[i] << "'"
+                << std::endl;
+      continue;
+    }
+    x = func_starts[i];
+    eval_count = 0;
+    grad_count = 0;
+    EXPECT_NO_THROW(quasi_newton_trust_region(
+        funcs[i], func_grads[i], x, 0.5, 100, trust_region_solver_dogleg(),
+        hessian_update_sr1(), no_limit_functor(), desired_tolerance,
+        desired_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(x, VectorIsNear(func_sols[i], expected_tolerance))
+        << GetProblemDescription(i);
+    EXPECT_THAT(func_grads[i](x),
+                VectorIsNear(vect<double, 2>(0.0, 0.0), expected_tolerance))
+        << GetProblemDescription(i);
+  }
+}
 
-  ReaK::optim::compute_jacobian_5pts_central(max_truss_section_stress, x,
-                                             max_truss_section_stress(x), J);
-  std::cout << "  5-pts Central: " << J << std::endl;
-
-  std::cout << std::endl << std::endl;
-  std::cout << "Testing optimization methods on the Banana Function (optimum "
-               "at (1,1), with value "
-            << banana_function(ReaK::vect<double, 2>(1.0, 1.0)) << ")"
-            << std::endl;
-
-  //   evalCount = 0;
-  ReaK::vect<double, 2> x_2D(0.5, 1.0);
-  //   std::cout << "  Nelder-Mead method started at " << x_2D << std::endl;
-  double initial_spread = 0.5;
-  //   for(unsigned int i = 0; i < 20; ++i) {
-  //     ReaK::optim::nelder_mead_method(banana_function, x_2D, initial_spread, ReaK::get_global_rng(), 1e-7);
-  //     initial_spread *= 0.8;
-  //   };
-  //   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations." << std::endl;
-  //   std::cout << "    function gives: " << banana_function(x_2D) << " gradient gives: " << banana_function_grad(x_2D)
-  //   << std::endl;
-  //
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  BFGS method started at " << x_2D << std::endl;
-  ReaK::optim::bfgs_method(banana_function, banana_function_grad, x_2D, 100,
-                           1e-7, 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << banana_function(x_2D)
-            << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  DFP method started at " << x_2D << std::endl;
-  ReaK::optim::dfp_method(banana_function, banana_function_grad, x_2D, 100,
-                          1e-7, 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << banana_function(x_2D)
-            << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  Broyden-class method started at " << x_2D << std::endl;
-  ReaK::optim::broyden_class_method(banana_function, banana_function_grad, x_2D,
-                                    100, 0.5, 1e-7, 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << banana_function(x_2D)
-            << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  FR CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(
-      banana_function, banana_function_grad, x_2D, 100,
-      ReaK::optim::fletcher_reeves_beta(),
-      ReaK::optim::line_search_expand_and_zoom<double>(1e-4, 0.1), 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << banana_function(x_2D)
-            << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  PR CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(
-      banana_function, banana_function_grad, x_2D, 100,
-      ReaK::optim::polak_ribiere_beta(),
-      ReaK::optim::line_search_expand_and_zoom<double>(1e-4, 0.1), 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << banana_function(x_2D)
-            << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  HS CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(
-      banana_function, banana_function_grad, x_2D, 100,
-      ReaK::optim::hestenes_stiefel_beta(),
-      ReaK::optim::line_search_expand_and_zoom<double>(1e-4, 0.1), 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << banana_function(x_2D)
-            << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  DY CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(
-      banana_function, banana_function_grad, x_2D, 100,
-      ReaK::optim::dai_yuan_beta(),
-      ReaK::optim::line_search_expand_and_zoom<double>(1e-4, 0.1), 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << banana_function(x_2D)
-            << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  HZ CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(
-      banana_function, banana_function_grad, x_2D, 100,
-      ReaK::optim::hager_zhang_beta(),
-      ReaK::optim::line_search_expand_and_zoom<double>(1e-4, 0.1), 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << banana_function(x_2D)
-            << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  SR1 trust-region method started at " << x_2D << std::endl;
-  ReaK::optim::quasi_newton_trust_region(
-      banana_function, banana_function_grad, x_2D, 0.5, 100,
-      ReaK::optim::trust_region_solver_dogleg(),
-      ReaK::optim::hessian_update_sr1(), ReaK::optim::no_limit_functor(), 1e-7,
-      1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << banana_function(x_2D)
-            << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
-
-  std::cout << std::endl << std::endl;
-  std::cout << "Testing optimization methods on the Easy Function (optimum at "
-               "(0,0), with value 0.0)"
-            << std::endl;
-
-  evalCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  Nelder-Mead method started at " << x_2D << std::endl;
-  initial_spread = 0.5;
-  for (unsigned int i = 0; i < 20; ++i) {
-    ReaK::optim::nelder_mead_method(easy_function, x_2D, initial_spread,
-                                    ReaK::get_global_rng(), 1e-6);
-    initial_spread *= 0.8;
-  };
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations." << std::endl;
-  std::cout << "    function gives: " << easy_function(x_2D)
-            << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  BFGS method started at " << x_2D << std::endl;
-  ReaK::optim::bfgs_method(easy_function, easy_function_grad, x_2D, 100, 1e-7,
-                           1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << easy_function(x_2D)
-            << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  DFP method started at " << x_2D << std::endl;
-  ReaK::optim::dfp_method(easy_function, easy_function_grad, x_2D, 100, 1e-7,
-                          1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << easy_function(x_2D)
-            << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  Broyden-class method started at " << x_2D << std::endl;
-  ReaK::optim::broyden_class_method(easy_function, easy_function_grad, x_2D,
-                                    100, 0.5, 1e-7, 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << easy_function(x_2D)
-            << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  FR CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(
-      easy_function, easy_function_grad, x_2D, 100,
-      ReaK::optim::fletcher_reeves_beta(),
-      ReaK::optim::line_search_expand_and_zoom<double>(1e-4, 0.1), 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << easy_function(x_2D)
-            << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  PR CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(
-      easy_function, easy_function_grad, x_2D, 100,
-      ReaK::optim::polak_ribiere_beta(),
-      ReaK::optim::line_search_expand_and_zoom<double>(1e-4, 0.1), 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << easy_function(x_2D)
-            << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  HS CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(
-      easy_function, easy_function_grad, x_2D, 100,
-      ReaK::optim::hestenes_stiefel_beta(),
-      ReaK::optim::line_search_expand_and_zoom<double>(1e-4, 0.1), 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << easy_function(x_2D)
-            << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  DY CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(
-      easy_function, easy_function_grad, x_2D, 100,
-      ReaK::optim::dai_yuan_beta(),
-      ReaK::optim::line_search_expand_and_zoom<double>(1e-4, 0.1), 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << easy_function(x_2D)
-            << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  HZ CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(
-      easy_function, easy_function_grad, x_2D, 100,
-      ReaK::optim::hager_zhang_beta(),
-      ReaK::optim::line_search_expand_and_zoom<double>(1e-4, 0.1), 1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << easy_function(x_2D)
-            << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
-
-  evalCount = 0;
-  gradCount = 0;
-  x_2D = ReaK::vect<double, 2>(0.5, 1.0);
-  std::cout << "  SR1 trust-region method started at " << x_2D << std::endl;
-  ReaK::optim::quasi_newton_trust_region(
-      easy_function, easy_function_grad, x_2D, 0.5, 100,
-      ReaK::optim::trust_region_solver_dogleg(),
-      ReaK::optim::hessian_update_sr1(), ReaK::optim::no_limit_functor(), 1e-7,
-      1e-7);
-  std::cout << "    found optimum: " << x_2D << " after " << evalCount
-            << " function evaluations and " << gradCount
-            << " gradient evaluations." << std::endl;
-  std::cout << "    function gives: " << easy_function(x_2D)
-            << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
-
-  return 0;
-};
+}  // namespace
+}  // namespace ReaK::optim

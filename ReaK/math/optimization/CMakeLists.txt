@@ -43,43 +43,75 @@ reak_cc_test(
     GTest::gtest_main
 )
 
-reak_cc_binary(
+reak_cc_test(
   NAME
     qp_test
   SRCS
     "qp_test.cc"
   DEPS
     ReaK::lin_alg
+    ReaK::lin_alg_matchers
     ReaK::optimization
+    GTest::gtest_main
 )
 
-reak_cc_binary(
+reak_cc_test(
+  NAME
+    line_search_test
+  SRCS
+    "line_search_test.cc"
+  DEPS
+    ReaK::optimization
+    GTest::gmock
+    GTest::gtest_main
+)
+
+reak_cc_test(
+  NAME
+    finite_diff_jacobians_test
+  SRCS
+    "finite_diff_jacobians_test.cc"
+  DEPS
+    ReaK::optimization
+    GTest::gmock
+    GTest::gtest_main
+)
+
+reak_cc_test(
   NAME
     nlp_unconstrained_test
   SRCS
     "nlp_unconstrained_test.cc"
   DEPS
     ReaK::lin_alg
+    ReaK::lin_alg_matchers
     ReaK::optimization
+    GTest::gmock
+    GTest::gtest_main
 )
 
-reak_cc_binary(
+reak_cc_test(
   NAME
     nlp_constrained_test
   SRCS
     "nlp_constrained_test.cc"
   DEPS
     ReaK::lin_alg
+    ReaK::lin_alg_matchers
     ReaK::optimization
+    GTest::gmock
+    GTest::gtest_main
 )
 
-reak_cc_binary(
+reak_cc_test(
   NAME
     nllsq_test
   SRCS
     "nllsq_test.cc"
   DEPS
     ReaK::lin_alg
+    ReaK::lin_alg_matchers
     ReaK::optimization
+    GTest::gtest_main
 )
 
