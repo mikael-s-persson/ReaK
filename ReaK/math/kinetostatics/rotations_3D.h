@@ -921,6 +921,12 @@ class quaternion {
     }
   }
 
+  explicit quaternion(const axis_angle<value_type>& A) noexcept
+      : quaternion(A.getQuaternion()) {}
+
+  explicit quaternion(const euler_angles_TB<value_type>& E) noexcept
+      : quaternion(E.getQuaternion()) {}
+
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
@@ -1487,6 +1493,9 @@ class euler_angles_TB {
       q[1] *= value_type(1.57079632679489662);
     }
   }
+
+  explicit euler_angles_TB(const axis_angle<value_type>& A) noexcept
+      : euler_angles_TB(A.getEulerAnglesTB()) {}
 
   /**
    * Constructor from a rotation matrix.
@@ -2126,37 +2135,8 @@ class axis_angle {
    * Constructor from euler angles.
    * \test PASSED
    */
-  explicit axis_angle(const euler_angles_TB<value_type>& E) noexcept {
-    using std::acos;
-    using std::cos;
-    using std::sin;
-    using std::sqrt;
-    value_type cpsi = cos(value_type(0.5) * E.q[0]);
-    value_type spsi = sin(value_type(0.5) * E.q[0]);
-    value_type ctheta = cos(value_type(0.5) * E.q[1]);
-    value_type stheta = sin(value_type(0.5) * E.q[1]);
-    value_type cphi = cos(value_type(0.5) * E.q[2]);
-    value_type sphi = sin(value_type(0.5) * E.q[2]);
-
-    std::array<value_type, 4> q;
-    q[0] = cphi * ctheta * cpsi + sphi * stheta * spsi;
-    q[1] = sphi * ctheta * cpsi - cphi * stheta * spsi;
-    q[2] = cphi * stheta * cpsi + sphi * ctheta * spsi;
-    q[3] = cphi * ctheta * spsi - sphi * stheta * cpsi;
-
-    value_type tmp(sqrt(value_type(1.0) - q[0] * q[0]));
-    if (tmp > value_type(0.0000001)) {
-      mAxis.q[0] = q[1] / tmp;
-      mAxis.q[1] = q[2] / tmp;
-      mAxis.q[2] = q[3] / tmp;
-      mAngle = value_type(2.0) * acos(q[0]);
-    } else {
-      mAxis.q[0] = value_type(1.0);
-      mAxis.q[1] = value_type(0.0);
-      mAxis.q[2] = value_type(0.0);
-      mAngle = value_type(0.0);
-    }
-  }
+  explicit axis_angle(const euler_angles_TB<value_type>& E) noexcept
+      : axis_angle(E.getQuaternion()) {}
 
   /*******************************************************************************
                            Accessors and Methods

@@ -30,6 +30,7 @@ reak_cc_test(
     "rotations_test.cc"
   DEPS
     ReaK::lin_alg
+    ReaK::lin_alg_matchers
     ReaK::kinetostatics
     GTest::gtest_main
 )
