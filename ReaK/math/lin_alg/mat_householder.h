@@ -256,11 +256,7 @@ class householder_matrix {
   /// Transposes the matrix M.
   /// \param M The matrix to be transposed.
   /// \return The transpose of M.
-  friend self transpose_move(self& M) {
-    self result;
-    swap(M, result);
-    return result;
-  }
+  friend self transpose(self&& M) { return std::move(M); }
 
   /// Returns the trace of the matrix M.
   /// \param M The matrix.

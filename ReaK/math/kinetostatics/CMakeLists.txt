@@ -42,6 +42,7 @@ reak_cc_test(
     "quat_alg_test.cc"
   DEPS
     ReaK::lin_alg
+    ReaK::lin_alg_matchers
     ReaK::kinetostatics
     GTest::gtest_main
 )

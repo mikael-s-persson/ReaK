@@ -206,11 +206,6 @@ class mat<T, mat_structure::nil, Alignment, RowCount, ColCount>
         rhs.get_col_count(), rhs.get_row_count());
   }
 
-  /// Transposes the matrix M.
-  /// \param rhs The nil matrix to be transposed.
-  /// \return The transpose of rhs.
-  friend auto transpose_move(self& rhs) { return transpose(rhs); }
-
   /// Returns the trace of the matrix.
   /// \return the trace of the matrix.
   friend value_type trace(const self& /*unused*/) { return value_type(0); }

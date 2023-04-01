@@ -345,15 +345,6 @@ class mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>
   /// \return The transpose of M.
   friend self transpose(const self& M) { return M; }
 
-  /// Transposes the matrix M in a potentially destructive way (move-semantics, pre-C++0x).
-  /// \param M The scalar matrix to be transposed and moved.
-  /// \return The transpose of M.
-  friend self transpose_move(self& M) {
-    self result;
-    swap(result, M);
-    return result;
-  }
-
   /// Transposes the matrix M in a potentially destructive way (move-semantics, C++0x).
   /// \param M The scalar matrix to be transposed and moved.
   /// \return The transpose of M.

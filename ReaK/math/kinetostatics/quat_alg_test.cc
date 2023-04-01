@@ -22,184 +22,140 @@
  */
 
 #include "ReaK/math/kinetostatics/quat_alg.h"
-
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif
-
+#include "ReaK/math/lin_alg/vect_matchers.h"
 #include "gtest/gtest.h"
 
-#define RK_EXPECT_SMALL(X, EPS) EXPECT_NEAR(X, 0.0, EPS)
+#include <cmath>
 
 namespace ReaK {
 namespace {
 
-TEST(QuatAlg, QuatTests) {
-  const double rel_tol = std::numeric_limits<double>::epsilon();
-  RK_UNUSED(rel_tol);
+using ::ReaK::testing::VectorIsNear;
 
+const double tolerance = 10.0 * std::numeric_limits<double>::epsilon();
+
+TEST(QuatAlg, QuatTests) {
   quat<double> q_45z(std::cos(0.125 * M_PI), 0.0, 0.0, std::sin(0.125 * M_PI));
-  EXPECT_NEAR(q_45z[0], std::cos(0.125 * M_PI), rel_tol);
-  RK_EXPECT_SMALL(q_45z[1], rel_tol);
-  RK_EXPECT_SMALL(q_45z[2], rel_tol);
-  EXPECT_NEAR(q_45z[3], std::sin(0.125 * M_PI), rel_tol);
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
+                                                  0.0, std::sin(0.125 * M_PI)),
+                                  tolerance));
   quat<double> q_ident = q_45z * conj(q_45z);
-  EXPECT_NEAR(q_ident[0], 1.0, rel_tol);
-  RK_EXPECT_SMALL(q_ident[1], rel_tol);
-  RK_EXPECT_SMALL(q_ident[2], rel_tol);
-  RK_EXPECT_SMALL(q_ident[3], rel_tol);
+  EXPECT_THAT(q_ident,
+              VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
   quat<double> q_zero = q_45z - q_45z;
-  RK_EXPECT_SMALL(q_zero[0], rel_tol);
-  RK_EXPECT_SMALL(q_zero[1], rel_tol);
-  RK_EXPECT_SMALL(q_zero[2], rel_tol);
-  RK_EXPECT_SMALL(q_zero[3], rel_tol);
+  EXPECT_THAT(q_zero,
+              VectorIsNear(vect<double, 4>(0.0, 0.0, 0.0, 0.0), tolerance));
   q_zero = q_45z + (-q_45z);
-  RK_EXPECT_SMALL(q_zero[0], rel_tol);
-  RK_EXPECT_SMALL(q_zero[1], rel_tol);
-  RK_EXPECT_SMALL(q_zero[2], rel_tol);
-  RK_EXPECT_SMALL(q_zero[3], rel_tol);
+  EXPECT_THAT(q_zero,
+              VectorIsNear(vect<double, 4>(0.0, 0.0, 0.0, 0.0), tolerance));
   quat<double> q_45z_cpy(q_45z);
-  EXPECT_NEAR(q_45z_cpy[0], std::cos(0.125 * M_PI), rel_tol);
-  RK_EXPECT_SMALL(q_45z_cpy[1], rel_tol);
-  RK_EXPECT_SMALL(q_45z_cpy[2], rel_tol);
-  EXPECT_NEAR(q_45z_cpy[3], std::sin(0.125 * M_PI), rel_tol);
+  EXPECT_THAT(q_45z_cpy,
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
+                                           std::sin(0.125 * M_PI)),
+                           tolerance));
   q_45z_cpy = q_45z;
-  EXPECT_NEAR(q_45z_cpy[0], std::cos(0.125 * M_PI), rel_tol);
-  RK_EXPECT_SMALL(q_45z_cpy[1], rel_tol);
-  RK_EXPECT_SMALL(q_45z_cpy[2], rel_tol);
-  EXPECT_NEAR(q_45z_cpy[3], std::sin(0.125 * M_PI), rel_tol);
+  EXPECT_THAT(q_45z_cpy,
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
+                                           std::sin(0.125 * M_PI)),
+                           tolerance));
   q_ident = q_45z * q_45z;
-  EXPECT_NEAR(q_ident[0], std::cos(0.25 * M_PI), 100.0 * rel_tol);
-  RK_EXPECT_SMALL(q_ident[1], rel_tol);
-  RK_EXPECT_SMALL(q_ident[2], rel_tol);
-  EXPECT_NEAR(q_ident[3], std::sin(0.25 * M_PI), 100.0 * rel_tol);
+  EXPECT_THAT(q_ident, VectorIsNear(vect<double, 4>(std::cos(0.25 * M_PI), 0.0,
+                                                    0.0, std::sin(0.25 * M_PI)),
+                                    tolerance));
   q_ident *= conj(q_45z);
-  EXPECT_NEAR(q_ident[0], std::cos(0.125 * M_PI), 100.0 * rel_tol);
-  RK_EXPECT_SMALL(q_ident[1], rel_tol);
-  RK_EXPECT_SMALL(q_ident[2], rel_tol);
-  EXPECT_NEAR(q_ident[3], std::sin(0.125 * M_PI), 100.0 * rel_tol);
+  EXPECT_THAT(q_ident,
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
+                                           std::sin(0.125 * M_PI)),
+                           tolerance));
   q_ident *= invert(q_45z);
-  EXPECT_NEAR(q_ident[0], 1.0, rel_tol);
-  RK_EXPECT_SMALL(q_ident[1], rel_tol);
-  RK_EXPECT_SMALL(q_ident[2], rel_tol);
-  RK_EXPECT_SMALL(q_ident[3], rel_tol);
-  EXPECT_NEAR(norm_2_sqr(q_45z), 1.0, rel_tol);
-  EXPECT_NEAR(norm_2(q_45z), 1.0, rel_tol);
+  EXPECT_THAT(q_ident,
+              VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
+  EXPECT_NEAR(norm_2_sqr(q_45z), 1.0, tolerance);
+  EXPECT_NEAR(norm_2(q_45z), 1.0, tolerance);
   q_45z *= 2.0;
   q_45z = unit(q_45z);
-  EXPECT_NEAR(q_45z[0], std::cos(0.125 * M_PI), rel_tol);
-  RK_EXPECT_SMALL(q_45z[1], rel_tol);
-  RK_EXPECT_SMALL(q_45z[2], rel_tol);
-  EXPECT_NEAR(q_45z[3], std::sin(0.125 * M_PI), rel_tol);
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
+                                                  0.0, std::sin(0.125 * M_PI)),
+                                  tolerance));
 
   q_45z = sqrt(pow(q_45z, quat<double>(2.0)));
-  EXPECT_NEAR(q_45z[0], std::cos(0.125 * M_PI), 2.0 * rel_tol);
-  RK_EXPECT_SMALL(q_45z[1], 2.0 * rel_tol);
-  RK_EXPECT_SMALL(q_45z[2], 2.0 * rel_tol);
-  EXPECT_NEAR(q_45z[3], std::sin(0.125 * M_PI), 2.0 * rel_tol);
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
+                                                  0.0, std::sin(0.125 * M_PI)),
+                                  tolerance));
 
   quat<double> temp = cos(q_45z) * cos(q_45z) + sin(q_45z) * sin(q_45z);
-  EXPECT_NEAR(temp[0], 1.0, 100.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[1], rel_tol);
-  RK_EXPECT_SMALL(temp[2], rel_tol);
-  RK_EXPECT_SMALL(temp[3], rel_tol);
+  EXPECT_THAT(temp,
+              VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
   temp = invert(cos(q_45z) * cos(q_45z)) - tan(q_45z) * tan(q_45z);
-  EXPECT_NEAR(temp[0], 1.0, 200.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[1], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[2], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[3], 10.0 * rel_tol);
+  EXPECT_THAT(temp,
+              VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
   temp = acos(cos(q_45z)) * invert(q_45z);
-  EXPECT_NEAR(temp[0], 1.0, 100.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[1], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[2], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[3], 10.0 * rel_tol);
+  EXPECT_THAT(temp,
+              VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
   temp = asin(sin(q_45z)) * invert(q_45z);
-  EXPECT_NEAR(temp[0], 1.0, 100.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[1], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[2], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[3], 10.0 * rel_tol);
+  EXPECT_THAT(temp,
+              VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
   temp = atan(tan(q_45z)) * invert(q_45z);
-  EXPECT_NEAR(temp[0], 1.0, 100.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[1], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[2], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[3], 10.0 * rel_tol);
+  EXPECT_THAT(temp,
+              VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
   temp = exp(q_45z) * exp(q_45z) - exp(q_45z + q_45z);
-  RK_EXPECT_SMALL(temp[0], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[1], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[2], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[3], 10.0 * rel_tol);
+  EXPECT_THAT(temp,
+              VectorIsNear(vect<double, 4>(0.0, 0.0, 0.0, 0.0), tolerance));
   temp = log(q_45z) + log(q_45z) - log(q_45z * q_45z);
-  RK_EXPECT_SMALL(temp[0], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[1], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[2], 10.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[3], 10.0 * rel_tol);
+  EXPECT_THAT(temp,
+              VectorIsNear(vect<double, 4>(0.0, 0.0, 0.0, 0.0), tolerance));
 }
 
 TEST(QuatAlg, UnitQuatTests) {
-  const double rel_tol = std::numeric_limits<double>::epsilon();
-  RK_UNUSED(rel_tol);
-
   unit_quat<double> q_45z(std::cos(0.125 * M_PI), 0.0, 0.0,
                           std::sin(0.125 * M_PI));
-  EXPECT_NEAR(q_45z[0], std::cos(0.125 * M_PI), rel_tol);
-  RK_EXPECT_SMALL(q_45z[1], rel_tol);
-  RK_EXPECT_SMALL(q_45z[2], rel_tol);
-  EXPECT_NEAR(q_45z[3], std::sin(0.125 * M_PI), rel_tol);
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
+                                                  0.0, std::sin(0.125 * M_PI)),
+                                  tolerance));
   unit_quat<double> q_ident = q_45z * conj(q_45z);
-  EXPECT_NEAR(q_ident[0], 1.0, rel_tol);
-  RK_EXPECT_SMALL(q_ident[1], rel_tol);
-  RK_EXPECT_SMALL(q_ident[2], rel_tol);
-  RK_EXPECT_SMALL(q_ident[3], rel_tol);
+  EXPECT_THAT(q_ident,
+              VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
   unit_quat<double> q_45z_cpy(q_45z);
-  EXPECT_NEAR(q_45z_cpy[0], std::cos(0.125 * M_PI), rel_tol);
-  RK_EXPECT_SMALL(q_45z_cpy[1], rel_tol);
-  RK_EXPECT_SMALL(q_45z_cpy[2], rel_tol);
-  EXPECT_NEAR(q_45z_cpy[3], std::sin(0.125 * M_PI), rel_tol);
+  EXPECT_THAT(q_45z_cpy,
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
+                                           std::sin(0.125 * M_PI)),
+                           tolerance));
   q_45z_cpy = q_45z;
-  EXPECT_NEAR(q_45z_cpy[0], std::cos(0.125 * M_PI), rel_tol);
-  RK_EXPECT_SMALL(q_45z_cpy[1], rel_tol);
-  RK_EXPECT_SMALL(q_45z_cpy[2], rel_tol);
-  EXPECT_NEAR(q_45z_cpy[3], std::sin(0.125 * M_PI), rel_tol);
+  EXPECT_THAT(q_45z_cpy,
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
+                                           std::sin(0.125 * M_PI)),
+                           tolerance));
   q_ident = q_45z * q_45z;
-  EXPECT_NEAR(q_ident[0], std::cos(0.25 * M_PI), 100.0 * rel_tol);
-  RK_EXPECT_SMALL(q_ident[1], rel_tol);
-  RK_EXPECT_SMALL(q_ident[2], rel_tol);
-  EXPECT_NEAR(q_ident[3], std::sin(0.25 * M_PI), 100.0 * rel_tol);
+  EXPECT_THAT(q_ident, VectorIsNear(vect<double, 4>(std::cos(0.25 * M_PI), 0.0,
+                                                    0.0, std::sin(0.25 * M_PI)),
+                                    tolerance));
   q_ident *= conj(q_45z);
-  EXPECT_NEAR(q_ident[0], std::cos(0.125 * M_PI), 100.0 * rel_tol);
-  RK_EXPECT_SMALL(q_ident[1], rel_tol);
-  RK_EXPECT_SMALL(q_ident[2], rel_tol);
-  EXPECT_NEAR(q_ident[3], std::sin(0.125 * M_PI), 100.0 * rel_tol);
+  EXPECT_THAT(q_ident,
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
+                                           std::sin(0.125 * M_PI)),
+                           tolerance));
   q_ident *= invert(q_45z);
-  EXPECT_NEAR(q_ident[0], 1.0, rel_tol);
-  RK_EXPECT_SMALL(q_ident[1], rel_tol);
-  RK_EXPECT_SMALL(q_ident[2], rel_tol);
-  RK_EXPECT_SMALL(q_ident[3], rel_tol);
-  EXPECT_NEAR(norm_2_sqr(q_45z), 1.0, rel_tol);
-  EXPECT_NEAR(norm_2(q_45z), 1.0, rel_tol);
+  EXPECT_THAT(q_ident,
+              VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
+  EXPECT_NEAR(norm_2_sqr(q_45z), 1.0, tolerance);
+  EXPECT_NEAR(norm_2(q_45z), 1.0, tolerance);
 
   vect<double, 3> v_45z(0.0, 0.0, 0.125 * M_PI);
   quat<double> temp = (exp(v_45z) * exp(v_45z)) * conj(exp(v_45z + v_45z));
-  EXPECT_NEAR(temp[0], 1.0, 5.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[1], 5.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[2], 5.0 * rel_tol);
-  RK_EXPECT_SMALL(temp[3], 5.0 * rel_tol);
+  EXPECT_THAT(temp,
+              VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
   vect<double, 3> v_zero = log(q_45z) + log(q_45z) - log(q_45z * q_45z);
-  RK_EXPECT_SMALL(v_zero[0], 5.0 * rel_tol);
-  RK_EXPECT_SMALL(v_zero[1], 5.0 * rel_tol);
-  RK_EXPECT_SMALL(v_zero[2], 5.0 * rel_tol);
+  EXPECT_THAT(v_zero, VectorIsNear(vect<double, 3>(0.0, 0.0, 0.0), tolerance));
 
   q_45z = sqrt(q_45z * q_45z);
-  EXPECT_NEAR(q_45z[0], std::cos(0.125 * M_PI), 5.0 * rel_tol);
-  RK_EXPECT_SMALL(q_45z[1], 5.0 * rel_tol);
-  RK_EXPECT_SMALL(q_45z[2], 5.0 * rel_tol);
-  EXPECT_NEAR(q_45z[3], std::sin(0.125 * M_PI), 5.0 * rel_tol);
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
+                                                  0.0, std::sin(0.125 * M_PI)),
+                                  tolerance));
 
   q_45z = sqrt(pow(q_45z, 2.0));
-  EXPECT_NEAR(q_45z[0], std::cos(0.125 * M_PI), 5.0 * rel_tol);
-  RK_EXPECT_SMALL(q_45z[1], 5.0 * rel_tol);
-  RK_EXPECT_SMALL(q_45z[2], 5.0 * rel_tol);
-  EXPECT_NEAR(q_45z[3], std::sin(0.125 * M_PI), 5.0 * rel_tol);
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
+                                                  0.0, std::sin(0.125 * M_PI)),
+                                  tolerance));
 }
 
 }  // namespace

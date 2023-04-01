@@ -34,11 +34,6 @@
 #include <iostream>
 #include <sstream>
 
-#ifndef M_PI
-#define M_PI 3.14159265358979324
-#define M_PI_2 1.57079632679489662
-#endif
-
 namespace ReaK {
 namespace {
 
@@ -360,7 +355,6 @@ TEST(Rotation3d, Identity) {
   rot_mat_3D<double> r_ident;
   EXPECT_TRUE(is_diagonal(r_ident, rel_tol));
   EXPECT_NEAR(elem_norm_2(r_ident), std::sqrt(3.0), rel_tol);
-  EXPECT_EQ(r_ident, r_ident);
 }
 
 TEST(Rotation3d, Copy) {
@@ -396,8 +390,6 @@ TEST(Rotation3d, Copy) {
   EXPECT_NEAR(r_45z_cpy(2, 0), 0.0, rel_tol);
   EXPECT_NEAR(r_45z_cpy(2, 1), 0.0, rel_tol);
   EXPECT_NEAR(r_45z_cpy(2, 2), 1.0, rel_tol);
-  rot_mat_3D<double> r_ident;
-  EXPECT_NE(r_ident, r_45z);
 }
 
 TEST(Rotation3d, Products) {
@@ -436,8 +428,7 @@ TEST(Rotation3d, SkewSymMatrixConversion) {
   EXPECT_NEAR(elem_norm_2(r_45z.getMat() - r_45z), 0.0, rel_tol);
   EXPECT_NEAR(elem_norm_2(invert(r_45z).getMat() - transpose(r_45z)), 0.0,
               rel_tol);
-  EXPECT_THAT(invert(r_45z) * r_45z, MatrixIsDiagonal(rel_tol));
-  EXPECT_NEAR(elem_norm_2((invert(r_45z) * r_45z)), std::sqrt(3.0), rel_tol);
+  EXPECT_THAT(invert(r_45z) * r_45z, MatrixIsIdentity(rel_tol));
 }
 
 TEST(Quaternion, Identity) {
@@ -446,8 +437,6 @@ TEST(Quaternion, Identity) {
   EXPECT_NEAR(q_ident[1], 0.0, rel_tol);
   EXPECT_NEAR(q_ident[2], 0.0, rel_tol);
   EXPECT_NEAR(q_ident[3], 0.0, rel_tol);
-  EXPECT_EQ(q_ident, q_ident);
-  EXPECT_NE(q_ident, Q45Z());
 }
 
 TEST(Quaternion, Copy) {
@@ -536,8 +525,6 @@ TEST(EulerAnglesTB, Identity) {
   EXPECT_NEAR(e_ident.yaw(), 0.0, rel_tol);
   EXPECT_NEAR(e_ident.pitch(), 0.0, rel_tol);
   EXPECT_NEAR(e_ident.roll(), 0.0, rel_tol);
-  EXPECT_EQ(e_ident, e_ident);
-  EXPECT_NE(e_ident, E45Z());
 }
 
 TEST(EulerAnglesTB, Copy) {
@@ -597,8 +584,6 @@ TEST(EulerAnglesTB, AxisAngleConversion) {
 TEST(AxisAngle, Identity) {
   axis_angle<double> a_ident;
   EXPECT_NEAR(a_ident.angle(), 0.0, rel_tol);
-  EXPECT_EQ(a_ident, a_ident);
-  EXPECT_NE(a_ident, A45Z());
 }
 
 TEST(AxisAngle, Copy) {
@@ -658,8 +643,6 @@ TEST(AxisAngle, EulerAnglesTBConversion) {
 TEST(Transform3d, Identity) {
   trans_mat_3D<double> t_ident;
   EXPECT_THAT(t_ident, MatrixIsIdentity(rel_tol));
-  EXPECT_EQ(t_ident, t_ident);
-  EXPECT_NE(t_ident, T45Z());
 }
 
 TEST(Transform3d, Copy) {

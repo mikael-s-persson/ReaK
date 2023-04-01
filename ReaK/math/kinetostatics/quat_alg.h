@@ -693,6 +693,11 @@ class quat {
   }
 };
 
+template <typename T>
+struct vect_copy<quat<T>> {
+  using type = vect<T, 4>;
+};
+
 /** Multiplication by a quaternion. */
 template <typename T>
 quat<T> operator*(const quat<T>& Q1, const quat<T>& Q2) noexcept {
@@ -983,6 +988,11 @@ class unit_quat : public quat<T> {
 
   /** Compute absolute value (function), for a quaternion value. */
   friend value_type abs(const self& x) noexcept { return 1.0; }
+};
+
+template <typename T>
+struct vect_copy<unit_quat<T>> {
+  using type = vect<T, 4>;
 };
 
 /** Multiplication by a quaternion. */

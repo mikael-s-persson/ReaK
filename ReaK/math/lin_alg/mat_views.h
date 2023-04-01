@@ -1049,13 +1049,6 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::symmetric> {
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
-  friend const self& transpose_move(const self& M) { return M; }
-
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
   friend self&& transpose(self&& M) { return std::move(M); }
 
   /**
@@ -1290,13 +1283,6 @@ class mat_sub_sym_block<Matrix, mat_structure::symmetric> {
   friend const self& transpose(const self& M) { return M; }
 
   /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
-  friend const self& transpose_move(const self& M) { return M; }
-
-  /**
    * Returns the trace of matrix M.
    * \param M A matrix.
    * \return the trace of matrix M.
@@ -1423,13 +1409,6 @@ class mat_const_sub_sym_block<Matrix, mat_structure::symmetric> {
    * \return The transpose of M.
    */
   friend const self& transpose(const self& M) { return M; }
-
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
-  friend const self& transpose_move(const self& M) { return M; }
 
   /**
    * Transposes the matrix M.
@@ -2242,13 +2221,6 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::diagonal> {
    */
   friend const self& transpose(const self& M) { return M; }
 
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
-  friend const self& transpose_move(const self& M) { return M; }
-
   friend self&& transpose(self&& M) { return std::move(M); }
 
   /**
@@ -2475,13 +2447,6 @@ class mat_sub_sym_block<Matrix, mat_structure::diagonal> {
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
-  friend const self& transpose_move(const self& M) { return M; }
-
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
   friend self&& transpose(self&& M) { return std::move(M); }
 
   /**
@@ -2610,13 +2575,6 @@ class mat_const_sub_sym_block<Matrix, mat_structure::diagonal> {
    * \return The transpose of M.
    */
   friend const self& transpose(const self& M) { return M; }
-
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
-  friend const self& transpose_move(const self& M) { return M; }
 
   /**
    * Transposes the matrix M.

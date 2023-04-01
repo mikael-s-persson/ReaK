@@ -339,17 +339,6 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
     return mat_vect_adaptor<Vector, mat_alignment::row_major>(
         *M.v, M.offset, M.colCount, M.rowCount);
   }
-
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
-  friend mat_vect_adaptor<Vector, mat_alignment::row_major> transpose_move(
-      self& M) {
-    return mat_vect_adaptor<Vector, mat_alignment::row_major>(
-        *M.v, M.offset, M.colCount, M.rowCount);
-  }
 };
 
 template <typename Vector>
@@ -583,17 +572,6 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
     return mat_vect_adaptor<Vector, mat_alignment::column_major>(
         *M.v, M.offset, M.colCount, M.rowCount);
   }
-
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
-  friend mat_vect_adaptor<Vector, mat_alignment::column_major> transpose_move(
-      self& M) {
-    return mat_vect_adaptor<Vector, mat_alignment::column_major>(
-        *M.v, M.offset, M.colCount, M.rowCount);
-  }
 };
 
 template <typename Vector, mat_alignment::tag Alignment>
@@ -750,17 +728,6 @@ class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
     return mat_const_vect_adaptor<Vector, mat_alignment::row_major>(
         *M.v, M.offset, M.colCount, M.rowCount);
   }
-
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
-  friend mat_const_vect_adaptor<Vector, mat_alignment::row_major>
-  transpose_move(self& M) {
-    return mat_const_vect_adaptor<Vector, mat_alignment::row_major>(
-        *M.v, M.offset, M.colCount, M.rowCount);
-  }
 };
 
 template <typename Vector>
@@ -880,17 +847,6 @@ class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
    */
   friend mat_const_vect_adaptor<Vector, mat_alignment::column_major> transpose(
       const self& M) {
-    return mat_const_vect_adaptor<Vector, mat_alignment::column_major>(
-        *M.v, M.offset, M.colCount, M.rowCount);
-  }
-
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
-  friend mat_const_vect_adaptor<Vector, mat_alignment::column_major>
-  transpose_move(self& M) {
     return mat_const_vect_adaptor<Vector, mat_alignment::column_major>(
         *M.v, M.offset, M.colCount, M.rowCount);
   }

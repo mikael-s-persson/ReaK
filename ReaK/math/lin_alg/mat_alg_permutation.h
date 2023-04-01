@@ -268,11 +268,6 @@ class mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>
     return result;
   }
 
-  /// Transpose and move the matrix.
-  /// \param rhs the matrix to be transposed and moved (emptied).
-  /// \return The transpose matrix, by value.
-  friend self transpose_move(const self& rhs) { return transpose(rhs); }
-
   /// Invert the matrix.
   /// \param rhs the matrix to be inverted.
   /// \return The inverse matrix, by value.

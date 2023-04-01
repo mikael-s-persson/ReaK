@@ -438,18 +438,6 @@ transpose(const Matrix& M) {
 }
 
 /**
- * General (least-specialized) transpose function for any type of matrix.
- * \param M The matrix to be transposed.
- * \return The transpose of M.
- */
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>,
-                 mat_addition_result_t<Matrix, Matrix>>
-transpose_move(const Matrix& M) {
-  return transpose(M);
-}
-
-/**
  * General (least-specialized) unary-negation operator for any type of matrices.
  * This is a default operator that will be called if no better special-purpose overload exists.
  * \param M first matrix (first operand).

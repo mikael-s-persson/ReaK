@@ -51,10 +51,7 @@ namespace ReaK {
 template <class T>
 class trans_mat_2D;
 
-/**
- * This class is a rotation matrix (proper orthogonal) of dimension 2 by 2.
- * \test All unit test for this class have been passed!
- */
+/// This class is a rotation matrix (proper orthogonal) of dimension 2 by 2.
 template <typename T>
 class rot_mat_2D {
  public:
@@ -96,19 +93,13 @@ class rot_mat_2D {
                            Constructors / Destructors
   *******************************************************************************/
 
-  /**
-   * Default Constructor with no rotation.
-   * \test PASSED
-   */
+  /// Default Constructor with no rotation.
   rot_mat_2D() noexcept {
     q[0] = 1.0;
     q[1] = 0.0;
   }
 
-  /**
-   * Explicit constructor of a rotation matrix from a rotation angle.
-   * \test PASSED
-   */
+  /// Explicit constructor of a rotation matrix from a rotation angle.
   explicit rot_mat_2D(const_reference Angle) noexcept {
     using std::cos;
     using std::sin;
@@ -116,10 +107,7 @@ class rot_mat_2D {
     q[1] = sin(Angle);
   }
 
-  /**
-   * Explicit constructor of a rotation matrix from a cosine and sine of an angle.
-   * \test PASSED
-   */
+  /// Explicit constructor of a rotation matrix from a cosine and sine of an angle.
   explicit rot_mat_2D(vect<value_type, 2> v) noexcept {
     v = unit(v);
     q[0] = v[0];
@@ -145,28 +133,19 @@ class rot_mat_2D {
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Provides a copy of the rotation matrix as an ordinary 2x2 matrix.
-   * \return this rotation matrix as a normal column-major matrix.
-   * \test PASSED
-   */
+  /// Provides a copy of the rotation matrix as an ordinary 2x2 matrix.
+  /// \return this rotation matrix as a normal column-major matrix.
   mat<value_type, mat_structure::square> getMat() const {
     return {q[0], -q[1], q[1], q[0]};
   }
 
-  /**
-   * Returns the angle (-pi .. pi) of the rotation matrix.
-   * \test PASSED
-   */
+  /// Returns the angle (-pi .. pi) of the rotation matrix.
   value_type getAngle() const noexcept {
     using std::atan2;
     return atan2(q[1], q[0]);
   }
 
-  /**
-   * Sets the angle (in radians) of the rotation matrix.
-   * \test PASSED
-   */
+  /// Sets the angle (in radians) of the rotation matrix.
   void setAngle(const_reference Angle) noexcept {
     using std::cos;
     using std::sin;
@@ -174,10 +153,7 @@ class rot_mat_2D {
     q[1] = sin(Angle);
   }
 
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Array indexing operator, accessor for read only.
   value_type operator[](int i) const {
     if (i >= 4) {
       throw std::range_error("Matrix index out of range.");
@@ -191,10 +167,7 @@ class rot_mat_2D {
     return q[i];
   }
 
-  /**
-   * Array double-indexing operator, ith row and jth column, accessor for read only.
-   * \test PASSED
-   */
+  /// Array double-indexing operator, ith row and jth column, accessor for read only.
   value_type operator()(int i, int j) const {
     if ((i >= 2) || (j >= 2)) {
       throw std::range_error("Matrix index out of range.");
@@ -231,10 +204,7 @@ class rot_mat_2D {
     return *this;
   }
 
-  /**
-   * Multiply-and-store operator.
-   * \test PASSED
-   */
+  /// Multiply-and-store operator.
   self& operator*=(const self& R) noexcept {
     value_type tmp = q[0] * R.q[0] - q[1] * R.q[1];
     q[1] = q[1] * R.q[0] + q[0] * R.q[1];
@@ -261,19 +231,13 @@ class rot_mat_2D {
                            Basic Operators
   *******************************************************************************/
 
-  /**
-   * Rotation matrix multiplication.
-   * \test PASSED
-   */
+  /// Rotation matrix multiplication.
   friend self operator*(const self& R1, const self& R2) noexcept {
     return self(R1.q[0] * R2.q[0] - R1.q[1] * R2.q[1],
                 R1.q[1] * R2.q[0] + R1.q[0] * R2.q[1]);
   }
 
-  /**
-   * Matrix multiplication.
-   * \test PASSED
-   */
+  /// Matrix multiplication.
   template <typename Matrix>
   friend Matrix operator*(const self& R, const Matrix& M) {
     static_assert(is_fully_writable_matrix_v<Matrix>);
@@ -289,28 +253,19 @@ class rot_mat_2D {
     return result;
   }
 
-  /**
-   * 2D Rotation matrix times a column 2D vector.
-   * \test PASSED
-   */
+  /// 2D Rotation matrix times a column 2D vector.
   friend vect<value_type, 2> operator*(const self& R,
                                        const vect<value_type, 2>& V) noexcept {
     return {V[0] * R.q[0] - V[1] * R.q[1], V[0] * R.q[1] + V[1] * R.q[0]};
   }
 
-  /**
-   * Row 2D vector times a rotation matrix.
-   * \test PASSED
-   */
+  /// Row 2D vector times a rotation matrix.
   friend vect<value_type, 2> operator*(const vect<value_type, 2>& V,
                                        const self& R) noexcept {
     return {V[0] * R.q[0] + V[1] * R.q[1], V[1] * R.q[0] - V[0] * R.q[1]};
   }
 
-  /**
-   * Matrix multiplication.
-   * \test PASSED
-   */
+  /// Matrix multiplication.
   template <typename Matrix>
   friend Matrix operator*(const Matrix& M, const self& R) {
     static_assert(is_fully_writable_matrix_v<Matrix>);
@@ -327,77 +282,31 @@ class rot_mat_2D {
   }
 
   /*******************************************************************************
-                           Comparison Operators
-  *******************************************************************************/
-
-  /**
-   * Equality Comparison operator.
-   * \test PASSED
-   */
-  friend bool operator==(const self& R1, const self& R2) noexcept {
-    return ((R1.q[0] == R2.q[0]) && (R1.q[1] == R2.q[1]));
-  }
-
-  /**
-   * Inequality Comparison operator.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& R1, const self& R2) noexcept {
-    return ((R1.q[0] != R2.q[0]) || (R1.q[1] != R2.q[1]));
-  }
-
-  /*******************************************************************************
                            Standard Matrix Methods
   *******************************************************************************/
 
-  /**
-   * Creates the transpose matrix.
-   * \test PASSED
-   */
+  /// Creates the transpose matrix.
   friend self transpose(const self& R) noexcept { return {R.q[0], -R.q[1]}; }
 
-  /**
-   * Creates the transpose matrix.
-   * \test PASSED
-   */
-  friend self transpose_move(const self& R) noexcept {
-    return {R.q[0], -R.q[1]};
-  }
-
-  /**
-   * Gets the trace of the matrix.
-   * \test PASSED
-   */
+  /// Gets the trace of the matrix.
   friend value_type trace(const self& R) noexcept {
     return value_type(2.0) * R.q[0];
   }
 
-  /**
-   * Gets the determinant of the matrix.
-   * \test PASSED
-   */
+  /// Gets the determinant of the matrix.
   friend value_type determinant(const self& /*unused*/) noexcept {
     return value_type(1.0);
   }
 
-  /**
-   * Gets the inverse of the matrix.
-   * \test PASSED
-   */
+  /// Gets the inverse of the matrix.
   friend self invert(const self& R) noexcept { return transpose(R); }
 
-  /**
-   * Gets the symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the symmetric part of the matrix.
   mat<value_type, mat_structure::symmetric> getSymPart() const {
     return {q[0], value_type(0.0), q[0]};
   }
 
-  /**
-   * Gets the skew-symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the skew-symmetric part of the matrix.
   mat<value_type, mat_structure::skew_symmetric> getSkewSymPart() const {
     return mat<value_type, mat_structure::skew_symmetric>(-q[1]);
   }
@@ -445,10 +354,7 @@ struct get_type_id<rot_mat_2D<T>> {
 
 }  // namespace rtti
 
-/**
- * Prints a 2D rotation matrix to a standard output stream (<<) as "(angle = a)".
- * \test PASSED
- */
+/// Prints a 2D rotation matrix to a standard output stream (<<) as "(angle = a)".
 template <typename T>
 std::ostream& operator<<(std::ostream& out_stream, const rot_mat_2D<T>& R) {
   out_stream << "(angle = " << R.getAngle() << ")";
@@ -461,10 +367,7 @@ struct is_readable_matrix<rot_mat_2D<T>> {
   using type = is_readable_matrix<rot_mat_2D<T>>;
 };
 
-/**
- * This class is a transformation matrix 3 by 3, i.e. to rotate and translate a 2D vector.
- * \test All unit tests for this class have been passed!
- */
+/// This class is a transformation matrix 3 by 3, i.e. to rotate and translate a 2D vector.
 template <typename T>
 class trans_mat_2D {
  public:
@@ -515,10 +418,7 @@ class trans_mat_2D {
                            Constructors / Destructors
   *******************************************************************************/
 
-  /**
-   * Default constructor.
-   * \test PASSED
-   */
+  /// Default constructor.
   trans_mat_2D() noexcept {
     q[0] = 1.0;
     q[3] = 0.0;
@@ -531,10 +431,7 @@ class trans_mat_2D {
     q[8] = 1.0;
   }
 
-  /**
-   * Constructor from a rotation angle and a translation vector.
-   * \test PASSED
-   */
+  /// Constructor from a rotation angle and a translation vector.
   explicit trans_mat_2D(
       const_reference Angle,
       translation_type Translation = translation_type()) noexcept {
@@ -585,65 +482,41 @@ class trans_mat_2D {
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Provides a copy of the transformation matrix as an ordinary 3x3 matrix.
-   * \test PASSED
-   */
+  /// Provides a copy of the transformation matrix as an ordinary 3x3 matrix.
   mat<value_type, mat_structure::square> getMat() const {
     return {q[0], q[3], q[6], q[1], q[4], q[7], 0.0, 0.0, 1.0};
   }
 
-  /**
-   * Provides a copy of the rotation matrix part of the transformation matrix.
-   * \test PASSED
-   */
+  /// Provides a copy of the rotation matrix part of the transformation matrix.
   rot_mat_2D<value_type> getRotMat() const noexcept { return {q[0], q[1]}; }
 
-  /**
-   * Sets the rotation part of the transformation matrix.
-   * \test PASSED
-   */
+  /// Sets the rotation part of the transformation matrix.
   void setRotMat(const rot_mat_2D<value_type>& R) noexcept {
     q[4] = (q[0] = R.q[0]);
     q[3] = -(q[1] = R.q[1]);
   }
 
-  /**
-   * Returns the angle of the rotation matrix.
-   * \test PASSED
-   */
+  /// Returns the angle of the rotation matrix.
   value_type getAngle() const noexcept { return atan2(q[1], q[0]); }
 
-  /**
-   * Returns the angle of the rotation matrix.
-   * \test PASSED
-   */
+  /// Returns the angle of the rotation matrix.
   void setAngle(const_reference Angle) noexcept {
     q[4] = (q[0] = cos(Angle));
     q[3] = -(q[1] = sin(Angle));
   }
 
-  /**
-   * Provides a copy of the translation part of the transformation matrix.
-   * \test PASSED
-   */
+  /// Provides a copy of the translation part of the transformation matrix.
   translation_type getTranslation() const noexcept {
     return translation_type(q[6], q[7]);
   }
 
-  /**
-   * Sets the translation part of the transformation matrix.
-   * \test PASSED
-   */
+  /// Sets the translation part of the transformation matrix.
   void setTranslation(const translation_type& Translation) noexcept {
     q[6] = Translation.q[0];
     q[7] = Translation.q[1];
   }
 
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Array indexing operator, accessor for read only.
   const_reference operator[](int i) const {
     if (i >= 9) {
       throw std::range_error("Matrix index out of range.");
@@ -651,10 +524,7 @@ class trans_mat_2D {
     return q[i];
   }
 
-  /**
-   * Array double-indexing operator, ith row and jth column, accessor for read only.
-   * \test PASSED
-   */
+  /// Array double-indexing operator, ith row and jth column, accessor for read only.
   const_reference operator()(int i, int j) const {
     if ((i >= 3) || (j >= 3)) {
       throw std::range_error("Matrix index out of range.");
@@ -691,10 +561,7 @@ class trans_mat_2D {
     q[8] = 1.0;
   }
 
-  /**
-   * Multiply-and-store operator.
-   * \test PASSED
-   */
+  /// Multiply-and-store operator.
   self& operator*=(const self& M) noexcept { return (*this = (*this) * M); }
 
   template <typename Matrix>
@@ -723,10 +590,7 @@ class trans_mat_2D {
     return M * self(R);
   }
 
-  /**
-   * Matrix multiplication.
-   * \test PASSED
-   */
+  /// Matrix multiplication.
   friend self operator*(const self& M1, const self& M2) noexcept {
     return {M1.q[0] * M2.q[0] + M1.q[3] * M2.q[1],
             M1.q[0] * M2.q[3] + M1.q[3] * M2.q[4],
@@ -736,10 +600,7 @@ class trans_mat_2D {
             M1.q[1] * M2.q[6] + M1.q[4] * M2.q[7] + M1.q[7]};
   }
 
-  /**
-   * Matrix multiplication.
-   * \test PASSED
-   */
+  /// Matrix multiplication.
   template <typename Matrix>
   friend Matrix operator*(const self& M1, const Matrix& M2) {
     static_assert(is_fully_writable_matrix_v<Matrix>);
@@ -759,10 +620,7 @@ class trans_mat_2D {
     return result;
   }
 
-  /**
-   * Matrix multiplication.
-   * \test PASSED
-   */
+  /// Matrix multiplication.
   template <typename Matrix>
   friend Matrix operator*(const Matrix& M1, const self& M2) {
     static_assert(is_fully_writable_matrix_v<Matrix>);
@@ -782,20 +640,14 @@ class trans_mat_2D {
     return result;
   }
 
-  /**
-   * 2D Transformation matrix times a column 2D vector.
-   * \test PASSED
-   */
+  /// 2D Transformation matrix times a column 2D vector.
   friend vect<value_type, 2> operator*(const self& M,
                                        const vect<value_type, 2>& V) noexcept {
     return {V[0] * M.q[0] + V[1] * M.q[3] + M.q[6],
             V[0] * M.q[1] + V[1] * M.q[4] + M.q[7]};
   }
 
-  /**
-   * 2D Transformation matrix times a column 2D augmented vector.
-   * \test PASSED
-   */
+  /// 2D Transformation matrix times a column 2D augmented vector.
   friend vect<value_type, 3> operator*(const self& M,
                                        const vect<value_type, 3>& V) noexcept {
     return {V[0] * M.q[0] + V[1] * M.q[3] + V[2] * M.q[6],
@@ -803,35 +655,10 @@ class trans_mat_2D {
   }
 
   /*******************************************************************************
-                           Comparison Operators
-  *******************************************************************************/
-
-  /**
-   * Standard equality operator.
-   * \test PASSED
-   */
-  friend bool operator==(const self& M1, const self& M2) noexcept {
-    return ((M1.q[0] == M2.q[0]) && (M1.q[1] == M2.q[1]) &&
-            (M1.q[6] == M2.q[6]) && (M1.q[7] == M2.q[7]));
-  }
-
-  /**
-   * Standard inequality operator.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& M1, const self& M2) noexcept {
-    return ((M1.q[0] != M2.q[0]) || (M1.q[1] != M2.q[1]) ||
-            (M1.q[6] != M2.q[6]) || (M1.q[7] != M2.q[7]));
-  }
-
-  /*******************************************************************************
                            Special Methods
   *******************************************************************************/
 
-  /**
-   * Rotate-only a 2D vector.
-   * \test PASSED
-   */
+  /// Rotate-only a 2D vector.
   vect<value_type, 2> rotate(const vect<value_type, 2>& V) const noexcept {
     return {V[0] * q[0] + V[1] * q[3], V[0] * q[1] + V[1] * q[4]};
   }
@@ -840,54 +667,36 @@ class trans_mat_2D {
                            Standard Matrix Methods
   *******************************************************************************/
 
-  /**
-   * Creates the transpose matrix.
-   * \note the matrix is no longer a transformation matrix.
-   * \test PASSED
-   */
+  /// Creates the transpose matrix.
+  /// \note the matrix is no longer a transformation matrix.
   friend mat<value_type, mat_structure::square> transpose(
       const self& M) noexcept {
     return {M.q[0], M.q[1], 0.0, M.q[3], M.q[4], 0.0, M.q[6], M.q[7], 1.0};
   }
 
-  /**
-   * Gets the trace of the matrix.
-   * \test PASSED
-   */
+  /// Gets the trace of the matrix.
   friend value_type trace(const self& M) noexcept {
     return M.q[0] + M.q[4] + value_type(1.0);
   }
 
-  /**
-   * Gets the determinant of the matrix.
-   * \test PASSED
-   */
+  /// Gets the determinant of the matrix.
   friend value_type determinant(const self& /*unused*/) noexcept {
     return value_type(1.0);
   }
 
-  /**
-   * Invert the transformation.
-   * \test PASSED
-   */
+  /// Invert the transformation.
   friend self invert(const self& M) noexcept {
     return {M.q[0], M.q[1], -M.q[0] * M.q[6] - M.q[1] * M.q[7],
             M.q[3], M.q[4], -M.q[3] * M.q[6] - M.q[4] * M.q[7]};
   }
 
-  /**
-   * Gets the symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the symmetric part of the matrix.
   mat<value_type, mat_structure::symmetric> getSymPart() const {
     return {q[0], value_type(0.0),        value_type(0.5) * q[6],
             q[0], value_type(0.5) * q[7], value_type(1.0)};
   }
 
-  /**
-   * Gets the skew-symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the skew-symmetric part of the matrix.
   mat<value_type, mat_structure::skew_symmetric> getSkewSymPart() const {
     return {-q[1], value_type(0.5) * q[6], value_type(0.5) * q[7]};
   }
@@ -945,9 +754,7 @@ struct get_type_id<trans_mat_2D<T>> {
 
 }  // namespace rtti
 
-/** * Prints a 2D rotation matrix to a standard output stream (<<) as "(angle = a; translation = (tx; ty))".
- * \test PASSED
- */
+/// Prints a 2D rotation matrix to a standard output stream (<<) as "(angle = a; translation = (tx; ty))".
 template <class T>
 std::ostream& operator<<(std::ostream& out_stream, const trans_mat_2D<T>& M) {
   out_stream << "(angle = " << M.getAngle()

@@ -156,12 +156,6 @@ TYPED_TEST(DenseTest, Transpose) {
   EXPECT_NEAR(m1234(0, 1), 3.0, tolerance);
   EXPECT_NEAR(m1234(1, 0), 2.0, tolerance);
   EXPECT_NEAR(m1234(1, 1), 4.0, tolerance);
-
-  m1234 = transpose_move(m1234);
-  EXPECT_NEAR(m1234(0, 0), 1.0, tolerance);
-  EXPECT_NEAR(m1234(0, 1), 2.0, tolerance);
-  EXPECT_NEAR(m1234(1, 0), 3.0, tolerance);
-  EXPECT_NEAR(m1234(1, 1), 4.0, tolerance);
 }
 
 TYPED_TEST(DenseTest, Operators) {

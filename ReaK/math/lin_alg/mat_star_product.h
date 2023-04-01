@@ -96,7 +96,7 @@ auto star_product(const Matrix1& M1, const Matrix2& M2) {
   mat<ValueType, mat_structure::square> DInv(
       mat_const_sub_block(M1, N, N, N, N) * Inv1);
   mat<ValueType, mat_structure::square> WInvt(
-      mat_const_sub_block(M2, N, N, 0, 0) * transpose_move(Inv1));
+      mat_const_sub_block(M2, N, N, 0, 0) * transpose_view(Inv1));
 
   return hamiltonian_mat_t<ValueType>(
       mat_horiz_cat(mat<ValueType, mat_structure::square>(

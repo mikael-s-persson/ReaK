@@ -63,10 +63,7 @@ class axis_angle;
 template <class T>
 class trans_mat_3D;
 
-/**
- * This class is a rotation matrix 3 by 3.
- * \test All tests for this class have been passed!
- */
+/// This class is a rotation matrix 3 by 3.
 template <typename T>
 class rot_mat_3D {
  public:
@@ -96,10 +93,7 @@ class rot_mat_3D {
  private:
   std::array<value_type, 9> q = {};
 
-  /**
-   * Constructor from the components of the rotation matrix.
-   * \test PASSED
-   */
+  /// Constructor from the components of the rotation matrix.
   rot_mat_3D(const_reference a11, const_reference a12, const_reference a13,
              const_reference a21, const_reference a22, const_reference a23,
              const_reference a31, const_reference a32,
@@ -125,10 +119,7 @@ class rot_mat_3D {
                            Constructors / Destructors
   *******************************************************************************/
 
-  /**
-   * Default constructor, sets the matrix to identity (no rotation).
-   * \test PASSED
-   */
+  /// Default constructor, sets the matrix to identity (no rotation).
   rot_mat_3D() noexcept {
     q[0] = 1.0;
     q[1] = 0.0;
@@ -141,10 +132,7 @@ class rot_mat_3D {
     q[8] = 1.0;
   }
 
-  /**
-   * Constructor from an array of components.
-   * \test PASSED
-   */
+  /// Constructor from an array of components.
   explicit rot_mat_3D(const_pointer M) noexcept {
     vect<value_type, 3> v1 = unit(vect<value_type, 3>(M));
     q[0] = v1[0];
@@ -187,34 +175,101 @@ class rot_mat_3D {
     q[8] = v2[2];
   }
 
+  explicit rot_mat_3D(const quaternion<value_type>& Q) noexcept
+      : rot_mat_3D(Q.getRotMat()) {}
+  explicit rot_mat_3D(const euler_angles_TB<value_type>& E) noexcept
+      : rot_mat_3D(E.getRotMat()) {}
+  explicit rot_mat_3D(const axis_angle<value_type>& A) noexcept
+      : rot_mat_3D(A.getRotMat()) {}
+
   // Copy constructor. Default is good. \test PASSED
 
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Provides a copy of the rotation matrix as an ordinary 3x3 matrix.
-   * \test PASSED
-   */
+  /// Provides a copy of the rotation matrix as an ordinary 3x3 matrix.
   mat<value_type, mat_structure::square> getMat() const {
     return mat<value_type, mat_structure::square>(q[0], q[3], q[6], q[1], q[4],
                                                   q[7], q[2], q[5], q[8]);
   }
 
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
+  quaternion<value_type> getQuaternion() const noexcept {
+    using std::sqrt;
+    std::array<value_type, 4> a;
+    value_type tra = q[0] + q[4] + q[8];
+    if (tra > 0.01) {
+      a[0] = value_type(0.5) * sqrt(value_type(1.0) + tra);
+      a[1] = value_type(0.25) * (q[5] - q[7]) / a[0];
+      a[2] = value_type(0.25) * (q[6] - q[2]) / a[0];
+      a[3] = value_type(0.25) * (q[1] - q[3]) / a[0];
+    } else if ((q[0] > q[4]) && (q[0] > q[8])) {
+      a[1] = value_type(0.5) * sqrt(value_type(1.0) + q[0] - q[4] - q[8]);
+      a[0] = value_type(0.25) * (q[7] - q[5]) / a[1];
+      a[2] = value_type(0.25) * (q[3] + q[1]) / a[1];
+      a[3] = value_type(0.25) * (q[6] + q[2]) / a[1];
+    } else if (q[4] > q[8]) {
+      a[2] = value_type(0.5) * sqrt(value_type(1.0) + q[4] - q[0] - q[8]);
+      a[0] = value_type(0.25) * (q[6] - q[2]) / a[2];
+      a[1] = value_type(0.25) * (q[3] + q[1]) / a[2];
+      a[3] = value_type(0.25) * (q[7] + q[5]) / a[2];
+    } else {
+      a[3] = value_type(0.5) * sqrt(value_type(1.0) + q[8] - q[0] - q[4]);
+      a[0] = value_type(0.25) * (q[3] - q[1]) / a[3];
+      a[1] = value_type(0.25) * (q[6] + q[2]) / a[3];
+      a[2] = value_type(0.25) * (q[7] + q[5]) / a[3];
+    }
+    return quaternion<value_type>(a[0], a[1], a[2], a[3]);
+  }
+
+  euler_angles_TB<value_type> getEulerAnglesTB() const noexcept {
+    using std::asin;
+    using std::atan2;
+    using std::cos;
+    value_type yaw{};
+    value_type pitch{};
+    value_type roll{};
+    if ((q[2] != value_type(1.0)) && (q[2] != value_type(-1.0))) {
+      pitch = asin(-q[2]);
+      value_type cp = value_type(1.0) / cos(pitch);
+      roll = atan2(cp * q[5], cp * q[8]);
+      yaw = atan2(cp * q[1], cp * q[0]);
+    } else {
+      yaw = value_type(0.0);
+      roll = atan2(-q[2] * q[3], -q[2] * q[6]);
+      pitch = -q[2] * value_type(1.57079632679489662);
+    }
+    return euler_angles_TB<value_type>(yaw, pitch, roll);
+  }
+
+  axis_angle<value_type> getAxisAngle() const noexcept {
+    using std::acos;
+    using std::sin;
+    value_type tmp(value_type(0.5) * (trace(*this) - value_type(1.0)));
+    vect<value_type, 3> axis{};
+    value_type angle{};
+    if (tmp > value_type(0.0000001)) {
+      angle = acos(tmp);
+      value_type cosec_a = value_type(0.5) / sin(angle);
+      axis[0] = (q[5] - q[7]) * cosec_a;
+      axis[1] = (q[6] - q[2]) * cosec_a;
+      axis[2] = (q[1] - q[3]) * cosec_a;
+    } else {
+      axis[0] = value_type(1.0);
+      axis[1] = value_type(0.0);
+      axis[2] = value_type(0.0);
+      angle = value_type(0.0);
+    }
+    return axis_angle<value_type>(angle, axis);
+  }
+
+  /// Array indexing operator, accessor for read only.
   value_type operator[](int i) const noexcept {
     assert(i < 9);
     return q[i];
   }
 
-  /**
-   * Array double-indexing operator, ith row and jth column, accessor for read only.
-   * \test PASSED
-   */
+  /// Array double-indexing operator, ith row and jth column, accessor for read only.
   value_type operator()(int i, int j) const noexcept {
     assert((i < 3) && (j < 3));
     return q[j * 3 + i];
@@ -229,75 +284,24 @@ class rot_mat_3D {
 
   self& operator=(const self& M) noexcept = default;
 
-  template <typename Matrix>
-  self& operator=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
-    if ((M.get_col_count() != 3) || (M.get_row_count() != 3)) {
-      throw std::range_error(
-          "Right-hand-side of assignment to a 3D rotation matrix is not of "
-          "dimension 3x3!");
-    }
-    vect<value_type, 3> v1(M(0, 0), M(1, 0), M(2, 0));
-    q[0] = v1[0];
-    q[1] = v1[1];
-    q[2] = v1[2];
-    vect<value_type, 3> v2(M(0, 1), M(1, 1), M(2, 1));
-    v2 = unit(v2 - (v2 * v1) * v1);
-    q[3] = v2[0];
-    q[4] = v2[1];
-    q[5] = v2[2];
-    v2 = v1 % v2;
-    q[6] = v2[0];
-    q[7] = v2[1];
-    q[8] = v2[2];
+  template <typename Other>
+  self& operator=(const Other& M) {
+    return *this = self{M};
   }
 
-  /**
-   * Assignment operator from a quaternion representation.
-   */
-  self& operator=(const quaternion<value_type>& Q) noexcept {
-    return (*this = Q.getRotMat());
-  }
+  /// Multiplication by a rotation matrix and store.
+  self& operator*=(const self& M) noexcept { return *this = *this * M; }
 
-  /**
-   * Assignment operator from a euler angles TB representation.
-   */
-  self& operator=(const euler_angles_TB<value_type>& E) noexcept {
-    return (*this = E.getRotMat());
-  }
-
-  /**
-   * Assignment operator from an axis / angle representation.
-   */
-  self& operator=(const axis_angle<value_type>& A) noexcept {
-    return (*this = A.getRotMat());
-  }
-
-  /**
-   * Multiplication by a rotation matrix and store.
-   * \test PASSED
-   */
-  self& operator*=(const self& M) noexcept {
-    *this = self(q[0] * M.q[0] + q[3] * M.q[1] + q[6] * M.q[2],
-                 q[0] * M.q[3] + q[3] * M.q[4] + q[6] * M.q[5],
-                 q[0] * M.q[6] + q[3] * M.q[7] + q[6] * M.q[8],
-                 q[1] * M.q[0] + q[4] * M.q[1] + q[7] * M.q[2],
-                 q[1] * M.q[3] + q[4] * M.q[4] + q[7] * M.q[5],
-                 q[1] * M.q[6] + q[4] * M.q[7] + q[7] * M.q[8],
-                 q[2] * M.q[0] + q[5] * M.q[1] + q[8] * M.q[2],
-                 q[2] * M.q[3] + q[5] * M.q[4] + q[8] * M.q[5],
-                 q[2] * M.q[6] + q[5] * M.q[7] + q[8] * M.q[8]);
-    return *this;
+  template <typename Other>
+  self& operator*=(const Other& M) {
+    return *this = *this * self{M};
   }
 
   /*******************************************************************************
                            Basic Operators
   *******************************************************************************/
 
-  /**
-   * Multiplication by a rotation matrix.
-   * \test PASSED
-   */
+  /// Multiplication by a rotation matrix.
   friend self operator*(const self& M1, const self& M2) noexcept {
     return self(M1.q[0] * M2.q[0] + M1.q[3] * M2.q[1] + M1.q[6] * M2.q[2],
                 M1.q[0] * M2.q[3] + M1.q[3] * M2.q[4] + M1.q[6] * M2.q[5],
@@ -310,52 +314,17 @@ class rot_mat_3D {
                 M1.q[2] * M2.q[6] + M1.q[5] * M2.q[7] + M1.q[8] * M2.q[8]);
   }
 
-  /**
-   * Matrix multiplication.
-   * \test PASSED
-   */
-  template <typename Matrix>
-  friend Matrix operator*(const self& M1, const Matrix& M2) {
-    static_assert(is_fully_writable_matrix_v<Matrix>);
-    if (M2.get_row_count() != 3) {
-      throw std::range_error(
-          "Matrix M's row count is not 3, 3D rotation impossible!");
-    }
-    Matrix result(M2);
-    for (int i = 0; i < 3; ++i) {
-      for (int jj = 0; jj < result.get_col_count(); ++jj) {
-        result(i, jj) = 0;
-        for (int j = 0; j < 3; ++j) {
-          result(i, jj) += M1.q[j * 3 + i] * M2(j, jj);
-        }
-      }
-    }
-    return result;
+  template <typename Other>
+  friend self operator*(const self& R, const Other& M) {
+    return R * self{M};
   }
 
-  template <typename Matrix>
-  friend Matrix operator*(const Matrix& M1, const self& M2) {
-    static_assert(is_fully_writable_matrix_v<Matrix>);
-    if (M1.get_col_count() != 3) {
-      throw std::range_error(
-          "Matrix M1's column count is not 3, 3D rotation impossible!");
-    }
-    Matrix result(M1);
-    for (int i = 0; i < result.get_row_count(); ++i) {
-      for (int jj = 0; jj < 3; ++jj) {
-        result(i, jj) = 0;
-        for (int j = 0; j < 3; ++j) {
-          result(i, jj) += M1(i, j) * M2.q[jj * 3 + j];
-        }
-      }
-    }
-    return result;
+  template <typename Other>
+  friend self operator*(const Other& M, const self& R) {
+    return self{M} * R;
   }
 
-  /**
-   * Multiplication with a column vector.
-   * \test PASSED
-   */
+  /// Multiplication with a column vector.
   friend vect<value_type, 3> operator*(const self& R,
                                        const vect<value_type, 3>& V) noexcept {
     return vect<value_type, 3>(R.q[0] * V[0] + R.q[3] * V[1] + R.q[6] * V[2],
@@ -371,90 +340,40 @@ class rot_mat_3D {
   }
 
   /*******************************************************************************
-                           Comparison Operators
-  *******************************************************************************/
-
-  /**
-   * Equality operator for a rotation matrix.
-   * \test PASSED
-   */
-  friend bool operator==(const self& M1, const self& M2) noexcept {
-    return ((M1.q[0] == M2.q[0]) && (M1.q[1] == M2.q[1]) &&
-            (M1.q[2] == M2.q[2]) && (M1.q[3] == M2.q[3]) &&
-            (M1.q[4] == M2.q[4]) && (M1.q[5] == M2.q[5]));
-  }
-
-  /**
-   * Inequality operator for a rotation matrix.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& M1, const self& M2) noexcept {
-    return ((M1.q[0] != M2.q[0]) || (M1.q[1] != M2.q[1]) ||
-            (M1.q[2] != M2.q[2]) || (M1.q[3] != M2.q[3]) ||
-            (M1.q[4] != M2.q[4]) || (M1.q[5] != M2.q[5]));
-  }
-
-  /*******************************************************************************
                            Standard Matrix Methods
   *******************************************************************************/
 
-  /**
-   * Produces a transpose matrix which is the inverse rotation.
-   * \test PASSED
-   */
+  /// Produces a transpose matrix which is the inverse rotation.
   friend self transpose(const self& R) noexcept {
     return self(R.q[0], R.q[1], R.q[2], R.q[3], R.q[4], R.q[5], R.q[6], R.q[7],
                 R.q[8]);
   }
 
-  friend self transpose_move(const self& R) noexcept {
-    return self(R.q[0], R.q[1], R.q[2], R.q[3], R.q[4], R.q[5], R.q[6], R.q[7],
-                R.q[8]);
-  }
-
-  /**
-   * Produces a cofactor matrix which is the same as the rotation matrix itself.
-   * \test PASSED
-   */
+  /// Produces a cofactor matrix which is the same as the rotation matrix itself.
   friend self cofactor(const self& R) noexcept { return R; }
 
-  /**
-   * Invert the transformation.
-   * \test PASSED
-   */
+  /// Invert the transformation.
   friend self invert(const self& R) noexcept {
     return self(R.q[0], R.q[1], R.q[2], R.q[3], R.q[4], R.q[5], R.q[6], R.q[7],
                 R.q[8]);
   }
 
-  /**
-   * Gets the trace of the matrix.
-   * \test PASSED
-   */
+  /// Gets the trace of the matrix.
   friend value_type trace(const self& R) noexcept {
     return R.q[0] + R.q[4] + R.q[8];
   }
 
-  /**
-   * Gets the determinant of the matrix.
-   * \test PASSED
-   */
+  /// Gets the determinant of the matrix.
   friend value_type determinant(const self& /*unused*/) noexcept {
     return value_type(1.0);
   }
 
-  /**
-   * Gets the symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the symmetric part of the matrix.
   mat<value_type, mat_structure::symmetric> getSymPart() const {
     return mat<value_type, mat_structure::symmetric>(*this);
   }
 
-  /**
-   * Gets the skew-symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the skew-symmetric part of the matrix.
   mat<value_type, mat_structure::skew_symmetric> getSkewSymPart() const {
     return mat<value_type, mat_structure::skew_symmetric>(*this);
   }
@@ -515,11 +434,8 @@ struct get_type_id<rot_mat_3D<T>> {
 };
 }  // namespace rtti
 
-/**
- * Prints a rotation matrix to a standard output stream (<<) as
- * "((a11; a12; a13); (a21; a22; a23); (a31; a32; a33))".
- * \test PASSED
- */
+/// Prints a rotation matrix to a standard output stream (<<) as
+/// "((a11; a12; a13); (a21; a22; a23); (a31; a32; a33))".
 template <class T>
 std::ostream& operator<<(std::ostream& out_stream, const rot_mat_3D<T>& R) {
   return out_stream << "((" << R(0, 0) << "; " << R(0, 1) << "; " << R(0, 2)
@@ -534,11 +450,8 @@ struct is_readable_matrix<rot_mat_3D<T>> {
   using type = is_readable_matrix<rot_mat_3D<T>>;
 };
 
-/**
- * This class represents a rotation using quaternions (or Euler-Rodriguez parameters).
- * The convention used is with the leading scalar.
- * \test All tests for this class have been passed!
- */
+/// This class represents a rotation using quaternions (or Euler-Rodriguez parameters).
+/// The convention used is with the leading scalar.
 template <typename T>
 class quaternion {
  public:
@@ -570,6 +483,7 @@ class quaternion {
   }
 
  public:
+  friend class rot_mat_3D<value_type>;
   friend class euler_angles_TB<value_type>;
   friend class axis_angle<value_type>;
   friend class trans_mat_3D<value_type>;
@@ -586,10 +500,7 @@ class quaternion {
     friend class quaternion<value_type>;  // befriend parent.
 
     explicit xrot(const_reference ang = value_type(0.0)) noexcept {
-      using std::cos;
-      using std::sin;
-      q0 = cos(ang * 0.5);
-      qx = sin(ang * 0.5);
+      set_angle(ang);
     }
 
     value_type s() const noexcept { return q0; }
@@ -648,10 +559,7 @@ class quaternion {
     friend class quaternion<value_type>;  // befriend parent.
 
     explicit yrot(const_reference ang = value_type(0.0)) noexcept {
-      using std::cos;
-      using std::sin;
-      q0 = cos(ang * 0.5);
-      qy = sin(ang * 0.5);
+      set_angle(ang);
     }
 
     value_type s() const noexcept { return q0; }
@@ -710,10 +618,7 @@ class quaternion {
     friend class quaternion<value_type>;  // befriend parent.
 
     explicit zrot(const_reference ang = value_type(0.0)) noexcept {
-      using std::cos;
-      using std::sin;
-      q0 = cos(ang * 0.5);
-      qz = sin(ang * 0.5);
+      set_angle(ang);
     }
 
     value_type s() const noexcept { return q0; }
@@ -812,36 +717,6 @@ class quaternion {
                 q2.s() * q1.q[3] + q2.v() * q1.q[0]);
   }
 
-  self& operator*=(const xrot& q2) noexcept {
-    value_type tmp = q2.s() * q[0] - q2.v() * q[1];
-    q[1] = q2.s() * q[1] + q2.v() * q[0];
-    q[0] = tmp;
-    tmp = q2.s() * q[2] + q2.v() * q[3];
-    q[3] = q2.s() * q[3] - q2.v() * q[2];
-    q[2] = tmp;
-    return *this;
-  }
-
-  self& operator*=(const yrot& q2) noexcept {
-    value_type tmp = q2.s() * q[0] - q2.v() * q[2];
-    q[2] = q2.s() * q[2] + q2.v() * q[0];
-    q[0] = tmp;
-    tmp = q2.s() * q[1] - q2.v() * q[3];
-    q[3] = q2.s() * q[3] + q2.v() * q[1];
-    q[1] = tmp;
-    return *this;
-  }
-
-  self& operator*=(const zrot& q2) noexcept {
-    value_type tmp = q2.s() * q[0] - q2.v() * q[3];
-    q[3] = q2.s() * q[3] + q2.v() * q[0];
-    q[0] = tmp;
-    tmp = q2.s() * q[1] + q2.v() * q[2];
-    q[2] = q2.s() * q[2] - q2.v() * q[1];
-    q[1] = tmp;
-    return *this;
-  }
-
   friend self operator*(const xrot& q1, const self& q2) noexcept {
     return self(q2.q[0] * q1.s() - q2.q[1] * q1.v(),
                 q2.q[1] * q1.s() + q2.q[0] * q1.v(),
@@ -863,63 +738,34 @@ class quaternion {
                 q2.q[3] * q1.s() + q2.q[0] * q1.v());
   }
 
+  self& operator*=(const xrot& q2) noexcept { return *this = *this * q2; }
+
+  self& operator*=(const yrot& q2) noexcept { return *this = *this * q2; }
+
+  self& operator*=(const zrot& q2) noexcept { return *this = *this * q2; }
+
   /*******************************************************************************
                            Constructors / Destructors
   *******************************************************************************/
 
-  /**
-   * Default Constructor.
-   * \test PASSED
-   */
-  quaternion() noexcept {
-    q[0] = 1.0;
-    q[1] = 0.0;
-    q[2] = 0.0;
-    q[3] = 0.0;
-  }
+  /// Default Constructor.
+  quaternion() noexcept : quaternion(1.0, 0.0, 0.0, 0.0) {}
 
   quaternion(const self&) noexcept = default;
 
   template <typename Vector>
   explicit quaternion(const Vector& aV) noexcept {
     static_assert(is_readable_vector_v<Vector>);
-    vect<value_type, 4> v =
-        unit(vect<value_type, 4>(aV[0], aV[1], aV[2], aV[3]));
+    auto v = unit(vect<value_type, 4>(aV[0], aV[1], aV[2], aV[3]));
     q[0] = v[0];
     q[1] = v[1];
     q[2] = v[2];
     q[3] = v[3];
   }
 
-  /**
-   * Constructor from a rotation matrix.
-   * \test PASSED
-   */
-  explicit quaternion(const rot_mat_3D<value_type>& R) noexcept {
-    using std::sqrt;
-    value_type tra = R.q[0] + R.q[4] + R.q[8];
-    if (tra > 0.01) {
-      q[0] = value_type(0.5) * sqrt(value_type(1.0) + tra);
-      q[1] = value_type(0.25) * (R.q[5] - R.q[7]) / q[0];
-      q[2] = value_type(0.25) * (R.q[6] - R.q[2]) / q[0];
-      q[3] = value_type(0.25) * (R.q[1] - R.q[3]) / q[0];
-    } else if ((R.q[0] > R.q[4]) && (R.q[0] > R.q[8])) {
-      q[1] = value_type(0.5) * sqrt(value_type(1.0) + R.q[0] - R.q[4] - R.q[8]);
-      q[0] = value_type(0.25) * (R.q[7] - R.q[5]) / q[1];
-      q[2] = value_type(0.25) * (R.q[3] + R.q[1]) / q[1];
-      q[3] = value_type(0.25) * (R.q[6] + R.q[2]) / q[1];
-    } else if (R.q[4] > R.q[8]) {
-      q[2] = value_type(0.5) * sqrt(value_type(1.0) + R.q[4] - R.q[0] - R.q[8]);
-      q[0] = value_type(0.25) * (R.q[6] - R.q[2]) / q[2];
-      q[1] = value_type(0.25) * (R.q[3] + R.q[1]) / q[2];
-      q[3] = value_type(0.25) * (R.q[7] + R.q[5]) / q[2];
-    } else {
-      q[3] = value_type(0.5) * sqrt(value_type(1.0) + R.q[8] - R.q[0] - R.q[4]);
-      q[0] = value_type(0.25) * (R.q[3] - R.q[1]) / q[3];
-      q[1] = value_type(0.25) * (R.q[6] + R.q[2]) / q[3];
-      q[2] = value_type(0.25) * (R.q[7] + R.q[5]) / q[3];
-    }
-  }
+  /// Constructor from a rotation matrix.
+  explicit quaternion(const rot_mat_3D<value_type>& R) noexcept
+      : quaternion(R.getQuaternion()) {}
 
   explicit quaternion(const axis_angle<value_type>& A) noexcept
       : quaternion(A.getQuaternion()) {}
@@ -931,30 +777,12 @@ class quaternion {
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Provides the rotation matrix as an ordinary 3x3 matrix.
-   * \test PASSED
-   */
+  /// Provides the rotation matrix as an ordinary 3x3 matrix.
   mat<value_type, mat_structure::square> getMat() const {
-    value_type t01(value_type(2.0) * q[0] * q[1]);
-    value_type t02(value_type(2.0) * q[0] * q[2]);
-    value_type t03(value_type(2.0) * q[0] * q[3]);
-    value_type t11(value_type(2.0) * q[1] * q[1]);
-    value_type t12(value_type(2.0) * q[1] * q[2]);
-    value_type t13(value_type(2.0) * q[1] * q[3]);
-    value_type t22(value_type(2.0) * q[2] * q[2]);
-    value_type t23(value_type(2.0) * q[2] * q[3]);
-    value_type t33(value_type(2.0) * q[3] * q[3]);
-    return mat<value_type, mat_structure::square>(
-        value_type(1.0) - t22 - t33, t12 - t03, t02 + t13, t12 + t03,
-        value_type(1.0) - t11 - t33, t23 - t01, t13 - t02, t01 + t23,
-        value_type(1.0) - t11 - t22);
+    return getRotMat().getMat();
   }
 
-  /**
-   * Provides the rotation matrix corresponding to the quaternion.
-   * \test PASSED
-   */
+  /// Provides the rotation matrix corresponding to the quaternion.
   rot_mat_3D<value_type> getRotMat() const noexcept {
     value_type t01(value_type(2.0) * q[0] * q[1]);
     value_type t02(value_type(2.0) * q[0] * q[2]);
@@ -971,10 +799,60 @@ class quaternion {
         value_type(1.0) - t11 - t22);
   }
 
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
+  euler_angles_TB<value_type> getEulerAnglesTB() const noexcept {
+    using std::asin;
+    using std::atan2;
+    using std::cos;
+    value_type yaw{};
+    value_type pitch{};
+    value_type roll{};
+    pitch = value_type(2.0) * (q[0] * q[2] - q[1] * q[3]);
+    if ((pitch != value_type(1.0)) && (pitch != value_type(-1.0))) {
+      pitch = asin(pitch);
+      value_type cp = value_type(1.0) / cos(pitch);
+      roll = atan2(value_type(2.0) * cp * (q[2] * q[3] + q[0] * q[1]),
+                   cp * (value_type(1.0) -
+                         value_type(2.0) * (q[1] * q[1] + q[2] * q[2])));
+      yaw = atan2(value_type(2.0) * cp * (q[1] * q[2] + q[0] * q[3]),
+                  cp * (value_type(1.0) -
+                        value_type(2.0) * (q[2] * q[2] + q[3] * q[3])));
+    } else {
+      yaw = value_type(0.0);
+      roll = atan2(pitch * value_type(2.0) * (q[1] * q[2] - q[0] * q[3]),
+                   pitch * value_type(2.0) * (q[1] * q[3] + q[0] * q[2]));
+      pitch *= value_type(1.57079632679489662);
+    }
+    return euler_angles_TB<value_type>(yaw, pitch, roll);
+  }
+
+  axis_angle<value_type> getAxisAngle() const noexcept {
+    using std::acos;
+    using std::sqrt;
+    vect<value_type, 4> v(q[0], q[1], q[2], q[3]);
+    v = unit(v);
+    value_type tmp(sqrt(v[1] * v[1] + v[2] * v[2] + v[3] * v[3]));
+    vect<value_type, 3> axis{};
+    value_type angle{};
+    if (tmp > value_type(0.0000001)) {
+      axis[0] = v[1] / tmp;
+      axis[1] = v[2] / tmp;
+      axis[2] = v[3] / tmp;
+      if (v[0] < value_type(0.0)) {
+        angle = value_type(2.0) * acos(-v[0]);
+        axis = -axis;
+      } else {
+        angle = value_type(2.0) * acos(v[0]);
+      }
+    } else {
+      axis[0] = value_type(1.0);
+      axis[1] = value_type(0.0);
+      axis[2] = value_type(0.0);
+      angle = value_type(0.0);
+    }
+    return axis_angle<value_type>(angle, axis);
+  }
+
+  /// Array indexing operator, accessor for read only.
   const_reference operator[](int i) const noexcept {
     assert(i < 4);
     return q[i];
@@ -986,68 +864,26 @@ class quaternion {
 
   self& operator=(const self&) noexcept = default;
 
-  /**
-   * Assignment operator from a rotation matrix.
-   * \test PASSED
-   */
-  self& operator=(const rot_mat_3D<value_type>& R) noexcept {
-    return (*this = self(R));
+  /// Assignment operator from a rotation matrix.
+  template <typename Other>
+  self& operator=(const Other& R) noexcept {
+    return *this = self(R);
   }
 
-  /**
-   * Assignment operator from a euler angles TB representation.
-   * \test PASSED
-   */
-  self& operator=(const euler_angles_TB<value_type>& E) noexcept {
-    return (*this = E.getQuaternion());
-  }
-
-  /**
-   * Assignment operator from an axis / angle representation.
-   * \test PASSED
-   */
-  self& operator=(const axis_angle<value_type>& A) noexcept {
-    return (*this = A.getQuaternion());
-  }
-
-  /**
-   * Multiply-and-store operator from a quaternion.
-   * \test PASSED
-   */
+  /// Multiply-and-store operator from a quaternion.
   self& operator*=(const self& Q) noexcept { return (*this = *this * Q); }
 
-  /**
-   * Multiply-and-store operator from a rotation matrix.
-   * \test PASSED
-   */
-  self& operator*=(const rot_mat_3D<value_type>& R) noexcept {
-    return (*this *= self(R));
-  }
-
-  /**
-   * Multiply-and-store operator from a euler angles TB representation.
-   * \test PASSED
-   */
-  self& operator*=(const euler_angles_TB<value_type>& E) noexcept {
-    return (*this *= E.getQuaternion());
-  }
-
-  /**
-   * Multiply-and-store operator from an axis / angle representation.
-   * \test PASSED
-   */
-  self& operator*=(const axis_angle<value_type>& A) noexcept {
-    return (*this *= A.getQuaternion());
+  /// Multiply-and-store operator from a rotation matrix.
+  template <typename Other>
+  self& operator*=(const Other& R) noexcept {
+    return *this *= self{R};
   }
 
   /*******************************************************************************
                            Basic Operators
   *******************************************************************************/
 
-  /**
-   * Multiplication by a quaternion.
-   * \test PASSED
-   */
+  /// Multiplication by a quaternion.
   friend self operator*(const self& Q1, const self& Q2) noexcept {
     return self(Q2.q[0] * Q1.q[0] - Q2.q[1] * Q1.q[1] - Q2.q[2] * Q1.q[2] -
                     Q2.q[3] * Q1.q[3],
@@ -1059,46 +895,31 @@ class quaternion {
                     Q2.q[3] * Q1.q[0]);
   }
 
-  /**
-   * Multiplication by a rotation matrix.
-   * \test PASSED
-   */
-  friend auto operator*(const self& Q, const rot_mat_3D<value_type>& M) {
-    return Q.getRotMat() * M;
+  /// Multiplication by a matrix or other rotation representation.
+  template <typename Other,
+            std::enable_if_t<!std::is_same_v<rot_mat_3D<value_type>, Other>,
+                             void*> = nullptr>
+  friend auto operator*(const self& Q, const Other& R) {
+    if constexpr (is_readable_matrix_v<Other>) {
+      return Q.getRotMat() * R;
+    } else {
+      return Q * self{R};
+    }
   }
 
-  /**
-   * Multiplication by a rotation matrix.
-   * \test PASSED
-   */
-  friend auto operator*(const rot_mat_3D<value_type>& M, const self& Q) {
-    return M * Q.getRotMat();
+  /// Multiplication by a matrix or other rotation representation.
+  template <typename Other,
+            std::enable_if_t<!std::is_same_v<rot_mat_3D<value_type>, Other>,
+                             void*> = nullptr>
+  friend auto operator*(const Other& R, const self& Q) {
+    if constexpr (is_readable_matrix_v<Other>) {
+      return R * Q.getRotMat();
+    } else {
+      return self{R} * Q;
+    }
   }
 
-  /**
-   * Multiplication by a matrix.
-   * \test PASSED
-   */
-  template <typename Matrix>
-  friend auto operator*(const self& Q, const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
-    return Q.getRotMat() * M;
-  }
-
-  /**
-   * Multiplication by a matrix.
-   * \test PASSED
-   */
-  template <typename Matrix>
-  friend auto operator*(const Matrix& M, const self& Q) {
-    static_assert(is_readable_matrix_v<Matrix>);
-    return M * Q.getRotMat();
-  }
-
-  /**
-   * Multiplication by a column vector.
-   * \test PASSED
-   */
+  /// Multiplication by a column vector.
   friend vect<value_type, 3> operator*(const self& Q,
                                        const vect<value_type, 3>& V) noexcept {
     std::array<value_type, 9> t;
@@ -1144,71 +965,10 @@ class quaternion {
   }
 
   /*******************************************************************************
-                           Comparison Operators
-  *******************************************************************************/
-
-  /**
-   * Equality operator with a quaternion representation.
-   * \test PASSED
-   */
-  friend bool operator==(const self& Q1, const self& Q2) noexcept {
-    return ((Q1.q[0] == Q2.q[0]) && (Q1.q[1] == Q2.q[1]) &&
-            (Q1.q[2] == Q2.q[2]) && (Q1.q[3] == Q2.q[3]));
-  }
-
-  /**
-   * Inequality operator with a quaternion representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& Q1, const self& Q2) noexcept {
-    return ((Q1.q[0] != Q2.q[0]) || (Q1.q[1] != Q2.q[1]) ||
-            (Q1.q[2] != Q2.q[2]) || (Q1.q[3] != Q2.q[3]));
-  }
-
-  /**
-   * Equality operator for a quaternion representation.
-   * \test PASSED
-   */
-  friend bool operator==(const rot_mat_3D<value_type>& R,
-                         const self& Q) noexcept {
-    return Q.getRotMat() == R;
-  }
-
-  /**
-   * Inequality operator for a quaternion representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const rot_mat_3D<value_type>& R,
-                         const self& Q) noexcept {
-    return Q.getRotMat() != R;
-  }
-
-  /**
-   * Equality operator with a rotation matrix.
-   * \test PASSED
-   */
-  friend bool operator==(const self& Q,
-                         const rot_mat_3D<value_type>& R) noexcept {
-    return Q.getRotMat() == R;
-  }
-
-  /**
-   * Inequality operator with a rotation matrix.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& Q,
-                         const rot_mat_3D<value_type>& R) noexcept {
-    return Q.getRotMat() != R;
-  }
-
-  /*******************************************************************************
                            Special Methods
   *******************************************************************************/
 
-  /**
-   * Gets the time-derivative of the quaternion that corresponds to the angular velocity Omega.
-   * \test PASSED
-   */
+  /// Gets the time-derivative of the quaternion that corresponds to the angular velocity Omega.
   vect<value_type, 4> getQuaternionDot(
       const vect<value_type, 3>& Omega) const noexcept {
     return {-value_type(0.5) *
@@ -1221,10 +981,7 @@ class quaternion {
                 (q[0] * Omega.q[2] - q[2] * Omega.q[0] + q[1] * Omega.q[1])};
   }
 
-  /**
-   * Gets the angular velocity that corresponds to the time-derivative of the quaternion.
-   * \test PASSED
-   */
+  /// Gets the angular velocity that corresponds to the time-derivative of the quaternion.
   vect<value_type, 3> getOmega(
       const vect<value_type, 4>& QuaternionDot) const noexcept {
     return {value_type(2.0) *
@@ -1238,10 +995,7 @@ class quaternion {
                  q[1] * QuaternionDot.q[2] + q[0] * QuaternionDot.q[3])};
   }
 
-  /**
-   * Gets the 2-time-derivative of the quaternion that corresponds to the angular velocity Omega.
-   * \test PASSED
-   */
+  /// Gets the 2-time-derivative of the quaternion that corresponds to the angular velocity Omega.
   vect<value_type, 4> getQuaternionDotDot(
       const vect<value_type, 4>& QD, const vect<value_type, 3>& W,
       const vect<value_type, 3>& WD) const noexcept {
@@ -1259,10 +1013,7 @@ class quaternion {
                  QD.q[2] * W.q[0] + QD.q[1] * W.q[1] + QD.q[0] * W.q[2])};
   }
 
-  /**
-   * Gets the angular acceleration that corresponds to the 2-time-derivative of the quaternion.
-   * \test PASSED
-   */
+  /// Gets the angular acceleration that corresponds to the 2-time-derivative of the quaternion.
   vect<value_type, 3> getOmegaDot(
       const vect<value_type, 4>& QD,
       const vect<value_type, 4>& QDD) const noexcept {
@@ -1284,56 +1035,30 @@ class quaternion {
                            Standard Matrix Methods
   *******************************************************************************/
 
-  /**
-   * Produces a transpose quaternion which is the inverse rotation.
-   * \test PASSED
-   */
+  /// Produces a transpose quaternion which is the inverse rotation.
   friend self transpose(const self& Q) noexcept {
     return {Q.q[0], -Q.q[1], -Q.q[2], -Q.q[3]};
   }
 
-  /**
-   * Produces a transpose quaternion which is the inverse rotation.
-   * \test PASSED
-   */
-  friend self transpose_move(const self& Q) noexcept {
-    return {Q.q[0], -Q.q[1], -Q.q[2], -Q.q[3]};
-  }
-
-  /**
-   * Produces a cofactor matrix which is the same as the rotation matrix itself.
-   * \test PASSED
-   */
+  /// Produces a cofactor matrix which is the same as the rotation matrix itself.
   friend self cofactor(const self& Q) noexcept { return Q; }
 
-  /**
-   * Invert the rotation.
-   * \test PASSED
-   */
+  /// Invert the rotation.
   friend self invert(const self& Q) noexcept {
     return {Q.q[0], -Q.q[1], -Q.q[2], -Q.q[3]};
   }
 
-  /**
-   * Gets the trace of the matrix.
-   * \test PASSED
-   */
+  /// Gets the trace of the matrix.
   friend value_type trace(const self& Q) noexcept {
     return value_type(4.0) * Q.q[0] * Q.q[0] - value_type(1.0);
   }
 
-  /**
-   * Gets the determinant of the matrix.
-   * \test PASSED
-   */
+  /// Gets the determinant of the matrix.
   friend value_type determinant(const self& Q) noexcept {
     return value_type(1.0);
   }
 
-  /**
-   * Gets the symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the symmetric part of the matrix.
   mat<value_type, mat_structure::symmetric> getSymPart() const {
     value_type t11(value_type(2.0) * q[1] * q[1]);
     value_type t12(value_type(2.0) * q[1] * q[2]);
@@ -1345,10 +1070,7 @@ class quaternion {
             value_type(1.0) - t11 - t33, t23, value_type(1.0) - t11 - t22};
   }
 
-  /**
-   * Gets the skew-symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the skew-symmetric part of the matrix.
   mat<value_type, mat_structure::skew_symmetric> getSkewSymPart() const {
     value_type t01(value_type(2.0) * q[0] * q[1]);
     value_type t02(value_type(2.0) * q[0] * q[2]);
@@ -1402,19 +1124,14 @@ struct get_type_id<quaternion<T>> {
 };
 }  // namespace rtti
 
-/**
- * Prints a quaternion to a standard output stream (<<) as "(q0; q1; q2; q3)".
- * \test PASSED
- */
+/// Prints a quaternion to a standard output stream (<<) as "(q0; q1; q2; q3)".
 template <class T>
 std::ostream& operator<<(std::ostream& out_stream, const quaternion<T>& Q) {
   return (out_stream << "(" << Q[0] << "; " << Q[1] << "; " << Q[2] << "; "
                      << Q[3] << ")");
 }
 
-/**
- * This class repressents a rotation using Euler angles (Tait-Bryan), 321-body-fixed, in body frame.
- */
+/// This class represents a rotation using Euler angles (Tait-Bryan), 321-body-fixed, in body frame.
 template <class T>
 class euler_angles_TB {
  public:
@@ -1435,6 +1152,8 @@ class euler_angles_TB {
   std::array<value_type, 3> q;
 
  public:
+  friend class rot_mat_3D<value_type>;
+  friend class quaternion<value_type>;
   friend class axis_angle<value_type>;
   friend class trans_mat_3D<value_type>;
 
@@ -1442,20 +1161,14 @@ class euler_angles_TB {
                            Constructors / Destructors
   *******************************************************************************/
 
-  /**
-   * Default Constructor.
-   * \test PASSED
-   */
+  /// Default Constructor.
   euler_angles_TB() noexcept {
     q[0] = 0.0;
     q[1] = 0.0;
     q[2] = 0.0;
   }
 
-  /**
-   * Constructor from three euler angles.
-   * \test PASSED
-   */
+  /// Constructor from three euler angles.
   euler_angles_TB(const_reference Yaw_, const_reference Pitch_,
                   const_reference Roll_) noexcept {
     q[0] = Yaw_;
@@ -1465,115 +1178,40 @@ class euler_angles_TB {
 
   euler_angles_TB(const self&) noexcept = default;
 
-  /**
-   * Constructor from a quaternion.
-   * \test PASSED
-   */
-  explicit euler_angles_TB(const quaternion<value_type>& Q) noexcept {
-    using std::asin;
-    using std::atan2;
-    using std::cos;
-    q[1] = value_type(2.0) * (Q.q[0] * Q.q[2] - Q.q[1] * Q.q[3]);
-    if ((q[1] != value_type(1.0)) && (q[1] != value_type(-1.0))) {
-      q[1] = asin(q[1]);
-      value_type cp = value_type(1.0) / cos(q[1]);
-      q[2] =
-          atan2(value_type(2.0) * cp * (Q.q[2] * Q.q[3] + Q.q[0] * Q.q[1]),
-                cp * (value_type(1.0) -
-                      value_type(2.0) * (Q.q[1] * Q.q[1] + Q.q[2] * Q.q[2])));
-      q[0] =
-          atan2(value_type(2.0) * cp * (Q.q[1] * Q.q[2] + Q.q[0] * Q.q[3]),
-                cp * (value_type(1.0) -
-                      value_type(2.0) * (Q.q[2] * Q.q[2] + Q.q[3] * Q.q[3])));
-    } else {
-      q[0] = value_type(0.0);
-      q[2] =
-          atan2(q[1] * value_type(2.0) * (Q.q[1] * Q.q[2] - Q.q[0] * Q.q[3]),
-                q[1] * value_type(2.0) * (Q.q[1] * Q.q[3] + Q.q[0] * Q.q[2]));
-      q[1] *= value_type(1.57079632679489662);
-    }
-  }
+  /// Constructor from a quaternion.
+  explicit euler_angles_TB(const quaternion<value_type>& Q) noexcept
+      : euler_angles_TB(Q.getEulerAnglesTB()) {}
 
   explicit euler_angles_TB(const axis_angle<value_type>& A) noexcept
       : euler_angles_TB(A.getEulerAnglesTB()) {}
 
-  /**
-   * Constructor from a rotation matrix.
-   * \test PASSED
-   */
-  explicit euler_angles_TB(const rot_mat_3D<value_type>& R) noexcept {
-    using std::asin;
-    using std::atan2;
-    using std::cos;
-    if ((R.q[2] != value_type(1.0)) && (R.q[2] != value_type(-1.0))) {
-      q[1] = asin(-R.q[2]);
-      value_type cp = value_type(1.0) / cos(q[1]);
-      q[2] = atan2(cp * R.q[5], cp * R.q[8]);
-      q[0] = atan2(cp * R.q[1], cp * R.q[0]);
-    } else {
-      q[0] = value_type(0.0);
-      q[2] = atan2(-R.q[2] * R.q[3], -R.q[2] * R.q[6]);
-      q[1] = -R.q[2] * value_type(1.57079632679489662);
-    }
-  }
+  /// Constructor from a rotation matrix.
+  explicit euler_angles_TB(const rot_mat_3D<value_type>& R) noexcept
+      : euler_angles_TB(R.getEulerAnglesTB()) {}
 
   euler_angles_TB(const rot_mat_3D<value_type>& R,
-                  const euler_angles_TB<value_type>& Predicted) noexcept {
-    using std::asin;
-    using std::atan2;
-    using std::cos;
-    if ((R.q[2] != value_type(1.0)) && (R.q[2] != value_type(-1.0))) {
-      q[1] = asin(-R.q[2]);
-      value_type cp = value_type(1.0) / cos(q[1]);
-      q[2] = atan2(cp * R.q[5], cp * R.q[8]);
-      q[0] = atan2(cp * R.q[1], cp * R.q[0]);
-    } else {
-      q[0] = value_type(0.0);
-      q[2] = atan2(-R.q[2] * R.q[3], -R.q[2] * R.q[6]);
-      q[1] = -R.q[2] * value_type(1.57079632679489662);
-    }
-  }
+                  const euler_angles_TB<value_type>& /*Predicted*/) noexcept
+      : euler_angles_TB(R.getEulerAnglesTB()) {}
 
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Get yaw, read-write.
-   * \test PASSED
-   */
+  /// Get yaw, read-write.
   reference yaw() noexcept { return q[0]; }
-  /**
-   * Get pitch, read-write.
-   * \test PASSED
-   */
+  /// Get pitch, read-write.
   reference pitch() noexcept { return q[1]; }
-  /**
-   * Get roll, read-write.
-   * \test PASSED
-   */
+  /// Get roll, read-write.
   reference roll() noexcept { return q[2]; }
 
-  /**
-   * Get yaw, read-only.
-   * \test PASSED
-   */
+  /// Get yaw, read-only.
   const_reference yaw() const noexcept { return q[0]; }
-  /**
-   * Get pitch, read-only.
-   * \test PASSED
-   */
+  /// Get pitch, read-only.
   const_reference pitch() const noexcept { return q[1]; }
-  /**
-   * Get roll, read-only.
-   * \test PASSED
-   */
+  /// Get roll, read-only.
   const_reference roll() const noexcept { return q[2]; }
 
-  /**
-   * Provides a quaternion corresponding to this rotation.
-   * \test PASSED
-   */
+  /// Provides a quaternion corresponding to this rotation.
   quaternion<value_type> getQuaternion() const noexcept {
     using std::cos;
     using std::sin;
@@ -1591,10 +1229,11 @@ class euler_angles_TB {
             cphi * ctheta * spsi - sphi * stheta * cpsi};
   }
 
-  /**
-   * Provides a rotation matrix corresponding to this rotation.
-   * \test PASSED
-   */
+  axis_angle<value_type> getAxisAngle() const noexcept {
+    return axis_angle<value_type>(getQuaternion());
+  }
+
+  /// Provides a rotation matrix corresponding to this rotation.
   rot_mat_3D<value_type> getRotMat() const noexcept {
     using std::cos;
     using std::sin;
@@ -1616,29 +1255,9 @@ class euler_angles_TB {
             c2 * c3};
   }
 
-  /**
-   * Provides a rotation matrix as a regular 3x3 matris corresponding to this rotation.
-   * \test PASSED
-   */
+  /// Provides a rotation matrix as a regular 3x3 matris corresponding to this rotation.
   mat<value_type, mat_structure::square> getMat() const {
-    using std::cos;
-    using std::sin;
-    value_type s1(sin(q[0]));
-    value_type c1(cos(q[0]));
-    value_type s2(sin(q[1]));
-    value_type c2(cos(q[1]));
-    value_type s3(sin(q[2]));
-    value_type c3(cos(q[2]));
-
-    return {c1 * c2,
-            -(s1 * c3) + (c1 * s2 * s3),
-            (s1 * s3) + (c1 * s2 * c3),
-            s1 * c2,
-            (c1 * c3) + (s1 * s2 * s3),
-            -(c1 * s3) + (s1 * s2 * c3),
-            -s2,
-            c2 * s3,
-            c2 * c3};
+    return getRotMat().getMat();
   }
 
   /*******************************************************************************
@@ -1647,239 +1266,55 @@ class euler_angles_TB {
 
   self& operator=(const self&) noexcept = default;
 
-  /**
-   * Assignment from a quaternion.
-   * \test PASSED
-   */
-  self& operator=(const quaternion<value_type>& Q) noexcept {
-    return *this = self(Q);
+  /// Assignment from other representation.
+  template <typename Other>
+  self& operator=(const Other& R) noexcept {
+    return *this = self{R};
   }
 
-  /**
-   * Assignment from a rotation matrix.
-   * \test PASSED
-   */
-  self& operator=(const rot_mat_3D<value_type>& R) noexcept {
-    return *this = self(R);
-  }
-
-  /**
-   * Assignment from an axis / angle representation.
-   * \test PASSED
-   */
-  self& operator=(const axis_angle<T>& A) noexcept {
-    return (*this = A.getEulerAnglesTB());
-  }
-
-  /**
-   * Multiply-and-store from a euler angles.
-   * \test PASSED
-   */
-  self& operator*=(const self& E) noexcept {
-    return (*this = (this->getRotMat() * E.getRotMat()));
-  }
-
-  /**
-   * Multiply-and-store from a rotation matrix.
-   * \test PASSED
-   */
-  self& operator*=(const rot_mat_3D<value_type>& R) noexcept {
-    return (*this = (this->getRotMat() * R));
-  }
-
-  /**
-   * Multiply-and-store from a quaternion.
-   * \test PASSED
-   */
-  self& operator*=(const quaternion<value_type>& Q) noexcept {
-    return (*this = (this->getQuaternion() * Q));
-  }
-
-  /**
-   * Assignment from an axis / angle representation.
-   * \test PASSED
-   */
-  self& operator*=(const axis_angle<T>& A) noexcept {
-    return (*this = this->getRotMat() * A.getRotMat());
+  /// Multiply-and-store from another rotation.
+  template <typename Other>
+  self& operator*=(const Other& R) noexcept {
+    return *this = *this * R;
   }
 
   /*******************************************************************************
                            Basic Operators
   *******************************************************************************/
 
-  /**
-   * Multiply by a euler angle representation.
-   * \test PASSED
-   */
-  friend rot_mat_3D<value_type> operator*(const self& E1,
-                                          const self& E2) noexcept {
+  /// Multiply by a euler angle representation.
+  friend auto operator*(const self& E1, const self& E2) noexcept {
     return E1.getRotMat() * E2.getRotMat();
   }
 
-  /**
-   * Multiply by a matrix.
-   * \test PASSED
-   */
-  template <typename Matrix>
-  friend auto operator*(const self& E, const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
-    return E.getRotMat() * M;
+  /// Multiply by a matrix or rotation representation.
+  template <typename Other,
+            std::enable_if_t<!std::is_same_v<Other, rot_mat_3D<value_type>> &&
+                                 !std::is_same_v<Other, quaternion<value_type>>,
+                             void*> = nullptr>
+  friend auto operator*(const self& E, const Other& R) {
+    return E.getRotMat() * R;
   }
 
-  /**
-   * Multiply by a matrix.
-   * \test PASSED
-   */
-  template <typename Matrix>
-  friend auto operator*(const Matrix& M, const self& E) {
-    static_assert(is_readable_matrix_v<Matrix>);
-    return M * E.getRotMat();
+  /// Multiply by a matrix or rotation representation.
+  template <typename Other,
+            std::enable_if_t<!std::is_same_v<Other, rot_mat_3D<value_type>> &&
+                                 !std::is_same_v<Other, quaternion<value_type>>,
+                             void*> = nullptr>
+  friend auto operator*(const Other& R, const self& E) {
+    return R * E.getRotMat();
   }
 
-  /**
-   * Multiply by a matrix.
-   * \test PASSED
-   */
-  friend auto operator*(const self& E, const rot_mat_3D<value_type>& M) {
-    return E.getRotMat() * M;
-  }
-
-  /**
-   * Multiply by a matrix.
-   * \test PASSED
-   */
-  friend auto operator*(const rot_mat_3D<value_type>& M, const self& E) {
-    return M * E.getRotMat();
-  }
-
-  /**
-   * Multiplication by a euler angles TB representation.
-   * \test PASSED
-   */
-  friend auto operator*(const quaternion<value_type>& Q,
-                        const self& E) noexcept {
-    return Q * E.getQuaternion();
-  }
-
-  /**
-   * Multiply by a quaternion representation.
-   * \test PASSED
-   */
-  friend auto operator*(const self& E,
-                        const quaternion<value_type>& Q) noexcept {
-    return E.getQuaternion() * Q;
-  }
-
-  /**
-   * Multiply by a vector, rotating it.
-   * \test PASSED
-   */
+  /// Multiply by a vector, rotating it.
   friend vect<value_type, 3> operator*(const self& E,
                                        const vect<value_type, 3>& V) noexcept {
     return E.getRotMat() * V;
   }
 
   /*******************************************************************************
-                           Comparison Operators
-  *******************************************************************************/
-
-  /**
-   * Equality comparison operator with a euler angle representation.
-   * \test PASSED
-   */
-  friend bool operator==(const self& E1, const self& E2) noexcept {
-    return ((E1.q[0] == E2.q[0]) && (E1.q[1] == E2.q[1]) &&
-            (E1.q[2] == E2.q[2]));
-  }
-
-  /**
-   * Inequality comparison operator with a euler angle representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& E1, const self& E2) noexcept {
-    return ((E1.q[0] != E2.q[0]) || (E1.q[1] != E2.q[1]) ||
-            (E1.q[2] != E2.q[2]));
-  }
-
-  /**
-   * Equality operator with a euler angles TB representation.
-   * \test PASSED
-   */
-  friend bool operator==(const quaternion<value_type>& Q,
-                         const self& E) noexcept {
-    return Q == E.getQuaternion();
-  }
-
-  /**
-   * Inequality operator with a euler angles TB representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const quaternion<value_type>& Q,
-                         const self& E) noexcept {
-    return Q != E.getQuaternion();
-  }
-
-  /**
-   * Equality operator with a euler angles TB representation.
-   * \test PASSED
-   */
-  friend bool operator==(const self& E,
-                         const quaternion<value_type>& Q) noexcept {
-    return Q == E.getQuaternion();
-  }
-
-  /**
-   * Inequality operator with a euler angles TB representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& E,
-                         const quaternion<value_type>& Q) noexcept {
-    return Q != E.getQuaternion();
-  }
-
-  /**
-   * Equality operator for a euler angles TB representation.
-   * \test PASSED
-   */
-  friend bool operator==(const rot_mat_3D<value_type>& R,
-                         const self& E) noexcept {
-    return R == E.getRotMat();
-  }
-
-  /**
-   * Inequality operator for a euler angles TB representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const rot_mat_3D<value_type>& R,
-                         const self& E) noexcept {
-    return R != E.getRotMat();
-  }
-
-  /**
-   * Equality operator for a euler angles TB representation.
-   * \test PASSED
-   */
-  friend bool operator==(const self& E,
-                         const rot_mat_3D<value_type>& R) noexcept {
-    return R == E.getRotMat();
-  }
-
-  /**
-   * Inequality operator for a euler angles TB representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& E,
-                         const rot_mat_3D<value_type>& R) noexcept {
-    return R != E.getRotMat();
-  }
-
-  /*******************************************************************************
                            Standard Matrix Methods
   *******************************************************************************/
-  /**
-   * Produces a transpose quaternion which is the inverse rotation.
-   * \test PASSED
-   */
+  /// Produces a transpose quaternion which is the inverse rotation.
   friend self transpose(const self& E) noexcept {
     using std::asin;
     using std::atan2;
@@ -1915,22 +1350,13 @@ class euler_angles_TB {
     return result;
   }
 
-  /**
-   * Produces a cofactor matrix which is the same as the rotation matrix itself.
-   * \test PASSED
-   */
+  /// Produces a cofactor matrix which is the same as the rotation matrix itself.
   friend self cofactor(const self& E) noexcept { return E; }
 
-  /**
-   * Invert the rotation.
-   * \test PASSED
-   */
+  /// Invert the rotation.
   friend self invert(const self& E) noexcept { return transpose(E); }
 
-  /**
-   * Gets the trace of the matrix.
-   * \test PASSED
-   */
+  /// Gets the trace of the matrix.
   friend value_type trace(const self& E) noexcept {
     using std::cos;
     using std::sin;
@@ -1942,26 +1368,17 @@ class euler_angles_TB {
     return value_type(4.0) * t * t - value_type(1.0);
   }
 
-  /**
-   * Gets the determinant of the matrix.
-   * \test PASSED
-   */
+  /// Gets the determinant of the matrix.
   friend value_type determinant(const self& /*unused*/) noexcept {
     return value_type(1.0);
   }
 
-  /**
-   * Gets the symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the symmetric part of the matrix.
   mat<value_type, mat_structure::symmetric> getSymPart() const {
     return mat<value_type, mat_structure::symmetric>(this->getMat());
   }
 
-  /**
-   * Gets the skew-symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the skew-symmetric part of the matrix.
   mat<value_type, mat_structure::skew_symmetric> getSkewSymPart() const {
     return mat<value_type, mat_structure::skew_symmetric>(this->getMat());
   }
@@ -2011,10 +1428,7 @@ struct get_type_id<euler_angles_TB<T>> {
 
 }  // namespace rtti
 
-/**
- * Prints a euler angles to a standard output stream (<<) as "(Yaw = value; Pitch = value; Roll = value)".
- * \test PASSED
- */
+/// Prints a euler angles to a standard output stream (<<) as "(Yaw = value; Pitch = value; Roll = value)".
 template <class T>
 std::ostream& operator<<(std::ostream& out_stream,
                          const euler_angles_TB<T>& E) {
@@ -2053,16 +1467,10 @@ class axis_angle {
                            Constructors / Destructors
   *******************************************************************************/
 
-  /**
-   * Default Constructor.
-   * \test PASSED
-   */
+  /// Default Constructor.
   axis_angle() noexcept : mAngle(0.0), mAxis(1.0, 0.0, 0.0) {}
 
-  /**
-   * Constructor from angle and axis.
-   * \test PASSED
-   */
+  /// Constructor from angle and axis.
   axis_angle(const value_type& aAngle,
              const vect<value_type, 3>& aAxis) noexcept
       : mAngle(aAngle) {
@@ -2081,95 +1489,35 @@ class axis_angle {
 
   axis_angle(const self& A) noexcept = default;
 
-  /**
-   * Constructor from a quaternion.
-   * \test PASSED
-   */
-  explicit axis_angle(const quaternion<value_type>& Q) noexcept {
-    using std::acos;
-    using std::sqrt;
-    vect<value_type, 4> v(Q.q[0], Q.q[1], Q.q[2], Q.q[3]);
-    v = unit(v);
-    value_type tmp(sqrt(v[1] * v[1] + v[2] * v[2] + v[3] * v[3]));
-    if (tmp > value_type(0.0000001)) {
-      mAxis.q[0] = v[1] / tmp;
-      mAxis.q[1] = v[2] / tmp;
-      mAxis.q[2] = v[3] / tmp;
-      if (v[0] < value_type(0.0)) {
-        mAngle = value_type(2.0) * acos(-v[0]);
-        mAxis = -mAxis;
-      } else {
-        mAngle = value_type(2.0) * acos(v[0]);
-      }
-    } else {
-      mAxis.q[0] = value_type(1.0);
-      mAxis.q[1] = value_type(0.0);
-      mAxis.q[2] = value_type(0.0);
-      mAngle = value_type(0.0);
-    }
-  }
+  /// Constructor from a quaternion.
+  explicit axis_angle(const quaternion<value_type>& Q) noexcept
+      : axis_angle(Q.getAxisAngle()) {}
 
-  /**
-   * Constructor from a rotation matrix.
-   * \test PASSED
-   */
-  explicit axis_angle(const rot_mat_3D<value_type>& R) noexcept {
-    using std::acos;
-    using std::sin;
-    value_type tmp(value_type(0.5) * (trace(R) - value_type(1.0)));
-    if (tmp > value_type(0.0000001)) {
-      mAngle = acos(tmp);
-      value_type cosec_a = value_type(0.5) / sin(mAngle);
-      mAxis.q[0] = (R.q[5] - R.q[7]) * cosec_a;
-      mAxis.q[1] = (R.q[6] - R.q[2]) * cosec_a;
-      mAxis.q[2] = (R.q[1] - R.q[3]) * cosec_a;
-    } else {
-      mAxis.q[0] = value_type(1.0);
-      mAxis.q[1] = value_type(0.0);
-      mAxis.q[2] = value_type(0.0);
-      mAngle = value_type(0.0);
-    }
-  }
+  /// Constructor from a rotation matrix.
+  explicit axis_angle(const rot_mat_3D<value_type>& R) noexcept
+      : axis_angle(R.getAxisAngle()) {}
 
-  /**
-   * Constructor from euler angles.
-   * \test PASSED
-   */
+  /// Constructor from euler angles.
   explicit axis_angle(const euler_angles_TB<value_type>& E) noexcept
-      : axis_angle(E.getQuaternion()) {}
+      : axis_angle(E.getAxisAngle()) {}
 
   /*******************************************************************************
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Provides the angle, read-write.
-   * \test PASSED
-   */
+  /// Provides the angle, read-write.
   reference angle() noexcept { return mAngle; }
 
-  /**
-   * Provides the axis, read-write.
-   * \test PASSED
-   */
+  /// Provides the axis, read-write.
   vect<value_type, 3>& axis() noexcept { return mAxis; }
 
-  /**
-   * Provides the angle, read-only.
-   * \test PASSED
-   */
+  /// Provides the angle, read-only.
   const_reference angle() const noexcept { return mAngle; }
 
-  /**
-   * Provides the axis, read-only.
-   * \test PASSED
-   */
+  /// Provides the axis, read-only.
   const vect<value_type, 3>& axis() const noexcept { return mAxis; }
 
-  /**
-   * Provides a quaternion representation of this rotation.
-   * \test PASSED
-   */
+  /// Provides a quaternion representation of this rotation.
   quaternion<value_type> getQuaternion() const noexcept {
     using std::cos;
     using std::sin;
@@ -2183,10 +1531,7 @@ class axis_angle {
             mAxis.q[2] * t};
   }
 
-  /**
-   * Provides a euler angles representation of this rotation.
-   * \test PASSED
-   */
+  /// Provides a euler angles representation of this rotation.
   euler_angles_TB<value_type> getEulerAnglesTB() const noexcept {
     using std::asin;
     using std::atan2;
@@ -2230,10 +1575,7 @@ class axis_angle {
     return result;
   }
 
-  /**
-   * Provides a rotation matrix representation of this rotation.
-   * \test PASSED
-   */
+  /// Provides a rotation matrix representation of this rotation.
   rot_mat_3D<value_type> getRotMat() const noexcept {
     using std::cos;
     using std::sin;
@@ -2254,28 +1596,9 @@ class axis_angle {
             t23 - t01, t13 - t02, t23 + t01, t33};
   }
 
-  /**
-   * Provides a 3x3 matrix representation of this rotation.
-   * \test PASSED
-   */
+  /// Provides a 3x3 matrix representation of this rotation.
   mat<value_type, mat_structure::square> getMat() const {
-    using std::cos;
-    using std::sin;
-    value_type ca(cos(mAngle));
-    value_type one_minus_ca(value_type(1.0) - ca);
-    value_type t11(ca + one_minus_ca * mAxis.q[0] * mAxis.q[0]);
-    value_type t22(ca + one_minus_ca * mAxis.q[1] * mAxis.q[1]);
-    value_type t33(ca + one_minus_ca * mAxis.q[2] * mAxis.q[2]);
-    value_type t12(one_minus_ca * mAxis.q[0] * mAxis.q[1]);
-    value_type t13(one_minus_ca * mAxis.q[0] * mAxis.q[2]);
-    value_type t23(one_minus_ca * mAxis.q[1] * mAxis.q[2]);
-    value_type sin_a(sin(mAngle));
-    value_type t01(sin_a * mAxis.q[0]);
-    value_type t02(sin_a * mAxis.q[1]);
-    value_type t03(sin_a * mAxis.q[2]);
-
-    return {t11,       t12 - t03, t13 + t02, t12 + t03, t22,
-            t23 - t01, t13 - t02, t23 + t01, t33};
+    return getRotMat().getMat();
   }
 
   /*******************************************************************************
@@ -2284,58 +1607,28 @@ class axis_angle {
 
   self& operator=(const self& A) noexcept = default;
 
-  /**
-   * Standard assignment operator.
-   * \test PASSED
-   */
-  self& operator=(const euler_angles_TB<value_type>& E) noexcept {
-    return (*this = self(E));
+  /// Standard assignment operator.
+  template <typename Other>
+  self& operator=(const Other& R) noexcept {
+    return *this = self{R};
   }
 
-  /**
-   * Assignment from a quaternion.
-   * \test PASSED
-   */
-  self& operator=(const quaternion<value_type>& Q) noexcept {
-    return (*this = self(Q));
-  }
-
-  /**
-   * Assignment from a rotation matrix.
-   * \test PASSED
-   */
-  self& operator=(const rot_mat_3D<value_type>& R) noexcept {
-    return (*this = self(R));
-  }
-
-  /**
-   * Multiply-and-store from a axis / angle.
-   * \test PASSED
-   */
+  /// Multiply-and-store from a axis / angle.
   self& operator*=(const self& A) noexcept {
-    return (*this = this->getQuaternion() * A.getQuaternion());
+    return *this = this->getQuaternion() * A.getQuaternion();
   }
 
-  /**
-   * Multiply-and-store from a euler angles.
-   * \test PASSED
-   */
+  /// Multiply-and-store from a euler angles.
   self& operator*=(const euler_angles_TB<value_type>& E) noexcept {
     return (*this = (this->getRotMat() * E.getRotMat()));
   }
 
-  /**
-   * Multiply-and-store from a rotation matrix.
-   * \test PASSED
-   */
+  /// Multiply-and-store from a rotation matrix.
   self& operator*=(const rot_mat_3D<value_type>& R) noexcept {
     return (*this = (this->getRotMat() * R));
   }
 
-  /**
-   * Multiply-and-store from a quaternion.
-   * \test PASSED
-   */
+  /// Multiply-and-store from a quaternion.
   self& operator*=(const quaternion<value_type>& Q) noexcept {
     return (*this = (this->getQuaternion() * Q));
   }
@@ -2344,267 +1637,65 @@ class axis_angle {
                            Basic Operators
   *******************************************************************************/
 
-  /**
-   * Multiplication with an axis / angle representation.
-   * \test PASSED
-   */
+  /// Multiplication with an axis / angle representation.
   friend quaternion<value_type> operator*(const self& A1,
                                           const self& A2) noexcept {
     return A1.getQuaternion() * A2.getQuaternion();
   }
 
-  /**
-   * Multiply by a matrix.
-   * \test PASSED
-   */
-  template <typename Matrix>
-  friend auto operator*(const self& A, const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
-    return A.getRotMat() * M;
+  /// Multiply by a matrix.
+  template <
+      typename Other,
+      std::enable_if_t<!std::is_same_v<Other, rot_mat_3D<value_type>> &&
+                           !std::is_same_v<Other, quaternion<value_type>> &&
+                           !std::is_same_v<Other, euler_angles_TB<value_type>>,
+                       void*> = nullptr>
+  friend auto operator*(const self& A, const Other& R) {
+    return A.getRotMat() * R;
   }
 
-  /**
-   * Multiply by a matrix.
-   * \test PASSED
-   */
-  template <typename Matrix>
-  friend auto operator*(const Matrix& M, const self& A) {
-    static_assert(is_readable_matrix_v<Matrix>);
-    return M * A.getRotMat();
+  /// Multiply by a matrix.
+  template <
+      typename Other,
+      std::enable_if_t<!std::is_same_v<Other, rot_mat_3D<value_type>> &&
+                           !std::is_same_v<Other, quaternion<value_type>> &&
+                           !std::is_same_v<Other, euler_angles_TB<value_type>>,
+                       void*> = nullptr>
+  friend auto operator*(const Other& R, const self& A) {
+    return R * A.getRotMat();
   }
 
-  /**
-   * Multiply by a matrix.
-   * \test PASSED
-   */
-  friend auto operator*(const self& A, const rot_mat_3D<value_type>& M) {
-    return A.getRotMat() * M;
-  }
-
-  /**
-   * Multiply by a matrix.
-   * \test PASSED
-   */
-  friend auto operator*(const rot_mat_3D<value_type>& M, const self& A) {
-    return M * A.getRotMat();
-  }
-
-  /**
-   * Multiplication by an axis / angle representation.
-   * \test PASSED
-   */
-  friend auto operator*(const quaternion<value_type>& Q,
-                        const self& A) noexcept {
-    return Q * A.getQuaternion();
-  }
-
-  /**
-   * Multiplication with a quaternion representation.
-   * \test PASSED
-   */
-  friend auto operator*(const self& A,
-                        const quaternion<value_type>& Q) noexcept {
-    return A.getQuaternion() * Q;
-  }
-
-  /**
-   * Multiply by an axis / angle representation.
-   * \test PASSED
-   */
-  friend auto operator*(const euler_angles_TB<value_type>& E,
-                        const self& A) noexcept {
-    return E.getRotMat() * A.getRotMat();
-  }
-
-  /**
-   * Multiplication with a euler angles TB representation.
-   * \test PASSED
-   */
-  friend auto operator*(const self& A,
-                        const euler_angles_TB<value_type>& E) noexcept {
-    return A.getRotMat() * E.getRotMat();
-  }
-
-  /**
-   * Multiplication with a column vector.
-   * \test PASSED
-   */
+  /// Multiplication with a column vector.
   friend vect<value_type, 3> operator*(const self& A,
                                        const vect<value_type, 3>& V) noexcept {
     return A.getRotMat() * V;
   }
 
   /*******************************************************************************
-                           Comparison Operators
-  *******************************************************************************/
-
-  /**
-   * Equality comparison operator with a axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator==(const self& A1, const self& A2) noexcept {
-    return ((A1.mAngle == A2.mAngle) && (A1.mAxis == A2.mAxis));
-  }
-
-  /**
-   * Inequality comparison operator with a axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& A1, const self& A2) noexcept {
-    return ((A1.mAngle != A2.mAngle) || (A1.mAxis != A2.mAxis));
-  }
-
-  /**
-   * Equality operator for an axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator==(const rot_mat_3D<value_type>& R,
-                         const self& A) noexcept {
-    return R == A.getRotMat();
-  }
-
-  /**
-   * Inequality operator for an axis /angle representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const rot_mat_3D<value_type>& R,
-                         const self& A) noexcept {
-    return R != A.getRotMat();
-  }
-
-  /**
-   * Equality operator for an axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator==(const self& A,
-                         const rot_mat_3D<value_type>& R) noexcept {
-    return R == A.getRotMat();
-  }
-
-  /**
-   * Inequality operator for an axis /angle representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& A,
-                         const rot_mat_3D<value_type>& R) noexcept {
-    return R != A.getRotMat();
-  }
-
-  /**
-   * Equality operator with an axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator==(const quaternion<value_type>& Q,
-                         const self& A) noexcept {
-    return Q == A.getQuaternion();
-  }
-
-  /**
-   * Inequality operator with an axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const quaternion<value_type>& Q,
-                         const self& A) noexcept {
-    return Q != A.getQuaternion();
-  }
-
-  /**
-   * Equality operator with an axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator==(const self& A,
-                         const quaternion<value_type>& Q) noexcept {
-    return Q == A.getQuaternion();
-  }
-
-  /**
-   * Inequality operator with an axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& A,
-                         const quaternion<value_type>& Q) noexcept {
-    return Q != A.getQuaternion();
-  }
-
-  /**
-   * Equality comparison operator with a axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator==(const euler_angles_TB<value_type>& E,
-                         const self& A) noexcept {
-    return E == A.getEulerAnglesTB();
-  }
-
-  /**
-   * Inequality comparison operator with a axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const euler_angles_TB<value_type>& E,
-                         const self& A) noexcept {
-    return E != A.getEulerAnglesTB();
-  }
-
-  /**
-   * Equality comparison operator with a axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator==(const self& A,
-                         const euler_angles_TB<value_type>& E) noexcept {
-    return E == A.getEulerAnglesTB();
-  }
-
-  /**
-   * Inequality comparison operator with a axis / angle representation.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& A,
-                         const euler_angles_TB<value_type>& E) noexcept {
-    return E != A.getEulerAnglesTB();
-  }
-
-  /*******************************************************************************
                            Standard Matrix Methods
   *******************************************************************************/
 
-  /**
-   * Produces a transpose axis/angle which is the inverse rotation.
-   * \test PASSED
-   */
+  /// Produces a transpose axis/angle which is the inverse rotation.
   friend self transpose(const self& A) noexcept { return {-A.mAngle, A.mAxis}; }
 
-  /**
-   * Produces a cofactor matrix which is the same as the rotation itself.
-   * \test PASSED
-   */
+  /// Produces a cofactor matrix which is the same as the rotation itself.
   friend self cofactor(const self& A) noexcept { return A; }
 
-  /**
-   * Invert the rotation.
-   * \test PASSED
-   */
+  /// Invert the rotation.
   friend self invert(const self& A) noexcept { return {-A.mAngle, A.mAxis}; }
 
-  /**
-   * Gets the trace of the matrix.
-   * \test PASSED
-   */
+  /// Gets the trace of the matrix.
   friend value_type trace(const self& A) noexcept {
     using std::cos;
     return value_type(2.0) * cos(A.mAngle) + value_type(1.0);
   }
 
-  /**
-   * Gets the determinant of the matrix.
-   * \test PASSED
-   */
+  /// Gets the determinant of the matrix.
   friend value_type determinant(const self& /*unused*/) noexcept {
     return value_type(1.0);
   }
 
-  /**
-   * Gets the symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the symmetric part of the matrix.
   mat<value_type, mat_structure::symmetric> getSymPart() const {
     using std::cos;
     value_type ca(cos(mAngle));
@@ -2618,10 +1709,7 @@ class axis_angle {
     return {t11, t12, t13, t22, t23, t33};
   }
 
-  /**
-   * Gets the skew-symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the skew-symmetric part of the matrix.
   mat<value_type, mat_structure::skew_symmetric> getSkewSymPart() const {
     using std::sin;
     value_type sin_a(sin(mAngle));
@@ -2675,20 +1763,14 @@ struct get_type_id<axis_angle<T>> {
 
 }  // namespace rtti
 
-/**
- * Prints a axis / angle to a standard output stream (<<) as "(Angle = value; Axis = (a1; a2; a3))".
- * \test PASSED
- */
+/// Prints a axis / angle to a standard output stream (<<) as "(Angle = value; Axis = (a1; a2; a3))".
 template <class T>
 std::ostream& operator<<(std::ostream& out_stream, const axis_angle<T>& A) {
   return out_stream << "(Angle = " << A.angle() << "; Axis = " << A.axis()
                     << ")";
 }
 
-/**
- * This class is a transformation matrix 4 by 4, i.e. to rotate and translate a 3D vector.
- * \test All tests for this class have been passed!
- */
+/// This class is a transformation matrix 4 by 4, i.e. to rotate and translate a 3D vector.
 template <class T>
 class trans_mat_3D {
  public:
@@ -2748,10 +1830,7 @@ class trans_mat_3D {
                            Constructors / Destructors
   *******************************************************************************/
 
-  /**
-   * Default Constructor.
-   * \test PASSED
-   */
+  /// Default Constructor.
   trans_mat_3D() noexcept {
     std::fill(q.begin(), q.end(), value_type(0.0));
     q[0] = value_type(1.0);
@@ -2760,10 +1839,7 @@ class trans_mat_3D {
     q[15] = value_type(1.0);
   }
 
-  /**
-   * Constructor from a 4x4 array (16 values).
-   * \test PASSED
-   */
+  /// Constructor from a 4x4 array (16 values).
   explicit trans_mat_3D(const_pointer M) noexcept {
     vect<value_type, 3> v1 = unit(vect<value_type, 3>(M));
     q[0] = v1[0];
@@ -2789,10 +1865,7 @@ class trans_mat_3D {
   explicit trans_mat_3D(pointer M)
       : trans_mat_3D(static_cast<const_pointer>(M)) {}
 
-  /**
-   * Constructor from a regular matrix.
-   * \test PASSED
-   */
+  /// Constructor from a regular matrix.
   template <typename Matrix>
   explicit trans_mat_3D(const Matrix& M) {
     static_assert(is_readable_matrix_v<Matrix>);
@@ -2824,10 +1897,7 @@ class trans_mat_3D {
     q[15] = value_type(1.0);
   }
 
-  /**
-   * Constructor from a rotation matrix and an optional translation vector V.
-   * \test PASSED
-   */
+  /// Constructor from a rotation matrix and an optional translation vector V.
   explicit trans_mat_3D(const rot_mat_3D<value_type>& R,
                         const translation_type& V =
                             translation_type(value_type(0.0), value_type(0.0),
@@ -2840,56 +1910,26 @@ class trans_mat_3D {
     q[15] = value_type(1.0);
   }
 
-  /**
-   * Constructor from a quaternion representation and an optional translation vector V.
-   * \test PASSED
-   */
+  /// Constructor from a quaternion representation and an optional translation vector V.
   explicit trans_mat_3D(const quaternion<value_type>& Q,
                         const translation_type& V =
                             translation_type(value_type(0.0), value_type(0.0),
-                                             value_type(0.0))) noexcept {
-    rot_mat_3D<value_type> R(Q.getRotMat());
-    setRotMat(R);
-    q[3] = value_type(0.0);
-    q[7] = value_type(0.0);
-    q[11] = value_type(0.0);
-    setTranslation(V);
-    q[15] = value_type(1.0);
-  }
+                                             value_type(0.0))) noexcept
+      : trans_mat_3D(Q.getRotMat(), V) {}
 
-  /**
-   * Constructor from a euler angles TB representation and an optional translation vector V.
-   * \test PASSED
-   */
+  /// Constructor from a euler angles TB representation and an optional translation vector V.
   explicit trans_mat_3D(const euler_angles_TB<value_type>& E,
                         const translation_type& V =
                             translation_type(value_type(0.0), value_type(0.0),
-                                             value_type(0.0))) noexcept {
-    rot_mat_3D<value_type> R(E.getRotMat());
-    setRotMat(R);
-    q[3] = value_type(0.0);
-    q[7] = value_type(0.0);
-    q[11] = value_type(0.0);
-    setTranslation(V);
-    q[15] = value_type(1.0);
-  }
+                                             value_type(0.0))) noexcept
+      : trans_mat_3D(E.getRotMat(), V) {}
 
-  /**
-   * Constructor from an axis / angle representation and an optional translation vector V.
-   * \test PASSED
-   */
+  /// Constructor from an axis / angle representation and an optional translation vector V.
   explicit trans_mat_3D(const axis_angle<value_type>& A,
                         const translation_type& V =
                             translation_type(value_type(0.0), value_type(0.0),
-                                             value_type(0.0))) noexcept {
-    rot_mat_3D<value_type> R(A.getRotMat());
-    setRotMat(R);
-    q[3] = value_type(0.0);
-    q[7] = value_type(0.0);
-    q[11] = value_type(0.0);
-    setTranslation(V);
-    q[15] = value_type(1.0);
-  }
+                                             value_type(0.0))) noexcept
+      : trans_mat_3D(A.getRotMat(), V) {}
 
   trans_mat_3D(const self&) noexcept = default;
 
@@ -2897,10 +1937,7 @@ class trans_mat_3D {
                            Accessors and Methods
   *******************************************************************************/
 
-  /**
-   * Provides a copy of the transformation matrix as an ordinary 4x4 matrix.
-   * \test PASSED
-   */
+  /// Provides a copy of the transformation matrix as an ordinary 4x4 matrix.
   mat<value_type, mat_structure::square> getMat() const {
     return mat<value_type, mat_structure::square>(
         q[0], q[4], q[8], q[12], q[1], q[5], q[9], q[13], q[2], q[6], q[10],
@@ -2908,19 +1945,13 @@ class trans_mat_3D {
         value_type(1.0));
   }
 
-  /**
-   * Provides the rotation part of the transformation as a rotation matrix.
-   * \test PASSED
-   */
+  /// Provides the rotation part of the transformation as a rotation matrix.
   rot_mat_3D<value_type> getRotMat() const noexcept {
     return rot_mat_3D<value_type>(q[0], q[4], q[8], q[1], q[5], q[9], q[2],
                                   q[6], q[10]);
   }
 
-  /**
-   * Sets the rotation part of the transformation from a rotation matrix.
-   * \test PASSED
-   */
+  /// Sets the rotation part of the transformation from a rotation matrix.
   void setRotMat(const rot_mat_3D<value_type>& R) noexcept {
     q[0] = R.q[0];
     q[1] = R.q[1];
@@ -2933,85 +1964,55 @@ class trans_mat_3D {
     q[10] = R.q[8];
   }
 
-  /**
-   * Returns the quaternion of the rotation matrix.
-   * \test PASSED
-   */
+  /// Returns the quaternion of the rotation matrix.
   quaternion<value_type> getQuaternion() const noexcept {
     return quaternion<value_type>(getRotMat());
   }
 
-  /**
-   * Sets the quaternion of the rotation matrix.
-   * \test PASSED
-   */
+  /// Sets the quaternion of the rotation matrix.
   void setQuaternion(const quaternion<value_type>& Q) noexcept {
     setRotMat(Q.getRotMat());
   }
 
-  /**
-   * Returns the euler angles TB of the rotation matrix.
-   * \test PASSED
-   */
+  /// Returns the euler angles TB of the rotation matrix.
   euler_angles_TB<value_type> getEulerAnglesTB() const noexcept {
     return euler_angles_TB<value_type>(getRotMat());
   }
 
-  /**
-   * Sets the euler angles TB of the rotation matrix.
-   * \test PASSED
-   */
+  /// Sets the euler angles TB of the rotation matrix.
   void setEulerAnglesTB(const euler_angles_TB<value_type>& E) noexcept {
     setRotMat(E.getRotMat());
   }
 
-  /**
-   * Returns the axis / angle of the rotation matrix.
-   * \test PASSED
-   */
+  /// Returns the axis / angle of the rotation matrix.
   axis_angle<value_type> getAxisAngle() const noexcept {
     return axis_angle<value_type>(getRotMat());
   }
 
-  /**
-   * Sets the axis / angle of the rotation matrix.
-   * \test PASSED
-   */
+  /// Sets the axis / angle of the rotation matrix.
   void setAxisAngle(const axis_angle<value_type>& A) noexcept {
     setRotMat(A.getRotMat());
   }
 
-  /**
-   * Provides the translation part of the transformation matrix as a vector.
-   * \test PASSED
-   */
+  /// Provides the translation part of the transformation matrix as a vector.
   translation_type getTranslation() const noexcept {
     return translation_type(q[12], q[13], q[14]);
   }
 
-  /**
-   * Sets the translation part of the transformation matrix to a vector.
-   * \test PASSED
-   */
+  /// Sets the translation part of the transformation matrix to a vector.
   void setTranslation(const translation_type& Translation) noexcept {
     q[12] = Translation[0];
     q[13] = Translation[1];
     q[14] = Translation[2];
   }
 
-  /**
-   * Array indexing operator, accessor for read only.
-   * \test PASSED
-   */
+  /// Array indexing operator, accessor for read only.
   const_reference operator[](int i) const noexcept {
     assert(i < 16);
     return q[i];
   }
 
-  /**
-   * Array double-indexing operator, ith row and jth column, accessor for read only.
-   * \test PASSED
-   */
+  /// Array double-indexing operator, ith row and jth column, accessor for read only.
   const_reference operator()(int i, int j) const noexcept {
     assert((i < 4) || (j < 4));
     return q[j * 4 + i];
@@ -3026,145 +2027,33 @@ class trans_mat_3D {
 
   self& operator=(const self&) noexcept = default;
 
-  /**
-   * Assignment operator with regular matrix.
-   * \test PASSED
-   */
+  /// Assignment operator with regular matrix.
   template <typename Matrix>
   self& operator=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
-    if ((M.get_row_count() != 4) || (M.get_col_count() != 4)) {
-      throw std::range_error(
-          "Matrix for creating the 3D transformation matrix is not of correct "
-          "dimensions!");
-    }
-    vect<value_type, 3> v1 =
-        unit(vect<value_type, 3>(M(0, 0), M(1, 0), M(2, 0)));
-    q[0] = v1[0];
-    q[1] = v1[1];
-    q[2] = v1[2];
-    q[3] = value_type(0.0);
-    vect<value_type, 3> v2(M(0, 1), M(1, 1), M(2, 1));
-    v2 = unit(v2 - (v2 * v1) * v1);
-    q[4] = v2[0];
-    q[5] = v2[1];
-    q[6] = v2[2];
-    q[7] = value_type(0.0);
-    v2 = v1 % v2;
-    q[8] = v2[0];
-    q[9] = v2[1];
-    q[10] = v2[2];
-    q[11] = value_type(0.0);
-    q[12] = M(0, 3);
-    q[13] = M(1, 3);
-    q[14] = M(2, 3);
-    q[15] = value_type(1.0);
-    return *this;
+    return *this = self{M};
   }
 
-  /**
-   * Assignment operator with rotation matrix.
-   * \test PASSED
-   */
+  /// Assignment operator with rotation matrix.
   self& operator=(const rot_mat_3D<value_type>& R) noexcept {
-    q[0] = R.q[0];
-    q[1] = R.q[1];
-    q[2] = R.q[2];
-    q[3] = value_type(0.0);
-    q[4] = R.q[3];
-    q[5] = R.q[4];
-    q[6] = R.q[5];
-    q[7] = value_type(0.0);
-    q[8] = R.q[6];
-    q[9] = R.q[7];
-    q[10] = R.q[8];
-    q[11] = value_type(0.0);
-    q[12] = value_type(0.0);
-    q[13] = value_type(0.0);
-    q[14] = value_type(0.0);
-    q[15] = value_type(1.0);
-    return *this;
+    return *this = self{R};
   }
 
-  /**
-   * Assignment operator with a quaternion representation.
-   * \test PASSED
-   */
+  /// Assignment operator with a quaternion representation.
   self& operator=(const quaternion<value_type>& Q) noexcept {
-    rot_mat_3D<value_type> R(Q.getRotMat());
-    q[0] = R.q[0];
-    q[1] = R.q[1];
-    q[2] = R.q[2];
-    q[3] = value_type(0.0);
-    q[4] = R.q[3];
-    q[5] = R.q[4];
-    q[6] = R.q[5];
-    q[7] = value_type(0.0);
-    q[8] = R.q[6];
-    q[9] = R.q[7];
-    q[10] = R.q[8];
-    q[11] = value_type(0.0);
-    q[12] = value_type(0.0);
-    q[13] = value_type(0.0);
-    q[14] = value_type(0.0);
-    q[15] = value_type(1.0);
-    return *this;
+    return *this = self{Q.getRotMat()};
   }
 
-  /**
-   * Assignment operator with euler angles TB representation.
-   * \test PASSED
-   */
+  /// Assignment operator with euler angles TB representation.
   self& operator=(const euler_angles_TB<value_type>& E) noexcept {
-    rot_mat_3D<value_type> R(E.getRotMat());
-    q[0] = R.q[0];
-    q[1] = R.q[1];
-    q[2] = R.q[2];
-    q[3] = value_type(0.0);
-    q[4] = R.q[3];
-    q[5] = R.q[4];
-    q[6] = R.q[5];
-    q[7] = value_type(0.0);
-    q[8] = R.q[6];
-    q[9] = R.q[7];
-    q[10] = R.q[8];
-    q[11] = value_type(0.0);
-    q[12] = value_type(0.0);
-    q[13] = value_type(0.0);
-    q[14] = value_type(0.0);
-    q[15] = value_type(1.0);
-    return *this;
+    return *this = self{E.getRotMat()};
   }
 
-  /**
-   * Assignment operator with an axis / angle representation.
-   * \test PASSED
-   */
+  /// Assignment operator with an axis / angle representation.
   self& operator=(const axis_angle<value_type>& A) noexcept {
-    rot_mat_3D<value_type> R(A.getRotMat());
-    q[0] = R.q[0];
-    q[1] = R.q[1];
-    q[2] = R.q[2];
-    q[3] = value_type(0.0);
-    q[4] = R.q[3];
-    q[5] = R.q[4];
-    q[6] = R.q[5];
-    q[7] = value_type(0.0);
-    q[8] = R.q[6];
-    q[9] = R.q[7];
-    q[10] = R.q[8];
-    q[11] = value_type(0.0);
-    q[12] = value_type(0.0);
-    q[13] = value_type(0.0);
-    q[14] = value_type(0.0);
-    q[15] = value_type(1.0);
-    return *this;
+    return *this = self{A.getRotMat()};
   }
 
-  /**
-   * Multiply-and-store with a transformation matrix.
-   * \test PASSED
-   */
+  /// Multiply-and-store with a transformation matrix.
   self& operator*=(const self& M) noexcept {
     (*this) = self(q[0] * M.q[0] + q[4] * M.q[1] + q[8] * M.q[2],
                    q[0] * M.q[4] + q[4] * M.q[5] + q[8] * M.q[6],
@@ -3181,10 +2070,7 @@ class trans_mat_3D {
     return *this;
   }
 
-  /**
-   * Multiply-and-store with a rotation matrix.
-   * \test PASSED
-   */
+  /// Multiply-and-store with a rotation matrix.
   self& operator*=(const rot_mat_3D<value_type>& R) noexcept {
     (*this) = self(q[0] * R.q[0] + q[4] * R.q[1] + q[8] * R.q[2],
                    q[0] * R.q[3] + q[4] * R.q[4] + q[8] * R.q[5],
@@ -3198,26 +2084,17 @@ class trans_mat_3D {
     return *this;
   }
 
-  /**
-   * Multiply-and-store with a quaternion representation.
-   * \test PASSED
-   */
+  /// Multiply-and-store with a quaternion representation.
   self& operator*=(const quaternion<value_type>& Q) noexcept {
     return (*this *= Q.getRotMat());
   }
 
-  /**
-   * Multiply-and-store with a euler angles TB representation.
-   * \test PASSED
-   */
+  /// Multiply-and-store with a euler angles TB representation.
   self& operator*=(const euler_angles_TB<value_type>& E) noexcept {
     return (*this *= E.getRotMat());
   }
 
-  /**
-   * Multiply-and-store with an axis / angle representation.
-   * \test PASSED
-   */
+  /// Multiply-and-store with an axis / angle representation.
   self& operator*=(const axis_angle<value_type>& A) noexcept {
     return (*this *= A.getRotMat());
   }
@@ -3226,10 +2103,7 @@ class trans_mat_3D {
                            Basic Operators
   *******************************************************************************/
 
-  /**
-   * Multiplication with a transformation matrix.
-   * \test PASSED
-   */
+  /// Multiplication with a transformation matrix.
   friend self operator*(const self& M1, const self& M2) noexcept {
     return {
         M1.q[0] * M2.q[0] + M1.q[4] * M2.q[1] + M1.q[8] * M2.q[2],
@@ -3247,30 +2121,21 @@ class trans_mat_3D {
             M1.q[14]};
   }
 
-  /**
-   * Multiply by a matrix.
-   * \test PASSED
-   */
+  /// Multiply by a matrix.
   template <typename Matrix>
   friend auto operator*(const self& M1, const Matrix& M2) {
     static_assert(is_readable_matrix_v<Matrix>);
     return M1.getMat() * M2;
   }
 
-  /**
-   * Multiply by a matrix.
-   * \test PASSED
-   */
+  /// Multiply by a matrix.
   template <typename Matrix>
   friend auto operator*(const Matrix& M1, const self& M2) {
     static_assert(is_readable_matrix_v<Matrix>);
     return M1 * M2.getMat();
   }
 
-  /**
-   * Multiplication with a rotation matrix.
-   * \test PASSED
-   */
+  /// Multiplication with a rotation matrix.
   friend self operator*(const self& M,
                         const rot_mat_3D<value_type>& R) noexcept {
     return {M.q[0] * R[0] + M.q[4] * R[1] + M.q[8] * R[2],
@@ -3287,19 +2152,13 @@ class trans_mat_3D {
             M.q[14]};
   }
 
-  /**
-   * Multiplication with a transformation matrix.
-   * \test PASSED
-   */
+  /// Multiplication with a transformation matrix.
   friend self operator*(const rot_mat_3D<value_type>& R,
                         const self& M) noexcept {
     return trans_mat_3D<value_type>(R) * M;
   }
 
-  /**
-   * Multiplication with a 3D column vector.
-   * \test PASSED
-   */
+  /// Multiplication with a 3D column vector.
   friend vect<value_type, 3> operator*(const self& M,
                                        const vect<value_type, 3>& V) noexcept {
     return {M.q[0] * V[0] + M.q[4] * V[1] + M.q[8] * V[2] + M.q[12],
@@ -3307,10 +2166,7 @@ class trans_mat_3D {
             M.q[2] * V[0] + M.q[6] * V[1] + M.q[10] * V[2] + M.q[14]};
   }
 
-  /**
-   * Multiplication with a 4D column vector.
-   * \test PASSED
-   */
+  /// Multiplication with a 4D column vector.
   friend vect<value_type, 4> operator*(const self& M,
                                        const vect<value_type, 4>& V) noexcept {
     return {M.q[0] * V[0] + M.q[4] * V[1] + M.q[8] * V[2] + M.q[12] * V[3],
@@ -3320,41 +2176,10 @@ class trans_mat_3D {
   }
 
   /*******************************************************************************
-                           Comparison Operators
-  *******************************************************************************/
-
-  /**
-   * Equality operator with a transformation matrix.
-   * \test PASSED
-   */
-  friend bool operator==(const self& M1, const self& M2) noexcept {
-    return ((M1.q[0] == M2.q[0]) && (M1.q[1] == M2.q[1]) &&
-            (M1.q[2] == M2.q[2]) && (M1.q[4] == M2.q[4]) &&
-            (M1.q[5] == M2.q[5]) && (M1.q[6] == M2.q[6]) &&
-            (M1.q[12] == M2.q[12]) && (M1.q[13] == M2.q[13]) &&
-            (M1.q[14] == M2.q[14]));
-  }
-
-  /**
-   * Inequality operator with a transformation matrix.
-   * \test PASSED
-   */
-  friend bool operator!=(const self& M1, const self& M2) noexcept {
-    return ((M1.q[0] != M2.q[0]) || (M1.q[1] != M2.q[1]) ||
-            (M1.q[2] != M2.q[2]) || (M1.q[4] != M2.q[4]) ||
-            (M1.q[5] != M2.q[5]) || (M1.q[6] != M2.q[6]) ||
-            (M1.q[12] != M2.q[12]) || (M1.q[13] != M2.q[13]) ||
-            (M1.q[14] != M2.q[14]));
-  }
-
-  /*******************************************************************************
                            Special Methods
   *******************************************************************************/
 
-  /**
-   * Rotate-only a 3D column vector.
-   * \test PASSED
-   */
+  /// Rotate-only a 3D column vector.
   vect<value_type, 3> rotate(const vect<value_type, 3>& V) const noexcept {
     return {q[0] * V[0] + q[4] * V[1] + q[8] * V[2],
             q[1] * V[0] + q[5] * V[1] + q[9] * V[2],
@@ -3365,48 +2190,25 @@ class trans_mat_3D {
                            Standard Matrix Methods
   *******************************************************************************/
 
-  /**
-   * Creates the transpose matrix.
-   * \note the matrix is no longer a transformation matrix.
-   * \test PASSED
-   */
+  /// Creates the transpose matrix.
+  /// \note the matrix is no longer a transformation matrix.
   friend mat<value_type, mat_structure::square> transpose(
       const self& M) noexcept {
     return {M.q[0], M.q[1], M.q[2],  0.0, M.q[4],  M.q[5],  M.q[6],  0.0,
             M.q[8], M.q[9], M.q[10], 0.0, M.q[12], M.q[13], M.q[14], 1.0};
   }
 
-  /**
-   * Creates the transpose matrix.
-   * \note the matrix is no longer a transformation matrix.
-   * \test PASSED
-   */
-  friend mat<value_type, mat_structure::square> transpose_move(
-      const self& M) noexcept {
-    return {M.q[0], M.q[1], M.q[2],  0.0, M.q[4],  M.q[5],  M.q[6],  0.0,
-            M.q[8], M.q[9], M.q[10], 0.0, M.q[12], M.q[13], M.q[14], 1.0};
-  }
-
-  /**
-   * Gets the trace of the matrix.
-   * \test PASSED
-   */
+  /// Gets the trace of the matrix.
   friend value_type trace(const self& M) noexcept {
     return M.q[0] + M.q[5] + M.q[10] + value_type(1.0);
   }
 
-  /**
-   * Gets the determinant of the matrix.
-   * \test PASSED
-   */
+  /// Gets the determinant of the matrix.
   friend value_type determinant(const self& /*unused*/) noexcept {
     return value_type(1.0);
   }
 
-  /**
-   * Invert the transformation.
-   * \test PASSED
-   */
+  /// Invert the transformation.
   friend self invert(const self& M) noexcept {
     return {M.q[0],  M.q[1],
             M.q[2],  -M.q[0] * M.q[12] - M.q[1] * M.q[13] - M.q[2] * M.q[14],
@@ -3416,18 +2218,12 @@ class trans_mat_3D {
             M.q[10], -M.q[8] * M.q[12] - M.q[9] * M.q[13] - M.q[10] * M.q[14]};
   }
 
-  /**
-   * Gets the symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the symmetric part of the matrix.
   mat<value_type, mat_structure::symmetric> getSymPart() const {
     return mat<value_type, mat_structure::symmetric>(getMat());
   }
 
-  /**
-   * Gets the skew-symmetric part of the matrix.
-   * \test PASSED
-   */
+  /// Gets the skew-symmetric part of the matrix.
   mat<value_type, mat_structure::skew_symmetric> getSkewSymPart() const {
     return mat<value_type, mat_structure::skew_symmetric>(getMat());
   }
@@ -3500,11 +2296,8 @@ struct get_type_id<trans_mat_3D<T>> {
 
 }  // namespace rtti
 
-/**
- * Prints a 3D transformation matrix to a standard output stream (<<)
- * as "(quaternion = (q0; q1; q2; q3); translation = (tx; ty; tz))".
- * \test PASSED
- */
+/// Prints a 3D transformation matrix to a standard output stream (<<)
+/// as "(quaternion = (q0; q1; q2; q3); translation = (tx; ty; tz))".
 template <class T>
 std::ostream& operator<<(std::ostream& out_stream, const trans_mat_3D<T>& M) {
   out_stream << "(quaternion = " << M.getQuaternion()

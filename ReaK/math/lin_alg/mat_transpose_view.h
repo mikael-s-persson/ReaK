@@ -136,16 +136,6 @@ class mat_const_transpose_view {
   friend mat<value_type, mat_structure::rectangular> transpose(const self& M) {
     return mat<value_type, mat_structure::rectangular>(*(M.m));
   }
-
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
-  friend mat<value_type, mat_structure::rectangular> transpose_move(
-      const self& M) {
-    return mat<value_type, mat_structure::rectangular>(*(M.m));
-  }
 };
 
 template <typename Matrix>
@@ -367,16 +357,6 @@ class mat_transpose_view {
    * \return The transpose of M.
    */
   friend mat<value_type, mat_structure::rectangular> transpose(const self& M) {
-    return mat<value_type, mat_structure::rectangular>(*(M.m));
-  }
-
-  /**
-   * Transposes the matrix M.
-   * \param M The matrix to be transposed.
-   * \return The transpose of M.
-   */
-  friend mat<value_type, mat_structure::rectangular> transpose_move(
-      const self& M) {
     return mat<value_type, mat_structure::rectangular>(*(M.m));
   }
 };

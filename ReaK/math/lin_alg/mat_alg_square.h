@@ -8,7 +8,7 @@
  *
  * This library also implements transposition of matrices via alignment
  * switching (switching from column-major to row-major, or vice versa). This
- * is very efficient and can even avoid copies completely (via transpose_move()) on an
+ * is very efficient and can even avoid copies completely (via transpose(std::move())) on an
  * optimizing compiler.
  *
  * \author Mikael Persson <mikael.s.persson@gmail.com>
@@ -509,21 +509,6 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   friend auto transpose(const self& M) {
     return mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
                RowCount>(M.data.q, M.get_row_count());
-  }
-  /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
-  /// \param M The matrix to be transposed.
-  /// \return The transpose of M.
-  friend auto transpose_move(self& M) {
-    using std::swap;
-    mat<T, mat_structure::square, mat_alignment::row_major, RowCount, RowCount>
-        result;
-    if constexpr (is_dynamic_size) {
-      swap(result, M.data.q, M.data.rowCount);
-    } else {
-      int rowCount = RowCount;
-      swap(result, M.data.q, rowCount);
-    }
-    return result;
   }
 
   /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
@@ -1039,22 +1024,6 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   friend auto transpose(const self& M) {
     return mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
                RowCount>(M.data.q, M.get_row_count());
-  }
-  /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
-  /// \param M The matrix to be transposed.
-  /// \return The transpose of M.
-  friend auto transpose_move(self& M) {
-    using std::swap;
-    mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
-        RowCount>
-        result;
-    if constexpr (is_dynamic_size) {
-      swap(result, M.data.q, M.data.rowCount);
-    } else {
-      int rowCount = RowCount;
-      swap(result, M.data.q, rowCount);
-    }
-    return result;
   }
 
   /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.

@@ -185,15 +185,6 @@ class mat<T, mat_structure::identity, Alignment, RowCount, RowCount>
   /// \return The rhs matrix, by value.
   friend self transpose(const self& rhs) { return rhs; }
 
-  /// Transpose and move the matrix.
-  /// \param rhs the matrix to be transposed and moved (emptied).
-  /// \return The rhs matrix, by value.
-  friend self transpose_move(self& rhs) {
-    self result;
-    swap(result, rhs);
-    return result;
-  }
-
   /// Returns the trace of a matrix.
   /// \param M A matrix.
   /// \return the trace of matrix M.

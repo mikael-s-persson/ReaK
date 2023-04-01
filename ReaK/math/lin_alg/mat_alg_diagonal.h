@@ -395,13 +395,6 @@ class mat<T, mat_structure::diagonal, Alignment, RowCount, RowCount>
   friend self transpose(const self& M) { return M; }
 
   /// Transposes the matrix M in a potentially destructive way (move-semantics).
-  friend self transpose_move(self& M) {
-    self result;
-    swap(result, M);
-    return result;
-  }
-
-  /// Transposes the matrix M in a potentially destructive way (move-semantics).
   friend self transpose(self&& M) { return self(std::move(M)); }
 
   /// Returns the trace of matrix M.

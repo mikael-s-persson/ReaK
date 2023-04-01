@@ -689,11 +689,7 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   /// Transposes the matrix M in a potentially destructive way (move-semantics, pre-C++0x).
   /// \param M The symmetric matrix to be transposed and moved.
   /// \return The transpose of M.
-  friend self transpose_move(self& M) {
-    self result;
-    swap(result, M);
-    return result;
-  }
+  friend self transpose(self&& M) { return std::move(M); }
 
   /// Returns the trace of matrix M.
   /// \param M A symmetric matrix.

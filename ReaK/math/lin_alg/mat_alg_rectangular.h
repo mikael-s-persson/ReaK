@@ -8,7 +8,7 @@
  *
  * This library also implements transposition of matrices via alignment
  * switching (switching from column-major to row-major, or vice versa). This
- * is very efficient and can even avoid copies completely (via transpose_move()) on an
+ * is very efficient and can even avoid copies completely (via transpose(std::move())) on an
  * optimizing compiler.
  *
  * \author Mikael Persson <mikael.s.persson@gmail.com>
@@ -537,24 +537,6 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
   /// \param M The matrix to be transposed.
   /// \return The transpose of M.
-  friend auto transpose_move(self& M) {
-    mat<T, mat_structure::rectangular, mat_alignment::row_major, ColCount,
-        RowCount>
-        result;
-    using std::swap;
-    if constexpr (is_dynamic_size) {
-      swap(result, M.data.q, M.data.colCount, M.data.rowCount);
-    } else {
-      int colCount = M.get_col_count();
-      int rowCount = M.get_row_count();
-      swap(result, M.data.q, colCount, rowCount);
-    }
-    return result;
-  }
-
-  /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
-  /// \param M The matrix to be transposed.
-  /// \return The transpose of M.
   friend auto transpose(self&& M) {
     mat<T, mat_structure::rectangular, mat_alignment::row_major, ColCount,
         RowCount>
@@ -597,46 +579,32 @@ class mat<T, mat_structure::rectangular, mat_alignment::column_major, RowCount,
   RK_RTTI_REGISTER_CLASS_1BASE(self, 1, serializable)
 };
 
-#define RK_CREATE_SUBMATRIX_MINUS_TRANSPOSE_OPERATORS(SUBMATRIX)            \
-  template <typename Matrix>                                                \
-  mat<mat_value_type_t<Matrix>, mat_structure::rectangular> operator-(      \
-      const SUBMATRIX<Matrix>& rhs) {                                       \
-    using ValueType = mat_value_type_t<Matrix>;                             \
-    mat<ValueType, mat_structure::rectangular> result{rhs};                 \
-    for (int j = 0; j < result.get_col_count(); ++j) {                      \
-      for (int i = 0; i < result.get_row_count(); ++i) {                    \
-        result(i, j) = -result(i, j);                                       \
-      }                                                                     \
-    }                                                                       \
-    return result;                                                          \
-  }                                                                         \
-                                                                            \
-  template <typename Matrix>                                                \
-  mat<mat_value_type_t<Matrix>, mat_structure::rectangular> transpose(      \
-      const SUBMATRIX<Matrix>& M) {                                         \
-    using ValueType = mat_value_type_t<Matrix>;                             \
-    mat<ValueType, mat_structure::rectangular> result{M.get_col_count(),    \
-                                                      M.get_row_count()};   \
-    for (int j = 0; j < result.get_col_count(); ++j) {                      \
-      for (int i = 0; i < result.get_row_count(); ++i) {                    \
-        result(i, j) = M(j, i);                                             \
-      }                                                                     \
-    }                                                                       \
-    return result;                                                          \
-  }                                                                         \
-                                                                            \
-  template <typename Matrix>                                                \
-  mat<mat_value_type_t<Matrix>, mat_structure::rectangular> transpose_move( \
-      const SUBMATRIX<Matrix>& M) {                                         \
-    using ValueType = mat_value_type_t<Matrix>;                             \
-    mat<ValueType, mat_structure::rectangular> result{M.get_col_count(),    \
-                                                      M.get_row_count()};   \
-    for (int j = 0; j < result.get_col_count(); ++j) {                      \
-      for (int i = 0; i < result.get_row_count(); ++i) {                    \
-        result(i, j) = M(j, i);                                             \
-      }                                                                     \
-    }                                                                       \
-    return result;                                                          \
+#define RK_CREATE_SUBMATRIX_MINUS_TRANSPOSE_OPERATORS(SUBMATRIX)          \
+  template <typename Matrix>                                              \
+  mat<mat_value_type_t<Matrix>, mat_structure::rectangular> operator-(    \
+      const SUBMATRIX<Matrix>& rhs) {                                     \
+    using ValueType = mat_value_type_t<Matrix>;                           \
+    mat<ValueType, mat_structure::rectangular> result{rhs};               \
+    for (int j = 0; j < result.get_col_count(); ++j) {                    \
+      for (int i = 0; i < result.get_row_count(); ++i) {                  \
+        result(i, j) = -result(i, j);                                     \
+      }                                                                   \
+    }                                                                     \
+    return result;                                                        \
+  }                                                                       \
+                                                                          \
+  template <typename Matrix>                                              \
+  mat<mat_value_type_t<Matrix>, mat_structure::rectangular> transpose(    \
+      const SUBMATRIX<Matrix>& M) {                                       \
+    using ValueType = mat_value_type_t<Matrix>;                           \
+    mat<ValueType, mat_structure::rectangular> result{M.get_col_count(),  \
+                                                      M.get_row_count()}; \
+    for (int j = 0; j < result.get_col_count(); ++j) {                    \
+      for (int i = 0; i < result.get_row_count(); ++i) {                  \
+        result(i, j) = M(j, i);                                           \
+      }                                                                   \
+    }                                                                     \
+    return result;                                                        \
   }
 
 RK_CREATE_SUBMATRIX_MINUS_TRANSPOSE_OPERATORS(mat_copy_sub_block)
@@ -1137,24 +1105,6 @@ class mat<T, mat_structure::rectangular, mat_alignment::row_major, RowCount,
     return mat<T, mat_structure::rectangular, mat_alignment::column_major,
                ColCount, RowCount>(M.data.q, M.get_col_count(),
                                    M.get_row_count());
-  }
-
-  /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
-  /// \param M The matrix to be transposed.
-  /// \return The transpose of M.
-  friend auto transpose_move(self& M) {
-    mat<T, mat_structure::rectangular, mat_alignment::column_major, ColCount,
-        RowCount>
-        result;
-    using std::swap;
-    if constexpr (is_dynamic_size) {
-      swap(result, M.data.q, M.data.colCount, M.data.rowCount);
-    } else {
-      int rowCount = RowCount;
-      int colCount = ColCount;
-      swap(result, M.data.q, colCount, rowCount);
-    }
-    return result;
   }
 
   /// Transposes the matrix M by simply moving the data of M into a matrix of different alignment.

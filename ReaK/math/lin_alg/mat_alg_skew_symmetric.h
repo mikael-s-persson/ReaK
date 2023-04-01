@@ -587,18 +587,6 @@ class mat<T, mat_structure::skew_symmetric, Alignment, RowCount, RowCount>
   /// Transposes and moves the matrix M.
   /// \param M The matrix to be transposed and moved.
   /// \return The transpose of M.
-  friend self transpose_move(self& M) {
-    self result;
-    swap(result, M);
-    for (auto& x : result.data.q) {
-      x = -x;
-    }
-    return result;
-  }
-
-  /// Transposes and moves the matrix M.
-  /// \param M The matrix to be transposed and moved.
-  /// \return The transpose of M.
   friend self transpose(self&& M) {
     self result(std::move(M));
     for (auto& x : result.data.q) {
@@ -633,17 +621,11 @@ class mat<T, mat_structure::skew_symmetric, Alignment, RowCount, RowCount>
   RK_RTTI_REGISTER_CLASS_1BASE(self, 1, serializable)
 };
 
-#define RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS(SUBMATRIX)                 \
-  template <typename Matrix>                                                   \
-  mat<mat_value_type_t<Matrix>, mat_structure::skew_symmetric> transpose(      \
-      const SUBMATRIX<Matrix, mat_structure::skew_symmetric>& M) {             \
-    return -M;                                                                 \
-  }                                                                            \
-                                                                               \
-  template <typename Matrix>                                                   \
-  mat<mat_value_type_t<Matrix>, mat_structure::skew_symmetric> transpose_move( \
-      const SUBMATRIX<Matrix, mat_structure::skew_symmetric>& M) {             \
-    return -M;                                                                 \
+#define RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS(SUBMATRIX)            \
+  template <typename Matrix>                                              \
+  mat<mat_value_type_t<Matrix>, mat_structure::skew_symmetric> transpose( \
+      const SUBMATRIX<Matrix, mat_structure::skew_symmetric>& M) {        \
+    return -M;                                                            \
   }
 
 RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS(mat_copy_sub_sym_block)

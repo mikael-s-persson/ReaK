@@ -193,13 +193,6 @@ class givens_rot_matrix {
     M.s = -M.s;
     return M;
   }
-  /// Transposes the matrix M.
-  /// \param M The matrix to be transposed.
-  /// \return The transpose of M.
-  friend self transpose_move(self M) {
-    M.s = -M.s;
-    return M;
-  }
   /// Returns the trace of the matrix M.
   /// \param M The matrix.
   /// \return The trace of M.
