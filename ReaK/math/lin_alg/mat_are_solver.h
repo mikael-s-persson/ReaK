@@ -258,10 +258,8 @@ struct out_unit_circle_eigen_first {
   }
 };
 
-/*
- * This function performs the swapping of two schur blocks in the real schur pencil (A,B).
- * This is the Case I in Van Dooren (1981), where the blocks to be swapped both have dimension 1.
- */
+/// This function performs the swapping of two schur blocks in the real schur pencil (A,B).
+/// This is the Case I in Van Dooren (1981), where the blocks to be swapped both have dimension 1.
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4>
 void swap_schur_blocks11_impl(
@@ -315,11 +313,9 @@ void swap_schur_blocks11_impl(
   }
 }
 
-/*
- * This function performs the swapping of two schur blocks in the real schur pencil (A,B).
- * This is the Case II in Van Dooren (1981), where the two blocks to be swapped both have
- * dimension 2 and 1, in that order.
- */
+/// This function performs the swapping of two schur blocks in the real schur pencil (A,B).
+/// This is the Case II in Van Dooren (1981), where the two blocks to be swapped both have
+/// dimension 2 and 1, in that order.
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4>
 void swap_schur_blocks21_impl(
@@ -436,11 +432,9 @@ void swap_schur_blocks21_impl(
   }
 }
 
-/*
- * This function performs the swapping of two schur blocks in the real schur pencil (A,B).
- * This is the Case II in Van Dooren (1981), where the two blocks to be swapped both have
- * dimension 1 and 2, in that order.
- */
+/// This function performs the swapping of two schur blocks in the real schur pencil (A,B).
+/// This is the Case II in Van Dooren (1981), where the two blocks to be swapped both have
+/// dimension 1 and 2, in that order.
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4>
 void swap_schur_blocks12_impl(
@@ -555,13 +549,11 @@ void swap_schur_blocks12_impl(
   }
 }
 
-/*
- * This function performs the swapping of two schur blocks in the real schur pencil (A,B).
- * This is the Case II in Van Dooren (1981), where the two blocks to be swapped both have
- * dimension 2 and 2, in that order.
- * NOTE This function uses the "direct swapping" method based on Kressner's work.
- * NOTE The implicit QZ-step method from Van Dooren does not seem to work at all.
- */
+/// This function performs the swapping of two schur blocks in the real schur pencil (A,B).
+/// This is the Case II in Van Dooren (1981), where the two blocks to be swapped both have
+/// dimension 2 and 2, in that order.
+/// \note This function uses the "direct swapping" method based on Kressner's work.
+/// \note The implicit QZ-step method from Van Dooren does not seem to work at all.
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4>
 void swap_schur_blocks22_impl(
@@ -865,44 +857,42 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 
 }  // namespace detail
 
-/**
- * Solves the Continuous-time Algebraic Riccati Equation (for infinite horizon LQR).
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981).
- * This method first reduces the augmented (2n+m x 2n+m) pencil to a (2n x 2n) pencil
- * using a QR decomposition on the last (mxm) block-column (which has infinite eigenvalues).
- * Then, it performs a generalized real Schur decomposition of the pencil. Finally, it
- * reorders the eigenvalues in the pencil such that stable (within unit-circle) eigenvalues
- * percolate to the upper (nxn) pencil, which allows the extraction of the eigenvectors
- * spanning the stable subspace, which are, in turn, used to compute the unique solution P.
- * \n
- * $Q + A^T P + P A - P B R^{-1} B^T P = 0$
- * \n
- * The initial pencil is: lambda * (I 0 0; 0 I 0; 0 0 0) - (A 0 B; -Q -A^T 0; 0 B^T R)
- * \n
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable (square) matrix type.
- * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
- * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
- * \param P holds as output, the nonnegative definite solution to Q + A^T P + P A - P B R^-1 B^T P = 0.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Continuous-time Algebraic Riccati Equation (for infinite horizon LQR).
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981).
+/// This method first reduces the augmented (2n+m x 2n+m) pencil to a (2n x 2n) pencil
+/// using a QR decomposition on the last (mxm) block-column (which has infinite eigenvalues).
+/// Then, it performs a generalized real Schur decomposition of the pencil. Finally, it
+/// reorders the eigenvalues in the pencil such that stable (within unit-circle) eigenvalues
+/// percolate to the upper (nxn) pencil, which allows the extraction of the eigenvectors
+/// spanning the stable subspace, which are, in turn, used to compute the unique solution P.
+/// \n
+/// $Q + A^T P + P A - P B R^{-1} B^T P = 0$
+/// \n
+/// The initial pencil is: lambda * (I 0 0; 0 I 0; 0 0 0) - (A 0 B; -Q -A^T 0; 0 B^T R)
+/// \n
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable (square) matrix type.
+/// \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+/// \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
+/// \param P holds as output, the nonnegative definite solution to Q + A^T P + P A - P B R^-1 B^T P = 0.
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5>
 void solve_care_problem(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
@@ -1017,37 +1007,35 @@ void solve_care_problem(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
   P *= ValueType(0.5);
 }
 
-/**
- * Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem.
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_care_problem.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \tparam Matrix6 A fully-writable (square) matrix type.
- * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
- * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P
- *F + Q.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem.
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_care_problem.
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable matrix type.
+/// \tparam Matrix6 A fully-writable (square) matrix type.
+/// \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+/// \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P
+/// F + Q.
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5, typename Matrix6>
 void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
@@ -1069,34 +1057,32 @@ void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
   linlsq_QR(R, K, M_tmp);
 }
 
-/**
- * Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem.
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_care_problem.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
- * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem.
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_care_problem.
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable matrix type.
+/// \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+/// \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5>
 void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
@@ -1110,51 +1096,49 @@ void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
   solve_IHCT_LQR(A, B, Q, R, K, P, NumTol, UseBalancing);
 }
 
-/**
- * Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem
- * with a controllability reduction prior to solving the Algebraic Riccati Equation (CARE).
- * This function should be used if the system is (or could be) uncontrollable in some
- * directions of motion (modes).
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_care_problem.
- *
- * \note If the system is not completely controllable, the resulting controller will in effect ignore
- * the uncontrollable state errors, both for the computation of the control inputs and for the
- * cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will
- * have a rank equal to that returned by this function (number of controllable states). This
- * implies that the possible rank-deficiency of the matrices must be considered when doing further
- * operations with these matrices (e.g., inversions or factorizations).
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \tparam Matrix6 A fully-writable (square) matrix type.
- * \tparam Matrix7 A fully-writable (square) matrix type.
- * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
- * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P
- *F + Q.
- * \param Qr holds as output, the (nxn) orthogonal transformation that maps the state vector into an
- *           equivalent state vector whose first r elements are controllable and N-r elements remaining are not.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- * \return The numerical rank of the system, i.e., the number of controllable states.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem
+/// with a controllability reduction prior to solving the Algebraic Riccati Equation (CARE).
+/// This function should be used if the system is (or could be) uncontrollable in some
+/// directions of motion (modes).
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_care_problem.
+///
+/// \note If the system is not completely controllable, the resulting controller will in effect ignore
+/// the uncontrollable state errors, both for the computation of the control inputs and for the
+/// cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will
+/// have a rank equal to that returned by this function (number of controllable states). This
+/// implies that the possible rank-deficiency of the matrices must be considered when doing further
+/// operations with these matrices (e.g., inversions or factorizations).
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable matrix type.
+/// \tparam Matrix6 A fully-writable (square) matrix type.
+/// \tparam Matrix7 A fully-writable (square) matrix type.
+/// \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+/// \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P
+///          F + Q.
+/// \param Qr holds as output, the (nxn) orthogonal transformation that maps the state vector into an
+///           equivalent state vector whose first r elements are controllable and N-r elements remaining are not.
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+/// \return The numerical rank of the system, i.e., the number of controllable states.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5, typename Matrix6,
           typename Matrix7>
@@ -1223,48 +1207,46 @@ std::size_t solve_IHCT_LQR_with_reduction(
   return r;
 }
 
-/**
- * Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem
- * with a controllability reduction prior to solving the Algebraic Riccati Equation (CARE).
- * This function should be used if the system is (or could be) uncontrollable in some
- * directions of motion (modes).
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_care_problem.
- *
- * \note If the system is not completely controllable, the resulting controller will in effect ignore
- * the uncontrollable state errors, both for the computation of the control inputs and for the
- * cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will
- * have a rank equal to that returned by this function (number of controllable states). This
- * implies that the possible rank-deficiency of the matrices must be considered when doing further
- * operations with these matrices (e.g., inversions or factorizations).
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \tparam Matrix6 A fully-writable (square) matrix type.
- * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
- * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P
- *F + Q.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- * \return The numerical rank of the system, i.e., the number of controllable states.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem
+/// with a controllability reduction prior to solving the Algebraic Riccati Equation (CARE).
+/// This function should be used if the system is (or could be) uncontrollable in some
+/// directions of motion (modes).
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_care_problem.
+///
+/// \note If the system is not completely controllable, the resulting controller will in effect ignore
+/// the uncontrollable state errors, both for the computation of the control inputs and for the
+/// cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will
+/// have a rank equal to that returned by this function (number of controllable states). This
+/// implies that the possible rank-deficiency of the matrices must be considered when doing further
+/// operations with these matrices (e.g., inversions or factorizations).
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable matrix type.
+/// \tparam Matrix6 A fully-writable (square) matrix type.
+/// \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+/// \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P
+///F + Q.
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+/// \return The numerical rank of the system, i.e., the number of controllable states.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5, typename Matrix6>
 std::size_t solve_IHCT_LQR_with_reduction(
@@ -1279,45 +1261,43 @@ std::size_t solve_IHCT_LQR_with_reduction(
                                        UseBalancing);
 }
 
-/**
- * Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem
- * with a controllability reduction prior to solving the Algebraic Riccati Equation (CARE).
- * This function should be used if the system is (or could be) uncontrollable in some
- * directions of motion (modes).
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_care_problem.
- *
- * \note If the system is not completely controllable, the resulting controller will in effect ignore
- * the uncontrollable state errors, both for the computation of the control inputs and for the
- * cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will
- * have a rank equal to that returned by this function (number of controllable states). This
- * implies that the possible rank-deficiency of the matrices must be considered when doing further
- * operations with these matrices (e.g., inversions or factorizations).
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
- * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- * \return The numerical rank of the system, i.e., the number of controllable states.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem
+/// with a controllability reduction prior to solving the Algebraic Riccati Equation (CARE).
+/// This function should be used if the system is (or could be) uncontrollable in some
+/// directions of motion (modes).
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_care_problem.
+///
+/// \note If the system is not completely controllable, the resulting controller will in effect ignore
+/// the uncontrollable state errors, both for the computation of the control inputs and for the
+/// cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will
+/// have a rank equal to that returned by this function (number of controllable states). This
+/// implies that the possible rank-deficiency of the matrices must be considered when doing further
+/// operations with these matrices (e.g., inversions or factorizations).
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable matrix type.
+/// \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+/// \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+/// \return The numerical rank of the system, i.e., the number of controllable states.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5>
 std::size_t solve_IHCT_LQR_with_reduction(
@@ -1331,42 +1311,40 @@ std::size_t solve_IHCT_LQR_with_reduction(
   return solve_IHCT_LQR_with_reduction(A, B, Q, R, K, P, NumTol, UseBalancing);
 }
 
-/**
- * Solves the Infinite-horizon Continuous-time Affine Quadratic Regulator (AQR) problem.
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_care_problem.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \tparam Matrix6 A fully-writable (square) matrix type.
- * \tparam Vector1 A readable vector type.
- * \tparam Vector2 A writable vector type.
- * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
- * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
- * \param c a readable vector (n) which represents the constant term of the state-derivative expression.
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P
- *F + Q.
- * \param u_bias holds as output, the constant input term to apply to the system in addition to the feedback term (K *
- *(x_cur - x_ref)).
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Continuous-time Affine Quadratic Regulator (AQR) problem.
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_care_problem.
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable matrix type.
+/// \tparam Matrix6 A fully-writable (square) matrix type.
+/// \tparam Vector1 A readable vector type.
+/// \tparam Vector2 A writable vector type.
+/// \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+/// \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+/// \param c a readable vector (n) which represents the constant term of the state-derivative expression.
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P
+///          F + Q.
+/// \param u_bias holds as output, the constant input term to apply to the system in addition to the feedback term (K *
+///               (x_cur - x_ref)).
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Vector1,
           typename Matrix3, typename Matrix4, typename Matrix5,
           typename Matrix6, typename Vector2>
@@ -1400,51 +1378,49 @@ void solve_IHCT_AQR(const Matrix1& A, const Matrix2& B, const Vector1& c,
   linlsq_QR(R, u_bias_m, transpose_view(B) * eta);
 }
 
-/**
- * Solves the Infinite-horizon Continuous-time Affine Quadratic Regulator (AQR) problem.
- * This function should be used if the system is (or could be) uncontrollable in some
- * directions of motion (modes).
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_care_problem.
- *
- * \note If the system is not completely controllable, the resulting controller will in effect ignore
- * the uncontrollable state errors, both for the computation of the control inputs and for the
- * cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will
- * have a rank equal to that returned by this function (number of controllable states). This
- * implies that the possible rank-deficiency of the matrices must be considered when doing further
- * operations with these matrices (e.g., inversions or factorizations).
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \tparam Matrix6 A fully-writable (square) matrix type.
- * \tparam Vector1 A readable vector type.
- * \tparam Vector2 A writable vector type.
- * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
- * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
- * \param c a readable vector (n) which represents the constant term of the state-derivative expression.
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P
- *F + Q.
- * \param u_bias holds as output, the constant input term to apply to the system in addition to the feedback term (K *
- *(x_cur - x_ref)).
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Continuous-time Affine Quadratic Regulator (AQR) problem.
+/// This function should be used if the system is (or could be) uncontrollable in some
+/// directions of motion (modes).
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_care_problem.
+///
+/// \note If the system is not completely controllable, the resulting controller will in effect ignore
+/// the uncontrollable state errors, both for the computation of the control inputs and for the
+/// cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will
+/// have a rank equal to that returned by this function (number of controllable states). This
+/// implies that the possible rank-deficiency of the matrices must be considered when doing further
+/// operations with these matrices (e.g., inversions or factorizations).
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable matrix type.
+/// \tparam Matrix6 A fully-writable (square) matrix type.
+/// \tparam Vector1 A readable vector type.
+/// \tparam Vector2 A writable vector type.
+/// \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+/// \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+/// \param c a readable vector (n) which represents the constant term of the state-derivative expression.
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P
+///          F + Q.
+/// \param u_bias holds as output, the constant input term to apply to the system in addition to the feedback term (K *
+///               (x_cur - x_ref)).
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Vector1,
           typename Matrix3, typename Matrix4, typename Matrix5,
           typename Matrix6, typename Vector2>
@@ -1516,47 +1492,45 @@ std::size_t solve_IHCT_AQR_with_reduction(
   return r;
 }
 
-/**
- * Solves the Infinite-horizon Continuous-time Linear Quadratic Gaussian control (LQG) problem.
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_dare_problem.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A readable matrix type.
- * \tparam Matrix7 A readable matrix type.
- * \tparam Matrix8 A fully-writable matrix type.
- * \tparam Matrix9 A fully-writable (square) matrix type.
- * \tparam Matrix10 A fully-writable matrix type.
- * \tparam Matrix11 A fully-writable (square) matrix type.
- * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
- * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
- * \param C rectangular (l x n) matrix which represents state-to-output linear map.
- * \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
- * \param W square (l x l) positive-definite matrix which represents the covariance of the measurement noise (additive).
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
- * \param P holds as output, the (nxn) nonnegative definite solution to P = F P F^T - F P H^T ( W + H P H^T )^{-1} H P
- *F^T + V.
- * \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param S holds as output, the (nxn) nonnegative definite solution to S = F^T S F - F^T S G ( R + G^T S G )^{-1} G^T S
- *F + Q.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Continuous-time Linear Quadratic Gaussian control (LQG) problem.
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_dare_problem.
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A readable matrix type.
+/// \tparam Matrix7 A readable matrix type.
+/// \tparam Matrix8 A fully-writable matrix type.
+/// \tparam Matrix9 A fully-writable (square) matrix type.
+/// \tparam Matrix10 A fully-writable matrix type.
+/// \tparam Matrix11 A fully-writable (square) matrix type.
+/// \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+/// \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+/// \param C rectangular (l x n) matrix which represents state-to-output linear map.
+/// \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
+/// \param W square (l x l) positive-definite matrix which represents the covariance of the measurement noise (additive).
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
+/// \param P holds as output, the (nxn) nonnegative definite solution to P = F P F^T - F P H^T ( W + H P H^T )^{-1} H P
+///          F^T + V.
+/// \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param S holds as output, the (nxn) nonnegative definite solution to S = F^T S F - F^T S G ( R + G^T S G )^{-1} G^T S
+///          F + Q.
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5, typename Matrix6,
           typename Matrix7, typename Matrix8, typename Matrix9,
@@ -1596,41 +1570,39 @@ void solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C,
   linlsq_QR(R, L, M2_tmp);
 }
 
-/**
- * Solves the Infinite-horizon Continuous-time Linear Quadratic Gaussian control (LQG) problem.
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_dare_problem.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A readable matrix type.
- * \tparam Matrix7 A readable matrix type.
- * \tparam Matrix8 A fully-writable matrix type.
- * \tparam Matrix9 A fully-writable matrix type.
- * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
- * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
- * \param C rectangular (l x n) matrix which represents state-to-output linear map.
- * \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
- * \param W square (l x l) positive-definite matrix which represents the covariance of the measurement noise (additive).
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
- * \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Continuous-time Linear Quadratic Gaussian control (LQG) problem.
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_dare_problem.
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A readable matrix type.
+/// \tparam Matrix7 A readable matrix type.
+/// \tparam Matrix8 A fully-writable matrix type.
+/// \tparam Matrix9 A fully-writable matrix type.
+/// \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+/// \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+/// \param C rectangular (l x n) matrix which represents state-to-output linear map.
+/// \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
+/// \param W square (l x l) positive-definite matrix which represents the covariance of the measurement noise (additive).
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
+/// \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5, typename Matrix6,
           typename Matrix7, typename Matrix8, typename Matrix9>
@@ -1647,45 +1619,42 @@ void solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C,
   solve_IHCT_LQG(A, B, C, V, W, Q, R, K, P, L, S, NumTol, UseBalancing);
 }
 
-/**
- * Solves the Discrete-time Algebraic Riccati Equation (for infinite horizon LQR).
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981).
- * This method first reduces the augmented (2n+m x 2n+m) pencil to a (2n x 2n) pencil
- * using a QR decomposition on the last (mxm) block-column (which has infinite eigenvalues).
- * Then, it performs a generalized real Schur decomposition of the pencil. Finally, it
- * reorders the eigenvalues in the pencil such that stable (within unit-circle) eigenvalues
- * percolate to the upper (nxn) pencil, which allows the extraction of the eigenvectors
- * spanning the stable subspace, which are, in turn, used to compute the unique solution P.
- * \n
- * $P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q$
- * \n
- * The initial pencil is: lambda * (I 0 0; 0 F^T 0; 0 G^T 0) - (F 0 -G; -Q I 0; 0 0 R)
- * \n
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable (square) matrix type.
- * \param F square (n x n) matrix which represents state-to-next-state linear map.
- * \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
- * \param P holds as output, the nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F +
- *Q.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Discrete-time Algebraic Riccati Equation (for infinite horizon LQR).
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981).
+/// This method first reduces the augmented (2n+m x 2n+m) pencil to a (2n x 2n) pencil
+/// using a QR decomposition on the last (mxm) block-column (which has infinite eigenvalues).
+/// Then, it performs a generalized real Schur decomposition of the pencil. Finally, it
+/// reorders the eigenvalues in the pencil such that stable (within unit-circle) eigenvalues
+/// percolate to the upper (nxn) pencil, which allows the extraction of the eigenvectors
+/// spanning the stable subspace, which are, in turn, used to compute the unique solution P.
+/// \n
+/// $P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q$
+/// \n
+/// The initial pencil is: lambda * (I 0 0; 0 F^T 0; 0 G^T 0) - (F 0 -G; -Q I 0; 0 0 R)
+/// \n
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable (square) matrix type.
+/// \param F square (n x n) matrix which represents state-to-next-state linear map.
+/// \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
+/// \param P holds as output, the nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5>
 void solve_dare_problem(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
@@ -1801,37 +1770,34 @@ void solve_dare_problem(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
   P *= ValueType(0.5);
 }
 
-/**
- * Solves the Infinite-horizon Discrete-time Linear Quadratic Regulator (LQR) problem.
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_dare_problem.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \tparam Matrix6 A fully-writable (square) matrix type.
- * \param F square (n x n) matrix which represents state-to-next-state linear map.
- * \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P
- *F + Q.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Discrete-time Linear Quadratic Regulator (LQR) problem.
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_dare_problem.
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable matrix type.
+/// \tparam Matrix6 A fully-writable (square) matrix type.
+/// \param F square (n x n) matrix which represents state-to-next-state linear map.
+/// \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5, typename Matrix6>
 void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
@@ -1854,34 +1820,32 @@ void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
   linlsq_QR(M_tmp, K, M2_tmp);
 }
 
-/**
- * Solves the Infinite-horizon Discrete-time Linear Quadratic Regulator (LQR) problem.
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_dare_problem.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \param F square (n x n) matrix which represents state-to-next-state linear map.
- * \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Discrete-time Linear Quadratic Regulator (LQR) problem.
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_dare_problem.
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable matrix type.
+/// \param F square (n x n) matrix which represents state-to-next-state linear map.
+/// \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5>
 void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
@@ -1895,48 +1859,46 @@ void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
   solve_IHDT_LQR(F, G, Q, R, K, P, NumTol, UseBalancing);
 }
 
-/**
- * Solves the Infinite-horizon Discrete-time Linear Quadratic Gaussian control (LQG) problem.
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_dare_problem.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A readable matrix type.
- * \tparam Matrix7 A readable matrix type.
- * \tparam Matrix8 A fully-writable matrix type.
- * \tparam Matrix9 A fully-writable (square) matrix type.
- * \tparam Matrix10 A fully-writable matrix type.
- * \tparam Matrix11 A fully-writable (square) matrix type.
- * \param F square (n x n) matrix which represents state-to-next-state linear map.
- * \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
- * \param H rectangular (l x n) matrix which represents state-to-output linear map.
- * \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
- * \param W square (l x l) positive-semi-definite matrix which represents the covariance of the measurement noise
- *(additive).
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
- * \param P holds as output, the (nxn) nonnegative definite solution to P = F P F^T - F P H^T ( W + H P H^T )^{-1} H P
- *F^T + V.
- * \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param S holds as output, the (nxn) nonnegative definite solution to S = F^T S F - F^T S G ( R + G^T S G )^{-1} G^T S
- *F + Q.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Discrete-time Linear Quadratic Gaussian control (LQG) problem.
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_dare_problem.
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A readable matrix type.
+/// \tparam Matrix7 A readable matrix type.
+/// \tparam Matrix8 A fully-writable matrix type.
+/// \tparam Matrix9 A fully-writable (square) matrix type.
+/// \tparam Matrix10 A fully-writable matrix type.
+/// \tparam Matrix11 A fully-writable (square) matrix type.
+/// \param F square (n x n) matrix which represents state-to-next-state linear map.
+/// \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
+/// \param H rectangular (l x n) matrix which represents state-to-output linear map.
+/// \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
+/// \param W square (l x l) positive-semi-definite matrix which represents the covariance of the measurement noise
+///          (additive).
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
+/// \param P holds as output, the (nxn) nonnegative definite solution to P = F P F^T - F P H^T ( W + H P H^T )^{-1} H P
+///          F^T + V.
+/// \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param S holds as output, the (nxn) nonnegative definite solution to S = F^T S F - F^T S G ( R + G^T S G )^{-1} G^T S
+///          F + Q.
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5, typename Matrix6,
           typename Matrix7, typename Matrix8, typename Matrix9,
@@ -1979,42 +1941,40 @@ void solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
   linlsq_QR(M3_tmp, L, M4_tmp);
 }
 
-/**
- * Solves the Infinite-horizon Discrete-time Linear Quadratic Gaussian control (LQG) problem.
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
- * and implemented in the function solve_dare_problem.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A readable matrix type.
- * \tparam Matrix7 A readable matrix type.
- * \tparam Matrix8 A fully-writable matrix type.
- * \tparam Matrix9 A fully-writable matrix type.
- * \param F square (n x n) matrix which represents state-to-next-state linear map.
- * \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
- * \param H rectangular (l x n) matrix which represents state-to-output linear map.
- * \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
- * \param W square (l x l) positive-semi-definite matrix which represents the covariance of the measurement noise
- *(additive).
- * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
- * \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
- * \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Infinite-horizon Discrete-time Linear Quadratic Gaussian control (LQG) problem.
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+/// and implemented in the function solve_dare_problem.
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A readable matrix type.
+/// \tparam Matrix7 A readable matrix type.
+/// \tparam Matrix8 A fully-writable matrix type.
+/// \tparam Matrix9 A fully-writable matrix type.
+/// \param F square (n x n) matrix which represents state-to-next-state linear map.
+/// \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
+/// \param H rectangular (l x n) matrix which represents state-to-output linear map.
+/// \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
+/// \param W square (l x l) positive-semi-definite matrix which represents the covariance of the measurement noise
+///          (additive).
+/// \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
+/// \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
+/// \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5, typename Matrix6,
           typename Matrix7, typename Matrix8, typename Matrix9>
@@ -2032,44 +1992,42 @@ void solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
   solve_IHDT_LQG(F, G, H, V, W, Q, R, K, P, L, S, NumTol, UseBalancing);
 }
 
-/**
- * Solves the Continuous-time Spectral Factorisation of a system.
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981).
- * This method first reduces the augmented (2n+m x 2n+m) pencil to a (2n x 2n) pencil
- * using a QR decomposition on the last (mxm) block-column (which has infinite eigenvalues).
- * Then, it performs a generalized real Schur decomposition of the pencil. Finally, it
- * reorders the eigenvalues in the pencil such that stable (within unit-circle) eigenvalues
- * percolate to the upper (nxn) pencil, which allows the extraction of the eigenvectors
- * spanning the stable subspace, which are, in turn, used to compute the unique solution P.
- * \n
- * $B (D + D^T)^{-1} B^T + P (A - B (D + D^T)^{-1} C)^T + (A - B (D + D^T)^{-1} C) P + P C^T (D + D^T)^{-1} C P = 0$
- * \n
- * The initial pencil is: lambda * (I 0 0; 0 I 0; 0 0 0) - (A 0 B; 0 -A^T C^T; C -B^T (D + D^T))
- * \n
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
- * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
- * \param C rectangular (m x n) matrix which represents state-to-output linear map.
- * \param D square (m x m) matrix which represents input-to-output linear map.
- * \param P holds as output, the nonnegative definite solution.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the CTSF problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Continuous-time Spectral Factorisation of a system.
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981).
+/// This method first reduces the augmented (2n+m x 2n+m) pencil to a (2n x 2n) pencil
+/// using a QR decomposition on the last (mxm) block-column (which has infinite eigenvalues).
+/// Then, it performs a generalized real Schur decomposition of the pencil. Finally, it
+/// reorders the eigenvalues in the pencil such that stable (within unit-circle) eigenvalues
+/// percolate to the upper (nxn) pencil, which allows the extraction of the eigenvectors
+/// spanning the stable subspace, which are, in turn, used to compute the unique solution P.
+/// \n
+/// $B (D + D^T)^{-1} B^T + P (A - B (D + D^T)^{-1} C)^T + (A - B (D + D^T)^{-1} C) P + P C^T (D + D^T)^{-1} C P = 0$
+/// \n
+/// The initial pencil is: lambda * (I 0 0; 0 I 0; 0 0 0) - (A 0 B; 0 -A^T C^T; C -B^T (D + D^T))
+/// \n
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable matrix type.
+/// \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+/// \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+/// \param C rectangular (m x n) matrix which represents state-to-output linear map.
+/// \param D square (m x m) matrix which represents input-to-output linear map.
+/// \param P holds as output, the nonnegative definite solution.
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the CTSF problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5>
 void solve_ctsf_problem(const Matrix1& A, const Matrix2& B, const Matrix3& C,
@@ -2183,45 +2141,42 @@ void solve_ctsf_problem(const Matrix1& A, const Matrix2& B, const Matrix3& C,
   P *= ValueType(0.5);
 }
 
-/**
- * Solves the Discrete-time Spectral Factorisation of a system.
- * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981).
- * This method first reduces the augmented (2n+m x 2n+m) pencil to a (2n x 2n) pencil
- * using a QR decomposition on the last (mxm) block-column (which has infinite eigenvalues).
- * Then, it performs a generalized real Schur decomposition of the pencil. Finally, it
- * reorders the eigenvalues in the pencil such that stable (within unit-circle) eigenvalues
- * percolate to the upper (nxn) pencil, which allows the extraction of the eigenvectors
- * spanning the stable subspace, which are, in turn, used to compute the unique solution P.
- * \n
- * $P = F P F^T + (G - F P H^T) ( J + J^T - H P H^T )^{-1} (G^T - H P F^T)$
- * \n
- * The initial pencil is: lambda * (I 0 0; 0 F^T 0; 0 G^T 0) - (F 0 -G; -Q I 0; 0 0 R)
- * \n
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \param F square (n x n) matrix which represents state-to-next-state linear map.
- * \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
- * \param H square (n x n) positive-definite matrix which represents quadratic state-error penalty.
- * \param J square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
- * \param P holds as output, the nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F +
- *Q.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- * \param UseBalancing specifies whether balancing should be applied to the problem before performing
- *                     the Schur decomposition. This can help for ill-conditioned systems to increase
- *                     the final accuracy (accumulated round-off errors). However, for certain systems,
- *                     balancing will worsen the results, so, use with caution. By default, no balancing
- *                     is performed.
- *
- * \throws std::range_error if the matrix dimensions are not consistent.
- * \throws singularity_error if the DTSF problem cannot be solved, usually because the system is not stabilizable.
- *
- * \author Mikael Persson
- */
+/// Solves the Discrete-time Spectral Factorisation of a system.
+/// This implementation uses the QZ-algorithm approach as described in Van Dooren (1981).
+/// This method first reduces the augmented (2n+m x 2n+m) pencil to a (2n x 2n) pencil
+/// using a QR decomposition on the last (mxm) block-column (which has infinite eigenvalues).
+/// Then, it performs a generalized real Schur decomposition of the pencil. Finally, it
+/// reorders the eigenvalues in the pencil such that stable (within unit-circle) eigenvalues
+/// percolate to the upper (nxn) pencil, which allows the extraction of the eigenvectors
+/// spanning the stable subspace, which are, in turn, used to compute the unique solution P.
+/// \n
+/// $P = F P F^T + (G - F P H^T) ( J + J^T - H P H^T )^{-1} (G^T - H P F^T)$
+/// \n
+/// The initial pencil is: lambda * (I 0 0; 0 F^T 0; 0 G^T 0) - (F 0 -G; -Q I 0; 0 0 R)
+/// \n
+///
+/// \tparam Matrix1 A readable matrix type.
+/// \tparam Matrix2 A readable matrix type.
+/// \tparam Matrix3 A readable matrix type.
+/// \tparam Matrix4 A readable matrix type.
+/// \tparam Matrix5 A fully-writable matrix type.
+/// \param F square (n x n) matrix which represents state-to-next-state linear map.
+/// \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
+/// \param H square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+/// \param J square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
+/// \param P holds as output, the nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
+/// \param NumTol tolerance for considering a value to be zero in avoiding divisions
+///               by zero and singularities.
+/// \param UseBalancing specifies whether balancing should be applied to the problem before performing
+///                     the Schur decomposition. This can help for ill-conditioned systems to increase
+///                     the final accuracy (accumulated round-off errors). However, for certain systems,
+///                     balancing will worsen the results, so, use with caution. By default, no balancing
+///                     is performed.
+///
+/// \throws std::range_error if the matrix dimensions are not consistent.
+/// \throws singularity_error if the DTSF problem cannot be solved, usually because the system is not stabilizable.
+///
+/// \author Mikael Persson
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5>
 void solve_dtsf_problem(const Matrix1& F, const Matrix2& G, const Matrix3& H,

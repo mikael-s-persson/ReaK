@@ -62,19 +62,17 @@
 #include "ReaK/math/lin_alg/mat_vector_adaptor.h"
 #include "ReaK/math/lin_alg/mat_views.h"
 
-/** Main namespace for ReaK */
+/// Main namespace for ReaK
 namespace ReaK {
 
 /****************************************************************************
                          Matrix Factory Functions
 ****************************************************************************/
 
-/**
- * Builds a block diagonal matrix with two matrices of any dimension.
- * \param M1 first matrix (upper-left diagonal block).
- * \param M2 second matrix (lower-right diagonal block).
- * \return General block diagonal matrix.
- */
+/// Builds a block diagonal matrix with two matrices of any dimension.
+/// \param M1 first matrix (upper-left diagonal block).
+/// \param M2 second matrix (lower-right diagonal block).
+/// \return General block diagonal matrix.
 template <typename Matrix1, typename Matrix2>
 std::enable_if_t<is_writable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2>,
                  Matrix1>
@@ -83,12 +81,10 @@ block_diag_mat(Matrix1 M1, const Matrix2& M2) {
   return M1;
 }
 
-/**
- * Builds a block diagonal matrix with two matrices of any dimension.
- * \param M1 first matrix (upper-left diagonal block).
- * \param M2 second matrix (lower-right diagonal block).
- * \return General block diagonal matrix.
- */
+/// Builds a block diagonal matrix with two matrices of any dimension.
+/// \param M1 first matrix (upper-left diagonal block).
+/// \param M2 second matrix (lower-right diagonal block).
+/// \return General block diagonal matrix.
 template <typename Matrix1, typename Matrix2, typename Matrix3>
 std::enable_if_t<is_writable_matrix_v<Matrix1> &&
                      is_readable_matrix_v<Matrix2> &&
@@ -100,12 +96,10 @@ block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3) {
   return M1;
 }
 
-/**
- * Builds a block diagonal matrix with two matrices of any dimension.
- * \param M1 first matrix (upper-left diagonal block).
- * \param M2 second matrix (lower-right diagonal block).
- * \return General block diagonal matrix.
- */
+/// Builds a block diagonal matrix with two matrices of any dimension.
+/// \param M1 first matrix (upper-left diagonal block).
+/// \param M2 second matrix (lower-right diagonal block).
+/// \return General block diagonal matrix.
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4>
 std::enable_if_t<
@@ -120,12 +114,10 @@ block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
   return M1;
 }
 
-/**
- * Builds a block diagonal matrix with two matrices of any dimension.
- * \param M1 first matrix (upper-left diagonal block).
- * \param M2 second matrix (lower-right diagonal block).
- * \return General block diagonal matrix.
- */
+/// Builds a block diagonal matrix with two matrices of any dimension.
+/// \param M1 first matrix (upper-left diagonal block).
+/// \param M2 second matrix (lower-right diagonal block).
+/// \return General block diagonal matrix.
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4, typename Matrix5>
 std::enable_if_t<
@@ -142,15 +134,13 @@ block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
   return M1;
 }
 
-/**
- * Builds a four-block matrix with four matrices of paired dimensions.
- * \param MUL first matrix (upper-left block).
- * \param MUR second matrix (upper-right block).
- * \param MLL third matrix (lower-left block).
- * \param MLR fourth matrix (lower-right block).
- * \return Compound four-block matrix.
- * \throw std::range_error if the dimensions of the four blocks don't allow proper juxtaposition.
- */
+/// Builds a four-block matrix with four matrices of paired dimensions.
+/// \param MUL first matrix (upper-left block).
+/// \param MUR second matrix (upper-right block).
+/// \param MLL third matrix (lower-left block).
+/// \param MLR fourth matrix (lower-right block).
+/// \return Compound four-block matrix.
+/// \throw std::range_error if the dimensions of the four blocks don't allow proper juxtaposition.
 template <typename Matrix1, typename Matrix2, typename Matrix3,
           typename Matrix4>
 std::enable_if_t<

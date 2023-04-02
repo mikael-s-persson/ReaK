@@ -52,20 +52,16 @@ namespace ReaK {
 
 using std::get;
 
-/**
- * This meta-function computes a bool integral constant if the given type is an arithmetic-tuple.
- * \tparam Tuple The type to be tested as being an arithmetic-tuple or not.
- */
+/// This meta-function computes a bool integral constant if the given type is an arithmetic-tuple.
+/// \tparam Tuple The type to be tested as being an arithmetic-tuple or not.
 template <typename Tuple>
 struct is_arithmetic_tuple : std::false_type {};
 
 template <typename Tuple>
 static constexpr bool is_arithmetic_tuple_v = is_arithmetic_tuple<Tuple>::value;
 
-/**
- * This meta-function computes an integral constant describing the size (or length) of an arithmetic-tuple.
- * \tparam Tuple The arithmetic-tuple type.
- */
+/// This meta-function computes an integral constant describing the size (or length) of an arithmetic-tuple.
+/// \tparam Tuple The arithmetic-tuple type.
 template <typename Tuple>
 struct arithmetic_tuple_size : std::integral_constant<std::size_t, 0> {};
 
@@ -185,14 +181,12 @@ void tuple_for_each(Tuple1& arg1, Tuple2& arg2, Tuple3& arg3, Tuple4& arg4,
 
 }  // namespace
 
-/**
- * This class template is a simple wrapper of a tuple with the addition of arithmetic operators.
- * This class is basically just a wrapper of the std::tuple class, and it provides
- * a meta-programming interface that is equivalent to std::tuple and with the addition
- * of the support for all the basic arithmetic operators, requiring, of course, that these
- * arithmetic operators are also available on all the types contained in the tuple.
- * \tparam T The types contained in the arithmetic-tuple.
- */
+/// This class template is a simple wrapper of a tuple with the addition of arithmetic operators.
+/// This class is basically just a wrapper of the std::tuple class, and it provides
+/// a meta-programming interface that is equivalent to std::tuple and with the addition
+/// of the support for all the basic arithmetic operators, requiring, of course, that these
+/// arithmetic operators are also available on all the types contained in the tuple.
+/// \tparam T The types contained in the arithmetic-tuple.
 template <typename... T>
 class arithmetic_tuple : public std::tuple<T...> {
  public:
@@ -229,15 +223,13 @@ class arithmetic_tuple : public std::tuple<T...> {
   arithmetic_tuple_base_class& base() { return *this; }
   const arithmetic_tuple_base_class& base() const { return *this; }
 
-  /**
-   * This function template is an overload of the addition operator on arithmetic-tuples.
-   * This function performs the addition of each element of the tuple, will only compile if
-   * all elements of the tuple support the addition operator.
-   * \param lhs Left-hand side of the addition.
-   * \param rhs Right-hand side of the addition.
-   * \return Added tuple, equivalent to make_arithmetic_tuple(get<0>(lhs) + get<0>(rhs), get<1>(lhs) + get<1>(rhs), ...
-   * etc.).
-   */
+  /// This function template is an overload of the addition operator on arithmetic-tuples.
+  /// This function performs the addition of each element of the tuple, will only compile if
+  /// all elements of the tuple support the addition operator.
+  /// \param lhs Left-hand side of the addition.
+  /// \param rhs Right-hand side of the addition.
+  /// \return Added tuple, equivalent to make_arithmetic_tuple(get<0>(lhs) + get<0>(rhs), get<1>(lhs) + get<1>(rhs), ...
+  /// etc.).
   friend self operator+(const self& lhs, const self& rhs) {
     self result;
     tuple_for_each(
@@ -248,15 +240,13 @@ class arithmetic_tuple : public std::tuple<T...> {
     return result;
   }
 
-  /**
-   * This function template is an overload of the subtraction operator on arithmetic-tuples.
-   * This function performs the subtraction of each element of the tuple, will only compile if
-   * all elements of the tuple support the subtraction operator.
-   * \param lhs Left-hand side of the subtraction.
-   * \param rhs Right-hand side of the subtraction.
-   * \return Subtracted tuple, equivalent to make_arithmetic_tuple(get<0>(lhs) - get<0>(rhs), get<1>(lhs) - get<1>(rhs),
-   * ... etc.).
-   */
+  /// This function template is an overload of the subtraction operator on arithmetic-tuples.
+  /// This function performs the subtraction of each element of the tuple, will only compile if
+  /// all elements of the tuple support the subtraction operator.
+  /// \param lhs Left-hand side of the subtraction.
+  /// \param rhs Right-hand side of the subtraction.
+  /// \return Subtracted tuple, equivalent to make_arithmetic_tuple(get<0>(lhs) - get<0>(rhs), get<1>(lhs) - get<1>(rhs),
+  /// ... etc.).
   friend self operator-(const self& lhs, const self& rhs) {
     self result;
     tuple_for_each(
@@ -267,13 +257,11 @@ class arithmetic_tuple : public std::tuple<T...> {
     return result;
   }
 
-  /**
-   * This function template is an overload of the negation operator on arithmetic-tuples.
-   * This function performs the negation of each element of the tuple, will only compile if
-   * all elements of the tuple support the negation and assignment operators.
-   * \param lhs Left-hand side of the negation.
-   * \return Negated tuple, equivalent to make_arithmetic_tuple(-get<0>(lhs), -get<1>(lhs), ... etc.).
-   */
+  /// This function template is an overload of the negation operator on arithmetic-tuples.
+  /// This function performs the negation of each element of the tuple, will only compile if
+  /// all elements of the tuple support the negation and assignment operators.
+  /// \param lhs Left-hand side of the negation.
+  /// \return Negated tuple, equivalent to make_arithmetic_tuple(-get<0>(lhs), -get<1>(lhs), ... etc.).
   friend self operator-(const self& lhs) {
     self result;
     tuple_for_each(result, lhs, [](auto& result_elem, const auto& lhs_elem) {
@@ -282,15 +270,13 @@ class arithmetic_tuple : public std::tuple<T...> {
     return result;
   }
 
-  /**
-   * This function template is an overload of the add-and-assign operator on arithmetic-tuples.
-   * This function performs the add-and-assign of each element of the tuple, will only compile if
-   * all elements of the tuple support the add-and-assign operator.
-   * \param lhs Left-hand side of the add-and-assign.
-   * \param rhs Right-hand side of the add-and-assign.
-   * \return Added-and-assigned tuple reference, equivalent to get<0>(lhs) += get<0>(rhs); get<1>(lhs) += get<1>(rhs); ...
-   * etc.
-   */
+  /// This function template is an overload of the add-and-assign operator on arithmetic-tuples.
+  /// This function performs the add-and-assign of each element of the tuple, will only compile if
+  /// all elements of the tuple support the add-and-assign operator.
+  /// \param lhs Left-hand side of the add-and-assign.
+  /// \param rhs Right-hand side of the add-and-assign.
+  /// \return Added-and-assigned tuple reference, equivalent to get<0>(lhs) += get<0>(rhs); get<1>(lhs) += get<1>(rhs); ...
+  /// etc.
   friend self& operator+=(self& lhs, const self& rhs) {
     tuple_for_each(lhs, rhs, [](auto& lhs_elem, const auto& rhs_elem) {
       lhs_elem += rhs_elem;
@@ -298,15 +284,13 @@ class arithmetic_tuple : public std::tuple<T...> {
     return lhs;
   }
 
-  /**
-   * This function template is an overload of the sub-and-assign operator on arithmetic-tuples.
-   * This function performs the sub-and-assign of each element of the tuple, will only compile if
-   * all elements of the tuple support the sub-and-assign operator.
-   * \param lhs Left-hand side of the sub-and-assign.
-   * \param rhs Right-hand side of the sub-and-assign.
-   * \return Subtracted-and-assigned tuple reference, equivalent to get<0>(lhs) -= get<0>(rhs); get<1>(lhs) -=
-   * get<1>(rhs); ... etc.
-   */
+  /// This function template is an overload of the sub-and-assign operator on arithmetic-tuples.
+  /// This function performs the sub-and-assign of each element of the tuple, will only compile if
+  /// all elements of the tuple support the sub-and-assign operator.
+  /// \param lhs Left-hand side of the sub-and-assign.
+  /// \param rhs Right-hand side of the sub-and-assign.
+  /// \return Subtracted-and-assigned tuple reference, equivalent to get<0>(lhs) -= get<0>(rhs); get<1>(lhs) -=
+  /// get<1>(rhs); ... etc.
   friend self& operator-=(self& lhs, const self& rhs) {
     tuple_for_each(lhs, rhs, [](auto& lhs_elem, const auto& rhs_elem) {
       lhs_elem -= rhs_elem;
@@ -314,15 +298,13 @@ class arithmetic_tuple : public std::tuple<T...> {
     return lhs;
   }
 
-  /**
-   * This function template is an overload of the multiplication operator on arithmetic-tuples.
-   * This function performs the multiplication of each element of the tuple, will only compile if
-   * all elements of the tuple support the multiplication operator.
-   * \param lhs Left-hand side of the multiplication.
-   * \param rhs Right-hand side of the multiplication.
-   * \return Multiplied tuple, equivalent to make_arithmetic_tuple(get<0>(lhs) * get<0>(rhs), get<1>(lhs) * get<1>(rhs),
-   * ... etc.).
-   */
+  /// This function template is an overload of the multiplication operator on arithmetic-tuples.
+  /// This function performs the multiplication of each element of the tuple, will only compile if
+  /// all elements of the tuple support the multiplication operator.
+  /// \param lhs Left-hand side of the multiplication.
+  /// \param rhs Right-hand side of the multiplication.
+  /// \return Multiplied tuple, equivalent to make_arithmetic_tuple(get<0>(lhs) * get<0>(rhs), get<1>(lhs) * get<1>(rhs),
+  /// ... etc.).
   friend self operator*(const self& lhs, const self& rhs) {
     self result;
     tuple_for_each(
@@ -333,15 +315,13 @@ class arithmetic_tuple : public std::tuple<T...> {
     return result;
   }
 
-  /**
-   * This function template is an overload of the division operator on arithmetic-tuples.
-   * This function performs the division of each element of the tuple, will only compile if
-   * all elements of the tuple support the division operator.
-   * \param lhs Left-hand side of the division.
-   * \param rhs Right-hand side of the division.
-   * \return Divided tuple, equivalent to make_arithmetic_tuple(get<0>(lhs) / get<0>(rhs), get<1>(lhs) / get<1>(rhs), ...
-   * etc.).
-   */
+  /// This function template is an overload of the division operator on arithmetic-tuples.
+  /// This function performs the division of each element of the tuple, will only compile if
+  /// all elements of the tuple support the division operator.
+  /// \param lhs Left-hand side of the division.
+  /// \param rhs Right-hand side of the division.
+  /// \return Divided tuple, equivalent to make_arithmetic_tuple(get<0>(lhs) / get<0>(rhs), get<1>(lhs) / get<1>(rhs), ...
+  /// etc.).
   friend self operator/(const self& lhs, const self& rhs) {
     self result;
     tuple_for_each(
@@ -412,15 +392,13 @@ class arithmetic_tuple : public std::tuple<T...> {
     return result;
   }
 
-  /**
-   * This function template is an overload of the multiply-and-assign operator on arithmetic-tuples.
-   * This function performs the multiply-and-assign of each element of the tuple, will only compile if
-   * all elements of the tuple support the multiply-and-assign operator.
-   * \param lhs Left-hand side of the multiply-and-assign.
-   * \param rhs Right-hand side of the multiply-and-assign.
-   * \return Multiplied tuple reference, equivalent to get<0>(lhs) *= get<0>(rhs); get<1>(lhs) *= get<1>(rhs); ... etc.
-   * \tparam Tuple An arithmetic-tuple type (see is_arithmetic_tuple).
-   */
+  /// This function template is an overload of the multiply-and-assign operator on arithmetic-tuples.
+  /// This function performs the multiply-and-assign of each element of the tuple, will only compile if
+  /// all elements of the tuple support the multiply-and-assign operator.
+  /// \param lhs Left-hand side of the multiply-and-assign.
+  /// \param rhs Right-hand side of the multiply-and-assign.
+  /// \return Multiplied tuple reference, equivalent to get<0>(lhs) *= get<0>(rhs); get<1>(lhs) *= get<1>(rhs); ... etc.
+  /// \tparam Tuple An arithmetic-tuple type (see is_arithmetic_tuple).
   friend self& operator*=(self& lhs, const self& rhs) {
     tuple_for_each(lhs, rhs, [](auto& lhs_elem, const auto& rhs_elem) {
       lhs_elem *= rhs_elem;
@@ -428,15 +406,13 @@ class arithmetic_tuple : public std::tuple<T...> {
     return lhs;
   }
 
-  /**
-   * This function template is an overload of the divide-and-assign operator on arithmetic-tuples.
-   * This function performs the divide-and-assign of each element of the tuple, will only compile if
-   * all elements of the tuple support the divide-and-assign operator.
-   * \param lhs Left-hand side of the divide-and-assign.
-   * \param rhs Right-hand side of the divide-and-assign.
-   * \return Divided tuple reference, equivalent to get<0>(lhs) /= get<0>(rhs); get<1>(lhs) /= get<1>(rhs); ... etc.
-   * \tparam Tuple An arithmetic-tuple type (see is_arithmetic_tuple).
-   */
+  /// This function template is an overload of the divide-and-assign operator on arithmetic-tuples.
+  /// This function performs the divide-and-assign of each element of the tuple, will only compile if
+  /// all elements of the tuple support the divide-and-assign operator.
+  /// \param lhs Left-hand side of the divide-and-assign.
+  /// \param rhs Right-hand side of the divide-and-assign.
+  /// \return Divided tuple reference, equivalent to get<0>(lhs) /= get<0>(rhs); get<1>(lhs) /= get<1>(rhs); ... etc.
+  /// \tparam Tuple An arithmetic-tuple type (see is_arithmetic_tuple).
   friend self& operator/=(self& lhs, const self& rhs) {
     tuple_for_each(lhs, rhs, [](auto& lhs_elem, const auto& rhs_elem) {
       lhs_elem /= rhs_elem;
@@ -478,15 +454,13 @@ class arithmetic_tuple : public std::tuple<T...> {
     return lhs;
   }
 
-  /**
-   * This function template is an overload of the unnamed archive-output operator for arithmetic-tuples.
-   * This function performs the unnamed archive-output of each element of the tuple, will only compile if
-   * all elements of the tuple support the unnamed archive-output operator.
-   * \param out The output archive.
-   * \param rhs The arithmetic-tuple object to output on the archive.
-   * \return The output archive.
-   * \tparam Tuple An arithmetic-tuple type (see is_arithmetic_tuple).
-   */
+  /// This function template is an overload of the unnamed archive-output operator for arithmetic-tuples.
+  /// This function performs the unnamed archive-output of each element of the tuple, will only compile if
+  /// all elements of the tuple support the unnamed archive-output operator.
+  /// \param out The output archive.
+  /// \param rhs The arithmetic-tuple object to output on the archive.
+  /// \return The output archive.
+  /// \tparam Tuple An arithmetic-tuple type (see is_arithmetic_tuple).
   friend std::ostream& operator<<(std::ostream& out, const self& rhs) {
     out << "( ";
     bool is_first = true;
@@ -505,12 +479,10 @@ class arithmetic_tuple : public std::tuple<T...> {
 template <typename... U>
 arithmetic_tuple(U&&... u) -> arithmetic_tuple<std::decay_t<U>...>;
 
-/**
- * This function template can be used to create an arithmetic-tuple.
- * \tparam T The types contained in the arithmetic-tuple.
- * \param t The values that make up the arithmetic-tuple.
- * \return An arithmetic-tuple.
- */
+/// This function template can be used to create an arithmetic-tuple.
+/// \tparam T The types contained in the arithmetic-tuple.
+/// \param t The values that make up the arithmetic-tuple.
+/// \return An arithmetic-tuple.
 template <typename... T>
 inline arithmetic_tuple<std::decay_t<T>...> make_arithmetic_tuple(T&&... t) {
   return arithmetic_tuple<std::decay_t<T>...>(std::forward<T>(t)...);
@@ -577,12 +549,10 @@ void from_vect_impl(LhsType& lhs, const Vector& rhs, std::size_t& i) {
 
 }  // namespace detail
 
-/**
- * This function template converts anything to a vector, as long as the fundamental
- * value-type is compatible with the given output type.
- * \param v Something that can be converted to a vector.
- * \return A vector with the flattened content of the input.
- */
+/// This function template converts anything to a vector, as long as the fundamental
+/// value-type is compatible with the given output type.
+/// \param v Something that can be converted to a vector.
+/// \return A vector with the flattened content of the input.
 template <typename ValueType, typename VectorType>
 auto to_vect(const VectorType& v) {
   if constexpr (is_readable_vector_v<VectorType>) {
@@ -595,12 +565,10 @@ auto to_vect(const VectorType& v) {
   }
 }
 
-/**
- * This function template converts a vector into anything, as long as the fundamental
- * value-type is compatible with the vector type.
- * \param v A vector.
- * \return A vector with the flattened content of the input.
- */
+/// This function template converts a vector into anything, as long as the fundamental
+/// value-type is compatible with the vector type.
+/// \param v A vector.
+/// \return A vector with the flattened content of the input.
 template <typename OutputType, typename VectorType>
 OutputType from_vect(const VectorType& v) {
   if constexpr (is_writable_vector_v<OutputType>) {
@@ -616,28 +584,24 @@ OutputType from_vect(const VectorType& v) {
 
 namespace serialization {
 
-/**
- * This function template is an overload of the unnamed archive-output operator for arithmetic-tuples.
- * This function performs the unnamed archive-output of each element of the tuple, will only compile if
- * all elements of the tuple support the unnamed archive-output operator.
- * \param out The output archive.
- * \param rhs The arithmetic-tuple object to output on the archive.
- * \return The output archive.
- */
+/// This function template is an overload of the unnamed archive-output operator for arithmetic-tuples.
+/// This function performs the unnamed archive-output of each element of the tuple, will only compile if
+/// all elements of the tuple support the unnamed archive-output operator.
+/// \param out The output archive.
+/// \param rhs The arithmetic-tuple object to output on the archive.
+/// \return The output archive.
 template <typename... Args>
 oarchive& operator<<(oarchive& out, const arithmetic_tuple<Args...>& rhs) {
   tuple_for_each(rhs, [&](const auto& rhs_elem) { out << rhs_elem; });
   return out;
 }
 
-/**
- * This function template is an overload of the named archive-output operator for arithmetic-tuples.
- * This function performs the named archive-output of each element of the tuple, will only compile if
- * all elements of the tuple support the named archive-output operator.
- * \param out The output archive.
- * \param rhs The arithmetic-tuple object to output on the archive.
- * \return The output archive.
- */
+/// This function template is an overload of the named archive-output operator for arithmetic-tuples.
+/// This function performs the named archive-output of each element of the tuple, will only compile if
+/// all elements of the tuple support the named archive-output operator.
+/// \param out The output archive.
+/// \param rhs The arithmetic-tuple object to output on the archive.
+/// \return The output archive.
 template <typename... Args>
 oarchive& operator&(
     oarchive& out,
@@ -652,28 +616,24 @@ oarchive& operator&(
   return out;
 }
 
-/**
- * This function template is an overload of the unnamed archive-input operator for arithmetic-tuples.
- * This function performs the unnamed archive-input of each element of the tuple, will only compile if
- * all elements of the tuple support the unnamed archive-input operator.
- * \param in The input archive.
- * \param rhs The arithmetic-tuple object to input from the archive.
- * \return The input archive.
- */
+/// This function template is an overload of the unnamed archive-input operator for arithmetic-tuples.
+/// This function performs the unnamed archive-input of each element of the tuple, will only compile if
+/// all elements of the tuple support the unnamed archive-input operator.
+/// \param in The input archive.
+/// \param rhs The arithmetic-tuple object to input from the archive.
+/// \return The input archive.
 template <typename... Args>
 iarchive& operator>>(iarchive& in, arithmetic_tuple<Args...>& rhs) {
   tuple_for_each(rhs, [&](auto& rhs_elem) { in >> rhs_elem; });
   return in;
 }
 
-/**
- * This function template is an overload of the named archive-input operator for arithmetic-tuples.
- * This function performs the named archive-input of each element of the tuple, will only compile if
- * all elements of the tuple support the named archive-input operator.
- * \param in The input archive.
- * \param rhs The arithmetic-tuple object to input from the archive.
- * \return The input archive.
- */
+/// This function template is an overload of the named archive-input operator for arithmetic-tuples.
+/// This function performs the named archive-input of each element of the tuple, will only compile if
+/// all elements of the tuple support the named archive-input operator.
+/// \param in The input archive.
+/// \param rhs The arithmetic-tuple object to input from the archive.
+/// \return The input archive.
 template <typename... Args>
 iarchive& operator&(
     iarchive& in,
@@ -723,21 +683,18 @@ struct arithmetic_tuple_element {
   using type = std::tuple_element_t<Idx, Tuple>;
 };
 
-/* Specialization, see general template docs. */
 template <int Idx, typename... T>
 struct arithmetic_tuple_element<Idx, arithmetic_tuple<T...>> {
   using type = std::tuple_element_t<
       Idx, typename arithmetic_tuple<T...>::arithmetic_tuple_base_class>;
 };
 
-/* Specialization, see general template docs. */
 template <int Idx, typename... T>
 struct arithmetic_tuple_element<Idx, const arithmetic_tuple<T...>> {
   using type = std::tuple_element_t<
       Idx, const typename arithmetic_tuple<T...>::arithmetic_tuple_base_class>;
 };
 
-/* Specialization, see general template docs. */
 template <int Idx, typename... T>
 struct arithmetic_tuple_element<Idx, volatile arithmetic_tuple<T...>> {
   using type = std::tuple_element_t<
@@ -745,7 +702,6 @@ struct arithmetic_tuple_element<Idx, volatile arithmetic_tuple<T...>> {
       volatile typename arithmetic_tuple<T...>::arithmetic_tuple_base_class>;
 };
 
-/* Specialization, see general template docs. */
 template <int Idx, typename... T>
 struct arithmetic_tuple_element<Idx, const volatile arithmetic_tuple<T...>> {
   using type =
