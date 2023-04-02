@@ -44,10 +44,8 @@
 
 namespace ReaK {
 
-/**
- * This class template represents the jacobians between two generalized coordinates.
- * \tparam T The value-type.
- */
+/// This class template represents the jacobians between two generalized coordinates.
+/// \tparam T The value-type.
 template <typename T>
 class jacobian_gen_gen : public shared_object {
  public:
@@ -59,9 +57,7 @@ class jacobian_gen_gen : public shared_object {
   /// Holds how much acceleration is generated at output from the input velocity.
   value_type qd_qdd;
 
-  /**
-   * Parametrized constructor.
-   */
+  /// Parametrized constructor.
   explicit jacobian_gen_gen(const value_type& aQdQd = value_type(),
                             const value_type& aQdQdd = value_type())
       : qd_qd(aQdQd), qd_qdd(aQdQdd) {}
@@ -69,20 +65,6 @@ class jacobian_gen_gen : public shared_object {
   self get_jac_relative_to(
       const std::shared_ptr<gen_coord<value_type>>& /*unused*/) const {
     return *this;
-  }
-
-  template <typename Matrix1, typename Matrix2>
-  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
-    if ((Jac.get_row_count() != 1) || (Jac.get_col_count() != 1) ||
-        (JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 1)) {
-      throw std::range_error(
-          "Jacobian and JacobianDot matrices have the wrong size!");
-    }
-
-    Jac(0, 0) = qd_qd;
-    JacDot(0, 0) = qd_qdd;
   }
 
   template <typename Matrix1>
@@ -93,6 +75,18 @@ class jacobian_gen_gen : public shared_object {
     }
 
     Jac(0, 0) = qd_qd;
+  }
+
+  template <typename Matrix1, typename Matrix2>
+  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    write_to_matrices(Jac);
+
+    static_assert(is_fully_writable_matrix_v<Matrix2>);
+    if ((JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 1)) {
+      throw std::range_error("JacobianDot matrix has the wrong size!");
+    }
+
+    JacDot(0, 0) = qd_qdd;
   }
 
   /*******************************************************************************
@@ -112,10 +106,8 @@ class jacobian_gen_gen : public shared_object {
                               shared_object)
 };
 
-/**
- * This class template represents the jacobians between generalized coordinate and a 2D frame.
- * \tparam T The value-type.
- */
+/// This class template represents the jacobians between generalized coordinate and a 2D frame.
+/// \tparam T The value-type.
 template <typename T>
 class jacobian_gen_2D : public shared_object {
  public:
@@ -133,9 +125,7 @@ class jacobian_gen_2D : public shared_object {
   /// Holds how much angular acceleration is generated at output from the input velocity.
   value_type qd_aacc;
 
-  /**
-   * Parametrized constructor.
-   */
+  /// Parametrized constructor.
   explicit jacobian_gen_2D(
       std::weak_ptr<frame_2D<value_type>> aParent =
           std::weak_ptr<frame_2D<value_type>>(),
@@ -160,24 +150,6 @@ class jacobian_gen_2D : public shared_object {
         qd_aacc);
   }
 
-  template <typename Matrix1, typename Matrix2>
-  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
-    if ((Jac.get_row_count() != 3) || (Jac.get_col_count() != 1) ||
-        (JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 1)) {
-      throw std::range_error(
-          "Jacobian and JacobianDot matrices have the wrong size!");
-    }
-
-    Jac(0, 0) = qd_vel[0];
-    Jac(1, 0) = qd_vel[1];
-    Jac(2, 0) = qd_avel;
-    JacDot(0, 0) = qd_acc[0];
-    JacDot(1, 0) = qd_acc[1];
-    JacDot(2, 0) = qd_aacc;
-  }
-
   template <typename Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
     static_assert(is_fully_writable_matrix_v<Matrix1>);
@@ -188,6 +160,20 @@ class jacobian_gen_2D : public shared_object {
     Jac(0, 0) = qd_vel[0];
     Jac(1, 0) = qd_vel[1];
     Jac(2, 0) = qd_avel;
+  }
+
+  template <typename Matrix1, typename Matrix2>
+  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    write_to_matrices(Jac);
+
+    static_assert(is_fully_writable_matrix_v<Matrix2>);
+    if ((JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 1)) {
+      throw std::range_error("JacobianDot matrix has the wrong size!");
+    }
+
+    JacDot(0, 0) = qd_acc[0];
+    JacDot(1, 0) = qd_acc[1];
+    JacDot(2, 0) = qd_aacc;
   }
 
   /*******************************************************************************
@@ -217,10 +203,8 @@ class jacobian_gen_2D : public shared_object {
                               shared_object)
 };
 
-/**
- * This class template represents the jacobians between generalized coordinate and a 3D frame.
- * \tparam T The value-type.
- */
+/// This class template represents the jacobians between generalized coordinate and a 3D frame.
+/// \tparam T The value-type.
 template <typename T>
 class jacobian_gen_3D : public shared_object {
  public:
@@ -238,9 +222,7 @@ class jacobian_gen_3D : public shared_object {
   /// Holds how much angular acceleration is generated at output from the input velocity.
   vect<value_type, 3> qd_aacc;
 
-  /**
-   * Parametrized constructor.
-   */
+  /// Parametrized constructor.
   explicit jacobian_gen_3D(
       std::weak_ptr<frame_3D<value_type>> aParent =
           std::weak_ptr<frame_3D<value_type>>(),
@@ -268,30 +250,6 @@ class jacobian_gen_3D : public shared_object {
                 qd_aacc * R - f2.AngVelocity % w_tmp);
   }
 
-  template <typename Matrix1, typename Matrix2>
-  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
-    if ((Jac.get_row_count() != 6) || (Jac.get_col_count() != 1) ||
-        (JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 1)) {
-      throw std::range_error(
-          "Jacobian and JacobianDot matrices have the wrong size!");
-    }
-
-    Jac(0, 0) = qd_vel[0];
-    Jac(1, 0) = qd_vel[1];
-    Jac(2, 0) = qd_vel[2];
-    Jac(3, 0) = qd_avel[0];
-    Jac(4, 0) = qd_avel[1];
-    Jac(5, 0) = qd_avel[2];
-    JacDot(0, 0) = qd_acc[0];
-    JacDot(1, 0) = qd_acc[1];
-    JacDot(2, 0) = qd_acc[2];
-    JacDot(3, 0) = qd_aacc[0];
-    JacDot(4, 0) = qd_aacc[1];
-    JacDot(5, 0) = qd_aacc[2];
-  }
-
   template <typename Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
     static_assert(is_fully_writable_matrix_v<Matrix1>);
@@ -299,12 +257,21 @@ class jacobian_gen_3D : public shared_object {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
 
-    Jac(0, 0) = qd_vel[0];
-    Jac(1, 0) = qd_vel[1];
-    Jac(2, 0) = qd_vel[2];
-    Jac(3, 0) = qd_avel[0];
-    Jac(4, 0) = qd_avel[1];
-    Jac(5, 0) = qd_avel[2];
+    slice(Jac)(range(0, 3), 0) = qd_vel;
+    slice(Jac)(range(3, 6), 0) = qd_avel;
+  }
+
+  template <typename Matrix1, typename Matrix2>
+  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    write_to_matrices(Jac);
+
+    static_assert(is_fully_writable_matrix_v<Matrix2>);
+    if ((JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 1)) {
+      throw std::range_error("JacobianDot matrix has the wrong size!");
+    }
+
+    slice(JacDot)(range(0, 3), 0) = qd_acc;
+    slice(JacDot)(range(3, 6), 0) = qd_aacc;
   }
 
   /*******************************************************************************
@@ -334,10 +301,8 @@ class jacobian_gen_3D : public shared_object {
                               shared_object)
 };
 
-/**
- * This class template represents the jacobians between a 2D frame and a generalized coordinate.
- * \tparam T The value-type.
- */
+/// This class template represents the jacobians between a 2D frame and a generalized coordinate.
+/// \tparam T The value-type.
 template <typename T>
 class jacobian_2D_gen : public shared_object {
  public:
@@ -353,9 +318,7 @@ class jacobian_2D_gen : public shared_object {
   /// Holds how much acceleration is generated at output from the input angular velocity.
   value_type avel_qdd;
 
-  /**
-   * Parametrized constructor.
-   */
+  /// Parametrized constructor.
   explicit jacobian_2D_gen(
       const vect<value_type, 2>& aVelQd = (vect<value_type, 2>()),
       const value_type& aAVelQd = value_type(),
@@ -371,24 +334,6 @@ class jacobian_2D_gen : public shared_object {
     return *this;
   }
 
-  template <typename Matrix1, typename Matrix2>
-  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
-    if ((Jac.get_row_count() != 1) || (Jac.get_col_count() != 3) ||
-        (JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 3)) {
-      throw std::range_error(
-          "Jacobian and JacobianDot matrices have the wrong size!");
-    }
-
-    Jac(0, 0) = vel_qd[0];
-    Jac(0, 1) = vel_qd[1];
-    Jac(0, 2) = avel_qd;
-    JacDot(0, 0) = vel_qdd[0];
-    JacDot(0, 1) = vel_qdd[1];
-    JacDot(0, 2) = avel_qdd;
-  }
-
   template <typename Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
     static_assert(is_fully_writable_matrix_v<Matrix1>);
@@ -399,6 +344,20 @@ class jacobian_2D_gen : public shared_object {
     Jac(0, 0) = vel_qd[0];
     Jac(0, 1) = vel_qd[1];
     Jac(0, 2) = avel_qd;
+  }
+
+  template <typename Matrix1, typename Matrix2>
+  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    write_to_matrices(Jac);
+
+    static_assert(is_fully_writable_matrix_v<Matrix2>);
+    if ((JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 3)) {
+      throw std::range_error("JacobianDot matrix has the wrong size!");
+    }
+
+    JacDot(0, 0) = vel_qdd[0];
+    JacDot(0, 1) = vel_qdd[1];
+    JacDot(0, 2) = avel_qdd;
   }
 
   /*******************************************************************************
@@ -420,10 +379,8 @@ class jacobian_2D_gen : public shared_object {
                               shared_object)
 };
 
-/**
- * This class template represents the jacobians between a 2D frame and a 2D frame.
- * \tparam T The value-type.
- */
+/// This class template represents the jacobians between a 2D frame and a 2D frame.
+/// \tparam T The value-type.
 template <typename T>
 class jacobian_2D_2D : public shared_object {
  public:
@@ -449,9 +406,7 @@ class jacobian_2D_2D : public shared_object {
   /// Holds how much angular acceleration is generated at output from the input angular velocity.
   value_type avel_aacc;
 
-  /**
-   * Parametrized constructor.
-   */
+  /// Parametrized constructor.
   explicit jacobian_2D_2D(
       std::weak_ptr<frame_2D<value_type>> aParent =
           std::weak_ptr<frame_2D<value_type>>(),
@@ -509,36 +464,6 @@ class jacobian_2D_2D : public shared_object {
     );
   }
 
-  template <typename Matrix1, typename Matrix2>
-  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
-    if ((Jac.get_row_count() != 3) || (Jac.get_col_count() != 3) ||
-        (JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 3)) {
-      throw std::range_error(
-          "Jacobian and JacobianDot matrices have the wrong size!");
-    }
-
-    Jac(0, 0) = vel_vel[0][0];
-    Jac(1, 0) = vel_vel[0][1];
-    Jac(2, 0) = vel_avel[0];
-    Jac(0, 1) = vel_vel[1][0];
-    Jac(1, 1) = vel_vel[1][1];
-    Jac(2, 1) = vel_avel[1];
-    Jac(0, 2) = avel_vel[0];
-    Jac(1, 2) = avel_vel[1];
-    Jac(2, 2) = avel_avel;
-    JacDot(0, 0) = vel_acc[0][0];
-    JacDot(1, 0) = vel_acc[0][1];
-    JacDot(2, 0) = vel_aacc[0];
-    JacDot(0, 1) = vel_acc[1][0];
-    JacDot(1, 1) = vel_acc[1][1];
-    JacDot(2, 1) = vel_aacc[1];
-    JacDot(0, 2) = avel_acc[0];
-    JacDot(1, 2) = avel_acc[1];
-    JacDot(2, 2) = avel_aacc;
-  }
-
   template <typename Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
     static_assert(is_fully_writable_matrix_v<Matrix1>);
@@ -546,15 +471,29 @@ class jacobian_2D_2D : public shared_object {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
 
-    Jac(0, 0) = vel_vel[0][0];
-    Jac(1, 0) = vel_vel[0][1];
-    Jac(2, 0) = vel_avel[0];
-    Jac(0, 1) = vel_vel[1][0];
-    Jac(1, 1) = vel_vel[1][1];
-    Jac(2, 1) = vel_avel[1];
-    Jac(0, 2) = avel_vel[0];
-    Jac(1, 2) = avel_vel[1];
+    for (int i : {0, 1}) {
+      slice(Jac)(range(0, 2), i) = vel_vel[i];
+      Jac(2, i) = vel_avel[i];
+    }
+    slice(Jac)(range(0, 2), 2) = avel_vel;
     Jac(2, 2) = avel_avel;
+  }
+
+  template <typename Matrix1, typename Matrix2>
+  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    write_to_matrices(Jac);
+
+    static_assert(is_fully_writable_matrix_v<Matrix2>);
+    if ((JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 3)) {
+      throw std::range_error("JacobianDot matrix has the wrong size!");
+    }
+
+    for (int i : {0, 1}) {
+      slice(JacDot)(range(0, 2), i) = vel_acc[i];
+      JacDot(2, i) = vel_aacc[i];
+    }
+    slice(JacDot)(range(0, 2), 2) = avel_acc;
+    JacDot(2, 2) = avel_aacc;
   }
 
   /*******************************************************************************
@@ -592,10 +531,8 @@ class jacobian_2D_2D : public shared_object {
                               shared_object)
 };
 
-/**
- * This class template represents the jacobians between a 2D frame and a 3D frame.
- * \tparam T The value-type.
- */
+/// This class template represents the jacobians between a 2D frame and a 3D frame.
+/// \tparam T The value-type.
 template <typename T>
 class jacobian_2D_3D : public shared_object {
  public:
@@ -621,9 +558,7 @@ class jacobian_2D_3D : public shared_object {
   /// Holds how much angular acceleration is generated at output from the input angular velocity.
   vect<value_type, 3> avel_aacc;
 
-  /**
-   * Parametrized constructor.
-   */
+  /// Parametrized constructor.
   explicit jacobian_2D_3D(
       std::weak_ptr<frame_3D<value_type>> aParent =
           std::weak_ptr<frame_3D<value_type>>(),
@@ -684,55 +619,6 @@ class jacobian_2D_3D : public shared_object {
                 new_vel_acc, new_vel_aacc, new_avel_acc, new_avel_aacc);
   }
 
-  template <typename Matrix1, typename Matrix2>
-  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
-    if ((Jac.get_row_count() != 6) || (Jac.get_col_count() != 3) ||
-        (JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 3)) {
-      throw std::range_error(
-          "Jacobian and JacobianDot matrices have the wrong size!");
-    }
-
-    Jac(0, 0) = vel_vel[0][0];
-    Jac(1, 0) = vel_vel[0][1];
-    Jac(2, 0) = vel_vel[0][2];
-    Jac(3, 0) = vel_avel[0][0];
-    Jac(4, 0) = vel_avel[0][1];
-    Jac(5, 0) = vel_avel[0][2];
-    Jac(0, 1) = vel_vel[1][0];
-    Jac(1, 1) = vel_vel[1][1];
-    Jac(2, 1) = vel_vel[1][2];
-    Jac(3, 1) = vel_avel[1][0];
-    Jac(4, 1) = vel_avel[1][1];
-    Jac(5, 1) = vel_avel[1][2];
-    Jac(0, 2) = avel_vel[0];
-    Jac(1, 2) = avel_vel[1];
-    Jac(2, 2) = avel_vel[2];
-    Jac(3, 2) = avel_avel[0];
-    Jac(4, 2) = avel_avel[1];
-    Jac(5, 2) = avel_avel[2];
-
-    JacDot(0, 0) = vel_acc[0][0];
-    JacDot(1, 0) = vel_acc[0][1];
-    JacDot(2, 0) = vel_acc[0][2];
-    JacDot(3, 0) = vel_aacc[0][0];
-    JacDot(4, 0) = vel_aacc[0][1];
-    JacDot(5, 0) = vel_aacc[0][2];
-    JacDot(0, 1) = vel_acc[1][0];
-    JacDot(1, 1) = vel_acc[1][1];
-    JacDot(2, 1) = vel_acc[1][2];
-    JacDot(3, 1) = vel_aacc[1][0];
-    JacDot(4, 1) = vel_aacc[1][1];
-    JacDot(5, 1) = vel_aacc[1][2];
-    JacDot(0, 2) = avel_acc[0];
-    JacDot(1, 2) = avel_acc[1];
-    JacDot(2, 2) = avel_acc[2];
-    JacDot(3, 2) = avel_aacc[0];
-    JacDot(4, 2) = avel_aacc[1];
-    JacDot(5, 2) = avel_aacc[2];
-  }
-
   template <typename Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
     static_assert(is_fully_writable_matrix_v<Matrix1>);
@@ -740,24 +626,29 @@ class jacobian_2D_3D : public shared_object {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
 
-    Jac(0, 0) = vel_vel[0][0];
-    Jac(1, 0) = vel_vel[0][1];
-    Jac(2, 0) = vel_vel[0][2];
-    Jac(3, 0) = vel_avel[0][0];
-    Jac(4, 0) = vel_avel[0][1];
-    Jac(5, 0) = vel_avel[0][2];
-    Jac(0, 1) = vel_vel[1][0];
-    Jac(1, 1) = vel_vel[1][1];
-    Jac(2, 1) = vel_vel[1][2];
-    Jac(3, 1) = vel_avel[1][0];
-    Jac(4, 1) = vel_avel[1][1];
-    Jac(5, 1) = vel_avel[1][2];
-    Jac(0, 2) = avel_vel[0];
-    Jac(1, 2) = avel_vel[1];
-    Jac(2, 2) = avel_vel[2];
-    Jac(3, 2) = avel_avel[0];
-    Jac(4, 2) = avel_avel[1];
-    Jac(5, 2) = avel_avel[2];
+    for (int i : {0, 1}) {
+      slice(Jac)(range(0, 3), i) = vel_vel[i];
+      slice(Jac)(range(3, 6), i) = vel_avel[i];
+    }
+    slice(Jac)(range(0, 3), 2) = avel_vel;
+    slice(Jac)(range(3, 6), 2) = avel_avel;
+  }
+
+  template <typename Matrix1, typename Matrix2>
+  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    write_to_matrices(Jac);
+
+    static_assert(is_fully_writable_matrix_v<Matrix2>);
+    if ((JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 3)) {
+      throw std::range_error("JacobianDot matrix has the wrong size!");
+    }
+
+    for (int i : {0, 1}) {
+      slice(Jac)(range(0, 3), i) = vel_acc[i];
+      slice(Jac)(range(3, 6), i) = vel_aacc[i];
+    }
+    slice(Jac)(range(0, 3), 2) = avel_acc;
+    slice(Jac)(range(3, 6), 2) = avel_aacc;
   }
 
   /*******************************************************************************
@@ -795,10 +686,8 @@ class jacobian_2D_3D : public shared_object {
                               shared_object)
 };
 
-/**
- * This class template represents the jacobians between a 3D frame and a generalized coordinate.
- * \tparam T The value-type.
- */
+/// This class template represents the jacobians between a 3D frame and a generalized coordinate.
+/// \tparam T The value-type.
 template <typename T>
 class jacobian_3D_gen : public shared_object {
  public:
@@ -814,9 +703,7 @@ class jacobian_3D_gen : public shared_object {
   /// Holds how much acceleration is generated at output from the input angular velocity.
   vect<value_type, 3> avel_qdd;
 
-  /**
-   * Parametrized constructor.
-   */
+  /// Parametrized constructor.
   explicit jacobian_3D_gen(
       const vect<value_type, 3>& aVelQd = (vect<value_type, 3>()),
       const vect<value_type, 3>& aAVelQd = (vect<value_type, 3>()),
@@ -832,31 +719,6 @@ class jacobian_3D_gen : public shared_object {
     return *this;
   }
 
-  template <typename Matrix1, typename Matrix2>
-  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
-    if ((Jac.get_row_count() != 1) || (Jac.get_col_count() != 6) ||
-        (JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 6)) {
-      throw std::range_error(
-          "Jacobian and JacobianDot matrices have the wrong size!");
-    }
-
-    Jac(0, 0) = vel_qd[0];
-    Jac(0, 1) = vel_qd[1];
-    Jac(0, 2) = vel_qd[2];
-    Jac(0, 3) = avel_qd[0];
-    Jac(0, 4) = avel_qd[1];
-    Jac(0, 5) = avel_qd[2];
-
-    JacDot(0, 0) = vel_qdd[0];
-    JacDot(0, 1) = vel_qdd[1];
-    JacDot(0, 2) = vel_qdd[2];
-    JacDot(0, 3) = avel_qdd[0];
-    JacDot(0, 4) = avel_qdd[1];
-    JacDot(0, 5) = avel_qdd[2];
-  }
-
   template <typename Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
     static_assert(is_fully_writable_matrix_v<Matrix1>);
@@ -864,12 +726,21 @@ class jacobian_3D_gen : public shared_object {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
 
-    Jac(0, 0) = vel_qd[0];
-    Jac(0, 1) = vel_qd[1];
-    Jac(0, 2) = vel_qd[2];
-    Jac(0, 3) = avel_qd[0];
-    Jac(0, 4) = avel_qd[1];
-    Jac(0, 5) = avel_qd[2];
+    slice(Jac)(0, range(0, 3)) = vel_qd;
+    slice(Jac)(0, range(3, 6)) = avel_qd;
+  }
+
+  template <typename Matrix1, typename Matrix2>
+  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    write_to_matrices(Jac);
+
+    static_assert(is_fully_writable_matrix_v<Matrix2>);
+    if ((JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 6)) {
+      throw std::range_error("JacobianDot matrix has the wrong size!");
+    }
+
+    slice(JacDot)(0, range(0, 3)) = vel_qdd;
+    slice(JacDot)(0, range(3, 6)) = avel_qdd;
   }
 
   /*******************************************************************************
@@ -891,10 +762,8 @@ class jacobian_3D_gen : public shared_object {
                               shared_object)
 };
 
-/**
- * This class template represents the jacobians between a 3D frame and a 2D frame.
- * \tparam T The value-type.
- */
+/// This class template represents the jacobians between a 3D frame and a 2D frame.
+/// \tparam T The value-type.
 template <typename T>
 class jacobian_3D_2D : public shared_object {
  public:
@@ -920,9 +789,7 @@ class jacobian_3D_2D : public shared_object {
   /// Holds how much angular acceleration is generated at output from the input angular velocity.
   vect<value_type, 3> avel_aacc;
 
-  /**
-   * Parametrized constructor.
-   */
+  /// Parametrized constructor.
   explicit jacobian_3D_2D(
       std::weak_ptr<frame_2D<value_type>> aParent =
           std::weak_ptr<frame_2D<value_type>>(),
@@ -997,55 +864,6 @@ class jacobian_3D_2D : public shared_object {
     );
   }
 
-  template <typename Matrix1, typename Matrix2>
-  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
-    if ((Jac.get_row_count() != 3) || (Jac.get_col_count() != 6) ||
-        (JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 6)) {
-      throw std::range_error(
-          "Jacobian and JacobianDot matrices have the wrong size!");
-    }
-
-    Jac(0, 0) = vel_vel[0][0];
-    Jac(1, 0) = vel_vel[0][1];
-    Jac(2, 0) = vel_avel[0];
-    Jac(0, 1) = vel_vel[1][0];
-    Jac(1, 1) = vel_vel[1][1];
-    Jac(2, 1) = vel_avel[1];
-    Jac(0, 2) = vel_vel[2][0];
-    Jac(1, 2) = vel_vel[2][1];
-    Jac(2, 2) = vel_avel[2];
-    Jac(0, 3) = avel_vel[0][0];
-    Jac(1, 3) = avel_vel[0][1];
-    Jac(2, 3) = avel_avel[0];
-    Jac(0, 4) = avel_vel[1][0];
-    Jac(1, 4) = avel_vel[1][1];
-    Jac(2, 4) = avel_avel[1];
-    Jac(0, 5) = avel_vel[2][0];
-    Jac(1, 5) = avel_vel[2][1];
-    Jac(2, 5) = avel_avel[2];
-
-    JacDot(0, 0) = vel_acc[0][0];
-    JacDot(1, 0) = vel_acc[0][1];
-    JacDot(2, 0) = vel_aacc[0];
-    JacDot(0, 1) = vel_acc[1][0];
-    JacDot(1, 1) = vel_acc[1][1];
-    JacDot(2, 1) = vel_aacc[1];
-    JacDot(0, 2) = vel_acc[2][0];
-    JacDot(1, 2) = vel_acc[2][1];
-    JacDot(2, 2) = vel_aacc[2];
-    JacDot(0, 3) = avel_acc[0][0];
-    JacDot(1, 3) = avel_acc[0][1];
-    JacDot(2, 3) = avel_aacc[0];
-    JacDot(0, 4) = avel_acc[1][0];
-    JacDot(1, 4) = avel_acc[1][1];
-    JacDot(2, 4) = avel_aacc[1];
-    JacDot(0, 5) = avel_acc[2][0];
-    JacDot(1, 5) = avel_acc[2][1];
-    JacDot(2, 5) = avel_aacc[2];
-  }
-
   template <typename Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
     static_assert(is_fully_writable_matrix_v<Matrix1>);
@@ -1053,24 +871,29 @@ class jacobian_3D_2D : public shared_object {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
 
-    Jac(0, 0) = vel_vel[0][0];
-    Jac(1, 0) = vel_vel[0][1];
-    Jac(2, 0) = vel_avel[0];
-    Jac(0, 1) = vel_vel[1][0];
-    Jac(1, 1) = vel_vel[1][1];
-    Jac(2, 1) = vel_avel[1];
-    Jac(0, 2) = vel_vel[2][0];
-    Jac(1, 2) = vel_vel[2][1];
-    Jac(2, 2) = vel_avel[2];
-    Jac(0, 3) = avel_vel[0][0];
-    Jac(1, 3) = avel_vel[0][1];
-    Jac(2, 3) = avel_avel[0];
-    Jac(0, 4) = avel_vel[1][0];
-    Jac(1, 4) = avel_vel[1][1];
-    Jac(2, 4) = avel_avel[1];
-    Jac(0, 5) = avel_vel[2][0];
-    Jac(1, 5) = avel_vel[2][1];
-    Jac(2, 5) = avel_avel[2];
+    for (int i : {0, 1, 2}) {
+      slice(Jac)(range(0, 2), i) = vel_vel[i];
+      Jac(2, i) = vel_avel[i];
+      slice(Jac)(range(0, 2), i + 3) = avel_vel[i];
+      Jac(2, i + 3) = avel_avel[i];
+    }
+  }
+
+  template <typename Matrix1, typename Matrix2>
+  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    write_to_matrices(Jac);
+
+    static_assert(is_fully_writable_matrix_v<Matrix2>);
+    if ((JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 6)) {
+      throw std::range_error("JacobianDot matrix has the wrong size!");
+    }
+
+    for (int i : {0, 1, 2}) {
+      slice(JacDot)(range(0, 2), i) = vel_acc[i];
+      JacDot(2, i) = vel_aacc[i];
+      slice(JacDot)(range(0, 2), i + 3) = avel_acc[i];
+      JacDot(2, i + 3) = avel_aacc[i];
+    }
   }
 
   /*******************************************************************************
@@ -1108,10 +931,8 @@ class jacobian_3D_2D : public shared_object {
                               shared_object)
 };
 
-/**
- * This class template represents the jacobians between a 3D frame and a 3D frame.
- * \tparam T The value-type.
- */
+/// This class template represents the jacobians between a 3D frame and a 3D frame.
+/// \tparam T The value-type.
 template <typename T>
 class jacobian_3D_3D : public shared_object {
  public:
@@ -1137,9 +958,7 @@ class jacobian_3D_3D : public shared_object {
   /// Holds how much angular acceleration is generated at output from the input angular velocity.
   vect<vect<value_type, 3>, 3> avel_aacc;
 
-  /**
-   * Parametrized constructor.
-   */
+  /// Parametrized constructor.
   explicit jacobian_3D_3D(std::weak_ptr<frame_3D<value_type>> aParent =
                               std::weak_ptr<frame_3D<value_type>>(),
                           const vect<vect<value_type, 3>, 3>& aVelVel =
@@ -1225,91 +1044,6 @@ class jacobian_3D_3D : public shared_object {
                 new_vel_acc, new_vel_aacc, new_avel_acc, new_avel_aacc);
   }
 
-  template <typename Matrix1, typename Matrix2>
-  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
-    if ((Jac.get_row_count() != 6) || (Jac.get_col_count() != 6) ||
-        (JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 6)) {
-      throw std::range_error(
-          "Jacobian and JacobianDot matrices have the wrong size!");
-    }
-
-    Jac(0, 0) = vel_vel[0][0];
-    Jac(1, 0) = vel_vel[0][1];
-    Jac(2, 0) = vel_vel[0][2];
-    Jac(3, 0) = vel_avel[0][0];
-    Jac(4, 0) = vel_avel[0][1];
-    Jac(5, 0) = vel_avel[0][2];
-    Jac(0, 1) = vel_vel[1][0];
-    Jac(1, 1) = vel_vel[1][1];
-    Jac(2, 1) = vel_vel[1][2];
-    Jac(3, 1) = vel_avel[1][0];
-    Jac(4, 1) = vel_avel[1][1];
-    Jac(5, 1) = vel_avel[1][2];
-    Jac(0, 2) = vel_vel[2][0];
-    Jac(1, 2) = vel_vel[2][1];
-    Jac(2, 2) = vel_vel[2][2];
-    Jac(3, 2) = vel_avel[2][0];
-    Jac(4, 2) = vel_avel[2][1];
-    Jac(5, 2) = vel_avel[2][2];
-    Jac(0, 3) = avel_vel[0][0];
-    Jac(1, 3) = avel_vel[0][1];
-    Jac(2, 3) = avel_vel[0][2];
-    Jac(3, 3) = avel_avel[0][0];
-    Jac(4, 3) = avel_avel[0][1];
-    Jac(5, 3) = avel_avel[0][2];
-    Jac(0, 4) = avel_vel[1][0];
-    Jac(1, 4) = avel_vel[1][1];
-    Jac(2, 4) = avel_vel[1][2];
-    Jac(3, 4) = avel_avel[1][0];
-    Jac(4, 4) = avel_avel[1][1];
-    Jac(5, 4) = avel_avel[1][2];
-    Jac(0, 5) = avel_vel[2][0];
-    Jac(1, 5) = avel_vel[2][1];
-    Jac(2, 5) = avel_vel[2][2];
-    Jac(3, 5) = avel_avel[2][0];
-    Jac(4, 5) = avel_avel[2][1];
-    Jac(5, 5) = avel_avel[2][2];
-
-    JacDot(0, 0) = vel_acc[0][0];
-    JacDot(1, 0) = vel_acc[0][1];
-    JacDot(2, 0) = vel_acc[0][2];
-    JacDot(3, 0) = vel_aacc[0][0];
-    JacDot(4, 0) = vel_aacc[0][1];
-    JacDot(5, 0) = vel_aacc[0][2];
-    JacDot(0, 1) = vel_acc[1][0];
-    JacDot(1, 1) = vel_acc[1][1];
-    JacDot(2, 1) = vel_acc[1][2];
-    JacDot(3, 1) = vel_aacc[1][0];
-    JacDot(4, 1) = vel_aacc[1][1];
-    JacDot(5, 1) = vel_aacc[1][2];
-    JacDot(0, 2) = vel_acc[2][0];
-    JacDot(1, 2) = vel_acc[2][1];
-    JacDot(2, 2) = vel_acc[2][2];
-    JacDot(3, 2) = vel_aacc[2][0];
-    JacDot(4, 2) = vel_aacc[2][1];
-    JacDot(5, 2) = vel_aacc[2][2];
-    JacDot(0, 3) = avel_acc[0][0];
-    JacDot(1, 3) = avel_acc[0][1];
-    JacDot(2, 3) = avel_acc[0][2];
-    JacDot(3, 3) = avel_aacc[0][0];
-    JacDot(4, 3) = avel_aacc[0][1];
-    JacDot(5, 3) = avel_aacc[0][2];
-    JacDot(0, 4) = avel_acc[1][0];
-    JacDot(1, 4) = avel_acc[1][1];
-    JacDot(2, 4) = avel_acc[1][2];
-    JacDot(3, 4) = avel_aacc[1][0];
-    JacDot(4, 4) = avel_aacc[1][1];
-    JacDot(5, 4) = avel_aacc[1][2];
-    JacDot(0, 5) = avel_acc[2][0];
-    JacDot(1, 5) = avel_acc[2][1];
-    JacDot(2, 5) = avel_acc[2][2];
-    JacDot(3, 5) = avel_aacc[2][0];
-    JacDot(4, 5) = avel_aacc[2][1];
-    JacDot(5, 5) = avel_aacc[2][2];
-  }
-
   template <typename Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
     static_assert(is_fully_writable_matrix_v<Matrix1>);
@@ -1317,42 +1051,29 @@ class jacobian_3D_3D : public shared_object {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
 
-    Jac(0, 0) = vel_vel[0][0];
-    Jac(1, 0) = vel_vel[0][1];
-    Jac(2, 0) = vel_vel[0][2];
-    Jac(3, 0) = vel_avel[0][0];
-    Jac(4, 0) = vel_avel[0][1];
-    Jac(5, 0) = vel_avel[0][2];
-    Jac(0, 1) = vel_vel[1][0];
-    Jac(1, 1) = vel_vel[1][1];
-    Jac(2, 1) = vel_vel[1][2];
-    Jac(3, 1) = vel_avel[1][0];
-    Jac(4, 1) = vel_avel[1][1];
-    Jac(5, 1) = vel_avel[1][2];
-    Jac(0, 2) = vel_vel[2][0];
-    Jac(1, 2) = vel_vel[2][1];
-    Jac(2, 2) = vel_vel[2][2];
-    Jac(3, 2) = vel_avel[2][0];
-    Jac(4, 2) = vel_avel[2][1];
-    Jac(5, 2) = vel_avel[2][2];
-    Jac(0, 3) = avel_vel[0][0];
-    Jac(1, 3) = avel_vel[0][1];
-    Jac(2, 3) = avel_vel[0][2];
-    Jac(3, 3) = avel_avel[0][0];
-    Jac(4, 3) = avel_avel[0][1];
-    Jac(5, 3) = avel_avel[0][2];
-    Jac(0, 4) = avel_vel[1][0];
-    Jac(1, 4) = avel_vel[1][1];
-    Jac(2, 4) = avel_vel[1][2];
-    Jac(3, 4) = avel_avel[1][0];
-    Jac(4, 4) = avel_avel[1][1];
-    Jac(5, 4) = avel_avel[1][2];
-    Jac(0, 5) = avel_vel[2][0];
-    Jac(1, 5) = avel_vel[2][1];
-    Jac(2, 5) = avel_vel[2][2];
-    Jac(3, 5) = avel_avel[2][0];
-    Jac(4, 5) = avel_avel[2][1];
-    Jac(5, 5) = avel_avel[2][2];
+    for (int i : {0, 1, 2}) {
+      slice(Jac)(range(0, 3), i) = vel_vel[i];
+      slice(Jac)(range(3, 6), i) = vel_avel[i];
+      slice(Jac)(range(0, 3), i + 3) = avel_vel[i];
+      slice(Jac)(range(3, 6), i + 3) = avel_avel[i];
+    }
+  }
+
+  template <typename Matrix1, typename Matrix2>
+  void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    write_to_matrices(Jac);
+
+    static_assert(is_fully_writable_matrix_v<Matrix2>);
+    if ((JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 6)) {
+      throw std::range_error("JacobianDot matrix has the wrong size!");
+    }
+
+    for (int i : {0, 1, 2}) {
+      slice(JacDot)(range(0, 3), i) = vel_acc[i];
+      slice(JacDot)(range(3, 6), i) = vel_aacc[i];
+      slice(JacDot)(range(0, 3), i + 3) = avel_acc[i];
+      slice(JacDot)(range(3, 6), i + 3) = avel_aacc[i];
+    }
   }
 
   /*******************************************************************************

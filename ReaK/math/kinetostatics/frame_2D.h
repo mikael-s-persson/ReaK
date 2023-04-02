@@ -37,12 +37,10 @@
 
 namespace ReaK {
 
-/**
- * This class extends pose_2D to include velocity and acceleration as well as applied forces.
- * \note Linear kinematics are expressed in Parent coordinates while rotation kinematics are
- *       expressed in this coordinate system (local or "body-fixed"). However, all forces
- *       (force and torque) are expressed in local coordinates.
- */
+/// This class extends pose_2D to include velocity and acceleration as well as applied forces.
+/// \note Linear kinematics are expressed in Parent coordinates while rotation kinematics are
+///       expressed in this coordinate system (local or "body-fixed"). However, all forces
+///       (force and torque) are expressed in local coordinates.
 template <typename T>
 class frame_2D : public pose_2D<T> {
  public:
@@ -77,10 +75,8 @@ class frame_2D : public pose_2D<T> {
   /// Torque flowing through this frame.
   angular_vector_type Torque;
 
-  /**
-   * Default constructor, all is set to zero.
-   */
-  frame_2D()
+  /// Default constructor, all is set to zero.
+  frame_2D() noexcept
       : pose_2D<T>(),
         Velocity(),
         AngVelocity(0.0),
@@ -89,15 +85,14 @@ class frame_2D : public pose_2D<T> {
         Force(),
         Torque(0.0) {}
 
-  /**
-   * Parametrized constructor, all is set to corresponding parameters.
-   */
+  /// Parametrized constructor, all is set to corresponding parameters.
   frame_2D(const std::weak_ptr<base>& aParent, const position_type& aPosition,
            const rotation_type& aRotation, const linear_vector_type& aVelocity,
            const angular_vector_type& aAngVelocity,
            const linear_vector_type& aAcceleration,
            const angular_vector_type& aAngAcceleration,
-           const linear_vector_type& aForce, const angular_vector_type& aTorque)
+           const linear_vector_type& aForce,
+           const angular_vector_type& aTorque) noexcept
       : pose_2D<T>(aParent, aPosition, aRotation),
         Velocity(aVelocity),
         AngVelocity(aAngVelocity),
@@ -106,22 +101,12 @@ class frame_2D : public pose_2D<T> {
         Force(aForce),
         Torque(aTorque) {}
 
-  /**
-   * Copy-constructor.
-   */
-  frame_2D(const self& aFrame)
-      : pose_2D<T>(aFrame),
-        Velocity(aFrame.Velocity),
-        AngVelocity(aFrame.AngVelocity),
-        Acceleration(aFrame.Acceleration),
-        AngAcceleration(aFrame.AngAcceleration),
-        Force(aFrame.Force),
-        Torque(aFrame.Torque) {}
+  /// Copy-constructor.
+  frame_2D(const self& aFrame) noexcept = default;
+  frame_2D(self&& aFrame) noexcept = default;
 
-  /**
-   * Explicit conversion from a simple pose, the additional values are set to zero.
-   */
-  explicit frame_2D(const base& aPose)
+  /// Explicit conversion from a simple pose, the additional values are set to zero.
+  explicit frame_2D(const base& aPose) noexcept
       : pose_2D<T>(aPose),
         Velocity(),
         AngVelocity(0.0),
@@ -130,20 +115,24 @@ class frame_2D : public pose_2D<T> {
         Force(),
         Torque(0.0) {}
 
-  /**
-   * Default virtual destructor.
-   */
+  /// Default virtual destructor.
   ~frame_2D() override = default;
 
  protected:
-  self getFrameRelativeToImpl(const base* F) const {
+  self getFrameRelativeToImpl(const base* F) const noexcept {
     if (!F) {
       return getGlobalFrame();
     }
+    const auto as_frame = [](const base* pose_ptr) -> const self* {
+      if (rtti::rk_is_of_type<self>(pose_ptr)) {
+        return static_cast<const self*>(pose_ptr);
+      }
+      return nullptr;
+    };
     // If this is at the global node, F can meet this there.
     if (this->Parent.expired()) {
-      if (rtti::rk_is_of_type<self>(F)) {
-        return (~(static_cast<const self*>(F)->getGlobalFrame())) * (*this);
+      if (const self* F_fr = as_frame(F)) {
+        return (~(F_fr->getGlobalFrame())) * (*this);
       }
       return (~(self(*F).getGlobalFrame())) * (*this);
     }
@@ -153,90 +142,72 @@ class frame_2D : public pose_2D<T> {
       if (p.get() == F) {
         return *this;
       }
-      if (rtti::rk_is_of_type<self>(p)) {
-        return static_cast<const self*>(p.get())->getFrameRelativeToImpl(F) *
-               (*this);
+      if (const self* p_fr = as_frame(p.get())) {
+        return p_fr->getFrameRelativeToImpl(F) * (*this);
       }
       return self(*p).getFrameRelativeToImpl(F) * (*this);
     }
     // If this is somewhere down F's chain.
     if (F->isParentPose(*this)) {
-      if (rtti::rk_is_of_type<self>(F)) {
-        return ~(static_cast<const self*>(F)->getFrameRelativeToImpl(this));
+      if (const self* F_fr = as_frame(F)) {
+        return ~(F_fr->getFrameRelativeToImpl(this));
       }
       return ~(self(*F).getFrameRelativeToImpl(this));
     }
     // Else means F's chain meets "this"'s chain somewhere down, possibly all the way to the global node.
     std::shared_ptr<base> p = this->Parent.lock();
-    if (rtti::rk_is_of_type<self>(p)) {
-      return static_cast<const self*>(p.get())->getFrameRelativeToImpl(F) *
-             (*this);
+    if (const self* p_fr = as_frame(p.get())) {
+      return p_fr->getFrameRelativeToImpl(F) * (*this);
     }
     return self(*p).getFrameRelativeToImpl(F) * (*this);
   }
 
  public:
-  /**
-   * Returns this coordinate frame relative to the global inertial frame.
-   * \note no operations are performed on forces.
-   */
-  self getGlobalFrame() const {
+  /// Returns this coordinate frame relative to the global inertial frame.
+  /// \note no operations are performed on forces.
+  self getGlobalFrame() const noexcept {
     if (!this->Parent.expired()) {
       self result;
-      std::shared_ptr<const self> p =
-          rtti::rk_dynamic_ptr_cast<const self>(this->Parent.lock());
+      auto p = rtti::rk_dynamic_ptr_cast<const self>(this->Parent.lock());
       if (p) {
         result = p->getGlobalFrame();
       } else {
         result = self(*(this->Parent.lock())).getGlobalFrame();
       }
-
-      result.Position += result.Rotation * this->Position;
-      result.Velocity +=
-          result.Rotation * ((result.AngVelocity % this->Position) + Velocity);
-      result.Acceleration +=
-          result.Rotation *
-          ((-result.AngVelocity * result.AngVelocity) * this->Position +
-           (value_type(2.0) * result.AngVelocity) % Velocity +
-           result.AngAcceleration % this->Position + Acceleration);
-
-      result.Rotation *= this->Rotation;
-      result.AngVelocity += AngVelocity;
-      result.AngAcceleration += AngAcceleration;
-
+      result.addBefore(*this);
       return result;
     }
     return *this;
   }
 
-  /**
-   * Returns this coordinate frame relative to the frame or pose F.
-   * \note No operations are performed on forces. F is tested for being
-   *       castablet to a frame or not.
-   */
-  self getFrameRelativeTo(const base& F) const {
+  /// Returns this coordinate frame relative to the frame or pose F.
+  /// \note No operations are performed on forces. F is tested for being
+  self getFrameRelativeTo(const base& F) const noexcept {
     return getFrameRelativeToImpl(&F);
   }
 
-  /**
-   * Returns this coordinate frame relative to the frame or pose F.
-   * \note No operations are performed on forces. F is tested for being
-   *       castablet to a frame or not.
-   */
-  self getFrameRelativeTo(const std::shared_ptr<const base>& F) const {
+  /// Returns this coordinate frame relative to the frame or pose F.
+  /// \note No operations are performed on forces. F is tested for being
+  self getFrameRelativeTo(const std::shared_ptr<const base>& F) const noexcept {
     if (!F) {
       return getGlobalFrame();
     }
     return getFrameRelativeToImpl(F.get());
   }
 
-  /**
-   * Adds frame Frame_ before this coordinate frame ("before" is meant in the same sense as for pose_2D::addBefore()).
-   * The transformation uses classic "rotating frame" formulae.
-   * \note No operations are performed on forces.
-   */
-  self& addBefore(const self& aFrame) {
+  /// Adds frame Frame_ before this coordinate frame ("before" is meant in the same sense as for pose_2D::addBefore()).
+  /// The transformation uses classic "rotating frame" formulae.
+  self& addBefore(const base& aPose) noexcept {
+    this->Position += this->Rotation * aPose.Position;
+    Velocity += this->Rotation * (AngVelocity % aPose.Position);
+    Acceleration +=
+        this->Rotation * ((-AngVelocity * AngVelocity) * aPose.Position +
+                          AngAcceleration % aPose.Position);
 
+    this->Rotation *= aPose.Rotation;
+    return *this;
+  }
+  self& addBefore(const self& aFrame) noexcept {
     this->Position += this->Rotation * aFrame.Position;
     Velocity +=
         this->Rotation * ((AngVelocity % aFrame.Position) + aFrame.Velocity);
@@ -248,16 +219,20 @@ class frame_2D : public pose_2D<T> {
     this->Rotation *= aFrame.Rotation;
     AngVelocity += aFrame.AngVelocity;
     AngAcceleration += aFrame.AngAcceleration;
-
     return *this;
   }
 
-  /**
-   * Adds frame Frame_ after this coordinate frame ("after" is meant in the same sense as for pose_2D::addAfter()).
-   * The transformation uses classic "rotating frame" formulae.
-   * \note No operations are performed on forces.
-   */
-  self& addAfter(const self& aFrame) {
+  /// Adds frame Frame_ after this coordinate frame ("after" is meant in the same sense as for pose_2D::addAfter()).
+  /// The transformation uses classic "rotating frame" formulae.
+  self& addAfter(const base& aPose) noexcept {
+    Acceleration = aPose.Rotation * Acceleration;
+    Velocity = aPose.Rotation * Velocity;
+    this->Position = aPose.Position + aPose.Rotation * this->Position;
+    this->Rotation *= aPose.Rotation;
+    this->Parent = aPose.Parent;
+    return *this;
+  }
+  self& addAfter(const self& aFrame) noexcept {
 
     Acceleration =
         aFrame.Acceleration +
@@ -279,134 +254,44 @@ class frame_2D : public pose_2D<T> {
     return *this;
   }
 
-  /**
-   * Assignment operator.
-   */
-  self& operator=(const self& F) {
+  /// Assignment operator.
+  self& operator=(const self& F) noexcept = default;
+  self& operator=(self&& F) noexcept = default;
 
-    this->Parent = F.Parent;
-    this->Position = F.Position;
-    this->Rotation = F.Rotation;
-    Velocity = F.Velocity;
-    AngVelocity = F.AngVelocity;
-    Acceleration = F.Acceleration;
-    AngAcceleration = F.AngAcceleration;
-    Force = F.Force;
-    Torque = F.Torque;
+  /// Multiplication-assignment operator, equivalent to "addBefore( F )".
+  /// \note No operations are performed on forces.
+  self& operator*=(const self& F) noexcept { return addBefore(F); }
 
-    return *this;
-  }
+  /// Multiplication-assignment operator, equivalent to "addBefore( P )".
+  /// \note No operations are performed on forces.
+  self& operator*=(const base& P) noexcept { return addBefore(P); }
 
-  /**
-   * Multiplication-assignment operator, equivalent to "this->addBefore( F )".
-   * \note No operations are performed on forces.
-   */
-  self& operator*=(const self& F) {
-
-    this->Position += this->Rotation * F.Position;
-    Velocity += this->Rotation * ((AngVelocity % F.Position) + F.Velocity);
-    Acceleration +=
-        this->Rotation * ((-AngVelocity * AngVelocity) * F.Position +
-                          (value_type(2.0) * AngVelocity) % F.Velocity +
-                          AngAcceleration % F.Position + F.Acceleration);
-
-    this->Rotation *= F.Rotation;
-    AngVelocity += F.AngVelocity;
-    AngAcceleration += F.AngAcceleration;
-
-    return *this;
-  }
-
-  /**
-   * Multiplication-assignment operator, equivalent to "this->addBefore( P )".
-   * \note No operations are performed on forces.
-   */
-  self& operator*=(const base& P) {
-
-    this->Position += this->Rotation * P.Position;
-    Velocity += this->Rotation * (AngVelocity % P.Position);
-    Acceleration +=
-        this->Rotation * ((-AngVelocity * AngVelocity) * P.Position +
-                          AngAcceleration % P.Position);
-
-    this->Rotation *= P.Rotation;
-
-    return *this;
-  }
-
-  /**
-   * Multiplication operator, equivalent to "result = *this; result->addBefore( F )".
-   * \note No operations are performed on forces.
-   */
+  /// Multiplication operator, equivalent to "result = *this; result->addBefore( F )".
+  /// \note No operations are performed on forces.
   friend self operator*(const self& F1, const self& F2) {
-    self result;
-
-    result.Parent = F1.Parent;
-
-    result.Position = F1.Position + F1.Rotation * F2.Position;
-    result.Velocity =
-        F1.Velocity +
-        F1.Rotation * ((F1.AngVelocity % F2.Position) + F2.Velocity);
-    result.Acceleration =
-        F1.Acceleration +
-        F1.Rotation * ((-F1.AngVelocity * F1.AngVelocity) * F2.Position +
-                       (value_type(2.0) * F1.AngVelocity) % F2.Velocity +
-                       F1.AngAcceleration % F2.Position + F2.Acceleration);
-
-    result.Rotation = F1.Rotation * F2.Rotation;
-    result.AngVelocity = F1.AngVelocity + F2.AngVelocity;
-    result.AngAcceleration = F1.AngAcceleration + F2.AngAcceleration;
-
+    self result{F1};
+    result.addBefore(F2);
     return result;
   }
 
-  /**
-   * Multiplication operator, equivalent to "result = *this; result->addBefore( P )".
-   * \note No operations are performed on forces.
-   */
+  /// Multiplication operator, equivalent to "result = *this; result->addBefore( P )".
+  /// \note No operations are performed on forces.
   friend self operator*(const self& F, const base& P) {
-    self result;
-
-    result.Parent = F.Parent;
-
-    result.Position = F.Position + F.Rotation * P.Position;
-    result.Velocity = F.Velocity + F.Rotation * (F.AngVelocity % P.Position);
-    result.Acceleration =
-        F.Acceleration +
-        F.Rotation * ((-F.AngVelocity * F.AngVelocity) * P.Position +
-                      F.AngAcceleration % P.Position);
-
-    result.Rotation = F.Rotation * P.Rotation;
-    result.AngVelocity = F.AngVelocity;
-    result.AngAcceleration = F.AngAcceleration;
-
+    self result{F};
+    result.addBefore(P);
     return result;
   }
 
-  /**
-   * Multiplication operator, equivalent to "frame_2D<T>(P) * F".
-   * \note No operations are performed on forces.
-   */
+  /// Multiplication operator, equivalent to "frame_2D<T>(P) * F".
+  /// \note No operations are performed on forces.
   friend self operator*(const base& P, const self& F) {
-    self result;
-
-    result.Parent = P.Parent;
-
-    result.Position = P.Position + P.Rotation * F.Position;
-    result.Velocity = P.Rotation * (F.Velocity);
-    result.Acceleration = P.Rotation * (F.Acceleration);
-
-    result.Rotation = P.Rotation * F.Rotation;
-    result.AngVelocity = F.AngVelocity;
-    result.AngAcceleration = F.AngAcceleration;
-
+    self result{F};
+    result.addAfter(P);
     return result;
   }
 
-  /**
-   * Inversion operator, i.e. "this->addBefore( ~this ) == Parent".
-   * \note Forces are negated and rotated.
-   */
+  /// Inversion operator, i.e. "addBefore( ~this ) == Parent".
+  /// \note Forces are negated and rotated.
   self operator~() const {
     return self(this->Parent, (-this->Position) * this->Rotation,
                 invert(this->Rotation),

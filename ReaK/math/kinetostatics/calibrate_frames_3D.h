@@ -48,9 +48,9 @@ pose_3D<T> get_relative_pose_pointcloud(
 
   vect<T, 3> centroid_1;
   vect<T, 3> centroid_2;
-  for (int i = 0; i < aPointCloud.size(); ++i) {
-    centroid_1 += aPointCloud[i].first;
-    centroid_2 += aPointCloud[i].second;
+  for (const auto& [p1, p2] : aPointCloud) {
+    centroid_1 += p1;
+    centroid_2 += p2;
   }
   centroid_1 *= 1.0 / aPointCloud.size();
   centroid_2 *= 1.0 / aPointCloud.size();
@@ -58,13 +58,9 @@ pose_3D<T> get_relative_pose_pointcloud(
   mat<T, mat_structure::rectangular> X(aPointCloud.size(), 3);
   mat<T, mat_structure::rectangular> B(aPointCloud.size(), 3);
 
-  for (int i = 0; i < aPointCloud.size(); ++i) {
-    X(i, 0) = aPointCloud[i].first[0] - centroid_1[0];
-    X(i, 1) = aPointCloud[i].first[1] - centroid_1[1];
-    X(i, 2) = aPointCloud[i].first[2] - centroid_1[2];
-    B(i, 0) = aPointCloud[i].second[0] - centroid_2[0];
-    B(i, 1) = aPointCloud[i].second[1] - centroid_2[1];
-    B(i, 2) = aPointCloud[i].second[2] - centroid_2[2];
+  for (const auto& [p1, p2] : aPointCloud) {
+    slice(X)(i, range(0, 3)) = p1 - centroid_1;
+    slice(B)(i, range(0, 3)) = p2 - centroid_2;
   }
 
   // Solve the Orthogonal Procrustes problem: (Kabsch's algorithm)
@@ -78,8 +74,6 @@ pose_3D<T> get_relative_pose_pointcloud(
 
   rot_mat_3D<T> Rt(U * transpose_view(V));
 
-  //   std::cout << "Rt = \n" << Rt << std::endl;
-
   return pose_3D<T>(std::weak_ptr<pose_3D<T>>(), centroid_1 - Rt * centroid_2,
                     quaternion<T>(Rt));
 }
@@ -90,13 +84,10 @@ rot_mat_3D<T> get_relative_rotation_vectcloud(
   mat<T, mat_structure::rectangular> X(aVectCloud.size(), 3);
   mat<T, mat_structure::rectangular> B(aVectCloud.size(), 3);
   for (int i = 0; i < aVectCloud.size(); ++i) {
-    X(i, 0) = aVectCloud[i].first[0];
-    X(i, 1) = aVectCloud[i].first[1];
-    X(i, 2) = aVectCloud[i].first[2];
-    B(i, 0) = aVectCloud[i].second[0];
-    B(i, 1) = aVectCloud[i].second[1];
-    B(i, 2) = aVectCloud[i].second[2];
-  }
+    for (const auto& [v1, v2] : aVectCloud) {
+      slice(X)(i, range(0, 3)) = v1;
+      slice(B)(i, range(0, 3)) = v2;
+    }
 
   // Solve the Orthogonal Procrustes problem: (Kabsch's algorithm)
   mat<T, mat_structure::square> C(transpose_view(X) * B);

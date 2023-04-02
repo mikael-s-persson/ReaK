@@ -37,12 +37,10 @@
 
 namespace ReaK {
 
-/**
- * This class extends pose_3D to include velocity and acceleration as well as applied forces.
- * \note Linear kinematics are expressed in Parent coordinates while rotation kinematics are
- *       expressed in this coordinate system (local or "body-fixed"). However, all forces
- *       (force and torque) are expressed in local coordinates.
- */
+/// This class extends pose_3D to include velocity and acceleration as well as applied forces.
+/// \note Linear kinematics are expressed in Parent coordinates while rotation kinematics are
+///       expressed in this coordinate system (local or "body-fixed"). However, all forces
+///       (force and torque) are expressed in local coordinates.
 template <class T>
 class frame_3D : public pose_3D<T> {
  public:
@@ -84,9 +82,12 @@ class frame_3D : public pose_3D<T> {
   /// coordinate system (local).
   angular_rate_type QuatDot;
 
-  /**
-   * Default constructor, all is set to zero.
-   */
+  /// Updates the quaternion time-derivative to correspond to current angular velocity.
+  void UpdateQuatDot() noexcept {
+    QuatDot = this->Quat.getQuaternionDot(AngVelocity);
+  }
+
+  /// Default constructor, all is set to zero.
   frame_3D()
       : base(),
         Velocity(),
@@ -97,9 +98,7 @@ class frame_3D : public pose_3D<T> {
         Torque(),
         QuatDot() {}
 
-  /**
-   * Parametrized constructor, all is set to corresponding parameters.
-   */
+  /// Parametrized constructor, all is set to corresponding parameters.
   frame_3D(const std::weak_ptr<base>& aParent, const position_type& aPosition,
            const rotation_type& aQuat, const linear_vector_type& aVelocity,
            const angular_vector_type& aAngVelocity,
@@ -116,24 +115,12 @@ class frame_3D : public pose_3D<T> {
     UpdateQuatDot();
   }
 
-  /**
-   * Copy-constructor.
-   */
-  frame_3D(const self& aFrame)
-      : base(aFrame),
-        Velocity(aFrame.Velocity),
-        AngVelocity(aFrame.AngVelocity),
-        Acceleration(aFrame.Acceleration),
-        AngAcceleration(aFrame.AngAcceleration),
-        Force(aFrame.Force),
-        Torque(aFrame.Torque) {
-    UpdateQuatDot();
-  }
+  /// Copy-constructor.
+  frame_3D(const self& aFrame) noexcept = default;
+  frame_3D(self&& aFrame) noexcept = default;
 
-  /**
-   * Explicit conversion from static 3D pose.
-   */
-  explicit frame_3D(const base& Pose_)
+  /// Explicit conversion from static 3D pose.
+  explicit frame_3D(const base& Pose_) noexcept
       : base(Pose_),
         Velocity(),
         AngVelocity(),
@@ -143,20 +130,24 @@ class frame_3D : public pose_3D<T> {
         Torque(),
         QuatDot() {}
 
-  /**
-   * Default destructor.
-   */
+  /// Default destructor.
   ~frame_3D() override = default;
 
  protected:
-  self getFrameRelativeToImpl(const base* F) const {
+  self getFrameRelativeToImpl(const base* F) const noexcept {
     if (!F) {
       return getGlobalFrame();
     }
+    const auto as_frame = [](const base* pose_ptr) -> const self* {
+      if (rtti::rk_is_of_type<self>(pose_ptr)) {
+        return static_cast<const self*>(pose_ptr);
+      }
+      return nullptr;
+    };
     // If this is at the global node, F can meet this there.
     if (this->Parent.expired()) {
-      if (rtti::rk_is_of_type<self>(F)) {
-        return (~(static_cast<const self*>(F)->getGlobalFrame())) * (*this);
+      if (const self* F_fr = as_frame(F)) {
+        return (~(F_fr->getGlobalFrame())) * (*this);
       }
       return (~(self(*F).getGlobalFrame())) * (*this);
     }
@@ -166,98 +157,66 @@ class frame_3D : public pose_3D<T> {
       if (p.get() == F) {
         return *this;
       }
-      if (rtti::rk_is_of_type<self>(p)) {
-        return static_cast<const self*>(p.get())->getFrameRelativeToImpl(F) *
-               (*this);
+      if (const self* p_fr = as_frame(p.get())) {
+        return p_fr->getFrameRelativeToImpl(F) * (*this);
       }
       return self(*p).getFrameRelativeToImpl(F) * (*this);
     }
     // If this is somewhere down F's chain.
     if (F->isParentPose(*this)) {
-      if (rtti::rk_is_of_type<self>(F)) {
-        return ~(static_cast<const self*>(F)->getFrameRelativeToImpl(this));
+      if (const self* F_fr = as_frame(F)) {
+        return ~(F_fr->getFrameRelativeToImpl(this));
       }
       return ~(self(*F).getFrameRelativeToImpl(this));
     }
-    // Else means F's chain meets "this"'s chain somewhere down, possibly all the way to the global node.
+    // Else means F's chain meets "this"'s chain somewhere down,
+    // possibly all the way to the global node.
     std::shared_ptr<base> p = this->Parent.lock();
-    if (rtti::rk_is_of_type<self>(p)) {
-      return static_cast<const self*>(p.get())->getFrameRelativeToImpl(F) *
-             (*this);
+    if (const self* p_fr = as_frame(p.get())) {
+      return p_fr->getFrameRelativeToImpl(F) * (*this);
     }
     return self(*p).getFrameRelativeToImpl(F) * (*this);
   }
 
  public:
-  /**
-   * Updates the quaternion time-derivative to correspond to current angular velocity.
-   */
-  void UpdateQuatDot() { QuatDot = this->Quat.getQuaternionDot(AngVelocity); }
-
-  /**
-   * Returns this coordinate frame relative to the global inertial frame.
-   * \note no operations are performed on forces.
-   */
-  self getGlobalFrame() const {
+  /// Returns this coordinate frame relative to the global inertial frame.
+  /// \note no operations are performed on forces.
+  self getGlobalFrame() const noexcept {
     if (!this->Parent.expired()) {
       self result;
-      std::shared_ptr<const self> p =
-          rtti::rk_dynamic_ptr_cast<const self>(this->Parent.lock());
+      auto p = rtti::rk_dynamic_ptr_cast<const self>(this->Parent.lock());
       if (p) {
         result = p->getGlobalFrame();
       } else {
         result = self(*(this->Parent.lock())).getGlobalFrame();
       }
-
-      rot_mat_3D<value_type> R(result.Quat.getRotMat());
-      result.Position += R * this->Position;
-      result.Velocity += R * ((result.AngVelocity % this->Position) + Velocity);
-      result.Acceleration +=
-          R * ((result.AngVelocity % (result.AngVelocity % this->Position)) +
-               value_type(2.0) * (result.AngVelocity % Velocity) +
-               (result.AngAcceleration % this->Position) + Acceleration);
-
-      rot_mat_3D<value_type> R2(invert(this->Quat).getRotMat());
-      result.Quat *= this->Quat;
-      result.AngVelocity = (R2 * result.AngVelocity) + AngVelocity;
-      result.AngAcceleration = (R2 * result.AngAcceleration) +
-                               ((R2 * result.AngVelocity) % AngVelocity) +
-                               AngAcceleration;
-
-      result.UpdateQuatDot();
-
+      result.addBefore(*this);
       return result;
     }
     return *this;
   }
 
-  /**
-   * Returns this coordinate frame relative to the frame or pose F.
-   * \note No operations are performed on forces. F is tested for being
-   *       castablet to a frame or not.
-   */
-  self getFrameRelativeTo(const base& F) const {
+  /// Returns this coordinate frame relative to the frame or pose F.
+  /// \note No operations are performed on forces. F is tested for being
+  ///       castablet to a frame or not.
+  self getFrameRelativeTo(const base& F) const noexcept {
     return getFrameRelativeToImpl(&F);
   }
 
-  /**
-   * Returns this coordinate frame relative to the frame or pose F.
-   * \note No operations are performed on forces. F is tested for being
-   *       castablet to a frame or not.
-   */
-  self getFrameRelativeTo(const std::shared_ptr<const base>& F) const {
+  /// Returns this coordinate frame relative to the frame or pose F.
+  /// \note No operations are performed on forces. F is tested for being
+  ///       castablet to a frame or not.
+  self getFrameRelativeTo(const std::shared_ptr<const base>& F) const noexcept {
     if (!F) {
       return getGlobalFrame();
     }
     return getFrameRelativeToImpl(F.get());
   }
 
-  /**
-   * Adds frame Frame_ before this coordinate frame ("before" is meant in the same sense as for pose_3D::addBefore()).
-   * The transformation uses classic "rotating frame" formulae.
-   * \note No operations are performed on forces.
-   */
-  self& addBefore(const self& aFrame) {
+  /// Adds frame Frame_ before this coordinate frame ("before" is meant in the same sense as for pose_3D::addBefore()).
+  /// The transformation uses classic "rotating frame" formulae.
+  /// \note No operations are performed on forces.
+  self& addBefore(const self& aFrame) noexcept {
 
     rot_mat_3D<value_type> R(this->Quat.getRotMat());
     this->Position += R * aFrame.Position;
@@ -279,7 +238,7 @@ class frame_3D : public pose_3D<T> {
     return *this;
   }
 
-  self& addBefore(const base& aPose) {
+  self& addBefore(const base& aPose) noexcept {
 
     rot_mat_3D<value_type> R(this->Quat.getRotMat());
     this->Position += R * aPose.Position;
@@ -297,12 +256,10 @@ class frame_3D : public pose_3D<T> {
     return *this;
   }
 
-  /**
-   * Adds frame Frame_ after this coordinate frame ("after" is meant in the same sense as for pose_3D::addAfter()).
-   * The transformation uses classic "rotating frame" formulae.
-   * \note No operations are performed on forces.
-   */
-  self& addAfter(const self& aFrame) {
+  /// Adds frame Frame_ after this coordinate frame ("after" is meant in the same sense as for pose_3D::addAfter()).
+  /// The transformation uses classic "rotating frame" formulae.
+  /// \note No operations are performed on forces.
+  self& addAfter(const self& aFrame) noexcept {
 
     rot_mat_3D<value_type> R(aFrame.Quat.getRotMat());
     Acceleration =
@@ -327,7 +284,7 @@ class frame_3D : public pose_3D<T> {
     return *this;
   }
 
-  self& addAfter(const base& aPose) {
+  self& addAfter(const base& aPose) noexcept {
 
     rot_mat_3D<value_type> R(aPose.Quat.getRotMat());
     Acceleration = R * (Acceleration);
@@ -343,27 +300,12 @@ class frame_3D : public pose_3D<T> {
     return *this;
   }
 
-  /**
-   * Assignment operator.
-   */
-  self& operator=(const self& F) {
+  /// Assignment operator.
+  self& operator=(const self& F) noexcept = default;
+  self& operator=(self&& F) noexcept = default;
 
-    this->Parent = F.Parent;
-    this->Position = F.Position;
-    this->Quat = F.Quat;
-    Velocity = F.Velocity;
-    AngVelocity = F.AngVelocity;
-    Acceleration = F.Acceleration;
-    AngAcceleration = F.AngAcceleration;
-
-    UpdateQuatDot();
-    return *this;
-  }
-
-  /**
-   * Assignment operator.
-   */
-  self& operator=(const base& P) {
+  /// Assignment operator.
+  self& operator=(const base& P) noexcept {
 
     this->Parent = P.Parent;
     this->Position = P.Position;
@@ -379,47 +321,37 @@ class frame_3D : public pose_3D<T> {
     return *this;
   }
 
-  /**
-   * Multiplication-assignment operator, equivalent to "this->addBefore( F )".
-   * \note No operations are performed on forces.
-   */
-  self& operator*=(const self& F) { return addBefore(F); }
+  /// Multiplication-assignment operator, equivalent to "this->addBefore( F )".
+  /// \note No operations are performed on forces.
+  self& operator*=(const self& F) noexcept { return addBefore(F); }
 
-  /**
-   * Multiplication-assignment operator, equivalent to "this->addBefore( P )".
-   * \note No operations are performed on forces.
-   */
-  self& operator*=(const base& P) { return addBefore(P); }
+  /// Multiplication-assignment operator, equivalent to "this->addBefore( P )".
+  /// \note No operations are performed on forces.
+  self& operator*=(const base& P) noexcept { return addBefore(P); }
 
-  /**
-   * Multiplication operator, equivalent to "result = *this; result->addBefore( F )".
-   * \note No operations are performed on forces.
-   */
-  friend self operator*(self F1, const self& F2) {
+  /// Multiplication operator, equivalent to "result = *this; result->addBefore( F )".
+  /// \note No operations are performed on forces.
+  friend self operator*(self F1, const self& F2) noexcept {
     F1 *= F2;
     return F1;
   }
 
-  /**
-   * Multiplication operator, equivalent to "result = *this; result->addBefore( P )".
-   * \note No operations are performed on forces.
-   */
-  friend self operator*(self F, const base& P) {
+  /// Multiplication operator, equivalent to "result = *this; result->addBefore( P )".
+  /// \note No operations are performed on forces.
+  friend self operator*(self F, const base& P) noexcept {
     F *= P;
     return F;
   }
 
-  friend self operator*(const base& P, const self& F) {
+  friend self operator*(const base& P, const self& F) noexcept {
     self result(P);
     result *= F;
     return result;
   }
 
-  /**
-   * Inversion operator, i.e. "this->addBefore( ~this ) == Parent".
-   * \note Forces are negated and rotated.
-   */
-  self operator~() {
+  /// Inversion operator, i.e. "this->addBefore( ~this ) == Parent".
+  /// \note Forces are negated and rotated.
+  self operator~() noexcept {
     rot_mat_3D<value_type> R(this->Quat.getRotMat());
     self result;
     result.Quat = invert(this->Quat);

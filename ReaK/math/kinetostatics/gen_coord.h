@@ -37,9 +37,7 @@
 
 namespace ReaK {
 
-/**
- * This class holds the kinematic and dynamic values for a generalized coordinate.
- */
+/// This class holds the kinematic and dynamic values for a generalized coordinate.
 template <typename T>
 class gen_coord : public shared_object {
  public:
@@ -56,79 +54,57 @@ class gen_coord : public shared_object {
   value_type q_ddot;  ///< Acceleration value of the generalized coordinate.
   value_type f;       ///< Force value of the generalized coordinate.
 
-  /**
-   * Default constructor, all is set to zero.
-   */
+  /// Default constructor, all is set to zero.
   gen_coord() : shared_object(), q(0.0), q_dot(0.0), q_ddot(0.0), f(0.0) {}
 
-  /**
-   * Parametrized constructor, all is set to corresponding parameters.
-   */
+  /// Parametrized constructor, all is set to corresponding parameters.
   gen_coord(const_reference Q, const_reference Q_dot, const_reference Q_ddot,
             const_reference F)
       : shared_object(), q(Q), q_dot(Q_dot), q_ddot(Q_ddot), f(F) {}
 
-  /**
-   * Default virtual destructor.
-   */
+  /// Default virtual destructor.
   ~gen_coord() override = default;
 
-  /**
-   * Add Q to the position value.
-   */
+  /// Add Q to the position value.
   self& add_Q(const_reference Q) {
     q += Q;
     return *this;
   }
 
-  /**
-   * Add Q_dot to the velocity value.
-   */
+  /// Add Q_dot to the velocity value.
   self& add_Q_dot(const_reference Q_dot) {
     q_dot += Q_dot;
     return *this;
   }
 
-  /**
-   * Add Q_ddot to the acceleration value.
-   */
+  /// Add Q_ddot to the acceleration value.
   self& add_Q_ddot(const_reference Q_ddot) {
     q_ddot += Q_ddot;
     return *this;
   }
 
-  /**
-   * Add F to the force value.
-   */
+  /// Add F to the force value.
   self& add_F(const_reference F) {
     f += F;
     return *this;
   }
 
-  /**
-   * Addition operator.
-   */
+  /// Addition operator.
   friend self operator+(const self& G1, const self& G2) {
     return self(G1.q + G2.q, G1.q_dot + G2.q_dot, G1.q_ddot + G2.q_ddot,
                 G1.f + G2.f);
   }
 
-  /**
-   * Substraction operator.
-   */
+  /// Substraction operator.
   friend self operator-(const self& G1, const self& G2) {
     return self(G1.q - G2.q, G1.q_dot - G2.q_dot, G1.q_ddot - G2.q_ddot,
                 G1.f - G2.f);
   }
 
-  /**
-   * Negation operator.
-   */
+  /// Negation operator.
   self operator-() const { return self(-q, -q_dot, -q_ddot, -f); }
 
-  /**
-   * Addition-assignment operator.
-   */
+  /// Addition-assignment operator.
   self& operator+=(const self& G) {
     q += G.q;
     q_dot += G.q_dot;
@@ -137,9 +113,7 @@ class gen_coord : public shared_object {
     return *this;
   }
 
-  /**
-   * Substraction-assignment operator.
-   */
+  /// Substraction-assignment operator.
   self& operator-=(const self& G) {
     q -= G.q;
     q_dot -= G.q_dot;

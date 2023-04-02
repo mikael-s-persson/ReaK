@@ -39,9 +39,7 @@
 
 namespace ReaK {
 
-/**
- * This class represents the pose of a 3D coordinate frame (static).
- */
+/// This class represents the pose of a 3D coordinate frame (static).
 template <typename T>
 class pose_3D : public shared_object {
  public:
@@ -65,37 +63,25 @@ class pose_3D : public shared_object {
   /// Rotation quaternion of this coordinate system, expressed in this coordinates (local).
   rotation_type Quat;
 
-  /**
-   * Default constructor, all is set to zero.
-   */
-  pose_3D() : shared_object(), Parent(), Position(), Quat() {}
+  /// Default constructor, all is set to zero.
+  pose_3D() noexcept : shared_object(), Parent(), Position(), Quat() {}
 
-  /**
-   * Parametrized constructor, all is set to corresponding parameters.
-   */
+  /// Parametrized constructor, all is set to corresponding parameters.
   pose_3D(std::weak_ptr<self> aParent, const position_type& aPosition,
-          const rotation_type& aQuat)
+          const rotation_type& aQuat) noexcept
       : shared_object(),
         Parent(std::move(aParent)),
         Position(aPosition),
         Quat(aQuat) {}
 
-  /**
-   * Copy-constructor.
-   */
-  pose_3D(const self& aPose)
-      : shared_object(),
-        Parent(aPose.Parent),
-        Position(aPose.Position),
-        Quat(aPose.Quat) {}
+  /// Copy-constructor.
+  pose_3D(const self& aPose) noexcept = default;
 
-  /**
-   * Default virtual destructor.
-   */
+  /// Default virtual destructor.
   ~pose_3D() override = default;
 
  protected:
-  bool isParentPoseImpl(const self* P) const {
+  bool isParentPoseImpl(const self* P) const noexcept {
     if (Parent.expired()) {
       return !static_cast<bool>(P);
     }
@@ -105,7 +91,7 @@ class pose_3D : public shared_object {
     return Parent.lock()->isParentPoseImpl(P);
   }
 
-  self getPoseRelativeToImpl(const self* P) const {
+  self getPoseRelativeToImpl(const self* P) const noexcept {
     if (isParentPoseImpl(P)) {
       if ((Parent.expired()) || (Parent.lock().get() == P)) {
         return *this;
@@ -122,10 +108,8 @@ class pose_3D : public shared_object {
   }
 
  public:
-  /**
-   * Returns this 2D pose relative to the global (null) coordinate system.
-   */
-  self getGlobalPose() const {
+  /// Returns this 2D pose relative to the global (null) coordinate system.
+  self getGlobalPose() const noexcept {
     if (!Parent.expired()) {
       self result = Parent.lock()->getGlobalPose();
       result.Position += result.Quat * Position;
@@ -135,172 +119,127 @@ class pose_3D : public shared_object {
     return *this;
   }
 
-  /**
-   * Returns true if P is part of the parent chain from this pose.
-   */
-  bool isParentPose(const self& P) const { return isParentPoseImpl(&P); }
+  /// Returns true if P is part of the parent chain from this pose.
+  bool isParentPose(const self& P) const noexcept {
+    return isParentPoseImpl(&P);
+  }
 
-  /**
-   * Returns true if P is part of the parent chain from this pose.
-   */
-  bool isParentPose(const std::shared_ptr<const self>& P) const {
+  /// Returns true if P is part of the parent chain from this pose.
+  bool isParentPose(const std::shared_ptr<const self>& P) const noexcept {
     return isParentPoseImpl(P.get());
   }
 
-  /**
-   * Returns this 3D pose relative to pose P.
-   */
-  self getPoseRelativeTo(const self& P) const {
+  /// Returns this 3D pose relative to pose P.
+  self getPoseRelativeTo(const self& P) const noexcept {
     return getPoseRelativeToImpl(&P);
   }
 
-  /**
-   * Returns this 3D pose relative to pose P.
-   */
-  self getPoseRelativeTo(const std::shared_ptr<const self>& P) const {
+  /// Returns this 3D pose relative to pose P.
+  self getPoseRelativeTo(const std::shared_ptr<const self>& P) const noexcept {
     return getPoseRelativeToImpl(P.get());
   }
 
-  /**
-   * Returns the free vector V (expressed in this coordinate system) expressed in the parent coordinate system.
-   */
-  vector_type rotateToParent(const vector_type& V) const { return Quat * V; }
+  /// Returns the free vector V (expressed in this coordinate system) expressed in the parent coordinate system.
+  vector_type rotateToParent(const vector_type& V) const noexcept {
+    return Quat * V;
+  }
 
-  /**
-   * Returns the free vector V (expressed in this coordinate system) expressed in the global coordinate system.
-   */
-  vector_type rotateToGlobal(const vector_type& V) const {
+  /// Returns the free vector V (expressed in this coordinate system) expressed in the global coordinate system.
+  vector_type rotateToGlobal(const vector_type& V) const noexcept {
     return getGlobalPose().Quat * V;
   }
 
-  /**
-   * Returns the free vector V (expressed in the parent coordinate system) expressed in this coordinate system.
-   */
-  vector_type rotateFromParent(const vector_type& V) const {
+  /// Returns the free vector V (expressed in the parent coordinate system) expressed in this coordinate system.
+  vector_type rotateFromParent(const vector_type& V) const noexcept {
     return invert(Quat) * V;
   }
 
-  /**
-   * Returns the free vector V (expressed in the global coordinate system) expressed in this coordinate system.
-   */
-  vector_type rotateFromGlobal(const vector_type& V) const {
+  /// Returns the free vector V (expressed in the global coordinate system) expressed in this coordinate system.
+  vector_type rotateFromGlobal(const vector_type& V) const noexcept {
     return invert(getGlobalPose().Quat) * V;
   }
 
-  /**
-   * Returns the position vector V (expressed in this coordinate system) expressed in the parent coordinate system.
-   */
-  position_type transformToParent(const position_type& V) const {
+  /// Returns the position vector V (expressed in this coordinate system) expressed in the parent coordinate system.
+  position_type transformToParent(const position_type& V) const noexcept {
     return Position + Quat * V;
   }
 
-  /**
-   * Returns the position vector V (expressed in this coordinate system) expressed in the global coordinate system.
-   */
-  position_type transformToGlobal(const position_type& V) const {
+  /// Returns the position vector V (expressed in this coordinate system) expressed in the global coordinate system.
+  position_type transformToGlobal(const position_type& V) const noexcept {
     return getGlobalPose().transformToParent(V);
   }
 
-  /**
-   * Returns the position vector V (expressed in the parent coordinate system) expressed in this coordinate system.
-   */
-  position_type transformFromParent(const position_type& V) const {
+  /// Returns the position vector V (expressed in the parent coordinate system) expressed in this coordinate system.
+  position_type transformFromParent(const position_type& V) const noexcept {
     return invert(Quat) * (V - Position);
   }
 
-  /**
-   * Returns the position vector V (expressed in the global coordinate system) expressed in this coordinate system.
-   */
-  position_type transformFromGlobal(const position_type& V) const {
+  /// Returns the position vector V (expressed in the global coordinate system) expressed in this coordinate system.
+  position_type transformFromGlobal(const position_type& V) const noexcept {
     return getGlobalPose().transformFromParent(V);
   }
 
-  /**
-   * Adds the coordinate tranform of Pose_ before this coordinate transform.
-   * \pre if "V == this->transformToParent( Pose_.transformToParent( U ) )" before
-   * \post then "V == this->transformToParent( U )" after.
-   * \note ignores the parent of Pose_.
-   */
-  self& addBefore(const self& aPose) {
+  /// Adds the coordinate tranform of Pose_ before this coordinate transform.
+  /// \pre if "V == this->transformToParent( Pose_.transformToParent( U ) )" before
+  /// \post then "V == this->transformToParent( U )" after.
+  /// \note ignores the parent of Pose_.
+  self& addBefore(const self& aPose) noexcept {
     Position += Quat * aPose.Position;
     Quat *= aPose.Quat;
     return *this;
   }
 
-  /**
-   * Adds the coordinate tranform of Pose_ after this coordinate transform.
-   * \pre if "V == Pose_.transfromToParent( this->transformToParent( U ) )" before
-   * \post then "V == this->transformToParent( U )" after.
-   * \note ignores the parent of this coordinate system.
-   */
-  self& addAfter(const self& aPose) {
+  /// Adds the coordinate tranform of Pose_ after this coordinate transform.
+  /// \pre if "V == Pose_.transfromToParent( this->transformToParent( U ) )" before
+  /// \post then "V == this->transformToParent( U )" after.
+  /// \note ignores the parent of this coordinate system.
+  self& addAfter(const self& aPose) noexcept {
     Position = aPose.Position + (aPose.Quat * Position);
     Quat = aPose.Quat * Quat;
     Parent = aPose.Parent;
     return *this;
   }
 
-  /**
-   * Adds a translation V to this transformation, where V is expressed in the local coordinate system.
-   */
-  self& translateLocal(const vector_type& V) {
+  /// Adds a translation V to this transformation, where V is expressed in the local coordinate system.
+  self& translateLocal(const vector_type& V) noexcept {
     Position += rotateToParent(V);
     return *this;
   }
 
-  /**
-   * Adds a translation V to this transformation, where V is expressed in the global coordinate system.
-   */
-  self& translateGlobal(const vector_type& V) {
+  /// Adds a translation V to this transformation, where V is expressed in the global coordinate system.
+  self& translateGlobal(const vector_type& V) noexcept {
     Position += rotateToParent(rotateFromGlobal(V));
     return *this;
   }
 
-  /**
-   * Adds a rotation Q to this transformation, where Q is expressed in local coordinates.
-   */
-  self& rotateLocal(const rotation_type& Q) {
+  /// Adds a rotation Q to this transformation, where Q is expressed in local coordinates.
+  self& rotateLocal(const rotation_type& Q) noexcept {
     Quat *= Q;
     return *this;
   }
 
-  /**
-   * Adds a rotation Q to this transformation, where Q is expressed in global coordinates.
-   */
-  self& rotateGlobal(const rotation_type& Q) {
+  /// Adds a rotation Q to this transformation, where Q is expressed in global coordinates.
+  self& rotateGlobal(const rotation_type& Q) noexcept {
     axis_angle<T> A(Q);
     A.axis() = rotateFromGlobal(A.axis());
     Quat *= A.getQuaternion();
     return *this;
   }
 
-  /**
-   * Assignment operator.
-   */
-  self& operator=(const self& P) {
-    Parent = P.Parent;
-    Position = P.Position;
-    Quat = P.Quat;
-    return *this;
-  }
+  /// Assignment operator.
+  self& operator=(const self& P) noexcept = default;
 
-  /**
-   * Multiplication-assignment operator, equivalent to "this->addBefore( P )".
-   */
-  self& operator*=(const self& P) { return addBefore(P); }
+  /// Multiplication-assignment operator, equivalent to "this->addBefore( P )".
+  self& operator*=(const self& P) noexcept { return addBefore(P); }
 
-  /**
-   * Multiplication operator, equivalent to "result = *this; result->addBefore( P )".
-   */
-  friend self operator*(const self& P1, const self& P2) {
+  /// Multiplication operator, equivalent to "result = *this; result->addBefore( P )".
+  friend self operator*(const self& P1, const self& P2) noexcept {
     return self(P1.Parent, P1.Position + (P1.Quat * P2.Position),
                 P1.Quat * P2.Quat);
   }
 
-  /**
-   * Inversion operator, i.e. "this->addBefore( ~this ) == Parent".
-   */
-  self operator~() const {
+  /// Inversion operator, i.e. "this->addBefore( ~this ) == Parent".
+  self operator~() const noexcept {
     return self(Parent, invert(Quat) * (-Position), invert(Quat));
   }
 
