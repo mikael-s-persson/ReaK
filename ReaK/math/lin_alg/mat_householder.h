@@ -38,20 +38,22 @@
 #define REAK_MATH_LIN_ALG_MAT_HOUSEHOLDER_H_
 
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
+#include "ReaK/math/lin_alg/vect_concepts.h"
 
 #include <type_traits>
 
 namespace ReaK {
 
 // Forward declarations.
-template <typename Vector>
+template <ReadableVector Vector>
 class householder_matrix;
 
-template <typename Matrix, typename Vector>
+template <FullyWritableMatrix Matrix, typename Vector>
 void householder_prod(const householder_matrix<Vector>& P, Matrix& A);
 
-template <typename Matrix, typename Vector>
+template <FullyWritableMatrix Matrix, typename Vector>
 void householder_prod(Matrix& A, const householder_matrix<Vector>& P);
 
 /// This class represents a Householder reflection as a NxN matrix. It can be constructed
@@ -67,10 +69,10 @@ void householder_prod(Matrix& A, const householder_matrix<Vector>& P);
 /// should have the appropriate dimensions). This class also provides friend functions to
 /// perform the transposition of the Householder reflection (and effectively, its inverse).
 ///
-/// Models: ReadableMatrixConcept.
+/// Models: ReadableMatrix.
 ///
 /// \tparam Vector The vector type to store the householder vector.
-template <typename Vector>
+template <ReadableVector Vector>
 class householder_matrix {
  public:
   using self = householder_matrix<Vector>;
@@ -156,9 +158,8 @@ class householder_matrix {
   /// \tparam Vector2 A readable vector type.
   /// \param aE The vector from which to calculate the Householder reflection (vector u).
   /// \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
-  template <typename Vector2>
+  template <ReadableVector Vector2>
   void set(const Vector2& aE, const value_type& NumTol = value_type(1E-8)) {
-    static_assert(is_readable_vector_v<Vector2>);
     beta = value_type(0.0);
     v = aE;
     calculate_hhv(NumTol);
@@ -169,9 +170,8 @@ class householder_matrix {
   /// \tparam Vector2 A readable vector type.
   /// \param aE The vector from which to calculate the Householder reflection (vector u).
   /// \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
-  template <typename Vector2>
+  template <ReadableVector Vector2>
   void set_inv(const Vector2& aE, const value_type& NumTol = value_type(1E-8)) {
-    static_assert(is_readable_vector_v<Vector2>);
     beta = value_type(0.0);
     v = aE;
     calculate_inv_hhv(NumTol);
@@ -188,11 +188,10 @@ class householder_matrix {
   /// \tparam Vector2 A readable vector type.
   /// \param aE The vector from which to calculate the Householder reflection (vector u).
   /// \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
-  template <typename Vector2>
+  template <ReadableVector Vector2>
   explicit householder_matrix(const Vector2& aE,
                               const value_type& NumTol = value_type(1E-8))
       : beta(0.0), v(aE) {
-    static_assert(is_readable_vector_v<Vector2>);
     calculate_hhv(NumTol);
   }
 
@@ -233,17 +232,15 @@ class householder_matrix {
     return (i == j ? value_type(1.0) : value_type(0.0)) - beta * v[i] * v[j];
   }
 
-  template <typename Matrix>
+  template <FullyWritableMatrix Matrix>
   friend Matrix operator*(const Matrix& A, const self& P) {
-    static_assert(is_fully_writable_matrix_v<Matrix>);
     Matrix result(A);
     householder_prod(result, P);
     return result;
   }
 
-  template <typename Matrix>
+  template <FullyWritableMatrix Matrix>
   friend Matrix operator*(const self& P, const Matrix& A) {
-    static_assert(is_fully_writable_matrix_v<Matrix>);
     Matrix result(A);
     householder_prod(P, result);
     return result;
@@ -267,30 +264,6 @@ class householder_matrix {
 };
 
 template <typename Vector>
-struct is_readable_matrix<householder_matrix<Vector>> {
-  static constexpr bool value = true;
-  using type = is_readable_matrix<householder_matrix<Vector>>;
-};
-
-template <typename Vector>
-struct is_writable_matrix<householder_matrix<Vector>> {
-  static constexpr bool value = false;
-  using type = is_writable_matrix<householder_matrix<Vector>>;
-};
-
-template <typename Vector>
-struct is_row_resizable_matrix<householder_matrix<Vector>> {
-  static constexpr bool value = false;
-  using type = is_row_resizable_matrix<householder_matrix<Vector>>;
-};
-
-template <typename Vector>
-struct is_col_resizable_matrix<householder_matrix<Vector>> {
-  static constexpr bool value = false;
-  using type = is_col_resizable_matrix<householder_matrix<Vector>>;
-};
-
-template <typename Vector>
 struct mat_product_priority<householder_matrix<Vector>> {
   static constexpr int value =
       detail::product_priority<mat_structure::diagonal>::value + 1;
@@ -303,22 +276,10 @@ struct mat_addition_priority<householder_matrix<Vector>> {
 };
 
 template <typename Vector>
-struct is_square_matrix<householder_matrix<Vector>> {
-  static constexpr bool value = true;
-  using type = is_square_matrix<householder_matrix<Vector>>;
-};
+static constexpr bool is_square_matrix_v<householder_matrix<Vector>> = true;
 
 template <typename Vector>
-struct is_symmetric_matrix<householder_matrix<Vector>> {
-  static constexpr bool value = true;
-  using type = is_symmetric_matrix<householder_matrix<Vector>>;
-};
-
-template <typename Vector>
-struct is_diagonal_matrix<householder_matrix<Vector>> {
-  static constexpr bool value = false;
-  using type = is_diagonal_matrix<householder_matrix<Vector>>;
-};
+static constexpr bool is_symmetric_matrix_v<householder_matrix<Vector>> = true;
 
 /// This function template allows for efficient post-multiplication of a matrix with a
 /// Householder reflection matrix. This is generally more efficient then to perform a generic
@@ -327,9 +288,8 @@ struct is_diagonal_matrix<householder_matrix<Vector>> {
 /// \tparam Vector A vector-type which is compatible with the value-type of the Matrix type (for arithmetic).
 /// \param A The matrix to be multiplied by the Householder reflection, stores, as output, the resulting matrix.
 /// \param P The Householder reflection which will post-multiply A.
-template <typename Matrix, typename Vector>
+template <FullyWritableMatrix Matrix, typename Vector>
 void householder_prod(Matrix& A, const householder_matrix<Vector>& P) {
-  static_assert(is_fully_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using std::abs;
 
@@ -354,9 +314,8 @@ void householder_prod(Matrix& A, const householder_matrix<Vector>& P) {
 /// \tparam Vector A vector-type which is compatible with the value-type of the Matrix type (for arithmetic).
 /// \param A The matrix to be multiplied by the Householder reflection, stores, as output, the resulting matrix.
 /// \param P The Householder reflection which will pre-multiply A.
-template <typename Matrix, typename Vector>
+template <FullyWritableMatrix Matrix, typename Vector>
 void householder_prod(const householder_matrix<Vector>& P, Matrix& A) {
-  static_assert(is_fully_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using std::abs;
 

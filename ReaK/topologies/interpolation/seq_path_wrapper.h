@@ -38,39 +38,34 @@
 #include "ReaK/topologies/interpolation/seq_path_base.h"
 #include "ReaK/topologies/interpolation/sequential_path_concept.h"
 
-#include "boost/concept_check.hpp"
-
 namespace ReaK::pp {
 
 /**
  * This class wraps a generic spatial path class into an OOP interface.
- * It, itself, also models the generic SpatialPathConcept, so this wrapper can
+ * It, itself, also models the generic SpatialPath, so this wrapper can
  * be used for both purposes.
- * \tparam SequentialPath The path type to be wrapped.
  */
-template <typename SequentialPath>
+template <SequentialPath SeqPath>
 class seq_path_wrapper
     : public seq_path_base<
-          typename sequential_path_traits<SequentialPath>::topology> {
+          typename sequential_path_traits<SeqPath>::topology> {
  public:
   using base_type =
-      seq_path_base<typename sequential_path_traits<SequentialPath>::topology>;
-  using self = seq_path_wrapper<SequentialPath>;
+      seq_path_base<typename sequential_path_traits<SeqPath>::topology>;
+  using self = seq_path_wrapper<SeqPath>;
 
   using topology = typename base_type::topology;
   using point_type = typename base_type::point_type;
 
-  BOOST_CONCEPT_ASSERT((SequentialPathConcept<SequentialPath, topology>));
-
-  using wrapped_type = SequentialPath;
+  using wrapped_type = SeqPath;
 
  protected:
-  SequentialPath m_traj;
+  SeqPath m_traj;
 
   using base_pt_dist_iterator_impl =
       typename base_type::point_distance_iterator_impl;
   using gen_pt_dist_iterator =
-      typename sequential_path_traits<SequentialPath>::point_distance_iterator;
+      typename sequential_path_traits<SeqPath>::point_distance_iterator;
 
   struct point_distance_iterator_impl : public base_pt_dist_iterator_impl {
 
@@ -98,7 +93,7 @@ class seq_path_wrapper
   using base_pt_frac_iterator_impl =
       typename base_type::point_fraction_iterator_impl;
   using gen_pt_frac_iterator =
-      typename sequential_path_traits<SequentialPath>::point_fraction_iterator;
+      typename sequential_path_traits<SeqPath>::point_fraction_iterator;
 
   struct point_fraction_iterator_impl : public base_pt_frac_iterator_impl {
 
@@ -140,7 +135,7 @@ class seq_path_wrapper
    * \param aTraj The wrapped path object to use.
    */
   explicit seq_path_wrapper(const std::string& aName = "",
-                            const SequentialPath& aTraj = SequentialPath())
+                            const SeqPath& aTraj = SeqPath())
       : base_type(aName), m_traj(aTraj) {}
 
   ~seq_path_wrapper() override = default;

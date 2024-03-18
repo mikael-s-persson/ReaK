@@ -44,7 +44,7 @@ namespace ReaK {
 
 /// This class holds a scalar matrix. This class will hold only the scalar value and the dimension.
 ///
-/// Models: ReadableMatrixConcept, WritableMatrixConcept, and ResizableMatrixConcept.
+/// Models: ReadableMatrix, WritableMatrix, and ResizableMatrix.
 ///
 /// \tparam T Arithmetic type of the elements of the matrix.
 /// \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
@@ -119,12 +119,8 @@ class mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>
   ~mat() override = default;
 
   /// Constructor from a general matrix, conserving only the trace value.
-  template <typename Matrix>
-  explicit mat(
-      const Matrix& M,
-      std::enable_if_t<
-          is_readable_matrix_v<Matrix> && !std::is_same_v<Matrix, self>, void*>
-          dummy = nullptr)
+  template <ReadableMatrix Matrix>
+  explicit mat(const Matrix& M)
       : mat(std::min(M.get_row_count(), M.get_col_count())) {
     data.q = trace(M) / value_type(get_row_count());
   }

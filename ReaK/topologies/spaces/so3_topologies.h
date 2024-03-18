@@ -56,7 +56,7 @@ namespace ReaK::pp {
 /**
  * This class implements a quaternion-topology. Because quaternions are constrained on the unit
  * hyper-sphere, this topology is indeed bounded (yet infinite at the same time). This class
- * models the MetricSpaceConcept, the LieGroupConcept, and the PointDistributionConcept.
+ * models MetricSpace, LieGroup, and PointDistribution.
  * \tparam T The value-type for the topology.
  */
 template <typename T>
@@ -81,7 +81,7 @@ class quaternion_topology : public named_object {
   }
 
   /*************************************************************************
-  *                             MetricSpaceConcept
+  *                             MetricSpace
   * **********************************************************************/
 
   /**
@@ -99,7 +99,7 @@ class quaternion_topology : public named_object {
   }
 
   /*************************************************************************
-   *                         for PointDistributionConcept
+   *                         for PointDistribution
    * **********************************************************************/
 
   /**
@@ -115,7 +115,7 @@ class quaternion_topology : public named_object {
   }
 
   /*************************************************************************
-   *                             TopologyConcept
+   *                             Topology
    * **********************************************************************/
 
   /**
@@ -154,7 +154,7 @@ class quaternion_topology : public named_object {
   void bring_point_in_bounds(point_type& /*unused*/) const {}
 
   /*************************************************************************
-  *                             LieGroupConcept
+  *                             LieGroup
   * **********************************************************************/
 
   /**
@@ -192,22 +192,12 @@ class quaternion_topology : public named_object {
                               named_object)
 };
 
-template <typename T>
-struct is_metric_space<quaternion_topology<T>> : std::true_type {};
-
-template <typename T>
-struct is_reversible_space<quaternion_topology<T>> : std::true_type {};
-
-template <typename T>
-struct is_point_distribution<quaternion_topology<T>> : std::true_type {};
-
 /**
  * This class implements a rate-limited quaternion-space. This topology will produce distance and norm
  * values which are expressed in a time-unit and represent the time needed to travel along a given
  * quaternion difference vector (for the norm function, and the distance function gives the time
  * needed to travel between two given quaternions) assuming that the entire travel is done at the
- * specified maximum angular speed. This class models the MetricSpaceConcept, the LieGroupConcept,
- * and the PointDistributionConcept.
+ * specified maximum angular speed. This class models MetricSpace, LieGroup, and PointDistribution.
  * \tparam T The value-type for the topology.
  */
 template <typename T>
@@ -242,7 +232,7 @@ class rate_limited_quat_space : public quaternion_topology<T> {
   }
 
   /*************************************************************************
-  *                             MetricSpaceConcept
+  *                             MetricSpace
   * **********************************************************************/
 
   /**
@@ -260,7 +250,7 @@ class rate_limited_quat_space : public quaternion_topology<T> {
   }
 
   /*************************************************************************
-   *                             TopologyConcept
+   *                             Topology
    * **********************************************************************/
 
   /**
@@ -303,19 +293,10 @@ class rate_limited_quat_space : public quaternion_topology<T> {
                               base)
 };
 
-template <typename T>
-struct is_metric_space<rate_limited_quat_space<T>> : std::true_type {};
-
-template <typename T>
-struct is_reversible_space<rate_limited_quat_space<T>> : std::true_type {};
-
-template <typename T>
-struct is_point_distribution<rate_limited_quat_space<T>> : std::true_type {};
-
 /**
  * This class implements an angular velocity topology (for SO(3)). The angular velocities are constrained
  * to within a hyper-ball of a given maximum radius (max angular speed), this topology models
- * the MetricSpaceConcept, and is bounded spherically (models BoundedSpaceConcept and SphereBoundedSpaceConcept).
+ * MetricSpace, and is bounded spherically (models BoundedSpace and SphereBoundedSpace).
  * \tparam T The value-type for the topology.
  */
 template <typename T>
@@ -358,19 +339,10 @@ class ang_velocity_3D_topology : public hyperball_topology<vect<T, 3>> {
                               base)
 };
 
-template <typename T>
-struct is_metric_space<ang_velocity_3D_topology<T>> : std::true_type {};
-
-template <typename T>
-struct is_reversible_space<ang_velocity_3D_topology<T>> : std::true_type {};
-
-template <typename T>
-struct is_point_distribution<ang_velocity_3D_topology<T>> : std::true_type {};
-
 /**
  * This class implements an angular acceleration topology (for SO(3)). The angular accelerations are constrained
  * to within a hyper-ball of a given maximum radius (max angular acceleration), this topology models
- * the MetricSpaceConcept, and is bounded spherically (models BoundedSpaceConcept and SphereBoundedSpaceConcept).
+ * MetricSpace, and is bounded spherically (models BoundedSpace and SphereBoundedSpace).
  * \tparam T The value-type for the topology.
  */
 template <typename T>
@@ -412,15 +384,6 @@ class ang_accel_3D_topology : public hyperball_topology<vect<T, 3>> {
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240000E, 1, "ang_accel_3D_topology",
                               base)
 };
-
-template <typename T>
-struct is_metric_space<ang_accel_3D_topology<T>> : std::true_type {};
-
-template <typename T>
-struct is_reversible_space<ang_accel_3D_topology<T>> : std::true_type {};
-
-template <typename T>
-struct is_point_distribution<ang_accel_3D_topology<T>> : std::true_type {};
 
 /**
  * This meta-function defines the type for a 0th order SO(3) topology (a zero-differentiable space).

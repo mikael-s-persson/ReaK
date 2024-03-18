@@ -79,10 +79,11 @@ struct default_random_sampler : public serializable {
                               "default_random_sampler", serializable)
 };
 
-template <typename PointDistribution>
-auto get(random_sampler_t /*unused*/, const PointDistribution& s) {
-  static_assert(is_point_distribution_v<PointDistribution>);
-  return point_distribution_random_sampler_t<PointDistribution>{s};
+// Cannot use PointDistribution as constraint here, since get(random_sampler, s)
+// is a requirement.
+template <Topology Space>
+auto get(random_sampler_t /*unused*/, const Space& s) {
+  return point_distribution_random_sampler_t<Space>{s};
 }
 
 }  // namespace ReaK::pp

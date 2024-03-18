@@ -50,7 +50,7 @@ namespace ReaK::pp {
  * This class implements an infinite time-topology. Since the space is
  * infinite, there is no way to generate random points from it, and thus,
  * this class does not strictly model the topology concepts, but defines all
- * the functions required to provide the full model of a MetricSpaceConcept.
+ * the functions required to provide the full model of a MetricSpace.
  */
 class time_topology : public named_object {
  public:
@@ -66,7 +66,7 @@ class time_topology : public named_object {
   }
 
   /*************************************************************************
-   *                             TopologyConcept
+   *                             Topology
    * **********************************************************************/
 
   /**
@@ -91,7 +91,7 @@ class time_topology : public named_object {
   point_type origin() const { return 0.0; }
 
   /*************************************************************************
-  *                             MetricSpaceConcept
+  *                             MetricSpace
   * **********************************************************************/
 
   /**
@@ -119,7 +119,7 @@ class time_topology : public named_object {
   }
 
   /*************************************************************************
-  *                             LieGroupConcept
+  *                             LieGroup
   * **********************************************************************/
 
   /**
@@ -175,12 +175,6 @@ class time_topology : public named_object {
   RK_RTTI_MAKE_CONCRETE_1BASE(time_topology, 0xC2400002, 1, "time_topology",
                               named_object)
 };
-
-template <>
-struct is_metric_space<time_topology> : std::true_type {};
-
-template <>
-struct is_reversible_space<time_topology> : std::true_type {};
 
 }  // namespace ReaK::pp
 

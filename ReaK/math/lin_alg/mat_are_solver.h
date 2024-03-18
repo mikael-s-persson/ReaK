@@ -34,6 +34,7 @@
 #define REAK_MATH_LIN_ALG_MAT_ARE_SOLVER_H_
 
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include "ReaK/math/lin_alg/mat_hess_decomp.h"
@@ -893,17 +894,12 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5>
 void solve_care_problem(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
                         const Matrix4& R, Matrix5& P,
                         mat_value_type_t<Matrix1> NumTol = 1E-8,
                         bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_readable_matrix_v<Matrix4>);
-  static_assert(is_fully_writable_matrix_v<Matrix5>);
   if ((A.get_row_count() != A.get_col_count()) ||
       (B.get_row_count() != A.get_row_count()) ||
       (Q.get_row_count() != Q.get_col_count()) ||
@@ -1036,18 +1032,12 @@ void solve_care_problem(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5, typename Matrix6>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6>
 void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
                     const Matrix4& R, Matrix5& K, Matrix6& P,
                     mat_value_type_t<Matrix1> NumTol = 1E-8,
                     bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_readable_matrix_v<Matrix4>);
-  static_assert(is_fully_writable_matrix_v<Matrix5>);
-  static_assert(is_fully_writable_matrix_v<Matrix6>);
   using ValueType = mat_value_type_t<Matrix1>;
   solve_care_problem(A, B, Q, R, P, NumTol, UseBalancing);
 
@@ -1083,13 +1073,12 @@ void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, WritableMatrix Matrix5>
 void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
                     const Matrix4& R, Matrix5& K,
                     mat_value_type_t<Matrix1> NumTol = 1E-8,
                     bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
   using ValueType = mat_value_type_t<Matrix1>;
   mat<ValueType, mat_structure::square> P =
       mat<ValueType, mat_structure::square>(A.get_row_count());
@@ -1139,20 +1128,13 @@ void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5, typename Matrix6,
-          typename Matrix7>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6,
+          FullyWritableMatrix Matrix7>
 std::size_t solve_IHCT_LQR_with_reduction(
     const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R,
     Matrix5& K, Matrix6& P, Matrix7& Qr,
     mat_value_type_t<Matrix1> NumTol = 1E-8, bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_readable_matrix_v<Matrix4>);
-  static_assert(is_fully_writable_matrix_v<Matrix5>);
-  static_assert(is_fully_writable_matrix_v<Matrix6>);
-  static_assert(is_fully_writable_matrix_v<Matrix7>);
   if ((A.get_row_count() != A.get_col_count()) ||
       (B.get_row_count() != A.get_row_count()) ||
       (Q.get_row_count() != Q.get_col_count()) ||
@@ -1247,13 +1229,12 @@ std::size_t solve_IHCT_LQR_with_reduction(
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5, typename Matrix6>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, WritableMatrix Matrix5, WritableMatrix Matrix6>
 std::size_t solve_IHCT_LQR_with_reduction(
     const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R,
     Matrix5& K, Matrix6& P, mat_value_type_t<Matrix1> NumTol = 1E-8,
     bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
   using ValueType = mat_value_type_t<Matrix1>;
   mat<ValueType, mat_structure::square> Qr =
       mat<ValueType, mat_structure::square>(A.get_row_count());
@@ -1298,13 +1279,12 @@ std::size_t solve_IHCT_LQR_with_reduction(
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, WritableMatrix Matrix5>
 std::size_t solve_IHCT_LQR_with_reduction(
     const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R,
     Matrix5& K, mat_value_type_t<Matrix1> NumTol = 1E-8,
     bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
   using ValueType = mat_value_type_t<Matrix1>;
   mat<ValueType, mat_structure::square> P =
       mat<ValueType, mat_structure::square>(A.get_row_count());
@@ -1345,21 +1325,13 @@ std::size_t solve_IHCT_LQR_with_reduction(
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Vector1,
-          typename Matrix3, typename Matrix4, typename Matrix5,
-          typename Matrix6, typename Vector2>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableVector Vector1,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4, FullyWritableMatrix Matrix5,
+          FullyWritableMatrix Matrix6, WritableVector Vector2>
 void solve_IHCT_AQR(const Matrix1& A, const Matrix2& B, const Vector1& c,
                     const Matrix3& Q, const Matrix4& R, Matrix5& K, Matrix6& P,
                     Vector2& u_bias, mat_value_type_t<Matrix1> NumTol = 1E-8,
                     bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_vector_v<Vector1>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_readable_matrix_v<Matrix4>);
-  static_assert(is_fully_writable_matrix_v<Matrix5>);
-  static_assert(is_fully_writable_matrix_v<Matrix6>);
-  static_assert(is_writable_vector_v<Vector2>);
   using ValueType = mat_value_type_t<Matrix1>;
 
   solve_care_problem(A, B, Q, R, P, NumTol, UseBalancing);
@@ -1421,21 +1393,13 @@ void solve_IHCT_AQR(const Matrix1& A, const Matrix2& B, const Vector1& c,
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Vector1,
-          typename Matrix3, typename Matrix4, typename Matrix5,
-          typename Matrix6, typename Vector2>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableVector Vector1,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4, FullyWritableMatrix Matrix5,
+          FullyWritableMatrix Matrix6, WritableVector Vector2>
 std::size_t solve_IHCT_AQR_with_reduction(
     const Matrix1& A, const Matrix2& B, const Vector1& c, const Matrix3& Q,
     const Matrix4& R, Matrix5& K, Matrix6& P, Vector2& u_bias,
     mat_value_type_t<Matrix1> NumTol = 1E-8, bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_vector_v<Vector1>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_readable_matrix_v<Matrix4>);
-  static_assert(is_fully_writable_matrix_v<Matrix5>);
-  static_assert(is_fully_writable_matrix_v<Matrix6>);
-  static_assert(is_writable_vector_v<Vector2>);
   if ((A.get_row_count() != A.get_col_count()) ||
       (B.get_row_count() != A.get_row_count()) ||
       (Q.get_row_count() != Q.get_col_count()) ||
@@ -1531,26 +1495,15 @@ std::size_t solve_IHCT_AQR_with_reduction(
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5, typename Matrix6,
-          typename Matrix7, typename Matrix8, typename Matrix9,
-          typename Matrix10, typename Matrix11>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, ReadableMatrix Matrix5, ReadableMatrix Matrix6,
+          ReadableMatrix Matrix7, FullyWritableMatrix Matrix8, FullyWritableMatrix Matrix9,
+          FullyWritableMatrix Matrix10, FullyWritableMatrix Matrix11>
 void solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C,
                     const Matrix4& V, const Matrix5& W, const Matrix6& Q,
                     const Matrix7& R, Matrix8& K, Matrix9& P, Matrix10& L,
                     Matrix11& S, mat_value_type_t<Matrix1> NumTol = 1E-8,
                     bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_readable_matrix_v<Matrix4>);
-  static_assert(is_readable_matrix_v<Matrix5>);
-  static_assert(is_readable_matrix_v<Matrix6>);
-  static_assert(is_readable_matrix_v<Matrix7>);
-  static_assert(is_fully_writable_matrix_v<Matrix8>);
-  static_assert(is_fully_writable_matrix_v<Matrix9>);
-  static_assert(is_fully_writable_matrix_v<Matrix10>);
-  static_assert(is_fully_writable_matrix_v<Matrix11>);
   using ValueType = mat_value_type_t<Matrix1>;
 
   solve_care_problem(transpose_view(A), transpose_view(C), V, W, P, NumTol);
@@ -1655,17 +1608,12 @@ void solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C,
 /// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5>
 void solve_dare_problem(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
                         const Matrix4& R, Matrix5& P,
                         mat_value_type_t<Matrix1> NumTol = 1E-8,
                         bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_readable_matrix_v<Matrix4>);
-  static_assert(is_fully_writable_matrix_v<Matrix5>);
   if ((F.get_row_count() != F.get_col_count()) ||
       (G.get_row_count() != F.get_row_count()) ||
       (Q.get_row_count() != Q.get_col_count()) ||
@@ -1798,18 +1746,12 @@ void solve_dare_problem(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
 /// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5, typename Matrix6>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6>
 void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
                     const Matrix4& R, Matrix5& K, Matrix6& P,
                     mat_value_type_t<Matrix1> NumTol = 1E-8,
                     bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_readable_matrix_v<Matrix4>);
-  static_assert(is_fully_writable_matrix_v<Matrix5>);
-  static_assert(is_fully_writable_matrix_v<Matrix6>);
   solve_dare_problem(F, G, Q, R, P, NumTol, UseBalancing);
 
   mat<double, mat_structure::rectangular> M_tmp(R);
@@ -1846,13 +1788,12 @@ void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
 /// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, WritableMatrix Matrix5>
 void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
                     const Matrix4& R, Matrix5& K,
                     mat_value_type_t<Matrix1> NumTol = 1E-8,
                     bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
   using ValueType = mat_value_type_t<Matrix1>;
   mat<ValueType, mat_structure::square> P =
       mat<ValueType, mat_structure::square>(F.get_row_count());
@@ -1899,26 +1840,15 @@ void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
 /// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5, typename Matrix6,
-          typename Matrix7, typename Matrix8, typename Matrix9,
-          typename Matrix10, typename Matrix11>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, ReadableMatrix Matrix5, ReadableMatrix Matrix6,
+          ReadableMatrix Matrix7, FullyWritableMatrix Matrix8, FullyWritableMatrix Matrix9,
+          FullyWritableMatrix Matrix10, FullyWritableMatrix Matrix11>
 void solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
                     const Matrix4& V, const Matrix5& W, const Matrix6& Q,
                     const Matrix7& R, Matrix8& K, Matrix9& P, Matrix10& L,
                     Matrix11& S, mat_value_type_t<Matrix1> NumTol = 1E-8,
                     bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_readable_matrix_v<Matrix4>);
-  static_assert(is_readable_matrix_v<Matrix5>);
-  static_assert(is_readable_matrix_v<Matrix6>);
-  static_assert(is_readable_matrix_v<Matrix7>);
-  static_assert(is_fully_writable_matrix_v<Matrix8>);
-  static_assert(is_fully_writable_matrix_v<Matrix9>);
-  static_assert(is_fully_writable_matrix_v<Matrix10>);
-  static_assert(is_fully_writable_matrix_v<Matrix11>);
   solve_dare_problem(transpose_view(F), transpose_view(H), V, W, P, NumTol,
                      UseBalancing);
 
@@ -1975,15 +1905,14 @@ void solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
 /// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5, typename Matrix6,
-          typename Matrix7, typename Matrix8, typename Matrix9>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, ReadableMatrix Matrix5, ReadableMatrix Matrix6,
+          ReadableMatrix Matrix7, WritableMatrix Matrix8, WritableMatrix Matrix9>
 void solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
                     const Matrix4& V, const Matrix5& W, const Matrix6& Q,
                     const Matrix7& R, Matrix8& K, Matrix9& L,
                     mat_value_type_t<Matrix1> NumTol = 1E-8,
                     bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
   using ValueType = mat_value_type_t<Matrix1>;
   mat<ValueType, mat_structure::square> P =
       mat<ValueType, mat_structure::square>(F.get_row_count());
@@ -2028,17 +1957,12 @@ void solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
 /// \throws singularity_error if the CTSF problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5>
 void solve_ctsf_problem(const Matrix1& A, const Matrix2& B, const Matrix3& C,
                         const Matrix4& D, Matrix5& P,
                         mat_value_type_t<Matrix1> NumTol = 1E-8,
                         bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_readable_matrix_v<Matrix4>);
-  static_assert(is_fully_writable_matrix_v<Matrix5>);
   if ((A.get_row_count() != A.get_col_count()) ||
       (B.get_row_count() != A.get_row_count()) ||
       (C.get_col_count() != A.get_col_count()) ||
@@ -2177,17 +2101,12 @@ void solve_ctsf_problem(const Matrix1& A, const Matrix2& B, const Matrix3& C,
 /// \throws singularity_error if the DTSF problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5>
 void solve_dtsf_problem(const Matrix1& F, const Matrix2& G, const Matrix3& H,
                         const Matrix4& J, Matrix5& P,
                         mat_value_type_t<Matrix1> NumTol = 1E-8,
                         bool UseBalancing = false) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_readable_matrix_v<Matrix4>);
-  static_assert(is_fully_writable_matrix_v<Matrix5>);
   if ((F.get_row_count() != F.get_col_count()) ||
       (G.get_row_count() != F.get_row_count()) ||
       (H.get_col_count() != F.get_col_count()) ||

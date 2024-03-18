@@ -822,15 +822,6 @@ class unit_quat : public quat<T> {
                            Assignment Operators
   *******************************************************************************/
 
-  /// Assignment operator.
-  self& operator=(const self& Q) noexcept {
-    this->q[0] = Q.q[0];
-    this->q[1] = Q.q[1];
-    this->q[2] = Q.q[2];
-    this->q[3] = Q.q[3];
-    return *this;
-  }
-
   /// Multiplication-assignment operator.
   self& operator*=(const self& C) noexcept { return (*this = ((*this) * C)); }
 
@@ -1044,42 +1035,6 @@ struct get_type_id<unit_quat<T>> {
   using load_type = quat<T>&;
 };
 };  // namespace rtti
-
-template <typename T>
-struct is_readable_vector<quat<T>> {
-  static constexpr bool value = true;
-  using type = is_readable_vector<quat<T>>;
-};
-
-template <typename T>
-struct is_writable_vector<quat<T>> {
-  static constexpr bool value = true;
-  using type = is_writable_vector<quat<T>>;
-};
-
-template <typename T>
-struct is_resizable_vector<quat<T>> {
-  static constexpr bool value = false;
-  using type = is_resizable_vector<quat<T>>;
-};
-
-template <typename T>
-struct is_readable_vector<unit_quat<T>> {
-  static constexpr bool value = true;
-  using type = is_readable_vector<unit_quat<T>>;
-};
-
-template <typename T>
-struct is_writable_vector<unit_quat<T>> {
-  static constexpr bool value = false;
-  using type = is_writable_vector<unit_quat<T>>;
-};
-
-template <typename T>
-struct is_resizable_vector<unit_quat<T>> {
-  static constexpr bool value = false;
-  using type = is_resizable_vector<unit_quat<T>>;
-};
 
 namespace detail {
 

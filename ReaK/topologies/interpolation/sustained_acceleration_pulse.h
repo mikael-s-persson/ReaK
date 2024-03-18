@@ -42,12 +42,10 @@
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 
-#include "ReaK/topologies/interpolation/generic_interpolator_factory.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/interpolated_trajectory.h"
 
 #include "ReaK/topologies/interpolation/sustained_acceleration_pulse_detail.h"
-
-#include "boost/concept_check.hpp"
 
 #include <limits>
 #include <type_traits>
@@ -74,18 +72,17 @@ struct is_metric_symmetric<sap_interpolation_tag> : std::false_type {};
  * \param space The space on which the points reside.
  * \return The interpolated point at time t, between a and b.
  */
-template <typename PointType, typename Topology>
+template <typename PointType, TemporalSpace Space>
 PointType sap_interpolate(const PointType& a, const PointType& b, double t,
-                          const Topology& space) {
-  using SpaceType = typename temporal_space_traits<Topology>::space_topology;
-  using TimeSpaceType = typename temporal_space_traits<Topology>::time_topology;
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<SpaceType>));
-  BOOST_CONCEPT_ASSERT((TangentBundleConcept<SpaceType, 2, TimeSpaceType>));
-  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<
-                        derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>));
-  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<
-                        derived_N_order_space_t<SpaceType, TimeSpaceType, 2>>));
+                          const Space& space) {
+  using SpaceType = typename temporal_space_traits<Space>::space_topology;
+  using TimeSpaceType = typename temporal_space_traits<Space>::time_topology;
+  static_assert(MetricSpace<SpaceType>);
+  static_assert(TangentBundle<SpaceType, TimeSpaceType, 0, 1, 2>);
+  static_assert(SphereBoundedSpace<
+                        derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>);
+  static_assert(SphereBoundedSpace<
+                        derived_N_order_space_t<SpaceType, TimeSpaceType, 2>>);
 
   using Space0 = derived_N_order_space_t<SpaceType, TimeSpaceType, 0>;
   using PointDiff0 = topology_point_difference_type_t<Space0>;
@@ -95,12 +92,12 @@ PointType sap_interpolate(const PointType& a, const PointType& b, double t,
 
   using Space2 = derived_N_order_space_t<SpaceType, TimeSpaceType, 2>;
 
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space0>));
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space1>));
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space2>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
+  static_assert(MetricSpace<Space0>);
+  static_assert(MetricSpace<Space1>);
+  static_assert(MetricSpace<Space2>);
+  static_assert(LieGroup<Space0>);
+  static_assert(LieGroup<Space1>);
+  static_assert(LieGroup<Space2>);
 
   if (t <= a.time) {
     return a;
@@ -133,25 +130,22 @@ PointType sap_interpolate(const PointType& a, const PointType& b, double t,
   return result;
 }
 
-template <typename Topology, typename TimeTopology>
-bool sap_is_in_bounds(const topology_point_type_t<Topology>& pt,
-                      const Topology& space, const TimeTopology& t_space) {
-  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
-  BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<Topology>));
-
-  using Space0 = derived_N_order_space_t<Topology, TimeTopology, 0>;
-  using Space1 = derived_N_order_space_t<Topology, TimeTopology, 1>;
-  using Space2 = derived_N_order_space_t<Topology, TimeTopology, 2>;
-  using PointType = topology_point_type_t<Topology>;
+template <BoundedSpace Space, typename TimeSpace>
+bool sap_is_in_bounds(const topology_point_type_t<Space>& pt,
+                      const Space& space, const TimeSpace& t_space) {
+  using Space0 = derived_N_order_space_t<Space, TimeSpace, 0>;
+  using Space1 = derived_N_order_space_t<Space, TimeSpace, 1>;
+  using Space2 = derived_N_order_space_t<Space, TimeSpace, 2>;
+  using PointType = topology_point_type_t<Space>;
   using Point2 = topology_point_type_t<Space2>;
   using PointDiff1 = topology_point_difference_type_t<Space1>;
   using PointDiff2 = topology_point_difference_type_t<Space2>;
 
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
-  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<Space1>));
-  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<Space2>));
+  static_assert(LieGroup<Space0>);
+  static_assert(LieGroup<Space1>);
+  static_assert(LieGroup<Space2>);
+  static_assert(SphereBoundedSpace<Space1>);
+  static_assert(SphereBoundedSpace<Space2>);
 
   const Space1& s1 = get_space<1>(space, t_space);
   const Space2& s2 = get_space<2>(space, t_space);
@@ -170,7 +164,7 @@ bool sap_is_in_bounds(const topology_point_type_t<Topology>& pt,
   // Check if we can safely ramp-up to that acceleration:
   PointType result_a = pt;
   detail::sap_constant_jerk_motion_impl<
-      max_derivation_order<Topology, TimeTopology>>(result_a, dp2, space,
+      max_derivation_order<Space, TimeSpace>>(result_a, dp2, space,
                                                     t_space, dt2);
   if (!space.is_in_bounds(result_a)) {
     return false;  // reject the sample.
@@ -185,7 +179,7 @@ bool sap_is_in_bounds(const topology_point_type_t<Topology>& pt,
 
     // Check if we can safely stop before the boundary:
     detail::svp_constant_accel_motion_impl<
-        max_derivation_order<Topology, TimeTopology>>(result_a, dp1, space,
+        max_derivation_order<Space, TimeSpace>>(result_a, dp1, space,
                                                       t_space, dt1a);
     if (!space.is_in_bounds(result_a)) {
       return false;  // reject the sample.
@@ -195,7 +189,7 @@ bool sap_is_in_bounds(const topology_point_type_t<Topology>& pt,
   // Check if we could have ramped-down from that inverse acceleration:
   PointType result_b = pt;
   detail::sap_constant_jerk_motion_impl<
-      max_derivation_order<Topology, TimeTopology>>(result_b, -dp2, space,
+      max_derivation_order<Space, TimeSpace>>(result_b, -dp2, space,
                                                     t_space, -dt2);
   if (!space.is_in_bounds(result_b)) {
     return false;  // reject the sample.
@@ -210,7 +204,7 @@ bool sap_is_in_bounds(const topology_point_type_t<Topology>& pt,
 
     // Check if we could have ramped up from within the boundary:
     detail::svp_constant_accel_motion_impl<
-        max_derivation_order<Topology, TimeTopology>>(result_b, -dp1, space,
+        max_derivation_order<Space, TimeSpace>>(result_b, -dp1, space,
                                                       t_space, -dt1b);
     if (!space.is_in_bounds(result_b)) {
       return false;  // reject the sample.
@@ -224,11 +218,10 @@ bool sap_is_in_bounds(const topology_point_type_t<Topology>& pt,
 /**
  * This functor class implements a sustained acceleration pulse (SAP) interpolation in a temporal
  * and twice-differentiable topology.
- * \tparam SpaceType The topology on which the interpolation is done, should model MetricSpaceConcept and
- * DifferentiableSpaceConcept once against time.
- * \tparam TimeSpaceType The time topology.
+ * \tparam SpaceType The topology on which the interpolation is done, should model MetricSpace and
+ * DifferentiableSpace once against time.
  */
-template <typename SpaceType, typename TimeSpaceType>
+template <MetricSpace SpaceType, Topology TimeSpaceType>
 class sap_interpolator {
  public:
   using self = sap_interpolator<SpaceType, TimeSpaceType>;
@@ -244,19 +237,18 @@ class sap_interpolator {
   using PointType2 = topology_point_type_t<Space1>;
   using PointDiff2 = topology_point_difference_type_t<Space1>;
 
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<SpaceType>));
-  BOOST_CONCEPT_ASSERT((TangentBundleConcept<SpaceType, 2, TimeSpaceType>));
-  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<
-                        derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>));
-  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<
-                        derived_N_order_space_t<SpaceType, TimeSpaceType, 2>>));
+  static_assert(TangentBundle<SpaceType, TimeSpaceType, 0, 1, 2>);
+  static_assert(SphereBoundedSpace<
+                        derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>);
+  static_assert(SphereBoundedSpace<
+                        derived_N_order_space_t<SpaceType, TimeSpaceType, 2>>);
 
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space0>));
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space1>));
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space2>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
+  static_assert(MetricSpace<Space0>);
+  static_assert(MetricSpace<Space1>);
+  static_assert(MetricSpace<Space2>);
+  static_assert(LieGroup<Space0>);
+  static_assert(LieGroup<Space1>);
+  static_assert(LieGroup<Space2>);
 
  private:
   PointDiff0 delta_first_order;
@@ -350,38 +342,36 @@ class sap_interpolator {
 /**
  * This class is a factory class for sustained acceleration pulse (SAP) interpolators on a temporal
  * differentiable space.
- * \tparam TemporalTopology The temporal topology on which the interpolation is done, should model TemporalSpaceConcept,
- *                          with a spatial topology that is twice-differentiable (see DifferentiableSpaceConcept) and
+ * \tparam TemporalTopology The temporal topology on which the interpolation is done, should model TemporalSpace,
+ *                          with a spatial topology that is twice-differentiable (see DifferentiableSpace) and
  *                          whose 1-order and 2-order derivative space has a spherical bound (see
- * SphereBoundedSpaceConcept).
+ * SphereBoundedSpace).
  */
-template <typename TemporalTopology>
+template <TemporalSpace Space>
 class sap_interpolator_factory : public serializable {
  public:
-  using self = sap_interpolator_factory<TemporalTopology>;
-  using topology = TemporalTopology;
-  using point_type = topology_point_type_t<TemporalTopology>;
-
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
+  using self = sap_interpolator_factory<Space>;
+  using topology = Space;
+  using point_type = topology_point_type_t<Space>;
 
   using interpolator_type = generic_interpolator<self, sap_interpolator>;
 
  private:
-  std::shared_ptr<topology> space;
+  std::shared_ptr<Space> space;
 
  public:
   double tolerance;
   unsigned int maximum_iterations;
 
   explicit sap_interpolator_factory(
-      const std::shared_ptr<topology>& aSpace = {}, double aTolerance = 1e-6,
+      const std::shared_ptr<Space>& aSpace = {}, double aTolerance = 1e-6,
       unsigned int aMaxIter = 60)
       : space(aSpace), tolerance(aTolerance), maximum_iterations(aMaxIter) {}
 
-  void set_temporal_space(const std::shared_ptr<topology>& aSpace) {
+  void set_temporal_space(const std::shared_ptr<Space>& aSpace) {
     space = aSpace;
   }
-  const std::shared_ptr<topology>& get_temporal_space() const { return space; }
+  const std::shared_ptr<Space>& get_temporal_space() const { return space; }
 
   interpolator_type create_interpolator(const point_type* pp1,
                                         const point_type* pp2) const {
@@ -411,26 +401,24 @@ class sap_interpolator_factory : public serializable {
  * This class implements a trajectory in a temporal and twice-differentiable topology.
  * The trajectory is represented by a set of waypoints and all intermediate points
  * are computed with a sustained acceleration pulse interpolation (limited). This class models
- * the SpatialTrajectoryConcept.
- * \tparam Topology The temporal topology on which the interpolation is done, should model TemporalSpaceConcept,
- *                  with a spatial topology that is twice-differentiable (see DifferentiableSpaceConcept) and
- *                  whose 1-order and 2-order derivative spaces have a spherical bound (see SphereBoundedSpaceConcept).
+ * the SpatialTrajectory.
+ * \tparam Topology The temporal topology on which the interpolation is done, should model TemporalSpace,
+ *                  with a spatial topology that is twice-differentiable (see DifferentiableSpace) and
+ *                  whose 1-order and 2-order derivative spaces have a spherical bound (see SphereBoundedSpace).
  * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the
- * DistanceMetricConcept.
+ * DistanceMetric.
  */
-template <typename Topology,
-          typename DistanceMetric =
-              typename metric_space_traits<Topology>::distance_metric_type>
+template <TemporalSpace Space,
+          DistanceMetric<Space> Metric =
+              typename metric_space_traits<Space>::distance_metric_type>
 class sap_interp_traj
     : public interpolated_trajectory<
-          Topology, sap_interpolator_factory<Topology>, DistanceMetric> {
+          Space, sap_interpolator_factory<Space>, Metric> {
  public:
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-
-  using self = sap_interp_traj<Topology, DistanceMetric>;
+  using self = sap_interp_traj<Space, Metric>;
   using base_class_type =
-      interpolated_trajectory<Topology, sap_interpolator_factory<Topology>,
-                              DistanceMetric>;
+      interpolated_trajectory<Space, sap_interpolator_factory<Space>,
+                              Metric>;
 
   using point_type = typename base_class_type::point_type;
   using topology = typename base_class_type::topology;
@@ -446,7 +434,7 @@ class sap_interp_traj
       const std::shared_ptr<topology>& aSpace = std::make_shared<topology>(),
       const distance_metric& aDist = distance_metric())
       : base_class_type(aSpace, aDist,
-                        sap_interpolator_factory<Topology>(aSpace)) {}
+                        sap_interpolator_factory<Space>(aSpace)) {}
 
   /**
    * Constructs the path from a space, the start and end points.
@@ -459,7 +447,7 @@ class sap_interp_traj
                   const point_type& aStart, const point_type& aEnd,
                   const distance_metric& aDist = distance_metric())
       : base_class_type(aSpace, aStart, aEnd, aDist,
-                        sap_interpolator_factory<Topology>(aSpace)) {}
+                        sap_interpolator_factory<Space>(aSpace)) {}
 
   /**
    * Constructs the path from a range of points and their space.
@@ -474,7 +462,7 @@ class sap_interp_traj
                   const std::shared_ptr<topology>& aSpace,
                   const distance_metric& aDist = distance_metric())
       : base_class_type(aBegin, aEnd, aSpace, aDist,
-                        sap_interpolator_factory<Topology>(aSpace)) {}
+                        sap_interpolator_factory<Space>(aSpace)) {}
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces

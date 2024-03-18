@@ -2,7 +2,7 @@
  * \file temporal_distance_metrics.h
  *
  * This library defines basic temporal distance metrics to use on temporal
- * spaces (see TemporalSpaceConcept and TemporalDistMetricConcept).
+ * spaces (see TemporalSpace and TemporalDistMetric).
  *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date October 2011
@@ -40,43 +40,39 @@
 namespace ReaK::pp {
 
 /**
- * This class is a functor type which models the TemporalDistMetricConcept, and computes the
+ * This class is a functor type which models the TemporalDistMetric, and computes the
  * distance based only on the distance in the spatial dimensions (space-topology).
  */
 struct spatial_distance_only : public serializable {
 
   spatial_distance_only() = default;
 
-  template <typename TemporalTopology>
-  explicit spatial_distance_only(const TemporalTopology& /*unused*/) {}
+  template <typename SpaceOrMetric>
+  explicit spatial_distance_only(const SpaceOrMetric& /*unused*/) {}
 
   /**
    * Computes the distance by calling the distance-function of the space-topology (s) on two points (a,b).
    * \tparam Point The point type of points on the temporal-space.
-   * \tparam TemporalTopology The temporal-space type associated to the metric, should model TemporalSpaceConcept.
    * \param a The first point.
    * \param b The second point.
    * \param s The temporal-space.
    * \return the spatial-distance between the two points.
    */
-  template <typename Point, typename TemporalTopology>
+  template <typename Point, TemporalSpace Space>
   double operator()(const Point& a, const Point& b,
-                    const TemporalTopology& s) const {
-    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+                    const Space& s) const {
     return get(distance_metric, s.get_space_topology())(a.pt, b.pt,
                                                         s.get_space_topology());
   }
   /**
    * Computes the norm by calling the norm-function of the space-topology (s) on a point-difference (a).
    * \tparam PointDiff The point-difference type of points on the temporal-space.
-   * \tparam TemporalTopology The temporal-space type associated to the metric, should model TemporalSpaceConcept.
    * \param a The point-difference.
    * \param s The temporal-space.
    * \return The spatial-norm of the difference between the two points.
    */
-  template <typename PointDiff, typename TemporalTopology>
-  double operator()(const PointDiff& a, const TemporalTopology& s) const {
-    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+  template <typename PointDiff, TemporalSpace Space>
+  double operator()(const PointDiff& a, const Space& s) const {
     return get(distance_metric, s.get_space_topology())(a.pt,
                                                         s.get_space_topology());
   }
@@ -95,41 +91,37 @@ struct spatial_distance_only : public serializable {
 };
 
 /**
- * This class is a functor type which models the TemporalDistMetricConcept, and computes the
+ * This class is a functor type which models the TemporalDistMetric, and computes the
  * distance based only on the distance in the temporal dimensions (time-topology).
  */
 struct time_distance_only : public serializable {
 
   time_distance_only() = default;
 
-  template <typename TemporalTopology>
-  explicit time_distance_only(const TemporalTopology& /*unused*/) {}
+  template <typename SpaceOrMetric>
+  explicit time_distance_only(const SpaceOrMetric& /*unused*/) {}
 
   /**
    * Computes the distance by calling the distance-function of the time-topology (t) on two points (a,b).
-   * \tparam Point The point type of points on the temporal-space.
-   * \tparam TemporalTopology The temporal-space type associated to the metric, should model TemporalSpaceConcept.
    * \param a The first point.
    * \param b The second point.
    * \param s The temporal-space.
    * \return the temporal-distance between the two points.
    */
-  template <typename Point, typename TemporalTopology>
+  template <typename Point, TemporalSpace Space>
   double operator()(const Point& a, const Point& b,
-                    const TemporalTopology& s) const {
+                    const Space& s) const {
     return get(distance_metric, s.get_time_topology())(a.time, b.time,
                                                        s.get_time_topology());
   }
   /**
    * Computes the norm by calling the norm-function of the time-topology (t) on a point-difference (a).
-   * \tparam PointDiff The point-difference type of points on the temporal-space.
-   * \tparam TemporalTopology The temporal-space type associated to the metric, should model TemporalSpaceConcept.
    * \param a The point-difference.
    * \param s The temporal-space.
    * \return The temporal-norm of the difference between the two points.
    */
-  template <typename PointDiff, typename TemporalTopology>
-  double operator()(const PointDiff& a, const TemporalTopology& s) const {
+  template <typename PointDiff, TemporalSpace Space>
+  double operator()(const PointDiff& a, const Space& s) const {
     return get(distance_metric, s.get_time_topology())(a.time,
                                                        s.get_time_topology());
   }

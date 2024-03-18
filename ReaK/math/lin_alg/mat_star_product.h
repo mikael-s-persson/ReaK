@@ -47,7 +47,7 @@ namespace ReaK {
 /**
  * This class template is a type alias for what can represent a hamiltonian matrix (not strictly enforced).
  *
- * Models: ReadableMatrixConcept and WritableMatrixConcept.
+ * Models: ReadableMatrix and WritableMatrix.
  *
  * \tparam ValueType The value-type of the underlying matrices.
  */
@@ -69,16 +69,12 @@ using hamiltonian_mat_t = typename hamiltonian_mat<ValueType>::type;
 
 /**
  * This function template computes the Redeffer star-product of two matrices.
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
  * \param M1 A square, hamiltonian matrix.
  * \param M2 A square, hamiltonian matrix.
  * \return A hamiltonian matrix which is the star product of M1 and M2.
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2>
 auto star_product(const Matrix1& M1, const Matrix2& M2) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
   using ValueType = mat_value_type_t<Matrix1>;
 
   int N = M1.get_row_count() / 2;

@@ -1,0 +1,184 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+  name = "interpolation",
+  srcs = [
+    "sustained_acceleration_pulse_detail.cc",
+    "sustained_acceleration_pulse_ndof_detail.cc",
+    "sustained_velocity_pulse_detail.cc",
+    "sustained_velocity_pulse_ndof_detail.cc",
+  ],
+  hdrs = [
+    "constant_trajectory.h",
+    "cubic_hermite_interp.h",
+    "discrete_point_path.h",
+    "discrete_point_trajectory.h",
+    "extrapolator_concept.h",
+    "interpolated_trajectory.h",
+    "interpolator_concept.h",
+    "linear_interp.h",
+    "path_base.h",
+    "path_wrapper.h",
+    "point_to_point_path.h",
+    "point_to_point_trajectory.h",
+    "predicted_trajectory_concept.h",
+    "quintic_hermite_interp.h",
+    "seq_path_base.h",
+    "seq_path_wrapper.h",
+    "seq_trajectory_base.h",
+    "seq_trajectory_wrapper.h",
+    "sequential_path_concept.h",
+    "sequential_trajectory_concept.h",
+    "spatial_path_concept.h",
+    "spatial_trajectory_concept.h",
+    "sustained_acceleration_pulse.h",
+    "sustained_acceleration_pulse_detail.h",
+    "sustained_acceleration_pulse_ndof.h",
+    "sustained_acceleration_pulse_ndof_detail.h",
+    "sustained_velocity_pulse.h",
+    "sustained_velocity_pulse_detail.h",
+    "sustained_velocity_pulse_ndof.h",
+    "sustained_velocity_pulse_ndof_detail.h",
+    "trajectory_base.h",
+    "transformed_trajectory.h",
+    "waypoint_container.h",
+  ],
+  deps = [
+    "//ReaK/core/base",
+    "//ReaK/core/sorting",
+    "//ReaK/math/kinetostatics",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/root_finders",
+    "//ReaK/topologies/spaces",
+  ],
+)
+
+cc_library(
+  name = "interpolated_spaces",
+  srcs = [
+    "ndof_cubic_spaces_ext.cc",
+    "ndof_linear_spaces_ext.cc",
+    "ndof_quintic_spaces_ext.cc",
+    "ndof_sap_spaces_ext.cc",
+    "ndof_svp_spaces_ext.cc",
+  ],
+  hdrs = [
+    "ndof_cubic_spaces.h",
+    "ndof_linear_spaces.h",
+    "ndof_quintic_spaces.h",
+    "ndof_sap_spaces.h",
+    "ndof_svp_spaces.h",
+    "sap_metrics.h",
+    "sap_ndof_metrics.h",
+    "sap_ndof_reach_topologies.h",
+    "sap_ndof_samplers.h",
+    "sap_reach_topologies.h",
+    "sap_samplers.h",
+    "svp_metrics.h",
+    "svp_ndof_metrics.h",
+    "svp_ndof_reach_topologies.h",
+    "svp_ndof_samplers.h",
+    "svp_reach_topologies.h",
+    "svp_samplers.h",
+  ],
+  deps = [
+    ":interpolation",
+    "//ReaK/core/base",
+    "//ReaK/core/sorting",
+    "//ReaK/math/kinetostatics",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/root_finders",
+    "//ReaK/topologies/spaces",
+  ],
+)
+  
+cc_binary(
+  name = "interp_test",
+  srcs = [
+    "interp_test.cc",
+  ],
+  deps = [
+    ":interpolation",
+    "//ReaK/core/recorders",
+    "//ReaK/topologies/spaces",
+    "@com_google_absl//absl/flags:flag",
+    "@com_google_absl//absl/flags:parse",
+  ],
+)
+
+cc_binary(
+  name = "interp_mc_test",
+  srcs = [
+    "interp_mc_test.cc",
+  ],
+  deps = [
+    ":interpolation",
+    ":interpolated_spaces",
+    "//ReaK/topologies/spaces",
+    "@com_google_absl//absl/flags:flag",
+    "@com_google_absl//absl/flags:parse",
+  ],
+)
+
+cc_binary(
+  name = "interp_lim_test",
+  srcs = [
+    "interp_lim_test.cc",
+  ],
+  deps = [
+    ":interpolation",
+    "//ReaK/core/recorders",
+    "//ReaK/topologies/spaces",
+    "@com_google_absl//absl/flags:flag",
+    "@com_google_absl//absl/flags:parse",
+  ],
+)
+
+cc_binary(
+  name = "interp_Ndof_test",
+  srcs = [
+    "interp_Ndof_test.cc",
+  ],
+  deps = [
+    ":interpolation",
+    ":interpolated_spaces",
+    "//ReaK/core/recorders",
+    "//ReaK/topologies/spaces",
+    "@com_google_absl//absl/flags:flag",
+    "@com_google_absl//absl/flags:parse",
+  ],
+)
+
+cc_binary(
+  name = "interp_topo_test",
+  srcs = [
+    "interp_topo_test.cc",
+  ],
+  deps = [
+    ":interpolation",
+    ":interpolated_spaces",
+    "//ReaK/topologies/spaces",
+    "@com_google_absl//absl/flags:flag",
+    "@com_google_absl//absl/flags:parse",
+  ],
+)
+
+cc_binary(
+  name = "interp_topo_rand_test",
+  srcs = [
+    "interp_topo_rand_test.cc",
+  ],
+  deps = [
+    ":interpolation",
+    ":interpolated_spaces",
+    "//ReaK/topologies/spaces",
+    "@com_google_absl//absl/flags:flag",
+    "@com_google_absl//absl/flags:parse",
+  ],
+)

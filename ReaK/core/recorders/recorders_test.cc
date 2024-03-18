@@ -23,8 +23,11 @@
 
 #include "ReaK/core/recorders/ascii_recorder.h"
 #include "ReaK/core/recorders/bin_recorder.h"
-#include "ReaK/core/recorders/network_recorder.h"
 #include "ReaK/core/recorders/vector_recorder.h"
+
+#ifdef ENABLE_NETWORK_RECORDER
+#include "ReaK/core/recorders/network_recorder.h"
+#endif // ENABLE_NETWORK_RECORDER
 
 #include <sstream>
 
@@ -227,6 +230,7 @@ TEST(RecordersTests, BinRecordExtract) {
   }
 }
 
+#ifdef ENABLE_NETWORK_RECORDER
 struct net_server_runner {
   bool* succeeded;
   unsigned int* num_points;
@@ -379,6 +383,7 @@ TEST(RecordersTests, NetRawUdpRecordExtract) {
   EXPECT_EQ(server_sent, 21);
   EXPECT_TRUE(server_worked);
 }
+#endif // ENABLE_NETWORK_RECORDER
 
 TEST(RecordersTests, VectorRecordExtract) {
   {

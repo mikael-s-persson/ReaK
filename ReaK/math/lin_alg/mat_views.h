@@ -171,9 +171,8 @@ class mat_copy_sub_block {
   /**
    * Standard assignment operator.
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator=(const Matrix2& rhs) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((rhs.get_row_count() != rowCount) ||
         (rhs.get_col_count() != colCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -233,9 +232,8 @@ class mat_copy_sub_block {
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator+=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -251,9 +249,8 @@ class mat_copy_sub_block {
    * Sub-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator-=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -284,7 +281,7 @@ class mat_copy_sub_block {
    */
   template <typename Matrix2>
   self& operator*=(const Matrix2& M) {
-    if constexpr (!is_readable_matrix_v<Matrix2>) {
+    if constexpr (!ReadableMatrix<Matrix2>) {
       return *this *= value_type(M);
     } else {
       if ((M.get_col_count() != colCount) || (M.get_row_count() != colCount)) {
@@ -295,36 +292,8 @@ class mat_copy_sub_block {
     }
   }
 };
-
 template <typename Matrix>
-struct is_readable_matrix<mat_copy_sub_block<Matrix>> {
-  static constexpr bool value = is_readable_matrix_v<Matrix>;
-  using type = is_readable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_writable_matrix<mat_copy_sub_block<Matrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<Matrix>;
-  using type = is_fully_writable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_fully_writable_matrix<mat_copy_sub_block<Matrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<Matrix>;
-  using type = is_fully_writable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_row_resizable_matrix<mat_copy_sub_block<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_row_resizable_matrix<mat_copy_sub_block<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_col_resizable_matrix<mat_copy_sub_block<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_col_resizable_matrix<mat_copy_sub_block<Matrix>>;
-};
+static constexpr bool is_fully_writable_matrix_v<mat_copy_sub_block<Matrix>> = is_fully_writable_matrix_v<Matrix>;
 
 template <typename Matrix>
 class mat_sub_block {
@@ -426,9 +395,8 @@ class mat_sub_block {
   /**
    * Standard assignment operator.
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator=(const Matrix2& rhs) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((rhs.get_row_count() != rowCount) ||
         (rhs.get_col_count() != colCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -490,9 +458,8 @@ class mat_sub_block {
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator+=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -508,9 +475,8 @@ class mat_sub_block {
    * Sub-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator-=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -541,7 +507,7 @@ class mat_sub_block {
    */
   template <typename Matrix2>
   self& operator*=(const Matrix2& M) {
-    if constexpr (!is_readable_matrix_v<Matrix2>) {
+    if constexpr (!ReadableMatrix<Matrix2>) {
       return *this *= value_type(M);
     } else {
       if ((M.get_col_count() != colCount) || (M.get_row_count() != colCount)) {
@@ -554,34 +520,7 @@ class mat_sub_block {
 };
 
 template <typename Matrix>
-struct is_readable_matrix<mat_sub_block<Matrix>> {
-  static constexpr bool value = is_readable_matrix_v<Matrix>;
-  using type = is_readable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_writable_matrix<mat_sub_block<Matrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<Matrix>;
-  using type = is_fully_writable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_fully_writable_matrix<mat_sub_block<Matrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<Matrix>;
-  using type = is_fully_writable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_row_resizable_matrix<mat_sub_block<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_row_resizable_matrix<mat_sub_block<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_col_resizable_matrix<mat_sub_block<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_col_resizable_matrix<mat_sub_block<Matrix>>;
-};
+static constexpr bool is_fully_writable_matrix_v<mat_sub_block<Matrix>> = is_fully_writable_matrix_v<Matrix>;
 
 template <typename Matrix>
 class mat_const_sub_block {
@@ -705,37 +644,7 @@ class mat_const_sub_block {
   std::pair<int, int> size() const noexcept { return {rowCount, colCount}; }
 };
 
-template <typename Matrix>
-struct is_readable_matrix<mat_const_sub_block<Matrix>> {
-  static constexpr bool value = is_readable_matrix_v<Matrix>;
-  using type = is_readable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_writable_matrix<mat_const_sub_block<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_writable_matrix<mat_const_sub_block<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_fully_writable_matrix<mat_const_sub_block<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_fully_writable_matrix<mat_const_sub_block<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_row_resizable_matrix<mat_const_sub_block<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_row_resizable_matrix<mat_const_sub_block<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_col_resizable_matrix<mat_const_sub_block<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_col_resizable_matrix<mat_const_sub_block<Matrix>>;
-};
-
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 struct mat_copy_sub_block_factory {
   Matrix m;
   explicit mat_copy_sub_block_factory(Matrix&& aM) : m(std::move(aM)) {}
@@ -747,7 +656,7 @@ struct mat_copy_sub_block_factory {
   }
 };
 
-template <typename Matrix>
+template <WritableMatrix Matrix>
 struct mat_sub_block_factory {
   Matrix& m;
   explicit mat_sub_block_factory(Matrix& aM) : m(aM) {}
@@ -759,7 +668,7 @@ struct mat_sub_block_factory {
   }
 };
 
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 struct mat_const_sub_block_factory {
   const Matrix& m;
   explicit mat_const_sub_block_factory(const Matrix& aM) : m(aM) {}
@@ -771,30 +680,23 @@ struct mat_const_sub_block_factory {
   }
 };
 
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, mat_sub_block_factory<Matrix>>
-sub(Matrix& M) {
+template <WritableMatrix Matrix>
+mat_sub_block_factory<Matrix> sub(Matrix& M) {
   return mat_sub_block_factory<Matrix>(M);
 }
 
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>,
-                 mat_const_sub_block_factory<Matrix>>
-sub(const Matrix& M) {
+template <ReadableMatrix Matrix>
+mat_const_sub_block_factory<Matrix> sub(const Matrix& M) {
   return mat_const_sub_block_factory<Matrix>(M);
 }
 
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>,
-                 mat_copy_sub_block_factory<Matrix>>
-sub_copy(const Matrix& M) {
+template <ReadableMatrix Matrix>
+mat_copy_sub_block_factory<Matrix> sub_copy(const Matrix& M) {
   return mat_copy_sub_block_factory<Matrix>(M);
 }
 
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>,
-                 mat_copy_sub_block_factory<Matrix>>
-sub(Matrix&& M) {
+template <ReadableMatrix Matrix>
+mat_copy_sub_block_factory<Matrix> sub(Matrix&& M) {
   return mat_copy_sub_block_factory<Matrix>(std::move(M));
 }
 
@@ -819,7 +721,7 @@ class mat_const_sub_sym_block {
 template <typename Matrix>
 class mat_copy_sub_sym_block<Matrix, mat_structure::symmetric> {
  public:
-  using self = mat_sub_sym_block<Matrix, mat_structure::symmetric>;
+  using self = mat_copy_sub_sym_block<Matrix, mat_structure::symmetric>;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -913,9 +815,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::symmetric> {
   /**
    * Standard assignment operator.
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator=(const Matrix2& rhs) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((rhs.get_row_count() != rowCount) ||
         (rhs.get_col_count() != rowCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -975,9 +876,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::symmetric> {
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator+=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -993,9 +893,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::symmetric> {
    * Sub-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator-=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -1026,7 +925,7 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::symmetric> {
    */
   template <typename Matrix2>
   self& operator*=(const Matrix2& M) {
-    if constexpr (!is_readable_matrix_v<Matrix2>) {
+    if constexpr (!ReadableMatrix<Matrix2>) {
       return *this *= value_type(M);
     } else {
       if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
@@ -1150,9 +1049,8 @@ class mat_sub_sym_block<Matrix, mat_structure::symmetric> {
   /**
    * Standard assignment operator.
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator=(const Matrix2& rhs) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((rhs.get_row_count() != rowCount) ||
         (rhs.get_col_count() != rowCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -1213,9 +1111,8 @@ class mat_sub_sym_block<Matrix, mat_structure::symmetric> {
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator+=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -1231,9 +1128,8 @@ class mat_sub_sym_block<Matrix, mat_structure::symmetric> {
    * Sub-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator-=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -1264,7 +1160,7 @@ class mat_sub_sym_block<Matrix, mat_structure::symmetric> {
    */
   template <typename Matrix2>
   self& operator*=(const Matrix2& M) {
-    if constexpr (!is_readable_matrix_v<Matrix2>) {
+    if constexpr (!ReadableMatrix<Matrix2>) {
       return *this *= value_type(M);
     } else {
       if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
@@ -1434,7 +1330,7 @@ class mat_const_sub_sym_block<Matrix, mat_structure::symmetric> {
 template <typename Matrix>
 class mat_copy_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
  public:
-  using self = mat_sub_sym_block<Matrix, mat_structure::skew_symmetric>;
+  using self = mat_copy_sub_sym_block<Matrix, mat_structure::skew_symmetric>;
 
   using value_type = mat_value_type_t<Matrix>;
 
@@ -1528,9 +1424,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
   /**
    * Standard assignment operator.
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator=(const Matrix2& rhs) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((rhs.get_row_count() != rowCount) ||
         (rhs.get_col_count() != rowCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -1590,9 +1485,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator+=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -1608,9 +1502,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
    * Sub-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator-=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -1641,7 +1534,7 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
    */
   template <typename Matrix2>
   self& operator*=(const Matrix2& M) {
-    if constexpr (!is_readable_matrix_v<Matrix2>) {
+    if constexpr (!ReadableMatrix<Matrix2>) {
       return *this *= value_type(M);
     } else {
       if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
@@ -1752,9 +1645,8 @@ class mat_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
   /**
    * Standard assignment operator.
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator=(const Matrix2& rhs) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((rhs.get_row_count() != rowCount) ||
         (rhs.get_col_count() != rowCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -1815,9 +1707,8 @@ class mat_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator+=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -1833,9 +1724,8 @@ class mat_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
    * Sub-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator-=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -1866,7 +1756,7 @@ class mat_sub_sym_block<Matrix, mat_structure::skew_symmetric> {
    */
   template <typename Matrix2>
   self& operator*=(const Matrix2& M) {
-    if constexpr (!is_readable_matrix_v<Matrix2>) {
+    if constexpr (!ReadableMatrix<Matrix2>) {
       return *this *= value_type(M);
     } else {
       if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
@@ -2098,9 +1988,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::diagonal> {
   /**
    * Standard assignment operator.
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator=(const Matrix2& rhs) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((rhs.get_row_count() != rowCount) ||
         (rhs.get_col_count() != rowCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -2158,9 +2047,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::diagonal> {
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator+=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -2174,9 +2062,8 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::diagonal> {
    * Sub-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator-=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -2203,7 +2090,7 @@ class mat_copy_sub_sym_block<Matrix, mat_structure::diagonal> {
    */
   template <typename Matrix2>
   self& operator*=(const Matrix2& M) {
-    if constexpr (!is_readable_matrix_v<Matrix2>) {
+    if constexpr (!ReadableMatrix<Matrix2>) {
       return *this *= value_type(M);
     } else {
       if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
@@ -2319,9 +2206,8 @@ class mat_sub_sym_block<Matrix, mat_structure::diagonal> {
   /**
    * Standard assignment operator.
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator=(const Matrix2& rhs) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((rhs.get_row_count() != rowCount) ||
         (rhs.get_col_count() != rowCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -2379,9 +2265,8 @@ class mat_sub_sym_block<Matrix, mat_structure::diagonal> {
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator+=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -2395,9 +2280,8 @@ class mat_sub_sym_block<Matrix, mat_structure::diagonal> {
    * Sub-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator-=(const Matrix2& M) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -2424,7 +2308,7 @@ class mat_sub_sym_block<Matrix, mat_structure::diagonal> {
    */
   template <typename Matrix2>
   self& operator*=(const Matrix2& M) {
-    if constexpr (!is_readable_matrix_v<Matrix2>) {
+    if constexpr (!ReadableMatrix<Matrix2>) {
       return *this *= value_type(M);
     } else {
       if ((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount)) {
@@ -2597,103 +2481,7 @@ class mat_const_sub_sym_block<Matrix, mat_structure::diagonal> {
   }
 };
 
-template <typename Matrix, mat_structure::tag Structure>
-struct is_readable_matrix<mat_copy_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = is_readable_matrix_v<Matrix>;
-  using type = is_readable_matrix<Matrix>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_writable_matrix<mat_copy_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = is_writable_matrix_v<Matrix>;
-  using type = is_writable_matrix<Matrix>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_fully_writable_matrix<mat_copy_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = false;
-  using type =
-      is_fully_writable_matrix<mat_copy_sub_sym_block<Matrix, Structure>>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_row_resizable_matrix<mat_copy_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = false;
-  using type =
-      is_row_resizable_matrix<mat_copy_sub_sym_block<Matrix, Structure>>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_col_resizable_matrix<mat_copy_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = false;
-  using type =
-      is_col_resizable_matrix<mat_copy_sub_sym_block<Matrix, Structure>>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_readable_matrix<mat_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = is_readable_matrix_v<Matrix>;
-  using type = is_readable_matrix<Matrix>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_writable_matrix<mat_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = is_writable_matrix_v<Matrix>;
-  using type = is_writable_matrix<Matrix>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_fully_writable_matrix<mat_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = false;
-  using type = is_fully_writable_matrix<mat_sub_sym_block<Matrix, Structure>>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_row_resizable_matrix<mat_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = false;
-  using type = is_row_resizable_matrix<mat_sub_sym_block<Matrix, Structure>>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_col_resizable_matrix<mat_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = false;
-  using type = is_col_resizable_matrix<mat_sub_sym_block<Matrix, Structure>>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_readable_matrix<mat_const_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = is_readable_matrix_v<Matrix>;
-  using type = is_readable_matrix<Matrix>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_writable_matrix<mat_const_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = false;
-  using type = is_writable_matrix<mat_const_sub_sym_block<Matrix, Structure>>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_fully_writable_matrix<mat_const_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = false;
-  using type =
-      is_fully_writable_matrix<mat_const_sub_sym_block<Matrix, Structure>>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_row_resizable_matrix<mat_const_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = false;
-  using type =
-      is_row_resizable_matrix<mat_const_sub_sym_block<Matrix, Structure>>;
-};
-
-template <typename Matrix, mat_structure::tag Structure>
-struct is_col_resizable_matrix<mat_const_sub_sym_block<Matrix, Structure>> {
-  static constexpr bool value = false;
-  using type =
-      is_col_resizable_matrix<mat_const_sub_sym_block<Matrix, Structure>>;
-};
-
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 struct mat_copy_sub_sym_block_factory {
   Matrix m;
   explicit mat_copy_sub_sym_block_factory(Matrix&& aM) : m(std::move(aM)) {}
@@ -2703,7 +2491,7 @@ struct mat_copy_sub_sym_block_factory {
   }
 };
 
-template <typename Matrix>
+template <WritableMatrix Matrix>
 struct mat_sub_sym_block_factory {
   Matrix& m;
   explicit mat_sub_sym_block_factory(Matrix& aM) : m(aM) {}
@@ -2712,7 +2500,7 @@ struct mat_sub_sym_block_factory {
   }
 };
 
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 struct mat_const_sub_sym_block_factory {
   const Matrix& m;
   explicit mat_const_sub_sym_block_factory(const Matrix& aM) : m(aM) {}
@@ -2722,31 +2510,23 @@ struct mat_const_sub_sym_block_factory {
   }
 };
 
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>,
-                 mat_sub_sym_block_factory<Matrix>>
-sub_sym(Matrix& M) {
+template <WritableMatrix Matrix>
+mat_sub_sym_block_factory<Matrix> sub_sym(Matrix& M) {
   return mat_sub_sym_block_factory<Matrix>(M);
 }
 
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>,
-                 mat_const_sub_sym_block_factory<Matrix>>
-sub_sym(const Matrix& M) {
+template <ReadableMatrix Matrix>
+mat_const_sub_sym_block_factory<Matrix> sub_sym(const Matrix& M) {
   return mat_const_sub_sym_block_factory<Matrix>(M);
 }
 
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>,
-                 mat_copy_sub_sym_block_factory<Matrix>>
-sub_sym_copy(const Matrix& M) {
+template <ReadableMatrix Matrix>
+mat_copy_sub_sym_block_factory<Matrix> sub_sym_copy(const Matrix& M) {
   return mat_copy_sub_sym_block_factory<Matrix>(M);
 }
 
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>,
-                 mat_copy_sub_sym_block_factory<Matrix>>
-sub_sym(Matrix&& M) {
+template <ReadableMatrix Matrix>
+mat_copy_sub_sym_block_factory<Matrix> sub_sym(Matrix&& M) {
   return mat_copy_sub_sym_block_factory<Matrix>(std::move(M));
 }
 }  // namespace ReaK

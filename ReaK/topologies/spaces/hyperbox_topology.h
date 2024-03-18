@@ -52,19 +52,18 @@ namespace ReaK::pp {
 /**
  * This class defines a hyper-box vector-topology. A hyper-box vector-topology is
  * a vector-topology where the points are vector values and the boundary is a hyper-box.
- * This class models the MetricSpaceConcept, the LieGroupConcept, the BoundedSpaceConcept,
- * and the PointDistributionConcept.
- * \tparam Vector The vector-type for the topology, should model an Arithmetic concept and WritableVectorConcept.
+ * This class models MetricSpace, LieGroup, BoundedSpace, and PointDistribution.
+ * \tparam Vector The vector-type for the topology, should model an Arithmetic concept.
  */
-template <typename Vector, typename DistanceMetric = euclidean_distance_metric>
+template <WritableVector Vector, typename Metric = euclidean_distance_metric>
 class hyperbox_topology : public vector_topology<Vector> {
  public:
-  using self = hyperbox_topology<Vector, DistanceMetric>;
+  using self = hyperbox_topology<Vector, Metric>;
 
   using point_type = Vector;
   using point_difference_type = Vector;
 
-  using distance_metric_type = DistanceMetric;
+  using distance_metric_type = Metric;
   using random_sampler_type = default_random_sampler;
 
   static constexpr std::size_t dimensions = vect_traits<Vector>::dimensions;
@@ -104,7 +103,7 @@ class hyperbox_topology : public vector_topology<Vector> {
   }
 
   /*************************************************************************
-  *                             BoundedSpaceConcept
+  *                             BoundedSpace
   * **********************************************************************/
 
   /**
@@ -226,21 +225,9 @@ class hyperbox_topology : public vector_topology<Vector> {
                               vector_topology<Vector>)
 };
 
-template <typename Vector, typename DistanceMetric>
-struct is_metric_space<hyperbox_topology<Vector, DistanceMetric>>
-    : std::true_type {};
-
-template <typename Vector, typename DistanceMetric>
-struct is_reversible_space<hyperbox_topology<Vector, DistanceMetric>>
-    : std::true_type {};
-
-template <typename Vector, typename DistanceMetric>
-struct is_point_distribution<hyperbox_topology<Vector, DistanceMetric>>
-    : std::true_type {};
-
-template <typename Vector, typename DistanceMetric>
-struct is_metric_symmetric<hyperbox_topology<Vector, DistanceMetric>>
-    : is_metric_symmetric<DistanceMetric> {};
+template <typename Vector, typename Metric>
+struct is_metric_symmetric<hyperbox_topology<Vector, Metric>>
+    : is_metric_symmetric<Metric> {};
 
 extern template class hyperbox_topology<vect<double, 2>>;
 extern template class hyperbox_topology<vect<double, 3>>;

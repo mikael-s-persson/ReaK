@@ -51,8 +51,8 @@ namespace ReaK {
 /// and column-major alignment. This class is serializable and registered to the ReaK::rtti
 /// system. This matrix type is dynamically resizable.
 ///
-/// Models: ReadableMatrixConcept, WritableMatrixConcept, FullyWritableMatrixConcept,
-/// and ResizableMatrixConcept.
+/// Models: ReadableMatrix, WritableMatrix, FullyWritableMatrix,
+/// and ResizableMatrix.
 ///
 /// \tparam T Arithmetic type of the elements of the matrix.
 template <typename T, unsigned int RowCount>
@@ -143,10 +143,8 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   ~mat() override = default;
 
   /// Explicit constructor from a any type of matrix.
-  template <typename Matrix>
-  explicit mat(
-      const Matrix& M,
-      std::enable_if_t<is_readable_matrix_v<Matrix>, void*> dummy = nullptr)
+  template <ReadableMatrix Matrix>
+  explicit mat(const Matrix& M)
       : mat(M.get_row_count()) {
     if (M.get_col_count() != M.get_row_count()) {
       throw std::range_error("Matrix is not square!");
@@ -443,9 +441,8 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   }
 
   /// Add-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator+=(const Matrix& M) {
-    BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
     if ((M.get_col_count() != get_row_count()) ||
         (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
@@ -460,9 +457,8 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   }
 
   /// Sub-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator-=(const Matrix& M) {
-    BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
     if ((M.get_col_count() != get_row_count()) ||
         (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
@@ -479,7 +475,7 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
   /// Multiply-and-store operator with standard semantics.
   template <typename RhsType>
   self& operator*=(const RhsType& rhs) {
-    if constexpr (is_readable_matrix_v<RhsType>) {
+    if constexpr (ReadableMatrix<RhsType>) {
       self result(*this * rhs);
       swap(*this, result);
       return *this;
@@ -563,8 +559,8 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
 /// and row-major alignment. This class is serializable and registered to the ReaK::rtti
 /// system. This matrix type is dynamically resizable.
 ///
-/// Models: ReadableMatrixConcept, WritableMatrixConcept, FullyWritableMatrixConcept,
-/// and ResizableMatrixConcept.
+/// Models: ReadableMatrix, WritableMatrix, FullyWritableMatrix,
+/// and ResizableMatrix.
 ///
 /// \tparam T Arithmetic type of the elements of the matrix.
 template <typename T, unsigned int RowCount>
@@ -656,10 +652,8 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   ~mat() override = default;
 
   /// Explicit constructor from a any type of matrix.
-  template <typename Matrix>
-  explicit mat(
-      const Matrix& M,
-      std::enable_if_t<is_readable_matrix_v<Matrix>, void*> dummy = nullptr)
+  template <ReadableMatrix Matrix>
+  explicit mat(const Matrix& M)
       : mat(M.get_row_count()) {
     if (M.get_col_count() != M.get_row_count()) {
       throw std::range_error("Matrix is not square!");
@@ -958,9 +952,8 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   }
 
   /// Add-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator+=(const Matrix& M) {
-    BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
     if ((M.get_col_count() != get_row_count()) ||
         (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
@@ -975,9 +968,8 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   }
 
   /// Sub-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator-=(const Matrix& M) {
-    BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
     if ((M.get_col_count() != get_row_count()) ||
         (M.get_row_count() != get_row_count())) {
       throw std::range_error("Matrix dimension mismatch.");
@@ -994,7 +986,7 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
   /// Scalar-multiply-and-store operator with standard semantics.
   template <typename RhsType>
   self& operator*=(const RhsType& rhs) {
-    if constexpr (is_readable_matrix_v<RhsType>) {
+    if constexpr (ReadableMatrix<RhsType>) {
       self result(*this * rhs);
       swap(*this, result);
       return *this;

@@ -36,41 +36,39 @@
 
 #include "ReaK/core/base/defs.h"
 
-#include "boost/concept_check.hpp"
-
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 
+#include <concepts>
 #include <type_traits>
 
 namespace ReaK::pp {
 
 /* Just a prototype. */
-template <int Idx, typename SpaceType, typename IndependentSpace>
-const SpaceType& get_space(const SpaceType& s,
-                           const IndependentSpace& /*unused*/) {
+template <int Idx, Topology Space, Topology IndependentSpace>
+const Space& get_space(const Space& s, const IndependentSpace& /*unused*/) {
   return s;
 }
 
 /* Just a prototype. */
-template <int Idx, typename SpaceType, typename IndependentSpace>
-SpaceType& get_space(SpaceType& s, const IndependentSpace& /*unused*/) {
+template <int Idx, Topology Space, Topology IndependentSpace>
+Space& get_space(Space& s, const IndependentSpace& /*unused*/) {
   return s;
 }
 
 /* Just a prototype. */
 template <int Idx, typename PointDiffType, typename TimeDiffType,
-          typename SpaceType, typename IndependentSpace>
+          Topology Space, Topology IndependentSpace>
 PointDiffType lift_to_space(const PointDiffType& dp, const TimeDiffType& dt,
-                            const SpaceType& /*unused*/,
+                            const Space& /*unused*/,
                             const IndependentSpace& /*unused*/) {
   return dp / dt;
 }
 
 /* Just a prototype. */
 template <int Idx, typename PointType, typename TimeDiffType,
-          typename SpaceType, typename IndependentSpace>
+          Topology Space, Topology IndependentSpace>
 PointType descend_to_space(const PointType& v, const TimeDiffType& dt,
-                           const SpaceType& /*unused*/,
+                           const Space& /*unused*/,
                            const IndependentSpace& /*unused*/) {
   return v * dt;
 }
@@ -78,31 +76,30 @@ PointType descend_to_space(const PointType& v, const TimeDiffType& dt,
 /**
  * This meta-function provides an integral-constant type with the maximum differential
  * order that can be provided by the tangent bundle against a given independent space.
- * \tparam TangentBundle The tangent bundle whose maximum differential order is sought.
+ * \tparam Space The tangent bundle whose maximum differential order is sought.
  * \tparam IndependentSpace The independent space against which the derivation is taken.
  */
-template <typename TangentBundle, typename IndependentSpace>
+template <Topology Space, Topology IndependentSpace>
 struct max_derivation_order : std::integral_constant<int, 0> {};
 
-template <typename TangentBundle, typename IndependentSpace>
+template <Topology Space, Topology IndependentSpace>
 static constexpr int max_derivation_order_v =
-    max_derivation_order<TangentBundle, IndependentSpace>::value;
+    max_derivation_order<Space, IndependentSpace>::value;
 
 /**
  * This meta-function provides the type of N-order differential space with a tangent bundle.
- * \tparam TangentBundle The tangent bundle for which the N-order differential space is sought.
+ * \tparam Space The tangent bundle for which the N-order differential space is sought.
  * \tparam IndependentSpace The independent space against which the differentiation is applied.
  * \tparam Order The order of differentiation of the differential space type that is sought.
  */
-template <typename TangentBundle, typename IndependentSpace, std::size_t Order>
+template <Topology Space, Topology IndependentSpace, std::size_t Order>
 struct derived_N_order_space {
-  using type = TangentBundle;
+  using type = Space;
 };
 
-template <typename TangentBundle, typename IndependentSpace, std::size_t Order>
+template <Topology Space, Topology IndependentSpace, std::size_t Order>
 using derived_N_order_space_t =
-    typename derived_N_order_space<TangentBundle, IndependentSpace,
-                                   Order>::type;
+    typename derived_N_order_space<Space, IndependentSpace, Order>::type;
 
 /**
  * This concept defines the requirements to fulfill in order to model a differential relation
@@ -127,57 +124,31 @@ using derived_N_order_space_t =
  *derivative-point (v) to the space via a difference-point on the independent space (dt). This expression is analogous
  *to dp = v * dt.
  *
- * \tparam TangentBundle The topology type to be checked for this concept.
+ * \tparam Space The topology type to be checked for this concept.
  * \tparam Order The maximum order of differentiation of the tangent bundle type.
  * \tparam IndependentSpace The topology type to be checked for this concept.
  */
-template <typename TangentBundle, std::size_t Order, typename IndependentSpace>
-struct TangentBundleConcept
-    : TangentBundleConcept<TangentBundle, Order - 1, IndependentSpace> {
+template <typename Space, typename IndependentSpace, std::size_t Order>
+concept TangentSpace =
+    Topology<Space> && Topology<IndependentSpace> &&
+    (max_derivation_order_v<Space, IndependentSpace> >= Order) &&
+    Topology<derived_N_order_space_t<Space, IndependentSpace, Order>> &&
+    requires (const Space& diff_space, const IndependentSpace& i_space) {
+      { get_space<Order>(diff_space, i_space) } -> std::convertible_to<const derived_N_order_space_t<Space, IndependentSpace, Order>&>;
+    } &&
+    (Order == 0 ||
+      requires (const topology_point_difference_type_t<derived_N_order_space_t<Space, IndependentSpace, Order - 1>>& dp,
+                const topology_point_type_t<derived_N_order_space_t<Space, IndependentSpace, Order>>& v,
+                const topology_point_difference_type_t<IndependentSpace>& dt,
+                const Space& diff_space, const IndependentSpace& i_space) {
+        { lift_to_space<Order>(dp, dt, diff_space, i_space) } -> std::convertible_to<topology_point_type_t<derived_N_order_space_t<Space, IndependentSpace, Order>>>;
+        { descend_to_space<Order - 1>(v, dt, diff_space, i_space) } -> std::convertible_to<topology_point_difference_type_t<derived_N_order_space_t<Space, IndependentSpace, Order - 1>>>;
+      });
 
-  static_assert(max_derivation_order_v<TangentBundle, IndependentSpace> >=
-                Order);
-
-  using base_space_type =
-      derived_N_order_space_t<TangentBundle, IndependentSpace, Order - 1>;
-  using derived_space_type =
-      derived_N_order_space_t<TangentBundle, IndependentSpace, Order>;
-
-  BOOST_CONCEPT_ASSERT((TopologyConcept<derived_space_type>));
-
-  topology_point_difference_type_t<base_space_type> dp;
-
-  topology_point_type_t<derived_space_type> v;
-
-  topology_point_difference_type_t<IndependentSpace> dt;
-
-  BOOST_CONCEPT_USAGE(TangentBundleConcept) {
-    const derived_space_type& space =
-        get_space<Order>(this->diff_space, this->t_space);
-    RK_UNUSED(space);
-    v = lift_to_space<Order>(dp, dt, this->diff_space, this->t_space);
-    dp = descend_to_space<Order - 1>(v, dt, this->diff_space, this->t_space);
-  }
-};
-
-template <typename TangentBundle, typename IndependentSpace>
-struct TangentBundleConcept<TangentBundle, 0, IndependentSpace> {
-
-  using base_space_type =
-      derived_N_order_space_t<TangentBundle, IndependentSpace, 0>;
-
-  BOOST_CONCEPT_ASSERT((TopologyConcept<base_space_type>));
-  BOOST_CONCEPT_ASSERT((TopologyConcept<IndependentSpace>));
-
-  TangentBundle diff_space;
-  IndependentSpace t_space;
-
-  BOOST_CONCEPT_USAGE(TangentBundleConcept) {
-    const base_space_type& space =
-        get_space<0>(this->diff_space, this->t_space);
-    RK_UNUSED(space);
-  }
-};
+template <typename Space, typename IndependentSpace, std::size_t... Order>
+concept TangentBundle =
+    Topology<Space> && Topology<IndependentSpace> &&
+    (TangentSpace<Space, IndependentSpace, Order> && ... && true);
 
 }  // namespace ReaK::pp
 

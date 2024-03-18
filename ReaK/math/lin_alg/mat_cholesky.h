@@ -49,6 +49,7 @@
 #define REAK_MATH_LIN_ALG_MAT_CHOLESKY_H_
 
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include <type_traits>
@@ -314,18 +315,16 @@ void backsub_TriDiagLDL_impl(const Matrix1& L, Matrix2& B) {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2>
 void decompose_Cholesky(const Matrix1& A, Matrix2& L,
                         mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
-  if constexpr (is_diagonal_matrix_v<Matrix1>) {
+  if constexpr (DiagonalMatrix<Matrix1>) {
     using std::sqrt;
     L = A;
     for (int i = 0; i < A.get_row_count(); ++i) {
       L(i, i) = sqrt(L(i, i));
     }
-  } else if constexpr (is_fully_writable_matrix_v<Matrix2>) {
+  } else if constexpr (FullyWritableMatrix<Matrix2>) {
     L.set_col_count(A.get_col_count());
     detail::decompose_Cholesky_impl(A, L, NumTol);
   } else {
@@ -351,10 +350,9 @@ void decompose_Cholesky(const Matrix1& A, Matrix2& L,
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 mat_value_type_t<Matrix> determinant_Cholesky(
     const Matrix& A, mat_value_type_t<Matrix> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   mat<ValueType, mat_structure::square> L(A.get_row_count(), ValueType(0));
   try {
@@ -388,11 +386,9 @@ mat_value_type_t<Matrix> determinant_Cholesky(
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2>
 void linsolve_Cholesky(const Matrix1& A, Matrix2& b,
                        mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
   if (b.get_row_count() != A.get_col_count()) {
     throw std::range_error(
         "For linear equation solution, matrix b must have same row count as "
@@ -402,15 +398,15 @@ void linsolve_Cholesky(const Matrix1& A, Matrix2& b,
 
   if constexpr (mat_traits<Matrix1>::structure == mat_structure::identity) {
     // nothing to do.
-  } else if constexpr (is_diagonal_matrix_v<Matrix1>) {
-    if constexpr (is_diagonal_matrix_v<Matrix2>) {
+  } else if constexpr (DiagonalMatrix<Matrix1>) {
+    if constexpr (DiagonalMatrix<Matrix2>) {
       for (int i = 0; i < A.get_row_count(); ++i) {
         if (A(i, i) < NumTol) {
           throw singularity_error("A");
         }
         b(i, i) /= A(i, i);
       }
-    } else if constexpr (is_fully_writable_matrix_v<Matrix2>) {
+    } else if constexpr (FullyWritableMatrix<Matrix2>) {
       for (int i = 0; i < A.get_row_count(); ++i) {
         if (A(i, i) < NumTol) {
           throw singularity_error("A");
@@ -432,7 +428,7 @@ void linsolve_Cholesky(const Matrix1& A, Matrix2& b,
       b = b_tmp;
     }
 
-  } else if constexpr (is_fully_writable_matrix_v<Matrix2>) {
+  } else if constexpr (FullyWritableMatrix<Matrix2>) {
     mat<ValueType, mat_structure::square> L(A.get_row_count(), ValueType(0));
     detail::decompose_Cholesky_impl(A, L, NumTol);
     detail::backsub_Cholesky_impl(L, b);
@@ -473,11 +469,9 @@ struct Cholesky_linsolver {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2>
 void invert_Cholesky(const Matrix1& A, Matrix2& A_inv,
                      mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
   using ValueType = mat_value_type_t<Matrix1>;
 
   mat<ValueType, mat_structure::square> L;
@@ -505,13 +499,10 @@ void invert_Cholesky(const Matrix1& A, Matrix2& A_inv,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2>
 void decompose_BandCholesky(const Matrix1& A, Matrix2& L,
                             mat_size_type_t<Matrix1> bandwidth = 1,
                             mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_square_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
   using ValueType = mat_value_type_t<Matrix1>;
   L = A;
   detail::decompose_BandCholesky_impl(L, bandwidth, NumTol);
@@ -536,11 +527,10 @@ void decompose_BandCholesky(const Matrix1& A, Matrix2& L,
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 mat_value_type_t<Matrix> determinant_BandCholesky(
     const Matrix& A, mat_size_type_t<Matrix> bandwidth,
     mat_value_type_t<Matrix> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   mat<ValueType, mat_structure::square> L(A);
   try {
@@ -575,13 +565,10 @@ mat_value_type_t<Matrix> determinant_BandCholesky(
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2>
 void linsolve_BandCholesky(const Matrix1& A, Matrix2& b,
                            mat_size_type_t<Matrix1> bandwidth,
                            mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_square_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
   if (b.get_row_count() != A.get_col_count()) {
     throw std::range_error(
         "For linear equation solution, matrix b must have same row count as "
@@ -626,12 +613,10 @@ struct BandCholesky_linsolver {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2>
 void invert_BandCholesky(const Matrix1& A, Matrix2& A_inv,
                          mat_size_type_t<Matrix1> bandwidth,
                          mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
   using ValueType = mat_value_type_t<Matrix1>;
   mat<ValueType, mat_structure::square> result(
       mat<ValueType, mat_structure::identity>(A.get_col_count()));
@@ -653,13 +638,9 @@ void invert_BandCholesky(const Matrix1& A, Matrix2& A_inv,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2, WritableMatrix Matrix3>
 void decompose_LDL(const Matrix1& A, Matrix2& L, Matrix3& D,
                    mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_square_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
-  static_assert(is_writable_matrix_v<Matrix3>);
   using ValueType = mat_value_type_t<Matrix1>;
   L = A;
   detail::decompose_LDL_impl(L, NumTol);
@@ -683,10 +664,9 @@ void decompose_LDL(const Matrix1& A, Matrix2& L, Matrix3& D,
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 mat_value_type_t<Matrix> determinant_LDL(
     const Matrix& A, mat_value_type_t<Matrix> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   mat<ValueType, mat_structure::square> L(A);
   try {
@@ -718,12 +698,9 @@ mat_value_type_t<Matrix> determinant_LDL(
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2>
 void linsolve_LDL(const Matrix1& A, Matrix2& b,
                   mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_square_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
   if (b.get_row_count() != A.get_col_count()) {
     throw std::range_error(
         "For linear equation solution, matrix b must have same row count as "
@@ -761,11 +738,9 @@ struct LDL_linsolver {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2>
 void invert_LDL(const Matrix1& A, Matrix2& A_inv,
                 mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
   using ValueType = mat_value_type_t<Matrix1>;
   mat<ValueType, mat_structure::square> result(
       mat<ValueType, mat_structure::identity>(A.get_col_count()));
@@ -787,13 +762,9 @@ void invert_LDL(const Matrix1& A, Matrix2& A_inv,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2, WritableMatrix Matrix3>
 void decompose_TriDiagLDL(const Matrix1& A, Matrix2& L, Matrix3& D,
                           mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_square_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
-  static_assert(is_writable_matrix_v<Matrix3>);
   using ValueType = mat_value_type_t<Matrix1>;
   L = A;
   detail::decompose_TriDiagLDL_impl(L, NumTol);
@@ -817,10 +788,9 @@ void decompose_TriDiagLDL(const Matrix1& A, Matrix2& L, Matrix3& D,
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 mat_value_type_t<Matrix> determinant_TriDiagLDL(
     const Matrix& A, mat_value_type_t<Matrix> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   mat<ValueType, mat_structure::square> L(A);
   try {
@@ -852,12 +822,9 @@ mat_value_type_t<Matrix> determinant_TriDiagLDL(
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2>
 void linsolve_TriDiagLDL(const Matrix1& A, Matrix2& b,
                          mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_square_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
   if (b.get_row_count() != A.get_col_count()) {
     throw std::range_error(
         "For linear equation solution, matrix b must have same row count as "
@@ -895,11 +862,9 @@ struct TriDiagLDL_linsolver {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2>
 void invert_TriDiagLDL(const Matrix1& A, Matrix2& A_inv,
                        mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
   using ValueType = mat_value_type_t<Matrix1>;
   mat<ValueType, mat_structure::square> result(
       mat<ValueType, mat_structure::identity>(A.get_col_count()));

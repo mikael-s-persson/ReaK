@@ -38,7 +38,7 @@
 #define RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
 #define RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
 
-#include "ReaK/topologies/spaces/Ndof_spaces.h"
+#include "ReaK/topologies/spaces/ndof_spaces.h"
 #include "ReaK/topologies/spaces/hyperbox_topology.h"
 
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
@@ -54,11 +54,11 @@
 #endif
 
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
-#include "ReaK/topologies/interpolation/sustained_velocity_pulse_Ndof.h"
+#include "ReaK/topologies/interpolation/sustained_velocity_pulse_ndof.h"
 #endif
 
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
-#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof.h"
+#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_ndof.h"
 #endif
 
 #include "ReaK/core/base/scope_guard.h"
@@ -382,7 +382,7 @@ void perform_mc_tests(std::size_t dyn_sp_dim) {
     if (absl::GetFlag(FLAGS_all_interpolators) ||
         absl::GetFlag(FLAGS_svp_Ndof)) {
       try_interpolation<pp::svp_Ndof_interp_traj<TempTopoType>>(
-          "svp_Ndof", svp_Ndof_succ_count, curve_ampl, curve_phase, curve_freq,
+          "svp_ndof", svp_Ndof_succ_count, curve_ampl, curve_phase, curve_freq,
           interp_steps, topo, pts, fail_reports);
     }
 
@@ -393,7 +393,7 @@ void perform_mc_tests(std::size_t dyn_sp_dim) {
     if (absl::GetFlag(FLAGS_all_interpolators) ||
         absl::GetFlag(FLAGS_sap_Ndof)) {
       try_interpolation<pp::sap_Ndof_interp_traj<TempTopoType>>(
-          "sap_Ndof", sap_Ndof_succ_count, curve_ampl, curve_phase, curve_freq,
+          "sap_ndof", sap_Ndof_succ_count, curve_ampl, curve_phase, curve_freq,
           interp_steps, topo, pts, fail_reports);
     }
 

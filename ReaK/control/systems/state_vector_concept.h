@@ -39,7 +39,7 @@
 #include "ReaK/math/lin_alg/vect_alg.h"
 #include "ReaK/math/lin_alg/vect_concepts.h"
 
-#include "boost/concept_check.hpp"
+#include <concepts>
 
 namespace ReaK::ctrl {
 
@@ -93,51 +93,26 @@ struct state_vector_traits {
  * v = norm(ds);  A state-difference can be taken the norm of.
  *
  * sz = ds.size();  A state-difference has a size.
- *
- * \tparam StateVector The state-vector type to test for modeling the state-vector concept.
  */
-template <typename StateVector>
-struct StateVectorConcept {
-  typename state_vector_traits<StateVector>::state_type s;
-  typename state_vector_traits<StateVector>::state_difference_type ds1, ds2;
-  typename state_vector_traits<StateVector>::value_type v;
-  typename state_vector_traits<StateVector>::size_type sz;
-
-  BOOST_CONCEPT_ASSERT(
-      (ReadableVectorConcept<
-          typename state_vector_traits<StateVector>::state_difference_type>));
-
-  BOOST_CONCEPT_USAGE(StateVectorConcept) {
-    ds1 = diff(s, s);
-    s = add(s, ds2);
-    ds1 = v * ds2;
-    ds1 *= v;
-    ds1 = ds2 + ds2;
-    ds1 += ds2;
-    ds1 = ds2 - ds2;
-    ds1 -= ds2;
-    ds1 = -ds2;
-    ds1 = unit(ds2);
-    v = norm_2(ds2);
-    sz = ds2.size();
-  }
-};
-
-/**
- * This meta-function is used to evaluate whether a type models the StateVectorConcept.
- * This does not attempt to instantiate the StateVectorConcept template because it would
- * break Sfinae rules. Instead, if one wants to make a new state-vector class, he should
- * specialize this meta-function to evaluate to true.
- * \tparam StateVector The type which may or may not be a state-vector type.
- */
-template <typename StateVector>
-struct is_state_vector {
-  static constexpr bool value = false;
-  using type = is_state_vector<StateVector>;
-};
-
-template <typename StateVector>
-static constexpr bool is_state_vector_v = is_state_vector_v<StateVector>;
+template <typename T>
+concept StateVector = ReadableVector<typename state_vector_traits<T>::state_difference_type> &&
+  requires (typename state_vector_traits<T>::state_type s,
+            typename state_vector_traits<T>::state_difference_type ds,
+            typename state_vector_traits<T>::value_type v,
+            typename state_vector_traits<T>::size_type sz) {
+    ds = diff(s, s);
+    s = add(s, ds);
+    ds = v * ds;
+    ds *= v;
+    ds = ds + ds;
+    ds += ds;
+    ds = ds - ds;
+    ds -= ds;
+    ds = -ds;
+    ds = unit(ds);
+    v = norm_2(ds);
+    sz = ds.size();
+  };
 
 template <typename T, unsigned int Size>
 struct state_vector_traits<vect<T, Size>> {
@@ -147,12 +122,6 @@ struct state_vector_traits<vect<T, Size>> {
   using size_type = typename vect_traits<vect<T, Size>>::size_type;
 
   static constexpr std::size_t dimensions = vect_traits<state_type>::dimensions;
-};
-
-template <typename T, unsigned int Size>
-struct is_state_vector<vect<T, Size>> {
-  static constexpr bool value = true;
-  using type = is_state_vector<vect<T, Size>>;
 };
 
 }  // namespace ReaK::ctrl

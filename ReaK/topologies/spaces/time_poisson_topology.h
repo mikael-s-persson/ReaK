@@ -51,7 +51,7 @@ namespace ReaK::pp {
  * This class implements a time-topology with a Poisson distribution. A time-topology is a
  * simple metric-space where the points are real values (doubles).
  * However, because time is unlimited, this topology uses a Poisson distribution to
- * generate random-points at discrete intervals. This class models the MetricSpaceConcept.
+ * generate random-points at discrete intervals. This class models MetricSpace.
  */
 class time_poisson_topology : public time_topology {
  public:
@@ -116,15 +116,6 @@ class time_poisson_topology : public time_topology {
   RK_RTTI_MAKE_CONCRETE_1BASE(time_poisson_topology, 0xC240000B, 2,
                               "time_poisson_topology", time_topology)
 };
-
-template <>
-struct is_metric_space<time_poisson_topology> : std::true_type {};
-
-template <>
-struct is_reversible_space<time_poisson_topology> : std::true_type {};
-
-template <>
-struct is_point_distribution<time_poisson_topology> : std::true_type {};
 
 }  // namespace ReaK::pp
 

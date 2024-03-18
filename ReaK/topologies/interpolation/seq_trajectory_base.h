@@ -39,23 +39,17 @@
 
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 
-#include "boost/concept_check.hpp"
-
 namespace ReaK::pp {
 
 /**
  * This class defines the OOP interface for a sequential trajectory in a temporal topology.
- * \tparam Topology The temporal topology type on which the points and the sequential trajectory can reside, should
- * model the TemporalSpaceConcept.
  */
-template <typename Topology>
+template <TemporalSpace Space>
 class seq_trajectory_base : public named_object {
  public:
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-
-  using topology = Topology;
+  using topology = Space;
   using point_type = typename topology_traits<topology>::point_type;
-  using self = seq_trajectory_base<Topology>;
+  using self = seq_trajectory_base<Space>;
 
  protected:
   struct point_time_iterator_impl {

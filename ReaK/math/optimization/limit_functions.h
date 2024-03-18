@@ -35,6 +35,7 @@
 #include "ReaK/core/base/defs.h"
 
 #include "ReaK/math/lin_alg/vect_alg.h"
+#include "ReaK/math/lin_alg/vect_concepts.h"
 
 #include <type_traits>
 
@@ -56,16 +57,14 @@ struct no_limit_functor {
  * This function limits a proposed step size such that the resulting vector is within
  * the bounds of a hyperbox defined by lower and upper bound vectors.
  * TEST PASSED
- * \tparam Vector A vector type.
  * \param x The current vector.
  * \param dx The proposed step.
  * \param l The lower bound vector.
  * \param u The upper bound vector.
  */
-template <typename Vector>
+template <WritableVector Vector>
 void box_limit_function(const Vector& x, Vector& dx, const Vector& l,
                         const Vector& u) {
-  static_assert(is_writable_vector_v<Vector>);
   for (int i = 0; i < x.size(); ++i) {
     if (x[i] + dx[i] < l[i]) {
       dx[i] = l[i] - x[i];

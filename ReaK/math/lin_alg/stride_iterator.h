@@ -129,15 +129,15 @@ class stride_iterator {
   /**
    * Indexing operator.
    */
-  reference operator[](difference_type aIdx) { return pos[aIdx * Stride]; }
+  reference operator[](difference_type aIdx) const { return pos[aIdx * Stride]; }
   /**
    * Dereference operator.
    */
-  reference operator*() { return *pos; }
+  reference operator*() const { return *pos; }
   /**
    * Member-access operator.
    */
-  pointer operator->() { return pos.operator->(); }
+  pointer operator->() const { return pos.operator->(); }
 
   /**
    * Addition operator.
@@ -217,18 +217,18 @@ class stride_iterator<RAIter, 0> {
   /**
    * Default constructor.
    */
-  stride_iterator<RAIter, 0>() : pos(), stride(0) {}
+  stride_iterator() : pos(), stride(0) {}
   /**
    * Copy-constructor.
    */
-  stride_iterator<RAIter, 0>(const self& rhs)
+  stride_iterator(const self& rhs)
       : pos(rhs.pos), stride(rhs.stride) {}
   /**
    * Constructs the stride iterator at a given position.
    * \param aPos the position of the iterator.
    * \param aStride the stride to apply to the iterator.
    */
-  stride_iterator<RAIter, 0>(RAIter aPos, difference_type aStride)
+  stride_iterator(RAIter aPos, difference_type aStride)
       : pos(aPos), stride(aStride) {}
 
   /**
@@ -291,15 +291,15 @@ class stride_iterator<RAIter, 0> {
   /**
    * Indexing operator.
    */
-  reference operator[](difference_type aIdx) { return pos[aIdx * stride]; }
+  reference operator[](difference_type aIdx) const { return pos[aIdx * stride]; }
   /**
    * Dereference operator.
    */
-  reference operator*() { return *pos; }
+  reference operator*() const { return *pos; }
   /**
    * Member-access operator.
    */
-  pointer operator->() { return pos.operator->(); }
+  pointer operator->() const { return pos.operator->(); }
 
   /**
    * Addition operator.

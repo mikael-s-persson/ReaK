@@ -448,15 +448,15 @@ struct mat_addition_result_impl<false, ResultValueType, Matrix1, Matrix2> {
 
 template <typename Matrix1, typename Matrix2>
 struct mat_product_result {
-  using M1ValueType = std::conditional_t<is_readable_matrix_v<Matrix1>,
+  using M1ValueType = std::conditional_t<ReadableMatrix<Matrix1>,
                                          mat_value_type_t<Matrix1>, double>;
-  using M2ValueType = std::conditional_t<is_readable_matrix_v<Matrix2>,
+  using M2ValueType = std::conditional_t<ReadableMatrix<Matrix2>,
                                          mat_value_type_t<Matrix2>, double>;
   using ResultValueType =
       decltype(std::declval<M1ValueType>() * std::declval<M2ValueType>() +
                std::declval<M1ValueType>() * std::declval<M2ValueType>());
   using type = typename detail::mat_product_result_impl<
-      is_readable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2>,
+      ReadableMatrix<Matrix1> && ReadableMatrix<Matrix2>,
       ResultValueType, Matrix1, Matrix2>::type;
 };
 
@@ -466,14 +466,14 @@ using mat_product_result_t =
 
 template <typename Matrix1, typename Matrix2>
 struct mat_addition_result {
-  using M1ValueType = std::conditional_t<is_readable_matrix_v<Matrix1>,
+  using M1ValueType = std::conditional_t<ReadableMatrix<Matrix1>,
                                          mat_value_type_t<Matrix1>, double>;
-  using M2ValueType = std::conditional_t<is_readable_matrix_v<Matrix2>,
+  using M2ValueType = std::conditional_t<ReadableMatrix<Matrix2>,
                                          mat_value_type_t<Matrix2>, double>;
   using ResultValueType =
       decltype(std::declval<M1ValueType>() + std::declval<M2ValueType>());
   using type = typename detail::mat_addition_result_impl<
-      is_readable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2>,
+      ReadableMatrix<Matrix1> && ReadableMatrix<Matrix2>,
       ResultValueType, Matrix1, Matrix2>::type;
 };
 

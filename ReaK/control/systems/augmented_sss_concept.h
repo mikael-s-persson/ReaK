@@ -37,8 +37,8 @@
 
 #include "ReaK/core/base/defs.h"
 
+#include <concepts>
 #include <type_traits>
-#include "boost/concept_check.hpp"
 
 namespace ReaK::ctrl {
 
@@ -46,12 +46,10 @@ namespace ReaK::ctrl {
  * This traits class defines the characteristics of a discrete-time state-space system.
  * \tparam DiscreteSystem The discrete-time state-space system type for which the traits are sought.
  */
-template <typename AugmentedSystem>
+template <typename T>
 struct augmented_sss_traits {
-
   /** This constant describes the dimensions of the output vector (0 if not known at compile-time). */
-  static constexpr std::size_t actual_state_dimensions =
-      AugmentedSystem::actual_state_dimensions;
+  static constexpr std::size_t actual_state_dimensions = T::actual_state_dimensions;
 };
 
 /**
@@ -63,25 +61,11 @@ struct augmented_sss_traits {
  *
  * x = sys.get_actual_state_dimensions();  The state-space system (sys) can deliver the dimensions count (x) for the
  *actual (dynamic) states of the system.
- *
- * \tparam AugmentedSystem The state-space system type which is tested for modeling the augmented state-space system
- *concept.
  */
-template <typename AugmentedSystem>
-struct AugmentedSystemConcept {
-  AugmentedSystem sys;
-
-  BOOST_CONCEPT_USAGE(AugmentedSystemConcept) {
-    std::size_t x = sys.get_actual_state_dimensions();
-    RK_UNUSED(x);
-  }
-};
-
-template <typename AugmentedSystem>
-struct is_augmented_ss_system : std::false_type {};
-template <typename AugmentedSystem>
-static constexpr bool is_augmented_ss_system_v =
-    is_augmented_ss_system<AugmentedSystem>::value;
+template <typename T>
+concept AugmentedSystem = requires (const T& sys) {
+    { sys.get_actual_state_dimensions() } -> std::integral;
+  };
 
 }  // namespace ReaK::ctrl
 

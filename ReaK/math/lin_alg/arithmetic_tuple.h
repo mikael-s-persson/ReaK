@@ -96,6 +96,10 @@ struct arithmetic_tuple_size<arithmetic_tuple<T...>>
 // to implement its friend functions.
 namespace {
 
+template <typename Tuple, typename Func>
+void tuple_for_each_impl(Tuple& /*unused*/, Func /*unused*/,
+                         std::index_sequence<> /*unused*/) {}
+
 template <typename Tuple, typename Func, std::size_t... Idx>
 void tuple_for_each_impl(Tuple& arg1, Func f,
                          std::index_sequence<Idx...> /*unused*/) {
@@ -104,6 +108,10 @@ void tuple_for_each_impl(Tuple& arg1, Func f,
   (void)swallow{1, (f(get<Idx>(arg1)), void(), int())...};
 }
 
+template <typename Tuple1, typename Tuple2, typename Func>
+void tuple_for_each_impl(Tuple1& /*unused*/, Tuple2& /*unused*/, Func /*unused*/,
+                         std::index_sequence<> /*unused*/) {}
+
 template <typename Tuple1, typename Tuple2, typename Func, std::size_t... Idx>
 void tuple_for_each_impl(Tuple1& arg1, Tuple2& arg2, Func f,
                          std::index_sequence<Idx...> /*unused*/) {
@@ -111,6 +119,10 @@ void tuple_for_each_impl(Tuple1& arg1, Tuple2& arg2, Func f,
   using swallow = int[];  // NOLINT
   (void)swallow{1, (f(get<Idx>(arg1), get<Idx>(arg2)), void(), int())...};
 }
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+void tuple_for_each_impl(Tuple1& /*unused*/, Tuple2& /*unused*/, Tuple3& /*unused*/, Func /*unused*/,
+                         std::index_sequence<> /*unused*/) {}
 
 template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func,
           std::size_t... Idx>
@@ -123,6 +135,11 @@ void tuple_for_each_impl(Tuple1& arg1, Tuple2& arg2, Tuple3& arg3, Func f,
 }
 
 template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4,
+          typename Func>
+void tuple_for_each_impl(Tuple1& /*unused*/, Tuple2& /*unused*/, Tuple3& /*unused*/, Tuple4& /*unused*/,
+                         Func /*unused*/, std::index_sequence<> /*unused*/) {}
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4,
           typename Func, std::size_t... Idx>
 void tuple_for_each_impl(Tuple1& arg1, Tuple2& arg2, Tuple3& arg3, Tuple4& arg4,
                          Func f, std::index_sequence<Idx...> /*unused*/) {
@@ -132,6 +149,12 @@ void tuple_for_each_impl(Tuple1& arg1, Tuple2& arg2, Tuple3& arg3, Tuple4& arg4,
       1, (f(get<Idx>(arg1), get<Idx>(arg2), get<Idx>(arg3), get<Idx>(arg4)),
           void(), int())...};
 }
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4,
+          typename Tuple5, typename Func>
+void tuple_for_each_impl(Tuple1& /*unused*/, Tuple2& /*unused*/, Tuple3& /*unused*/, Tuple4& /*unused*/,
+                         Tuple5& /*unused*/, Func /*unused*/,
+                         std::index_sequence<> /*unused*/) {}
 
 template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4,
           typename Tuple5, typename Func, std::size_t... Idx>
@@ -518,7 +541,7 @@ namespace detail {
 
 template <typename Vector, typename RhsType>
 void to_vect_impl(Vector& lhs, const RhsType& rhs) {
-  if constexpr (is_readable_vector_v<RhsType>) {
+  if constexpr (ReadableVector<RhsType>) {
     const auto i = lhs.size();
     lhs.resize(i + rhs.size());
     for (std::size_t j = 0; j < rhs.size(); ++j) {
@@ -535,7 +558,7 @@ void to_vect_impl(Vector& lhs, const RhsType& rhs) {
 
 template <typename LhsType, typename Vector>
 void from_vect_impl(LhsType& lhs, const Vector& rhs, std::size_t& i) {
-  if constexpr (is_writable_vector_v<LhsType>) {
+  if constexpr (WritableVector<LhsType>) {
     for (std::size_t j = 0; j < rhs.size(); ++j, ++i) {
       lhs[j] = rhs[i];
     }
@@ -555,7 +578,7 @@ void from_vect_impl(LhsType& lhs, const Vector& rhs, std::size_t& i) {
 /// \return A vector with the flattened content of the input.
 template <typename ValueType, typename VectorType>
 auto to_vect(const VectorType& v) {
-  if constexpr (is_readable_vector_v<VectorType>) {
+  if constexpr (ReadableVector<VectorType>) {
     return v;
   } else {
     using ReaK::detail::to_vect_impl;  // for ADL
@@ -571,7 +594,7 @@ auto to_vect(const VectorType& v) {
 /// \return A vector with the flattened content of the input.
 template <typename OutputType, typename VectorType>
 OutputType from_vect(const VectorType& v) {
-  if constexpr (is_writable_vector_v<OutputType>) {
+  if constexpr (WritableVector<OutputType>) {
     return OutputType(v);
   } else {
     using ReaK::detail::from_vect_impl;  // for ADL

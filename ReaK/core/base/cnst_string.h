@@ -65,14 +65,14 @@ struct concat_constexpr_strings {
   // Join all strings into a single std::array of chars
   static constexpr auto impl() noexcept {
     constexpr std::size_t len = (Strs.size() + ... + 0);
-    std::array<char, len> arr{};
-    auto append = [i = 0, &arr](auto const& s) mutable {
+    std::array<char, len> arr_impl{};
+    auto append = [i = 0, &arr_impl](auto const& s) mutable {
       for (auto c : s) {
-        arr[i++] = c;
+        arr_impl[i++] = c;
       }
     };
     (append(Strs), ...);
-    return arr;
+    return arr_impl;
   }
   // Give the joined string static storage
   static constexpr auto arr = impl();
@@ -97,12 +97,12 @@ struct ct_itoa_impl {
       for (auto n = N; n != 0; len++, n /= 10) {}
       return len;
     }();
-    std::array<char, len> arr{};
-    auto ptr = arr.data() + arr.size();
+    std::array<char, len> arr_impl{};
+    auto ptr = arr_impl.data() + arr_impl.size();
     for (auto n = N; n != 0; n /= 10) {
       *--ptr = "0123456789"[n % 10];
     }
-    return arr;
+    return arr_impl;
   }
 
   // Give the joined string static storage

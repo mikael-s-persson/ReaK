@@ -34,16 +34,16 @@ using std::size_t;
 #include "ReaK/topologies/spaces/time_poisson_topology.h"
 #include "ReaK/topologies/spaces/time_topology.h"
 
-#include "ReaK/topologies/spaces/Ndof_limits.h"
-#include "ReaK/topologies/spaces/Ndof_spaces.h"
+#include "ReaK/topologies/spaces/ndof_limits.h"
+#include "ReaK/topologies/spaces/ndof_spaces.h"
 
 #include "ReaK/core/recorders/ascii_recorder.h"
 #include "ReaK/topologies/interpolation/sustained_acceleration_pulse.h"
 #include "ReaK/topologies/interpolation/sustained_velocity_pulse.h"
 
 #include <memory>
-#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof_detail.h"
-#include "ReaK/topologies/interpolation/sustained_velocity_pulse_Ndof_detail.h"
+#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_ndof_detail.h"
+#include "ReaK/topologies/interpolation/sustained_velocity_pulse_ndof_detail.h"
 
 #define TEST_SIZE 2
 

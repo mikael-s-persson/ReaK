@@ -38,12 +38,13 @@
 
 #include "ReaK/math/lin_alg/mat_alg_general.h"
 #include "ReaK/math/lin_alg/vect_alg.h"
+#include "ReaK/math/lin_alg/vect_concepts.h"
 
 namespace ReaK {
 
 /// This class holds a diagonal matrix. This class will hold only the diagonal.
 ///
-/// Models: ReadableMatrixConcept, WritableMatrixConcept, and ResizableMatrixConcept.
+/// Models: ReadableMatrix, WritableMatrix, and ResizableMatrix.
 ///
 /// \tparam T Arithmetic type of the elements of the matrix.
 /// \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
@@ -116,21 +117,13 @@ class mat<T, mat_structure::diagonal, Alignment, RowCount, RowCount>
   self& operator=(self&& rhs) = default;
 
   /// Constructor from a vector of size n.
-  template <typename Vector>
-  explicit mat(
-      const Vector& V,
-      std::enable_if_t<
-          is_readable_vector_v<Vector> && !std::is_same_v<Vector, self>, void*>
-          dummy = nullptr)
+  template <ReadableVector Vector>
+  explicit mat(const Vector& V)
       : q(V) {}
 
   /// Constructor from a general matrix, copying only the diagonal part.
-  template <typename Matrix>
-  explicit mat(
-      const Matrix& M,
-      std::enable_if_t<
-          is_readable_matrix_v<Matrix> && !std::is_same_v<Matrix, self>, void*>
-          dummy = nullptr)
+  template <ReadableMatrix Matrix>
+  explicit mat(const Matrix& M)
       : mat(std::min(M.get_row_count(), M.get_col_count())) {
     for (int i = 0; i < q.size(); ++i) {
       q[i] = M(i, i);

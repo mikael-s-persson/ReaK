@@ -34,7 +34,8 @@
 #ifndef REAK_TOPOLOGIES_SPACES_JOINT_SPACE_LIMITS_DETAIL_H_
 #define REAK_TOPOLOGIES_SPACES_JOINT_SPACE_LIMITS_DETAIL_H_
 
-#include "ReaK/topologies/spaces/Ndof_spaces.h"
+#include "ReaK/math/lin_alg/vect_concepts.h"
+#include "ReaK/topologies/spaces/ndof_spaces.h"
 #include "ReaK/topologies/spaces/differentiable_space.h"
 #include "ReaK/topologies/spaces/joint_space_topologies.h"
 #include "ReaK/topologies/spaces/se2_topologies.h"
@@ -606,7 +607,7 @@ void create_rl_joint_vector_impl(arithmetic_tuple<Arg0, Args...>& result,
       get<2>(result) = get<2>(pt) / j_limits.gen_jerk_limits[gen_i];
     }
     ++gen_i;
-  } else if constexpr (is_writable_vector_v<Arg0>) {
+  } else if constexpr (WritableVector<Arg0>) {
     constexpr int Order = sizeof...(Args);
     for (std::size_t i = 0; i < get<0>(pt).size(); ++i) {
       get<0>(result)[i] = get<0>(pt)[i] / j_limits.gen_speed_limits[gen_i];
@@ -706,7 +707,7 @@ void create_normal_joint_vector_impl(arithmetic_tuple<Arg0, Args...>& result,
       get<2>(result) = get<2>(pt) * j_limits.gen_jerk_limits[gen_i];
     }
     ++gen_i;
-  } else if constexpr (is_writable_vector_v<Arg0>) {
+  } else if constexpr (WritableVector<Arg0>) {
     constexpr int Order = sizeof...(Args);
     for (std::size_t i = 0; i < get<0>(pt).size(); ++i) {
       get<0>(result)[i] = get<0>(pt)[i] * j_limits.gen_speed_limits[gen_i];

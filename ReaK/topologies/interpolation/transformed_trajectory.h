@@ -41,8 +41,6 @@
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/topological_map_concepts.h"
 
-#include "boost/concept_check.hpp"
-
 #include <map>
 
 namespace ReaK::pp {
@@ -91,34 +89,30 @@ struct transformed_point_iterator {
 /**
  * This class implements a trajectory which is a map between an underlying trajectory (on its
  * own topology) to another topology using a homeomorphism across the topologies.
- * This class models the SpatialTrajectoryConcept.
- * \tparam Topology The topology type on which the points and the path can reside,
- *                  should model the TemporalSpaceConcept.
- * \tparam InputTrajectory The underlying trajectory, should model the SpatialTrajectoryConcept.
+ * This class models SpatialTrajectory.
+ * \tparam Space The topology type on which the points and the trajectory can reside.
+ * \tparam InputTrajectory The underlying trajectory, should model SpatialTrajectory.
  * \tparam Mapping The homeomorphic mapping between the spatial topology of the underlying
  *                 topology (of the InputTrajectory) and the given topology.
  */
-template <typename Topology, typename InputTrajectory, typename Mapping>
+template <TemporalSpace Space, typename InputTrajectory, typename Mapping>
+  requires SpatialTrajectory<InputTrajectory>
 class transformed_trajectory : public shared_object {
  public:
   using input_topology =
       typename spatial_trajectory_traits<InputTrajectory>::topology;
 
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (SpatialTrajectoryConcept<InputTrajectory, input_topology>));
-  BOOST_CONCEPT_ASSERT((BijectionConcept<Mapping, input_topology, Topology>));
+  static_assert(Bijection<Mapping, input_topology, Space>);
 
-  using self = transformed_trajectory<Topology, InputTrajectory, Mapping>;
+  using self = transformed_trajectory<Space, InputTrajectory, Mapping>;
 
   using waypoint_descriptor =
       typename spatial_trajectory_traits<InputTrajectory>::waypoint_descriptor;
   using const_waypoint_descriptor = typename spatial_trajectory_traits<
       InputTrajectory>::const_waypoint_descriptor;
-  using point_type = typename topology_traits<Topology>::point_type;
-  using point_difference_type =
-      typename topology_traits<Topology>::point_difference_type;
-  using topology = Topology;
+  using point_type = topology_point_type_t<Space>;
+  using point_difference_type = topology_point_difference_type_t<Space>;
+  using topology = Space;
   using distance_metric =
       typename spatial_trajectory_traits<InputTrajectory>::distance_metric;
 
@@ -141,7 +135,7 @@ class transformed_trajectory : public shared_object {
                 InputTrajectory>::point_fraction_iterator>;
 
  private:
-  std::shared_ptr<Topology> space;
+  std::shared_ptr<Space> space;
   std::shared_ptr<InputTrajectory> traject;
   Mapping map;
 
@@ -171,7 +165,7 @@ class transformed_trajectory : public shared_object {
    * \param aMap The homeomorphic mapping object to use.
    */
   explicit transformed_trajectory(
-      const std::shared_ptr<Topology>& aSpace = {},
+      const std::shared_ptr<Space>& aSpace = {},
       const std::shared_ptr<InputTrajectory>& aTrajectory = {},
       const Mapping& aMap = Mapping())
       : space(aSpace), traject(aTrajectory), map(aMap) {}

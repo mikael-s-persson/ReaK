@@ -35,6 +35,7 @@
 
 #include "ReaK/core/base/named_object.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/vect_alg.h"
 
 #include "ReaK/control/systems/discrete_linear_sss_concept.h"
@@ -115,16 +116,12 @@ class lti_discrete_sys : public named_object {
    * \param aD The discrete-time system matrix D.
    * \param aDt The time-step of the discrete-time system.
    */
-  template <typename MatrixA, typename MatrixB, typename MatrixC,
-            typename MatrixD>
+  template <ReadableMatrix MatrixA, ReadableMatrix MatrixB, ReadableMatrix MatrixC,
+            ReadableMatrix MatrixD>
   lti_discrete_sys(const MatrixA& aA, const MatrixB& aB, const MatrixC& aC,
                    const MatrixD& aD, const time_difference_type& aDt,
                    const std::string& aName = "")
       : A(aA), B(aB), C(aC), D(aD), dt(aDt) {
-    static_assert(is_readable_matrix_v<MatrixA>);
-    static_assert(is_readable_matrix_v<MatrixB>);
-    static_assert(is_readable_matrix_v<MatrixC>);
-    static_assert(is_readable_matrix_v<MatrixD>);
     setName(aName);
   }
 
@@ -152,9 +149,8 @@ class lti_discrete_sys : public named_object {
    * Sets the discrete-time system matrix A of the discrete-time system.
    * \param aA The new discrete-time system matrix A for the system.
    */
-  template <typename MatrixA>
+  template <ReadableMatrix MatrixA>
   void setA(const MatrixA& aA) {
-    static_assert(is_readable_matrix_v<MatrixA>);
     A = aA;
   }
 
@@ -162,9 +158,8 @@ class lti_discrete_sys : public named_object {
    * Sets the discrete-time system matrix B of the discrete-time system.
    * \param aB The new discrete-time system matrix B for the system.
    */
-  template <typename MatrixB>
+  template <ReadableMatrix MatrixB>
   void setB(const MatrixB& aB) {
-    static_assert(is_readable_matrix_v<MatrixB>);
     B = aB;
   }
 
@@ -172,9 +167,8 @@ class lti_discrete_sys : public named_object {
    * Sets the discrete-time system matrix C of the discrete-time system.
    * \param aC The new discrete-time system matrix C for the system.
    */
-  template <typename MatrixC>
+  template <ReadableMatrix MatrixC>
   void setC(const MatrixC& aC) {
-    static_assert(is_readable_matrix_v<MatrixC>);
     C = aC;
   }
 
@@ -182,9 +176,8 @@ class lti_discrete_sys : public named_object {
    * Sets the discrete-time system matrix D of the discrete-time system.
    * \param aD The new discrete-time system matrix D for the system.
    */
-  template <typename MatrixD>
+  template <ReadableMatrix MatrixD>
   void setD(const MatrixD& aD) {
-    static_assert(is_readable_matrix_v<MatrixD>);
     D = aD;
   }
 
@@ -242,10 +235,8 @@ class lti_discrete_sys : public named_object {
    * \param aA Stores, as output, the system matrix A.
    * \param aB Stores, as output, the system matrix B.
    */
-  template <typename MatrixA, typename MatrixB>
+  template <WritableMatrix MatrixA, WritableMatrix MatrixB>
   void get_state_transition_blocks(MatrixA& aA, MatrixB& aB) const {
-    static_assert(is_writable_matrix_v<MatrixA>);
-    static_assert(is_writable_matrix_v<MatrixB>);
     aA = A;
     aB = B;
   }
@@ -255,7 +246,7 @@ class lti_discrete_sys : public named_object {
    * \param aA Stores, as output, the system matrix A.
    * \param aB Stores, as output, the system matrix B.
    */
-  template <typename MatrixA, typename MatrixB, typename StateSpaceType>
+  template <WritableMatrix MatrixA, WritableMatrix MatrixB, typename StateSpaceType>
   void get_state_transition_blocks(MatrixA& aA, MatrixB& aB,
                                    const StateSpaceType&,
                                    const time_type& = time_type(),
@@ -264,8 +255,6 @@ class lti_discrete_sys : public named_object {
                                    const point_type& = point_type(),
                                    const input_type& = input_type(),
                                    const input_type& = input_type()) const {
-    static_assert(is_writable_matrix_v<MatrixA>);
-    static_assert(is_writable_matrix_v<MatrixB>);
     aA = A;
     aB = B;
   }
@@ -275,10 +264,8 @@ class lti_discrete_sys : public named_object {
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template <typename MatrixC, typename MatrixD>
+  template <WritableMatrix MatrixC, WritableMatrix MatrixD>
   void get_output_function_blocks(MatrixC& aC, MatrixD& aD) const {
-    static_assert(is_writable_matrix_v<MatrixC>);
-    static_assert(is_writable_matrix_v<MatrixD>);
     aC = C;
     aD = D;
   }
@@ -288,14 +275,12 @@ class lti_discrete_sys : public named_object {
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template <typename MatrixC, typename MatrixD, typename StateSpaceType>
+  template <WritableMatrix MatrixC, WritableMatrix MatrixD, typename StateSpaceType>
   void get_output_function_blocks(MatrixC& aC, MatrixD& aD,
                                   const StateSpaceType&,
                                   const time_type& = time_type(),
                                   const point_type& = point_type(),
                                   const input_type& = input_type()) const {
-    static_assert(is_writable_matrix_v<MatrixC>);
-    static_assert(is_writable_matrix_v<MatrixD>);
     aC = C;
     aD = D;
   }

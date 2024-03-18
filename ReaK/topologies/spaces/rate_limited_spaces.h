@@ -137,8 +137,8 @@ ReachTimeDiffTuple construct_reach_time_diff_rules(ForwardIter first,
  * This class template can be used to glue together a number of spaces by a reach-time differentiation
  * relationship, where each differentiation / integration operation (or more formally speaking, each
  * lift and descent through the tangent bundle) is governed by its own reach-time differentiation rule.
- * This class template models the TopologyConcept (if all underlying spaces do as well), and models
- * the TangentBundleConcept for as high an order as there are differentiation rules and spaces to support.
+ * This class template models Topology (if all underlying spaces do as well), and models
+ * TangentBundle for as high an order as there are differentiation rules and spaces to support.
  *
  * \tparam IndependentSpace The type of the independent-space against which the differentiation is
  *                          taken (e.g. time_topology). There are no formal requirements on this type,
@@ -146,10 +146,10 @@ ReachTimeDiffTuple construct_reach_time_diff_rules(ForwardIter first,
  *                          rules might require more of this type).
  * \tparam SpaceTuple A tuple type (e.g. arithmetic_tuple) which provides a set of spaces that are arranged
  *                    in sequence of differentiation levels (e.g. space 0 -- diff --> space 1 -- diff --> space 2 ...).
- * \tparam TupleDistanceMetric A distance metric type which models the DistanceMetricConcept and operates on a
+ * \tparam TupleDistanceMetric A distance metric type which models the DistanceMetric and operates on a
  *                             space-tuple (e.g. arithmetic_tuple).
  */
-template <typename IndependentSpace, typename SpaceTuple,
+template <Topology IndependentSpace, typename SpaceTuple,
           typename TupleDistanceMetric = manhattan_tuple_distance>
 class reach_time_diff_space
     : public differentiable_space<IndependentSpace, SpaceTuple,
@@ -226,25 +226,6 @@ class reach_time_diff_space
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400010, 1, "reach_time_diff_space",
                               base_type)
 };
-
-template <typename IndependentSpace, typename SpaceTuple,
-          typename TupleDistanceMetric>
-struct is_metric_space<
-    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>>
-    : std::true_type {};
-
-template <typename IndependentSpace, typename SpaceTuple,
-          typename TupleDistanceMetric>
-struct is_reversible_space<
-    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>>
-    : is_reversible_space<typename reach_time_diff_space<
-          IndependentSpace, SpaceTuple, TupleDistanceMetric>::base_type> {};
-
-template <typename IndependentSpace, typename SpaceTuple,
-          typename TupleDistanceMetric>
-struct is_point_distribution<
-    reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>>
-    : std::true_type {};
 
 template <typename IndependentSpace, typename SpaceTuple,
           typename TupleDistanceMetric>

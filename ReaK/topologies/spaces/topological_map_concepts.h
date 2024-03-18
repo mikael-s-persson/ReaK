@@ -38,7 +38,6 @@
 #include "ReaK/core/base/shared_object.h"
 
 #include <cmath>
-#include "boost/concept_check.hpp"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
@@ -64,21 +63,11 @@ namespace ReaK::pp {
  * \tparam OutSpace The output space type of the mapping.
  */
 template <typename Mapping, typename InSpace, typename OutSpace>
-struct BijectionConcept {
-
-  InSpace space_in;
-  OutSpace space_out;
-  topology_point_type_t<InSpace> p_in;
-  topology_point_type_t<OutSpace> p_out;
-  Mapping m;
-
-  BOOST_CONCEPT_ASSERT((TopologyConcept<InSpace>));
-  BOOST_CONCEPT_ASSERT((TopologyConcept<OutSpace>));
-
-  BOOST_CONCEPT_USAGE(BijectionConcept) {
-    p_out = m.map_to_space(p_in, space_in, space_out);
-  }
-};
+concept Bijection = 
+    Topology<InSpace> && Topology<OutSpace> &&
+    requires (const Mapping& m, const InSpace& space_in, const OutSpace& space_out, const topology_point_type_t<InSpace>& p_in) {
+      { m.map_to_space(p_in, space_in, space_out) } -> std::convertible_to<topology_point_type_t<OutSpace>>;
+    };
 
 /**
  * This class is a simple composition of two topological maps. Provided an output map,
@@ -92,7 +81,7 @@ struct BijectionConcept {
  * \tparam MiddleSpace The intermediate space type between the two bijections.
  */
 template <typename OuterBijection, typename InnerBijection,
-          typename MiddleSpace>
+          Topology MiddleSpace>
 struct bijection_cascade : public shared_object {
   using self = bijection_cascade<OuterBijection, InnerBijection, MiddleSpace>;
 
@@ -116,7 +105,9 @@ struct bijection_cascade : public shared_object {
    * \param s_out The output space.
    * \return A point in the output space, identical in value and type to the input point.
    */
-  template <typename PointType, typename SpaceIn, typename SpaceOut>
+  template <typename PointType, Topology SpaceIn, Topology SpaceOut>
+      requires Bijection<InnerBijection, SpaceIn, MiddleSpace> &&
+               Bijection<OuterBijection, MiddleSpace, SpaceOut>
   topology_point_type_t<SpaceOut> map_to_space(const PointType& p_in,
                                                const SpaceIn& s_in,
                                                const SpaceOut& s_out) const {
@@ -166,7 +157,7 @@ struct identity_topo_map : public shared_object {
    * \param p_in The point in the input space.
    * \return A point in the output space, identical in value and type to the input point.
    */
-  template <typename PointType, typename SpaceIn, typename SpaceOut>
+  template <typename PointType, Topology SpaceIn, Topology SpaceOut>
   PointType map_to_space(const PointType& p_in, const SpaceIn& /*unused*/,
                          const SpaceOut& /*unused*/) const {
     return p_in;
@@ -202,12 +193,7 @@ struct identity_topo_map : public shared_object {
  * \tparam OutSpace The output space type of the mapping.
  */
 template <typename Mapping, typename InSpace, typename OutSpace>
-struct HomeomorphismConcept
-    : public BijectionConcept<Mapping, InSpace, OutSpace>,
-      public BijectionConcept<Mapping, OutSpace, InSpace> {
-
-  BOOST_CONCEPT_USAGE(HomeomorphismConcept) {}
-};
+concept Homeomorphism = Bijection<Mapping, InSpace, OutSpace> && Bijection<Mapping, OutSpace, InSpace>;
 
 /**
  * This concept defines the requirements to fulfill in order to model a diffeomorphism between
@@ -226,15 +212,10 @@ struct HomeomorphismConcept
  * \tparam IndependentSpace The independent space against which the differentiation is taken on the spaces.
  */
 template <typename Mapping, typename InSpace, typename OutSpace,
-          unsigned int Order, typename IndependentSpace>
-struct DiffeomorphismConcept
-    : public BijectionConcept<Mapping, InSpace, OutSpace>,
-      public BijectionConcept<Mapping, OutSpace, InSpace>,
-      public TangentBundleConcept<InSpace, Order, IndependentSpace>,
-      public TangentBundleConcept<OutSpace, Order, IndependentSpace> {
-
-  BOOST_CONCEPT_USAGE(DiffeomorphismConcept) {}
-};
+          typename IndependentSpace, std::size_t... Order>
+concept Diffeomorphism = Homeomorphism<Mapping, InSpace, OutSpace> &&
+    TangentBundle<InSpace, IndependentSpace, Order...> &&
+    TangentBundle<OutSpace, IndependentSpace, Order...>;
 
 }  // namespace ReaK::pp
 

@@ -41,13 +41,11 @@ namespace ReaK {
 
 /**
  * This function template computes the 1-norm of a matrix.
- * \tparam Matrix A readable matrix type.
  * \param M A matrix for which the 1-norm is sought.
  * \return the 1-norm of matrix M.
  */
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, mat_value_type_t<Matrix>> norm_1(
-    const Matrix& M) {
+template <ReadableMatrix Matrix>
+mat_value_type_t<Matrix> norm_1(const Matrix& M) {
   using ValueType = mat_value_type_t<Matrix>;
   using std::abs;
 
@@ -66,13 +64,11 @@ std::enable_if_t<is_readable_matrix_v<Matrix>, mat_value_type_t<Matrix>> norm_1(
 
 /**
  * This function template computes the infinity-norm of a matrix.
- * \tparam Matrix A readable matrix type.
  * \param M A matrix for which the infinity-norm is sought.
  * \return the infinity-norm of matrix M.
  */
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, mat_value_type_t<Matrix>>
-norm_inf(const Matrix& M) {
+template <ReadableMatrix Matrix>
+mat_value_type_t<Matrix> norm_inf(const Matrix& M) {
   using ValueType = mat_value_type_t<Matrix>;
   using std::abs;
 
@@ -91,13 +87,11 @@ norm_inf(const Matrix& M) {
 
 /**
  * This function template computes the element-wise 2-norm of a matrix.
- * \tparam Matrix A readable matrix type.
  * \param M A matrix for which the element-wise 2-norm is sought.
  * \return the element-wise 2-norm of matrix M.
  */
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, mat_value_type_t<Matrix>>
-elem_norm_2(const Matrix& M) {
+template <ReadableMatrix Matrix>
+mat_value_type_t<Matrix> elem_norm_2(const Matrix& M) {
   using ValueType = mat_value_type_t<Matrix>;
   using std::sqrt;
 
@@ -112,24 +106,21 @@ elem_norm_2(const Matrix& M) {
 
 /**
  * This function template computes the Frobenius-norm of a matrix.
- * \tparam Matrix A readable matrix type.
  * \param M A matrix for which the Frobenius-norm is sought.
  * \return the Frobenius-norm of matrix M.
  */
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 mat_value_type_t<Matrix> frobenius_norm(const Matrix& M) {
   return elem_norm_2(M);
 }
 
 /**
  * This function template computes the element-wise infinity-norm of a matrix.
- * \tparam Matrix A readable matrix type.
  * \param M A matrix for which the element-wise infinity-norm is sought.
  * \return the element-wise infinity-norm of matrix M.
  */
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, mat_value_type_t<Matrix>>
-elem_norm_max(const Matrix& M) {
+template <ReadableMatrix Matrix>
+mat_value_type_t<Matrix> elem_norm_max(const Matrix& M) {
   using ValueType = mat_value_type_t<Matrix>;
   using std::abs;
 

@@ -72,13 +72,10 @@ namespace ReaK {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2>
 void invert_gaussian(const Matrix1& A, Matrix2& A_inv,
                      mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
-
-  if constexpr (!is_fully_writable_matrix_v<Matrix2>) {
+  if constexpr (!FullyWritableMatrix<Matrix2>) {
     mat<mat_value_type_t<Matrix2>, mat_structure::rectangular> A_inv_tmp(
         A_inv.get_row_count(), A_inv.get_col_count());
     invert_gaussian(A, A_inv_tmp, NumTol);
@@ -142,7 +139,7 @@ void invert_gaussian(const Matrix1& A, Matrix2& A_inv,
 
 namespace detail {
 
-template <typename Matrix1, typename Matrix2, typename IndexVector>
+template <WritableMatrix Matrix1, WritableMatrix Matrix2, typename IndexVector>
 void linsolve_PLU_impl(Matrix1& A, Matrix2& b, IndexVector& P,
                        mat_value_type_t<Matrix1> NumTol) {
   using std::abs;
@@ -246,17 +243,15 @@ void linsolve_PLU_impl(Matrix1& A, Matrix2& b, IndexVector& P,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename IndexVector>
+template <WritableMatrix Matrix1, typename Matrix2, WritableVector IndexVector>
 void linsolve_PLU(Matrix1& A, Matrix2& b, IndexVector& P,
                   mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_writable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2> || is_writable_vector_v<Matrix2>);
-  static_assert(is_writable_vector_v<IndexVector>);
+  static_assert(WritableMatrix<Matrix2> || WritableVector<Matrix2>);
 
   P.resize(A.get_col_count());
 
   auto Atmp = [&]() {
-    if constexpr (is_fully_writable_matrix_v<Matrix1>) {
+    if constexpr (FullyWritableMatrix<Matrix1>) {
       return std::unique_ptr<Matrix1, null_deleter>(&A, null_deleter());
     } else {
       return std::make_unique<
@@ -264,9 +259,9 @@ void linsolve_PLU(Matrix1& A, Matrix2& b, IndexVector& P,
     }
   }();
   auto btmp = [&]() {
-    if constexpr (is_fully_writable_matrix_v<Matrix2>) {
+    if constexpr (FullyWritableMatrix<Matrix2>) {
       return std::unique_ptr<Matrix2, null_deleter>(&b, null_deleter());
-    } else if constexpr (is_writable_vector_v<Matrix2>) {
+    } else if constexpr (WritableVector<Matrix2>) {
       return std::make_unique<
           mat_vect_adaptor<Matrix2, mat_alignment::column_major>>(b);
     } else {
@@ -287,10 +282,10 @@ void linsolve_PLU(Matrix1& A, Matrix2& b, IndexVector& P,
 
   detail::linsolve_PLU_impl(*Atmp, *btmp, P, NumTol);
 
-  if constexpr (!is_fully_writable_matrix_v<Matrix1>) {
+  if constexpr (!FullyWritableMatrix<Matrix1>) {
     A = *Atmp;
   }
-  if constexpr (!is_fully_writable_matrix_v<Matrix2>) {
+  if constexpr (!FullyWritableMatrix<Matrix2>) {
     b = *btmp;
   }
 }
@@ -350,11 +345,9 @@ struct PLU_linsolver {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <WritableMatrix Matrix1, WritableMatrix Matrix2>
 void invert_PLU(Matrix1 A, Matrix2& A_inv,
                 mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_writable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
   using ValueType = mat_value_type_t<Matrix1>;
 
   A_inv = mat<ValueType, mat_structure::identity>(A.get_col_count());

@@ -44,8 +44,6 @@
 #include "ReaK/topologies/interpolation/sequential_trajectory_concept.h"
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
 
-#include "boost/concept_check.hpp"
-
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include "boost/any.hpp"
@@ -54,21 +52,18 @@ namespace ReaK::pp {
 
 /**
  * This class defines the OOP interface for a trajectory in a temporal topology.
- * \tparam Topology The topology type on which the points and the path can reside, should model the
- * TemporalSpaceConcept.
+ * \tparam Space The topology type on which the points and the path can reside.
  */
-template <typename Topology>
-class trajectory_base : public seq_trajectory_base<Topology> {
+template <TemporalSpace Space>
+class trajectory_base : public seq_trajectory_base<Space> {
  public:
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-
-  using topology = Topology;
+  using topology = Space;
   using distance_metric =
       typename metric_space_traits<topology>::distance_metric_type;
   using point_type = topology_point_type_t<topology>;
   using point_difference_type = topology_point_difference_type_t<topology>;
-  using self = trajectory_base<Topology>;
-  using base_type = seq_trajectory_base<Topology>;
+  using self = trajectory_base<Space>;
+  using base_type = seq_trajectory_base<Space>;
 
   using waypoint_descriptor = std::any;
   using const_waypoint_descriptor = std::any;
@@ -83,7 +78,7 @@ class trajectory_base : public seq_trajectory_base<Topology> {
 
   virtual const topology& get_temporal_space() const = 0;
 
-  using seq_trajectory_base<Topology>::travel_distance;
+  using seq_trajectory_base<Space>::travel_distance;
 
   /**
    * Computes the travel distance between two waypoint-point-pairs, if traveling along the path.
@@ -155,7 +150,7 @@ class trajectory_base : public seq_trajectory_base<Topology> {
 
 /**
  * This class wraps a generic spatial trajectory class into an OOP interface.
- * It, itself, also models the generic SpatialTrajectoryConcept and SequentialTrajectoryConcept,
+ * It, itself, also models the generic SpatialTrajectory and SequentialTrajectory,
  * so this wrapper can be used for both purposes (i.e. this is a type-erasure class).
  * \tparam SpatialTrajectory The trajectory type to be wrapped.
  */
@@ -173,8 +168,7 @@ class trajectory_wrapper
   using point_type = typename base_type::point_type;
   using point_difference_type = typename base_type::point_difference_type;
 
-  BOOST_CONCEPT_ASSERT(
-      (SequentialTrajectoryConcept<SpatialTrajectory, topology>));
+  static_assert(SequentialTrajectory<SpatialTrajectory, topology>);
 
   using time_topology = typename temporal_space_traits<topology>::time_topology;
   using space_topology =

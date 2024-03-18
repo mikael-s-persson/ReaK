@@ -58,7 +58,7 @@ inline std::pair<int, int> range(int aFirst, int aLast) {
  * This class takes a const reference to the given vector.
  * \tparam Vector A readable vector type.
  */
-template <typename Vector>
+template <ReadableVector Vector>
 class vect_const_ref_view {
  public:
   using self = vect_const_ref_view<Vector>;
@@ -77,8 +77,6 @@ class vect_const_ref_view {
   using difference_type = typename vect_traits<Vector>::difference_type;
 
   static constexpr std::size_t dimensions = vect_traits<Vector>::dimensions;
-
-  BOOST_CONCEPT_ASSERT((ReadableVectorConcept<Vector>));
 
  private:
   const Vector* v;
@@ -162,30 +160,12 @@ class vect_const_ref_view {
   const_iterator end() const noexcept { return v->begin() + offset + count; }
 };
 
-template <typename Vector>
-struct is_readable_vector<vect_const_ref_view<Vector>> {
-  static constexpr bool value = is_readable_vector_v<Vector>;
-  using type = is_readable_vector<Vector>;
-};
-
-template <typename Vector>
-struct is_writable_vector<vect_const_ref_view<Vector>> {
-  static constexpr bool value = false;
-  using type = is_writable_vector<vect_const_ref_view<Vector>>;
-};
-
-template <typename Vector>
-struct is_resizable_vector<vect_const_ref_view<Vector>> {
-  static constexpr bool value = false;
-  using type = is_resizable_vector<vect_const_ref_view<Vector>>;
-};
-
 /**
  * This class template constructs a sub-vector which represents part of the vector.
  * This class takes a reference to the given vector.
  * \tparam Vector A readable vector type.
  */
-template <typename Vector>
+template <WritableVector Vector>
 class vect_ref_view {
  public:
   using self = vect_ref_view<Vector>;
@@ -204,8 +184,6 @@ class vect_ref_view {
   using difference_type = typename vect_traits<Vector>::difference_type;
 
   static constexpr std::size_t dimensions = vect_traits<Vector>::dimensions;
-
-  BOOST_CONCEPT_ASSERT((ReadableVectorConcept<Vector>));
 
  private:
   Vector* v;
@@ -232,9 +210,8 @@ class vect_ref_view {
   /**
    * Standard assignment operator.
    */
-  template <typename Vector2>
+  template <ReadableVector Vector2>
   self& operator=(const Vector2& rhs) {
-    static_assert(is_readable_vector_v<Vector2>);
     if (rhs.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -247,9 +224,8 @@ class vect_ref_view {
   /**
    * Standard assignment operator.
    */
-  template <typename Vector2>
+  template <ReadableVector Vector2>
   self& operator+=(const Vector2& rhs) {
-    static_assert(is_readable_vector_v<Vector2>);
     if (rhs.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -262,9 +238,8 @@ class vect_ref_view {
   /**
    * Standard assignment operator.
    */
-  template <typename Vector2>
+  template <ReadableVector Vector2>
   self& operator-=(const Vector2& rhs) {
-    static_assert(is_readable_vector_v<Vector2>);
     if (rhs.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -277,7 +252,7 @@ class vect_ref_view {
   /**
    * Standard assignment operator.
    */
-  template <typename Scalar>
+  template <std::convertible_to<value_type> Scalar>
   self& operator*=(const Scalar& rhs) noexcept {
     for (int i = 0; i < count; ++i) {
       (*v)[offset + i] *= rhs;
@@ -303,23 +278,6 @@ class vect_ref_view {
    * TEST PASSED
    */
   value_type operator[](int i) const noexcept { return (*v)[offset + i]; }
-
-  /**
-   * Sub-vector operator, accessor for read only.
-   * \test PASSED
-   */
-  vect_ref_view<self> operator[](const std::pair<int, int>& r) noexcept {
-    return vect_ref_view<self>(*this, r.second - r.first, r.first);
-  }
-
-  /**
-   * Sub-vector operator, accessor for read only.
-   * \test PASSED
-   */
-  vect_const_ref_view<self> operator[](
-      const std::pair<int, int>& r) const noexcept {
-    return vect_const_ref_view<self>(*this, r.second - r.first, r.first);
-  }
 
   /**
    * Vector indexing operator, accessor for read/write.
@@ -378,31 +336,13 @@ class vect_ref_view {
   const_iterator end() const noexcept { return v->begin() + offset + count; }
 };
 
-template <typename Vector>
-struct is_readable_vector<vect_ref_view<Vector>> {
-  static constexpr bool value = is_readable_vector_v<Vector>;
-  using type = is_readable_vector<Vector>;
-};
-
-template <typename Vector>
-struct is_writable_vector<vect_ref_view<Vector>> {
-  static constexpr bool value = is_writable_vector_v<Vector>;
-  using type = is_writable_vector<Vector>;
-};
-
-template <typename Vector>
-struct is_resizable_vector<vect_ref_view<Vector>> {
-  static constexpr bool value = false;
-  using type = is_resizable_vector<vect_ref_view<Vector>>;
-};
-
 /**
  * This class template constructs a sub-vector which represents part of the vector.
  * This class makes a copy of the given vector (it is mainly meant to harmonize syntax
  * when rvalue vectors are involved, requires C++11).
  * \tparam Vector A readable vector type.
  */
-template <typename Vector>
+template <ReadableVector Vector>
 class vect_copy_view {
  public:
   using self = vect_copy_view<Vector>;
@@ -421,8 +361,6 @@ class vect_copy_view {
   using difference_type = typename vect_traits<Vector>::difference_type;
 
   static constexpr std::size_t dimensions = vect_traits<Vector>::dimensions;
-
-  BOOST_CONCEPT_ASSERT((ReadableVectorConcept<Vector>));
 
  private:
   Vector v;
@@ -484,9 +422,8 @@ class vect_copy_view {
   /**
    * Standard assignment operator.
    */
-  template <typename Vector2>
+  template <ReadableVector Vector2>
   self& operator=(const Vector2& rhs) {
-    static_assert(is_readable_vector_v<Vector2>);
     if (rhs.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -499,9 +436,8 @@ class vect_copy_view {
   /**
    * Standard assignment operator.
    */
-  template <typename Vector2>
+  template <ReadableVector Vector2>
   self& operator+=(const Vector2& rhs) {
-    static_assert(is_readable_vector_v<Vector2>);
     if (rhs.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -514,9 +450,8 @@ class vect_copy_view {
   /**
    * Standard assignment operator.
    */
-  template <typename Vector2>
+  template <ReadableVector Vector2>
   self& operator-=(const Vector2& rhs) {
-    static_assert(is_readable_vector_v<Vector2>);
     if (rhs.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -529,7 +464,7 @@ class vect_copy_view {
   /**
    * Standard assignment operator.
    */
-  template <typename Scalar>
+  template <std::convertible_to<value_type> Scalar>
   self& operator*=(const Scalar& rhs) noexcept {
     for (int i = 0; i < count; ++i) {
       v[offset + i] *= rhs;
@@ -555,23 +490,6 @@ class vect_copy_view {
    * TEST PASSED
    */
   value_type operator[](int i) const noexcept { return v[offset + i]; }
-
-  /**
-   * Sub-vector operator, accessor for read only.
-   * \test PASSED
-   */
-  vect_ref_view<self> operator[](const std::pair<int, int>& r) noexcept {
-    return vect_ref_view<self>(*this, r.second - r.first, r.first);
-  }
-
-  /**
-   * Sub-vector operator, accessor for read only.
-   * \test PASSED
-   */
-  vect_const_ref_view<self> operator[](
-      const std::pair<int, int>& r) const noexcept {
-    return vect_const_ref_view<self>(*this, r.second - r.first, r.first);
-  }
 
   /**
    * Vector indexing operator, accessor for read/write.
@@ -630,25 +548,7 @@ class vect_copy_view {
   const_iterator end() const noexcept { return v.begin() + offset + count; }
 };
 
-template <typename Vector>
-struct is_readable_vector<vect_copy_view<Vector>> {
-  static constexpr bool value = is_readable_vector_v<Vector>;
-  using type = is_readable_vector<Vector>;
-};
-
-template <typename Vector>
-struct is_writable_vector<vect_copy_view<Vector>> {
-  static constexpr bool value = is_writable_vector_v<Vector>;
-  using type = is_writable_vector<Vector>;
-};
-
-template <typename Vector>
-struct is_resizable_vector<vect_copy_view<Vector>> {
-  static constexpr bool value = false;
-  using type = is_resizable_vector<vect_copy_view<Vector>>;
-};
-
-template <typename Vector>
+template <ReadableVector Vector>
 struct vect_copy_view_factory {
   Vector v;
   explicit vect_copy_view_factory(const Vector& aV) : v(aV) {}
@@ -659,7 +559,7 @@ struct vect_copy_view_factory {
   }
 };
 
-template <typename Vector>
+template <WritableVector Vector>
 struct vect_ref_view_factory {
   Vector& v;
   explicit vect_ref_view_factory(Vector& aV) noexcept : v(aV) {}
@@ -670,7 +570,7 @@ struct vect_ref_view_factory {
   }
 };
 
-template <typename Vector>
+template <ReadableVector Vector>
 struct vect_const_ref_view_factory {
   const Vector& v;
   explicit vect_const_ref_view_factory(const Vector& aV) noexcept : v(aV) {}
@@ -681,28 +581,23 @@ struct vect_const_ref_view_factory {
   }
 };
 
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>, vect_ref_view_factory<Vector>>
-sub(Vector& V) noexcept {
+template <WritableVector Vector>
+vect_ref_view_factory<Vector> sub(Vector& V) noexcept {
   return vect_ref_view_factory<Vector>(V);
 }
 
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>,
-                 vect_const_ref_view_factory<Vector>>
-sub(const Vector& V) noexcept {
+template <ReadableVector Vector>
+vect_const_ref_view_factory<Vector> sub(const Vector& V) noexcept {
   return vect_const_ref_view_factory<Vector>(V);
 }
 
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_view_factory<Vector>>
-sub_copy(const Vector& V) {
+template <ReadableVector Vector>
+vect_copy_view_factory<Vector> sub_copy(const Vector& V) {
   return vect_copy_view_factory<Vector>(V);
 }
 
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_view_factory<Vector>>
-sub(Vector&& V) {
+template <ReadableVector Vector>
+vect_copy_view_factory<Vector> sub(Vector&& V) {
   return vect_copy_view_factory<Vector>(std::move(V));
 }
 }  // namespace ReaK

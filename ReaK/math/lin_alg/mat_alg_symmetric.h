@@ -43,7 +43,7 @@ namespace ReaK {
 /// This class holds a symmetric matrix. This class will hold only the upper-triangular part
 /// since the lower part is assumed to be equal to the upper one.
 ///
-/// Models: ReadableMatrixConcept, WritableMatrixConcept, and ResizableMatrixConcept.
+/// Models: ReadableMatrix, WritableMatrix, and ResizableMatrix.
 ///
 /// \tparam T Arithmetic type of the elements of the matrix.
 /// \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
@@ -145,13 +145,8 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   }
 
   /// Explicit constructor from any type of matrix. The "(M + M.transpose) / 2" is applied to guarantee symmetry.
-  template <typename Matrix>
-  explicit mat(const Matrix& M,
-               std::enable_if_t<is_readable_matrix_v<Matrix> &&
-                                    !is_symmetric_matrix_v<Matrix> &&
-                                    !std::is_same_v<Matrix, self>,
-                                void*>
-                   dummy = nullptr)
+  template <ReadableMatrix Matrix>
+  explicit mat(const Matrix& M)
       : mat(std::max(M.get_row_count(), M.get_col_count())) {
     int k = 0;
     int i = 0;
@@ -178,13 +173,8 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   }
 
   /// Explicit constructor from any type of matrix. The "(M + M.transpose) / 2" is applied to guarantee symmetry.
-  template <typename Matrix>
-  explicit mat(const Matrix& M,
-               std::enable_if_t<is_readable_matrix_v<Matrix> &&
-                                    is_symmetric_matrix_v<Matrix> &&
-                                    !std::is_same_v<Matrix, self>,
-                                void*>
-                   dummy = nullptr)
+  template <SymmetricMatrix Matrix>
+  explicit mat(const Matrix& M)
       : mat(M.get_row_count()) {
     int k = 0;
     int i = 0;
@@ -327,7 +317,7 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
 
   /// Standard Assignment operator with a matrix of any type. The "(M + M.transpose) / 2" formula is applied to guarantee
   /// symmetry.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator=(const Matrix& M) {
     self tmp(M);
     swap(*this, tmp);
@@ -464,7 +454,7 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   /// \param M the other matrix (second operand).
   /// \return general matrix multiplication result of this and M.
   /// \throw std::range_error if the two matrix dimensions don't match.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   auto multiply_this_and_dense_mat(const Matrix& M2) const {
     mat_product_result_t<self, Matrix> result{M2.get_row_count(),
                                               M2.get_col_count()};
@@ -484,7 +474,7 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   /// \param M the other matrix (second operand).
   /// \return general matrix multiplication result of this and M.
   /// \throw std::range_error if the two matrix dimensions don't match.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   auto multiply_dense_and_this_mat(const Matrix& M1) const {
     mat_product_result_t<Matrix, self> result{M1.get_row_count(),
                                               M1.get_col_count()};
@@ -541,7 +531,7 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
   /// \param V the column vector.
   /// \return column-vector equal to this * V.
   /// \throw std::range_error if this matrix and the vector dimensions don't match.
-  template <typename Vector, typename Result>
+  template <ReadableVector Vector, WritableVector Result>
   void multiply_with_vector_rhs(const Vector& V, Result& R) const {
     int k = 0;
     int i = 0;
@@ -553,7 +543,7 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
       R[i] += data.q[k + i] * V[i];
     }
   }
-  template <typename Vector, typename Result>
+  template <ReadableVector Vector, WritableVector Result>
   void multiply_with_vector_lhs(const Vector& V, Result& R) const {
     multiply_with_vector_rhs(V, R);
   }

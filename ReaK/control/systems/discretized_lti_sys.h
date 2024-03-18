@@ -177,10 +177,8 @@ class discretized_lti_sys : public named_object {
    * \param aA Stores, as output, the system matrix A.
    * \param aB Stores, as output, the system matrix B.
    */
-  template <typename MatrixA, typename MatrixB>
+  template <WritableMatrix MatrixA, WritableMatrix MatrixB>
   void get_state_transition_blocks(MatrixA& aA, MatrixB& aB) const {
-    static_assert(is_writable_matrix_v<MatrixA>);
-    static_assert(is_writable_matrix_v<MatrixB>);
     aA = Ad;
     aB = Bd;
   }
@@ -190,7 +188,7 @@ class discretized_lti_sys : public named_object {
    * \param aA Stores, as output, the system matrix A.
    * \param aB Stores, as output, the system matrix B.
    */
-  template <typename StateSpaceType, typename MatrixA, typename MatrixB>
+  template <typename StateSpaceType, WritableMatrix MatrixA, WritableMatrix MatrixB>
   void get_state_transition_blocks(MatrixA& aA, MatrixB& aB,
                                    const StateSpaceType&,
                                    const time_type& t_0 = time_type(),
@@ -199,8 +197,6 @@ class discretized_lti_sys : public named_object {
                                    const point_type& p_1 = point_type(),
                                    const input_type& u_0 = input_type(),
                                    const input_type& u_1 = input_type()) const {
-    static_assert(is_writable_matrix_v<MatrixA>);
-    static_assert(is_writable_matrix_v<MatrixB>);
     RK_UNUSED(t_0);
     RK_UNUSED(t_1);
     RK_UNUSED(p_0);
@@ -216,10 +212,8 @@ class discretized_lti_sys : public named_object {
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template <typename MatrixC, typename MatrixD>
+  template <WritableMatrix MatrixC, WritableMatrix MatrixD>
   void get_output_function_blocks(MatrixC& aC, MatrixD& aD) const {
-    static_assert(is_writable_matrix_v<MatrixC>);
-    static_assert(is_writable_matrix_v<MatrixD>);
     aC = Cd;
     aD = Dd;
   }
@@ -229,14 +223,12 @@ class discretized_lti_sys : public named_object {
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template <typename StateSpaceType, typename MatrixC, typename MatrixD>
+  template <typename StateSpaceType, WritableMatrix MatrixC, WritableMatrix MatrixD>
   void get_output_function_blocks(MatrixC& aC, MatrixD& aD,
                                   const StateSpaceType&,
                                   const time_type& t = time_type(),
                                   const point_type& p = point_type(),
                                   const input_type& u = input_type()) const {
-    static_assert(is_writable_matrix_v<MatrixC>);
-    static_assert(is_writable_matrix_v<MatrixD>);
     RK_UNUSED(t);
     RK_UNUSED(p);
     RK_UNUSED(u);

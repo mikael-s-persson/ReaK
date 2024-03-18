@@ -42,9 +42,10 @@
 
 #include "ReaK/control/systems/discrete_linear_sss_concept.h"
 #include "ReaK/control/systems/linear_ss_system_concept.h"
+#include "ReaK/math/lin_alg/mat_traits.h"
 
+#include <concepts>
 #include <type_traits>
-#include "boost/concept_check.hpp"
 
 namespace ReaK::ctrl {
 
@@ -53,41 +54,36 @@ namespace ReaK::ctrl {
  * in addition to those of a normal state-space system (ss_system_traits and discrete_sss_traits).
  * \tparam InvariantSystem The state-space system type for which the traits are sought.
  */
-template <typename InvariantSystem>
+template <typename T>
 struct invariant_system_traits {
   /** This type defines the state-vector type for the system. */
-  using point_type = typename InvariantSystem::point_type;
+  using point_type = typename T::point_type;
 
   /** This type describes time. */
-  using time_type = typename InvariantSystem::time_type;
+  using time_type = typename T::time_type;
 
   /** This type describes the input vector. */
-  using input_type = typename InvariantSystem::input_type;
+  using input_type = typename T::input_type;
   /** This type describes the output vector. */
-  using output_type = typename InvariantSystem::output_type;
+  using output_type = typename T::output_type;
 
   /** This type describes the invariant output error vector. */
-  using invariant_error_type = typename InvariantSystem::invariant_error_type;
+  using invariant_error_type = typename T::invariant_error_type;
   /** This type describes the invariant state-correction vector. */
-  using invariant_correction_type =
-      typename InvariantSystem::invariant_correction_type;
+  using invariant_correction_type = typename T::invariant_correction_type;
   /** This type describes the invariant frame (matrix, usually orthogonal, but not required to be). */
-  using invariant_frame_type = typename InvariantSystem::invariant_frame_type;
+  using invariant_frame_type = typename T::invariant_frame_type;
 
   /** This constant defines the dimensions of the state vector (0 if not known at compile-time). */
-  static constexpr std::size_t dimensions = InvariantSystem::dimensions;
+  static constexpr std::size_t dimensions = T::dimensions;
   /** This constant defines the dimensions of the input vector (0 if not known at compile-time). */
-  static constexpr std::size_t input_dimensions =
-      InvariantSystem::input_dimensions;
+  static constexpr std::size_t input_dimensions = T::input_dimensions;
   /** This constant defines the dimensions of the output vector (0 if not known at compile-time). */
-  static constexpr std::size_t output_dimensions =
-      InvariantSystem::output_dimensions;
+  static constexpr std::size_t output_dimensions = T::output_dimensions;
   /** This constant defines the dimensions of the output error vector (0 if not known at compile-time). */
-  static constexpr std::size_t invariant_error_dimensions =
-      InvariantSystem::invariant_error_dimensions;
+  static constexpr std::size_t invariant_error_dimensions = T::invariant_error_dimensions;
   /** This constant defines the dimensions of the state correction vector (0 if not known at compile-time). */
-  static constexpr std::size_t invariant_correction_dimensions =
-      InvariantSystem::invariant_correction_dimensions;
+  static constexpr std::size_t invariant_correction_dimensions = T::invariant_correction_dimensions;
 };
 
 /**
@@ -122,46 +118,28 @@ struct invariant_system_traits {
  *
  * ic = sys.get_correction_dimensions();  The state-space system (sys) can deliver the dimensions count (i) for the
  *corrections to the states of the system.
- *
- * \tparam InvariantDiscreteSystem The state-space system to be checked for compliance to this concept.
- * \tparam StateSpaceType The state-space topology type with which the invariant system must be compatible.
  */
-template <typename InvariantDiscreteSystem, typename StateSpaceType>
-struct InvariantDiscreteSystemConcept
-    : DiscreteLinearSSSConcept<InvariantDiscreteSystem, StateSpaceType,
-                               DiscreteLinearizedSystemType> {
-  typename invariant_system_traits<
-      InvariantDiscreteSystem>::invariant_error_type e;
-  typename invariant_system_traits<
-      InvariantDiscreteSystem>::invariant_correction_type c;
-  typename invariant_system_traits<
-      InvariantDiscreteSystem>::invariant_frame_type W;
+template <typename T, typename StateSpace>
+concept InvariantDiscreteSystem = DiscreteLinearSSS<T, StateSpace, DiscreteLinearizedSystemType> &&
+  requires (const T& sys, const StateSpace& space,
+            typename discrete_sss_traits<T>::point_type p,
+            typename discrete_sss_traits<T>::input_type u,
+            typename discrete_sss_traits<T>::time_type t,
+            typename discrete_sss_traits<T>::output_type y,
+            typename discrete_linear_sss_traits<T>::matrixC_type C,
+            typename invariant_system_traits<T>::invariant_error_type e,
+            typename invariant_system_traits<T>::invariant_correction_type c,
+            typename invariant_system_traits<T>::invariant_frame_type W) {
+    e = sys.get_invariant_error(space, p, u, y, t);
+    c = ReaK::from_vect<decltype(c)>(transpose_view(C) *
+                                 ReaK::to_vect<mat_value_type_t<decltype(C)>>(e));
+    p = sys.apply_correction(space, p, c, u, t);
+    W = sys.get_invariant_prior_frame(space, p, p, u, t);
+    W = sys.get_invariant_posterior_frame(space, p, p, u, t);
 
-  BOOST_CONCEPT_USAGE(InvariantDiscreteSystemConcept) {
-    using ReaK::from_vect;
-    using ReaK::to_vect;
-    using InvCorr = typename invariant_system_traits<
-        InvariantDiscreteSystem>::invariant_correction_type;
-    using ValueType = typename mat_traits<typename invariant_system_traits<
-        InvariantDiscreteSystem>::invariant_frame_type>::value_type;
-
-    this->e = this->sys.get_invariant_error(this->state_space, this->p, this->u,
-                                            this->y, this->t);
-    this->c = from_vect<InvCorr>(transpose_view(this->C) *
-                                 to_vect<ValueType>(this->e));
-    this->p = this->sys.apply_correction(this->state_space, this->p, this->c,
-                                         this->u, this->t);
-    this->W = this->sys.get_invariant_prior_frame(this->state_space, this->p,
-                                                  this->p, this->u, this->t);
-    this->W = this->sys.get_invariant_posterior_frame(
-        this->state_space, this->p, this->p, this->u, this->t);
-
-    std::size_t ie = this->sys.get_invariant_error_dimensions();
-    RK_UNUSED(ie);
-    std::size_t ic = this->sys.get_correction_dimensions();
-    RK_UNUSED(ic);
-  }
-};
+    { sys.get_invariant_error_dimensions() } -> std::integral;
+    { sys.get_correction_dimensions() } -> std::integral;
+  };
 
 /**
  * This concept class template defines the requirements for a continuous-time state-space system to
@@ -189,47 +167,26 @@ struct InvariantDiscreteSystemConcept
  *
  * ic = sys.get_correction_dimensions();  The state-space system (sys) can deliver the dimensions count (i) for the
  *corrections to the states of the system.
- *
- * \tparam InvariantContinuousSystem The state-space system to be checked for compliance to this concept.
- * \tparam StateSpaceType The state-space topology type with which the invariant system must be compatible.
  */
-template <typename InvariantContinuousSystem, typename StateSpaceType>
-struct InvariantContinuousSystemConcept
-    : LinearSSSystemConcept<InvariantContinuousSystem, StateSpaceType,
-                            LinearizedSystemType> {
-  typename invariant_system_traits<
-      InvariantContinuousSystem>::invariant_error_type e;
-  typename invariant_system_traits<
-      InvariantContinuousSystem>::invariant_correction_type c;
+template <typename T, typename StateSpace>
+concept InvariantContinuousSystem = LinearSSSystem<T, StateSpace, LinearizedSystemType> &&
+  requires (const T& sys, const StateSpace& space,
+            typename ss_system_traits<T>::point_type p,
+            typename ss_system_traits<T>::input_type u,
+            typename ss_system_traits<T>::time_type t,
+            typename ss_system_traits<T>::point_derivative_type dp_dt,
+            typename ss_system_traits<T>::output_type y,
+            typename linear_ss_system_traits<T>::matrixC_type C,
+            typename invariant_system_traits<T>::invariant_error_type e,
+            typename invariant_system_traits<T>::invariant_correction_type c) {
+    e = sys.get_invariant_error(space, p, u, y, t);
+    c = ReaK::from_vect<decltype(c)>(transpose_view(C) *
+                                 ReaK::to_vect<mat_value_type_t<decltype(C)>>(e));
+    dp_dt = sys.apply_correction(space, p, dp_dt, c, u, t);
 
-  BOOST_CONCEPT_USAGE(InvariantContinuousSystemConcept) {
-    using ReaK::from_vect;
-    using ReaK::to_vect;
-    using InvCorr = typename invariant_system_traits<
-        InvariantContinuousSystem>::invariant_correction_type;
-    using ValueType = typename mat_traits<typename invariant_system_traits<
-        InvariantContinuousSystem>::invariant_frame_type>::value_type;
-
-    this->e = this->sys.get_invariant_error(this->state_space, this->p, this->u,
-                                            this->y, this->t);
-    this->c = from_vect<InvCorr>(transpose_view(this->C) *
-                                 to_vect<ValueType>(this->e));
-    this->dp_dt = this->sys.apply_correction(
-        this->state_space, this->p, this->dp_dt, this->c, this->u, this->t);
-
-    std::size_t ie = this->sys.get_invariant_error_dimensions();
-    RK_UNUSED(ie);
-    std::size_t ic = this->sys.get_correction_dimensions();
-    RK_UNUSED(ic);
-  }
-};
-
-template <typename StateSpaceSystem>
-struct is_invariant_system : std::false_type {};
-
-template <typename StateSpaceSystem>
-static constexpr bool is_invariant_system_v =
-    is_invariant_system<StateSpaceSystem>::value;
+    { sys.get_invariant_error_dimensions() } -> std::integral;
+    { sys.get_correction_dimensions() } -> std::integral;
+  };
 
 }  // namespace ReaK::ctrl
 

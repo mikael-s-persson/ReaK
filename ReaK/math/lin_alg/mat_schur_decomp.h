@@ -37,6 +37,7 @@
 #define REAK_MATH_LIN_ALG_MAT_SCHUR_DECOMP_H_
 
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include "ReaK/math/lin_alg/mat_hess_decomp.h"
@@ -841,9 +842,6 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 /**
  * Solves for the eigen-values of a matrix, using the symmetric QR algorithm (Golub and vanLoan Alg.-8.3.3).
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A writable matrix type.
  * \param A square, symmetric matrix.
  * \param Q holds as output, the unitary square matrix Q.
  * \param D holds as output, the diagonal matrix D in A = Q D Q^T.
@@ -854,12 +852,9 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, WritableMatrix Matrix3>
 void eigensolve_SymQR(const Matrix1& A, Matrix2& Q, Matrix3& D,
                       mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
-  static_assert(is_writable_matrix_v<Matrix3>);
   if (A.get_row_count() != A.get_col_count()) {
     throw std::range_error(
         "Symmetric QR algorithm is only possible on a square (symmetric) "
@@ -868,7 +863,7 @@ void eigensolve_SymQR(const Matrix1& A, Matrix2& Q, Matrix3& D,
 
   Q = mat<mat_value_type_t<Matrix2>, mat_structure::identity>(
       A.get_row_count());
-  if constexpr (is_fully_writable_matrix_v<Matrix3>) {
+  if constexpr (FullyWritableMatrix<Matrix3>) {
     D = A;
     detail::symmetric_QRalg_impl(D, &Q, NumTol);
   } else {
@@ -881,8 +876,6 @@ void eigensolve_SymQR(const Matrix1& A, Matrix2& Q, Matrix3& D,
 /**
  * Solves for the eigen-values of a matrix, using the symmetric QR algorithm (Golub and vanLoan Alg.-8.3.3).
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A writable matrix type.
  * \param A square, symmetric matrix.
  * \param D holds as output, the diagonal matrix D in A = Q D Q^T.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
@@ -892,18 +885,16 @@ void eigensolve_SymQR(const Matrix1& A, Matrix2& Q, Matrix3& D,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2>
 void eigensolve_SymQR(const Matrix1& A, Matrix2& D,
                       mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
   if (A.get_row_count() != A.get_col_count()) {
     throw std::range_error(
         "Symmetric QR algorithm is only possible on a square (symmetric) "
         "matrix!");
   }
 
-  if constexpr (is_fully_writable_matrix_v<Matrix2>) {
+  if constexpr (FullyWritableMatrix<Matrix2>) {
     D = A;
     detail::symmetric_QRalg_impl(
         D,
@@ -925,8 +916,6 @@ void eigensolve_SymQR(const Matrix1& A, Matrix2& D,
  * Inverses a matrix, using the symmetric QR algorithm for eigenvalues (Golub and vanLoan Alg.-8.3.3).
  * Note that this function will output the pseudo-inverse if there are any zero eigenvalues.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A writable matrix type.
  * \param A square, symmetric matrix.
  * \param A_inv holds as output, the (pseudo-)inverse of matrix A.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
@@ -936,11 +925,9 @@ void eigensolve_SymQR(const Matrix1& A, Matrix2& D,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2>
 void pseudoinvert_SymQR(const Matrix1& A, Matrix2& A_inv,
                         mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
   using ValueType = mat_value_type_t<Matrix1>;
   using std::abs;
   if (A.get_row_count() != A.get_col_count()) {
@@ -969,8 +956,6 @@ void pseudoinvert_SymQR(const Matrix1& A, Matrix2& A_inv,
  * Inverses a matrix, using the symmetric QR algorithm for eigenvalues (Golub and vanLoan Alg.-8.3.3).
  * Note that this function will output the pseudo-inverse if there are any zero eigenvalues.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A writable matrix type.
  * \param A square, symmetric matrix.
  * \param B holds, as input, the RHS of the linear system of equations,
  *          and, as output, the least-square solution of the system.
@@ -981,11 +966,9 @@ void pseudoinvert_SymQR(const Matrix1& A, Matrix2& A_inv,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2>
 void linsolve_SymQR(const Matrix1& A, Matrix2& B,
                     mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
   using ValueType = mat_value_type_t<Matrix1>;
   using std::abs;
   if (A.get_row_count() != A.get_col_count()) {
@@ -1030,7 +1013,6 @@ struct SymQR_linsolver {
 /**
  * Solves for the eigen-values of a matrix, using the symmetric QR algorithm (Golub and vanLoan Alg.-8.3.3).
  *
- * \tparam Matrix1 A readable matrix type.
  * \param A square, symmetric matrix.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
@@ -1039,10 +1021,9 @@ struct SymQR_linsolver {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1>
+template <ReadableMatrix Matrix1>
 mat_value_type<Matrix1> condition_number_SymQR(
     const Matrix1& A, mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
   using ValueType = mat_value_type_t<Matrix1>;
   using std::abs;
   if (A.get_row_count() != A.get_col_count()) {
@@ -1076,9 +1057,6 @@ mat_value_type<Matrix1> condition_number_SymQR(
 /**
  * Performs the Real Schur decomposition on a matrix, using the Francis QR-step method.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param Q holds as output, the unitary square matrix Q.
  * \param T holds as output, the quasi-upper-triangular matrix T in A = Q T Q^T.
@@ -1089,12 +1067,9 @@ mat_value_type<Matrix1> condition_number_SymQR(
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, FullyWritableMatrix Matrix3>
 void decompose_RealSchur(const Matrix1& A, Matrix2& Q, Matrix3& T,
                          mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
-  static_assert(is_fully_writable_matrix_v<Matrix3>);
   if (A.get_row_count() != A.get_col_count()) {
     throw std::range_error(
         "Real Schur decomposition is only possible on a square matrix!");
@@ -1109,8 +1084,6 @@ void decompose_RealSchur(const Matrix1& A, Matrix2& Q, Matrix3& T,
 /**
  * Performs the Real Schur decomposition on a matrix, using the Francis QR-step method.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param T holds as output, the quasi-upper-triangular matrix T in A = Q T Q^T.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
@@ -1120,11 +1093,9 @@ void decompose_RealSchur(const Matrix1& A, Matrix2& Q, Matrix3& T,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2>
 void decompose_RealSchur(const Matrix1& A, Matrix2& T,
                          mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
   if (A.get_row_count() != A.get_col_count()) {
     throw std::range_error(
         "Real Schur decomposition is only possible on a square matrix!");
@@ -1137,12 +1108,6 @@ void decompose_RealSchur(const Matrix1& A, Matrix2& T,
 /**
  * Performs the Generalized Real Schur decomposition on a matrix, using the QZ-step method.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A fully-writable matrix type.
- * \tparam Matrix4 A fully-writable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \tparam Matrix6 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param B square matrix with row-count == column-count.
  * \param Q holds as output, the unitary square matrix Q.
@@ -1156,17 +1121,11 @@ void decompose_RealSchur(const Matrix1& A, Matrix2& T,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5, typename Matrix6>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, FullyWritableMatrix Matrix3,
+          FullyWritableMatrix Matrix4, FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6>
 void decompose_GenRealSchur(const Matrix1& A, const Matrix2& B, Matrix3& Q,
                             Matrix4& Z, Matrix5& T, Matrix6& R,
                             mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_fully_writable_matrix_v<Matrix3>);
-  static_assert(is_fully_writable_matrix_v<Matrix4>);
-  static_assert(is_fully_writable_matrix_v<Matrix5>);
-  static_assert(is_fully_writable_matrix_v<Matrix6>);
   if ((A.get_row_count() != A.get_col_count()) &&
       (B.get_row_count() != B.get_col_count())) {
     throw std::range_error(
@@ -1186,10 +1145,6 @@ void decompose_GenRealSchur(const Matrix1& A, const Matrix2& B, Matrix3& Q,
 /**
  * Performs the Generalized Real Schur decomposition on a matrix, using the QZ-step method.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A fully-writable matrix type.
- * \tparam Matrix4 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param B square matrix with row-count == column-count.
  * \param T holds as output, the quasi-upper-triangular matrix T in A = Q T Z^T.
@@ -1201,15 +1156,11 @@ void decompose_GenRealSchur(const Matrix1& A, const Matrix2& B, Matrix3& Q,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, FullyWritableMatrix Matrix3,
+          FullyWritableMatrix Matrix4>
 void decompose_GenRealSchur(const Matrix1& A, const Matrix2& B, Matrix3& T,
                             Matrix4& R,
                             mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_fully_writable_matrix_v<Matrix3>);
-  static_assert(is_fully_writable_matrix_v<Matrix4>);
   if ((A.get_row_count() != A.get_col_count()) &&
       (B.get_row_count() != B.get_col_count())) {
     throw std::range_error(

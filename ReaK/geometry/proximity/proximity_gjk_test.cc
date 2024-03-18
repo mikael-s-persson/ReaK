@@ -127,113 +127,113 @@ struct proximity_solver {
     using std::sin;
 
     if (mShape1->getObjectType() == geom::box::getStaticObjectType()) {
-      std::shared_ptr<geom::box> bx1 =
+      std::shared_ptr<geom::box> bx_a =
           rtti::rk_dynamic_ptr_cast<geom::box>(mShape1);
-      pose_3D<double> bx1_pose = bx1->getPose().getGlobalPose();
+      pose_3D<double> bx_a_pose = bx_a->getPose().getGlobalPose();
       if (mShape2->getObjectType() == geom::box::getStaticObjectType()) {
         // box-box case.
-        auto bx2 = rtti::rk_dynamic_ptr_cast<geom::box>(mShape2);
-        pose_3D<double> bx2_pose = bx2->getPose().getGlobalPose();
+        auto bx_b = rtti::rk_dynamic_ptr_cast<geom::box>(mShape2);
+        pose_3D<double> bx_b_pose = bx_b->getPose().getGlobalPose();
 
-        std::cout << "Checking proximity between Box '" << bx1->getName()
-                  << "' and Box '" << bx2->getName() << "'..." << std::endl;
+        std::cout << "Checking proximity between Box '" << bx_a->getName()
+                  << "' and Box '" << bx_b->getName() << "'..." << std::endl;
 
         result =
-            geom::findProximityByGJKEPA(geom::box_support_func(*bx1, bx1_pose),
-                                        geom::box_support_func(*bx2, bx2_pose));
+            geom::findProximityByGJKEPA(geom::box_support_func(*bx_a, bx_a_pose),
+                                        geom::box_support_func(*bx_b, bx_b_pose));
 
         v1 = mShape1->getPose().rotateToGlobal(
             mShape1->getPose().transformFromGlobal(result.mPoint1));
         v2 = mShape2->getPose().rotateToGlobal(
             mShape2->getPose().transformFromGlobal(result.mPoint2));
 
-        geom::box_boundary_func bf1(*bx1, bx1_pose);
-        geom::box_boundary_func bf2(*bx2, bx2_pose);
-        v1 = bf1(v1);
-        v2 = bf2(v2);
+        geom::box_boundary_func bf_a(*bx_a, bx_a_pose);
+        geom::box_boundary_func bf_b(*bx_b, bx_b_pose);
+        v1 = bf_a(v1);
+        v2 = bf_b(v2);
 
         std::cout << " which has brute-force approximate min-dist of: "
-                  << get_brute_force_dist(bf1, bf2) << std::endl;
+                  << get_brute_force_dist(bf_a, bf_b) << std::endl;
 
       } else {
         // box-cylinder case.
-        auto cy2 = rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape2);
-        pose_3D<double> cy2_pose = cy2->getPose().getGlobalPose();
+        auto cy_b = rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape2);
+        pose_3D<double> cy_b_pose = cy_b->getPose().getGlobalPose();
 
-        std::cout << "Checking proximity between Box '" << bx1->getName()
-                  << "' and Cylinder '" << cy2->getName() << "'..."
+        std::cout << "Checking proximity between Box '" << bx_a->getName()
+                  << "' and Cylinder '" << cy_b->getName() << "'..."
                   << std::endl;
 
         result = geom::findProximityByGJKEPA(
-            geom::box_support_func(*bx1, bx1_pose),
-            geom::cylinder_support_func(*cy2, cy2_pose));
+            geom::box_support_func(*bx_a, bx_a_pose),
+            geom::cylinder_support_func(*cy_b, cy_b_pose));
 
         v1 = mShape1->getPose().rotateToGlobal(
             mShape1->getPose().transformFromGlobal(result.mPoint1));
         v2 = mShape2->getPose().rotateToGlobal(
             mShape2->getPose().transformFromGlobal(result.mPoint2));
 
-        geom::box_boundary_func bf1(*bx1, bx1_pose);
-        geom::cylinder_boundary_func bf2(*cy2, cy2_pose);
-        v1 = bf1(v1);
-        v2 = bf2(v2);
+        geom::box_boundary_func bf_a(*bx_a, bx_a_pose);
+        geom::cylinder_boundary_func bf_b(*cy_b, cy_b_pose);
+        v1 = bf_a(v1);
+        v2 = bf_b(v2);
 
         std::cout << " which has brute-force approximate min-dist of: "
-                  << get_brute_force_dist(bf1, bf2) << std::endl;
+                  << get_brute_force_dist(bf_a, bf_b) << std::endl;
       }
     } else {
-      auto cy1 = rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape1);
-      pose_3D<double> cy1_pose = cy1->getPose().getGlobalPose();
+      auto cy_a = rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape1);
+      pose_3D<double> cy_a_pose = cy_a->getPose().getGlobalPose();
       if (mShape2->getObjectType() == geom::box::getStaticObjectType()) {
         // cylinder-box case.
-        auto bx2 = rtti::rk_dynamic_ptr_cast<geom::box>(mShape2);
-        pose_3D<double> bx2_pose = bx2->getPose().getGlobalPose();
+        auto bx_b = rtti::rk_dynamic_ptr_cast<geom::box>(mShape2);
+        pose_3D<double> bx_b_pose = bx_b->getPose().getGlobalPose();
 
-        std::cout << "Checking proximity between Cylinder '" << cy1->getName()
-                  << "' and Box '" << bx2->getName() << "'..." << std::endl;
+        std::cout << "Checking proximity between Cylinder '" << cy_a->getName()
+                  << "' and Box '" << bx_b->getName() << "'..." << std::endl;
 
         result = geom::findProximityByGJKEPA(
-            geom::cylinder_support_func(*cy1, cy1_pose),
-            geom::box_support_func(*bx2, bx2_pose));
+            geom::cylinder_support_func(*cy_a, cy_a_pose),
+            geom::box_support_func(*bx_b, bx_b_pose));
 
         v1 = mShape1->getPose().rotateToGlobal(
             mShape1->getPose().transformFromGlobal(result.mPoint1));
         v2 = mShape2->getPose().rotateToGlobal(
             mShape2->getPose().transformFromGlobal(result.mPoint2));
 
-        geom::cylinder_boundary_func bf1(*cy1, cy1_pose);
-        geom::box_boundary_func bf2(*bx2, bx2_pose);
-        v1 = bf1(v1);
-        v2 = bf2(v2);
+        geom::cylinder_boundary_func bf_a(*cy_a, cy_a_pose);
+        geom::box_boundary_func bf_b(*bx_b, bx_b_pose);
+        v1 = bf_a(v1);
+        v2 = bf_b(v2);
 
         std::cout << " which has brute-force approximate min-dist of: "
-                  << get_brute_force_dist(bf1, bf2) << std::endl;
+                  << get_brute_force_dist(bf_a, bf_b) << std::endl;
 
       } else {
         // cylinder-cylinder case.
-        auto cy2 = rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape2);
-        pose_3D<double> cy2_pose = cy2->getPose().getGlobalPose();
+        auto cy_b = rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape2);
+        pose_3D<double> cy_b_pose = cy_b->getPose().getGlobalPose();
 
-        std::cout << "Checking proximity between Cylinder '" << cy1->getName()
-                  << "' and Cylinder '" << cy2->getName() << "'..."
+        std::cout << "Checking proximity between Cylinder '" << cy_a->getName()
+                  << "' and Cylinder '" << cy_b->getName() << "'..."
                   << std::endl;
 
         result = geom::findProximityByGJKEPA(
-            geom::cylinder_support_func(*cy1, cy1_pose),
-            geom::cylinder_support_func(*cy2, cy2_pose));
+            geom::cylinder_support_func(*cy_a, cy_a_pose),
+            geom::cylinder_support_func(*cy_b, cy_b_pose));
 
         v1 = mShape1->getPose().rotateToGlobal(
             mShape1->getPose().transformFromGlobal(result.mPoint1));
         v2 = mShape2->getPose().rotateToGlobal(
             mShape2->getPose().transformFromGlobal(result.mPoint2));
 
-        geom::cylinder_boundary_func bf1(*cy1, cy1_pose);
-        geom::cylinder_boundary_func bf2(*cy2, cy2_pose);
-        v1 = bf1(v1);
-        v2 = bf2(v2);
+        geom::cylinder_boundary_func bf_a(*cy_a, cy_a_pose);
+        geom::cylinder_boundary_func bf_b(*cy_b, cy_b_pose);
+        v1 = bf_a(v1);
+        v2 = bf_b(v2);
 
         std::cout << " which has brute-force approximate min-dist of: "
-                  << get_brute_force_dist(bf1, bf2) << std::endl;
+                  << get_brute_force_dist(bf_a, bf_b) << std::endl;
       }
     }
 

@@ -50,7 +50,7 @@ namespace ReaK {
  * \tparam Vector A vector type (at least a readable vector type).
  * \tparam Alignment An enum describing the alignment of the matrix.
  */
-template <typename Vector,
+template <WritableVector Vector,
           mat_alignment::tag Alignment = mat_alignment::column_major>
 class mat_vect_adaptor {};
 
@@ -58,7 +58,7 @@ class mat_vect_adaptor {};
  * This class template is a template for a matrix-vector adaptor with column-major alignment.
  * \tparam Vector A vector type (at least a readable vector type).
  */
-template <typename Vector>
+template <WritableVector Vector>
 class mat_vect_adaptor<Vector, mat_alignment::column_major> {
  public:
   using self = mat_vect_adaptor<Vector, mat_alignment::column_major>;
@@ -146,9 +146,8 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
   /**
    * Standard assignment operator.
    */
-  template <typename Matrix>
-  std::enable_if_t<is_readable_matrix_v<Matrix>, self&> operator=(
-      const Matrix& rhs) {
+  template <ReadableMatrix Matrix>
+  self& operator=(const Matrix& rhs) {
     if ((rhs.get_row_count() != rowCount) ||
         (rhs.get_col_count() != colCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -270,9 +269,8 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
 *Add-and-store operator with standard semantics.
 *\test PASSED
 */
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator+=(const Matrix& M) {
-    BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -289,9 +287,8 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
    * Sub-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator-=(const Matrix& M) {
-    BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -319,9 +316,8 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
    * General Matrix multiplication.
    * \test PASSED
    */
-  template <typename Matrix>
-  std::enable_if_t<is_readable_matrix_v<Matrix>, self&> operator*=(
-      const Matrix& M) {
+  template <ReadableMatrix Matrix>
+  self& operator*=(const Matrix& M) {
     if ((M.get_col_count() != colCount) || (M.get_row_count() != colCount)) {
       throw std::range_error("Matrix Dimension Mismatch.");
     }
@@ -341,7 +337,7 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
   }
 };
 
-template <typename Vector>
+template <WritableVector Vector>
 class mat_vect_adaptor<Vector, mat_alignment::row_major> {
  public:
   using self = mat_vect_adaptor<Vector, mat_alignment::row_major>;
@@ -429,9 +425,8 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
   /**
    * Standard assignment operator.
    */
-  template <typename Matrix>
-  std::enable_if_t<is_readable_matrix_v<Matrix>, self&> operator=(
-      const Matrix& rhs) {
+  template <ReadableMatrix Matrix>
+  self& operator=(const Matrix& rhs) {
     if ((rhs.get_row_count() != rowCount) ||
         (rhs.get_col_count() != colCount)) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -503,9 +498,8 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
    * Add-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator+=(const Matrix& M) {
-    BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -522,9 +516,8 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
    * Sub-and-store operator with standard semantics.
    * \test PASSED
    */
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator-=(const Matrix& M) {
-    BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
     if ((M.get_col_count() != colCount) || (M.get_row_count() != rowCount)) {
       throw std::range_error("Matrix dimension mismatch.");
     }
@@ -552,9 +545,8 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
    * General Matrix multiplication.
    * \test PASSED
    */
-  template <typename Matrix>
-  typename std::enable_if<is_readable_matrix_v<Matrix>, self&>::type operator*=(
-      const Matrix& M) {
+  template <ReadableMatrix Matrix>
+  self& operator*=(const Matrix& M) {
     if ((M.get_col_count() != colCount) || (M.get_row_count() != colCount)) {
       throw std::range_error("Matrix Dimension Mismatch.");
     }
@@ -575,40 +567,13 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
 };
 
 template <typename Vector, mat_alignment::tag Alignment>
-struct is_readable_matrix<mat_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = is_readable_vector_v<Vector>;
-  using type = is_readable_vector<Vector>;
-};
+static constexpr bool is_fully_writable_matrix_v<mat_vect_adaptor<Vector, Alignment>> = WritableVector<Vector>;
 
-template <typename Vector, mat_alignment::tag Alignment>
-struct is_writable_matrix<mat_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = is_writable_vector_v<Vector>;
-  using type = is_writable_vector<Vector>;
-};
-
-template <typename Vector, mat_alignment::tag Alignment>
-struct is_fully_writable_matrix<mat_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = is_writable_vector_v<Vector>;
-  using type = is_writable_vector<Vector>;
-};
-
-template <typename Vector, mat_alignment::tag Alignment>
-struct is_row_resizable_matrix<mat_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = false;
-  using type = is_row_resizable_matrix<mat_vect_adaptor<Vector, Alignment>>;
-};
-
-template <typename Vector, mat_alignment::tag Alignment>
-struct is_col_resizable_matrix<mat_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = false;
-  using type = is_col_resizable_matrix<mat_vect_adaptor<Vector, Alignment>>;
-};
-
-template <typename Vector,
+template <ReadableVector Vector,
           mat_alignment::tag Alignment = mat_alignment::column_major>
 class mat_const_vect_adaptor {};
 
-template <typename Vector>
+template <ReadableVector Vector>
 class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
  public:
   using self = mat_const_vect_adaptor<Vector, mat_alignment::column_major>;
@@ -730,7 +695,7 @@ class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
   }
 };
 
-template <typename Vector>
+template <ReadableVector Vector>
 class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
  public:
   using self = mat_const_vect_adaptor<Vector, mat_alignment::row_major>;
@@ -852,40 +817,7 @@ class mat_const_vect_adaptor<Vector, mat_alignment::row_major> {
   }
 };
 
-template <typename Vector, mat_alignment::tag Alignment>
-struct is_readable_matrix<mat_const_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = is_readable_vector_v<Vector>;
-  using type = is_readable_vector<Vector>;
-};
-
-template <typename Vector, mat_alignment::tag Alignment>
-struct is_writable_matrix<mat_const_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = false;
-  using type = is_writable_matrix<mat_const_vect_adaptor<Vector, Alignment>>;
-};
-
-template <typename Vector, mat_alignment::tag Alignment>
-struct is_fully_writable_matrix<mat_const_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = false;
-  using type =
-      is_fully_writable_matrix<mat_const_vect_adaptor<Vector, Alignment>>;
-};
-
-template <typename Vector, mat_alignment::tag Alignment>
-struct is_row_resizable_matrix<mat_const_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = false;
-  using type =
-      is_row_resizable_matrix<mat_const_vect_adaptor<Vector, Alignment>>;
-};
-
-template <typename Vector, mat_alignment::tag Alignment>
-struct is_col_resizable_matrix<mat_const_vect_adaptor<Vector, Alignment>> {
-  static constexpr bool value = false;
-  using type =
-      is_col_resizable_matrix<mat_const_vect_adaptor<Vector, Alignment>>;
-};
-
-template <typename Vector>
+template <WritableVector Vector>
 struct mat_vect_adaptor_factory {
   Vector& v;
   explicit mat_vect_adaptor_factory(Vector& aV) : v(aV) {}
@@ -901,7 +833,7 @@ struct mat_vect_adaptor_factory {
   }
 };
 
-template <typename Vector>
+template <ReadableVector Vector>
 struct mat_const_vect_adaptor_factory {
   const Vector& v;
   explicit mat_const_vect_adaptor_factory(const Vector& aV) : v(aV) {}
@@ -930,9 +862,8 @@ struct mat_const_vect_adaptor_factory {
  *
  * \tparam Vector A readable vector type.
  */
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>, mat_vect_adaptor_factory<Vector>>
-make_mat(Vector& V) {
+template <WritableVector Vector>
+mat_vect_adaptor_factory<Vector> make_mat(Vector& V) {
   return mat_vect_adaptor_factory<Vector>(V);
 }
 
@@ -949,10 +880,8 @@ make_mat(Vector& V) {
  *
  * \tparam Vector A readable vector type.
  */
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>,
-                 mat_const_vect_adaptor_factory<Vector>>
-make_mat(const Vector& V) {
+template <ReadableVector Vector>
+mat_const_vect_adaptor_factory<Vector> make_mat(const Vector& V) {
   return mat_const_vect_adaptor_factory<Vector>(V);
 }
 

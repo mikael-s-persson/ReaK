@@ -180,8 +180,6 @@ void simplex_method_loop_impl(const Matrix& A, Matrix& B, const Vector& c,
  *   Chvatal, Vasek, Linear Programming, W. H. Freeman and Company, 1983.
  * \test Must create a unit-test for this. So far, this method fails the tests.
  *
- * \tparam Matrix A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
- * \tparam Vector A vector type, should model the WritableVectorConcept.
  * \param A The constraint matrix of dimension M*N.
  * \param b The b vector of dimension M.
  * \param c The cost vector of dimension N.
@@ -194,7 +192,7 @@ void simplex_method_loop_impl(const Matrix& A, Matrix& B, const Vector& c,
  *
  * \author Mikael Persson
  */
-template <typename Matrix, typename Vector>
+template <FullyWritableMatrix Matrix, WritableVector Vector>
 void simplex_method(
     const Matrix& A, const Vector& b, const Vector& c, Vector& x0,
     const Vector& l, const Vector& u,

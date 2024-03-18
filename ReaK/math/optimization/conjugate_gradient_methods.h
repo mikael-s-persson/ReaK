@@ -36,6 +36,7 @@
 
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
+#include "ReaK/math/lin_alg/vect_concepts.h"
 
 #include <type_traits>
 
@@ -92,7 +93,7 @@ struct fletcher_reeves_beta {
    */
   template <typename T>
   auto operator()(const T& dx, const T& dx_prev, const T& p) const {
-    if constexpr (is_readable_vector_v<T>) {
+    if constexpr (ReadableVector<T>) {
       return detail::fletcher_reeves_beta_impl<vect_value_type_t<T>>(
           dx, dx_prev, p);
     } else {
@@ -115,7 +116,7 @@ struct polak_ribiere_beta {
    */
   template <typename T>
   auto operator()(const T& dx, const T& dx_prev, const T& p) const {
-    if constexpr (is_readable_vector_v<T>) {
+    if constexpr (ReadableVector<T>) {
       return detail::polak_ribiere_beta_impl<vect_value_type_t<T>>(dx, dx_prev,
                                                                    p);
     } else {
@@ -138,7 +139,7 @@ struct hestenes_stiefel_beta {
    */
   template <typename T>
   auto operator()(const T& dx, const T& dx_prev, const T& p) const {
-    if constexpr (is_readable_vector_v<T>) {
+    if constexpr (ReadableVector<T>) {
       return detail::hestenes_stiefel_beta_impl<vect_value_type_t<T>>(
           dx, dx_prev, p);
     } else {
@@ -162,7 +163,7 @@ struct dai_yuan_beta {
    */
   template <typename T>
   auto operator()(const T& dx, const T& dx_prev, const T& p) const {
-    if constexpr (is_readable_vector_v<T>) {
+    if constexpr (ReadableVector<T>) {
       return detail::dai_yuan_beta_impl<vect_value_type_t<T>>(dx, dx_prev, p);
     } else {
       return detail::dai_yuan_beta_impl<T>(dx, dx_prev, p);
@@ -187,7 +188,7 @@ struct hager_zhang_beta {
    */
   template <typename T>
   auto operator()(const T& dx, const T& dx_prev, const T& p) const {
-    if constexpr (is_readable_vector_v<T>) {
+    if constexpr (ReadableVector<T>) {
       return detail::hager_zhang_beta_impl<vect_value_type_t<T>>(dx, dx_prev,
                                                                  p);
     } else {
@@ -203,20 +204,16 @@ struct hager_zhang_beta {
  * is an exact quadratic, use the non-linear version if it is otherwise. Also, if the positive definite
  * matrix A is ill-conditioned, then it is preferrable to use the pre-conditionned version (see overload).
  * \test Must create a unit-test for this.
- * \tparam Vector A vector type.
- * \tparam Matrix A matrix type that represents that positive-definite symmetric matrix.
  * \param b The left-hand-side of the "Ax = b" equation.
  * \param A A positive definite symmetric matrix (should be well conditioned).
  * \param x The initial guess of the solution, and stores as output the final solution.
  * \param max_iter The maximum number of iterations to perform.
  * \param abs_tol The tolerance to be acheived by the residual error in the equation.
  */
-template <typename Vector, typename Matrix>
+template <WritableVector Vector, ReadableMatrix Matrix>
 void linear_conj_grad_method(
     const Vector& b, const Matrix& A, Vector& x, unsigned int max_iter = 100,
     vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6)) {
-  static_assert(is_writable_vector_v<Vector>);
-  static_assert(is_readable_matrix_v<Matrix>);
   using ValueType = vect_value_type_t<Vector>;
   using std::sqrt;
 
@@ -253,8 +250,6 @@ void linear_conj_grad_method(
  * matrix M_inv which pre-conditions the residual vector to improve the convergence, M_inv should be
  * chosen such that the condition number of the product "M_inv * A" is low (approaching 1.0).
  * \test Must create a unit-test for this.
- * \tparam Vector A vector type.
- * \tparam Matrix A matrix type that represents that positive-definite symmetric matrix.
  * \param b The left-hand-side of the "Ax = b" equation.
  * \param A A positive definite symmetric matrix (should be well conditioned).
  * \param M_inv The preconditionning positive definite symmetric matrix, should be chosen such that the condition number
@@ -263,13 +258,11 @@ void linear_conj_grad_method(
  * \param max_iter The maximum number of iterations to perform.
  * \param abs_tol The tolerance to be acheived by the residual error in the equation.
  */
-template <typename Vector, typename Matrix>
+template <WritableVector Vector, ReadableMatrix Matrix>
 void linear_conj_grad_method(
     const Vector& b, const Matrix& A, const Matrix& M_inv, Vector& x,
     unsigned int max_iter = 100,
     vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6)) {
-  static_assert(is_writable_vector_v<Vector>);
-  static_assert(is_readable_matrix_v<Matrix>);
   using ValueType = vect_value_type_t<Vector>;
   using std::sqrt;
 

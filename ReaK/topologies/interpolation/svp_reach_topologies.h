@@ -44,8 +44,8 @@
 #include "ReaK/topologies/spaces/reversible_space_concept.h"
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 
-#include "ReaK/topologies/interpolation/generic_interpolator_factory.h"
-#include "ReaK/topologies/interpolation/interpolated_topologies.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
+#include "ReaK/topologies/spaces/interpolated_topologies.h"
 #include "ReaK/topologies/interpolation/sustained_velocity_pulse.h"
 #include "ReaK/topologies/interpolation/svp_metrics.h"
 #include "ReaK/topologies/interpolation/svp_samplers.h"

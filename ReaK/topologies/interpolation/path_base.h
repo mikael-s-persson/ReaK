@@ -46,16 +46,14 @@ namespace ReaK::pp {
 
 /**
  * This class defines the OOP interface for a path in a topology.
- * \tparam Topology The topology type on which the points and the path can reside, should model the MetricSpaceConcept.
+ * \tparam Space The topology type on which the points and the path can reside.
  */
-template <typename Topology>
+template <MetricSpace Space>
 class path_base : public named_object {
  public:
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
-
-  using topology = Topology;
+  using topology = Space;
   using point_type = typename topology_traits<topology>::point_type;
-  using self = path_base<Topology>;
+  using self = path_base<Space>;
 
  public:
   /**

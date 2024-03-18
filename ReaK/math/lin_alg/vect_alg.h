@@ -275,7 +275,7 @@ class vect {
     if constexpr (is_dynamic_size) {
       if constexpr (std::is_integral_v<U>) {
         q.resize(value_or_size, value_type{});
-      } else if constexpr (is_readable_vector_v<U>) {
+      } else if constexpr (ReadableVector<U>) {
         q.resize(value_or_size.size());
         for (int i = 0; i < q.size(); ++i) {
           q[i] = value_or_size[i];
@@ -289,7 +289,7 @@ class vect {
       for (auto& v : q) {
         v = *p_val++;
       }
-    } else if constexpr (is_readable_vector_v<U>) {
+    } else if constexpr (ReadableVector<U>) {
       if (Size != value_or_size.size()) {
         throw std::range_error("Vector size mismatch.");
       }
@@ -381,13 +381,6 @@ class vect {
   reference operator[](int i) noexcept { return q[i]; }
   const_reference operator[](int i) const noexcept { return q[i]; }
 
-  vect_ref_view<self> operator[](const std::pair<int, int>& r) {
-    return sub(*this)[r];
-  }
-  vect_const_ref_view<self> operator[](const std::pair<int, int>& r) const {
-    return sub(*this)[r];
-  }
-
   reference operator()(int i) noexcept { return q[i]; }
   const_reference operator()(int i) const noexcept { return q[i]; }
 
@@ -398,9 +391,8 @@ class vect {
   self& operator=(const self& V) noexcept(!is_dynamic_size) = default;
   self& operator=(self&& V) noexcept = default;
 
-  template <typename Vector>
+  template <ReadableVector Vector>
   self& operator=(const Vector& rhs) {
-    static_assert(is_readable_vector_v<Vector>);
     if constexpr (is_dynamic_size) {
       q.resize(rhs.size());
     } else {
@@ -757,24 +749,6 @@ oarchive& operator&(oarchive& out,
 }
 }  // namespace serialization
 
-template <typename T, unsigned int Size>
-struct is_readable_vector<vect<T, Size>> {
-  static constexpr bool value = true;
-  using type = is_readable_vector<vect<T, Size>>;
-};
-
-template <typename T, unsigned int Size>
-struct is_writable_vector<vect<T, Size>> {
-  static constexpr bool value = true;
-  using type = is_writable_vector<vect<T, Size>>;
-};
-
-template <typename T, unsigned int Size>
-struct is_resizable_vector<vect<T, Size>> {
-  static constexpr bool value = (Size == 0);
-  using type = is_resizable_vector<vect<T, Size>>;
-};
-
 /*******************************************************************************
                          Basic Constructors
 *******************************************************************************/
@@ -923,32 +897,8 @@ class vect_scalar {
   /// Array indexing operator, accessor for read only.
   const_reference operator[](int i) const noexcept { return data.q; }
 
-  /// Sub-vector operator, accessor for read only.
-  vect_const_ref_view<self> operator[](
-      const std::pair<int, int>& r) const noexcept {
-    return sub(*this)[r];
-  }
-
   /// Array indexing operator, accessor for read only.
   const_reference operator()(int i) const noexcept { return data.q; }
-};
-
-template <typename T, int Size>
-struct is_readable_vector<vect_scalar<T, Size>> {
-  static constexpr bool value = true;
-  using type = is_readable_vector<vect_scalar<T, Size>>;
-};
-
-template <typename T, int Size>
-struct is_writable_vector<vect_scalar<T, Size>> {
-  static constexpr bool value = false;
-  using type = is_writable_vector<vect_scalar<T, Size>>;
-};
-
-template <typename T, int Size>
-struct is_resizable_vector<vect_scalar<T, Size>> {
-  static constexpr bool value = (Size == 0);
-  using type = is_resizable_vector<vect_scalar<T, Size>>;
 };
 
 template <typename T, int Size>
@@ -961,9 +911,8 @@ struct vect_copy<vect_scalar<T, Size>> {
 *******************************************************************************/
 
 /// Square magnitude of the vector.
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>, vect_value_type_t<Vector>>
-norm_2_sqr(const Vector& v) noexcept {
+template <ReadableVector Vector>
+auto norm_2_sqr(const Vector& v) noexcept {
   vect_value_type_t<Vector> sum(0.0);
   for (int i = 0; i < v.size(); ++i) {
     sum += v[i] * v[i];
@@ -972,17 +921,15 @@ norm_2_sqr(const Vector& v) noexcept {
 }
 
 /// Magnitude of the vector.
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>, vect_value_type_t<Vector>>
-norm_2(const Vector& v) noexcept {
+template <ReadableVector Vector>
+auto norm_2(const Vector& v) noexcept {
   using std::sqrt;
   return sqrt(norm_2_sqr(v));
 }
 
 /// Infinite norm of the vector.
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>, vect_value_type_t<Vector>>
-norm_inf(const Vector& v) noexcept {
+template <ReadableVector Vector>
+auto norm_inf(const Vector& v) noexcept {
   using std::abs;
   vect_value_type_t<Vector> result(0.0);
   for (int i = 0; i < v.size(); ++i) {
@@ -994,9 +941,8 @@ norm_inf(const Vector& v) noexcept {
 }
 
 /// Square magnitude of the vector.
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>, vect_value_type_t<Vector>>
-norm_1(const Vector& v) noexcept {
+template <ReadableVector Vector>
+auto norm_1(const Vector& v) noexcept {
   using std::abs;
   vect_value_type_t<Vector> sum(0.0);
   for (int i = 0; i < v.size(); ++i) {
@@ -1033,10 +979,8 @@ bool colinear(const Vector1& v1, const Vector2& v2) noexcept {
 *******************************************************************************/
 
 /// Standard add-and-store operator.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_writable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 Vector1&>
-operator+=(Vector1& v1, const Vector2& v2) {
+template <WritableVector Vector1, ReadableVector Vector2>
+Vector1& operator+=(Vector1& v1, const Vector2& v2) {
   if (v1.size() != v2.size()) {
     throw std::range_error("Vector size mismatch.");
   }
@@ -1047,10 +991,8 @@ operator+=(Vector1& v1, const Vector2& v2) {
 }
 
 /// Standard sub-and-store operator.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_writable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 Vector1&>
-operator-=(Vector1& v1, const Vector2& v2) {
+template <WritableVector Vector1, ReadableVector Vector2>
+Vector1& operator-=(Vector1& v1, const Vector2& v2) {
   if (v1.size() != v2.size()) {
     throw std::range_error("Vector size mismatch.");
   }
@@ -1061,10 +1003,8 @@ operator-=(Vector1& v1, const Vector2& v2) {
 }
 
 /// Scalar multiply-and-store operator for gain.
-template <typename T, typename Vector>
-std::enable_if_t<is_writable_vector_v<Vector> && !is_readable_vector_v<T>,
-                 Vector&>
-operator*=(Vector& v, const T& S) noexcept {
+template <WritableVector Vector, std::convertible_to<vect_value_type_t<Vector>> T>
+Vector& operator*=(Vector& v, const T& S) noexcept {
   using ValueType = vect_value_type_t<Vector>;
   for (int i = 0; i < v.size(); ++i) {
     v[i] *= ValueType(S);
@@ -1073,10 +1013,8 @@ operator*=(Vector& v, const T& S) noexcept {
 }
 
 /// Scalar divide-and-store operator for gain.
-template <typename T, typename Vector>
-std::enable_if_t<is_writable_vector_v<Vector> && !is_readable_vector_v<T>,
-                 Vector&>
-operator/=(Vector& v, const T& S) noexcept {
+template <WritableVector Vector, std::convertible_to<vect_value_type_t<Vector>> T>
+Vector& operator/=(Vector& v, const T& S) noexcept {
   using ValueType = vect_value_type_t<Vector>;
   for (int i = 0; i < v.size(); ++i) {
     v[i] /= ValueType(S);
@@ -1085,10 +1023,8 @@ operator/=(Vector& v, const T& S) noexcept {
 }
 
 /// Add two vectors.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_writable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 vect_copy_t<Vector1>>
-operator+(const Vector1& v1, const Vector2& v2) {
+template <ReadableVector Vector1, ReadableVector Vector2>
+vect_copy_t<Vector1> operator+(const Vector1& v1, const Vector2& v2) {
   if (v1.size() != v2.size()) {
     throw std::range_error("Vector size mismatch.");
   }
@@ -1099,9 +1035,8 @@ operator+(const Vector1& v1, const Vector2& v2) {
 }
 
 /// Invert the vector.
-template <typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator-(
-    const Vector& v) {
+template <ReadableVector Vector>
+vect_copy_t<Vector> operator-(const Vector& v) {
   vect_copy_t<Vector> result;
   result = v;
   for (int i = 0; i < v.size(); ++i) {
@@ -1111,10 +1046,8 @@ std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator-(
 }
 
 /// Sub two vectors.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 vect_copy_t<Vector1>>
-operator-(const Vector1& v1, const Vector2& v2) {
+template <ReadableVector Vector1, ReadableVector Vector2>
+vect_copy_t<Vector1> operator-(const Vector1& v1, const Vector2& v2) {
   if (v1.size() != v2.size()) {
     throw std::range_error("Vector size mismatch.");
   }
@@ -1125,10 +1058,8 @@ operator-(const Vector1& v1, const Vector2& v2) {
 }
 
 /// Dot Product.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 vect_value_type_t<Vector1>>
-operator*(const Vector1& v1, const Vector2& v2) {
+template <ReadableVector Vector1, ReadableVector Vector2>
+vect_value_type_t<Vector1> operator*(const Vector1& v1, const Vector2& v2) {
   if (v1.size() != v2.size()) {
     throw std::range_error("Vector size mismatch.");
   }
@@ -1140,11 +1071,8 @@ operator*(const Vector1& v1, const Vector2& v2) {
 }
 
 /// Scalar-vector product.
-template <typename T, typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector> && !is_readable_vector_v<T> &&
-                     !is_readable_matrix_v<T>,
-                 vect_copy_t<Vector>>
-operator*(const Vector& v, const T& S) {
+template <ReadableVector Vector, std::convertible_to<vect_value_type_t<Vector>> T>
+vect_copy_t<Vector> operator*(const Vector& v, const T& S) {
   vect_copy_t<Vector> result;
   result = v;
   result *= S;
@@ -1152,11 +1080,8 @@ operator*(const Vector& v, const T& S) {
 }
 
 /// Scalar-vector product.
-template <typename T, typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector> && !is_readable_vector_v<T> &&
-                     !is_readable_matrix_v<T>,
-                 vect_copy_t<Vector>>
-operator*(const T& S, const Vector& v) {
+template <ReadableVector Vector, std::convertible_to<vect_value_type_t<Vector>> T>
+vect_copy_t<Vector> operator*(const T& S, const Vector& v) {
   vect_copy_t<Vector> result;
   result = v;
   result *= S;
@@ -1164,11 +1089,8 @@ operator*(const T& S, const Vector& v) {
 }
 
 /// Scalar-vector division.
-template <typename T, typename Vector>
-std::enable_if_t<is_readable_vector_v<Vector> && !is_readable_vector_v<T> &&
-                     !is_readable_matrix_v<T>,
-                 vect_copy_t<Vector>>
-operator/(const Vector& v, const T& S) {
+template <ReadableVector Vector, std::convertible_to<vect_value_type_t<Vector>> T>
+vect_copy_t<Vector> operator/(const Vector& v, const T& S) {
   vect_copy_t<Vector> result;
   result = v;
   result /= S;
@@ -1176,10 +1098,8 @@ operator/(const Vector& v, const T& S) {
 }
 
 /// Element-wise product of two vectors.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_writable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 vect_copy_t<Vector1>>
-elem_product(const Vector1& v1, const Vector2& v2) {
+template <ReadableVector Vector1, ReadableVector Vector2>
+vect_copy_t<Vector1> elem_product(const Vector1& v1, const Vector2& v2) {
   if (v1.size() != v2.size()) {
     throw std::range_error("Vector size mismatch.");
   }
@@ -1196,10 +1116,8 @@ elem_product(const Vector1& v1, const Vector2& v2) {
 *******************************************************************************/
 
 /// Equality Comparison operator, component-wise.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 bool>
-operator==(const Vector1& v1, const Vector2& v2) noexcept {
+template <ReadableVector Vector1, ReadableVector Vector2>
+bool operator==(const Vector1& v1, const Vector2& v2) noexcept {
   if (v1.size() != v2.size()) {
     return false;
   }
@@ -1212,10 +1130,8 @@ operator==(const Vector1& v1, const Vector2& v2) noexcept {
 }
 
 /// Inequality Comparison operator, component-wise.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 bool>
-operator!=(const Vector1& v1, const Vector2& v2) noexcept {
+template <ReadableVector Vector1, ReadableVector Vector2>
+bool operator!=(const Vector1& v1, const Vector2& v2) noexcept {
   if (v1.size() != v2.size()) {
     return true;
   }
@@ -1228,34 +1144,26 @@ operator!=(const Vector1& v1, const Vector2& v2) noexcept {
 }
 
 /// Greater-than Comparison operator, Euclidean norm.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 bool>
-operator>(const Vector1& v1, const Vector2& v2) noexcept {
+template <ReadableVector Vector1, ReadableVector Vector2>
+bool operator>(const Vector1& v1, const Vector2& v2) noexcept {
   return (norm_2_sqr(v1) > norm_2_sqr(v2));
 }
 
 /// Smaller-than Comparison operator, Euclidean norm.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 bool>
-operator<(const Vector1& v1, const Vector2& v2) noexcept {
+template <ReadableVector Vector1, ReadableVector Vector2>
+bool operator<(const Vector1& v1, const Vector2& v2) noexcept {
   return (norm_2_sqr(v1) < norm_2_sqr(v2));
 }
 
 /// Greater-or-equal Comparison operator, Euclidean norm.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 bool>
-operator>=(const Vector1& v1, const Vector2& v2) noexcept {
+template <ReadableVector Vector1, ReadableVector Vector2>
+bool operator>=(const Vector1& v1, const Vector2& v2) noexcept {
   return (norm_2_sqr(v1) >= norm_2_sqr(v2));
 }
 
 /// Smaller-or-equal Comparison operator, Euclidean norm.
-template <typename Vector1, typename Vector2>
-std::enable_if_t<is_readable_vector_v<Vector1> && is_readable_vector_v<Vector2>,
-                 bool>
-operator<=(const Vector1& v1, const Vector2& v2) noexcept {
+template <ReadableVector Vector1, ReadableVector Vector2>
+bool operator<=(const Vector1& v1, const Vector2& v2) noexcept {
   return (norm_2_sqr(v1) <= norm_2_sqr(v2));
 }
 

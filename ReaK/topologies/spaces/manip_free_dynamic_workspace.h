@@ -39,6 +39,7 @@
 
 #include "ReaK/topologies/spaces/manip_free_workspace.h"
 
+#include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/proxy_model_updater.h"  // needed by manip_dynamic_env
 #include "ReaK/topologies/spaces/reachability_space.h"  // needed by manip_dynamic_env
 #include "ReaK/topologies/spaces/temporal_space.h"  // needed by manip_dynamic_env
@@ -52,7 +53,7 @@ namespace ReaK::pp {
  * queries are performed against an environment updated to the time-point of the current temporal
  * point in question.
  */
-template <typename BaseJointSpace>
+template <Topology BaseJointSpace>
 class manip_dynamic_env : public named_object {
  public:
   using self = manip_dynamic_env<BaseJointSpace>;
@@ -313,20 +314,6 @@ class manip_dynamic_env : public named_object {
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400028, 1, "manip_dynamic_env",
                               named_object)
 };
-
-template <typename BaseJointSpace>
-struct is_metric_space<manip_dynamic_env<BaseJointSpace>> : std::true_type {};
-
-template <typename BaseJointSpace>
-struct is_reversible_space<manip_dynamic_env<BaseJointSpace>> : std::true_type {
-};
-
-template <typename BaseJointSpace>
-struct is_point_distribution<manip_dynamic_env<BaseJointSpace>>
-    : std::true_type {};
-
-template <typename BaseJointSpace>
-struct is_temporal_space<manip_dynamic_env<BaseJointSpace>> : std::true_type {};
 
 template <typename BaseJointSpace>
 struct is_metric_symmetric<manip_dynamic_env<BaseJointSpace>>

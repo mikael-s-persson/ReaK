@@ -1,0 +1,55 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+  name = "integrators",
+  hdrs = [
+    "fixed_step_integrators.h",
+    "integration_exceptions.h",
+    "integrator.h",
+    "pred_corr_integrators.h",
+    "variable_step_integrators.h",
+  ],
+  deps = [
+    "//ReaK/core/base",
+    "//ReaK/math/lin_alg",
+  ],
+)
+
+cc_library(
+  name = "integrators_test_problems",
+  hdrs = [
+    "integrators_test_problems.h",
+  ],
+  testonly = True,
+  deps = [
+    ":integrators",
+    "//ReaK/core/base",
+  ],
+)
+
+cc_test(
+  name = "integrators_test",
+  srcs = [
+    "integrators_test.cc",
+  ],
+  deps = [
+    ":integrators",
+    ":integrators_test_problems",
+    "//ReaK/core/serialization",
+    "//ReaK/math/lin_alg",
+    "@com_google_googletest//:gtest_main",
+  ],
+  data = [
+    "integ_records/hires.pb",
+    "integ_records/orego.pb",
+    "integ_records/ringmod.pb",
+    "integ_records/vanderpol.pb",
+    "integ_records/vanderpolmod.pb",
+  ],
+)

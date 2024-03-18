@@ -7,3 +7,8 @@ build_clang
 build_iwyuclang
 build_dbg
 build_templight
+bazel-ReaK
+bazel-bin
+bazel-out
+bazel-testlogs
+.cache

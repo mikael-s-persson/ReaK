@@ -36,6 +36,7 @@
 #define REAK_MATH_LIN_ALG_MAT_BALANCE_H_
 
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include <type_traits>
@@ -56,9 +57,8 @@ namespace ReaK {
  *
  * Taken from Golub & Van Loan, "Matrix Computations" (3rd ed).
  */
-template <typename Matrix1>
+template <FullyWritableMatrix Matrix1>
 void balance(Matrix1& A, vect_n<int>& D) {
-  static_assert(is_fully_writable_matrix_v<Matrix1>);
   if (A.get_row_count() < A.get_col_count()) {
     throw std::range_error(
         "Matrix balancing is only possible on a square matrix!");
@@ -139,12 +139,9 @@ void balance(Matrix1& A, vect_n<int>& D) {
  *
  * Taken from Lemonnier and Van Dooren 2006.
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4>
-std::enable_if_t<is_writable_matrix_v<Matrix3> && is_writable_matrix_v<Matrix4>>
-balance_pencil(Matrix1& A, Matrix2& B, Matrix3& Dl, Matrix4& Dr) {
-  static_assert(is_fully_writable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
+template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2, WritableMatrix Matrix3,
+          WritableMatrix Matrix4>
+void balance_pencil(Matrix1& A, Matrix2& B, Matrix3& Dl, Matrix4& Dr) {
   if ((A.get_row_count() != A.get_col_count()) ||
       (B.get_row_count() != A.get_row_count()) ||
       (B.get_row_count() != B.get_col_count())) {
@@ -239,10 +236,8 @@ balance_pencil(Matrix1& A, Matrix2& B, Matrix3& Dl, Matrix4& Dr) {
  *
  * Taken from Lemonnier and Van Dooren 2006.
  */
-template <typename Matrix1, typename Matrix2>
+template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2>
 void balance_pencil(Matrix1& A, Matrix2& B, vect_n<int>& Dl, vect_n<int>& Dr) {
-  static_assert(is_fully_writable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
   if ((A.get_row_count() != A.get_col_count()) ||
       (B.get_row_count() != A.get_row_count()) ||
       (B.get_row_count() != B.get_col_count())) {
@@ -335,7 +330,7 @@ void balance_pencil(Matrix1& A, Matrix2& B, vect_n<int>& Dl, vect_n<int>& Dr) {
  *
  * Taken from Lemonnier and Van Dooren 2006.
  */
-template <typename Matrix1, typename Matrix2>
+template <WritableMatrix Matrix1, WritableMatrix Matrix2>
 void balance_pencil(Matrix1& A, Matrix2& B) {
   vect_n<int> Dl(A.get_row_count());
   vect_n<int> Dr(A.get_row_count());
@@ -354,10 +349,8 @@ void balance_pencil(Matrix1& A, Matrix2& B) {
  *
  * \throw std::range_error If the dimensions of A and D do not match.
  */
-template <typename Matrix1, typename Vector1>
+template <FullyWritableMatrix Matrix1, ReadableVector Vector1>
 void apply_left_bal_exp(const Vector1& D, Matrix1& A) {
-  static_assert(is_fully_writable_matrix_v<Matrix1>);
-  static_assert(is_readable_vector_v<Vector1>);
   using std::ldexp;
   if (A.get_row_count() != D.size()) {
     throw std::range_error(
@@ -383,10 +376,8 @@ void apply_left_bal_exp(const Vector1& D, Matrix1& A) {
  *
  * \throw std::range_error If the dimensions of A and D do not match.
  */
-template <typename Matrix1, typename Vector1>
+template <FullyWritableMatrix Matrix1, ReadableVector Vector1>
 void apply_right_bal_exp(Matrix1& A, const Vector1& D) {
-  static_assert(is_fully_writable_matrix_v<Matrix1>);
-  static_assert(is_readable_vector_v<Vector1>);
   using std::ldexp;
   if (A.get_col_count() != D.size()) {
     throw std::range_error(
@@ -412,10 +403,8 @@ void apply_right_bal_exp(Matrix1& A, const Vector1& D) {
  *
  * \throw std::range_error If the dimensions of A and D do not match.
  */
-template <typename Matrix1, typename Vector1>
+template <FullyWritableMatrix Matrix1, ReadableVector Vector1>
 void apply_left_bal_inv_exp(const Vector1& D, Matrix1& A) {
-  static_assert(is_fully_writable_matrix_v<Matrix1>);
-  static_assert(is_readable_vector_v<Vector1>);
   using std::ldexp;
   if (A.get_row_count() != D.size()) {
     throw std::range_error(
@@ -441,10 +430,8 @@ void apply_left_bal_inv_exp(const Vector1& D, Matrix1& A) {
  *
  * \throw std::range_error If the dimensions of A and D do not match.
  */
-template <typename Matrix1, typename Vector1>
+template <FullyWritableMatrix Matrix1, ReadableVector Vector1>
 void apply_right_bal_inv_exp(Matrix1& A, const Vector1& D) {
-  static_assert(is_fully_writable_matrix_v<Matrix1>);
-  static_assert(is_readable_vector_v<Vector1>);
   using std::ldexp;
   if (A.get_col_count() != D.size()) {
     throw std::range_error(

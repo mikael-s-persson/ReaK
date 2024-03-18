@@ -38,6 +38,7 @@
 #define REAK_MATH_LIN_ALG_MAT_GIVENS_ROT_H_
 
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include <type_traits>
@@ -48,11 +49,11 @@ namespace ReaK {
 template <typename T>
 class givens_rot_matrix;
 
-template <typename Matrix, typename T>
+template <FullyWritableMatrix Matrix, typename T>
 void givens_rot_prod(const givens_rot_matrix<T>& G, Matrix& A, int j = 0,
                      int k = 1);
 
-template <typename Matrix, typename T>
+template <FullyWritableMatrix Matrix, typename T>
 void givens_rot_prod(Matrix& A, const givens_rot_matrix<T>& G, int j = 0,
                      int k = 1);
 
@@ -69,7 +70,7 @@ void givens_rot_prod(Matrix& A, const givens_rot_matrix<T>& G, int j = 0,
 /// row-count of 2 or column-count of 2, depending on the order of rotation). This class also provides
 /// friend functions to perform the transposition of the Givens rotation (and effectively, its inverse).
 ///
-/// Models: ReadableMatrixConcept.
+/// Models: ReadableMatrix.
 ///
 /// \tparam T The value-type of the elements of the matrix.
 template <typename T>
@@ -170,17 +171,15 @@ class givens_rot_matrix {
     return (i == j ? c : (i < j ? -s : s));
   }
 
-  template <typename Matrix>
+  template <FullyWritableMatrix Matrix>
   friend Matrix operator*(const Matrix& A, const self& G) {
-    static_assert(is_fully_writable_matrix_v<Matrix>);
     Matrix result(A);
     givens_rot_prod(result, G);
     return result;
   }
 
-  template <typename Matrix>
+  template <FullyWritableMatrix Matrix>
   friend Matrix operator*(const self& G, const Matrix& A) {
-    static_assert(is_fully_writable_matrix_v<Matrix>);
     Matrix result(A);
     givens_rot_prod(G, result);
     return result;
@@ -200,30 +199,6 @@ class givens_rot_matrix {
 };
 
 template <typename T>
-struct is_readable_matrix<givens_rot_matrix<T>> {
-  static constexpr bool value = true;
-  using type = is_readable_matrix<givens_rot_matrix<T>>;
-};
-
-template <typename T>
-struct is_writable_matrix<givens_rot_matrix<T>> {
-  static constexpr bool value = false;
-  using type = is_writable_matrix<givens_rot_matrix<T>>;
-};
-
-template <typename T>
-struct is_row_resizable_matrix<givens_rot_matrix<T>> {
-  static constexpr bool value = false;
-  using type = is_row_resizable_matrix<givens_rot_matrix<T>>;
-};
-
-template <typename T>
-struct is_col_resizable_matrix<givens_rot_matrix<T>> {
-  static constexpr bool value = false;
-  using type = is_col_resizable_matrix<givens_rot_matrix<T>>;
-};
-
-template <typename T>
 struct mat_product_priority<givens_rot_matrix<T>> {
   static constexpr int value =
       detail::product_priority<mat_structure::diagonal>::value + 1;
@@ -236,22 +211,7 @@ struct mat_addition_priority<givens_rot_matrix<T>> {
 };
 
 template <typename T>
-struct is_square_matrix<givens_rot_matrix<T>> {
-  static constexpr bool value = true;
-  using type = is_square_matrix<givens_rot_matrix<T>>;
-};
-
-template <typename T>
-struct is_symmetric_matrix<givens_rot_matrix<T>> {
-  static constexpr bool value = false;
-  using type = is_symmetric_matrix<givens_rot_matrix<T>>;
-};
-
-template <typename T>
-struct is_diagonal_matrix<givens_rot_matrix<T>> {
-  static constexpr bool value = false;
-  using type = is_diagonal_matrix<givens_rot_matrix<T>>;
-};
+static constexpr bool is_square_matrix_v<givens_rot_matrix<T>> = true;
 
 /// This function template allows for efficient post-multiplication of a matrix with a
 /// Givens rotation matrix. This is generally more efficient then to perform a generic
@@ -262,9 +222,8 @@ struct is_diagonal_matrix<givens_rot_matrix<T>> {
 /// \param G The Givens rotation which will post-multiply A.
 /// \param j The first column of A affected by the rotation (default 0).
 /// \param k The second column of A affector by the rotation (default 1).
-template <typename Matrix, typename T>
+template <FullyWritableMatrix Matrix, typename T>
 void givens_rot_prod(Matrix& A, const givens_rot_matrix<T>& G, int j, int k) {
-  static_assert(is_fully_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using std::abs;
 
@@ -288,9 +247,8 @@ void givens_rot_prod(Matrix& A, const givens_rot_matrix<T>& G, int j, int k) {
 /// \param A The matrix to be multiplied by the Givens rotation, stores, as output, the resulting matrix.
 /// \param j The first row of A affected by the rotation (default 0).
 /// \param k The second row of A affector by the rotation (default 1).
-template <typename Matrix, typename T>
+template <FullyWritableMatrix Matrix, typename T>
 void givens_rot_prod(const givens_rot_matrix<T>& G, Matrix& A, int j, int k) {
-  static_assert(is_fully_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using std::abs;
 

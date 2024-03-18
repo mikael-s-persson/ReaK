@@ -60,8 +60,7 @@ class proxy_traj_applicator : public proxy_model_updater {
   using wp_desc_type = typename spatial_trajectory_traits<
       JointTrajectory>::const_waypoint_descriptor;
 
-  BOOST_CONCEPT_ASSERT(
-      (SpatialTrajectoryConcept<JointTrajectory, temporal_space_type>));
+  static_assert(SpatialTrajectory<JointTrajectory, temporal_space_type>);
 
   /** This data member points to a manipulator kinematics model to use for the mappings performed. */
   std::shared_ptr<proxy_model_applicator<joint_space_type>> static_applicator;

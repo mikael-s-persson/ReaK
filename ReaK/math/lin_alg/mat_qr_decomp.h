@@ -48,6 +48,7 @@
 #define REAK_MATH_LIN_ALG_MAT_QR_DECOMP_H_
 
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include "ReaK/math/lin_alg/mat_householder.h"
@@ -78,10 +79,9 @@ namespace ReaK {
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
+template <FullyWritableMatrix Matrix>
 void orthogonalize_StableGramSchmidt(Matrix& A, bool Normalize = false,
                                      mat_value_type_t<Matrix> NumTol = 1E-8) {
-  static_assert(is_fully_writable_matrix_v<Matrix>);
   if (A.get_row_count() < A.get_col_count()) {
     throw std::range_error(
         "Orthogonalization only possible on a matrix with row-count >= "
@@ -571,9 +571,6 @@ void linlsq_QR_impl(const Matrix1& A, Matrix2& x, const Matrix3& b,
 /**
  * Performs the QR decomposition on a matrix, using Householder reflections approach.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A fully-writable matrix type.
  * \param A rectangular matrix with row-count >= column-count, a real full-rank matrix.
  * \param Q holds as output, the orthogonal rectangular matrix Q.
  * \param R holds as output, the upper-triangular or right-triangular matrix R in A = QR.
@@ -584,12 +581,9 @@ void linlsq_QR_impl(const Matrix1& A, Matrix2& x, const Matrix3& b,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2, WritableMatrix Matrix3>
 void decompose_QR(const Matrix1& A, Matrix2& Q, Matrix3& R,
                   mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
-  static_assert(is_writable_matrix_v<Matrix3>);
   if (A.get_row_count() < A.get_col_count()) {
     throw std::range_error(
         "QR decomposition is only possible on a matrix with row-count >= "
@@ -598,17 +592,17 @@ void decompose_QR(const Matrix1& A, Matrix2& Q, Matrix3& R,
 
   using ValueType = mat_value_type_t<Matrix1>;
 
-  if constexpr (is_fully_writable_matrix_v<Matrix2> &&
-                is_fully_writable_matrix_v<Matrix3>) {
+  if constexpr (FullyWritableMatrix<Matrix2> &&
+                FullyWritableMatrix<Matrix3>) {
     Q = mat<ValueType, mat_structure::identity>(A.get_row_count());
     R = A;
     detail::decompose_QR_impl(R, &Q, NumTol);
-  } else if constexpr (is_fully_writable_matrix_v<Matrix2>) {
+  } else if constexpr (FullyWritableMatrix<Matrix2>) {
     Q = mat<ValueType, mat_structure::identity>(A.get_row_count());
     mat<mat_value_type_t<Matrix3>, mat_structure::rectangular> R_tmp(A);
     detail::decompose_QR_impl(R_tmp, &Q, NumTol);
     R = R_tmp;
-  } else if constexpr (is_fully_writable_matrix_v<Matrix3>) {
+  } else if constexpr (FullyWritableMatrix<Matrix3>) {
     mat<mat_value_type_t<Matrix3>, mat_structure::square> Q_tmp(
         mat<ValueType, mat_structure::identity>(A.get_row_count()));
     R = A;
@@ -627,7 +621,6 @@ void decompose_QR(const Matrix1& A, Matrix2& Q, Matrix3& R,
 /**
  * Computes the determinant via QR decomposition of a matrix, using Householder reflections approach.
  *
- * \tparam Matrix A readable matrix type.
  * \param A real square matrix.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
@@ -637,10 +630,9 @@ void decompose_QR(const Matrix1& A, Matrix2& Q, Matrix3& R,
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 mat_value_type_t<Matrix> determinant_QR(
     const Matrix& A, mat_value_type_t<Matrix> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix>);
   if (A.get_row_count() != A.get_col_count()) {
     throw std::range_error("Determinant is only defined for a square matrix!");
   }
@@ -660,9 +652,6 @@ mat_value_type_t<Matrix> determinant_QR(
 /**
  * Solves the linear least square problem (AX \approx B or X = min_X(||AX - B||)) via Householder reflections.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A readable matrix type.
  * \param A rectangular matrix with row-count >= column-count.
  * \param x stores the solution matrix as output (ColCount x ColCount2).
  * \param b stores the RHS of the linear system of equation (RowCount x ColCount2).
@@ -675,12 +664,9 @@ mat_value_type_t<Matrix> determinant_QR(
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, ReadableMatrix Matrix3>
 void linlsq_QR(const Matrix1& A, Matrix2& x, const Matrix3& b,
                mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
   if (A.get_row_count() < A.get_col_count()) {
     throw std::range_error(
         "Linear Least-square solution is only possible on a matrix with "
@@ -709,9 +695,6 @@ struct QR_linlsqsolver {
 /**
  * Solves the linear minimum-norm problem (AX = B with min_X(||X||)) via QR decomposition.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A readable matrix type.
  * \param A rectangular matrix with row-count <= column-count.
  * \param x stores the solution matrix as output (ColCount x ColCount2).
  * \param b stores the RHS of the linear system of equation (RowCount x ColCount2).
@@ -724,12 +707,9 @@ struct QR_linlsqsolver {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, ReadableMatrix Matrix3>
 void minnorm_QR(const Matrix1& A, Matrix2& x, const Matrix3& b,
                 mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
   if (A.get_row_count() > A.get_col_count()) {
     throw std::range_error(
         "Linear Minimum-Norm solution is only possible on a matrix with "
@@ -769,9 +749,6 @@ struct QR_minnormsolver {
 /**
  * Performs back-substitution to solve R x = b, where R is an upper-triangular matrix.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A readable matrix type.
  * \param R is an upper-triangular matrix.
  * \param x stores the solution matrix as output, with same dimension as b (zero-padding is assumed in the difference.
  * \param b stores the RHS of the linear system of equation.
@@ -783,12 +760,9 @@ struct QR_minnormsolver {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, ReadableMatrix Matrix3>
 void backsub_R(const Matrix1& R, Matrix2& x, const Matrix3& b,
                mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
   if (R.get_row_count() > b.get_row_count()) {
     throw std::range_error(
         "Back-substitution is only possible if row count of b is equal to row "
@@ -802,8 +776,6 @@ void backsub_R(const Matrix1& R, Matrix2& x, const Matrix3& b,
 /**
  * Performs back-substitution to solve R x = b, where R is an upper-triangular matrix.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
  * \param R is an upper-triangular matrix.
  * \param x stores the solution matrix as output, with same dimension as b (zero-padding is assumed in the difference),
             also stores b as input.
@@ -815,11 +787,9 @@ void backsub_R(const Matrix1& R, Matrix2& x, const Matrix3& b,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2>
 void backsub_R(const Matrix1& R, Matrix2& x,
                mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
   if (R.get_row_count() > x.get_row_count()) {
     throw std::range_error(
         "Back-substitution is only possible if row count of b is equal to row "
@@ -834,8 +804,6 @@ void backsub_R(const Matrix1& R, Matrix2& x,
  * A_pinv = (A^T A)^-1 A^T (if M >= N)
  * A_pinv = A^T (A A^T)^-1 (if M < N)
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
  * \param A real rectangular matrix.
  * \param A_pinv real rectangular matrix which is the pseudo-inverse of A.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
@@ -845,12 +813,9 @@ void backsub_R(const Matrix1& R, Matrix2& x,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2>
 void pseudoinvert_QR(const Matrix1& A, Matrix2& A_pinv,
                      mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
-
   using ValueType = mat_value_type_t<Matrix1>;
 
   if (A.get_row_count() < A.get_col_count()) {
@@ -868,9 +833,6 @@ void pseudoinvert_QR(const Matrix1& A, Matrix2& A_pinv,
  * Solves the linear least square problem (AX \approx B or X = min_X(||AX - B||)) via Householder
  * reflections and a column-pivot strategy to reveal the column-rank of A.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A readable matrix type.
  * \param A rectangular matrix with row-count >= column-count.
  * \param x stores the solution matrix as output (ColCount x ColCount2).
  * \param b stores the RHS of the linear system of equation (RowCount x ColCount2).
@@ -883,12 +845,9 @@ void pseudoinvert_QR(const Matrix1& A, Matrix2& A_pinv,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, ReadableMatrix Matrix3>
 void linlsq_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b,
                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
   if (A.get_row_count() < A.get_col_count()) {
     throw std::range_error(
         "Linear Least-square solution is only possible on a matrix with "
@@ -943,9 +902,6 @@ struct RRQR_linlsqsolver {
 /**
  * Solves the linear minimum-norm problem (AX = B with min_X(||X||)) via RRQR decomposition.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A readable matrix type.
  * \param A rectangular matrix with row-count <= column-count.
  * \param x stores the solution matrix as output (ColCount x ColCount2).
  * \param b stores the RHS of the linear system of equation (RowCount x ColCount2).
@@ -958,12 +914,9 @@ struct RRQR_linlsqsolver {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, ReadableMatrix Matrix3>
 void minnorm_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b,
                   mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
   if (A.get_row_count() > A.get_col_count()) {
     throw std::range_error(
         "Linear Minimum-norm solution is only possible on a matrix with "
@@ -1025,8 +978,6 @@ struct RRQR_minnormsolver {
  * A_pinv = (A^T A)^-1 A^T (if M >= N)
  * A_pinv = A^T (A A^T)^-1 (if M < N)
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
  * \param A real rectangular matrix with row-count.
  * \param A_pinv real rectangular matrix which is the pseudo-inverse of A.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
@@ -1036,11 +987,9 @@ struct RRQR_minnormsolver {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2>
 void pseudoinvert_RRQR(const Matrix1& A, Matrix2& A_pinv,
                        mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
   using ValueType = mat_value_type_t<Matrix1>;
 
   if (A.get_row_count() < A.get_col_count()) {

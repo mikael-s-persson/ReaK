@@ -50,7 +50,7 @@ namespace ReaK {
 /// This class template can be used to view a column of a matrix as a vector (i.e. a row-slice). It
 /// takes the matrix object by reference (internally by pointer).
 ///
-/// Models: ReadableVectorConcept and WritableVectorConcept (if the matrix is writable)
+/// Models: ReadableVector and WritableVector (if the matrix is writable)
 /// \tparam Matrix A matrix type.
 template <typename Matrix>
 class mat_row_slice {
@@ -93,11 +93,7 @@ class mat_row_slice {
       : m(&aM), offset(aOffset), colIndex(aColIndex), count(aCount) {}
 
   /// Standard copy-constructor (shallow).
-  mat_row_slice(const self& rhs)
-      : m(rhs.m),
-        offset(rhs.offset),
-        colIndex(rhs.colIndex),
-        count(rhs.count) {}
+  mat_row_slice(const self& rhs) = default;
 
   /// Standard swap function (shallow)
   friend void swap(self& lhs, self& rhs) noexcept {
@@ -109,10 +105,18 @@ class mat_row_slice {
   }
 
   /// Standard assignment operator for any readable vector type.
-  /// \tparam Vector A readable vector type.
-  template <typename Vector>
+  template <ReadableVector Vector>
   self& operator=(const Vector& v) {
-    static_assert(is_readable_vector_v<Vector>);
+    if (v.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (int i = 0; i < count; ++i) {
+      (*m)(offset + i, colIndex) = v[i];
+    }
+    return *this;
+  }
+
+  self& operator=(const self& v) {
     if (v.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -123,10 +127,8 @@ class mat_row_slice {
   }
 
   /// Standard assignment operator for any readable vector type.
-  /// \tparam Vector A readable vector type.
-  template <typename Vector>
+  template <ReadableVector Vector>
   self& operator+=(const Vector& v) {
-    static_assert(is_readable_vector_v<Vector>);
     if (v.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -137,10 +139,8 @@ class mat_row_slice {
   }
 
   /// Standard assignment operator for any readable vector type.
-  /// \tparam Vector A readable vector type.
-  template <typename Vector>
+  template <ReadableVector Vector>
   self& operator-=(const Vector& v) {
-    static_assert(is_readable_vector_v<Vector>);
     if (v.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -194,39 +194,11 @@ class mat_row_slice {
   /// Array indexing operator, accessor for read only.
   const_reference operator[](int i) const { return (*m)(offset + i, colIndex); }
 
-  /// Sub-vector operator, accessor for read/write.
-  vect_ref_view<self> operator[](const std::pair<int, int>& r) {
-    return sub(*this)[r];
-  }
-
-  /// Sub-vector operator, accessor for read only.
-  vect_const_ref_view<self> operator[](const std::pair<int, int>& r) const {
-    return sub(*this)[r];
-  }
-
   /// Array indexing operator, accessor for read/write.
   reference operator()(int i) { return (*m)(offset + i, colIndex); }
 
   /// Array indexing operator, accessor for read only.
   const_reference operator()(int i) const { return (*m)(offset + i, colIndex); }
-};
-
-template <typename Matrix>
-struct is_readable_vector<mat_row_slice<Matrix>> {
-  static constexpr bool value = true;
-  using type = is_readable_vector<mat_row_slice<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_writable_vector<mat_row_slice<Matrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<Matrix>;
-  using type = is_writable_vector<mat_row_slice<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_resizable_vector<mat_row_slice<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_resizable_vector<mat_row_slice<Matrix>>;
 };
 
 template <typename Matrix>
@@ -237,7 +209,7 @@ struct vect_copy<mat_row_slice<Matrix>> {
 /// This class template can be used to view a column of a matrix as a const-vector (i.e. a row-slice). It
 /// takes the matrix object by const-reference (internally by pointer).
 ///
-/// Models: ReadableVectorConcept
+/// Models: ReadableVector
 /// \tparam Matrix A matrix type.
 template <typename Matrix>
 class mat_const_row_slice {
@@ -265,8 +237,6 @@ class mat_const_row_slice {
   int colIndex;        ///< Holds the index of column of the slice.
   int count;           ///< Holds the number of elements of the column to take.
 
-  self& operator=(const self&);  // non-assignable.
-
   explicit mat_const_row_slice(Matrix&&);
   mat_const_row_slice(Matrix&&, int, int, int);
 
@@ -286,11 +256,9 @@ class mat_const_row_slice {
       : m(&aM), offset(aOffset), colIndex(aColIndex), count(aCount) {}
 
   /// Standard copy-constructor (shallow).
-  mat_const_row_slice(const self& rhs)
-      : m(rhs.m),
-        offset(rhs.offset),
-        colIndex(rhs.colIndex),
-        count(rhs.count) {}
+  mat_const_row_slice(const self& rhs) = default;
+
+  self& operator=(const self& rhs) = delete;
 
   /// Standard swap function (shallow)
   friend void swap(self& lhs, self& rhs) noexcept {
@@ -333,31 +301,8 @@ class mat_const_row_slice {
   /// Array indexing operator, accessor for read only.
   const_reference operator[](int i) const { return (*m)(offset + i, colIndex); }
 
-  /// Sub-vector operator, accessor for read only.
-  vect_const_ref_view<self> operator[](const std::pair<int, int>& r) const {
-    return sub(*this)[r];
-  }
-
   /// Array indexing operator, accessor for read only.
   const_reference operator()(int i) const { return (*m)(offset + i, colIndex); }
-};
-
-template <typename Matrix>
-struct is_readable_vector<mat_const_row_slice<Matrix>> {
-  static constexpr bool value = true;
-  using type = is_readable_vector<mat_const_row_slice<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_writable_vector<mat_const_row_slice<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_writable_vector<mat_const_row_slice<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_resizable_vector<mat_const_row_slice<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_resizable_vector<mat_const_row_slice<Matrix>>;
 };
 
 template <typename Matrix>
@@ -368,7 +313,7 @@ struct vect_copy<mat_const_row_slice<Matrix>> {
 /// This class template can be used to view a row of a matrix as a vector (i.e. a column-slice). It
 /// takes the matrix object by reference (internally by pointer).
 ///
-/// Models: ReadableVectorConcept and WritableVectorConcept (if the matrix is writable)
+/// Models: ReadableVector and WritableVector (if the matrix is writable)
 /// \tparam Matrix A matrix type.
 template <typename Matrix>
 class mat_col_slice {
@@ -411,11 +356,7 @@ class mat_col_slice {
       : m(&aM), offset(aOffset), rowIndex(aRowIndex), count(aCount) {}
 
   /// Standard copy-constructor (shallow).
-  mat_col_slice(const self& rhs)
-      : m(rhs.m),
-        offset(rhs.offset),
-        rowIndex(rhs.rowIndex),
-        count(rhs.count) {}
+  mat_col_slice(const self& rhs) = default;
 
   /// Standard swap function (shallow)
   friend void swap(self& lhs, self& rhs) noexcept {
@@ -427,10 +368,18 @@ class mat_col_slice {
   }
 
   /// Standard assignment operator for any readable vector type.
-  /// \tparam Vector A readable vector type.
-  template <typename Vector>
+  template <ReadableVector Vector>
   self& operator=(const Vector& v) {
-    static_assert(is_readable_vector_v<Vector>);
+    if (v.size() != count) {
+      throw std::range_error("Vector dimensions mismatch.");
+    }
+    for (int i = 0; i < count; ++i) {
+      (*m)(rowIndex, offset + i) = v[i];
+    }
+    return *this;
+  }
+
+  self& operator=(const self& v) {
     if (v.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -442,9 +391,8 @@ class mat_col_slice {
 
   /// Standard assignment operator for any readable vector type.
   /// \tparam Vector A readable vector type.
-  template <typename Vector>
+  template <ReadableVector Vector>
   self& operator+=(const Vector& v) {
-    static_assert(is_readable_vector_v<Vector>);
     if (v.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -456,9 +404,8 @@ class mat_col_slice {
 
   /// Standard assignment operator for any readable vector type.
   /// \tparam Vector A readable vector type.
-  template <typename Vector>
+  template <ReadableVector Vector>
   self& operator-=(const Vector& v) {
-    static_assert(is_readable_vector_v<Vector>);
     if (v.size() != count) {
       throw std::range_error("Vector dimensions mismatch.");
     }
@@ -509,39 +456,11 @@ class mat_col_slice {
   /// Array indexing operator, accessor for read only.
   const_reference operator[](int i) const { return (*m)(rowIndex, offset + i); }
 
-  /// Sub-vector operator, accessor for read/write.
-  vect_ref_view<self> operator[](const std::pair<int, int>& r) {
-    return sub(*this)[r];
-  }
-
-  /// Sub-vector operator, accessor for read only.
-  vect_const_ref_view<self> operator[](const std::pair<int, int>& r) const {
-    return sub(*this)[r];
-  }
-
   /// Array indexing operator, accessor for read/write.
   reference operator()(int i) { return (*m)(rowIndex, offset + i); }
 
   /// Array indexing operator, accessor for read only.
   const_reference operator()(int i) const { return (*m)(rowIndex, offset + i); }
-};
-
-template <typename Matrix>
-struct is_readable_vector<mat_col_slice<Matrix>> {
-  static constexpr bool value = true;
-  using type = is_readable_vector<mat_col_slice<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_writable_vector<mat_col_slice<Matrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<Matrix>;
-  using type = is_writable_vector<mat_col_slice<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_resizable_vector<mat_col_slice<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_resizable_vector<mat_col_slice<Matrix>>;
 };
 
 template <typename Matrix>
@@ -552,7 +471,7 @@ struct vect_copy<mat_col_slice<Matrix>> {
 /// This class template can be used to view a row of a matrix as a vector (i.e. a column-slice). It
 /// takes the matrix object by const-reference (internally by const-pointer).
 ///
-/// Models: ReadableVectorConcept
+/// Models: ReadableVector
 /// \tparam Matrix A matrix type.
 template <typename Matrix>
 class mat_const_col_slice {
@@ -580,8 +499,6 @@ class mat_const_col_slice {
   int rowIndex;        ///< Holds the index of row of the slice.
   int count;           ///< Holds the number of elements of the row to take.
 
-  self& operator=(const self&);  // non-assignable.
-
   explicit mat_const_col_slice(Matrix&&);
   mat_const_col_slice(Matrix&&, int, int, int);
 
@@ -601,11 +518,9 @@ class mat_const_col_slice {
       : m(&aM), offset(aOffset), rowIndex(aRowIndex), count(aCount) {}
 
   /// Standard copy-constructor (shallow).
-  mat_const_col_slice(const self& rhs)
-      : m(rhs.m),
-        offset(rhs.offset),
-        rowIndex(rhs.rowIndex),
-        count(rhs.count) {}
+  mat_const_col_slice(const self& rhs) = default;
+
+  self& operator=(const self& rhs) = delete;
 
   /// Standard swap function (shallow)
   friend void swap(self& lhs, self& rhs) noexcept {
@@ -648,39 +563,16 @@ class mat_const_col_slice {
   /// Array indexing operator, accessor for read only.
   const_reference operator[](int i) const { return (*m)(rowIndex, offset + i); }
 
-  /// Sub-vector operator, accessor for read only.
-  vect_const_ref_view<self> operator[](const std::pair<int, int>& r) const {
-    return sub(*this)[r];
-  }
-
   /// Array indexing operator, accessor for read only.
   const_reference operator()(int i) const { return (*m)(rowIndex, offset + i); }
 };
 
-template <typename Matrix>
-struct is_readable_vector<mat_const_col_slice<Matrix>> {
-  static constexpr bool value = true;
-  using type = is_readable_vector<mat_const_col_slice<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_writable_vector<mat_const_col_slice<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_writable_vector<mat_const_col_slice<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_resizable_vector<mat_const_col_slice<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_resizable_vector<mat_const_col_slice<Matrix>>;
-};
-
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 struct vect_copy<mat_const_col_slice<Matrix>> {
   using type = vect_n<vect_value_type_t<mat_const_col_slice<Matrix>>>;
 };
 
-template <typename Matrix>
+template <WritableMatrix Matrix>
 struct mat_slice_factory {
   Matrix& m;
   explicit mat_slice_factory(Matrix& aM) : m(aM) {}
@@ -692,7 +584,7 @@ struct mat_slice_factory {
   }
 };
 
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 struct mat_const_slice_factory {
   const Matrix& m;
   explicit mat_const_slice_factory(const Matrix& aM) : m(aM) {}
@@ -716,9 +608,8 @@ struct mat_const_slice_factory {
 /// \tparam Matrix A readable matrix type.
 /// \param M the matrix to slice.
 /// \return A factory class to create a slice from a row or column range and a row or column index.
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, mat_slice_factory<Matrix>> slice(
-    Matrix& M) {
+template <WritableMatrix Matrix>
+mat_slice_factory<Matrix> slice(Matrix& M) {
   return mat_slice_factory<Matrix>(M);
 }
 
@@ -730,9 +621,8 @@ std::enable_if_t<is_readable_matrix_v<Matrix>, mat_slice_factory<Matrix>> slice(
 /// \tparam Matrix A readable matrix type.
 /// \param M the matrix to slice.
 /// \return A factory class to create a slice from a row or column range and a row or column index.
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, mat_const_slice_factory<Matrix>>
-slice(const Matrix& M) {
+template <ReadableMatrix Matrix>
+mat_const_slice_factory<Matrix> slice(const Matrix& M) {
   return mat_const_slice_factory<Matrix>(M);
 }
 }  // namespace ReaK

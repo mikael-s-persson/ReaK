@@ -45,6 +45,7 @@
 
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_cholesky.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_qr_decomp.h"
 #include "ReaK/math/lin_alg/mat_views.h"
 #include "ReaK/math/lin_alg/vect_concepts.h"
@@ -84,7 +85,7 @@ namespace ReaK::ctrl {
  *
  */
 template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
-          typename InputBelief, typename PredictionCovTransMatrix>
+          typename InputBelief, FullyWritableMatrix PredictionCovTransMatrix>
 void symplectic_kalman_predict(
     const LinearSystem& sys, const StateSpaceType& state_space,
     BeliefState& b_x, const InputBelief& b_u, PredictionCovTransMatrix& Tc,
@@ -103,14 +104,12 @@ void symplectic_kalman_predict(
                                 DiscreteLinearizedSystemType>));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<PredictionCovTransMatrix>));
   BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
   static_assert(is_continuous_belief_state_v<BeliefState>);
   static_assert(belief_state_traits<BeliefState>::representation ==
                 belief_representation::gaussian);
   static_assert(belief_state_traits<BeliefState>::distribution ==
                 belief_distribution::unimodal);
-  static_assert(is_fully_writable_matrix_v<PredictionCovTransMatrix>);
 
   using MatType =
       typename decomp_covariance_mat_traits<CovType>::matrix_block_type;
@@ -179,7 +178,7 @@ void symplectic_kalman_predict(
  */
 template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
           typename InputBelief, typename MeasurementBelief,
-          typename UpdateCovTransMatrix>
+          FullyWritableMatrix UpdateCovTransMatrix>
 void symplectic_kalman_update(
     const LinearSystem& sys, const StateSpaceType& state_space,
     BeliefState& b_x, const InputBelief& b_u, const MeasurementBelief& b_z,
@@ -203,14 +202,12 @@ void symplectic_kalman_update(
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<UpdateCovTransMatrix>));
   BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
   static_assert(is_continuous_belief_state_v<BeliefState>);
   static_assert(belief_state_traits<BeliefState>::representation ==
                 belief_representation::gaussian);
   static_assert(belief_state_traits<BeliefState>::distribution ==
                 belief_distribution::unimodal);
-  static_assert(is_fully_writable_matrix_v<UpdateCovTransMatrix>);
 
   using MatType =
       typename decomp_covariance_mat_traits<CovType>::matrix_block_type;
@@ -285,7 +282,7 @@ void symplectic_kalman_update(
  */
 template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
           typename InputBelief, typename MeasurementBelief,
-          typename CovTransMatrix>
+          FullyWritableMatrix CovTransMatrix>
 void symplectic_kalman_filter_step(
     const LinearSystem& sys, const StateSpaceType& state_space,
     BeliefState& b_x, const InputBelief& b_u, const MeasurementBelief& b_z,
@@ -309,14 +306,12 @@ void symplectic_kalman_filter_step(
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<CovTransMatrix>));
   BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
   static_assert(is_continuous_belief_state_v<BeliefState>);
   static_assert(belief_state_traits<BeliefState>::representation ==
                 belief_representation::gaussian);
   static_assert(belief_state_traits<BeliefState>::distribution ==
                 belief_distribution::unimodal);
-  static_assert(is_fully_writable_matrix_v<CovTransMatrix>);
 
   using MatType =
       typename decomp_covariance_mat_traits<CovType>::matrix_block_type;

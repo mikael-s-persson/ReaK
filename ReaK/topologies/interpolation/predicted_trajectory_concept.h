@@ -38,22 +38,21 @@
 
 #include "ReaK/topologies/interpolation/spatial_path_concept.h"
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
+#include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
-
-#include "boost/concept_check.hpp"
 
 namespace ReaK::pp {
 
 /**
  * This concept represents a predicted trajectory, as used in ReaK::pp. This concept
- * supplements the SpatialTrajectoryConcept with a few additional requirements which
- * characterize a predicted trajectory (see PredictedTrajectoryConcept).
+ * supplements the SpatialTrajectory with a few additional requirements which
+ * characterize a predicted trajectory (see PredictedTrajectory).
  *
  * Required concepts:
  *
- * The PredictedTrajectory should model the SpatialTrajectoryConcept on the given Topology.
+ * The Trajectory should model the SpatialTrajectory on the given Topology.
  *
- * The Topology should model the TemporalSpaceConcept.
+ * The Space should model the TemporalSpace.
  *
  * Valid expressions:
  *
@@ -63,19 +62,14 @@ namespace ReaK::pp {
  * p.set_initial_point(pt);  The initial temporal point (pt) can be set to seed the predicted trajectory (p).
  *
  * p.set_initial_point(w_p);  The initial temporal waypoint (w_p) can be set to seed the predicted trajectory (p).
- *
- * \tparam PredictedTrajectory The trajectory type to be checked for compliance to this concept.
- * \tparam Topology The temporal-topology type that can contain the trajectory.
  */
-template <typename PredictedTrajectory, typename Topology>
-struct PredictedTrajectoryConcept
-    : public SpatialTrajectoryConcept<PredictedTrajectory, Topology> {
-
-  BOOST_CONCEPT_USAGE(PredictedTrajectoryConcept) {
-    this->p.set_initial_point(this->pt);
-    this->p.set_initial_point(this->w_p);
-  }
-};
+template <typename Trajectory, typename Space>
+concept PredictedTrajectory = SpatialTrajectory<Trajectory, Space> &&
+  requires (Trajectory& traj, const topology_point_type_t<Space>& pt,
+            const typename spatial_trajectory_traits<Trajectory>::const_waypoint_pair& wp) {
+    traj.set_initial_point(pt);
+    traj.set_initial_point(wp);
+  };
 
 }  // namespace ReaK::pp
 

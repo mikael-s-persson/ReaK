@@ -45,7 +45,7 @@ namespace ReaK::pp {
 
 /**
  * This class implements an infinite vector topology. This class
- * models the TopologyConcept and the LieGroupConcept.
+ * models Topology and LieGroup.
  * \tparam Vector The vector-type for the topology, should model an Arithmetic concept and possess a norm() function.
  */
 template <typename Vector>
@@ -64,7 +64,7 @@ class vector_topology : public named_object {
   }
 
   /*************************************************************************
-   *                             TopologyConcept
+   *                             Topology
    * **********************************************************************/
 
   /**
@@ -94,7 +94,7 @@ class vector_topology : public named_object {
   virtual bool is_in_bounds(const point_type& a) const { return true; }
 
   /*************************************************************************
-  *                             LieGroupConcept
+  *                             LieGroup
   * **********************************************************************/
 
   /**
@@ -131,12 +131,6 @@ class vector_topology : public named_object {
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400007, 1, "vector_topology",
                               named_object)
 };
-
-template <typename Vector>
-struct is_metric_space<vector_topology<Vector>> : std::true_type {};
-
-template <typename Vector>
-struct is_reversible_space<vector_topology<Vector>> : std::true_type {};
 
 }  // namespace ReaK::pp
 

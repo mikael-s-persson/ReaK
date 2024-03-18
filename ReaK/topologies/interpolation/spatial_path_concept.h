@@ -34,12 +34,10 @@
 #define REAK_TOPOLOGIES_INTERPOLATION_SPATIAL_PATH_CONCEPT_H_
 
 #include "ReaK/core/base/defs.h"
-
-#include <cmath>
-#include "boost/concept_check.hpp"
-
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 
+#include <cmath>
+#include <concepts>
 #include <exception>
 #include <string>
 
@@ -50,23 +48,25 @@ namespace ReaK::pp {
  * topology.
  * \tparam SpatialPath The spatial path type for which the traits are sought.
  */
-template <typename SpatialPath>
+template <typename Path>
 struct spatial_path_traits {
   /** This type describes a point in the space or topology. */
-  using point_type = typename SpatialPath::point_type;
+  using point_type = typename Path::point_type;
   /** This type describes the difference between two points in the space or topology. */
-  using point_difference_type = typename SpatialPath::point_difference_type;
+  using point_difference_type = typename Path::point_difference_type;
 
   /** This type describes waypoints used by the path to quickly access local parameters of the path. */
-  using waypoint_descriptor = typename SpatialPath::waypoint_descriptor;
+  using waypoint_descriptor = typename Path::waypoint_descriptor;
   /** This type describes const-waypoints used by the path to quickly access local parameters of the path. */
   using const_waypoint_descriptor =
-      typename SpatialPath::const_waypoint_descriptor;
+      typename Path::const_waypoint_descriptor;
+
+  using const_waypoint_pair = std::pair<const_waypoint_descriptor, point_type>;
 
   /** This type is the topology type in which the path exists. */
-  using topology = typename SpatialPath::topology;
+  using topology = typename Path::topology;
   /** This type is the distance metric type used on the topology and defining the travel distances along the path. */
-  using distance_metric = typename SpatialPath::distance_metric;
+  using distance_metric = typename Path::distance_metric;
 };
 
 /**
@@ -75,9 +75,9 @@ struct spatial_path_traits {
  *
  * Required concepts:
  *
- * The topology should model the MetricSpaceConcept.
+ * The topology should model the MetricSpace.
  *
- * The distance-metric should model the DistanceMetricConcept.
+ * The distance-metric should model the DistanceMetric.
  *
  * Valid expressions:
  *
@@ -101,38 +101,19 @@ struct spatial_path_traits {
  * pt = p.get_end_point();  The end point of the path can be obtained.
  *
  * w_p = p.get_end_waypoint();  The end waypoint-pair of the path can be obtained.
- *
- * \tparam SpatialPath The type to be checked for the requirements of this concept.
- * \tparam Topology The topology in which the spatial-path should reside.
  */
-template <typename SpatialPath, typename Topology>
-struct SpatialPathConcept {
-
-  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (DistanceMetricConcept<
-          typename spatial_path_traits<SpatialPath>::distance_metric,
-          Topology>));
-
-  SpatialPath p;
-  typename topology_traits<Topology>::point_type pt;
-  std::pair<
-      typename spatial_path_traits<SpatialPath>::const_waypoint_descriptor,
-      typename topology_traits<Topology>::point_type>
-      w_p;
-  double d;
-  BOOST_CONCEPT_USAGE(SpatialPathConcept) {
-    pt = p.move_away_from(pt, d);
-    d = p.travel_distance(pt, pt);
-    w_p = p.move_away_from(w_p, d);
-    d = p.travel_distance(w_p, w_p);
-
-    pt = p.get_start_point();
-    w_p = p.get_start_waypoint();
-    pt = p.get_end_point();
-    w_p = p.get_end_waypoint();
-  }
-};
+template <typename Path, typename Space = typename spatial_path_traits<Path>::topology>
+concept SpatialPath = Topology<Space> && DistanceMetric<typename spatial_path_traits<Path>::distance_metric, Space> &&
+  requires (const Path& p, const topology_point_type_t<Space>& pt, const typename spatial_path_traits<Path>::const_waypoint_pair& wp, double d) {
+    { p.move_away_from(pt, d) } -> std::convertible_to<topology_point_type_t<Space>>;
+    { p.travel_distance(pt, pt) } -> std::convertible_to<double>;
+    { p.move_away_from(wp, d) } -> std::convertible_to<typename spatial_path_traits<Path>::const_waypoint_pair>;
+    { p.travel_distance(wp, wp) } -> std::convertible_to<double>;
+    { p.get_start_point() } -> std::convertible_to<topology_point_type_t<Space>>;
+    { p.get_end_point() } -> std::convertible_to<topology_point_type_t<Space>>;
+    { p.get_start_waypoint() } -> std::convertible_to<typename spatial_path_traits<Path>::const_waypoint_pair>;
+    { p.get_end_waypoint() } -> std::convertible_to<typename spatial_path_traits<Path>::const_waypoint_pair>;
+  };
 
 /**
  * This exception class represents an exception occurring when a path is invalid.

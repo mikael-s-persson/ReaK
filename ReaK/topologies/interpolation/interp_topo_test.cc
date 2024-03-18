@@ -36,7 +36,7 @@
 #define RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
 #define RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
 
-#include "ReaK/topologies/spaces/Ndof_spaces.h"
+#include "ReaK/topologies/spaces/ndof_spaces.h"
 #include "ReaK/topologies/spaces/hyperbox_topology.h"
 
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
@@ -52,13 +52,13 @@
 #endif
 
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
-#include "ReaK/topologies/interpolation/sustained_velocity_pulse_Ndof.h"
-#include "ReaK/topologies/interpolation/svp_Ndof_reach_topologies.h"
+#include "ReaK/topologies/interpolation/sustained_velocity_pulse_ndof.h"
+#include "ReaK/topologies/interpolation/svp_ndof_reach_topologies.h"
 #endif
 
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
-#include "ReaK/topologies/interpolation/sap_Ndof_reach_topologies.h"
-#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_Ndof.h"
+#include "ReaK/topologies/interpolation/sap_ndof_reach_topologies.h"
+#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_ndof.h"
 #endif
 
 #include "ReaK/core/base/scope_guard.h"
@@ -149,7 +149,6 @@ void try_interpolation(const std::string& aMethodName,
   using namespace ReaK;
 
   using PointType = typename pp::topology_traits<InterpTopoType>::point_type;
-  using Iter = typename PtContainer::const_iterator;
 
   auto it = pts.begin();
   for (auto prev_it = it++; it != pts.end(); ++prev_it, ++it) {

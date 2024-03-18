@@ -44,8 +44,6 @@
 
 #include "ReaK/topologies/interpolation/sustained_velocity_pulse.h"
 
-#include "boost/concept_check.hpp"
-
 namespace ReaK::pp {
 
 /**
@@ -53,7 +51,7 @@ namespace ReaK::pp {
  * between points within a bounded tangent-bundle.
  * \tparam TimeSpaceType The time topology type against which the interpolation is done.
  */
-template <typename TimeSpaceType = ReaK::pp::time_topology>
+template <Topology TimeSpaceType = time_topology>
 struct svp_rate_limited_sampler : public serializable {
 
   using self = svp_rate_limited_sampler<TimeSpaceType>;
@@ -66,15 +64,12 @@ struct svp_rate_limited_sampler : public serializable {
 
   /**
    * This function returns a random sample-point on a topology.
-   * \tparam Topology The topology.
    * \param s The topology or space on which the sample-point lies.
    * \return A random sample-point on the topology.
    */
-  template <typename Topology>
-  topology_point_type_t<Topology> operator()(const Topology& s) const {
-    BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((PointDistributionConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((TangentBundleConcept<Topology, 1, TimeSpaceType>));
+  template <PointDistribution Space>
+  topology_point_type_t<Space> operator()(const Space& s) const {
+    static_assert(TangentBundle<Space, TimeSpaceType, 0, 1>);
 
     const auto& get_sample = get(random_sampler, s);
 

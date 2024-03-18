@@ -38,46 +38,41 @@
 #include "ReaK/topologies/interpolation/path_base.h"
 #include "ReaK/topologies/interpolation/spatial_path_concept.h"
 
-#include "boost/concept_check.hpp"
-
 namespace ReaK::pp {
 
 /**
  * This class wraps a generic spatial path class into an OOP interface.
- * It, itself, also models the generic SpatialPathConcept, so this wrapper can
+ * It, itself, also models the generic SpatialPath, so this wrapper can
  * be used for both purposes.
- * \tparam SpatialPath The path type to be wrapped.
  */
-template <typename SpatialPath>
+template <SpatialPath Path>
 class path_wrapper
-    : public path_base<typename spatial_path_traits<SpatialPath>::topology> {
+    : public path_base<typename spatial_path_traits<Path>::topology> {
  public:
   using base_type =
-      path_base<typename spatial_path_traits<SpatialPath>::topology>;
-  using self = path_wrapper<SpatialPath>;
+      path_base<typename spatial_path_traits<Path>::topology>;
+  using self = path_wrapper<Path>;
 
   using topology = typename base_type::topology;
   using point_type = typename base_type::point_type;
   using point_difference_type = typename base_type::point_difference_type;
 
-  BOOST_CONCEPT_ASSERT((SpatialPathConcept<SpatialPath, topology>));
-
   using waypoint_descriptor =
-      typename spatial_path_traits<SpatialPath>::waypoint_descriptor;
+      typename spatial_path_traits<Path>::waypoint_descriptor;
   using const_waypoint_descriptor =
-      typename spatial_path_traits<SpatialPath>::const_waypoint_descriptor;
+      typename spatial_path_traits<Path>::const_waypoint_descriptor;
   using distance_metric =
-      typename spatial_path_traits<SpatialPath>::distance_metric;
+      typename spatial_path_traits<Path>::distance_metric;
 
   using waypoint_pair = std::pair<const_waypoint_descriptor, point_type>;
 
  protected:
-  SpatialPath m_traj;
+  Path m_traj;
   mutable waypoint_pair m_last_waypoint;
 
  public:
-  SpatialPath& get_underlying_path() { return m_traj; }
-  const SpatialPath& get_underlying_path() const { return m_traj; }
+  Path& get_underlying_path() { return m_traj; }
+  const Path& get_underlying_path() const { return m_traj; }
 
   /**
    * Constructs the trajectory from a space, assumes the start and end are at the origin
@@ -86,7 +81,7 @@ class path_wrapper
    * \param aTraj The wrapped path object to use.
    */
   explicit path_wrapper(const std::string& aName = "",
-                        const SpatialPath& aTraj = SpatialPath())
+                        const Path& aTraj = Path())
       : base_type(aName), m_traj(aTraj), m_last_waypoint() {}
 
   /**

@@ -25,8 +25,11 @@
 
 #include "ReaK/core/recorders/ascii_recorder.h"
 #include "ReaK/core/recorders/bin_recorder.h"
-#include "ReaK/core/recorders/network_recorder.h"
 #include "ReaK/core/recorders/vector_recorder.h"
+
+#ifdef ENABLE_NETWORK_RECORDER
+#include "ReaK/core/recorders/network_recorder.h"
+#endif // ENABLE_NETWORK_RECORDER
 
 #include "ReaK/core/serialization/archiver_factory.h"
 
@@ -191,7 +194,11 @@ std::shared_ptr<data_recorder> data_stream_options::create_recorder() const {
     case tcp_stream:
     case udp_stream:
     case raw_udp_stream:
+#ifdef ENABLE_NETWORK_RECORDER
       result = std::make_shared<network_recorder>();
+#else
+      std::abort();
+#endif // ENABLE_NETWORK_RECORDER
       break;
     case vector_stream:
       result = std::make_shared<vector_recorder>();
@@ -304,7 +311,11 @@ data_stream_options::create_extractor() const {
     case tcp_stream:
     case udp_stream:
     case raw_udp_stream:
+#ifdef ENABLE_NETWORK_RECORDER
       result.first = std::make_shared<network_extractor>();
+#else
+      std::abort();
+#endif // ENABLE_NETWORK_RECORDER
       break;
     case vector_stream:
       result.first = std::make_shared<vector_extractor>();
@@ -328,6 +339,7 @@ data_stream_options::create_extractor() const {
       break;
   }
 
+#ifdef ENABLE_NETWORK_RECORDER
   if (kind == raw_udp_stream) {
     if (names.empty()) {
       throw std::invalid_argument("empty names for a raw-udp-extractor");
@@ -338,7 +350,9 @@ data_stream_options::create_extractor() const {
     for (auto& name : names) {
       data_in_tmp->addName(name);
     }
-  } else if (kind == vector_stream) {
+  } else
+#endif // ENABLE_NETWORK_RECORDER
+  if (kind == vector_stream) {
     if (names.empty()) {
       throw std::invalid_argument("empty names for a vector-extractor");
     }

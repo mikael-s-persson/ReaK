@@ -55,24 +55,24 @@ namespace pp {
 /**
  * This meta-function defines the type for a 0th order SE(3) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se3_0th_order_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
           differentiable_space<time_topology,
                                arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
-                               DistanceMetric>,
+                               Metric>,
           differentiable_space<time_topology,
                                arithmetic_tuple<quaternion_topology<T>>,
-                               DistanceMetric>>,
-      DistanceMetric>;
+                               Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se3_0th_order_topology_t =
-    typename se3_0th_order_topology<T, DistanceMetric>::type;
+    typename se3_0th_order_topology<T, Metric>::type;
 
 template <typename T>
 auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
@@ -89,45 +89,45 @@ auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
           arithmetic_tuple(quaternion_topology<T>(aName + "_quat"))))};
 }
 
-template <typename TupleDistanceMetric, typename T>
+template <typename TupleMetric, typename T>
 auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                     const vect<T, 3>& aMaxCorner) {
 
-  return se3_0th_order_topology_t<T, TupleDistanceMetric>{arithmetic_tuple(
+  return se3_0th_order_topology_t<T, TupleMetric>{arithmetic_tuple(
       differentiable_space<time_topology,
                            arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
-                           TupleDistanceMetric>(
+                           TupleMetric>(
           arithmetic_tuple(hyperbox_topology<vect<T, 3>>(
               aName + "_pos", aMinCorner, aMaxCorner))),
       differentiable_space<time_topology,
                            arithmetic_tuple<quaternion_topology<T>>,
-                           TupleDistanceMetric>(
+                           TupleMetric>(
           arithmetic_tuple(quaternion_topology<T>(aName + "_quat"))))};
 }
 
 /**
  * This meta-function defines the type for a 1st order SE(3) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se3_1st_order_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
           differentiable_space<time_topology,
                                arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                                 hyperball_topology<vect<T, 3>>>,
-                               DistanceMetric>,
+                               Metric>,
           differentiable_space<time_topology,
                                arithmetic_tuple<quaternion_topology<T>,
                                                 ang_velocity_3D_topology<T>>,
-                               DistanceMetric>>,
-      DistanceMetric>;
+                               Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se3_1st_order_topology_t =
-    typename se3_1st_order_topology<T, DistanceMetric>::type;
+    typename se3_1st_order_topology<T, Metric>::type;
 
 template <typename T>
 auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
@@ -150,23 +150,23 @@ auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
           ang_velocity_3D_topology<T>(aName + "_ang_vel", aMaxAngularSpeed))))};
 }
 
-template <typename TupleDistanceMetric, typename T>
+template <typename TupleMetric, typename T>
 auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                     const vect<T, 3>& aMaxCorner, const T& aMaxSpeed,
                     const T& aMaxAngularSpeed) {
 
-  return se3_1st_order_topology_t<T, TupleDistanceMetric>{arithmetic_tuple(
+  return se3_1st_order_topology_t<T, TupleMetric>{arithmetic_tuple(
       differentiable_space<time_topology,
                            arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                             hyperball_topology<vect<T, 3>>>,
-                           TupleDistanceMetric>(arithmetic_tuple(
+                           TupleMetric>(arithmetic_tuple(
           hyperbox_topology<vect<T, 3>>(aName + "_pos", aMinCorner, aMaxCorner),
           hyperball_topology<vect<T, 3>>(
               aName + "_vel", vect<T, 3>(0.0, 0.0, 0.0), aMaxSpeed))),
       differentiable_space<
           time_topology,
           arithmetic_tuple<quaternion_topology<T>, ang_velocity_3D_topology<T>>,
-          TupleDistanceMetric>(arithmetic_tuple(
+          TupleMetric>(arithmetic_tuple(
           quaternion_topology<T>(aName + "_quat"),
           ang_velocity_3D_topology<T>(aName + "_ang_vel", aMaxAngularSpeed))))};
 }
@@ -174,9 +174,9 @@ auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
 /**
  * This meta-function defines the type for a 2nd order SE(3) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se3_2nd_order_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
@@ -184,18 +184,18 @@ struct se3_2nd_order_topology {
                                arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                                 hyperball_topology<vect<T, 3>>,
                                                 hyperball_topology<vect<T, 3>>>,
-                               DistanceMetric>,
+                               Metric>,
           differentiable_space<time_topology,
                                arithmetic_tuple<quaternion_topology<T>,
                                                 ang_velocity_3D_topology<T>,
                                                 ang_accel_3D_topology<T>>,
-                               DistanceMetric>>,
-      DistanceMetric>;
+                               Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se3_2nd_order_topology_t =
-    typename se3_2nd_order_topology<T, DistanceMetric>::type;
+    typename se3_2nd_order_topology<T, Metric>::type;
 
 template <typename T>
 auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
@@ -224,18 +224,18 @@ auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
           ang_accel_3D_topology<T>(aName + "_ang_acc", aMaxAngularAccel))))};
 }
 
-template <typename TupleDistanceMetric, typename T>
+template <typename TupleMetric, typename T>
 auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                     const vect<T, 3>& aMaxCorner, const T& aMaxSpeed,
                     const T& aMaxAngularSpeed, const T& aMaxAcceleration,
                     const T& aMaxAngularAccel) {
 
-  return se3_2nd_order_topology_t<T, TupleDistanceMetric>{arithmetic_tuple(
+  return se3_2nd_order_topology_t<T, TupleMetric>{arithmetic_tuple(
       differentiable_space<time_topology,
                            arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                             hyperball_topology<vect<T, 3>>,
                                             hyperball_topology<vect<T, 3>>>,
-                           TupleDistanceMetric>(arithmetic_tuple(
+                           TupleMetric>(arithmetic_tuple(
           hyperbox_topology<vect<T, 3>>(aName + "_pos", aMinCorner, aMaxCorner),
           hyperball_topology<vect<T, 3>>(aName + "_vel",
                                          vect<T, 3>(0.0, 0.0, 0.0), aMaxSpeed),
@@ -245,25 +245,25 @@ auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
           time_topology,
           arithmetic_tuple<quaternion_topology<T>, ang_velocity_3D_topology<T>,
                            ang_accel_3D_topology<T>>,
-          TupleDistanceMetric>(arithmetic_tuple(
+          TupleMetric>(arithmetic_tuple(
           quaternion_topology<T>(aName + "_quat"),
           ang_velocity_3D_topology<T>(aName + "_ang_vel", aMaxAngularSpeed),
           ang_accel_3D_topology<T>(aName + "_ang_acc", aMaxAngularAccel))))};
 }
 
 template <typename T, int Order,
-          typename DistanceMetric = euclidean_tuple_distance>
+          typename Metric = euclidean_tuple_distance>
 struct se3_topology {
   using type = std::conditional_t<
-      (Order == 0), se3_0th_order_topology_t<T, DistanceMetric>,
+      (Order == 0), se3_0th_order_topology_t<T, Metric>,
       std::conditional_t<(Order == 1),
-                         se3_1st_order_topology_t<T, DistanceMetric>,
-                         se3_2nd_order_topology_t<T, DistanceMetric>>>;
+                         se3_1st_order_topology_t<T, Metric>,
+                         se3_2nd_order_topology_t<T, Metric>>>;
 };
 
 template <typename T, int Order,
-          typename DistanceMetric = euclidean_tuple_distance>
-using se3_topology_t = typename se3_topology<T, Order, DistanceMetric>::type;
+          typename Metric = euclidean_tuple_distance>
+using se3_topology_t = typename se3_topology<T, Order, Metric>::type;
 
 template <typename SE3Space>
 struct is_se3_space : std::false_type {};
@@ -271,66 +271,66 @@ struct is_se3_space : std::false_type {};
 template <typename SE3Space>
 static constexpr bool is_se3_space_v = is_se3_space<SE3Space>::value;
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_se3_space<metric_space_tuple<
     arithmetic_tuple<
         differentiable_space<time_topology,
                              arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
-                             DistanceMetric>,
+                             Metric>,
         differentiable_space<time_topology,
                              arithmetic_tuple<quaternion_topology<T>>,
-                             DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+                             Metric>>,
+    Metric>> : std::true_type {};
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_se3_space<metric_space_tuple<
     arithmetic_tuple<
         differentiable_space<time_topology,
                              arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                               hyperball_topology<vect<T, 3>>>,
-                             DistanceMetric>,
+                             Metric>,
         differentiable_space<time_topology,
                              arithmetic_tuple<quaternion_topology<T>,
                                               ang_velocity_3D_topology<T>>,
-                             DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+                             Metric>>,
+    Metric>> : std::true_type {};
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_se3_space<metric_space_tuple<
     arithmetic_tuple<
         differentiable_space<time_topology,
                              arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                               hyperball_topology<vect<T, 3>>,
                                               hyperball_topology<vect<T, 3>>>,
-                             DistanceMetric>,
+                             Metric>,
         differentiable_space<time_topology,
                              arithmetic_tuple<quaternion_topology<T>,
                                               ang_velocity_3D_topology<T>,
                                               ang_accel_3D_topology<T>>,
-                             DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+                             Metric>>,
+    Metric>> : std::true_type {};
 
 /**
  * This meta-function defines the type for a 0th order SE(3) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se3_0th_order_rl_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
-                                DistanceMetric>,
+                                Metric>,
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<rate_limited_quat_space<T>>,
-                                DistanceMetric>>,
-      DistanceMetric>;
+                                Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se3_0th_order_rl_topology_t =
-    typename se3_0th_order_rl_topology<T, DistanceMetric>::type;
+    typename se3_0th_order_rl_topology<T, Metric>::type;
 
 template <typename T>
 auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
@@ -350,30 +350,30 @@ auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
           rate_limited_quat_space<T>(aName + "_quat", aMaxAngularSpeed))))};
 }
 
-template <typename TupleDistanceMetric, typename T>
+template <typename TupleMetric, typename T>
 auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                        const vect<T, 3>& aMaxCorner, const T& aMaxSpeed,
                        const T& aMaxAngularSpeed) {
 
-  return se3_0th_order_rl_topology_t<T, TupleDistanceMetric>{arithmetic_tuple(
+  return se3_0th_order_rl_topology_t<T, TupleMetric>{arithmetic_tuple(
       reach_time_diff_space<time_topology,
                             arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
-                            TupleDistanceMetric>(
+                            TupleMetric>(
           arithmetic_tuple(hyperbox_topology<vect<T, 3>>(
               aName + "_pos", aMinCorner * (1.0 / aMaxSpeed),
               aMaxCorner * (1.0 / aMaxSpeed)))),
       reach_time_diff_space<time_topology,
                             arithmetic_tuple<rate_limited_quat_space<T>>,
-                            TupleDistanceMetric>(arithmetic_tuple(
+                            TupleMetric>(arithmetic_tuple(
           rate_limited_quat_space<T>(aName + "_quat", aMaxAngularSpeed))))};
 }
 
 /**
  * This meta-function defines the type for a 1st order SE(3) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se3_1st_order_rl_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
@@ -381,17 +381,17 @@ struct se3_1st_order_rl_topology {
               time_topology,
               arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                hyperball_topology<vect<T, 3>>>,
-              DistanceMetric>,
+              Metric>,
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<rate_limited_quat_space<T>,
                                                  ang_velocity_3D_topology<T>>,
-                                DistanceMetric>>,
-      DistanceMetric>;
+                                Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se3_1st_order_rl_topology_t =
-    typename se3_1st_order_rl_topology<T, DistanceMetric>::type;
+    typename se3_1st_order_rl_topology<T, Metric>::type;
 
 template <typename T>
 auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
@@ -426,35 +426,35 @@ auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                                                       aMaxAngularAccel))))};
 }
 
-template <typename TupleDistanceMetric, typename T>
+template <typename TupleMetric, typename T>
 auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                        const vect<T, 3>& aMaxCorner, const T& aMaxSpeed,
                        const T& aMaxAngularSpeed, const T& aMaxAcceleration,
                        const T& aMaxAngularAccel) {
 
-  return se3_1st_order_rl_topology_t<T, TupleDistanceMetric>{arithmetic_tuple(
+  return se3_1st_order_rl_topology_t<T, TupleMetric>{arithmetic_tuple(
       reach_time_diff_space<time_topology,
                             arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                              hyperball_topology<vect<T, 3>>>,
-                            TupleDistanceMetric>(
+                            TupleMetric>(
           arithmetic_tuple(hyperbox_topology<vect<T, 3>>(
                                aName + "_pos", aMinCorner * (1.0 / aMaxSpeed),
                                aMaxCorner * (1.0 / aMaxSpeed)),
                            hyperball_topology<vect<T, 3>>(
                                aName + "_vel", vect<T, 3>(0.0, 0.0, 0.0),
                                aMaxSpeed / aMaxAcceleration)),
-          TupleDistanceMetric(),
+          TupleMetric(),
           arithmetic_tuple(
               reach_time_differentiation(aMaxSpeed / aMaxAcceleration))),
       reach_time_diff_space<time_topology,
                             arithmetic_tuple<rate_limited_quat_space<T>,
                                              ang_velocity_3D_topology<T>>,
-                            TupleDistanceMetric>(
+                            TupleMetric>(
           arithmetic_tuple(
               rate_limited_quat_space<T>(aName + "_quat", aMaxAngularSpeed),
               ang_velocity_3D_topology<T>(aName + "_ang_vel",
                                           aMaxAngularSpeed / aMaxAngularAccel)),
-          TupleDistanceMetric(),
+          TupleMetric(),
           arithmetic_tuple(reach_time_differentiation(aMaxAngularSpeed /
                                                       aMaxAngularAccel))))};
 }
@@ -462,9 +462,9 @@ auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
 /**
  * This meta-function defines the type for a 2nd order SE(3) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se3_2nd_order_rl_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
@@ -473,18 +473,18 @@ struct se3_2nd_order_rl_topology {
               arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                hyperball_topology<vect<T, 3>>,
                                hyperball_topology<vect<T, 3>>>,
-              DistanceMetric>,
+              Metric>,
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<rate_limited_quat_space<T>,
                                                  ang_velocity_3D_topology<T>,
                                                  ang_accel_3D_topology<T>>,
-                                DistanceMetric>>,
-      DistanceMetric>;
+                                Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se3_2nd_order_rl_topology_t =
-    typename se3_2nd_order_rl_topology<T, DistanceMetric>::type;
+    typename se3_2nd_order_rl_topology<T, Metric>::type;
 
 template <typename T>
 auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
@@ -530,19 +530,19 @@ auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                                          aMaxAngularJerk))))};
 }
 
-template <typename TupleDistanceMetric, typename T>
+template <typename TupleMetric, typename T>
 auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                        const vect<T, 3>& aMaxCorner, const T& aMaxSpeed,
                        const T& aMaxAngularSpeed, const T& aMaxAcceleration,
                        const T& aMaxAngularAccel, const T& aMaxJerk,
                        const T& aMaxAngularJerk) {
 
-  return se3_2nd_order_rl_topology_t<T, TupleDistanceMetric>{arithmetic_tuple(
+  return se3_2nd_order_rl_topology_t<T, TupleMetric>{arithmetic_tuple(
       reach_time_diff_space<time_topology,
                             arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                              hyperball_topology<vect<T, 3>>,
                                              hyperball_topology<vect<T, 3>>>,
-                            TupleDistanceMetric>(
+                            TupleMetric>(
           arithmetic_tuple(hyperbox_topology<vect<T, 3>>(
                                aName + "_pos", aMinCorner * (1.0 / aMaxSpeed),
                                aMaxCorner * (1.0 / aMaxSpeed)),
@@ -552,7 +552,7 @@ auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                            hyperball_topology<vect<T, 3>>(
                                aName + "_acc", vect<T, 3>(0.0, 0.0, 0.0),
                                aMaxAcceleration / aMaxJerk)),
-          TupleDistanceMetric(),
+          TupleMetric(),
           arithmetic_tuple(
               reach_time_differentiation(aMaxSpeed / aMaxAcceleration),
               reach_time_differentiation(aMaxAcceleration / aMaxJerk))),
@@ -560,14 +560,14 @@ auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                             arithmetic_tuple<rate_limited_quat_space<T>,
                                              ang_velocity_3D_topology<T>,
                                              ang_accel_3D_topology<T>>,
-                            TupleDistanceMetric>(
+                            TupleMetric>(
           arithmetic_tuple(
               rate_limited_quat_space<T>(aName + "_quat", aMaxAngularSpeed),
               ang_velocity_3D_topology<T>(aName + "_ang_vel",
                                           aMaxAngularSpeed / aMaxAngularAccel),
               ang_accel_3D_topology<T>(aName + "_ang_acc",
                                        aMaxAngularAccel / aMaxAngularJerk)),
-          TupleDistanceMetric(),
+          TupleMetric(),
           arithmetic_tuple(
               reach_time_differentiation(aMaxAngularSpeed / aMaxAngularAccel),
               reach_time_differentiation(aMaxAngularAccel /
@@ -575,19 +575,19 @@ auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
 }
 
 template <typename T, int Order,
-          typename DistanceMetric = euclidean_tuple_distance>
+          typename Metric = euclidean_tuple_distance>
 struct se3_rl_topology {
   using type = std::conditional_t<
-      (Order == 0), se3_0th_order_rl_topology_t<T, DistanceMetric>,
+      (Order == 0), se3_0th_order_rl_topology_t<T, Metric>,
       std::conditional_t<(Order == 1),
-                         se3_1st_order_rl_topology_t<T, DistanceMetric>,
-                         se3_2nd_order_rl_topology_t<T, DistanceMetric>>>;
+                         se3_1st_order_rl_topology_t<T, Metric>,
+                         se3_2nd_order_rl_topology_t<T, Metric>>>;
 };
 
 template <typename T, int Order,
-          typename DistanceMetric = euclidean_tuple_distance>
+          typename Metric = euclidean_tuple_distance>
 using se3_rl_topology_t =
-    typename se3_rl_topology<T, Order, DistanceMetric>::type;
+    typename se3_rl_topology<T, Order, Metric>::type;
 
 template <typename SE3Space>
 struct is_rate_limited_se3_space : std::false_type {};
@@ -596,106 +596,106 @@ template <typename SE3Space>
 static constexpr bool is_rate_limited_se3_space_v =
     is_rate_limited_se3_space<SE3Space>::value;
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_rate_limited_se3_space<metric_space_tuple<
     arithmetic_tuple<
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
-                              DistanceMetric>,
+                              Metric>,
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<rate_limited_quat_space<T>>,
-                              DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+                              Metric>>,
+    Metric>> : std::true_type {};
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_rate_limited_se3_space<metric_space_tuple<
     arithmetic_tuple<
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                                hyperball_topology<vect<T, 3>>>,
-                              DistanceMetric>,
+                              Metric>,
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<rate_limited_quat_space<T>,
                                                ang_velocity_3D_topology<T>>,
-                              DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+                              Metric>>,
+    Metric>> : std::true_type {};
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_rate_limited_se3_space<metric_space_tuple<
     arithmetic_tuple<
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                                hyperball_topology<vect<T, 3>>,
                                                hyperball_topology<vect<T, 3>>>,
-                              DistanceMetric>,
+                              Metric>,
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<rate_limited_quat_space<T>,
                                                ang_velocity_3D_topology<T>,
                                                ang_accel_3D_topology<T>>,
-                              DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+                              Metric>>,
+    Metric>> : std::true_type {};
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct get_rate_limited_space<metric_space_tuple<
     arithmetic_tuple<
         differentiable_space<time_topology,
                              arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
-                             DistanceMetric>,
+                             Metric>,
         differentiable_space<time_topology,
                              arithmetic_tuple<quaternion_topology<T>>,
-                             DistanceMetric>>,
-    DistanceMetric>> {
+                             Metric>>,
+    Metric>> {
   using type = metric_space_tuple<
       arithmetic_tuple<
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
-                                DistanceMetric>,
+                                Metric>,
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<rate_limited_quat_space<T>>,
-                                DistanceMetric>>,
-      DistanceMetric>;
+                                Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct get_rate_limited_space<metric_space_tuple<
     arithmetic_tuple<
         differentiable_space<time_topology,
                              arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                               hyperball_topology<vect<T, 3>>>,
-                             DistanceMetric>,
+                             Metric>,
         differentiable_space<time_topology,
                              arithmetic_tuple<quaternion_topology<T>,
                                               ang_velocity_3D_topology<T>>,
-                             DistanceMetric>>,
-    DistanceMetric>> {
+                             Metric>>,
+    Metric>> {
   using type = metric_space_tuple<
       arithmetic_tuple<
           reach_time_diff_space<
               time_topology,
               arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                hyperball_topology<vect<T, 3>>>,
-              DistanceMetric>,
+              Metric>,
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<rate_limited_quat_space<T>,
                                                  ang_velocity_3D_topology<T>>,
-                                DistanceMetric>>,
-      DistanceMetric>;
+                                Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct get_rate_limited_space<metric_space_tuple<
     arithmetic_tuple<
         differentiable_space<time_topology,
                              arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                               hyperball_topology<vect<T, 3>>,
                                               hyperball_topology<vect<T, 3>>>,
-                             DistanceMetric>,
+                             Metric>,
         differentiable_space<time_topology,
                              arithmetic_tuple<quaternion_topology<T>,
                                               ang_velocity_3D_topology<T>,
                                               ang_accel_3D_topology<T>>,
-                             DistanceMetric>>,
-    DistanceMetric>> {
+                             Metric>>,
+    Metric>> {
   using type = metric_space_tuple<
       arithmetic_tuple<
           reach_time_diff_space<
@@ -703,88 +703,88 @@ struct get_rate_limited_space<metric_space_tuple<
               arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                hyperball_topology<vect<T, 3>>,
                                hyperball_topology<vect<T, 3>>>,
-              DistanceMetric>,
+              Metric>,
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<rate_limited_quat_space<T>,
                                                  ang_velocity_3D_topology<T>,
                                                  ang_accel_3D_topology<T>>,
-                                DistanceMetric>>,
-      DistanceMetric>;
+                                Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct get_rate_illimited_space<metric_space_tuple<
     arithmetic_tuple<
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
-                              DistanceMetric>,
+                              Metric>,
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<rate_limited_quat_space<T>>,
-                              DistanceMetric>>,
-    DistanceMetric>> {
+                              Metric>>,
+    Metric>> {
   using type = metric_space_tuple<
       arithmetic_tuple<
           differentiable_space<time_topology,
                                arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
-                               DistanceMetric>,
+                               Metric>,
           differentiable_space<time_topology,
                                arithmetic_tuple<quaternion_topology<T>>,
-                               DistanceMetric>>,
-      DistanceMetric>;
+                               Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct get_rate_illimited_space<metric_space_tuple<
     arithmetic_tuple<
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                                hyperball_topology<vect<T, 3>>>,
-                              DistanceMetric>,
+                              Metric>,
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<rate_limited_quat_space<T>,
                                                ang_velocity_3D_topology<T>>,
-                              DistanceMetric>>,
-    DistanceMetric>> {
+                              Metric>>,
+    Metric>> {
   using type = metric_space_tuple<
       arithmetic_tuple<
           differentiable_space<time_topology,
                                arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                                 hyperball_topology<vect<T, 3>>>,
-                               DistanceMetric>,
+                               Metric>,
           differentiable_space<time_topology,
                                arithmetic_tuple<quaternion_topology<T>,
                                                 ang_velocity_3D_topology<T>>,
-                               DistanceMetric>>,
-      DistanceMetric>;
+                               Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct get_rate_illimited_space<metric_space_tuple<
     arithmetic_tuple<
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                                hyperball_topology<vect<T, 3>>,
                                                hyperball_topology<vect<T, 3>>>,
-                              DistanceMetric>,
+                              Metric>,
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<rate_limited_quat_space<T>,
                                                ang_velocity_3D_topology<T>,
                                                ang_accel_3D_topology<T>>,
-                              DistanceMetric>>,
-    DistanceMetric>> {
+                              Metric>>,
+    Metric>> {
   using type = metric_space_tuple<
       arithmetic_tuple<
           differentiable_space<time_topology,
                                arithmetic_tuple<hyperbox_topology<vect<T, 3>>,
                                                 hyperball_topology<vect<T, 3>>,
                                                 hyperball_topology<vect<T, 3>>>,
-                               DistanceMetric>,
+                               Metric>,
           differentiable_space<time_topology,
                                arithmetic_tuple<quaternion_topology<T>,
                                                 ang_velocity_3D_topology<T>,
                                                 ang_accel_3D_topology<T>>,
-                               DistanceMetric>>,
-      DistanceMetric>;
+                               Metric>>,
+      Metric>;
 };
 
 }  // namespace pp

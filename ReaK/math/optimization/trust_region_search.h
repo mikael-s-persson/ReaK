@@ -40,6 +40,8 @@
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_cholesky.h"
 
+#include "ReaK/math/lin_alg/mat_concepts.h"
+#include "ReaK/math/lin_alg/vect_concepts.h"
 #include "ReaK/math/optimization/newton_search_directions.h"
 
 #include <type_traits>
@@ -200,13 +202,11 @@ void compute_right_pinv_dogleg_impl(const Vector1& c, const Matrix& A,
  * \param radius The radius of the trust-region.
  * \param abs_tol The tolerance at which to consider values to be zero.
  */
-template <typename Vector, typename Matrix>
+template <WritableVector Vector, ReadableMatrix Matrix>
 void compute_cauchy_point(
     const Vector& g, const Matrix& B, Vector& p,
     vect_value_type_t<Vector>& norm_p, vect_value_type_t<Vector> radius,
     vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6)) {
-  static_assert(is_writable_vector_v<Vector>);
-  static_assert(is_readable_matrix_v<Matrix>);
   detail::compute_cauchy_point_impl(g, B, p, norm_p, radius, abs_tol);
 }
 
@@ -251,13 +251,11 @@ struct trust_region_solver_cauchy {
  * \param radius The radius of the trust-region.
  * \param abs_tol The tolerance at which to consider values to be zero.
  */
-template <typename Vector, typename Matrix>
+template <WritableVector Vector, ReadableMatrix Matrix>
 void compute_dogleg_point(
     const Vector& g, const Matrix& B, Vector& p,
     vect_value_type_t<Vector>& norm_p, vect_value_type_t<Vector> radius,
     vect_value_type_t<Vector> abs_tol = vect_value_type_t<Vector>(1e-6)) {
-  static_assert(is_writable_vector_v<Vector>);
-  static_assert(is_readable_matrix_v<Matrix>);
   detail::compute_dogleg_point_impl(g, B, p, norm_p, radius,
                                     newton_direction<Matrix, Vector>, abs_tol);
 }
@@ -351,14 +349,11 @@ struct trust_region_solver_dogleg_reg {
  * \param radius The radius of the trust-region.
  * \param abs_tol The tolerance at which to consider values to be zero.
  */
-template <typename Vector1, typename Matrix, typename Vector2>
+template <WritableVector Vector1, ReadableMatrix Matrix, WritableVector Vector2>
 void compute_right_pinv_dogleg(
     const Vector1& g, const Matrix& B, Vector2& p,
     vect_value_type_t<Vector2>& norm_p, vect_value_type_t<Vector2> radius,
     vect_value_type_t<Vector2> abs_tol = vect_value_type_t<Vector2>(1e-6)) {
-  static_assert(is_writable_vector_v<Vector1>);
-  static_assert(is_readable_matrix_v<Matrix>);
-  static_assert(is_writable_vector_v<Vector2>);
   detail::compute_right_pinv_dogleg_impl(
       g, B, p, norm_p, radius,
       newton_direction<

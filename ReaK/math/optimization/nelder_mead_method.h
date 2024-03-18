@@ -135,7 +135,7 @@ void nelder_mead_method_impl(Function f, std::multimap<T, Vector>& pts,
  * caller through an iterator range.
  * TEST PASSED but bad convergence (expected).
  * \tparam Function The functor type that can map (Vector -> T).
- * \tparam Vector A writable vector type the represents the independent vector.
+ * \tparam Vector A vector type the represents the independent vector.
  * \tparam T A scalar type.
  * \tparam ForwardIter A forward iterator type that can be used to represent a range of vector-points.
  * \param first The start of the point-range which defines the simplex.
@@ -148,11 +148,10 @@ void nelder_mead_method_impl(Function f, std::multimap<T, Vector>& pts,
  * \param rho The contraction coefficient (default 0.5).
  * \param sigma The shrink coefficient (default 0.5).
  */
-template <typename Function, typename Vector, typename T, typename ForwardIter>
+template <typename Function, WritableVector Vector, typename T, typename ForwardIter>
 void nelder_mead_method(ForwardIter first, ForwardIter last, Function f,
                         Vector& c, T tol = T(1e-6), T alpha = T(1.0),
                         T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {
-  static_assert(is_writable_vector_v<Vector>);
   std::multimap<T, Vector> pts;
   for (; first != last; ++first) {
     pts.insert(std::pair<T, Vector>(f(*first), *first));
@@ -169,7 +168,7 @@ void nelder_mead_method(ForwardIter first, ForwardIter last, Function f,
  * and uses it to generate the initial simplex around the initial guess with a given initial spread (std-dev).
  * TEST PASSED but bad convergence (expected).
  * \tparam Function The functor type that can map (Vector -> T).
- * \tparam Vector A writable vector type the represents the independent vector.
+ * \tparam Vector A vector type the represents the independent vector.
  * \tparam T A scalar type.
  * \tparam RandomNumberGen A uniform random-number generator (see Boost.Random).
  * \param f The function to minimize.
@@ -182,12 +181,11 @@ void nelder_mead_method(ForwardIter first, ForwardIter last, Function f,
  * \param rho The contraction coefficient (default 0.5).
  * \param sigma The shrink coefficient (default 0.5).
  */
-template <typename Function, typename Vector, typename T,
+template <typename Function, WritableVector Vector, typename T,
           typename RandomNumberGen>
 void nelder_mead_method(Function f, Vector& c, T init_spread,
                         RandomNumberGen& rng, T tol = T(1e-6), T alpha = T(1.0),
                         T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {
-  static_assert(is_writable_vector_v<Vector>);
   using ValueType = vect_value_type_t<Vector>;
 
   std::multimap<T, Vector> pts;

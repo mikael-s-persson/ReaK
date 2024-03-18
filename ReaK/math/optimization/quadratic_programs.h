@@ -35,6 +35,7 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_qr_decomp.h"
 #include "ReaK/math/lin_alg/mat_views.h"
 
@@ -56,9 +57,6 @@ namespace ReaK::optim {
  *   Nocedal, Numerical Optimization, 2nd Ed..
  * TEST PASSED
  *
- * \tparam Matrix A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
- * \tparam Vector1 A vector type, should model the WritableVectorConcept.
- * \tparam Vector2 A vector type, should model the WritableVectorConcept.
  * \param A The constraint matrix of dimension M*N.
  * \param b The b vector of dimension M.
  * \param G The G matrix of dimension NxN (defines the quadratic function to minimize, should be positive
@@ -69,8 +67,8 @@ namespace ReaK::optim {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Vector1, typename Matrix2,
-          typename Vector2>
+template <ReadableMatrix Matrix1, WritableVector Vector1, ReadableMatrix Matrix2,
+          WritableVector Vector2>
 void null_space_QP_method(
     const Matrix1& A, const Vector1& b, const Matrix2& G, const Vector2& c,
     Vector2& x,
@@ -174,9 +172,6 @@ void null_space_QP_method(
  *   Nocedal, Numerical Optimization, 2nd Ed..
  * TEST PASSED
  *
- * \tparam Matrix A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
- * \tparam Vector1 A vector type, should model the WritableVectorConcept.
- * \tparam Vector2 A vector type, should model the WritableVectorConcept.
  * \param A The constraint matrix of dimension M*N.
  * \param b The b vector of dimension M.
  * \param G The G matrix of dimension NxN (defines the quadratic function to minimize, should be positive
@@ -187,8 +182,8 @@ void null_space_QP_method(
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Vector1, typename Matrix2,
-          typename Vector2>
+template <ReadableMatrix Matrix1, WritableVector Vector1, ReadableMatrix Matrix2,
+          WritableVector Vector2>
 void null_space_RRQP_method(
     const Matrix1& A, const Vector1& b, const Matrix2& G, const Vector2& c,
     Vector2& x,
@@ -297,9 +292,6 @@ void null_space_RRQP_method(
  *   Nocedal, Numerical Optimization, 2nd Ed..
  * TEST PASSED
  *
- * \tparam Matrix A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
- * \tparam Vector1 A vector type, should model the WritableVectorConcept.
- * \tparam Vector2 A vector type, should model the WritableVectorConcept.
  * \param A The constraint matrix of dimension M*N.
  * \param b The b vector of dimension M.
  * \param G The G matrix of dimension NxN (defines the quadratic function to minimize, should be positive
@@ -310,8 +302,8 @@ void null_space_RRQP_method(
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Vector1, typename Matrix2,
-          typename Vector2>
+template <ReadableMatrix Matrix1, WritableVector Vector1, ReadableMatrix Matrix2,
+          WritableVector Vector2>
 void projected_CG_method(
     const Matrix1& A, const Vector1& b, const Matrix2& G, const Vector2& c,
     Vector2& x, unsigned int max_iter = 20,

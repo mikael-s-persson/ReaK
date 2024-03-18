@@ -38,6 +38,7 @@
 #define REAK_MATH_KINETOSTATICS_MOTION_JACOBIANS_H_
 
 #include "ReaK/math/kinetostatics/kinetostatics.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 
 #include <type_traits>
 #include <utility>
@@ -67,9 +68,8 @@ class jacobian_gen_gen : public shared_object {
     return *this;
   }
 
-  template <typename Matrix1>
+  template <FullyWritableMatrix Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
     if ((Jac.get_row_count() != 1) || (Jac.get_col_count() != 1)) {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
@@ -77,11 +77,10 @@ class jacobian_gen_gen : public shared_object {
     Jac(0, 0) = qd_qd;
   }
 
-  template <typename Matrix1, typename Matrix2>
+  template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2>
   void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     write_to_matrices(Jac);
 
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
     if ((JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 1)) {
       throw std::range_error("JacobianDot matrix has the wrong size!");
     }
@@ -150,9 +149,8 @@ class jacobian_gen_2D : public shared_object {
         qd_aacc);
   }
 
-  template <typename Matrix1>
+  template <FullyWritableMatrix Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
     if ((Jac.get_row_count() != 3) || (Jac.get_col_count() != 1)) {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
@@ -162,11 +160,10 @@ class jacobian_gen_2D : public shared_object {
     Jac(2, 0) = qd_avel;
   }
 
-  template <typename Matrix1, typename Matrix2>
+  template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2>
   void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     write_to_matrices(Jac);
 
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
     if ((JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 1)) {
       throw std::range_error("JacobianDot matrix has the wrong size!");
     }
@@ -250,9 +247,8 @@ class jacobian_gen_3D : public shared_object {
                 qd_aacc * R - f2.AngVelocity % w_tmp);
   }
 
-  template <typename Matrix1>
+  template <FullyWritableMatrix Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
     if ((Jac.get_row_count() != 6) || (Jac.get_col_count() != 1)) {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
@@ -261,11 +257,10 @@ class jacobian_gen_3D : public shared_object {
     slice(Jac)(range(3, 6), 0) = qd_avel;
   }
 
-  template <typename Matrix1, typename Matrix2>
+  template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2>
   void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     write_to_matrices(Jac);
 
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
     if ((JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 1)) {
       throw std::range_error("JacobianDot matrix has the wrong size!");
     }
@@ -334,9 +329,8 @@ class jacobian_2D_gen : public shared_object {
     return *this;
   }
 
-  template <typename Matrix1>
+  template <FullyWritableMatrix Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
     if ((Jac.get_row_count() != 1) || (Jac.get_col_count() != 3)) {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
@@ -346,11 +340,10 @@ class jacobian_2D_gen : public shared_object {
     Jac(0, 2) = avel_qd;
   }
 
-  template <typename Matrix1, typename Matrix2>
+  template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2>
   void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     write_to_matrices(Jac);
 
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
     if ((JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 3)) {
       throw std::range_error("JacobianDot matrix has the wrong size!");
     }
@@ -464,9 +457,8 @@ class jacobian_2D_2D : public shared_object {
     );
   }
 
-  template <typename Matrix1>
+  template <FullyWritableMatrix Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
     if ((Jac.get_row_count() != 3) || (Jac.get_col_count() != 3)) {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
@@ -479,11 +471,10 @@ class jacobian_2D_2D : public shared_object {
     Jac(2, 2) = avel_avel;
   }
 
-  template <typename Matrix1, typename Matrix2>
+  template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2>
   void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     write_to_matrices(Jac);
 
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
     if ((JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 3)) {
       throw std::range_error("JacobianDot matrix has the wrong size!");
     }
@@ -619,9 +610,8 @@ class jacobian_2D_3D : public shared_object {
                 new_vel_acc, new_vel_aacc, new_avel_acc, new_avel_aacc);
   }
 
-  template <typename Matrix1>
+  template <FullyWritableMatrix Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
     if ((Jac.get_row_count() != 6) || (Jac.get_col_count() != 3)) {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
@@ -634,11 +624,10 @@ class jacobian_2D_3D : public shared_object {
     slice(Jac)(range(3, 6), 2) = avel_avel;
   }
 
-  template <typename Matrix1, typename Matrix2>
+  template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2>
   void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     write_to_matrices(Jac);
 
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
     if ((JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 3)) {
       throw std::range_error("JacobianDot matrix has the wrong size!");
     }
@@ -719,9 +708,8 @@ class jacobian_3D_gen : public shared_object {
     return *this;
   }
 
-  template <typename Matrix1>
+  template <FullyWritableMatrix Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
     if ((Jac.get_row_count() != 1) || (Jac.get_col_count() != 6)) {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
@@ -730,11 +718,10 @@ class jacobian_3D_gen : public shared_object {
     slice(Jac)(0, range(3, 6)) = avel_qd;
   }
 
-  template <typename Matrix1, typename Matrix2>
+  template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2>
   void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     write_to_matrices(Jac);
 
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
     if ((JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 6)) {
       throw std::range_error("JacobianDot matrix has the wrong size!");
     }
@@ -864,9 +851,8 @@ class jacobian_3D_2D : public shared_object {
     );
   }
 
-  template <typename Matrix1>
+  template <FullyWritableMatrix Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
     if ((Jac.get_row_count() != 3) || (Jac.get_col_count() != 6)) {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
@@ -879,11 +865,10 @@ class jacobian_3D_2D : public shared_object {
     }
   }
 
-  template <typename Matrix1, typename Matrix2>
+  template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2>
   void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     write_to_matrices(Jac);
 
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
     if ((JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 6)) {
       throw std::range_error("JacobianDot matrix has the wrong size!");
     }
@@ -1044,9 +1029,8 @@ class jacobian_3D_3D : public shared_object {
                 new_vel_acc, new_vel_aacc, new_avel_acc, new_avel_aacc);
   }
 
-  template <typename Matrix1>
+  template <FullyWritableMatrix Matrix1>
   void write_to_matrices(Matrix1& Jac) const {
-    static_assert(is_fully_writable_matrix_v<Matrix1>);
     if ((Jac.get_row_count() != 6) || (Jac.get_col_count() != 6)) {
       throw std::range_error("Jacobian matrix has the wrong size!");
     }
@@ -1059,11 +1043,10 @@ class jacobian_3D_3D : public shared_object {
     }
   }
 
-  template <typename Matrix1, typename Matrix2>
+  template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2>
   void write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     write_to_matrices(Jac);
 
-    static_assert(is_fully_writable_matrix_v<Matrix2>);
     if ((JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 6)) {
       throw std::range_error("JacobianDot matrix has the wrong size!");
     }

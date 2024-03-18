@@ -53,8 +53,8 @@
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 
+#include <concepts>
 #include <type_traits>
-#include "boost/concept_check.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK::pp {
@@ -67,28 +67,26 @@ enum proper_metric_t { proper_metric };
 
 /**
  * This meta-function gets the type of the proper metric associated to a metric-space and its distance metric.
- * \tparam MetricSpace The topology type for which the proper metric type is sought.
  */
-template <typename MetricSpace>
+template <typename Space>
 struct get_proper_metric {
-  using type = typename metric_space_traits<MetricSpace>::distance_metric_type;
+  using type = metric_space_distance_metric_t<Space>;
 };
 
-template <typename MetricSpace>
-using get_proper_metric_t = typename get_proper_metric<MetricSpace>::type;
+template <typename Space>
+using get_proper_metric_t = typename get_proper_metric<Space>::type;
 
 /**
  * This meta-function turns a distance-metric type to a proper distance metric type.
- * \tparam DistanceMetric The distance-metric type for which the proper metric type is sought.
  */
-template <typename DistanceMetric>
+template <typename Metric>
 struct get_proper_metric_from_metric {
-  using type = DistanceMetric;
+  using type = Metric;
 };
 
-template <typename DistanceMetric>
+template <typename Metric>
 using get_proper_metric_from_metric_t =
-    typename get_proper_metric_from_metric<DistanceMetric>::type;
+    typename get_proper_metric_from_metric<Metric>::type;
 
 /**
  * This concept defines the requirements to fulfill in order to model a proper metric-space
@@ -102,24 +100,15 @@ using get_proper_metric_from_metric_t =
  *
  * \tparam MetricSpace The topology type to be checked for this concept.
  */
-template <typename MetricSpace>
-struct ProperMetricSpaceConcept {
-  get_proper_metric_t<MetricSpace> pdist;
-  MetricSpace space;
+template <typename Space>
+concept ProperMetricSpace = MetricSpace<Space> && DistanceMetric<get_proper_metric_t<Space>, Space> &&
+  requires (const Space& space) {
+    { get(proper_metric, space) } -> std::convertible_to<get_proper_metric_t<Space>>;
+  };
 
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<MetricSpace>));
-  BOOST_CONCEPT_ASSERT(
-      (DistanceMetricConcept<get_proper_metric_t<MetricSpace>, MetricSpace>));
-
-  BOOST_CONCEPT_USAGE(ProperMetricSpaceConcept) {
-    pdist = get(proper_metric, space);
-  }
-};
-
-template <typename MetricSpace>
-auto get(proper_metric_t /*unused*/, const MetricSpace& space) {
-  static_assert(is_metric_space_v<MetricSpace>);
-  return get_proper_metric_t<MetricSpace>{get(distance_metric, space)};
+template <MetricSpace Space>
+auto get(proper_metric_t /*unused*/, const Space& space) {
+  return get_proper_metric_t<Space>{get(distance_metric, space)};
 }
 
 /**
@@ -132,8 +121,8 @@ struct default_proper_metric : public serializable {
 
   default_proper_metric() = default;
 
-  template <typename TopologyOrMetric>
-  explicit default_proper_metric(const TopologyOrMetric& /*unused*/) {}
+  template <typename SpaceOrMetric>
+  explicit default_proper_metric(const SpaceOrMetric& /*unused*/) {}
 
   /**
    * This function returns the distance between two points on a topology.
@@ -144,8 +133,8 @@ struct default_proper_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The distance between two points on a topology.
    */
-  template <typename Point, typename Topology>
-  double operator()(const Point& a, const Point& b, const Topology& s) const {
+  template <typename Point, Topology Space>
+  double operator()(const Point& a, const Point& b, const Space& s) const {
     return s.proper_distance(a, b);
   }
   /**
@@ -156,8 +145,8 @@ struct default_proper_metric : public serializable {
    * \param s The topology or space on which the points lie.
    * \return The norm of the difference between two points on a topology.
    */
-  template <typename PointDiff, typename Topology>
-  double operator()(const PointDiff& a, const Topology& s) const {
+  template <typename PointDiff, Topology Space>
+  double operator()(const PointDiff& a, const Space& s) const {
     return s.proper_norm(a);
   }
 

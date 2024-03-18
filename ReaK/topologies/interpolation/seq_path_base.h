@@ -39,23 +39,17 @@
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 
-#include "boost/concept_check.hpp"
-
 namespace ReaK::pp {
 
 /**
  * This class defines the OOP interface for a sequential path in a topology.
- * \tparam Topology The topology type on which the points and the sequential path can reside, should model the
- * MetricSpaceConcept.
  */
-template <typename Topology>
+template <MetricSpace Space>
 class seq_path_base : public named_object {
  public:
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
-
-  using topology = Topology;
+  using topology = Space;
   using point_type = topology_point_type_t<topology>;
-  using self = seq_path_base<Topology>;
+  using self = seq_path_base<Space>;
 
  protected:
   struct point_distance_iterator_impl {

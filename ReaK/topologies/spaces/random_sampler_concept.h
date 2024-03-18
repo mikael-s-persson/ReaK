@@ -36,10 +36,9 @@
 #define REAK_TOPOLOGIES_SPACES_RANDOM_SAMPLER_CONCEPT_H_
 
 #include "ReaK/core/base/defs.h"
-
-#include "boost/concept_check.hpp"
-
 #include "ReaK/topologies/spaces/metric_space_concept.h"
+
+#include <concepts>
 
 /** Main namespace for ReaK */
 namespace ReaK::pp {
@@ -49,27 +48,14 @@ namespace ReaK::pp {
  * as used in ReaK::pp. A random-sampler is essentially a callable type that can produce
  * a point within a given topology.
  *
- * Required concepts:
- *
- * Topology should model the TopologyConcept.
- *
  * Valid expressions:
  *
- * p = rand_sampler(space);  A random point (p) can be obtained by calling the random-sampler (rand_sampler) by
+ * p = sampler(space);  A random point (p) can be obtained by calling the random-sampler (sampler) by
  *providing a const-ref to the topology (space).
- *
- * \tparam RandomSampler The random-sampler type to be checked for this concept.
- * \tparam Topology The topology to which the random sampler should apply.
  */
-template <typename RandomSampler, typename Topology>
-struct RandomSamplerConcept {
-  RandomSampler rand_sampler;
-  Topology space;
-  topology_point_type_t<Topology> p;
-
-  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
-
-  BOOST_CONCEPT_USAGE(RandomSamplerConcept) { p = rand_sampler(space); }
+template <typename Sampler, typename Space>
+concept RandomSampler = Topology<Space> && requires (const Space& space, Sampler& sampler) {
+  { sampler(space) } -> std::convertible_to<topology_point_type_t<Space>>;
 };
 
 /**
@@ -104,40 +90,23 @@ using point_distribution_random_sampler_t =
  *
  * Required concepts:
  *
- * The PointDistribution should model the TopologyConcept.
+ * The Space should model Topology.
  *
- * The random-sampler should model the RandomSamplerConcept.
+ * The random-sampler should model RandomSampler.
  *
  * Valid expressions:
  *
  * rand_sampler = get(random_sampler,space);  The random-sampler can be obtained by a tagged "get" call on the
  *point-distribution.
- *
- * \tparam PointDistribution The topology type to be checked for this concept.
  */
-template <typename PointDistribution>
-struct PointDistributionConcept {
-  topology_point_type_t<PointDistribution> p1, p2;
-  typename point_distribution_traits<PointDistribution>::random_sampler_type
-      rand_sampler;
-  PointDistribution space;
-
-  BOOST_CONCEPT_ASSERT((TopologyConcept<PointDistribution>));
-  BOOST_CONCEPT_ASSERT(
-      (RandomSamplerConcept<typename point_distribution_traits<
-                                PointDistribution>::random_sampler_type,
-                            PointDistribution>));
-
-  BOOST_CONCEPT_USAGE(PointDistributionConcept) {
-    rand_sampler = get(random_sampler, space);
-  }
-};
+template <typename Space>
+concept PointDistribution = Topology<Space> && RandomSampler<point_distribution_random_sampler_t<Space>, Space> &&
+  requires (const Space& space) {
+    { get(random_sampler, space) } -> std::convertible_to<point_distribution_random_sampler_t<Space>>;
+  };
 
 template <typename T>
-struct is_point_distribution : std::false_type {};
-
-template <typename T>
-static constexpr bool is_point_distribution_v = is_point_distribution<T>::value;
+static constexpr bool is_point_distribution_v = PointDistribution<T>;
 
 }  // namespace ReaK::pp
 

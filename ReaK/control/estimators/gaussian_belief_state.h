@@ -39,6 +39,7 @@
 #include "ReaK/core/base/global_rng.h"
 #include "ReaK/core/base/named_object.h"
 #include "ReaK/math/lin_alg/mat_cholesky.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_qr_decomp.h"
 #include "ReaK/math/lin_alg/mat_svd_method.h"
 
@@ -256,7 +257,7 @@ struct gaussian_pdf<BeliefState, covariance_storage::information> {
     using std::sqrt;
     using state_difference_type =
         typename pp::topology_traits<Topology>::point_difference_type;
-    BOOST_CONCEPT_ASSERT((ReadableVectorConcept<state_difference_type>));
+    static_assert(ReadableVector<state_difference_type>);
     BOOST_CONCEPT_ASSERT(
         (CovarianceMatrixConcept<covariance_type, state_difference_type>));
 
@@ -373,7 +374,7 @@ struct gaussian_pdf<BeliefState, covariance_storage::decomposed> {
     using std::sqrt;
     using state_difference_type =
         typename pp::topology_traits<Topology>::point_difference_type;
-    BOOST_CONCEPT_ASSERT((WritableVectorConcept<state_difference_type>));
+    static_assert(WritableVector<state_difference_type>);
     BOOST_CONCEPT_ASSERT(
         (CovarianceMatrixConcept<covariance_type, state_difference_type>));
 
@@ -610,10 +611,8 @@ struct gaussian_sampler {
   }
 };
 
-template <typename Vector, typename Matrix>
+template <WritableVector Vector, ReadableMatrix Matrix>
 Vector sample_gaussian_point(const Vector& mean, const Matrix& cov) {
-  static_assert(is_writable_vector_v<Vector>);
-  static_assert(is_readable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using std::sqrt;
 
@@ -642,10 +641,9 @@ Vector sample_gaussian_point(const Vector& mean, const Matrix& cov) {
   return mean + L * z;
 }
 
-template <typename Vector, typename ValueType>
+template <WritableVector Vector, typename ValueType>
 Vector sample_gaussian_point(
     Vector mean, const mat<ValueType, mat_structure::diagonal>& cov) {
-  static_assert(is_writable_vector_v<Vector>);
   using std::sqrt;
 
   global_rng_type& rng = get_global_rng();
@@ -658,11 +656,10 @@ Vector sample_gaussian_point(
   return mean;
 }
 
-template <typename StateSpace, typename Matrix>
+template <typename StateSpace, ReadableMatrix Matrix>
 pp::topology_point_type_t<StateSpace> sample_gaussian_point(
     const StateSpace& space, const pp::topology_point_type_t<StateSpace>& mean,
     const Matrix& cov) {
-  static_assert(is_readable_matrix_v<Matrix>);
   using DiffType = pp::topology_point_difference_type_t<StateSpace>;
   using ValueType = mat_value_type_t<Matrix>;
   using ReaK::from_vect;
