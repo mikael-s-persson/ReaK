@@ -58,12 +58,15 @@ namespace ReaK::pp {
  * space.bring_point_in_bounds(p);  A point (non-const ref) can be brought within bounds.
  */
 template <typename Space>
-concept BoundedSpace = Topology<Space> &&
-  requires (const Space& space, const topology_point_type_t<Space>& p_in, topology_point_type_t<Space>& p_out) {
-    { space.get_diff_to_boundary(p_in) } -> std::convertible_to<topology_point_difference_type_t<Space>>;
-    { space.is_in_bounds(p_in) } -> std::convertible_to<bool>;
-    space.bring_point_in_bounds(p_out);
-  };
+concept BoundedSpace = Topology<Space>&& requires(
+    const Space& space, const topology_point_type_t<Space>& p_in,
+    topology_point_type_t<Space>& p_out) {
+  {
+    space.get_diff_to_boundary(p_in)
+    } -> std::convertible_to<topology_point_difference_type_t<Space>>;
+  { space.is_in_bounds(p_in) } -> std::convertible_to<bool>;
+  space.bring_point_in_bounds(p_out);
+};
 
 /**
  * This concept defines the requirements to fulfill in order to model a box-bounded metric-space
@@ -80,10 +83,14 @@ concept BoundedSpace = Topology<Space> &&
  * p = space.get_lower_corner(p);  The point (p) at the lower boundary of the metric-space can be obtained.
  */
 template <typename Space>
-concept BoxBoundedSpace = BoundedSpace<Space> && requires (const Space& space) {
-    { space.get_lower_corner() } -> std::convertible_to<topology_point_type_t<Space>>;
-    { space.get_upper_corner() } -> std::convertible_to<topology_point_type_t<Space>>;
-  };
+concept BoxBoundedSpace = BoundedSpace<Space>&& requires(const Space& space) {
+  {
+    space.get_lower_corner()
+    } -> std::convertible_to<topology_point_type_t<Space>>;
+  {
+    space.get_upper_corner()
+    } -> std::convertible_to<topology_point_type_t<Space>>;
+};
 
 /**
  * This concept defines the requirements to fulfill in order to model a sphere-bounded metric-space
@@ -99,9 +106,10 @@ concept BoxBoundedSpace = BoundedSpace<Space> && requires (const Space& space) {
  *metric-space).
  */
 template <typename Space>
-concept SphereBoundedSpace = BoundedSpace<Space> && requires (const Space& space) {
-    { space.get_radius() } -> std::convertible_to<double>;
-  };
+concept SphereBoundedSpace =
+    BoundedSpace<Space>&& requires(const Space& space) {
+  { space.get_radius() } -> std::convertible_to<double>;
+};
 
 }  // namespace ReaK::pp
 

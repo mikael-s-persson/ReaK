@@ -54,7 +54,8 @@ namespace ReaK::pp {
  *providing a const-ref to the topology (space).
  */
 template <typename Sampler, typename Space>
-concept RandomSampler = Topology<Space> && requires (const Space& space, Sampler& sampler) {
+concept RandomSampler = Topology<Space>&& requires(const Space& space,
+                                                   Sampler& sampler) {
   { sampler(space) } -> std::convertible_to<topology_point_type_t<Space>>;
 };
 
@@ -100,10 +101,13 @@ using point_distribution_random_sampler_t =
  *point-distribution.
  */
 template <typename Space>
-concept PointDistribution = Topology<Space> && RandomSampler<point_distribution_random_sampler_t<Space>, Space> &&
-  requires (const Space& space) {
-    { get(random_sampler, space) } -> std::convertible_to<point_distribution_random_sampler_t<Space>>;
-  };
+concept PointDistribution = Topology<Space>&&
+    RandomSampler<point_distribution_random_sampler_t<Space>, Space>&&
+    requires(const Space& space) {
+  {
+    get(random_sampler, space)
+    } -> std::convertible_to<point_distribution_random_sampler_t<Space>>;
+};
 
 template <typename T>
 static constexpr bool is_point_distribution_v = PointDistribution<T>;

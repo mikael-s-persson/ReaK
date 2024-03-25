@@ -45,10 +45,9 @@ namespace ReaK::pp {
  * It, itself, also models the generic SpatialPath, so this wrapper can
  * be used for both purposes.
  */
-template <SequentialPath SeqPath>
+template <typename SeqPath>
 class seq_path_wrapper
-    : public seq_path_base<
-          typename sequential_path_traits<SeqPath>::topology> {
+    : public seq_path_base<typename sequential_path_traits<SeqPath>::topology> {
  public:
   using base_type =
       seq_path_base<typename sequential_path_traits<SeqPath>::topology>;
@@ -58,6 +57,8 @@ class seq_path_wrapper
   using point_type = typename base_type::point_type;
 
   using wrapped_type = SeqPath;
+
+  static_assert(SequentialPath<wrapped_type, topology>);
 
  protected:
   SeqPath m_traj;

@@ -33,8 +33,8 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_NDOF_LINEAR_SPACES_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_NDOF_LINEAR_SPACES_H_
 
-#include "ReaK/topologies/spaces/interpolated_topologies.h"
 #include "ReaK/topologies/interpolation/linear_interp.h"
+#include "ReaK/topologies/spaces/interpolated_topologies.h"
 #include "ReaK/topologies/spaces/ndof_spaces.h"
 #include "ReaK/topologies/spaces/reachability_space.h"
 #include "ReaK/topologies/spaces/temporal_space.h"

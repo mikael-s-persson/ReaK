@@ -255,9 +255,9 @@ void nl_intpoint_method_tr_impl(
   do {
 
     // compute error with mu.
-    Err_value =
-        norm_2(SES * vect_scalar<ValueType>(K, 1.0) + sub(p_grad)[range(N, N + K)]) /
-        sqrt(ValueType(K));
+    Err_value = norm_2(SES * vect_scalar<ValueType>(K, 1.0) +
+                       sub(p_grad)[range(N, N + K)]) /
+                sqrt(ValueType(K));
     if (Err_value < norm_star) {
       Err_value = norm_star;
     }

@@ -75,6 +75,12 @@ struct ss_system_traits {
   static constexpr std::size_t output_dimensions = T::output_dimensions;
 };
 
+template <typename T>
+struct ss_system_traits<const T> : ss_system_traits<T> {};
+
+template <typename T>
+struct ss_system_traits<T&> : ss_system_traits<T> {};
+
 /**
  * This class template defines the concept for a state-space system as used in the ReaK::ctrl
  * library. In addition to providing the traits defined in ss_system_traits, a state-space
@@ -104,24 +110,23 @@ struct ss_system_traits {
  *of the system.
  */
 template <typename T, typename StateSpace>
-concept SSSystem = pp::Topology<StateSpace> &&
-  requires (const T& sys, const StateSpace& space,
-            typename ss_system_traits<T>::point_type p,
-            typename ss_system_traits<T>::input_type u,
-            typename ss_system_traits<T>::time_type t,
-            typename ss_system_traits<T>::point_difference_type dp,
-            typename ss_system_traits<T>::time_difference_type dt,
-            typename ss_system_traits<T>::point_derivative_type dp_dt,
-            typename ss_system_traits<T>::output_type y) {
-    dp = -dp;
-    t = t + dt;
-    dp = dp_dt * dt;  // state-space system requirements
-    dp_dt = sys.get_state_derivative(space, p, u, t);
-    y = sys.get_output(space, p, u, t);
-    { sys.get_state_dimensions() } -> std::integral;
-    { sys.get_input_dimensions() } -> std::integral;
-    { sys.get_output_dimensions() } -> std::integral;
-  };
+concept SSSystem = pp::Topology<StateSpace>&& requires(
+    T sys, StateSpace space, typename ss_system_traits<T>::point_type p,
+    typename ss_system_traits<T>::input_type u,
+    typename ss_system_traits<T>::time_type t,
+    typename ss_system_traits<T>::point_difference_type dp,
+    typename ss_system_traits<T>::time_difference_type dt,
+    typename ss_system_traits<T>::point_derivative_type dp_dt,
+    typename ss_system_traits<T>::output_type y) {
+  dp = -dp;
+  t = t + dt;
+  dp = dp_dt * dt;  // state-space system requirements
+  dp_dt = sys.get_state_derivative(space, p, u, t);
+  y = sys.get_output(space, p, u, t);
+  { sys.get_state_dimensions() } -> std::integral;
+  { sys.get_input_dimensions() } -> std::integral;
+  { sys.get_output_dimensions() } -> std::integral;
+};
 
 }  // namespace ReaK::ctrl
 

@@ -188,7 +188,8 @@ class discretized_lti_sys : public named_object {
    * \param aA Stores, as output, the system matrix A.
    * \param aB Stores, as output, the system matrix B.
    */
-  template <typename StateSpaceType, WritableMatrix MatrixA, WritableMatrix MatrixB>
+  template <typename StateSpaceType, WritableMatrix MatrixA,
+            WritableMatrix MatrixB>
   void get_state_transition_blocks(MatrixA& aA, MatrixB& aB,
                                    const StateSpaceType&,
                                    const time_type& t_0 = time_type(),
@@ -223,7 +224,8 @@ class discretized_lti_sys : public named_object {
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template <typename StateSpaceType, WritableMatrix MatrixC, WritableMatrix MatrixD>
+  template <typename StateSpaceType, WritableMatrix MatrixC,
+            WritableMatrix MatrixD>
   void get_output_function_blocks(MatrixC& aC, MatrixD& aD,
                                   const StateSpaceType&,
                                   const time_type& t = time_type(),

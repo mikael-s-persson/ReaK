@@ -27,7 +27,7 @@
 
 #ifdef ENABLE_NETWORK_RECORDER
 #include "ReaK/core/recorders/network_recorder.h"
-#endif // ENABLE_NETWORK_RECORDER
+#endif  // ENABLE_NETWORK_RECORDER
 
 #include <sstream>
 
@@ -383,7 +383,7 @@ TEST(RecordersTests, NetRawUdpRecordExtract) {
   EXPECT_EQ(server_sent, 21);
   EXPECT_TRUE(server_worked);
 }
-#endif // ENABLE_NETWORK_RECORDER
+#endif  // ENABLE_NETWORK_RECORDER
 
 TEST(RecordersTests, VectorRecordExtract) {
   {

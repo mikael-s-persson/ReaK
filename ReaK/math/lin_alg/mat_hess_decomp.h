@@ -207,7 +207,8 @@ void reduce_HessTri_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, WritableMatrix Matrix2, WritableMatrix Matrix3>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2,
+          WritableMatrix Matrix3>
 void decompose_Hess(const Matrix1& A, Matrix2& Q, Matrix3& H,
                     mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if (A.get_row_count() != A.get_col_count()) {
@@ -304,8 +305,9 @@ void decompose_Hess(const Matrix1& A, Matrix2& H,
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, WritableMatrix Matrix3,
-          WritableMatrix Matrix4, WritableMatrix Matrix5, WritableMatrix Matrix6>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          WritableMatrix Matrix3, WritableMatrix Matrix4,
+          WritableMatrix Matrix5, WritableMatrix Matrix6>
 void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
                     Matrix5& Q, Matrix6& Z,
                     mat_value_type_t<Matrix1> NumTol = 1E-8) {
@@ -396,8 +398,8 @@ void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, WritableMatrix Matrix3,
-          WritableMatrix Matrix4>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          WritableMatrix Matrix3, WritableMatrix Matrix4>
 void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
                     mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if ((A.get_row_count() != A.get_col_count()) ||

@@ -40,8 +40,8 @@
 #include "ReaK/topologies/spaces/proper_metric_concept.h"
 #include "ReaK/topologies/spaces/time_topology.h"
 
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/sustained_velocity_pulse_ndof.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 
 #include "boost/concept_check.hpp"
 

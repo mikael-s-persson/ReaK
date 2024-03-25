@@ -63,11 +63,13 @@ namespace ReaK::pp {
  * \tparam OutSpace The output space type of the mapping.
  */
 template <typename Mapping, typename InSpace, typename OutSpace>
-concept Bijection = 
-    Topology<InSpace> && Topology<OutSpace> &&
-    requires (const Mapping& m, const InSpace& space_in, const OutSpace& space_out, const topology_point_type_t<InSpace>& p_in) {
-      { m.map_to_space(p_in, space_in, space_out) } -> std::convertible_to<topology_point_type_t<OutSpace>>;
-    };
+concept Bijection = Topology<InSpace>&& Topology<OutSpace>&& requires(
+    const Mapping& m, const InSpace& space_in, const OutSpace& space_out,
+    const topology_point_type_t<InSpace>& p_in) {
+  {
+    m.map_to_space(p_in, space_in, space_out)
+    } -> std::convertible_to<topology_point_type_t<OutSpace>>;
+};
 
 /**
  * This class is a simple composition of two topological maps. Provided an output map,
@@ -106,11 +108,11 @@ struct bijection_cascade : public shared_object {
    * \return A point in the output space, identical in value and type to the input point.
    */
   template <typename PointType, Topology SpaceIn, Topology SpaceOut>
-      requires Bijection<InnerBijection, SpaceIn, MiddleSpace> &&
-               Bijection<OuterBijection, MiddleSpace, SpaceOut>
-  topology_point_type_t<SpaceOut> map_to_space(const PointType& p_in,
-                                               const SpaceIn& s_in,
-                                               const SpaceOut& s_out) const {
+  requires Bijection<InnerBijection, SpaceIn, MiddleSpace>&&
+      Bijection<OuterBijection, MiddleSpace, SpaceOut>
+          topology_point_type_t<SpaceOut> map_to_space(
+              const PointType& p_in, const SpaceIn& s_in,
+              const SpaceOut& s_out) const {
     return map_outer.map_to_space(
         map_inner.map_to_space(p_in, s_in, *mid_space), *mid_space, s_out);
   }
@@ -193,7 +195,8 @@ struct identity_topo_map : public shared_object {
  * \tparam OutSpace The output space type of the mapping.
  */
 template <typename Mapping, typename InSpace, typename OutSpace>
-concept Homeomorphism = Bijection<Mapping, InSpace, OutSpace> && Bijection<Mapping, OutSpace, InSpace>;
+concept Homeomorphism = Bijection<Mapping, InSpace, OutSpace>&&
+    Bijection<Mapping, OutSpace, InSpace>;
 
 /**
  * This concept defines the requirements to fulfill in order to model a diffeomorphism between
@@ -213,9 +216,9 @@ concept Homeomorphism = Bijection<Mapping, InSpace, OutSpace> && Bijection<Mappi
  */
 template <typename Mapping, typename InSpace, typename OutSpace,
           typename IndependentSpace, std::size_t... Order>
-concept Diffeomorphism = Homeomorphism<Mapping, InSpace, OutSpace> &&
-    TangentBundle<InSpace, IndependentSpace, Order...> &&
-    TangentBundle<OutSpace, IndependentSpace, Order...>;
+concept Diffeomorphism = Homeomorphism<Mapping, InSpace, OutSpace>&&
+    TangentBundle<InSpace, IndependentSpace, Order...>&&
+        TangentBundle<OutSpace, IndependentSpace, Order...>;
 
 }  // namespace ReaK::pp
 

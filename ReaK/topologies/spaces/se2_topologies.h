@@ -120,18 +120,15 @@ template <typename T, typename Metric = euclidean_tuple_distance>
 using se2_2nd_order_topology_t =
     typename se2_2nd_order_topology<T, Metric>::type;
 
-template <typename T, int Order,
-          typename Metric = euclidean_tuple_distance>
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
 struct se2_topology {
   using type = std::conditional_t<
       (Order == 0), se2_0th_order_topology_t<T, Metric>,
-      std::conditional_t<(Order == 1),
-                         se2_1st_order_topology_t<T, Metric>,
+      std::conditional_t<(Order == 1), se2_1st_order_topology_t<T, Metric>,
                          se2_2nd_order_topology_t<T, Metric>>>;
 };
 
-template <typename T, int Order,
-          typename Metric = euclidean_tuple_distance>
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
 using se2_topology_t = typename se2_topology<T, Order, Metric>::type;
 
 template <typename SE2Space>
@@ -146,9 +143,8 @@ struct is_se2_space<metric_space_tuple<
         differentiable_space<time_topology,
                              arithmetic_tuple<hyperbox_topology<vect<T, 2>>>,
                              Metric>,
-        differentiable_space<time_topology,
-                             arithmetic_tuple<line_segment_topology<T>>,
-                             Metric>>,
+        differentiable_space<
+            time_topology, arithmetic_tuple<line_segment_topology<T>>, Metric>>,
     Metric>> : std::true_type {};
 
 template <typename T, typename Metric>
@@ -253,20 +249,16 @@ template <typename T, typename Metric = euclidean_tuple_distance>
 using se2_2nd_order_rl_topology_t =
     typename se2_2nd_order_rl_topology<T, Metric>::type;
 
-template <typename T, int Order,
-          typename Metric = euclidean_tuple_distance>
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
 struct se2_rl_topology {
   using type = std::conditional_t<
       (Order == 0), se2_0th_order_rl_topology_t<T, Metric>,
-      std::conditional_t<(Order == 1),
-                         se2_1st_order_rl_topology_t<T, Metric>,
+      std::conditional_t<(Order == 1), se2_1st_order_rl_topology_t<T, Metric>,
                          se2_2nd_order_rl_topology_t<T, Metric>>>;
 };
 
-template <typename T, int Order,
-          typename Metric = euclidean_tuple_distance>
-using se2_rl_topology_t =
-    typename se2_rl_topology<T, Order, Metric>::type;
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
+using se2_rl_topology_t = typename se2_rl_topology<T, Order, Metric>::type;
 
 template <typename SE2Space>
 struct is_rate_limited_se2_space : std::false_type {};
@@ -281,9 +273,8 @@ struct is_rate_limited_se2_space<metric_space_tuple<
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<hyperbox_topology<vect<T, 2>>>,
                               Metric>,
-        reach_time_diff_space<time_topology,
-                              arithmetic_tuple<line_segment_topology<T>>,
-                              Metric>>,
+        reach_time_diff_space<
+            time_topology, arithmetic_tuple<line_segment_topology<T>>, Metric>>,
     Metric>> : std::true_type {};
 
 template <typename T, typename Metric>

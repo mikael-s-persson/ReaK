@@ -49,8 +49,7 @@ template <SpatialPath Path>
 class path_wrapper
     : public path_base<typename spatial_path_traits<Path>::topology> {
  public:
-  using base_type =
-      path_base<typename spatial_path_traits<Path>::topology>;
+  using base_type = path_base<typename spatial_path_traits<Path>::topology>;
   using self = path_wrapper<Path>;
 
   using topology = typename base_type::topology;
@@ -61,8 +60,7 @@ class path_wrapper
       typename spatial_path_traits<Path>::waypoint_descriptor;
   using const_waypoint_descriptor =
       typename spatial_path_traits<Path>::const_waypoint_descriptor;
-  using distance_metric =
-      typename spatial_path_traits<Path>::distance_metric;
+  using distance_metric = typename spatial_path_traits<Path>::distance_metric;
 
   using waypoint_pair = std::pair<const_waypoint_descriptor, point_type>;
 

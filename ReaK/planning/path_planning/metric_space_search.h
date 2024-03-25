@@ -169,21 +169,19 @@ struct position_caching_policy {
  * a generalization of a search tree which only requires the space to have a metric which
  * respects the triangular inequality.
  * \tparam Key The key type for the tree, essentially the key value is the vertex descriptor type.
- * \tparam Topology The topology type on which the points can reside, should model the MetricSpaceConcept.
+ * \tparam Space The topology type on which the points can reside, should model the MetricSpaceConcept.
  * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the
  * iterators) to a point (position).
  * \tparam Arity The arity of the tree, e.g., 2 means a binary-tree.
  * \tparam VPChooser The functor type to use to choose the vantage-point out of a set of vertices.
  */
-template <typename Key, typename Topology, typename PositionMap,
+template <typename Key, MetricSpace Space, typename PositionMap,
           unsigned int Arity = 2, typename VPChooser = random_vp_chooser,
           typename TreeStorageTag = boost::bfl_d_ary_tree_storage<Arity>,
           typename PositionCachingPolicy = position_caching_policy>
 class dvp_tree {
  public:
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
-
-  using self = dvp_tree<Key, Topology, PositionMap, Arity, VPChooser,
+  using self = dvp_tree<Key, Space, PositionMap, Arity, VPChooser,
                         TreeStorageTag, PositionCachingPolicy>;
 
   using point_type = typename boost::property_traits<PositionMap>::value_type;
@@ -220,10 +218,9 @@ class dvp_tree {
   using vp_to_pos_map_type =
       boost::composite_property_map<vertex_position_map, vertex_r2b_map_type>;
 
-  using dvp_impl_type =
-      dvp_tree_impl<tree_indexer, Topology, vp_to_key_map_type,
-                    ep_to_distance_map_type, vp_to_pos_map_type, Arity,
-                    VPChooser>;
+  using dvp_impl_type = dvp_tree_impl<tree_indexer, Space, vp_to_key_map_type,
+                                      ep_to_distance_map_type,
+                                      vp_to_pos_map_type, Arity, VPChooser>;
 
   tree_indexer m_tree;
   PositionMap m_position;
@@ -246,7 +243,7 @@ class dvp_tree {
    * \param aVPChooser The vantage-point chooser functor (policy class).
    */
   template <typename Graph>
-  dvp_tree(const Graph& g, const std::shared_ptr<const Topology>& aSpace,
+  dvp_tree(const Graph& g, const std::shared_ptr<const Space>& aSpace,
            PositionMap aPosition, VPChooser aVPChooser = VPChooser())
       : m_tree(),
         m_position(aPosition),
@@ -271,7 +268,7 @@ class dvp_tree {
    */
   template <typename ForwardIterator>
   dvp_tree(ForwardIterator aBegin, ForwardIterator aEnd,
-           const std::shared_ptr<const Topology>& aSpace, PositionMap aPosition,
+           const std::shared_ptr<const Space>& aSpace, PositionMap aPosition,
            VPChooser aVPChooser = VPChooser())
       : m_tree(),
         m_position(aPosition),
@@ -424,7 +421,6 @@ class dvp_tree {
    * \return The vertices in the DVP-tree that are nearest predecessor and successor to the given point.
    */
   std::pair<Key, Key> find_nearest_pred_succ(const point_type& aPoint) const {
-    using TreeVertex = graph::graph_vertex_t<tree_indexer>;
     auto [u_pred, u_succ] = m_impl.find_nearest_pred_succ(aPoint);
     std::pair<Key, Key> result;
     if (u_pred != boost::graph_traits<tree_indexer>::null_vertex()) {

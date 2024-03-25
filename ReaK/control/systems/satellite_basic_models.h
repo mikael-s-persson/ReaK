@@ -557,9 +557,6 @@ class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
                               satellite3D_lin_dt_system)
 };
 
-template <>
-struct is_invariant_system<satellite3D_inv_dt_system> : std::true_type {};
-
 /**
  * This class implements an invariantized discrete-time state-space system for
  * simple free-floating dynamics characteristic of satellites in orbit. In this class,
@@ -682,9 +679,6 @@ class satellite3D_gyro_inv_dt_system : public satellite3D_inv_dt_system {
                               "satellite3D_gyro_inv_dt_system",
                               satellite3D_inv_dt_system)
 };
-
-template <>
-struct is_invariant_system<satellite3D_gyro_inv_dt_system> : std::true_type {};
 
 }  // namespace ReaK::ctrl
 

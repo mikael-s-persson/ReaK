@@ -852,7 +852,8 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, WritableMatrix Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2,
+          WritableMatrix Matrix3>
 void eigensolve_SymQR(const Matrix1& A, Matrix2& Q, Matrix3& D,
                       mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if (A.get_row_count() != A.get_col_count()) {
@@ -1067,7 +1068,8 @@ mat_value_type<Matrix1> condition_number_SymQR(
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, FullyWritableMatrix Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2,
+          FullyWritableMatrix Matrix3>
 void decompose_RealSchur(const Matrix1& A, Matrix2& Q, Matrix3& T,
                          mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if (A.get_row_count() != A.get_col_count()) {
@@ -1121,8 +1123,9 @@ void decompose_RealSchur(const Matrix1& A, Matrix2& T,
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, FullyWritableMatrix Matrix3,
-          FullyWritableMatrix Matrix4, FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          FullyWritableMatrix Matrix3, FullyWritableMatrix Matrix4,
+          FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6>
 void decompose_GenRealSchur(const Matrix1& A, const Matrix2& B, Matrix3& Q,
                             Matrix4& Z, Matrix5& T, Matrix6& R,
                             mat_value_type_t<Matrix1> NumTol = 1E-8) {
@@ -1156,8 +1159,8 @@ void decompose_GenRealSchur(const Matrix1& A, const Matrix2& B, Matrix3& Q,
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, FullyWritableMatrix Matrix3,
-          FullyWritableMatrix Matrix4>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          FullyWritableMatrix Matrix3, FullyWritableMatrix Matrix4>
 void decompose_GenRealSchur(const Matrix1& A, const Matrix2& B, Matrix3& T,
                             Matrix4& R,
                             mat_value_type_t<Matrix1> NumTol = 1E-8) {

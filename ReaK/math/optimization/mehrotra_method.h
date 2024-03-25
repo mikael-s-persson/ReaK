@@ -267,8 +267,9 @@ void mehrotra_method(
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, WritableVector Vector1, ReadableMatrix Matrix2,
-          WritableVector Vector2, ReadableMatrix Matrix3, ReadableVector Vector3>
+template <ReadableMatrix Matrix1, WritableVector Vector1,
+          ReadableMatrix Matrix2, WritableVector Vector2,
+          ReadableMatrix Matrix3, ReadableVector Vector3>
 void mehrotra_QP_method(
     const Matrix1& A, const Vector1& b, const Matrix2& G, const Vector2& c,
     const Matrix3& E, const Vector3& d, Vector2& x, unsigned int max_iter,

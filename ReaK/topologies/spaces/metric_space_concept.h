@@ -89,10 +89,13 @@ using topology_point_difference_type_t =
  *and added to a point (p1) to obtain an adjusted point.
  */
 template <typename Space>
-concept Topology = requires (const Space& space, const topology_point_type_t<Space>& p, const topology_point_difference_type_t<Space>& d) {
-  { space.difference(p, p) } -> std::convertible_to<topology_point_difference_type_t<Space>>;
-  { space.origin() } -> std::convertible_to<topology_point_type_t<Space>>;
-  { space.adjust(p, d) } -> std::convertible_to<topology_point_type_t<Space>>;
+concept Topology = requires(const Space& space) {
+  space.origin();
+  space.difference(space.origin(), space.origin());
+  {
+    space.adjust(space.origin(),
+                 space.difference(space.origin(), space.origin()))
+    } -> std::convertible_to<std::decay_t<decltype(space.origin())>>;
 };
 
 /**
@@ -113,8 +116,11 @@ concept Topology = requires (const Space& space, const topology_point_type_t<Spa
  * dp *= d;  The differences can be multiplied-and-stored by a scalar.
  */
 template <typename Space>
-concept LieGroup = Topology<Space> && requires (topology_point_difference_type_t<Space>& dp, double d) {
-  { d * dp + dp - dp } -> std::convertible_to<topology_point_difference_type_t<Space>>;
+concept LieGroup = Topology<Space>&& requires(
+    topology_point_difference_type_t<Space>& dp, double d) {
+  {
+    d* dp + dp - dp
+    } -> std::convertible_to<topology_point_difference_type_t<Space>>;
   { -dp } -> std::convertible_to<topology_point_difference_type_t<Space>>;
   dp -= dp;
   dp += dp;
@@ -146,7 +152,10 @@ enum distance_metric_t { distance_metric };
  *(dp) and providing a const-ref to the topology (space).
  */
 template <typename Metric, typename Space>
-concept DistanceMetric = Topology<Space> && requires (const Metric& dist, const Space& space, const topology_point_type_t<Space>& p, const topology_point_difference_type_t<Space>& d) {
+concept DistanceMetric = Topology<Space>&& requires(
+    const Metric& dist, const Space& space,
+    const topology_point_type_t<Space>& p,
+    const topology_point_difference_type_t<Space>& d) {
   { dist(p, p, space) } -> std::convertible_to<double>;
   { dist(d, space) } -> std::convertible_to<double>;
 };
@@ -186,9 +195,12 @@ using metric_space_distance_metric_t =
  * \tparam MetricSpace The topology type to be checked for this concept.
  */
 template <typename Space>
-concept MetricSpace = Topology<Space> && requires (const Space& space, const topology_point_type_t<Space>& p, double d) {
+concept MetricSpace = Topology<Space>&& requires(
+    const Space& space, const topology_point_type_t<Space>& p, double d) {
   { get(distance_metric, space) } -> DistanceMetric<Space>;
-  { space.move_position_toward(p, d, p) } -> std::convertible_to<topology_point_type_t<Space>>;
+  {
+    space.move_position_toward(p, d, p)
+    } -> std::convertible_to<topology_point_type_t<Space>>;
 };
 
 template <typename Space>
@@ -198,8 +210,7 @@ template <typename Space>
 struct is_metric_symmetric : std::true_type {};
 
 template <typename Space>
-static constexpr bool is_metric_symmetric_v =
-    is_metric_symmetric<Space>::value;
+static constexpr bool is_metric_symmetric_v = is_metric_symmetric<Space>::value;
 
 /**
  * This class is the default distance metric functor which models the DistanceMetric.
@@ -284,8 +295,8 @@ struct symmetrized_metric : public serializable {
    * \return The distance between two points on a topology.
    */
   template <typename Point, Topology Space>
-      requires DistanceMetric<Metric, Space>
-  double operator()(const Point& a, const Point& b, const Space& s) const {
+  requires DistanceMetric<Metric, Space> double operator()(
+      const Point& a, const Point& b, const Space& s) const {
     double d_left = unsym_distance(a, b, s);
     double d_right = unsym_distance(b, a, s);
     return (d_left < d_right ? d_left : d_right);
@@ -299,8 +310,8 @@ struct symmetrized_metric : public serializable {
    * \return The norm of the difference between two points on a topology.
    */
   template <typename PointDiff, Topology Space>
-      requires DistanceMetric<Metric, Space>
-  double operator()(const PointDiff& a, const Space& s) const {
+  requires DistanceMetric<Metric, Space> double operator()(
+      const PointDiff& a, const Space& s) const {
     return unsym_distance(a, s);
   }
 
@@ -337,8 +348,7 @@ struct unsymmetrize<symmetrized_metric<Metric>> {
 };
 
 template <typename Metric>
-const Metric& get(unsymmetrized_metric_t /*unused*/,
-                  const Metric& d) {
+const Metric& get(unsymmetrized_metric_t /*unused*/, const Metric& d) {
   return d;
 }
 

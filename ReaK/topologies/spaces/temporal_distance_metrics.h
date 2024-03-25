@@ -59,8 +59,7 @@ struct spatial_distance_only : public serializable {
    * \return the spatial-distance between the two points.
    */
   template <typename Point, TemporalSpace Space>
-  double operator()(const Point& a, const Point& b,
-                    const Space& s) const {
+  double operator()(const Point& a, const Point& b, const Space& s) const {
     return get(distance_metric, s.get_space_topology())(a.pt, b.pt,
                                                         s.get_space_topology());
   }
@@ -109,8 +108,7 @@ struct time_distance_only : public serializable {
    * \return the temporal-distance between the two points.
    */
   template <typename Point, TemporalSpace Space>
-  double operator()(const Point& a, const Point& b,
-                    const Space& s) const {
+  double operator()(const Point& a, const Point& b, const Space& s) const {
     return get(distance_metric, s.get_time_topology())(a.time, b.time,
                                                        s.get_time_topology());
   }

@@ -117,15 +117,6 @@ class vect_const_ref_view {
   value_type operator[](int i) const noexcept { return (*v)[offset + i]; }
 
   /**
-   * Sub-vector operator, accessor for read only.
-   * \test PASSED
-   */
-  vect_const_ref_view<self> operator[](
-      const std::pair<int, int>& r) const noexcept {
-    return vect_const_ref_view<self>(*this, r.second - r.first, r.first);
-  }
-
-  /**
    * Vector indexing operator, accessor for read only.
    * TEST PASSED
    */

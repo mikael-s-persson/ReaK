@@ -69,8 +69,10 @@ using super_space_t = typename subspace_traits<Space>::super_space_type;
  * \tparam Topology The topology type to be checked for this concept.
  */
 template <typename Space>
-concept SubSpace = Topology<Space> && requires (const Space& space) {
-  { space.get_super_space() } -> std::convertible_to<const super_space_t<Space>&>;
+concept SubSpace = Topology<Space>&& requires(const Space& space) {
+  {
+    space.get_super_space()
+    } -> std::convertible_to<const super_space_t<Space>&>;
 };
 
 struct subspace_map : public shared_object {
@@ -79,18 +81,15 @@ struct subspace_map : public shared_object {
   subspace_map() = default;
 
   template <typename PointType, Topology SpaceIn>
-  PointType map_to_space(
-      const PointType& p_in, const SpaceIn& /*unused*/,
-      const super_space_t<SpaceIn>& /*unused*/)
-      const {
+  PointType map_to_space(const PointType& p_in, const SpaceIn& /*unused*/,
+                         const super_space_t<SpaceIn>& /*unused*/) const {
     return p_in;
   }
 
   template <typename PointType, Topology SpaceOut>
-  PointType map_to_space(
-      const PointType& p_in,
-      const super_space_t<SpaceOut>& /*unused*/,
-      const SpaceOut& /*unused*/) const {
+  PointType map_to_space(const PointType& p_in,
+                         const super_space_t<SpaceOut>& /*unused*/,
+                         const SpaceOut& /*unused*/) const {
     return p_in;
   }
 

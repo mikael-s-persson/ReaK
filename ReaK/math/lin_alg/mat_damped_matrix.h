@@ -124,13 +124,19 @@ mat_damped_matrix<SquareMatrix, DiagMatrix> make_damped_matrix(
 };
 
 template <typename SquareMatrix, typename DiagMatrix>
-static constexpr bool is_square_matrix_v<mat_damped_matrix<SquareMatrix, DiagMatrix>> = is_square_matrix_v<SquareMatrix>;
+static constexpr bool
+    is_square_matrix_v<mat_damped_matrix<SquareMatrix, DiagMatrix>> =
+        is_square_matrix_v<SquareMatrix>;
 
 template <typename SquareMatrix, typename DiagMatrix>
-static constexpr bool is_symmetric_matrix_v<mat_damped_matrix<SquareMatrix, DiagMatrix>> = is_symmetric_matrix_v<SquareMatrix>;
+static constexpr bool
+    is_symmetric_matrix_v<mat_damped_matrix<SquareMatrix, DiagMatrix>> =
+        is_symmetric_matrix_v<SquareMatrix>;
 
 template <typename SquareMatrix, typename DiagMatrix>
-static constexpr bool is_diagonal_matrix_v<mat_damped_matrix<SquareMatrix, DiagMatrix>> = is_diagonal_matrix_v<SquareMatrix>;
+static constexpr bool
+    is_diagonal_matrix_v<mat_damped_matrix<SquareMatrix, DiagMatrix>> =
+        is_diagonal_matrix_v<SquareMatrix>;
 
 }  // namespace ReaK
 

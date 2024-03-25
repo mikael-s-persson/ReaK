@@ -176,7 +176,8 @@ void eigensolve_Jacobi_impl(Matrix1& A, Matrix2& E, Matrix3* Q,
  *
  * \author Mikael Persson
  */
-template <SymmetricMatrix Matrix1, WritableMatrix Matrix2, FullyWritableMatrix Matrix3>
+template <SymmetricMatrix Matrix1, WritableMatrix Matrix2,
+          FullyWritableMatrix Matrix3>
 void eigensolve_Jacobi(const Matrix1& A, Matrix2& E, Matrix3& Q,
                        mat_value_type_t<Matrix1> NumTol = 1E-8) {
   mat<mat_value_type_t<Matrix1>, mat_structure::square> S(A);
@@ -206,7 +207,8 @@ void eigensolve_Jacobi(const Matrix1& A, Matrix2& E, Matrix3& Q,
  *
  * \author Mikael Persson
  */
-template <SymmetricMatrix Matrix1, WritableMatrix Matrix2, ReadableMatrix Matrix3>
+template <SymmetricMatrix Matrix1, WritableMatrix Matrix2,
+          ReadableMatrix Matrix3>
 void linlsq_Jacobi(const Matrix1& A, Matrix2& x, const Matrix3& b,
                    mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if (A.get_row_count() != b.get_row_count()) {

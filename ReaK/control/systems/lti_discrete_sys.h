@@ -116,8 +116,8 @@ class lti_discrete_sys : public named_object {
    * \param aD The discrete-time system matrix D.
    * \param aDt The time-step of the discrete-time system.
    */
-  template <ReadableMatrix MatrixA, ReadableMatrix MatrixB, ReadableMatrix MatrixC,
-            ReadableMatrix MatrixD>
+  template <ReadableMatrix MatrixA, ReadableMatrix MatrixB,
+            ReadableMatrix MatrixC, ReadableMatrix MatrixD>
   lti_discrete_sys(const MatrixA& aA, const MatrixB& aB, const MatrixC& aC,
                    const MatrixD& aD, const time_difference_type& aDt,
                    const std::string& aName = "")
@@ -246,7 +246,8 @@ class lti_discrete_sys : public named_object {
    * \param aA Stores, as output, the system matrix A.
    * \param aB Stores, as output, the system matrix B.
    */
-  template <WritableMatrix MatrixA, WritableMatrix MatrixB, typename StateSpaceType>
+  template <WritableMatrix MatrixA, WritableMatrix MatrixB,
+            typename StateSpaceType>
   void get_state_transition_blocks(MatrixA& aA, MatrixB& aB,
                                    const StateSpaceType&,
                                    const time_type& = time_type(),
@@ -275,7 +276,8 @@ class lti_discrete_sys : public named_object {
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template <WritableMatrix MatrixC, WritableMatrix MatrixD, typename StateSpaceType>
+  template <WritableMatrix MatrixC, WritableMatrix MatrixD,
+            typename StateSpaceType>
   void get_output_function_blocks(MatrixC& aC, MatrixD& aD,
                                   const StateSpaceType&,
                                   const time_type& = time_type(),

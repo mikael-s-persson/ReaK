@@ -32,8 +32,8 @@
 #ifndef REAK_CORE_SORTING_INTRO_SORT_H_
 #define REAK_CORE_SORTING_INTRO_SORT_H_
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <iterator>
 

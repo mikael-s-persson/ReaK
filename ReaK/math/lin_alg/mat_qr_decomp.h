@@ -581,7 +581,8 @@ void linlsq_QR_impl(const Matrix1& A, Matrix2& x, const Matrix3& b,
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, WritableMatrix Matrix2, WritableMatrix Matrix3>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2,
+          WritableMatrix Matrix3>
 void decompose_QR(const Matrix1& A, Matrix2& Q, Matrix3& R,
                   mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if (A.get_row_count() < A.get_col_count()) {
@@ -592,8 +593,7 @@ void decompose_QR(const Matrix1& A, Matrix2& Q, Matrix3& R,
 
   using ValueType = mat_value_type_t<Matrix1>;
 
-  if constexpr (FullyWritableMatrix<Matrix2> &&
-                FullyWritableMatrix<Matrix3>) {
+  if constexpr (FullyWritableMatrix<Matrix2> && FullyWritableMatrix<Matrix3>) {
     Q = mat<ValueType, mat_structure::identity>(A.get_row_count());
     R = A;
     detail::decompose_QR_impl(R, &Q, NumTol);
@@ -664,7 +664,8 @@ mat_value_type_t<Matrix> determinant_QR(
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, ReadableMatrix Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2,
+          ReadableMatrix Matrix3>
 void linlsq_QR(const Matrix1& A, Matrix2& x, const Matrix3& b,
                mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if (A.get_row_count() < A.get_col_count()) {
@@ -707,7 +708,8 @@ struct QR_linlsqsolver {
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, ReadableMatrix Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2,
+          ReadableMatrix Matrix3>
 void minnorm_QR(const Matrix1& A, Matrix2& x, const Matrix3& b,
                 mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if (A.get_row_count() > A.get_col_count()) {
@@ -760,7 +762,8 @@ struct QR_minnormsolver {
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, ReadableMatrix Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2,
+          ReadableMatrix Matrix3>
 void backsub_R(const Matrix1& R, Matrix2& x, const Matrix3& b,
                mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if (R.get_row_count() > b.get_row_count()) {
@@ -845,7 +848,8 @@ void pseudoinvert_QR(const Matrix1& A, Matrix2& A_pinv,
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, ReadableMatrix Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2,
+          ReadableMatrix Matrix3>
 void linlsq_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b,
                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if (A.get_row_count() < A.get_col_count()) {
@@ -914,7 +918,8 @@ struct RRQR_linlsqsolver {
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2, ReadableMatrix Matrix3>
+template <ReadableMatrix Matrix1, FullyWritableMatrix Matrix2,
+          ReadableMatrix Matrix3>
 void minnorm_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b,
                   mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if (A.get_row_count() > A.get_col_count()) {

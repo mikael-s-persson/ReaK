@@ -174,8 +174,7 @@ class mat<T, mat_structure::symmetric, Alignment, RowCount, RowCount>
 
   /// Explicit constructor from any type of matrix. The "(M + M.transpose) / 2" is applied to guarantee symmetry.
   template <SymmetricMatrix Matrix>
-  explicit mat(const Matrix& M)
-      : mat(M.get_row_count()) {
+  explicit mat(const Matrix& M) : mat(M.get_row_count()) {
     int k = 0;
     int i = 0;
     for (; i < get_row_count(); k += ++i) {

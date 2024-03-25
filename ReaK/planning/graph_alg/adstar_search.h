@@ -116,61 +116,49 @@ namespace ReaK::graph {
   *
   * double new_eps = vis.adjust_epsilon(old_eps, w_change.first, g);  A function to adjust the value of epsilon for a
   *given old-value and last cummulative weight-change.
-  *
-  * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
-  * \tparam Graph The graph type on which the visitor should be able to act.
   */
 template <typename Visitor, typename Graph>
-struct ADStarVisitorConcept {
-  BOOST_CONCEPT_USAGE(ADStarVisitorConcept) {
-    BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
-    // whenever the vertex is first initialized.
-    vis.initialize_vertex(u, g);
-    // whenever a vertex is added to the CLOSED set.
-    vis.finish_vertex(u, g);
-    // whenever a vertex is taken out of the CLOSED set.
-    vis.recycle_vertex(u, g);
-    // whenever a vertex is added to the OPEN set (or updated in OPEN).
-    vis.discover_vertex(u, g);
-    // whenever a vertex is taken out of OPEN, before it gets "expanded".
-    vis.examine_vertex(u, g);
-    // whenever an edge is being looked at (an out_edge of the vertex under examination).
-    vis.examine_edge(e, g);
-    // whenever it is newly decided that an edge is relaxed (has improved the distance for its target)
-    vis.edge_relaxed(e, g);
-    // whenever a vertex is deemed uninteresting and is taken out of OPEN, but not yet expanded.
-    vis.forget_vertex(u, g);
-    // whenever a closed vertex becomes INCONS.
-    vis.inconsistent_vertex(u, g);
-    // notify the visitor that at least one A* round has completed and its resulting path
-    // (partial or complete) can be published (the path is encoded in the predecessor
-    // property-map).
-    vis.publish_path(g);
-    bool b = vis.keep_going();
-    // check to see whether the task is finished (return false) or needs to keep going (true).
-    RK_UNUSED(b);
-    // ei: back-inserter / forward-iterator for an
-    // edge-list. Return the cummulative weight-change and
-    // the edge-iterator at the end of the edge list
-    // populated by this function.
-    using EdgeIter =
-        std::back_insert_iterator<std::vector<graph_edge_t<Graph>>>;
-    std::vector<graph_edge_t<Graph>> vect;
-    std::pair<double, EdgeIter> w_change =
-        vis.detect_edge_change(std::back_inserter(vect), g);
-    // adjust the value of epsilon for a given old-value and last cummulative weight-change
-    double old_eps = 0.0;
-    double new_eps = vis.adjust_epsilon(old_eps, w_change.first, g);
-    RK_UNUSED(new_eps);
-  }
-  Visitor vis;
-  Graph g;
-  graph_vertex_t<Graph> u;
-  graph_edge_t<Graph> e;
+concept ADStarVisitor = std::copy_constructible<Visitor>&& requires(
+    Visitor vis, Graph g, graph_vertex_t<Graph> u, graph_edge_t<Graph> e) {
+  // whenever the vertex is first initialized.
+  vis.initialize_vertex(u, g);
+  // whenever a vertex is added to the CLOSED set.
+  vis.finish_vertex(u, g);
+  // whenever a vertex is taken out of the CLOSED set.
+  vis.recycle_vertex(u, g);
+  // whenever a vertex is added to the OPEN set (or updated in OPEN).
+  vis.discover_vertex(u, g);
+  // whenever a vertex is taken out of OPEN, before it gets "expanded".
+  vis.examine_vertex(u, g);
+  // whenever an edge is being looked at (an out_edge of the vertex under examination).
+  vis.examine_edge(e, g);
+  // whenever it is newly decided that an edge is relaxed (has improved the distance for its target)
+  vis.edge_relaxed(e, g);
+  // whenever a vertex is deemed uninteresting and is taken out of OPEN, but not yet expanded.
+  vis.forget_vertex(u, g);
+  // whenever a closed vertex becomes INCONS.
+  vis.inconsistent_vertex(u, g);
+  // notify the visitor that at least one A* round has completed and its resulting path
+  // (partial or complete) can be published (the path is encoded in the predecessor
+  // property-map).
+  vis.publish_path(g);
+  // check to see whether the task is finished (return false) or needs to keep going (true).
+  { vis.keep_going() } -> std::convertible_to<bool>;
+}
+&&requires(Visitor vis, Graph g, std::vector<graph_edge_t<Graph>> vect,
+           double d,
+           std::back_insert_iterator<std::vector<graph_edge_t<Graph>>> e_it) {
+  // ei: back-inserter / forward-iterator for an
+  // edge-list. Return the cummulative weight-change and
+  // the edge-iterator at the end of the edge list
+  // populated by this function.
+  std::tie(d, e_it) = vis.detect_edge_change(std::back_inserter(vect), g);
+  // adjust the value of epsilon for a given old-value and last cummulative weight-change
+  { vis.adjust_epsilon(d, d, g) } -> std::convertible_to<double>;
 };
 
 /**
-  * This class is the default implementation of an AD* visitor (see ADStarVisitorConcept).
+  * This class is the default implementation of an AD* visitor (see ADStarVisitor).
   * Basically, this implementation models the concept required by AD*, but does nothing at all
   * (all functions are empty).
   */
@@ -634,7 +622,7 @@ inline void adstar_search_loop(
   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values
   *         for each vertex in the graph.
-  * \tparam ADStarVisitor The type of the AD* visitor to be used, should model the ADStarVisitorConcept.
+  * \tparam Visitor The type of the AD* visitor to be used.
   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting
   *         vertex together with its optimal predecessor.
   * \tparam DistanceMap This property-map type is used to store the estimated distance of each
@@ -660,7 +648,7 @@ inline void adstar_search_loop(
   * \param g The graph on which to apply the AD* algorithm.
   * \param start_vertex The starting point of the algorithm, on the graph.
   * \param hval The property-map of A* heuristic function values for each vertex.
-  * \param vis The AD* visitor object, should model ADStarVisitorConcept.
+  * \param vis The AD* visitor object.
   * \param predecessor The property-map which will store the resulting path by connecting
   *        vertices together with their optimal predecessor (follow in reverse to discover the
   *        complete path).
@@ -688,15 +676,15 @@ inline void adstar_search_loop(
   *        scalar value (i.e. epsilon x h(u) ).
   */
 template <typename VertexListGraph, typename Vertex, typename AStarHeuristicMap,
-          typename ADStarVisitor, typename PredecessorMap, typename DistanceMap,
-          typename RHSMap, typename KeyMap, typename WeightMap,
-          typename ColorMap, typename CompareFunction,
+          ADStarVisitor<VertexListGraph> Visitor, typename PredecessorMap,
+          typename DistanceMap, typename RHSMap, typename KeyMap,
+          typename WeightMap, typename ColorMap, typename CompareFunction,
           typename EqualCompareFunction, typename CombineFunction,
           typename ComposeFunction>
 inline void adstar_search_no_init(
     VertexListGraph& g, Vertex start_vertex, AStarHeuristicMap hval,
-    ADStarVisitor vis, PredecessorMap predecessor, DistanceMap distance,
-    RHSMap rhs, KeyMap key, WeightMap weight, ColorMap color,
+    Visitor vis, PredecessorMap predecessor, DistanceMap distance, RHSMap rhs,
+    KeyMap key, WeightMap weight, ColorMap color,
     property_value_t<DistanceMap> epsilon, property_value_t<DistanceMap> inf,
     property_value_t<DistanceMap> zero = property_value_t<DistanceMap>(0),
     CompareFunction compare = CompareFunction(),
@@ -720,7 +708,7 @@ inline void adstar_search_no_init(
   std::vector<Vertex> I;  // list holding the INCONS set (inconsistent nodes).
 
   detail::adstar_bfs_visitor<
-      AStarHeuristicMap, ADStarVisitor, MutableQueue, std::vector<Vertex>,
+      AStarHeuristicMap, Visitor, MutableQueue, std::vector<Vertex>,
       PredecessorMap, KeyMap, DistanceMap, RHSMap, WeightMap, ColorMap,
       CompareFunction, EqualCompareFunction, CombineFunction, ComposeFunction>
       bfs_vis(hval, vis, Q, I, predecessor, key, distance, rhs, weight, color,
@@ -744,7 +732,7 @@ inline void adstar_search_no_init(
   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values
   *         for each vertex in the graph.
-  * \tparam ADStarVisitor The type of the AD* visitor to be used, should model the ADStarVisitorConcept.
+  * \tparam Visitor The type of the AD* visitor to be used.
   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting
   *         vertex together with its optimal predecessor.
   * \tparam DistanceMap This property-map type is used to store the estimated distance of each
@@ -762,7 +750,7 @@ inline void adstar_search_no_init(
   * \param g The graph on which to apply the AD* algorithm.
   * \param start_vertex The starting point of the algorithm, on the graph.
   * \param hval The property-map of A* heuristic function values for each vertex.
-  * \param vis The AD* visitor object, should model ADStarVisitorConcept.
+  * \param vis The AD* visitor object.
   * \param predecessor The property-map which will store the resulting path by connecting
   *        vertices together with their optimal predecessor (follow in reverse to discover the
   *        complete path).
@@ -779,11 +767,11 @@ inline void adstar_search_no_init(
   *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
   */
 template <typename VertexListGraph, typename Vertex, typename AStarHeuristicMap,
-          typename ADStarVisitor, typename PredecessorMap, typename DistanceMap,
-          typename RHSMap, typename KeyMap, typename WeightMap,
-          typename ColorMap>
+          ADStarVisitor<VertexListGraph> Visitor, typename PredecessorMap,
+          typename DistanceMap, typename RHSMap, typename KeyMap,
+          typename WeightMap, typename ColorMap>
 inline void adstar_search_no_init(VertexListGraph& g, Vertex start_vertex,
-                                  AStarHeuristicMap hval, ADStarVisitor vis,
+                                  AStarHeuristicMap hval, Visitor vis,
                                   PredecessorMap predecessor,
                                   DistanceMap distance, RHSMap rhs, KeyMap key,
                                   WeightMap weight, ColorMap color,
@@ -806,7 +794,7 @@ inline void adstar_search_no_init(VertexListGraph& g, Vertex start_vertex,
   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values for each vertex in
   *the graph.
-  * \tparam ADStarVisitor The type of the AD* visitor to be used, should model the ADStarVisitorConcept.
+  * \tparam Visitor The type of the AD* visitor to be used.
   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting vertex together with
   *its optimal predecessor.
   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex to the goal.
@@ -830,7 +818,7 @@ inline void adstar_search_no_init(VertexListGraph& g, Vertex start_vertex,
   * \param g The graph on which to apply the AD* algorithm.
   * \param start_vertex The starting point of the algorithm, on the graph.
   * \param hval The property-map of A* heuristic function values for each vertex.
-  * \param vis The AD* visitor object, should model ADStarVisitorConcept.
+  * \param vis The AD* visitor object.
   * \param predecessor The property-map which will store the resulting path by connecting
   *        vertices together with their optimal predecessor (follow in reverse to discover the
   *        complete path).
@@ -856,15 +844,15 @@ inline void adstar_search_no_init(VertexListGraph& g, Vertex start_vertex,
   *epsilon x h(u) ).
   */
 template <typename VertexListGraph, typename Vertex, typename AStarHeuristicMap,
-          typename ADStarVisitor, typename PredecessorMap, typename DistanceMap,
-          typename RHSMap, typename KeyMap, typename WeightMap,
-          typename ColorMap, typename CompareFunction,
+          ADStarVisitor<VertexListGraph> Visitor, typename PredecessorMap,
+          typename DistanceMap, typename RHSMap, typename KeyMap,
+          typename WeightMap, typename ColorMap, typename CompareFunction,
           typename EqualCompareFunction, typename CombineFunction,
           typename ComposeFunction>
 inline void adstar_search(
     VertexListGraph& g, Vertex start_vertex, AStarHeuristicMap hval,
-    ADStarVisitor vis, PredecessorMap predecessor, DistanceMap distance,
-    RHSMap rhs, KeyMap key, WeightMap weight, ColorMap color,
+    Visitor vis, PredecessorMap predecessor, DistanceMap distance, RHSMap rhs,
+    KeyMap key, WeightMap weight, ColorMap color,
     property_value_t<DistanceMap> epsilon, property_value_t<DistanceMap> inf,
     property_value_t<DistanceMap> zero = property_value_t<DistanceMap>(0),
     CompareFunction compare = CompareFunction(),
@@ -901,7 +889,7 @@ inline void adstar_search(
   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values for each vertex in
   *the graph.
-  * \tparam ADStarVisitor The type of the AD* visitor to be used, should model the ADStarVisitorConcept.
+  * \tparam Visitor The type of the AD* visitor to be used.
   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting vertex together with
   *its optimal predecessor.
   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex to the goal.
@@ -917,7 +905,7 @@ inline void adstar_search(
   * \param g The graph on which to apply the AD* algorithm.
   * \param start_vertex The starting point of the algorithm, on the graph.
   * \param hval The property-map of A* heuristic function values for each vertex.
-  * \param vis The AD* visitor object, should model ADStarVisitorConcept.
+  * \param vis The AD* visitor object.
   * \param predecessor The property-map which will store the resulting path by connecting
   *        vertices together with their optimal predecessor (follow in reverse to discover the
   *        complete path).
@@ -934,11 +922,11 @@ inline void adstar_search(
   *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
   */
 template <typename VertexListGraph, typename Vertex, typename AStarHeuristicMap,
-          typename ADStarVisitor, typename PredecessorMap, typename DistanceMap,
-          typename RHSMap, typename KeyMap, typename WeightMap,
-          typename ColorMap>
+          ADStarVisitor<VertexListGraph> Visitor, typename PredecessorMap,
+          typename DistanceMap, typename RHSMap, typename KeyMap,
+          typename WeightMap, typename ColorMap>
 inline void adstar_search(VertexListGraph& g, Vertex start_vertex,
-                          AStarHeuristicMap hval, ADStarVisitor vis,
+                          AStarHeuristicMap hval, Visitor vis,
                           PredecessorMap predecessor, DistanceMap distance,
                           RHSMap rhs, KeyMap key, WeightMap weight,
                           ColorMap color, double epsilon) {

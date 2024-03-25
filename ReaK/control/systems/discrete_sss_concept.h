@@ -70,6 +70,12 @@ struct discrete_sss_traits {
   static constexpr std::size_t output_dimensions = T::output_dimensions;
 };
 
+template <typename T>
+struct discrete_sss_traits<const T> : discrete_sss_traits<T> {};
+
+template <typename T>
+struct discrete_sss_traits<T&> : discrete_sss_traits<T> {};
+
 /**
  * This concept class template defines the requirements for a type to be a discrete-time
  * state-space system, as used in ReaK::ctrl.
@@ -94,20 +100,20 @@ struct discrete_sss_traits {
  *of the system.
  */
 template <typename T, typename StateSpace>
-concept DiscreteSSS = pp::Topology<StateSpace> &&
-  requires (const T& sys, const StateSpace& space,
-            typename discrete_sss_traits<T>::point_type p,
-            typename discrete_sss_traits<T>::input_type u,
-            typename discrete_sss_traits<T>::time_type t,
-            typename discrete_sss_traits<T>::time_difference_type dt,
-            typename discrete_sss_traits<T>::output_type y) {
-    dt = sys.get_time_step();
-    p = sys.get_next_state(space, p, u, t);
-    y = sys.get_output(space, p, u, t);
-    { sys.get_state_dimensions() } -> std::integral;
-    { sys.get_input_dimensions() } -> std::integral;
-    { sys.get_output_dimensions() } -> std::integral;
-  };
+concept DiscreteSSS = pp::Topology<StateSpace>&& requires(
+    const T& sys, const StateSpace& space,
+    typename discrete_sss_traits<T>::point_type p,
+    typename discrete_sss_traits<T>::input_type u,
+    typename discrete_sss_traits<T>::time_type t,
+    typename discrete_sss_traits<T>::time_difference_type dt,
+    typename discrete_sss_traits<T>::output_type y) {
+  dt = sys.get_time_step();
+  p = sys.get_next_state(space, p, u, t);
+  y = sys.get_output(space, p, u, t);
+  { sys.get_state_dimensions() } -> std::integral;
+  { sys.get_input_dimensions() } -> std::integral;
+  { sys.get_output_dimensions() } -> std::integral;
+};
 
 }  // namespace ReaK::ctrl
 

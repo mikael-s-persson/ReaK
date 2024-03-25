@@ -23,6 +23,7 @@
 
 #include "ReaK/control/systems/satellite_modeling_options.h"
 
+#include "ReaK/core/serialization/archiver.h"
 #include "ReaK/core/serialization/archiver_factory.h"
 
 #include <limits>
@@ -31,14 +32,14 @@ namespace ReaK::ctrl {
 
 std::shared_ptr<satellite_model_options::system_base_type>
 satellite_model_options::get_base_sat_system() const {
-  switch (system_kind & 15) {
-    case satellite_model_options::invariant:
+  switch (system_kind.model) {
+    case model_kind::invariant:
       return std::make_shared<satellite3D_inv_dt_system>(
           "satellite3D_inv", mass, inertia_tensor, time_step);
-    case satellite_model_options::invar_mom2:
+    case model_kind::invar_mom2:
       return std::make_shared<satellite3D_imdt_sys>(
           "satellite3D_invmid", mass, inertia_tensor, time_step, 2);
-    case satellite_model_options::invar_mom:
+    case model_kind::invar_mom:
     default:
       return std::make_shared<satellite3D_imdt_sys>("satellite3D_invmom", mass,
                                                     inertia_tensor, time_step);
@@ -47,14 +48,14 @@ satellite_model_options::get_base_sat_system() const {
 
 std::shared_ptr<satellite_model_options::system_gyro_type>
 satellite_model_options::get_gyro_sat_system() const {
-  switch (system_kind & 15) {
-    case satellite_model_options::invariant:
+  switch (system_kind.model) {
+    case model_kind::invariant:
       return std::make_shared<satellite3D_gyro_inv_dt_system>(
           "satellite3D_inv_with_gyros", mass, inertia_tensor, time_step);
-    case satellite_model_options::invar_mom2:
+    case model_kind::invar_mom2:
       return std::make_shared<satellite3D_gyro_imdt_sys>(
           "satellite3D_invmid_with_gyros", mass, inertia_tensor, time_step, 2);
-    case satellite_model_options::invar_mom:
+    case model_kind::invar_mom:
     default:
       return std::make_shared<satellite3D_gyro_imdt_sys>(
           "satellite3D_invmom_with_gyros", mass, inertia_tensor, time_step);
@@ -63,13 +64,13 @@ satellite_model_options::get_gyro_sat_system() const {
 
 std::shared_ptr<satellite_model_options::system_IMU_type>
 satellite_model_options::get_IMU_sat_system() const {
-  switch (system_kind & 15) {
-    case satellite_model_options::invar_mom2:
+  switch (system_kind.model) {
+    case model_kind::invar_mom2:
       return std::make_shared<satellite3D_IMU_imdt_sys>(
           "satellite3D_invmid_with_IMU", mass, inertia_tensor, time_step,
           IMU_orientation, IMU_location, earth_orientation, mag_field_direction,
           2);
-    case satellite_model_options::invar_mom:
+    case model_kind::invar_mom:
     default:
       return std::make_shared<satellite3D_IMU_imdt_sys>(
           "satellite3D_invmom_with_IMU", mass, inertia_tensor, time_step,
@@ -131,7 +132,7 @@ satellite_model_options::get_init_state_em_belief(double aCovDiag) const {
   for (std::size_t i = 0; i < 12; ++i) {
     P_x(i, i) = aCovDiag;
   }
-  if ((system_kind & TSOSAKF) != 0) {
+  if (has_TSOSAKF_filter()) {
     for (std::size_t i = 12; i < P_x.get_row_count(); ++i) {
       P_x(i, i) = steady_param_covariance(i - 12, i - 12);
     }
@@ -155,7 +156,7 @@ satellite_model_options::get_init_state_emd_belief(double aCovDiag) const {
   for (std::size_t i = 0; i < 12; ++i) {
     P_x(i, i) = aCovDiag;
   }
-  if ((system_kind & TSOSAKF) != 0) {
+  if (has_TSOSAKF_filter()) {
     for (std::size_t i = 12; i < P_x.get_row_count(); ++i) {
       P_x(i, i) = steady_param_covariance(i - 12, i - 12);
     }
@@ -181,7 +182,7 @@ satellite_model_options::get_init_state_emdJ_belief(double aCovDiag) const {
   for (std::size_t i = 0; i < 12; ++i) {
     P_x(i, i) = aCovDiag;
   }
-  if ((system_kind & TSOSAKF) != 0) {
+  if (has_TSOSAKF_filter()) {
     for (std::size_t i = 12; i < P_x.get_row_count(); ++i) {
       P_x(i, i) = steady_param_covariance(i - 12, i - 12);
     }
@@ -224,23 +225,18 @@ void satellite_model_options::imbue_names_for_received_meas(
       .add_name("q_2")
       .add_name("q_3");
 
-  switch (system_kind & 48) {
-    case 16:
-      data_opt.add_name("w_x").add_name("w_y").add_name("w_z");
-      break;
-    case 48:
-      data_opt.add_name("w_x")
-          .add_name("w_y")
-          .add_name("w_z")
-          .add_name("acc_x")
-          .add_name("acc_y")
-          .add_name("acc_z")
-          .add_name("mag_x")
-          .add_name("mag_y")
-          .add_name("mag_z");
-      break;
-    default:
-      break;
+  if (has_IMU_measures()) {
+    data_opt.add_name("w_x")
+        .add_name("w_y")
+        .add_name("w_z")
+        .add_name("acc_x")
+        .add_name("acc_y")
+        .add_name("acc_z")
+        .add_name("mag_x")
+        .add_name("mag_y")
+        .add_name("mag_z");
+  } else if (has_gyro_measures()) {
+    data_opt.add_name("w_x").add_name("w_y").add_name("w_z");
   }
 
   data_opt.add_name("f_x")
@@ -264,23 +260,18 @@ void satellite_model_options::imbue_names_for_generated_meas(
       .add_name("q_2")
       .add_name("q_3");
 
-  switch (system_kind & 48) {
-    case 16:
-      data_opt.add_name("w_x").add_name("w_y").add_name("w_z");
-      break;
-    case 48:
-      data_opt.add_name("w_x")
-          .add_name("w_y")
-          .add_name("w_z")
-          .add_name("acc_x")
-          .add_name("acc_y")
-          .add_name("acc_z")
-          .add_name("mag_x")
-          .add_name("mag_y")
-          .add_name("mag_z");
-      break;
-    default:
-      break;
+  if (has_IMU_measures()) {
+    data_opt.add_name("w_x")
+        .add_name("w_y")
+        .add_name("w_z")
+        .add_name("acc_x")
+        .add_name("acc_y")
+        .add_name("acc_z")
+        .add_name("mag_x")
+        .add_name("mag_y")
+        .add_name("mag_z");
+  } else if (has_gyro_measures()) {
+    data_opt.add_name("w_x").add_name("w_y").add_name("w_z");
   }
 
   data_opt.add_name("f_x")
@@ -317,27 +308,22 @@ void satellite_model_options::imbue_names_for_meas_stddevs(
       .add_name("ep_m")
       .add_name("ea_m");
 
-  switch (system_kind & 48) {
-    case 16:
-      data_opt.add_name("ew_x").add_name("ew_y").add_name("ew_z").add_name(
-          "ew_m");
-      break;
-    case 48:
-      data_opt.add_name("ew_x")
-          .add_name("ew_y")
-          .add_name("ew_z")
-          .add_name("ew_m")
-          .add_name("eacc_x")
-          .add_name("eacc_y")
-          .add_name("eacc_z")
-          .add_name("eacc_m")
-          .add_name("emag_x")
-          .add_name("emag_y")
-          .add_name("emag_z")
-          .add_name("emag_m");
-      break;
-    default:
-      break;
+  if (has_IMU_measures()) {
+    data_opt.add_name("ew_x")
+        .add_name("ew_y")
+        .add_name("ew_z")
+        .add_name("ew_m")
+        .add_name("eacc_x")
+        .add_name("eacc_y")
+        .add_name("eacc_z")
+        .add_name("eacc_m")
+        .add_name("emag_x")
+        .add_name("emag_y")
+        .add_name("emag_z")
+        .add_name("emag_m");
+  } else if (has_gyro_measures()) {
+    data_opt.add_name("ew_x").add_name("ew_y").add_name("ew_z").add_name(
+        "ew_m");
   }
 }
 
@@ -358,12 +344,12 @@ void satellite_model_options::imbue_names_for_state_estimates(
       .add_name("avel_x")
       .add_name("avel_y")
       .add_name("avel_z");
-  switch (system_kind & 15) {
-    case invar_mom_em:
+  switch (system_kind.model) {
+    case model_kind::invar_mom_em:
       data_opt.add_name("mass").add_name("ecc_x").add_name("ecc_y").add_name(
           "ecc_z");
       break;
-    case invar_mom_emd:
+    case model_kind::invar_mom_emd:
       data_opt.add_name("mass")
           .add_name("ecc_x")
           .add_name("ecc_y")
@@ -371,7 +357,7 @@ void satellite_model_options::imbue_names_for_state_estimates(
           .add_name("tdrag")
           .add_name("rdrag");
       break;
-    case invar_mom_emdJ:
+    case model_kind::invar_mom_emdJ:
       data_opt.add_name("mass")
           .add_name("ecc_x")
           .add_name("ecc_y")
@@ -412,12 +398,12 @@ void satellite_model_options::imbue_names_for_state_estimates(
       .add_name("P_wwx")
       .add_name("P_wwy")
       .add_name("P_wwz");
-  switch (system_kind & 15) {
-    case invar_mom_em:
+  switch (system_kind.model) {
+    case model_kind::invar_mom_em:
       data_opt.add_name("P_mm").add_name("P_eex").add_name("P_eey").add_name(
           "P_eez");
       break;
-    case invar_mom_emd:
+    case model_kind::invar_mom_emd:
       data_opt.add_name("P_mm")
           .add_name("P_eex")
           .add_name("P_eey")
@@ -425,7 +411,7 @@ void satellite_model_options::imbue_names_for_state_estimates(
           .add_name("P_tdtd")
           .add_name("P_rdrd");
       break;
-    case invar_mom_emdJ:
+    case model_kind::invar_mom_emdJ:
       data_opt.add_name("P_mm")
           .add_name("P_eex")
           .add_name("P_eey")
@@ -479,6 +465,9 @@ void satellite_model_options::imbue_names_for_state_estimates_stddevs(
 
 void satellite_model_options::load_all_configs_impl(
     serialization::iarchive& in) {
+  int system_kind_model = 0;
+  int system_kind_measures = 0;
+  int system_kind_filters = 0;
   in& RK_SERIAL_LOAD_WITH_NAME(mass) &
       RK_SERIAL_LOAD_WITH_NAME(inertia_tensor) &
       RK_SERIAL_LOAD_WITH_NAME(IMU_orientation) &
@@ -490,11 +479,19 @@ void satellite_model_options::load_all_configs_impl(
       RK_SERIAL_LOAD_WITH_NAME(artificial_noise) &
       RK_SERIAL_LOAD_WITH_NAME(steady_param_covariance) &
       RK_SERIAL_LOAD_WITH_NAME(initial_motion) &
-      RK_SERIAL_LOAD_WITH_NAME(system_kind);
+      RK_SERIAL_LOAD_WITH_NAME(system_kind_model) &
+      RK_SERIAL_LOAD_WITH_NAME(system_kind_measures) &
+      RK_SERIAL_LOAD_WITH_NAME(system_kind_filters);
+  system_kind.model = static_cast<model_kind>(system_kind_model);
+  system_kind.measures = std::bitset<8>(system_kind_measures);
+  system_kind.filters = std::bitset<8>(system_kind_filters);
 }
 
 void satellite_model_options::save_all_configs_impl(
     serialization::oarchive& out) const {
+  int system_kind_model = static_cast<int>(system_kind.model);
+  int system_kind_measures = system_kind.measures.to_ulong();
+  int system_kind_filters = system_kind.filters.to_ulong();
   out& RK_SERIAL_SAVE_WITH_NAME(mass) &
       RK_SERIAL_SAVE_WITH_NAME(inertia_tensor) &
       RK_SERIAL_SAVE_WITH_NAME(IMU_orientation) &
@@ -506,7 +503,9 @@ void satellite_model_options::save_all_configs_impl(
       RK_SERIAL_SAVE_WITH_NAME(artificial_noise) &
       RK_SERIAL_SAVE_WITH_NAME(steady_param_covariance) &
       RK_SERIAL_SAVE_WITH_NAME(initial_motion) &
-      RK_SERIAL_SAVE_WITH_NAME(system_kind);
+      RK_SERIAL_SAVE_WITH_NAME(system_kind_model) &
+      RK_SERIAL_SAVE_WITH_NAME(system_kind_measures) &
+      RK_SERIAL_SAVE_WITH_NAME(system_kind_filters);
 }
 
 void satellite_model_options::load_all_configs(const std::string& aFileName) {

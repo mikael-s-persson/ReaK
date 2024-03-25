@@ -42,8 +42,8 @@
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/interpolated_trajectory.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 
 #include "ReaK/topologies/interpolation/sustained_velocity_pulse_detail.h"
 
@@ -80,8 +80,8 @@ PointType svp_interpolate(const PointType& a, const PointType& b, double t,
   using SpaceType = typename temporal_space_traits<Space>::space_topology;
   using TimeSpaceType = typename temporal_space_traits<Space>::time_topology;
   static_assert(TangentBundle<SpaceType, TimeSpaceType, 0, 1>);
-  static_assert(SphereBoundedSpace<
-                        derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>);
+  static_assert(
+      SphereBoundedSpace<derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>);
 
   using Space0 = derived_N_order_space_t<SpaceType, TimeSpaceType, 0>;
   using PointDiff0 = topology_point_difference_type_t<Space0>;
@@ -147,8 +147,7 @@ bool svp_is_in_bounds(const topology_point_type_t<Space>& pt,
   // Check if we can stop the motion before the boundary.
   PointType result = pt;
   detail::svp_constant_accel_motion_impl<
-      max_derivation_order<Space, TimeSpace>>(result, dp1, space, t_space,
-                                                    dt);
+      max_derivation_order<Space, TimeSpace>>(result, dp1, space, t_space, dt);
   if (!space.is_in_bounds(result)) {
     return false;  // reject the sample.
   }
@@ -156,8 +155,8 @@ bool svp_is_in_bounds(const topology_point_type_t<Space>& pt,
   // Check if we could have initiated the motion from within the boundary.
   result = pt;
   detail::svp_constant_accel_motion_impl<
-      max_derivation_order<Space, TimeSpace>>(result, -dp1, space,
-                                                    t_space, -dt);
+      max_derivation_order<Space, TimeSpace>>(result, -dp1, space, t_space,
+                                              -dt);
   return space.is_in_bounds(result);
 }
 
@@ -211,8 +210,8 @@ class svp_interpolator {
    */
   template <typename Factory>
   svp_interpolator(const point_type& start_point, const point_type& end_point,
-                   double dt, const Space& space,
-                   const TimeSpace& t_space, const Factory& factory) {
+                   double dt, const Space& space, const TimeSpace& t_space,
+                   const Factory& factory) {
     initialize(start_point, end_point, dt, space, t_space, factory);
   }
 
@@ -228,8 +227,8 @@ class svp_interpolator {
    */
   template <typename Factory>
   void initialize(const point_type& start_point, const point_type& end_point,
-                  double dt, const Space& space,
-                  const TimeSpace& t_space, const Factory& factory) {
+                  double dt, const Space& space, const TimeSpace& t_space,
+                  const Factory& factory) {
 
     min_delta_time = detail::svp_compute_interpolation_data_impl(
         start_point, end_point, delta_first_order, peak_velocity, space,
@@ -259,8 +258,7 @@ class svp_interpolator {
       return;
     }
 
-    detail::svp_interpolate_impl<
-        max_derivation_order_v<Space, TimeSpace>>(
+    detail::svp_interpolate_impl<max_derivation_order_v<Space, TimeSpace>>(
         result, start_point, end_point, delta_first_order, peak_velocity, space,
         t_space, dt, dt_total);
   }
@@ -343,8 +341,8 @@ template <TemporalSpace Space,
           DistanceMetric<Space> Metric =
               typename metric_space_traits<Space>::distance_metric_type>
 class svp_interp_traj
-    : public interpolated_trajectory<
-          Space, svp_interpolator_factory<Space>, Metric> {
+    : public interpolated_trajectory<Space, svp_interpolator_factory<Space>,
+                                     Metric> {
  public:
   using self = svp_interp_traj<Space, Metric>;
   using base_class_type =

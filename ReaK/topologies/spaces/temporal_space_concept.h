@@ -78,12 +78,10 @@ struct temporal_space_traits {
  * t_space = space.get_time_topology();  The time-topology (t_space) can be obtained from the temporal-space (space).
  */
 template <typename Space>
-concept TemporalSpace =
-    Topology<Space> &&
-    requires (const Space& space) {
-      { space.get_space_topology() } -> Topology;
-      { space.get_time_topology() } -> Topology;
-    };
+concept TemporalSpace = Topology<Space>&& requires(const Space& space) {
+  { space.get_space_topology() } -> Topology;
+  { space.get_time_topology() } -> Topology;
+};
 
 template <typename Space>
 static constexpr bool is_temporal_space_v = TemporalSpace<Space>;

@@ -42,8 +42,8 @@
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/interpolated_trajectory.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 
@@ -368,12 +368,12 @@ template <TemporalSpace Space,
           DistanceMetric<Space> Metric =
               typename metric_space_traits<Space>::distance_metric_type>
 class cubic_hermite_interp_traj
-    : public interpolated_trajectory<
-          Space, cubic_hermite_interp_factory<Space>, Metric> {
+    : public interpolated_trajectory<Space, cubic_hermite_interp_factory<Space>,
+                                     Metric> {
  public:
   static_assert(TangentBundle<
-          typename temporal_space_traits<Space>::space_topology,
-          typename temporal_space_traits<Space>::time_topology, 0, 1>);
+                typename temporal_space_traits<Space>::space_topology,
+                typename temporal_space_traits<Space>::time_topology, 0, 1>);
 
   using self = cubic_hermite_interp_traj<Space, Metric>;
   using base_class_type =

@@ -189,7 +189,7 @@ struct dvp_tree_key_hasher {
  * insertion-deletion. A DVP-tree is essentially a generalization of a search tree which only
  * requires the space to have a metric which respects the triangular inequality.
  * \tparam TreeType The tree type to be used to store the entries of this DVP search tree.
- * \tparam Topology The topology type on which the points associated to each entry resides.
+ * \tparam Space The topology type on which the points associated to each entry resides.
  * \tparam VertexKeyMap The property-map type that can map vertex properties of the tree to key-values (that identify
  * the entries).
  * \tparam DistanceMap The property-map type that can map an edge property to its associated distance value (used
@@ -199,24 +199,24 @@ struct dvp_tree_key_hasher {
  * \tparam Arity The arity of the tree, e.g., 2 means a binary-tree.
  * \tparam VPChooser The functor type to use to choose the vantage-point out of a set of vertices.
  */
-template <typename TreeType, typename Topology, typename VertexKeyMap,
+template <typename TreeType, MetricSpace Space, typename VertexKeyMap,
           typename DistanceMap, typename PositionMap, unsigned int Arity,
           typename VPChooser>
 class dvp_tree_impl {
  public:
-  using self = dvp_tree_impl<TreeType, Topology, VertexKeyMap, DistanceMap,
+  using self = dvp_tree_impl<TreeType, Space, VertexKeyMap, DistanceMap,
                              PositionMap, Arity, VPChooser>;
 
-  /** Type of the points in the topology. */
+  /** Type of the points in the Space. */
   using point_type = graph::property_value_t<PositionMap>;
   /** Type of the distance values. */
   using distance_type = double;
 
-  using distance_metric_type = metric_space_distance_metric_t<Topology>;
-  using proper_metric_type = get_proper_metric_t<Topology>;
+  using distance_metric_type = metric_space_distance_metric_t<Space>;
+  using proper_metric_type = get_proper_metric_t<Space>;
 
   struct dist_metric_only_impl {
-    std::shared_ptr<const Topology> p_space;
+    std::shared_ptr<const Space> p_space;
     distance_metric_type m_distance;
 
     double distance(const point_type& a, const point_type& b) const {
@@ -229,13 +229,12 @@ class dvp_tree_impl {
       return proper_distance(a, b, *p_space);
     }
 
-    explicit dist_metric_only_impl(
-        const std::shared_ptr<const Topology>& aSpace)
+    explicit dist_metric_only_impl(const std::shared_ptr<const Space>& aSpace)
         : p_space(aSpace), m_distance(get(distance_metric, *aSpace)) {}
   };
 
   struct dist_metric_pair_impl {
-    std::shared_ptr<const Topology> p_space;
+    std::shared_ptr<const Space> p_space;
     distance_metric_type m_distance;
     proper_metric_type m_proper_distance;
 
@@ -249,8 +248,7 @@ class dvp_tree_impl {
       return proper_distance(a, b, *p_space);
     }
 
-    explicit dist_metric_pair_impl(
-        const std::shared_ptr<const Topology>& aSpace)
+    explicit dist_metric_pair_impl(const std::shared_ptr<const Space>& aSpace)
         : p_space(aSpace),
           m_distance(get(distance_metric, *aSpace)),
           m_proper_distance(get(proper_metric, *aSpace)) {}
@@ -263,8 +261,8 @@ class dvp_tree_impl {
   /** Type of the key-values that identify entries of the DVP tree. */
   using key_type = graph::property_value_t<VertexKeyMap>;
 
-  BOOST_CONCEPT_ASSERT((DistanceMetricConcept<distance_metric_type, Topology>));
-  BOOST_CONCEPT_ASSERT((DistanceMetricConcept<proper_metric_type, Topology>));
+  static_assert(DistanceMetric<distance_metric_type, Space>);
+  static_assert(DistanceMetric<proper_metric_type, Space>);
 
  private:
   using tree_indexer = TreeType;
@@ -817,8 +815,7 @@ class dvp_tree_impl {
    */
   template <typename Graph, typename GraphPositionMap>
   dvp_tree_impl(const Graph& g, GraphPositionMap aGraphPosition,
-                tree_indexer& aTree,
-                const std::shared_ptr<const Topology>& aSpace,
+                tree_indexer& aTree, const std::shared_ptr<const Space>& aSpace,
                 VertexKeyMap aKey, DistanceMap aMu, PositionMap aPosition,
                 VPChooser aVPChooser)
       : m_tree(&aTree),
@@ -874,9 +871,8 @@ class dvp_tree_impl {
   template <typename ForwardIterator, typename ElemPositionMap>
   dvp_tree_impl(ForwardIterator aBegin, ForwardIterator aEnd,
                 ElemPositionMap aElemPosition, tree_indexer& aTree,
-                const std::shared_ptr<const Topology>& aSpace,
-                VertexKeyMap aKey, DistanceMap aMu, PositionMap aPosition,
-                VPChooser aVPChooser)
+                const std::shared_ptr<const Space>& aSpace, VertexKeyMap aKey,
+                DistanceMap aMu, PositionMap aPosition, VPChooser aVPChooser)
       : m_tree(&aTree),
         m_root(boost::graph_traits<tree_indexer>::null_vertex()),
         m_key(aKey),
@@ -914,8 +910,7 @@ class dvp_tree_impl {
    * (vertex-property objects).
    * \param aVPChooser The vantage-point chooser functor (policy class).
    */
-  dvp_tree_impl(tree_indexer& aTree,
-                const std::shared_ptr<const Topology>& aSpace,
+  dvp_tree_impl(tree_indexer& aTree, const std::shared_ptr<const Space>& aSpace,
                 VertexKeyMap aKey, DistanceMap aMu, PositionMap aPosition,
                 VPChooser aVPChooser)
       : m_tree(&aTree),

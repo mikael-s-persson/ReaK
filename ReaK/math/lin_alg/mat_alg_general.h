@@ -77,8 +77,10 @@ class mat {
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
-static constexpr bool is_fully_writable_matrix_v<mat<T, Structure, Alignment, RowCount, ColCount>> =
-    (Structure == mat_structure::rectangular) || (Structure == mat_structure::square);
+static constexpr bool is_fully_writable_matrix_v<
+    mat<T, Structure, Alignment, RowCount, ColCount>> =
+    (Structure == mat_structure::rectangular) ||
+    (Structure == mat_structure::square);
 
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
@@ -101,25 +103,29 @@ struct mat_addition_priority<mat<T, Structure, Alignment, RowCount, ColCount>> {
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
-static constexpr bool is_square_matrix_v<mat<T, Structure, Alignment, RowCount, ColCount>> =
-    ((Structure != mat_structure::rectangular &&
-      (Structure != mat_structure::nil))) ||
-    ((RowCount != 0) && (ColCount != 0) && (RowCount == ColCount));
+static constexpr bool
+    is_square_matrix_v<mat<T, Structure, Alignment, RowCount, ColCount>> =
+        ((Structure != mat_structure::rectangular &&
+          (Structure != mat_structure::nil))) ||
+        ((RowCount != 0) && (ColCount != 0) && (RowCount == ColCount));
 
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
-static constexpr bool is_symmetric_matrix_v<mat<T, Structure, Alignment, RowCount, ColCount>> =
-    ((Structure == mat_structure::symmetric) ||
-     (Structure == mat_structure::diagonal) ||
-     (Structure == mat_structure::tridiagonal) ||
-     (Structure == mat_structure::identity));
+static constexpr bool
+    is_symmetric_matrix_v<mat<T, Structure, Alignment, RowCount, ColCount>> =
+        ((Structure == mat_structure::symmetric) ||
+         (Structure == mat_structure::diagonal) ||
+         (Structure == mat_structure::tridiagonal) ||
+         (Structure == mat_structure::identity));
 
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
-static constexpr bool is_diagonal_matrix_v<mat<T, Structure, Alignment, RowCount, ColCount>> =
-    ((Structure == mat_structure::diagonal) || (Structure == mat_structure::identity));
+static constexpr bool
+    is_diagonal_matrix_v<mat<T, Structure, Alignment, RowCount, ColCount>> =
+        ((Structure == mat_structure::diagonal) ||
+         (Structure == mat_structure::identity));
 
 namespace rtti {
 

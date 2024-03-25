@@ -58,6 +58,27 @@
 
 namespace ReaK::pp {
 
+namespace details {
+
+template <SteerableSpace Space>
+requires TemporalSpace<Space> auto p2p_solution_representation_impl() {
+  return seq_trajectory_wrapper<discrete_point_trajectory<Space>>();
+}
+template <SteerableSpace Space>
+auto p2p_solution_representation_impl() {
+  return seq_path_wrapper<discrete_point_path<Space>>();
+}
+template <TemporalSpace Space>
+auto p2p_solution_representation_impl() {
+  return seq_trajectory_wrapper<point_to_point_trajectory<Space>>();
+}
+template <Topology Space>
+auto p2p_solution_representation_impl() {
+  return seq_path_wrapper<point_to_point_path<Space>>();
+}
+
+}  // namespace details
+
 /**
  * This class is the basic OOP interface for a path planner.
  * OOP-style planners are useful to hide away
@@ -79,16 +100,8 @@ class path_planning_p2p_query : public planning_query<FreeSpaceType> {
 
   using solution_record_ptr = typename base_type::solution_record_ptr;
 
-  using solution_path_wrapper = std::conditional_t<
-      is_steerable_space_v<space_type>,
-      std::conditional_t<
-          is_temporal_space_v<space_type>,
-          seq_trajectory_wrapper<discrete_point_trajectory<super_space_type>>,
-          seq_path_wrapper<discrete_point_path<super_space_type>>>,
-      std::conditional_t<
-          is_temporal_space_v<space_type>,
-          seq_trajectory_wrapper<point_to_point_trajectory<super_space_type>>,
-          seq_path_wrapper<point_to_point_path<super_space_type>>>>;
+  using solution_path_wrapper =
+      decltype(details::p2p_solution_representation_impl<super_space_type>());
 
   point_type start_pos;
   point_type goal_pos;

@@ -144,8 +144,7 @@ class mat<T, mat_structure::square, mat_alignment::column_major, RowCount,
 
   /// Explicit constructor from a any type of matrix.
   template <ReadableMatrix Matrix>
-  explicit mat(const Matrix& M)
-      : mat(M.get_row_count()) {
+  explicit mat(const Matrix& M) : mat(M.get_row_count()) {
     if (M.get_col_count() != M.get_row_count()) {
       throw std::range_error("Matrix is not square!");
     }
@@ -653,8 +652,7 @@ class mat<T, mat_structure::square, mat_alignment::row_major, RowCount,
 
   /// Explicit constructor from a any type of matrix.
   template <ReadableMatrix Matrix>
-  explicit mat(const Matrix& M)
-      : mat(M.get_row_count()) {
+  explicit mat(const Matrix& M) : mat(M.get_row_count()) {
     if (M.get_col_count() != M.get_row_count()) {
       throw std::range_error("Matrix is not square!");
     }

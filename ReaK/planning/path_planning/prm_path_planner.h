@@ -57,7 +57,7 @@ namespace ReaK::pp {
  * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger
  * configuration space.
  */
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 class prm_planner : public sample_based_planner<FreeSpaceType> {
  public:
   using base_type = sample_based_planner<FreeSpaceType>;
@@ -66,8 +66,6 @@ class prm_planner : public sample_based_planner<FreeSpaceType> {
   using space_type = FreeSpaceType;
   using super_space_type =
       typename subspace_traits<FreeSpaceType>::super_space_type;
-
-  BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
 
   using point_type = topology_point_type_t<super_space_type>;
   using point_difference_type =

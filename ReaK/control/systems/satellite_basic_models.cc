@@ -144,7 +144,7 @@ satellite3D_lin_dt_system::point_type satellite3D_lin_dt_system::get_next_state(
               (2.0 * half_dp - (0.01 * mDt) * w0 % (mInertiaMoment * w0)));
     unit_quat<double> half_w1_prev_rot = exp((0.0025 * mDt) * w1_prev);
 
-    for (int i = 0; i < 20; ++i) {
+    for (int j = 0; j < 20; ++j) {
       vect<double, 3> w1_next =
           mInertiaMomentInv *
           (half_dp + invert(half_w1_prev_rot).as_rotation() * dp0);

@@ -44,7 +44,6 @@
 
 #include "ReaK/math/lin_alg/vect_traits.h"
 
-
 namespace ReaK {
 
 /**
@@ -89,7 +88,7 @@ static constexpr bool is_readable_vector_v = ReadableVector<Vector>;
  * \tparam Vector The vector type.
  */
 template <typename Vector>
-concept WritableVector = ReadableVector<Vector> && requires(Vector& v) {
+concept WritableVector = ReadableVector<Vector>&& requires(Vector& v) {
   { v[0] } -> std::assignable_from<vect_value_type_t<Vector>>;
 };
 
@@ -108,8 +107,8 @@ static constexpr bool is_writable_vector_v = WritableVector<Vector>;
  * \tparam Vector The vector type.
  */
 template <typename Vector>
-concept ResizableVector = ReadableVector<Vector> && requires(Vector& v, int sz) {
-  { v.resize(sz) };
+concept ResizableVector = ReadableVector<Vector>&& requires(Vector& v, int sz) {
+  {v.resize(sz)};
 };
 
 // Legacy

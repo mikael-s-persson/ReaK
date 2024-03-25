@@ -102,6 +102,11 @@ class covariance_matrix : public named_object {
 
   covariance_matrix() : covariance_matrix(0) {}
 
+  covariance_matrix(const self& rhs) = default;
+  covariance_matrix(self&& rhs) = default;
+  self& operator=(const self& rhs) = default;
+  self& operator=(self&& rhs) = default;
+
   /**
    * Returns the covariance matrix (as a matrix object).
    * \return The covariance matrix (as a matrix object).
@@ -115,22 +120,6 @@ class covariance_matrix : public named_object {
     matrix_type m_inv;
     invert_Cholesky(mat_cov, m_inv, std::numeric_limits<value_type>::epsilon());
     return m_inv;
-  }
-
-  /**
-   * Standard swap function.
-   */
-  friend void swap(self& lhs, self& rhs) noexcept {
-    using std::swap;
-    swap(lhs.mat_cov, rhs.mat_cov);
-  }
-
-  /**
-   * Standard assignment operator.
-   */
-  self& operator=(self rhs) {
-    swap(rhs, *this);
-    return *this;
   }
 
   /**

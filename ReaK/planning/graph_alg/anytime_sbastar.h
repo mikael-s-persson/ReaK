@@ -7,7 +7,7 @@
  * are many choices to be made in the method, such as how to find nearest neighbors for attempting to
  * connect them through free-space, how to expand vertices, when to stop the algorithm, etc.
  * All these customization points are left to the user to implement, some are defined by the
- * ASBAStarVisitorConcept (random-walk, edge-added, etc.).
+ * ASBAStarVisitor (random-walk, edge-added, etc.).
  *
  * The ASBA* algorithm is a generalization of the Anytime A* algorithm where the neighborhood of a given node of
  * the motion graph is not defined as a fixed set of neighbors (as in a classic A* over a fixed graph),
@@ -80,22 +80,17 @@ namespace ReaK::graph {
   *
   * Required concepts:
   *
-  * The visitor class should model SBAStarVisitorConcept, and AnytimeHeuristicVisitorConcept.
-  *
-  * \tparam Visitor The visitor class to be tested for modeling an ASBA* visitor concept.
-  * \tparam Graph The graph type on which the visitor should be able to act.
-  * \tparam Topology The topology type on which the visitor class is required to work with.
+  * The visitor class should model SBAStarVisitor, and AnytimeHeuristicVisitor.
   */
-template <typename Visitor, typename Graph, typename Topology>
-struct ASBAStarVisitorConcept : SBAStarVisitorConcept<Visitor, Graph, Topology>,
-                                AnytimeHeuristicVisitorConcept<Visitor, Graph> {
-};
+template <typename Visitor, typename Graph, typename Space>
+concept ASBAStarVisitor = SBAStarVisitor<Visitor, Graph, Space>&&
+    AnytimeHeuristicVisitor<Visitor, Graph>;
 
 /**
   * This class is simply an archetype visitor for the ASBA* algorithm.
   */
-template <typename Topology>
-struct asbastar_visitor_archetype : sbastar_visitor_archetype<Topology>,
+template <typename Space>
+struct asbastar_visitor_archetype : sbastar_visitor_archetype<Space>,
                                     anytime_heuristic_visitor_archetype {};
 
 /**
@@ -108,29 +103,19 @@ struct asbastar_visitor_archetype : sbastar_visitor_archetype<Topology>,
   *
   * Required concepts:
   *
-  * The visitor class should model ASBAStarVisitorConcept, and NodeBackPushingVisitorConcept.
-  *
-  * \tparam Visitor The visitor class to be tested for modeling an ASBA* visitor concept.
-  * \tparam Graph The graph type on which the visitor should be able to act.
-  * \tparam Topology The topology type on which the visitor class is required to work with.
+  * The visitor class should model ASBAStarVisitor, and NodeBackPushingVisitor.
   */
-template <typename Visitor, typename Graph, typename Topology>
-struct ASBAStarBidirVisitorConcept
-    : ASBAStarVisitorConcept<Visitor, Graph, Topology> {
-
-  BOOST_CONCEPT_ASSERT(
-      (NodeBackPushingVisitorConcept<Visitor, Graph, Topology>));
-
-  BOOST_CONCEPT_USAGE(ASBAStarBidirVisitorConcept) {}
-};
+template <typename Visitor, typename Graph, typename Space>
+concept ASBAStarBidirVisitor = ASBAStarVisitor<Visitor, Graph, Space>&&
+    NodeBackPushingVisitor<Visitor, Graph, Space>;
 
 /**
   * This class is simply an archetype visitor for the ASBA* algorithm.
   */
-template <typename Topology>
+template <typename Space>
 struct asbastar_bidir_visitor_archetype
-    : asbastar_visitor_archetype<Topology>,
-      node_back_pushing_visitor_archetype<Topology> {};
+    : asbastar_visitor_archetype<Space>,
+      node_back_pushing_visitor_archetype<Space> {};
 
 /**
   * This concept class defines the valid expressions required of a class to be used as a visitor
@@ -142,22 +127,17 @@ struct asbastar_bidir_visitor_archetype
   *
   * Required concepts:
   *
-  * The visitor class should model SBARRTStarVisitorConcept, and AnytimeHeuristicVisitorConcept.
-  *
-  * \tparam Visitor The visitor class to be tested for modeling an ASBA*-RRT* visitor concept.
-  * \tparam Graph The graph type on which the visitor should be able to act.
-  * \tparam Topology The topology type on which the visitor class is required to work with.
+  * The visitor class should model SBARRTStarVisitor, and AnytimeHeuristicVisitor.
   */
-template <typename Visitor, typename Graph, typename Topology>
-struct ASBARRTStarVisitorConcept
-    : SBARRTStarVisitorConcept<Visitor, Graph, Topology>,
-      AnytimeHeuristicVisitorConcept<Visitor, Graph> {};
+template <typename Visitor, typename Graph, typename Space>
+concept ASBARRTStarVisitor = SBARRTStarVisitor<Visitor, Graph, Space>&&
+    AnytimeHeuristicVisitor<Visitor, Graph>;
 
 /**
   * This class is simply an archetype visitor for the ASBA*-RRT* algorithm.
   */
-template <typename Topology>
-struct asbarrtstar_visitor_archetype : sbarrtstar_visitor_archetype<Topology>,
+template <typename Space>
+struct asbarrtstar_visitor_archetype : sbarrtstar_visitor_archetype<Space>,
                                        anytime_heuristic_visitor_archetype {};
 
 /**
@@ -171,33 +151,21 @@ struct asbarrtstar_visitor_archetype : sbarrtstar_visitor_archetype<Topology>,
   *
   * Required concepts:
   *
-  * The visitor class should model ASBARRTStarVisitorConcept, NodeBackPullingVisitorConcept and
-  *NodeBackPushingVisitorConcept.
-  *
-  * \tparam Visitor The visitor class to be tested for modeling an ASBA* visitor concept.
-  * \tparam Graph The graph type on which the visitor should be able to act.
-  * \tparam Topology The topology type on which the visitor class is required to work with.
+  * The visitor class should model ASBARRTStarVisitor, NodeBackPullingVisitor and NodeBackPushingVisitor.
   */
-template <typename Visitor, typename Graph, typename Topology>
-struct ASBARRTStarBidirVisitorConcept
-    : ASBARRTStarVisitorConcept<Visitor, Graph, Topology> {
-
-  BOOST_CONCEPT_ASSERT(
-      (NodeBackPushingVisitorConcept<Visitor, Graph, Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (NodeBackPullingVisitorConcept<Visitor, Graph, Topology>));
-
-  BOOST_CONCEPT_USAGE(ASBARRTStarBidirVisitorConcept) {}
-};
+template <typename Visitor, typename Graph, typename Space>
+concept ASBARRTStarBidirVisitor =
+    ASBARRTStarVisitor<Visitor, Graph, Space>&& NodeBackPushingVisitor<
+        Visitor, Graph, Space>&& NodeBackPullingVisitor<Visitor, Graph, Space>;
 
 /**
   * This class is simply an archetype visitor for the ASBA* algorithm.
   */
-template <typename Topology>
+template <typename Space>
 struct asbarrtstar_bidir_visitor_archetype
-    : asbarrtstar_visitor_archetype<Topology>,
+    : asbarrtstar_visitor_archetype<Space>,
       node_back_pulling_visitor_archetype,
-      node_back_pushing_visitor_archetype<Topology> {};
+      node_back_pushing_visitor_archetype<Space> {};
 
 namespace detail {
 namespace {
@@ -279,13 +247,13 @@ struct anytime_sbastar_bfs_visitor
   double m_current_relaxation;
 };
 
-template <typename Graph, typename Topology, typename ASBAStarVisitor,
+template <typename Graph, pp::MetricSpace Space, typename ASBAStarVisitor,
           typename NodeConnector, typename KeyMap, typename PositionMap,
           typename WeightMap, typename DensityMap, typename ConstrictionMap,
           typename DistanceMap, typename PredecessorMap,
           typename FwdDistanceMap, typename NcSelector>
 void generate_anytime_sbastar_no_init_impl(
-    Graph& g, graph_vertex_t<Graph> start_vertex, const Topology& super_space,
+    Graph& g, graph_vertex_t<Graph> start_vertex, const Space& super_space,
     ASBAStarVisitor vis, NodeConnector connect_vertex, KeyMap key,
     PositionMap position, WeightMap weight, DensityMap density,
     ConstrictionMap constriction, DistanceMap distance,
@@ -320,14 +288,14 @@ void generate_anytime_sbastar_no_init_impl(
                       sba_node_generator(), Q, select_neighborhood);
 }
 
-template <typename Graph, typename Topology, typename SBAStarVisitor,
+template <typename Graph, pp::MetricSpace Space, typename SBAStarVisitor,
           typename NodeConnector, typename PositionMap, typename WeightMap,
           typename DensityMap, typename ConstrictionMap, typename DistanceMap,
           typename PredecessorMap, typename FwdDistanceMap,
           typename SuccessorMap, typename KeyMap, typename NcSelector>
 void generate_anytime_sbastar_bidir_no_init_impl(
     Graph& g, graph_vertex_t<Graph> start_vertex,
-    graph_vertex_t<Graph> goal_vertex, const Topology& super_space,
+    graph_vertex_t<Graph> goal_vertex, const Space& super_space,
     SBAStarVisitor vis, NodeConnector connect_vertex, KeyMap key,
     PositionMap position, WeightMap weight, DensityMap density,
     ConstrictionMap constriction, DistanceMap distance,
@@ -369,19 +337,20 @@ void generate_anytime_sbastar_bidir_no_init_impl(
                      sba_bidir_node_generator(), Q, select_neighborhood);
 }
 
-template <typename Graph, typename Topology, typename ASBARRTStarVisitor,
+template <typename Graph, pp::MetricSpace Space, typename ASBARRTStarVisitor,
           typename NodeConnector, typename KeyMap, typename PositionMap,
           typename WeightMap, typename DensityMap, typename ConstrictionMap,
           typename DistanceMap, typename PredecessorMap,
-          typename FwdDistanceMap, typename RandomSampler, typename NcSelector>
+          typename FwdDistanceMap, pp::RandomSampler<Space> Sampler,
+          typename NcSelector>
 void generate_anytime_sbarrtstar_no_init_impl(
-    Graph& g, graph_vertex_t<Graph> start_vertex, const Topology& super_space,
+    Graph& g, graph_vertex_t<Graph> start_vertex, const Space& super_space,
     ASBARRTStarVisitor vis, NodeConnector connect_vertex, KeyMap key,
     PositionMap position, WeightMap weight, DensityMap density,
     ConstrictionMap constriction, DistanceMap distance,
-    PredecessorMap predecessor, FwdDistanceMap fwd_distance,
-    RandomSampler get_sample, NcSelector select_neighborhood,
-    double init_relaxation, double SA_init_temperature = 0.0) {
+    PredecessorMap predecessor, FwdDistanceMap fwd_distance, Sampler get_sample,
+    NcSelector select_neighborhood, double init_relaxation,
+    double SA_init_temperature = 0.0) {
   using Vertex = graph_vertex_t<Graph>;
 
   using KeyCompareType = std::less<>;  // <---- this is a min-heap.
@@ -407,29 +376,28 @@ void generate_anytime_sbarrtstar_no_init_impl(
   put(predecessor, g[start_vertex], start_vertex);
   sba_bfs_vis.requeue_vertex(start_vertex, g);
 
-  sbarrtstar_search_loop(
-      g, super_space, sba_bfs_vis, connect_vertex, sba_node_generator(),
-      rrg_node_generator<Topology, RandomSampler, NcSelector>(
-          &super_space, get_sample, select_neighborhood),
-      Q, select_neighborhood, SA_init_temperature);
+  sbarrtstar_search_loop(g, super_space, sba_bfs_vis, connect_vertex,
+                         sba_node_generator(),
+                         rrg_node_generator<Space, Sampler, NcSelector>(
+                             &super_space, get_sample, select_neighborhood),
+                         Q, select_neighborhood, SA_init_temperature);
 }
 
-template <typename Graph, typename Topology, typename ASBARRTStarVisitor,
+template <typename Graph, pp::MetricSpace Space, typename ASBARRTStarVisitor,
           typename NodeConnector, typename KeyMap, typename PositionMap,
           typename WeightMap, typename DensityMap, typename ConstrictionMap,
           typename DistanceMap, typename PredecessorMap,
           typename FwdDistanceMap, typename SuccessorMap,
-          typename RandomSampler, typename NcSelector>
+          pp::RandomSampler<Space> Sampler, typename NcSelector>
 void generate_anytime_sbarrtstar_bidir_no_init_impl(
     Graph& g, graph_vertex_t<Graph> start_vertex,
-    graph_vertex_t<Graph> goal_vertex, const Topology& super_space,
+    graph_vertex_t<Graph> goal_vertex, const Space& super_space,
     ASBARRTStarVisitor vis, NodeConnector connect_vertex, KeyMap key,
     PositionMap position, WeightMap weight, DensityMap density,
     ConstrictionMap constriction, DistanceMap distance,
     PredecessorMap predecessor, FwdDistanceMap fwd_distance,
-    SuccessorMap successor, RandomSampler get_sample,
-    NcSelector select_neighborhood, double init_relaxation,
-    double SA_init_temperature = 0.0) {
+    SuccessorMap successor, Sampler get_sample, NcSelector select_neighborhood,
+    double init_relaxation, double SA_init_temperature = 0.0) {
   using Vertex = graph_vertex_t<Graph>;
 
   using KeyCompareType = std::less<>;  // <---- this is a min-heap.
@@ -463,7 +431,7 @@ void generate_anytime_sbarrtstar_bidir_no_init_impl(
 
   sbarrtstar_bidir_loop(
       g, super_space, sba_bfs_vis, connect_vertex, sba_bidir_node_generator(),
-      rrg_bidir_generator<Topology, RandomSampler, NcSelector, PredecessorMap,
+      rrg_bidir_generator<Space, Sampler, NcSelector, PredecessorMap,
                           SuccessorMap>(&super_space, get_sample,
                                         select_neighborhood, predecessor,
                                         successor),
@@ -628,7 +596,7 @@ void generate_anytime_lazy_bnb_sbastar_no_init(const SBAStarBundle& bdl,
   using Graph = std::decay_t<decltype(*(bdl.m_g))>;
   using Visitor = std::decay_t<decltype(bdl.m_vis)>;
   using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
-  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<Visitor, Graph, Space>));
+  static_assert(ASBAStarVisitor<Visitor, Graph, Space>);
 
   if (bdl.m_goal_vertex == boost::graph_traits<Graph>::null_vertex()) {
     detail::generate_anytime_sbastar_no_init_impl(
@@ -716,7 +684,6 @@ void generate_anytime_lazy_bnb_sbastar_bidir(const SBAStarBundle& bdl,
   * This function template generates a roadmap to connect a goal location to a start location
   * using the Anytime-SBA*-RRT* algorithm, without initialization of the existing graph.
   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-  * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
@@ -726,9 +693,9 @@ void generate_anytime_lazy_bnb_sbastar_bidir(const SBAStarBundle& bdl,
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
+template <typename SBAStarBundle, typename Sampler>
 void generate_anytime_sbarrtstar_no_init(const SBAStarBundle& bdl,
-                                         RandomSampler get_sample,
+                                         Sampler get_sample,
                                          double init_relaxation,
                                          double SA_init_temperature = 0.0) {
   detail::generate_anytime_sbarrtstar_no_init_impl(
@@ -752,9 +719,8 @@ void generate_anytime_sbarrtstar_no_init(const SBAStarBundle& bdl,
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
-void generate_anytime_sbarrtstar(const SBAStarBundle& bdl,
-                                 RandomSampler get_sample,
+template <typename SBAStarBundle, typename Sampler>
+void generate_anytime_sbarrtstar(const SBAStarBundle& bdl, Sampler get_sample,
                                  double init_relaxation,
                                  double SA_init_temperature = 0.0) {
   detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
@@ -767,7 +733,6 @@ void generate_anytime_sbarrtstar(const SBAStarBundle& bdl,
   * This function template generates a roadmap to connect a goal location to a start location
   * using the Bi-directional Anytime-SBA*-RRT* algorithm, without initialization of the existing graph.
   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-  * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
@@ -777,9 +742,9 @@ void generate_anytime_sbarrtstar(const SBAStarBundle& bdl,
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
+template <typename SBAStarBundle, typename Sampler>
 void generate_anytime_sbarrtstar_bidir_no_init(
-    const SBAStarBundle& bdl, RandomSampler get_sample, double init_relaxation,
+    const SBAStarBundle& bdl, Sampler get_sample, double init_relaxation,
     double SA_init_temperature = 0.0) {
   detail::generate_anytime_sbarrtstar_bidir_no_init_impl(
       *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex, *(bdl.m_super_space),
@@ -803,9 +768,9 @@ void generate_anytime_sbarrtstar_bidir_no_init(
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
+template <typename SBAStarBundle, typename Sampler>
 void generate_anytime_sbarrtstar_bidir(const SBAStarBundle& bdl,
-                                       RandomSampler get_sample,
+                                       Sampler get_sample,
                                        double init_relaxation,
                                        double SA_init_temperature = 0.0) {
   detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
@@ -819,7 +784,6 @@ void generate_anytime_sbarrtstar_bidir(const SBAStarBundle& bdl,
   * This function template generates a roadmap to connect a goal location to a start location
   * using the Anytime-SBA*-RRT* algorithm, without initialization of the existing graph.
   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-  * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
@@ -829,15 +793,16 @@ void generate_anytime_sbarrtstar_bidir(const SBAStarBundle& bdl,
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
+template <typename SBAStarBundle, typename Sampler>
 void generate_anytime_lazy_sbarrtstar_no_init(
-    const SBAStarBundle& bdl, RandomSampler get_sample, double init_relaxation,
+    const SBAStarBundle& bdl, Sampler get_sample, double init_relaxation,
     double SA_init_temperature = 0.0) {
   using Graph = std::decay_t<decltype(*(bdl.m_g))>;
   using Visitor = std::decay_t<decltype(bdl.m_vis)>;
   using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
-  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<Visitor, Graph, Space>));
-  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<Visitor, Graph, Space>));
+  static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
+  static_assert(ASBAStarVisitor<Visitor, Graph, Space>);
+  static_assert(pp::RandomSampler<Sampler, Space>);
 
   detail::generate_anytime_sbarrtstar_no_init_impl(
       *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis,
@@ -860,16 +825,17 @@ void generate_anytime_lazy_sbarrtstar_no_init(
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
+template <typename SBAStarBundle, typename Sampler>
 void generate_anytime_lazy_sbarrtstar(const SBAStarBundle& bdl,
-                                      RandomSampler get_sample,
+                                      Sampler get_sample,
                                       double init_relaxation,
                                       double SA_init_temperature = 0.0) {
   using Graph = std::decay_t<decltype(*(bdl.m_g))>;
   using Visitor = std::decay_t<decltype(bdl.m_vis)>;
   using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
-  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<Visitor, Graph, Space>));
-  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<Visitor, Graph, Space>));
+  static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
+  static_assert(ASBAStarVisitor<Visitor, Graph, Space>);
+  static_assert(pp::RandomSampler<Sampler, Space>);
 
   detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
                                    bdl.m_distance, bdl.m_predecessor);
@@ -881,7 +847,6 @@ void generate_anytime_lazy_sbarrtstar(const SBAStarBundle& bdl,
   * This function template generates a roadmap to connect a goal location to a start location
   * using the Bi-directional Anytime-Lazy-SBA*-RRT* algorithm, without initialization of the existing graph.
   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-  * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
@@ -891,15 +856,16 @@ void generate_anytime_lazy_sbarrtstar(const SBAStarBundle& bdl,
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
+template <typename SBAStarBundle, typename Sampler>
 void generate_anytime_lazy_sbarrtstar_bidir_no_init(
-    const SBAStarBundle& bdl, RandomSampler get_sample, double init_relaxation,
+    const SBAStarBundle& bdl, Sampler get_sample, double init_relaxation,
     double SA_init_temperature = 0.0) {
   using Graph = std::decay_t<decltype(*(bdl.m_g))>;
   using Visitor = std::decay_t<decltype(bdl.m_vis)>;
   using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
-  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<Visitor, Graph, Space>));
-  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<Visitor, Graph, Space>));
+  static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
+  static_assert(ASBAStarVisitor<Visitor, Graph, Space>);
+  static_assert(pp::RandomSampler<Sampler, Space>);
 
   detail::generate_anytime_sbarrtstar_bidir_no_init_impl(
       *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex, *(bdl.m_super_space),
@@ -923,16 +889,17 @@ void generate_anytime_lazy_sbarrtstar_bidir_no_init(
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
+template <typename SBAStarBundle, typename Sampler>
 void generate_anytime_lazy_sbarrtstar_bidir(const SBAStarBundle& bdl,
-                                            RandomSampler get_sample,
+                                            Sampler get_sample,
                                             double init_relaxation,
                                             double SA_init_temperature = 0.0) {
   using Graph = std::decay_t<decltype(*(bdl.m_g))>;
   using Visitor = std::decay_t<decltype(bdl.m_vis)>;
   using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
-  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<Visitor, Graph, Space>));
-  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<Visitor, Graph, Space>));
+  static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
+  static_assert(ASBAStarVisitor<Visitor, Graph, Space>);
+  static_assert(pp::RandomSampler<Sampler, Space>);
 
   detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
                                    bdl.m_distance, bdl.m_predecessor,
@@ -945,7 +912,6 @@ void generate_anytime_lazy_sbarrtstar_bidir(const SBAStarBundle& bdl,
   * This function template generates a roadmap to connect a goal location to a start location
   * using the Anytime-SBA*-RRT* algorithm, without initialization of the existing graph.
   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-  * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
@@ -955,15 +921,16 @@ void generate_anytime_lazy_sbarrtstar_bidir(const SBAStarBundle& bdl,
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
+template <typename SBAStarBundle, typename Sampler>
 void generate_anytime_lazy_bnb_sbarrtstar_no_init(
-    const SBAStarBundle& bdl, RandomSampler get_sample, double init_relaxation,
+    const SBAStarBundle& bdl, Sampler get_sample, double init_relaxation,
     double SA_init_temperature = 0.0) {
   using Graph = std::decay_t<decltype(*(bdl.m_g))>;
   using Visitor = std::decay_t<decltype(bdl.m_vis)>;
   using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
-  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<Visitor, Graph, Space>));
-  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<Visitor, Graph, Space>));
+  static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
+  static_assert(ASBAStarVisitor<Visitor, Graph, Space>);
+  static_assert(pp::RandomSampler<Sampler, Space>);
 
   if (bdl.m_goal_vertex == boost::graph_traits<Graph>::null_vertex()) {
     detail::generate_anytime_sbarrtstar_no_init_impl(
@@ -997,16 +964,17 @@ void generate_anytime_lazy_bnb_sbarrtstar_no_init(
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
+template <typename SBAStarBundle, typename Sampler>
 void generate_anytime_lazy_bnb_sbarrtstar(const SBAStarBundle& bdl,
-                                          RandomSampler get_sample,
+                                          Sampler get_sample,
                                           double init_relaxation,
                                           double SA_init_temperature = 0.0) {
   using Graph = std::decay_t<decltype(*(bdl.m_g))>;
   using Visitor = std::decay_t<decltype(bdl.m_vis)>;
   using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
-  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<Visitor, Graph, Space>));
-  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<Visitor, Graph, Space>));
+  static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
+  static_assert(ASBAStarVisitor<Visitor, Graph, Space>);
+  static_assert(pp::RandomSampler<Sampler, Space>);
 
   detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
                                    bdl.m_distance, bdl.m_predecessor);
@@ -1019,7 +987,6 @@ void generate_anytime_lazy_bnb_sbarrtstar(const SBAStarBundle& bdl,
   * using the Bi-directional Anytime-Lazy-SBA*-RRT* (with branch-and-bound) algorithm, without initialization of the
  * existing graph.
   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-  * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
@@ -1029,15 +996,16 @@ void generate_anytime_lazy_bnb_sbarrtstar(const SBAStarBundle& bdl,
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
+template <typename SBAStarBundle, typename Sampler>
 void generate_anytime_lazy_bnb_sbarrtstar_bidir_no_init(
-    const SBAStarBundle& bdl, RandomSampler get_sample, double init_relaxation,
+    const SBAStarBundle& bdl, Sampler get_sample, double init_relaxation,
     double SA_init_temperature = 0.0) {
   using Graph = std::decay_t<decltype(*(bdl.m_g))>;
   using Visitor = std::decay_t<decltype(bdl.m_vis)>;
   using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
-  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<Visitor, Graph, Space>));
-  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<Visitor, Graph, Space>));
+  static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
+  static_assert(ASBAStarVisitor<Visitor, Graph, Space>);
+  static_assert(pp::RandomSampler<Sampler, Space>);
 
   if (bdl.m_goal_vertex == boost::graph_traits<Graph>::null_vertex()) {
     detail::generate_anytime_sbarrtstar_bidir_no_init_impl(
@@ -1072,15 +1040,16 @@ void generate_anytime_lazy_bnb_sbarrtstar_bidir_no_init(
   *        the RRT* algorithm is used until a solution is found, and then the algorithm switches
   *        to SBA*.
   */
-template <typename SBAStarBundle, typename RandomSampler>
+template <typename SBAStarBundle, typename Sampler>
 void generate_anytime_lazy_bnb_sbarrtstar_bidir(
-    const SBAStarBundle& bdl, RandomSampler get_sample, double init_relaxation,
+    const SBAStarBundle& bdl, Sampler get_sample, double init_relaxation,
     double SA_init_temperature = 0.0) {
   using Graph = std::decay_t<decltype(*(bdl.m_g))>;
   using Visitor = std::decay_t<decltype(bdl.m_vis)>;
   using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
-  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<Visitor, Graph, Space>));
-  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<Visitor, Graph, Space>));
+  static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
+  static_assert(ASBAStarVisitor<Visitor, Graph, Space>);
+  static_assert(pp::RandomSampler<Sampler, Space>);
 
   detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
                                    bdl.m_distance, bdl.m_predecessor,

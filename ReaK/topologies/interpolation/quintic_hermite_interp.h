@@ -41,8 +41,8 @@
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/interpolated_trajectory.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 
 #include <cmath>
 #include <limits>
@@ -486,12 +486,13 @@ class quintic_hermite_interp_traj
           Space, quintic_hermite_interp_factory<Space>, Metric> {
  public:
   static_assert(TangentBundle<
-          typename temporal_space_traits<Space>::space_topology,
-          typename temporal_space_traits<Space>::time_topology, 0, 1, 2>);
+                typename temporal_space_traits<Space>::space_topology,
+                typename temporal_space_traits<Space>::time_topology, 0, 1, 2>);
 
   using self = quintic_hermite_interp_traj<Space, Metric>;
-  using base_class_type = interpolated_trajectory<
-      Space, quintic_hermite_interp_factory<Space>, Metric>;
+  using base_class_type =
+      interpolated_trajectory<Space, quintic_hermite_interp_factory<Space>,
+                              Metric>;
 
   using topology = typename base_class_type::topology;
   using distance_metric = typename base_class_type::distance_metric;

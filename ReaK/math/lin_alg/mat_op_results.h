@@ -456,8 +456,8 @@ struct mat_product_result {
       decltype(std::declval<M1ValueType>() * std::declval<M2ValueType>() +
                std::declval<M1ValueType>() * std::declval<M2ValueType>());
   using type = typename detail::mat_product_result_impl<
-      ReadableMatrix<Matrix1> && ReadableMatrix<Matrix2>,
-      ResultValueType, Matrix1, Matrix2>::type;
+      ReadableMatrix<Matrix1> && ReadableMatrix<Matrix2>, ResultValueType,
+      Matrix1, Matrix2>::type;
 };
 
 template <typename Matrix1, typename Matrix2>
@@ -473,8 +473,8 @@ struct mat_addition_result {
   using ResultValueType =
       decltype(std::declval<M1ValueType>() + std::declval<M2ValueType>());
   using type = typename detail::mat_addition_result_impl<
-      ReadableMatrix<Matrix1> && ReadableMatrix<Matrix2>,
-      ResultValueType, Matrix1, Matrix2>::type;
+      ReadableMatrix<Matrix1> && ReadableMatrix<Matrix2>, ResultValueType,
+      Matrix1, Matrix2>::type;
 };
 
 template <typename Matrix1, typename Matrix2>

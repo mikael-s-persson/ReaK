@@ -68,7 +68,8 @@ namespace ReaK {
  *                          meaning that the problem is ill-conditioned.
  *
  */
-template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2, typename LinearEqSolver>
+template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2,
+          typename LinearEqSolver>
 void exp_PadeSAS(const Matrix1& A, Matrix2& X, LinearEqSolver linsolve,
                  mat_value_type_t<Matrix1> NumTol = 1E-8) {
   using ValueType = mat_value_type_t<Matrix1>;

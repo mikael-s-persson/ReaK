@@ -139,8 +139,8 @@ void balance(Matrix1& A, vect_n<int>& D) {
  *
  * Taken from Lemonnier and Van Dooren 2006.
  */
-template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2, WritableMatrix Matrix3,
-          WritableMatrix Matrix4>
+template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2,
+          WritableMatrix Matrix3, WritableMatrix Matrix4>
 void balance_pencil(Matrix1& A, Matrix2& B, Matrix3& Dl, Matrix4& Dr) {
   if ((A.get_row_count() != A.get_col_count()) ||
       (B.get_row_count() != A.get_row_count()) ||

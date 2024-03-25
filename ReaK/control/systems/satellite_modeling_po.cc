@@ -131,31 +131,39 @@ void fill_satellite_model_options_from_flags(satellite_model_options& result) {
 
   result.sys_output_stem_name = absl::GetFlag(FLAGS_sat_system_output);
 
-  result.system_kind = 0;
+  result.system_kind = {};
   if (absl::GetFlag(FLAGS_sat_gyro)) {
-    result.system_kind |= satellite_model_options::gyro_measures;
+    result.system_kind.measures[static_cast<std::size_t>(
+        satellite_model_options::available_measurements::gyro_measures)] = true;
   }
   if (absl::GetFlag(FLAGS_sat_IMU)) {
-    result.system_kind |= satellite_model_options::IMU_measures;
+    result.system_kind.measures[static_cast<std::size_t>(
+        satellite_model_options::available_measurements::gyro_measures)] = true;
+    result.system_kind.measures[static_cast<std::size_t>(
+        satellite_model_options::available_measurements::IMU_measures)] = true;
   }
 
   if (absl::GetFlag(FLAGS_sat_iekf)) {
-    result.system_kind |= satellite_model_options::invariant;
+    result.system_kind.model = satellite_model_options::model_kind::invariant;
   } else if (absl::GetFlag(FLAGS_sat_imkfv2)) {
-    result.system_kind |= satellite_model_options::invar_mom2;
+    result.system_kind.model = satellite_model_options::model_kind::invar_mom2;
   } else if (absl::GetFlag(FLAGS_sat_imkf_em)) {
-    result.system_kind |= satellite_model_options::invar_mom_em;
+    result.system_kind.model =
+        satellite_model_options::model_kind::invar_mom_em;
   } else if (absl::GetFlag(FLAGS_sat_imkf_emd)) {
-    result.system_kind |= satellite_model_options::invar_mom_emd;
+    result.system_kind.model =
+        satellite_model_options::model_kind::invar_mom_emd;
   } else if (absl::GetFlag(FLAGS_sat_imkf_emdJ)) {
-    result.system_kind |= satellite_model_options::invar_mom_emdJ;
+    result.system_kind.model =
+        satellite_model_options::model_kind::invar_mom_emdJ;
   } else {
-    result.system_kind |= satellite_model_options::invar_mom;
+    result.system_kind.model = satellite_model_options::model_kind::invar_mom;
   }
 
   if (absl::GetFlag(FLAGS_sat_tsosakf)) {
     result.load_steady_param_covariance(absl::GetFlag(FLAGS_sat_Pa_matrix));
-    result.system_kind |= satellite_model_options::TSOSAKF;
+    result.system_kind.filters[static_cast<std::size_t>(
+        satellite_model_options::filtering_options::TSOSAKF)] = true;
   }
 }
 
@@ -163,30 +171,38 @@ void save_satellite_model_options_to_files(satellite_model_options& result) {
 
   result.time_step = absl::GetFlag(FLAGS_sat_time_step);
 
-  result.system_kind = 0;
+  result.system_kind = {};
   if (absl::GetFlag(FLAGS_sat_gyro)) {
-    result.system_kind |= satellite_model_options::gyro_measures;
+    result.system_kind.measures[static_cast<std::size_t>(
+        satellite_model_options::available_measurements::gyro_measures)] = true;
   }
   if (absl::GetFlag(FLAGS_sat_IMU)) {
-    result.system_kind |= satellite_model_options::IMU_measures;
+    result.system_kind.measures[static_cast<std::size_t>(
+        satellite_model_options::available_measurements::gyro_measures)] = true;
+    result.system_kind.measures[static_cast<std::size_t>(
+        satellite_model_options::available_measurements::IMU_measures)] = true;
   }
 
   if (absl::GetFlag(FLAGS_sat_iekf)) {
-    result.system_kind |= satellite_model_options::invariant;
+    result.system_kind.model = satellite_model_options::model_kind::invariant;
   } else if (absl::GetFlag(FLAGS_sat_imkfv2)) {
-    result.system_kind |= satellite_model_options::invar_mom2;
+    result.system_kind.model = satellite_model_options::model_kind::invar_mom2;
   } else if (absl::GetFlag(FLAGS_sat_imkf_em)) {
-    result.system_kind |= satellite_model_options::invar_mom_em;
+    result.system_kind.model =
+        satellite_model_options::model_kind::invar_mom_em;
   } else if (absl::GetFlag(FLAGS_sat_imkf_emd)) {
-    result.system_kind |= satellite_model_options::invar_mom_emd;
+    result.system_kind.model =
+        satellite_model_options::model_kind::invar_mom_emd;
   } else if (absl::GetFlag(FLAGS_sat_imkf_emdJ)) {
-    result.system_kind |= satellite_model_options::invar_mom_emdJ;
+    result.system_kind.model =
+        satellite_model_options::model_kind::invar_mom_emdJ;
   } else {
-    result.system_kind |= satellite_model_options::invar_mom;
+    result.system_kind.model = satellite_model_options::model_kind::invar_mom;
   }
 
   if (absl::GetFlag(FLAGS_sat_tsosakf)) {
-    result.system_kind |= satellite_model_options::TSOSAKF;
+    result.system_kind.filters[static_cast<std::size_t>(
+        satellite_model_options::filtering_options::TSOSAKF)] = true;
   }
 
   if (result.input_disturbance.get_row_count() != 6) {

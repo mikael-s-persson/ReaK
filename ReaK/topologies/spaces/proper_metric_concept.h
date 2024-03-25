@@ -101,10 +101,13 @@ using get_proper_metric_from_metric_t =
  * \tparam MetricSpace The topology type to be checked for this concept.
  */
 template <typename Space>
-concept ProperMetricSpace = MetricSpace<Space> && DistanceMetric<get_proper_metric_t<Space>, Space> &&
-  requires (const Space& space) {
-    { get(proper_metric, space) } -> std::convertible_to<get_proper_metric_t<Space>>;
-  };
+concept ProperMetricSpace =
+    MetricSpace<Space>&& DistanceMetric<get_proper_metric_t<Space>, Space>&&
+    requires(const Space& space) {
+  {
+    get(proper_metric, space)
+    } -> std::convertible_to<get_proper_metric_t<Space>>;
+};
 
 template <MetricSpace Space>
 auto get(proper_metric_t /*unused*/, const Space& space) {

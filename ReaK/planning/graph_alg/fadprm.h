@@ -45,12 +45,15 @@
 #ifndef REAK_PLANNING_GRAPH_ALG_FADPRM_H_
 #define REAK_PLANNING_GRAPH_ALG_FADPRM_H_
 
+#include <concepts>
 #include <functional>
 #include <type_traits>
 
 #include "ReaK/planning/graph_alg/adstar_search.h"
 #include "ReaK/planning/graph_alg/probabilistic_roadmap.h"
 #include "ReaK/planning/graph_alg/simple_graph_traits.h"
+#include "ReaK/topologies/spaces/metric_space_concept.h"
+#include "ReaK/topologies/spaces/random_sampler_concept.h"
 
 namespace ReaK::graph {
 
@@ -64,23 +67,16 @@ namespace ReaK::graph {
   *
   * Required concepts:
   *
-  * The visitor class should model the boost::CopyConstructibleConcept.
+  * The visitor class should model PRMVisitor.
   *
-  * The visitor class should model the PRMVisitorConcept.
-  *
-  * The visitor class should model the ADStarVisitorConcept.
+  * The visitor class should model ADStarVisitor.
   *
   * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
   * \tparam Graph The graph type on which the visitor should be able to act.
   */
-template <typename Visitor, typename Graph, typename Topology>
-struct FADPRMVisitorConcept {
-  BOOST_CONCEPT_USAGE(FADPRMVisitorConcept) {
-    BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
-    BOOST_CONCEPT_ASSERT((PRMVisitorConcept<Visitor, Graph, Topology>));
-    BOOST_CONCEPT_ASSERT((ADStarVisitorConcept<Visitor, Graph>));
-  }
-};
+template <typename Visitor, typename Graph, typename Space>
+concept FADPRMVisitor =
+    std::copy_constructible<Visitor>&& PRMVisitor<Visitor, Graph, Space>;
 
 /**
   * This class is simply a "null" visitor for the FADPRM algorithm. It is null in the sense that it
@@ -88,15 +84,14 @@ struct FADPRMVisitorConcept {
   * \tparam Topology The topology type that represents the free-space.
   * \tparam PositionMap The property-map type which can store the position associated to each vertex.
   */
-template <typename Topology, typename PositionMap>
+template <pp::MetricSpace Space, typename PositionMap>
 class default_fadprm_visitor {
  public:
-  using PointType = typename ReaK::pp::topology_traits<Topology>::point_type;
+  using PointType = typename ReaK::pp::topology_traits<Space>::point_type;
 
-  default_fadprm_visitor(const Topology& free_space, PositionMap position)
+  default_fadprm_visitor(const Space& free_space, PositionMap position)
       : m_free_space(free_space), m_position(position) {}
-  default_fadprm_visitor(
-      const default_fadprm_visitor<Topology, PositionMap>& aVis)
+  default_fadprm_visitor(const default_fadprm_visitor<Space, PositionMap>& aVis)
       : m_free_space(aVis.m_free_space), m_position(aVis.m_position) {}
 
   // AD* visitor functions:
@@ -137,14 +132,14 @@ class default_fadprm_visitor {
   // Common to both PRM and AD* visitors:
   bool keep_going() const { return true; }
 
-  const Topology& m_free_space;
+  const Space& m_free_space;
   PositionMap m_position;
 };
 
 namespace detail {
 namespace {
 
-template <typename Topology, typename AStarHeuristicMap,
+template <pp::MetricSpace Space, typename AStarHeuristicMap,
           typename UniformCostVisitor, typename UpdatableQueue, typename List,
           typename IndexInHeapMap, typename PredecessorMap, typename KeyMap,
           typename DistanceMap, typename RHSMap, typename WeightMap,
@@ -159,7 +154,7 @@ struct fadprm_bfs_visitor {
   using weight_type = property_value_t<WeightMap>;
   using PositionValue = property_value_t<PositionMap>;
 
-  fadprm_bfs_visitor(const Topology& super_space, AStarHeuristicMap h,
+  fadprm_bfs_visitor(const Space& super_space, AStarHeuristicMap h,
                      UniformCostVisitor vis, UpdatableQueue& Q, List& I,
                      IndexInHeapMap index_in_heap, PredecessorMap p, KeyMap k,
                      DistanceMap d, RHSMap rhs, WeightMap w, DensityMap dens,
@@ -217,6 +212,11 @@ struct fadprm_bfs_visitor {
   template <typename Edge, typename Graph>
   void edge_added(Edge e, Graph& g) const {
     m_vis.edge_added(e, g);
+  }
+
+  template <typename Vertex, typename Graph>
+  void vertex_added(Vertex u, Graph& g) const {
+    m_vis.vertex_added(u, g);
   }
 
   template <class Vertex, class Graph>
@@ -376,7 +376,7 @@ struct fadprm_bfs_visitor {
     return m_vis.is_position_free(p);
   }
 
-  const Topology& m_super_space;
+  const Space& m_super_space;
   AStarHeuristicMap m_h;
   UniformCostVisitor m_vis;
   UpdatableQueue& m_Q;
@@ -404,10 +404,10 @@ struct fadprm_bfs_visitor {
   * \tparam Graph The graph type that can store the generated roadmap, should model
   *         BidirectionalGraphConcept and MutableGraphConcept.
   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
-  * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
+  * \tparam Space The topology type that represents the free-space, should model BGL's Topology concept.
   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values
   *         for each vertex in the graph.
-  * \tparam FADPRMVisitor The type of the FADPRM visitor to be used, should model the FADPRMVisitorConcept.
+  * \tparam Visitor The type of the FADPRM visitor to be used.
   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting
   *         vertex together with its optimal predecessor.
   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex
@@ -434,7 +434,7 @@ struct fadprm_bfs_visitor {
   *        that it is required to generate only random points in
   *        the free-space and to only allow interpolation within the free-space.
   * \param hval The property-map of A* heuristic function values for each vertex.
-  * \param vis A FADPRM visitor implementing the FADPRMVisitorConcept. This is the
+  * \param vis A FADPRM visitor implementing the FADPRMVisitor. This is the
   *        main point of customization and recording of results that the
   *        user can implement.
   * \param predecessor The property-map which will store the resulting path by connecting
@@ -458,14 +458,14 @@ struct fadprm_bfs_visitor {
   * \param epsilon The initial epsilon value that relaxes the A* search to give the AD* its anytime
   *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
   */
-template <typename Graph, typename Vertex, typename Topology,
-          typename AStarHeuristicMap, typename FADPRMVisitor,
+template <typename Graph, typename Vertex, pp::Topology Space,
+          typename AStarHeuristicMap, FADPRMVisitor<Graph, Space> Visitor,
           typename PredecessorMap, typename DistanceMap, typename RHSMap,
           typename WeightMap, typename PositionMap, typename DensityMap,
           typename NcSelector, typename ColorMap>
 inline void generate_fadprm_no_init(
-    Graph& g, Vertex start_vertex, const Topology& free_space,
-    AStarHeuristicMap hval, FADPRMVisitor vis, PredecessorMap predecessor,
+    Graph& g, Vertex start_vertex, const Space& free_space,
+    AStarHeuristicMap hval, Visitor vis, PredecessorMap predecessor,
     DistanceMap distance, RHSMap rhs, WeightMap weight, DensityMap density,
     PositionMap position, NcSelector select_neighborhood, ColorMap color,
     double epsilon) {
@@ -489,11 +489,10 @@ inline void generate_fadprm_no_init(
                  KeyCompareType());  // priority queue holding the OPEN set.
   std::vector<Vertex> I;  // list holding the INCONS set (inconsistent nodes).
 
-  detail::fadprm_bfs_visitor<Topology, AStarHeuristicMap, FADPRMVisitor,
-                             MutableQueue, std::vector<Vertex>, IndexInHeapMap,
-                             PredecessorMap, KeyValueMap, DistanceMap, RHSMap,
-                             WeightMap, DensityMap, PositionMap, NcSelector,
-                             ColorMap>
+  detail::fadprm_bfs_visitor<
+      Space, AStarHeuristicMap, Visitor, MutableQueue, std::vector<Vertex>,
+      IndexInHeapMap, PredecessorMap, KeyValueMap, DistanceMap, RHSMap,
+      WeightMap, DensityMap, PositionMap, NcSelector, ColorMap>
       bfs_vis(free_space, hval, vis, Q, I, index_in_heap, predecessor, key_map,
               distance, rhs, weight, density, position, select_neighborhood,
               color, epsilon);
@@ -512,10 +511,10 @@ inline void generate_fadprm_no_init(
 * \tparam Graph The graph type that can store the generated roadmap, should model
 *         BidirectionalGraphConcept and MutableGraphConcept.
 * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
-* \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
+* \tparam Space The topology type that represents the free-space, should model BGL's Topology concept.
 * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values
 *         for each vertex in the graph.
-* \tparam FADPRMVisitor The type of the FADPRM visitor to be used, should model the FADPRMVisitorConcept.
+* \tparam Visitor The type of the FADPRM visitor to be used.
 * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting
 *         vertex together with its optimal predecessor.
 * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex
@@ -542,7 +541,7 @@ inline void generate_fadprm_no_init(
 *        that it is required to generate only random points in
 *        the free-space and to only allow interpolation within the free-space.
 * \param hval The property-map of A* heuristic function values for each vertex.
-* \param vis A FADPRM visitor implementing the FADPRMVisitorConcept. This is the
+* \param vis A FADPRM visitor implementing the FADPRMVisitor. This is the
 *        main point of customization and recording of results that the
 *        user can implement.
 * \param predecessor The property-map which will store the resulting path by connecting
@@ -568,26 +567,24 @@ inline void generate_fadprm_no_init(
 */
 template <
     typename Graph,  // this is the actual graph, should comply to BidirectionalMutableGraphConcept.
-    typename Vertex, typename Topology,
+    typename Vertex, pp::MetricSpace Space,
     typename AStarHeuristicMap,  // this the map of heuristic function value for each vertex.
-    typename FADPRMVisitor,  // this is a visitor class that can perform special operations at event points.
+    FADPRMVisitor<Graph, Space>
+        Visitor,  // this is a visitor class that can perform special operations at event points.
     typename PredecessorMap,  // this is the map that stores the preceeding edge for each vertex.
     typename DistanceMap,  // this is the map of distance values associated with each vertex.
     typename RHSMap,
     typename WeightMap,  // this is the map of edge weight (or cost) associated to each edge of the graph.
     typename DensityMap, typename PositionMap, typename NcSelector,
     typename ColorMap>  // this is a color map for each vertex, i.e. white=not visited, gray=discovered,
-// black=expanded.
-inline void generate_fadprm(Graph& g, Vertex start_vertex,
-                            const Topology& free_space, AStarHeuristicMap hval,
-                            FADPRMVisitor vis, PredecessorMap predecessor,
-                            DistanceMap distance, RHSMap rhs, WeightMap weight,
-                            DensityMap density, PositionMap position,
-                            NcSelector select_neighborhood, ColorMap color,
-                            double epsilon) {
+                        // black=expanded.
+requires pp::PointDistribution<Space> inline void generate_fadprm(
+    Graph& g, Vertex start_vertex, const Space& free_space,
+    AStarHeuristicMap hval, Visitor vis, PredecessorMap predecessor,
+    DistanceMap distance, RHSMap rhs, WeightMap weight, DensityMap density,
+    PositionMap position, NcSelector select_neighborhood, ColorMap color,
+    double epsilon) {
   BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
 
   using ColorValue = property_value_t<ColorMap>;
   using Color = boost::color_traits<ColorValue>;

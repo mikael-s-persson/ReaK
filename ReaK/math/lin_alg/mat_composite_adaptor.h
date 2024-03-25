@@ -255,8 +255,10 @@ class mat_horiz_cat {
 };
 
 template <typename LeftMatrix, typename RightMatrix>
-static constexpr bool is_fully_writable_matrix_v<mat_horiz_cat<LeftMatrix, RightMatrix>> = is_fully_writable_matrix_v<LeftMatrix> &&
-                                is_fully_writable_matrix_v<RightMatrix>;
+static constexpr bool
+    is_fully_writable_matrix_v<mat_horiz_cat<LeftMatrix, RightMatrix>> =
+        is_fully_writable_matrix_v<LeftMatrix>&&
+            is_fully_writable_matrix_v<RightMatrix>;
 
 /// This class template forms the horizontal concatenation of two matrices, which it takes by reference
 /// (and stores by pointer, to be copyable). This class makes the concatenation of the two matrices
@@ -436,8 +438,10 @@ class mat_ref_horiz_cat {
 };
 
 template <typename LeftMatrix, typename RightMatrix>
-static constexpr bool is_fully_writable_matrix_v<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> = is_fully_writable_matrix_v<LeftMatrix> &&
-                                is_fully_writable_matrix_v<RightMatrix>;
+static constexpr bool
+    is_fully_writable_matrix_v<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> =
+        is_fully_writable_matrix_v<LeftMatrix>&&
+            is_fully_writable_matrix_v<RightMatrix>;
 
 /// This class template forms the horizontal concatenation of two matrices, which it takes by const-reference
 /// (and stores by const-pointer, to be copyable). This class makes the concatenation of the two matrices
@@ -942,8 +946,10 @@ class mat_vert_cat {
 };
 
 template <typename UpperMatrix, typename LowerMatrix>
-static constexpr bool is_fully_writable_matrix_v<mat_vert_cat<UpperMatrix, LowerMatrix>> = is_fully_writable_matrix_v<UpperMatrix> &&
-                                is_fully_writable_matrix_v<LowerMatrix>;
+static constexpr bool
+    is_fully_writable_matrix_v<mat_vert_cat<UpperMatrix, LowerMatrix>> =
+        is_fully_writable_matrix_v<UpperMatrix>&&
+            is_fully_writable_matrix_v<LowerMatrix>;
 
 /// This class template forms the vertical concatenation of two matrices, which it takes by reference
 /// (and stores by pointer, to be copyable). This class makes the concatenation of the two matrices
@@ -1115,8 +1121,10 @@ class mat_ref_vert_cat {
 };
 
 template <typename UpperMatrix, typename LowerMatrix>
-static constexpr bool is_fully_writable_matrix_v<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> = is_fully_writable_matrix_v<UpperMatrix> &&
-                                is_fully_writable_matrix_v<LowerMatrix>;
+static constexpr bool
+    is_fully_writable_matrix_v<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> =
+        is_fully_writable_matrix_v<UpperMatrix>&&
+            is_fully_writable_matrix_v<LowerMatrix>;
 
 /// This class template forms the vertical concatenation of two matrices, which it takes by const-reference
 /// (and stores by const-pointer, to be copyable). This class makes the concatenation of the two matrices

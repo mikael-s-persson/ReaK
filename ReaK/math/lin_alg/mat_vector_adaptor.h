@@ -85,10 +85,10 @@ class mat_vect_adaptor<Vector, mat_alignment::column_major> {
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
  private:
-  Vector* v;           ///< Holds the reference to the vector.
-  int offset;          ///< Holds the offset to start from in the vector.
-  int rowCount;        ///< Holds the number of rows in the matrix.
-  int colCount;        ///< Holds the number of columns in the matrix.
+  Vector* v;     ///< Holds the reference to the vector.
+  int offset;    ///< Holds the offset to start from in the vector.
+  int rowCount;  ///< Holds the number of rows in the matrix.
+  int colCount;  ///< Holds the number of columns in the matrix.
  public:
   /**
    * Constructs the adaptor with a given vector, taking the entire vector as the unique
@@ -364,10 +364,10 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
  private:
-  Vector* v;           ///< Holds the reference to the vector.
-  int offset;          ///< Holds the offset to start from in the vector.
-  int rowCount;        ///< Holds the number of rows in the matrix.
-  int colCount;        ///< Holds the number of columns in the matrix.
+  Vector* v;     ///< Holds the reference to the vector.
+  int offset;    ///< Holds the offset to start from in the vector.
+  int rowCount;  ///< Holds the number of rows in the matrix.
+  int colCount;  ///< Holds the number of columns in the matrix.
  public:
   /**
    * Constructs the adaptor with a given vector, taking the entire vector as the unique
@@ -567,7 +567,9 @@ class mat_vect_adaptor<Vector, mat_alignment::row_major> {
 };
 
 template <typename Vector, mat_alignment::tag Alignment>
-static constexpr bool is_fully_writable_matrix_v<mat_vect_adaptor<Vector, Alignment>> = WritableVector<Vector>;
+static constexpr bool
+    is_fully_writable_matrix_v<mat_vect_adaptor<Vector, Alignment>> =
+        WritableVector<Vector>;
 
 template <ReadableVector Vector,
           mat_alignment::tag Alignment = mat_alignment::column_major>
@@ -600,10 +602,10 @@ class mat_const_vect_adaptor<Vector, mat_alignment::column_major> {
   static constexpr mat_structure::tag structure = mat_structure::rectangular;
 
  private:
-  const Vector* v;     ///< Holds the reference to the vector.
-  int offset;          ///< Holds the offset to start from in the vector.
-  int rowCount;        ///< Holds the number of rows in the matrix.
-  int colCount;        ///< Holds the number of columns in the matrix.
+  const Vector* v;  ///< Holds the reference to the vector.
+  int offset;       ///< Holds the offset to start from in the vector.
+  int rowCount;     ///< Holds the number of rows in the matrix.
+  int colCount;     ///< Holds the number of columns in the matrix.
 
   self& operator=(const self&);  // non-assignable.
 

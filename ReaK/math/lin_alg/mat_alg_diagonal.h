@@ -118,8 +118,7 @@ class mat<T, mat_structure::diagonal, Alignment, RowCount, RowCount>
 
   /// Constructor from a vector of size n.
   template <ReadableVector Vector>
-  explicit mat(const Vector& V)
-      : q(V) {}
+  explicit mat(const Vector& V) : q(V) {}
 
   /// Constructor from a general matrix, copying only the diagonal part.
   template <ReadableMatrix Matrix>

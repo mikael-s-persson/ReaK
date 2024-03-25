@@ -49,7 +49,8 @@ namespace ReaK::ctrl {
 template <typename T>
 struct augmented_sss_traits {
   /** This constant describes the dimensions of the output vector (0 if not known at compile-time). */
-  static constexpr std::size_t actual_state_dimensions = T::actual_state_dimensions;
+  static constexpr std::size_t actual_state_dimensions =
+      T::actual_state_dimensions;
 };
 
 /**
@@ -63,9 +64,9 @@ struct augmented_sss_traits {
  *actual (dynamic) states of the system.
  */
 template <typename T>
-concept AugmentedSystem = requires (const T& sys) {
-    { sys.get_actual_state_dimensions() } -> std::integral;
-  };
+concept AugmentedSystem = requires(const T& sys) {
+  { sys.get_actual_state_dimensions() } -> std::integral;
+};
 
 }  // namespace ReaK::ctrl
 

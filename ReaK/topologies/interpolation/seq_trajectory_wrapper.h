@@ -45,7 +45,7 @@ namespace ReaK::pp {
  * It, itself, also models the generic SpatialTrajectory, so this wrapper can
  * be used for both purposes.
  */
-template <SequentialTrajectory SeqTraj>
+template <typename SeqTraj>
 class seq_trajectory_wrapper
     : public seq_trajectory_base<
           typename sequential_trajectory_traits<SeqTraj>::topology> {
@@ -59,13 +59,15 @@ class seq_trajectory_wrapper
 
   using wrapped_type = SeqTraj;
 
+  static_assert(SequentialTrajectory<wrapped_type, topology>);
+
  protected:
   SeqTraj m_traj;
 
   using base_pt_time_iterator_impl =
       typename base_type::point_time_iterator_impl;
-  using gen_pt_time_iterator = typename sequential_trajectory_traits<
-      SeqTraj>::point_time_iterator;
+  using gen_pt_time_iterator =
+      typename sequential_trajectory_traits<SeqTraj>::point_time_iterator;
 
   struct point_time_iterator_impl : public base_pt_time_iterator_impl {
 
@@ -92,8 +94,8 @@ class seq_trajectory_wrapper
 
   using base_pt_frac_iterator_impl =
       typename base_type::point_fraction_iterator_impl;
-  using gen_pt_frac_iterator = typename sequential_trajectory_traits<
-      SeqTraj>::point_fraction_iterator;
+  using gen_pt_frac_iterator =
+      typename sequential_trajectory_traits<SeqTraj>::point_fraction_iterator;
 
   struct point_fraction_iterator_impl : public base_pt_frac_iterator_impl {
 
@@ -134,9 +136,8 @@ class seq_trajectory_wrapper
    * \param aName The name for this object.
    * \param aTraj The wrapped trajectory object to use.
    */
-  explicit seq_trajectory_wrapper(
-      const std::string& aName = "",
-      const SeqTraj& aTraj = SeqTraj())
+  explicit seq_trajectory_wrapper(const std::string& aName = "",
+                                  const SeqTraj& aTraj = SeqTraj())
       : base_type(aName), m_traj(aTraj){};
 
   ~seq_trajectory_wrapper() override = default;

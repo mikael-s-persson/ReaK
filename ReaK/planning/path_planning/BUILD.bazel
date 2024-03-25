@@ -1,0 +1,185 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+  name = "path_planning_headers",
+  hdrs = [
+    "any_knn_synchro.h",
+    "any_motion_graphs.h",
+    "any_sbmp_reporter.h",
+    "basic_sbmp_reporters.h",
+    "density_calculators.h",
+    "density_plan_visitors.h",
+    "dvp_layout_adjacency_list.h",
+    "dvp_tree_detail.h",
+    "fadprm_manip_planners.h",
+    "fadprm_path_planner.h",
+    "fadprm_path_planner.inc",
+    "frame_tracer_coin3d.h",
+    "intercept_query.h",
+    "MEAQR_rrtstar_planner.h",
+    "MEAQR_sbastar_planner.h",
+    "metric_space_search.h",
+    "motion_graph_structures.h",
+    "motion_planner_base.h",
+    "multi_dvp_tree_search.h",
+    "p2p_planning_query.h",
+    "path_planner_options.h",
+    "planner_exec_engines.h",
+    "planner_exec_intercept.h",
+    "planning_queries.h",
+    "planning_space_options.h",
+    "planning_visitors.h",
+    "prm_manip_planners.h",
+    "prm_path_planner.h",
+    "prm_path_planner.inc",
+    "reachability_sort.h",
+    "rrt_manip_planners.h",
+    "rrt_path_planner.h",
+    "rrt_path_planner.inc",
+    "rrtstar_manip_planners.h",
+    "rrtstar_path_planner.h",
+    "rrtstar_path_planner.inc",
+    "sbastar_manip_planners.h",
+    "sbastar_path_planner.h",
+    "sbastar_path_planner.inc",
+    "sbmp_point_recorder.h",
+    "sbmp_reporter_concept.h",
+    "solution_path_factories.h",
+    "topological_search.h",
+    "vlist_sbmp_report.h",
+  ],
+  deps = [
+    "//ReaK/core/base",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/kinetostatics",
+    "//ReaK/mbd/kte",
+    "//ReaK/mbd/models",
+    "//ReaK/topologies/spaces",
+    "//ReaK/topologies/interpolation",
+    "//ReaK/planning/graph_alg",
+  ],
+)
+
+[cc_library(
+  name = "manip_planners_%d" % dim_count,
+  local_defines = ["RK_PLANNERS_DIM=%d" % dim_count],
+  srcs = [ 
+    "fadprm_manip_planners_dynamic.cc",
+    "fadprm_manip_planners_static.cc",
+    "prm_manip_planners_dynamic.cc",
+    "prm_manip_planners_static.cc",
+#    "rrt_manip_planners_dynamic.cc",
+    "rrt_manip_planners_static.cc",
+    "rrtstar_manip_planners_dynamic.cc",
+    "rrtstar_manip_planners_static.cc",
+    "sbastar_manip_planners_dynamic.cc",
+    "sbastar_manip_planners_static.cc",
+  ],
+  deps = [
+    "//ReaK/core/base",
+    ":path_planning_headers",
+  ],
+) for dim_count in range(11)]
+
+cc_library(
+  name = "path_planning",
+  hdrs = [],
+  deps = ["manip_planners_%d" % dim_count for dim_count in range(11)] + [":path_planning_headers"],
+)
+
+cc_library(
+  name = "path_planning_po",
+  srcs = [
+    "path_planner_options_po.cc",
+    "planning_space_options_po.cc",
+  ],
+  hdrs = [
+    "path_planner_options_po.h",
+    "planning_space_options_po.h",
+  ],
+  deps = [
+    ":path_planning",
+    "//ReaK/core/base",
+    "//ReaK/core/serialization",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/kinetostatics",
+    "//ReaK/mbd/kte",
+    "//ReaK/mbd/models",
+    "//ReaK/topologies/spaces",
+    "//ReaK/topologies/interpolation",
+    "@com_google_absl//absl/flags:flag",
+  ],
+)
+
+cc_binary(
+  name = "dvp_tree_test",
+  srcs = [
+    "dvp_tree_test.cc",
+  ],
+  deps = [
+    ":path_planning",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/kinetostatics",
+    "//ReaK/topologies/spaces",
+    "//ReaK/topologies/interpolation",
+  ],
+)
+
+cc_binary(
+  name = "dvp_adj_list_test",
+  srcs = [
+    "dvp_adj_list_test.cc",
+  ],
+  deps = [
+    ":path_planning",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/kinetostatics",
+    "//ReaK/topologies/spaces",
+    "//ReaK/topologies/interpolation",
+  ],
+)
+
+cc_binary(
+  name = "planners_test",
+  srcs = [
+    "planners_test.cc",
+  ],
+  deps = [
+    ":path_planning",
+    ":path_planning_po",
+    "//ReaK/core/base",
+    "//ReaK/core/serialization",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/kinetostatics",
+    "//ReaK/topologies/spaces",
+    "//ReaK/topologies/interpolation",
+    "@com_google_absl//absl/flags:flag",
+    "@com_google_absl//absl/flags:parse",
+  ],
+)
+
+[cc_binary(
+  name = "planners_hidim_test_e%d" % dim_count,
+  srcs = [
+    "planners_hidim_test.cc",
+  ],
+  local_defines = ["RK_HIDIM_PLANNER_N=%d" % dim_count],
+  deps = [
+    ":path_planning",
+    ":path_planning_po",
+    "//ReaK/core/base",
+    "//ReaK/core/serialization",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/kinetostatics",
+    "//ReaK/topologies/spaces",
+    "//ReaK/topologies/interpolation",
+    "@com_google_absl//absl/flags:flag",
+    "@com_google_absl//absl/flags:parse",
+  ],
+) for dim_count in range(3, 20)]

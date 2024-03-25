@@ -42,8 +42,8 @@
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/interpolated_trajectory.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 
 #include "ReaK/topologies/interpolation/sustained_velocity_pulse_ndof_detail.h"
 
@@ -125,9 +125,9 @@ PointType svp_Ndof_interpolate(const PointType& a, const PointType& b, double t,
 }
 
 template <Topology Space, Topology TimeSpace>
-  requires TangentBundle<Space, TimeSpace, 0, 1>
-bool svp_Ndof_is_in_bounds(const topology_point_type_t<Space>& pt,
-                           const Space& space, const TimeSpace& t_space) {
+requires TangentBundle<Space, TimeSpace, 0, 1> bool svp_Ndof_is_in_bounds(
+    const topology_point_type_t<Space>& pt, const Space& space,
+    const TimeSpace& t_space) {
   using Space0 = derived_N_order_space_t<Space, TimeSpace, 0>;
   using Space1 = derived_N_order_space_t<Space, TimeSpace, 1>;
   using Point0 = topology_point_type_t<Space0>;
@@ -170,8 +170,8 @@ bool svp_Ndof_is_in_bounds(const topology_point_type_t<Space>& pt,
  * \tparam TimeSpaceType The time topology.
  */
 template <Topology SpaceType, Topology TimeSpaceType>
-  requires TangentBundle<SpaceType, TimeSpaceType, 0, 1>
-class svp_Ndof_interpolator {
+requires
+    TangentBundle<SpaceType, TimeSpaceType, 0, 1> class svp_Ndof_interpolator {
  public:
   using self = svp_Ndof_interpolator<SpaceType, TimeSpaceType>;
   using point_type = topology_point_type_t<SpaceType>;
@@ -351,8 +351,8 @@ template <TemporalSpace Space,
           DistanceMetric<Space> Metric =
               typename metric_space_traits<Space>::distance_metric_type>
 class svp_Ndof_interp_traj
-    : public interpolated_trajectory<
-          Space, svp_Ndof_interp_factory<Space>, Metric> {
+    : public interpolated_trajectory<Space, svp_Ndof_interp_factory<Space>,
+                                     Metric> {
  public:
   using self = svp_Ndof_interp_traj<Space, Metric>;
   using base_class_type =
@@ -371,8 +371,8 @@ class svp_Ndof_interp_traj
   explicit svp_Ndof_interp_traj(
       const std::shared_ptr<topology>& aSpace = std::make_shared<topology>(),
       const distance_metric& aDist = distance_metric())
-      : base_class_type(aSpace, aDist,
-                        svp_Ndof_interp_factory<Space>(aSpace)) {}
+      : base_class_type(aSpace, aDist, svp_Ndof_interp_factory<Space>(aSpace)) {
+  }
 
   /**
    * Constructs the path from a space, the start and end points.

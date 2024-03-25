@@ -638,7 +638,8 @@ void invert_BandCholesky(const Matrix1& A, Matrix2& A_inv,
  *
  * \author Mikael Persson
  */
-template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2, WritableMatrix Matrix3>
+template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2,
+          WritableMatrix Matrix3>
 void decompose_LDL(const Matrix1& A, Matrix2& L, Matrix3& D,
                    mat_value_type_t<Matrix1> NumTol = 1E-8) {
   using ValueType = mat_value_type_t<Matrix1>;
@@ -762,7 +763,8 @@ void invert_LDL(const Matrix1& A, Matrix2& A_inv,
  *
  * \author Mikael Persson
  */
-template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2, WritableMatrix Matrix3>
+template <SquareMatrix Matrix1, FullyWritableMatrix Matrix2,
+          WritableMatrix Matrix3>
 void decompose_TriDiagLDL(const Matrix1& A, Matrix2& L, Matrix3& D,
                           mat_value_type_t<Matrix1> NumTol = 1E-8) {
   using ValueType = mat_value_type_t<Matrix1>;

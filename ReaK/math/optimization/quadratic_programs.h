@@ -67,8 +67,8 @@ namespace ReaK::optim {
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, WritableVector Vector1, ReadableMatrix Matrix2,
-          WritableVector Vector2>
+template <ReadableMatrix Matrix1, WritableVector Vector1,
+          ReadableMatrix Matrix2, WritableVector Vector2>
 void null_space_QP_method(
     const Matrix1& A, const Vector1& b, const Matrix2& G, const Vector2& c,
     Vector2& x,
@@ -182,8 +182,8 @@ void null_space_QP_method(
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, WritableVector Vector1, ReadableMatrix Matrix2,
-          WritableVector Vector2>
+template <ReadableMatrix Matrix1, WritableVector Vector1,
+          ReadableMatrix Matrix2, WritableVector Vector2>
 void null_space_RRQP_method(
     const Matrix1& A, const Vector1& b, const Matrix2& G, const Vector2& c,
     Vector2& x,
@@ -302,8 +302,8 @@ void null_space_RRQP_method(
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, WritableVector Vector1, ReadableMatrix Matrix2,
-          WritableVector Vector2>
+template <ReadableMatrix Matrix1, WritableVector Vector1,
+          ReadableMatrix Matrix2, WritableVector Vector2>
 void projected_CG_method(
     const Matrix1& A, const Vector1& b, const Matrix2& G, const Vector2& c,
     Vector2& x, unsigned int max_iter = 20,

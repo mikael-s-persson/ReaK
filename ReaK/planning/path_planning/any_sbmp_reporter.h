@@ -37,6 +37,7 @@
 
 #include "ReaK/planning/graph_alg/any_graph.h"
 #include "ReaK/planning/path_planning/any_motion_graphs.h"
+#include "ReaK/planning/path_planning/planning_queries.h"
 #include "ReaK/topologies/interpolation/seq_path_base.h"
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"
 #include "ReaK/topologies/spaces/subspace_concept.h"
@@ -62,12 +63,8 @@ class any_sbmp_reporter : public shared_object {
 
   using wrapped = std::reference_wrapper<const self>;
 
-  using solution_base_type =
-      std::conditional_t<is_temporal_space_v<FreeSpaceType>,
-                         seq_trajectory_base<super_space_type>,
-                         seq_path_base<super_space_type>>;
-
-  using solution_record_ptr = std::shared_ptr<solution_base_type>;
+  using solution_record_ptr =
+      typename planning_query<FreeSpaceType>::solution_record_ptr;
 
   virtual void draw_any_motion_graph(const FreeSpaceType& /*unused*/,
                                      const graph::any_graph& /*unused*/) const {
@@ -247,12 +244,8 @@ class any_sbmp_reporter_chain : public shared_object {
   using super_space_type =
       typename subspace_traits<FreeSpaceType>::super_space_type;
 
-  using solution_base_type =
-      std::conditional_t<is_temporal_space_v<FreeSpaceType>,
-                         seq_trajectory_base<super_space_type>,
-                         seq_path_base<super_space_type>>;
-
-  using solution_record_ptr = std::shared_ptr<solution_base_type>;
+  using solution_record_ptr =
+      typename planning_query<FreeSpaceType>::solution_record_ptr;
 
  private:
   std::vector<std::shared_ptr<any_sbmp_reporter<FreeSpaceType>>> reporters;

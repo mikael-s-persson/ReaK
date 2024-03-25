@@ -171,7 +171,8 @@ void inplace_lower_multiply_with_fill_impl(const MatrixLower1& M1,
  * \test PASSED
  */
 template <ReadableMatrix Matrix1, ReadableMatrix Matrix2>
-mat_product_result_t<Matrix1, Matrix2> operator*(const Matrix1& M1, const Matrix2& M2) {
+mat_product_result_t<Matrix1, Matrix2> operator*(const Matrix1& M1,
+                                                 const Matrix2& M2) {
   using result_type = mat_product_result_t<Matrix1, Matrix2>;
   if (M1.get_col_count() != M2.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
@@ -275,7 +276,8 @@ mat_product_result_t<Matrix1, Matrix2> operator*(const Matrix1& M1, const Matrix
  * \return Column-major matrix equal to M * S.
  * \test PASSED
  */
-template <WritableMatrix Matrix, std::convertible_to<mat_value_type_t<Matrix>> Scalar>
+template <WritableMatrix Matrix,
+          std::convertible_to<mat_value_type_t<Matrix>> Scalar>
 Matrix operator*(Matrix M, const Scalar& S) {
   M *= S;
   return M;
@@ -289,7 +291,8 @@ Matrix operator*(Matrix M, const Scalar& S) {
  * \return Column-major matrix equal to S * M.
  * \test PASSED
  */
-template <WritableMatrix Matrix, std::convertible_to<mat_value_type_t<Matrix>> Scalar>
+template <WritableMatrix Matrix,
+          std::convertible_to<mat_value_type_t<Matrix>> Scalar>
 Matrix operator*(const Scalar& S, Matrix M) {
   M *= S;
   return M;
@@ -451,7 +454,8 @@ mat_addition_result_t<Matrix, Matrix> operator-(const Matrix& M) {
  * \test PASSED
  */
 template <ReadableMatrix Matrix1, ReadableMatrix Matrix2>
-mat_addition_result_t<Matrix1, Matrix2> operator+(const Matrix1& M1, const Matrix2& M2) {
+mat_addition_result_t<Matrix1, Matrix2> operator+(const Matrix1& M1,
+                                                  const Matrix2& M2) {
   if ((M1.get_row_count() != M2.get_row_count()) ||
       (M1.get_col_count() != M2.get_col_count())) {
     throw std::range_error("Matrix dimension mismatch.");
@@ -553,7 +557,8 @@ mat_addition_result_t<Matrix1, Matrix2> operator+(const Matrix1& M1, const Matri
  * \test PASSED
  */
 template <ReadableMatrix Matrix1, ReadableMatrix Matrix2>
-mat_addition_result_t<Matrix1, Matrix2> operator-(const Matrix1& M1, const Matrix2& M2) {
+mat_addition_result_t<Matrix1, Matrix2> operator-(const Matrix1& M1,
+                                                  const Matrix2& M2) {
   if ((M1.get_row_count() != M2.get_row_count()) ||
       (M1.get_col_count() != M2.get_col_count())) {
     throw std::range_error("Matrix dimension mismatch.");

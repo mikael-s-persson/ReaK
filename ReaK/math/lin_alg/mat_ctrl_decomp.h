@@ -75,8 +75,8 @@ namespace detail {}  // namespace detail
  *
  * \author Mikael Persson
  */
-template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2, FullyWritableMatrix Matrix3,
-          FullyWritableMatrix Matrix4>
+template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2,
+          FullyWritableMatrix Matrix3, FullyWritableMatrix Matrix4>
 int ctrl_reduction(Matrix1& A, Matrix2& B, Matrix3& Q, Matrix4& Z,
                    mat_value_type_t<Matrix1> NumTol = 1E-8) {
   if ((A.get_row_count() != A.get_col_count()) ||

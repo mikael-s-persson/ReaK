@@ -35,6 +35,7 @@
 #define REAK_TOPOLOGIES_SPACES_NO_OBSTACLE_SPACE_H_
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
+#include "ReaK/topologies/spaces/proper_metric_concept.h"
 #include "ReaK/topologies/spaces/random_sampler_concept.h"
 #include "ReaK/topologies/spaces/reversible_space_concept.h"
 
@@ -302,21 +303,6 @@ class no_obstacle_space : public named_object {
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400021, 1, "no_obstacle_space",
                               named_object)
 };
-
-template <typename Topology, typename DistanceMetric, typename RandomSampler>
-struct is_metric_space<
-    no_obstacle_space<Topology, DistanceMetric, RandomSampler>>
-    : std::true_type {};
-
-template <typename Topology, typename DistanceMetric, typename RandomSampler>
-struct is_reversible_space<
-    no_obstacle_space<Topology, DistanceMetric, RandomSampler>>
-    : is_reversible_space<Topology> {};
-
-template <typename Topology, typename DistanceMetric, typename RandomSampler>
-struct is_point_distribution<
-    no_obstacle_space<Topology, DistanceMetric, RandomSampler>>
-    : std::true_type {};
 
 template <typename Topology, typename DistanceMetric, typename RandomSampler>
 struct is_metric_symmetric<

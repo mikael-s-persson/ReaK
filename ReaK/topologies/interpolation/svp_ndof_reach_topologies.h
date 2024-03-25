@@ -40,11 +40,11 @@
 #include "ReaK/topologies/spaces/reversible_space_concept.h"
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
-#include "ReaK/topologies/spaces/interpolated_topologies.h"
 #include "ReaK/topologies/interpolation/sustained_velocity_pulse_ndof.h"
 #include "ReaK/topologies/interpolation/svp_ndof_metrics.h"
 #include "ReaK/topologies/interpolation/svp_ndof_samplers.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
+#include "ReaK/topologies/spaces/interpolated_topologies.h"
 
 #include "boost/concept_check.hpp"
 

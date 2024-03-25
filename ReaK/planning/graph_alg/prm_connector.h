@@ -58,14 +58,14 @@ namespace ReaK::graph {
  * This callable class template implements a Motion-graph Connector.
  * A connector uses the accumulated distance to assess the local optimality of the wirings on a motion-graph.
  * The call operator accepts a visitor object to provide customized behavior because it can be used in many
- * different sampling-based motion-planners. The visitor must model the MotionGraphConnectorVisitorConcept concept.
+ * different sampling-based motion-planners. The visitor must model the MotionGraphConnectorVisitor concept.
  */
 struct prm_node_connector {
 
   template <typename Vertex, typename EdgeProp, typename Graph,
-            typename ConnectorVisitor>
-  void connect_to_first_pred(Vertex v, Vertex x_near, EdgeProp& eprop, Graph& g,
-                             ConnectorVisitor& conn_vis) {
+            NeighborhoodTrackingVisitor<Graph> Visitor>
+  requires SBMPVisitor<Visitor, Graph> void connect_to_first_pred(
+      Vertex v, Vertex x_near, EdgeProp& eprop, Graph& g, Visitor& conn_vis) {
     conn_vis.travel_explored(x_near, v, g);
     conn_vis.travel_succeeded(x_near, v, g);
     auto [e_new, e_new_exists] = add_edge(x_near, v, std::move(eprop), g);
@@ -84,9 +84,8 @@ struct prm_node_connector {
    *
    * \tparam Graph The graph type that can store the generated roadmap, should model
    *         BidirectionalGraphConcept and MutableGraphConcept.
-   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-   * \tparam ConnectorVisitor The type of the node-connector visitor to be used, should model the
-   *MotionGraphConnectorVisitorConcept.
+   * \tparam Space The topology type that represents the free-space, should model BGL's Topology concept.
+   * \tparam Visitor The type of the node-connector visitor to be used.
    * \tparam PositionMap A property-map type that can store the position of each vertex.
    * \tparam NcSelector A functor type that can select a list of vertices of the graph that are
    *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors).
@@ -100,7 +99,7 @@ struct prm_node_connector {
    *        the generated graph once the algorithm has finished.
    * \param super_space A topology (as defined by the Boost Graph Library). This topology
    *        should not include collision checking in its distance metric.
-   * \param conn_vis A node-connector visitor implementing the MotionGraphConnectorVisitorConcept. This is the
+   * \param conn_vis A node-connector visitor implementing the MotionGraphConnectorVisitor. This is the
    *        main point of customization and recording of results that the user can implement.
    * \param position A mapping that implements the MutablePropertyMap Concept. Also,
    *        the value_type of this map should be the same type as the topology's point_type.
@@ -108,12 +107,13 @@ struct prm_node_connector {
    *        vertices of the graph that ought to be connected to a new
    *        vertex. The list should be sorted in order of increasing "distance".
    */
-  template <typename Graph, typename Topology, typename ConnectorVisitor,
+  template <typename Graph, pp::Topology Space,
+            MotionGraphConnectorVisitor<Graph, Space> Visitor,
             typename PositionMap, typename NcSelector>
   void operator()(const property_value_t<PositionMap>& p,
                   graph_vertex_t<Graph> x_near,
                   graph_edge_bundle_t<Graph>& eprop, Graph& g,
-                  const Topology& super_space, ConnectorVisitor& conn_vis,
+                  const Space& super_space, Visitor& conn_vis,
                   PositionMap position, const NcSelector& select_neighborhood) {
     using Vertex = graph_vertex_t<Graph>;
     using std::back_inserter;

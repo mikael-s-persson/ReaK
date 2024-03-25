@@ -2,8 +2,8 @@
  * \file predicted_trajectory_concept.h
  *
  * This library defines the concept that represents a predicted trajectory. This concept
- * supplements the SpatialTrajectoryConcept with a few additional requirements which
- * characterize a predicted trajectory (see PredictedTrajectoryConcept).
+ * supplements the SpatialTrajectory with a few additional requirements which
+ * characterize a predicted trajectory (see PredictedTrajectory).
  *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date July 2011
@@ -64,12 +64,13 @@ namespace ReaK::pp {
  * p.set_initial_point(w_p);  The initial temporal waypoint (w_p) can be set to seed the predicted trajectory (p).
  */
 template <typename Trajectory, typename Space>
-concept PredictedTrajectory = SpatialTrajectory<Trajectory, Space> &&
-  requires (Trajectory& traj, const topology_point_type_t<Space>& pt,
-            const typename spatial_trajectory_traits<Trajectory>::const_waypoint_pair& wp) {
-    traj.set_initial_point(pt);
-    traj.set_initial_point(wp);
-  };
+concept PredictedTrajectory = SpatialTrajectory<Trajectory, Space>&& requires(
+    Trajectory& traj, const topology_point_type_t<Space>& pt,
+    const typename spatial_trajectory_traits<Trajectory>::const_waypoint_pair&
+        wp) {
+  traj.set_initial_point(pt);
+  traj.set_initial_point(wp);
+};
 
 }  // namespace ReaK::pp
 

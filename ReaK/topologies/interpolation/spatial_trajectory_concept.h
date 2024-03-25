@@ -62,7 +62,8 @@ struct spatial_trajectory_traits {
   using waypoint_descriptor = typename SpatialTrajectory::waypoint_descriptor;
   /** This type describes const-waypoints used by the trajectory to quickly access local parameters of the trajectory.
    */
-  using const_waypoint_descriptor = typename SpatialTrajectory::const_waypoint_descriptor;
+  using const_waypoint_descriptor =
+      typename SpatialTrajectory::const_waypoint_descriptor;
 
   using const_waypoint_pair = std::pair<const_waypoint_descriptor, point_type>;
 
@@ -117,22 +118,48 @@ struct spatial_trajectory_traits {
  *
  * const topology& space = p.get_temporal_space();  The temporal space on which the trajectory lies can be obtained.
  */
-template <typename Trajectory, typename Space = typename spatial_trajectory_traits<Trajectory>::topology>
-concept SpatialTrajectory = TemporalSpace<Space> && DistanceMetric<typename spatial_trajectory_traits<Trajectory>::distance_metric, Space> &&
-  requires (const Trajectory& traj, const topology_point_type_t<Space>& pt,
-    topology_point_type_t<typename temporal_space_traits<Space>::time_topology> t,
-    topology_point_difference_type_t<typename temporal_space_traits<Space>::time_topology> dt,
-    const typename spatial_trajectory_traits<Trajectory>::const_waypoint_pair& wp) {
-    { traj.move_time_diff_from(pt, dt) } -> std::convertible_to<topology_point_type_t<Space>>;
-    { traj.travel_distance(pt, pt) } -> std::convertible_to<double>;
-    { traj.get_point_at_time(t) } -> std::convertible_to<topology_point_type_t<Space>>;
-    { traj.move_time_diff_from(wp, dt) } -> std::convertible_to<typename spatial_trajectory_traits<Trajectory>::const_waypoint_pair>;
-    { traj.travel_distance(wp, wp) } -> std::convertible_to<double>;
-    { traj.get_waypoint_at_time(t) } -> std::convertible_to<typename spatial_trajectory_traits<Trajectory>::const_waypoint_pair>;
-    { traj.get_start_time() } -> std::convertible_to<topology_point_type_t<typename temporal_space_traits<Space>::time_topology>>;
-    { traj.get_end_time() } -> std::convertible_to<topology_point_type_t<typename temporal_space_traits<Space>::time_topology>>;
-    { traj.get_temporal_space() } -> std::convertible_to<const typename spatial_trajectory_traits<Trajectory>::topology&>;
-  };
+template <
+    typename Trajectory,
+    typename Space = typename spatial_trajectory_traits<Trajectory>::topology>
+concept SpatialTrajectory = TemporalSpace<Space>&& DistanceMetric<
+    typename spatial_trajectory_traits<Trajectory>::distance_metric, Space>&&
+requires(
+    const Trajectory& traj, topology_point_type_t<Space> pt,
+    topology_point_type_t<typename temporal_space_traits<Space>::time_topology>
+        t,
+    topology_point_difference_type_t<
+        typename temporal_space_traits<Space>::time_topology>
+        dt,
+    typename spatial_trajectory_traits<Trajectory>::const_waypoint_pair wp) {
+  {
+    traj.move_time_diff_from(pt, dt)
+    } -> std::convertible_to<topology_point_type_t<Space>>;
+  { traj.travel_distance(pt, pt) } -> std::convertible_to<double>;
+  {
+    traj.get_point_at_time(t)
+    } -> std::convertible_to<topology_point_type_t<Space>>;
+  {
+    traj.move_time_diff_from(wp, dt)
+    } -> std::convertible_to<
+        typename spatial_trajectory_traits<Trajectory>::const_waypoint_pair>;
+  { traj.travel_distance(wp, wp) } -> std::convertible_to<double>;
+  {
+    traj.get_waypoint_at_time(t)
+    } -> std::convertible_to<
+        typename spatial_trajectory_traits<Trajectory>::const_waypoint_pair>;
+  {
+    traj.get_start_time()
+    } -> std::convertible_to<topology_point_type_t<
+        typename temporal_space_traits<Space>::time_topology>>;
+  {
+    traj.get_end_time()
+    } -> std::convertible_to<topology_point_type_t<
+        typename temporal_space_traits<Space>::time_topology>>;
+  {
+    traj.get_temporal_space()
+    } -> std::convertible_to<
+        const typename spatial_trajectory_traits<Trajectory>::topology&>;
+};
 
 }  // namespace ReaK::pp
 

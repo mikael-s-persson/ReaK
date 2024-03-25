@@ -62,7 +62,8 @@ template <typename T>
 template <typename NormalSpaceType>
 topology_point_type_t<get_rate_limited_space_t<NormalSpaceType>>
 joint_limits_mapping<T>::map_to_space(
-    const topology_point_type_t<NormalSpaceType>& pt, const NormalSpaceType& /*unused*/,
+    const topology_point_type_t<NormalSpaceType>& pt,
+    const NormalSpaceType& /*unused*/,
     const get_rate_limited_space_t<NormalSpaceType>& /*unused*/) const {
   topology_point_type_t<get_rate_limited_space_t<NormalSpaceType>> result;
   detail::create_rl_joint_vectors_impl(result, pt, *this->limits);

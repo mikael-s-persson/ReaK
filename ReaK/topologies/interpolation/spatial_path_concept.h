@@ -58,8 +58,7 @@ struct spatial_path_traits {
   /** This type describes waypoints used by the path to quickly access local parameters of the path. */
   using waypoint_descriptor = typename Path::waypoint_descriptor;
   /** This type describes const-waypoints used by the path to quickly access local parameters of the path. */
-  using const_waypoint_descriptor =
-      typename Path::const_waypoint_descriptor;
+  using const_waypoint_descriptor = typename Path::const_waypoint_descriptor;
 
   using const_waypoint_pair = std::pair<const_waypoint_descriptor, point_type>;
 
@@ -102,18 +101,33 @@ struct spatial_path_traits {
  *
  * w_p = p.get_end_waypoint();  The end waypoint-pair of the path can be obtained.
  */
-template <typename Path, typename Space = typename spatial_path_traits<Path>::topology>
-concept SpatialPath = Topology<Space> && DistanceMetric<typename spatial_path_traits<Path>::distance_metric, Space> &&
-  requires (const Path& p, const topology_point_type_t<Space>& pt, const typename spatial_path_traits<Path>::const_waypoint_pair& wp, double d) {
-    { p.move_away_from(pt, d) } -> std::convertible_to<topology_point_type_t<Space>>;
-    { p.travel_distance(pt, pt) } -> std::convertible_to<double>;
-    { p.move_away_from(wp, d) } -> std::convertible_to<typename spatial_path_traits<Path>::const_waypoint_pair>;
-    { p.travel_distance(wp, wp) } -> std::convertible_to<double>;
-    { p.get_start_point() } -> std::convertible_to<topology_point_type_t<Space>>;
-    { p.get_end_point() } -> std::convertible_to<topology_point_type_t<Space>>;
-    { p.get_start_waypoint() } -> std::convertible_to<typename spatial_path_traits<Path>::const_waypoint_pair>;
-    { p.get_end_waypoint() } -> std::convertible_to<typename spatial_path_traits<Path>::const_waypoint_pair>;
-  };
+template <typename Path,
+          typename Space = typename spatial_path_traits<Path>::topology>
+concept SpatialPath = Topology<Space>&&
+    DistanceMetric<typename spatial_path_traits<Path>::distance_metric, Space>&&
+    requires(const Path& p, const topology_point_type_t<Space>& pt,
+             const typename spatial_path_traits<Path>::const_waypoint_pair& wp,
+             double d) {
+  {
+    p.move_away_from(pt, d)
+    } -> std::convertible_to<topology_point_type_t<Space>>;
+  { p.travel_distance(pt, pt) } -> std::convertible_to<double>;
+  {
+    p.move_away_from(wp, d)
+    } -> std::convertible_to<
+        typename spatial_path_traits<Path>::const_waypoint_pair>;
+  { p.travel_distance(wp, wp) } -> std::convertible_to<double>;
+  { p.get_start_point() } -> std::convertible_to<topology_point_type_t<Space>>;
+  { p.get_end_point() } -> std::convertible_to<topology_point_type_t<Space>>;
+  {
+    p.get_start_waypoint()
+    } -> std::convertible_to<
+        typename spatial_path_traits<Path>::const_waypoint_pair>;
+  {
+    p.get_end_waypoint()
+    } -> std::convertible_to<
+        typename spatial_path_traits<Path>::const_waypoint_pair>;
+};
 
 /**
  * This exception class represents an exception occurring when a path is invalid.

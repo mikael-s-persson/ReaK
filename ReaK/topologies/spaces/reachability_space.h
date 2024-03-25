@@ -252,8 +252,7 @@ struct reach_plus_time_metric : public serializable {
    * \return the spatial-distance between the two points.
    */
   template <typename Point, TemporalSpace Space>
-  double operator()(const Point& a, const Point& b,
-                    const Space& s) const {
+  double operator()(const Point& a, const Point& b, const Space& s) const {
     if (a.time > b.time) {
       return std::numeric_limits<
           double>::infinity();  // p2 is not reachable from p1.
@@ -320,8 +319,7 @@ struct proper_reach_plus_time_metric : public serializable {
    * \return the spatial-distance between the two points.
    */
   template <typename Point, TemporalSpace Space>
-  double operator()(const Point& a, const Point& b,
-                    const Space& s) const {
+  double operator()(const Point& a, const Point& b, const Space& s) const {
     using std::abs;
     double reach_time = get(proper_metric, s.get_space_topology())(
         a.pt, b.pt, s.get_space_topology());

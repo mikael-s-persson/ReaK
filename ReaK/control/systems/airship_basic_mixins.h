@@ -1066,7 +1066,7 @@ class sat_position_output_model : public named_object {
         params.get_state_models()
             .template get_state_for_system<satellite_state_model>(x);
 
-    y[range(start_index, start_index + 3)] = get_position(x_se3);
+    sub(y)[range(start_index, start_index + 3)] = get_position(x_se3);
   }
 
   template <typename FlyWeight, typename StateSpaceType>
@@ -1078,8 +1078,8 @@ class sat_position_output_model : public named_object {
         params.get_state_models()
             .template get_state_for_system<satellite_state_model>(x);
 
-    e[range(inv_start_index, inv_start_index + 3)] =
-        y[range(start_index, start_index + 3)] - get_position(x_se3);
+    sub(e)[range(inv_start_index, inv_start_index + 3)] =
+        sub(y)[range(start_index, start_index + 3)] - get_position(x_se3);
   };
 
   template <typename MatrixC, typename MatrixD, typename FlyWeight,
@@ -1150,7 +1150,7 @@ class sat_quaternion_output_model : public named_object {
         params.get_state_models()
             .template get_state_for_system<satellite_state_model>(x);
 
-    y[range(start_index, start_index + 4)] = get_quaternion(x_se3);
+    sub(y)[range(start_index, start_index + 4)] = get_quaternion(x_se3);
   }
 
   template <typename FlyWeight, typename StateSpaceType>
@@ -1168,7 +1168,7 @@ class sat_quaternion_output_model : public named_object {
                           y[start_index + 2], y[start_index + 3]);
     vect<double, 3> a = 2.0 * log(q_diff);
 
-    e[range(inv_start_index, inv_start_index + 3)] = a;
+    sub(e)[range(inv_start_index, inv_start_index + 3)] = a;
   }
 
   template <typename MatrixC, typename MatrixD, typename FlyWeight,

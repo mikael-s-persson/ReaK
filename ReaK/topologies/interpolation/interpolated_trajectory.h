@@ -62,12 +62,11 @@ namespace ReaK::pp {
 template <TemporalSpace Space, typename InterpFactory,
           DistanceMetric<Space> Metric =
               typename metric_space_traits<Space>::distance_metric_type>
-    requires InterpolatorFactory<InterpFactory, Space, Metric>
-class interpolated_trajectory
+requires InterpolatorFactory<InterpFactory, Space,
+                             Metric> class interpolated_trajectory
     : public waypoint_container<Space, Metric> {
  public:
-  using self =
-      interpolated_trajectory<Space, InterpFactory, Metric>;
+  using self = interpolated_trajectory<Space, InterpFactory, Metric>;
   using base_class_type = waypoint_container<Space, Metric>;
 
   using interpolator_factory_type = InterpFactory;

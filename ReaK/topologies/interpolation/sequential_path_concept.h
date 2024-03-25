@@ -52,12 +52,10 @@ struct sequential_path_traits {
 
   /** This type describes an iterator, corresponding to a point on the path, which can be incremented by distance to
    * travel to the next iterator. */
-  using point_distance_iterator =
-      typename Path::point_distance_iterator;
+  using point_distance_iterator = typename Path::point_distance_iterator;
   /** This type describes an iterator, corresponding to a point on the path, which can be incremented by a fraction
    * between waypoints to travel to the next iterator. */
-  using point_fraction_iterator =
-      typename Path::point_fraction_iterator;
+  using point_fraction_iterator = typename Path::point_fraction_iterator;
 
   /** This type is the topology type in which the path exists. */
   using topology = typename Path::topology;
@@ -115,40 +113,55 @@ struct sequential_path_traits {
  *obtained.
  */
 template <typename Path, typename Space>
-concept SequentialPath = Topology<Space> && DistanceMetric<typename sequential_path_traits<Path>::distance_metric, Space> &&
-  requires (const Path& path, const topology_point_type_t<Space>& pt) {
-    { path.travel_distance(pt, pt) } -> std::convertible_to<double>;
-  } &&
-  requires (const Path& path) {
-    { path.begin_distance_travel() } -> std::convertible_to<typename sequential_path_traits<Path>::point_distance_iterator>;
-    { path.end_distance_travel() } -> std::convertible_to<typename sequential_path_traits<Path>::point_distance_iterator>;
-  } &&
-  requires (double d,
-            typename sequential_path_traits<Path>::point_distance_iterator& dit) {
-    { *dit } -> std::convertible_to<topology_point_type_t<Space>>;
-    dit = dit + d;
-    dit = d + dit;
-    dit += d;
-    dit = dit - d;
-    dit -= d;
-    { dit != dit } -> std::convertible_to<bool>;
-    { dit == dit } -> std::convertible_to<bool>;
-  } &&
-  requires (const Path& path) {
-    { path.begin_fraction_travel() } -> std::convertible_to<typename sequential_path_traits<Path>::point_fraction_iterator>;
-    { path.end_fraction_travel() } -> std::convertible_to<typename sequential_path_traits<Path>::point_fraction_iterator>;
-  } &&
-  requires (double d,
-            typename sequential_path_traits<Path>::point_fraction_iterator& fit) {
-    { *fit } -> std::convertible_to<topology_point_type_t<Space>>;
-    fit = fit + d;
-    fit = d + fit;
-    fit += d;
-    fit = fit - d;
-    fit -= d;
-    { fit != fit } -> std::convertible_to<bool>;
-    { fit == fit } -> std::convertible_to<bool>;
-  };
+concept SequentialPath = Topology<Space>&& DistanceMetric<
+    typename sequential_path_traits<Path>::distance_metric, Space>&&
+requires(const Path& path, const topology_point_type_t<Space>& pt) {
+  { path.travel_distance(pt, pt) } -> std::convertible_to<double>;
+}
+&&requires(const Path& path) {
+  {
+    path.begin_distance_travel()
+    } -> std::convertible_to<
+        typename sequential_path_traits<Path>::point_distance_iterator>;
+  {
+    path.end_distance_travel()
+    } -> std::convertible_to<
+        typename sequential_path_traits<Path>::point_distance_iterator>;
+}
+&&requires(
+    double d,
+    typename sequential_path_traits<Path>::point_distance_iterator& dit) {
+  { *dit } -> std::convertible_to<topology_point_type_t<Space>>;
+  dit = dit + d;
+  dit = d + dit;
+  dit += d;
+  dit = dit - d;
+  dit -= d;
+  { dit != dit } -> std::convertible_to<bool>;
+  { dit == dit } -> std::convertible_to<bool>;
+}
+&&requires(const Path& path) {
+  {
+    path.begin_fraction_travel()
+    } -> std::convertible_to<
+        typename sequential_path_traits<Path>::point_fraction_iterator>;
+  {
+    path.end_fraction_travel()
+    } -> std::convertible_to<
+        typename sequential_path_traits<Path>::point_fraction_iterator>;
+}
+&&requires(
+    double d,
+    typename sequential_path_traits<Path>::point_fraction_iterator& fit) {
+  { *fit } -> std::convertible_to<topology_point_type_t<Space>>;
+  fit = fit + d;
+  fit = d + fit;
+  fit += d;
+  fit = fit - d;
+  fit -= d;
+  { fit != fit } -> std::convertible_to<bool>;
+  { fit == fit } -> std::convertible_to<bool>;
+};
 
 }  // namespace ReaK::pp
 

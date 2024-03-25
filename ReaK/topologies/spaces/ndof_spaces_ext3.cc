@@ -23,8 +23,8 @@
 
 #include "ReaK/core/base/defs.h"
 
-#include "ReaK/topologies/spaces/ndof_spaces.h"
 #include "ReaK/topologies/spaces/joint_space_limits.inc"
+#include "ReaK/topologies/spaces/ndof_spaces.h"
 
 namespace ReaK::pp {
 

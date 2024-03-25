@@ -343,10 +343,9 @@ vect_copy_t<Vector> operator*(
 /// \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
 template <typename T, ReadableVector Vector, mat_alignment::tag Alignment,
           unsigned int RowCount>
-vect_copy_t<Vector> operator*(
-    const Vector& V,
-    const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>&
-        M) {
+vect_copy_t<Vector> operator*(const Vector& V,
+                              const mat<T, mat_structure::permutation,
+                                        Alignment, RowCount, RowCount>& M) {
   if (V.size() != M.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
   }
@@ -404,8 +403,8 @@ template <typename T, mat_alignment::tag Alignment, unsigned int RowCount,
           ReadableMatrix Matrix>
 std::enable_if_t<
     (mat_product_priority_v<Matrix> <
-     mat_product_priority_v<mat<T, mat_structure::permutation, Alignment,
-                                RowCount, RowCount>>),
+     mat_product_priority_v<
+         mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>>),
     mat_product_result_t<Matrix, mat<T, mat_structure::permutation, Alignment,
                                      RowCount, RowCount>>>
 operator*(const Matrix& M1, const mat<T, mat_structure::permutation, Alignment,
@@ -431,13 +430,12 @@ operator*(const Matrix& M1, const mat<T, mat_structure::permutation, Alignment,
 /// \throw std::range_error if matrices' dimensions are not proper for multiplication.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount,
           ReadableMatrix Matrix>
-std::enable_if_t<
-    (mat_product_priority_v<Matrix> <
-     mat_product_priority_v<mat<T, mat_structure::permutation, Alignment,
-                                RowCount, RowCount>>),
-    mat_product_result_t<
-        mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>,
-        Matrix>>
+std::enable_if_t<(mat_product_priority_v<Matrix> <
+                  mat_product_priority_v<mat<T, mat_structure::permutation,
+                                             Alignment, RowCount, RowCount>>),
+                 mat_product_result_t<mat<T, mat_structure::permutation,
+                                          Alignment, RowCount, RowCount>,
+                                      Matrix>>
 operator*(
     const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>& M1,
     const Matrix& M2) {

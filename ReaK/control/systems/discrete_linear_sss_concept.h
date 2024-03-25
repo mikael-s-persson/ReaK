@@ -72,10 +72,11 @@ struct DiscreteNonLinearSystemType {
   template <typename System, typename StateSpaceType, typename Point,
             typename Input, typename Time, typename A_t, typename B_t,
             typename C_t, typename D_t>
-  static void constraints(const System& /*unused*/, const StateSpaceType& /*unused*/,
-                   const Point& /*unused*/, const Input& /*unused*/,
-                   const Time& /*unused*/, A_t& /*unused*/, B_t& /*unused*/,
-                   C_t& /*unused*/, D_t& /*unused*/) {}
+  static void constraints(const System& /*unused*/,
+                          const StateSpaceType& /*unused*/,
+                          const Point& /*unused*/, const Input& /*unused*/,
+                          const Time& /*unused*/, A_t& /*unused*/,
+                          B_t& /*unused*/, C_t& /*unused*/, D_t& /*unused*/) {}
 };
 
 /**
@@ -96,8 +97,9 @@ struct DiscreteLTISystemType {
             typename Input, typename Time, typename A_t, typename B_t,
             typename C_t, typename D_t>
   static void constraints(const System& sys, const StateSpaceType& state_space,
-                   const Point& /*unused*/, const Input& /*unused*/,
-                   const Time& /*unused*/, A_t& A, B_t& B, C_t& C, D_t& D) {
+                          const Point& /*unused*/, const Input& /*unused*/,
+                          const Time& /*unused*/, A_t& A, B_t& B, C_t& C,
+                          D_t& D) {
     sys.get_state_transition_blocks(A, B, state_space);
     sys.get_output_function_blocks(C, D, state_space);
   }
@@ -122,8 +124,8 @@ struct DiscreteLTVSystemType {
             typename Input, typename Time, typename A_t, typename B_t,
             typename C_t, typename D_t>
   static void constraints(const System& sys, const StateSpaceType& state_space,
-                   const Point& /*unused*/, const Input& /*unused*/,
-                   const Time& t, A_t& A, B_t& B, C_t& C, D_t& D) {
+                          const Point& /*unused*/, const Input& /*unused*/,
+                          const Time& t, A_t& A, B_t& B, C_t& C, D_t& D) {
     sys.get_state_transition_blocks(A, B, state_space, t, t);
     sys.get_output_function_blocks(C, D, state_space, t);
   }
@@ -148,8 +150,8 @@ struct DiscreteLinearizedSystemType {
             typename Input, typename Time, typename A_t, typename B_t,
             typename C_t, typename D_t>
   static void constraints(const System& sys, const StateSpaceType& state_space,
-                   const Point& p, const Input& u, const Time& t, A_t& A,
-                   B_t& B, C_t& C, D_t& D) {
+                          const Point& p, const Input& u, const Time& t, A_t& A,
+                          B_t& B, C_t& C, D_t& D) {
     sys.get_state_transition_blocks(A, B, state_space, t, t, p, p, u, u);
     sys.get_output_function_blocks(C, D, state_space, t, p, u);
   }
@@ -181,23 +183,25 @@ struct DiscreteLinearizedSystemType {
  */
 template <typename T, typename StateSpace,
           typename SystemType = DiscreteLTISystemType>
-concept DiscreteLinearSSS = DiscreteSSS<T, StateSpace> &&
-  requires (const T& sys, const StateSpace& space,
-            typename discrete_sss_traits<T>::point_type p,
-            typename discrete_sss_traits<T>::input_type u,
-            typename discrete_sss_traits<T>::time_type t,
-            typename discrete_sss_traits<T>::point_difference_type dp,
-            typename discrete_sss_traits<T>::output_type y,
-            typename discrete_linear_sss_traits<T>::matrixA_type A,
-            typename discrete_linear_sss_traits<T>::matrixB_type B,
-            typename discrete_linear_sss_traits<T>::matrixC_type C,
-            typename discrete_linear_sss_traits<T>::matrixD_type D) {
-    SystemType::constraints(sys, space, p, u, t, A, B, C, D);
-    dp = ReaK::from_vect<decltype(dp)>(A * to_vect<mat_value_type_t<decltype(A)>>(dp) +
-                                       B * to_vect<mat_value_type_t<decltype(B)>>(u));
-    y = ReaK::from_vect<decltype(y)>(C * to_vect<mat_value_type_t<decltype(C)>>(dp) +
-                                     D * to_vect<mat_value_type_t<decltype(D)>>(u));
-  };
+concept DiscreteLinearSSS = DiscreteSSS<T, StateSpace>&& requires(
+    const T& sys, const StateSpace& space,
+    typename discrete_sss_traits<T>::point_type p,
+    typename discrete_sss_traits<T>::input_type u,
+    typename discrete_sss_traits<T>::time_type t,
+    typename discrete_sss_traits<T>::point_difference_type dp,
+    typename discrete_sss_traits<T>::output_type y,
+    typename discrete_linear_sss_traits<T>::matrixA_type A,
+    typename discrete_linear_sss_traits<T>::matrixB_type B,
+    typename discrete_linear_sss_traits<T>::matrixC_type C,
+    typename discrete_linear_sss_traits<T>::matrixD_type D) {
+  SystemType::constraints(sys, space, p, u, t, A, B, C, D);
+  dp = ReaK::from_vect<decltype(dp)>(
+      A * to_vect<mat_value_type_t<decltype(A)>>(dp) +
+      B * to_vect<mat_value_type_t<decltype(B)>>(u));
+  y = ReaK::from_vect<decltype(y)>(
+      C * to_vect<mat_value_type_t<decltype(C)>>(dp) +
+      D * to_vect<mat_value_type_t<decltype(D)>>(u));
+};
 
 }  // namespace ReaK::ctrl
 

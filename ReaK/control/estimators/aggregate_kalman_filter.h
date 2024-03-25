@@ -62,14 +62,10 @@ namespace ReaK::ctrl {
 
 /**
  * This function template performs one prediction step using the Aggregate Kalman Filter method.
- * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept
- *         at least as a DiscreteLinearizedSystemType.
- * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
- *         the pp::TopologyConcept.
- * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
+ * \tparam LinearSystem A discrete state-space system.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside.
+ * \tparam BState A belief state with a unimodular gaussian representation.
+ * \tparam InputBelief A belief state with a unimodular gaussian representation.
  * \param sys The discrete state-space system used in the state estimation.
  * \param state_space The state-space topology on which the state representations lie.
  * \param b_x As input, it stores the belief-state before the prediction step. As output, it stores
@@ -81,35 +77,27 @@ namespace ReaK::ctrl {
  * \param t The current time (before the prediction).
  *
  */
-template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
-          typename InputBelief>
+template <pp::Topology StateSpaceType,
+          DiscreteLinearSSS<StateSpaceType, DiscreteLinearizedSystemType>
+              LinearSystem,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief>
 void aggregate_kalman_predict(
-    const LinearSystem& sys, const StateSpaceType& state_space,
-    BeliefState& b_x, const InputBelief& b_u,
+    const LinearSystem& sys, const StateSpaceType& state_space, BState& b_x,
+    const InputBelief& b_u,
     hamiltonian_mat_t<mat_value_type_t<
         typename covariance_mat_traits<typename continuous_belief_state_traits<
-            BeliefState>::covariance_type>::matrix_type>>& Sc,
+            BState>::covariance_type>::matrix_type>>& Sc,
     typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
   using StateType = pp::topology_point_type_t<StateSpaceType>;
   using OutputType = typename discrete_sss_traits<LinearSystem>::output_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
   using MatType = typename covariance_mat_traits<CovType>::matrix_type;
   using ValueType = mat_value_type_t<MatType>;
 
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
-  BOOST_CONCEPT_ASSERT(
-      (DiscreteLinearSSSConcept<LinearSystem, StateSpaceType,
-                                DiscreteLinearizedSystemType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
 
   using HamilMat = hamiltonian_mat_t<ValueType>;
@@ -146,16 +134,11 @@ void aggregate_kalman_predict(
 
 /**
  * This function template performs one measurement update step using the Aggregate Kalman Filter method.
- * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept
- *         at least as a DiscreteLinearizedSystemType.
- * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
- *         the pp::TopologyConcept.
- * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam MeasurementBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
+ * \tparam LinearSystem A discrete state-space system.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside.
+ * \tparam BState A belief state with a unimodular gaussian representation.
+ * \tparam InputBelief A belief state with a unimodular gaussian representation.
+ * \tparam MeasurementBelief A belief state with a unimodular gaussian representation.
  * \param sys The discrete state-space system used in the state estimation.
  * \param state_space The state-space topology on which the state representations lie.
  * \param b_x As input, it stores the belief-state before the update step. As output, it stores
@@ -168,29 +151,21 @@ void aggregate_kalman_predict(
  * \param t The current time.
  *
  */
-template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
-          typename InputBelief, typename MeasurementBelief>
+template <pp::Topology StateSpaceType,
+          DiscreteLinearSSS<StateSpaceType, DiscreteLinearizedSystemType>
+              LinearSystem,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          ContinuousBeliefState MeasurementBelief>
 void aggregate_kalman_update(
-    const LinearSystem& sys, const StateSpaceType& state_space,
-    BeliefState& b_x, const InputBelief& b_u, const MeasurementBelief& b_z,
+    const LinearSystem& sys, const StateSpaceType& state_space, BState& b_x,
+    const InputBelief& b_u, const MeasurementBelief& b_z,
     hamiltonian_mat_t<mat_value_type_t<
         typename covariance_mat_traits<typename continuous_belief_state_traits<
-            BeliefState>::covariance_type>::matrix_type>>& Sm,
+            BState>::covariance_type>::matrix_type>>& Sm,
     typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
-  BOOST_CONCEPT_ASSERT(
-      (DiscreteLinearSSSConcept<LinearSystem, StateSpaceType,
-                                DiscreteLinearizedSystemType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
 
   using StateType = typename discrete_sss_traits<LinearSystem>::point_type;
@@ -198,7 +173,7 @@ void aggregate_kalman_update(
       typename discrete_sss_traits<LinearSystem>::point_difference_type;
   using OutputType = typename discrete_sss_traits<LinearSystem>::output_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
   using MatType = typename covariance_mat_traits<CovType>::matrix_type;
   using ValueType = mat_value_type_t<MatType>;
 
@@ -250,16 +225,11 @@ void aggregate_kalman_update(
  * This function template performs one complete estimation step using the Aggregate Kalman
  * Filter method, which includes a prediction and measurement update step. This function is,
  * in general, more efficient than applying the prediction and update separately.
- * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept
- *         at least as a DiscreteLinearizedSystemType.
- * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
- *         the pp::TopologyConcept.
- * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam MeasurementBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
+ * \tparam LinearSystem A discrete state-space system.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside.
+ * \tparam BState A belief state with a unimodular gaussian representation.
+ * \tparam InputBelief A belief state with a unimodular gaussian representation.
+ * \tparam MeasurementBelief A belief state with a unimodular gaussian representation.
  * \param sys The discrete state-space system used in the state estimation.
  * \param state_space The state-space topology on which the state representations lie.
  * \param b_x As input, it stores the belief-state before the estimation step. As output, it stores
@@ -276,32 +246,24 @@ void aggregate_kalman_update(
  * \param t The current time (before the prediction).
  *
  */
-template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
-          typename InputBelief, typename MeasurementBelief>
+template <pp::Topology StateSpaceType,
+          DiscreteLinearSSS<StateSpaceType, DiscreteLinearizedSystemType>
+              LinearSystem,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          ContinuousBeliefState MeasurementBelief>
 void aggregate_kalman_filter_step(
-    const LinearSystem& sys, const StateSpaceType& state_space,
-    BeliefState& b_x, const InputBelief& b_u, const MeasurementBelief& b_z,
+    const LinearSystem& sys, const StateSpaceType& state_space, BState& b_x,
+    const InputBelief& b_u, const MeasurementBelief& b_z,
     hamiltonian_mat_t<mat_value_type_t<
         typename covariance_mat_traits<typename continuous_belief_state_traits<
-            BeliefState>::covariance_type>::matrix_type>>& Sc,
+            BState>::covariance_type>::matrix_type>>& Sc,
     hamiltonian_mat_t<mat_value_type_t<
         typename covariance_mat_traits<typename continuous_belief_state_traits<
-            BeliefState>::covariance_type>::matrix_type>>& Sm,
+            BState>::covariance_type>::matrix_type>>& Sm,
     typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
-  BOOST_CONCEPT_ASSERT(
-      (DiscreteLinearSSSConcept<LinearSystem, StateSpaceType,
-                                DiscreteLinearizedSystemType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
 
   using StateType = typename discrete_sss_traits<LinearSystem>::point_type;
@@ -309,7 +271,7 @@ void aggregate_kalman_filter_step(
       typename discrete_sss_traits<LinearSystem>::point_difference_type;
   using OutputType = typename discrete_sss_traits<LinearSystem>::output_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
   using MatType = typename covariance_mat_traits<CovType>::matrix_type;
   using ValueType = mat_value_type_t<MatType>;
 
@@ -381,11 +343,11 @@ void aggregate_kalman_filter_step(
  * \tparam AKFTransferFactory The factory type which can create this kalman predictor.
  * \tparam BeliefSpace The belief-space type on which to operate.
  */
-template <typename AKFTransferFactory, typename BeliefSpace>
+template <typename AKFTransferFactory, ContinuousBeliefSpace BSpace>
 struct AKF_belief_transfer {
-  using self = AKF_belief_transfer<AKFTransferFactory, BeliefSpace>;
-  using belief_space = BeliefSpace;
-  using belief_state = pp::topology_point_type_t<BeliefSpace>;
+  using self = AKF_belief_transfer<AKFTransferFactory, BSpace>;
+  using belief_space = BSpace;
+  using belief_state = pp::topology_point_type_t<BSpace>;
 
   using state_space_system = typename AKFTransferFactory::state_space_system;
   using state_space_system_ptr = std::shared_ptr<state_space_system>;
@@ -397,7 +359,7 @@ struct AKF_belief_transfer {
 
   using value_type = double;
   using covariance_type =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<belief_state>::covariance_type;
   using matrix_type =
       typename covariance_mat_traits<covariance_type>::matrix_type;
 
@@ -411,8 +373,6 @@ struct AKF_belief_transfer {
       gaussian_belief_state<input_type, io_covariance_type>;
   using output_belief_type =
       gaussian_belief_state<output_type, io_covariance_type>;
-
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<belief_state>));
 
   const AKFTransferFactory* factory;
 
@@ -609,9 +569,9 @@ class AKF_belief_transfer_factory : public serializable {
   using input_type =
       typename discrete_sss_traits<state_space_system>::input_type;
 
-  template <typename BeliefSpace>
+  template <BeliefSpace BSpace>
   struct predictor {
-    using type = AKF_belief_transfer<self, BeliefSpace>;
+    using type = AKF_belief_transfer<self, BSpace>;
   };
 
  private:
@@ -694,12 +654,11 @@ class AKF_belief_transfer_factory : public serializable {
    */
   double get_reupdate_threshold() const { return reupdate_threshold; }
 
-  template <typename BeliefSpace>
-  AKF_belief_transfer<self, BeliefSpace> create_predictor(
-      const BeliefSpace& b_space,
-      const pp::topology_point_type_t<BeliefSpace>* pb, const time_type& t,
-      const input_type& u) const {
-    return AKF_belief_transfer<self, BeliefSpace>(this, b_space, pb, t, u);
+  template <BeliefSpace BSpace>
+  AKF_belief_transfer<self, BSpace> create_predictor(
+      const BSpace& b_space, const pp::topology_point_type_t<BSpace>* pb,
+      const time_type& t, const input_type& u) const {
+    return AKF_belief_transfer<self, BSpace>(this, b_space, pb, t, u);
   }
 
   /*******************************************************************************

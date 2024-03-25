@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "14e62442d2295d9a447f64cbbdba55181e4188e512be9fe9cc1fc10929ef62f6",
+  "moduleFileHash": "a434c335e9e645dd5651b09f57882c37778fa7277f70680d16d1fb7f13f223ff",
   "flags": {
     "cmdRegistries": [
       "https://bcr.bazel.build/"
@@ -59,7 +59,7 @@
               "tagName": "@bazel_tools//tools/build_defs/repo:git.bzl%git_repository",
               "attributeValues": {
                 "build_file": "@//third_party:boost_graph_extras.BUILD",
-                "commit": "bdc86edbf2215474d8fa759054c9b592316f4ca3",
+                "commit": "1f65698a093787dcc9ce6eef1629e243182343a7",
                 "remote": "https://github.com/mikael-s-persson/boost_graph_ext_mp.git",
                 "name": "boost_graph_extras"
               },

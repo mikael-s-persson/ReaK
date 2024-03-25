@@ -111,41 +111,56 @@ struct sequential_trajectory_traits {
  * d = traj.travel_distance(pt,pt);  The travel distance (as of the distance-metric), along the trajectory (p), between
  *two points (pt,pt), can be obtained.
  */
-template <typename Traj, typename Space = typename sequential_trajectory_traits<Traj>::topology>
-concept SequentialTrajectory = TemporalSpace<Space> &&
-  requires (const Traj& traj, const topology_point_type_t<Space>& pt) {
-    { traj.travel_distance(pt, pt) } -> std::convertible_to<double>;
-  } &&
-  requires (const Traj& traj) {
-    { traj.begin_time_travel() } -> std::convertible_to<typename sequential_trajectory_traits<Traj>::point_time_iterator>;
-    { traj.end_time_travel() } -> std::convertible_to<typename sequential_trajectory_traits<Traj>::point_time_iterator>;
-  } &&
-  requires (double d,
-            typename sequential_trajectory_traits<Traj>::point_time_iterator& tit) {
-    { *tit } -> std::convertible_to<topology_point_type_t<Space>>;
-    tit = tit + d;
-    tit = d + tit;
-    tit += d;
-    tit = tit - d;
-    tit -= d;
-    { tit != tit } -> std::convertible_to<bool>;
-    { tit == tit } -> std::convertible_to<bool>;
-  } &&
-  requires (const Path& path) {
-    { path.begin_fraction_travel() } -> std::convertible_to<typename sequential_trajectory_traits<Traj>::point_fraction_iterator>;
-    { path.end_fraction_travel() } -> std::convertible_to<typename sequential_trajectory_traits<Traj>::point_fraction_iterator>;
-  } &&
-  requires (double d,
-            typename sequential_trajectory_traits<Traj>::point_fraction_iterator& fit) {
-    { *fit } -> std::convertible_to<topology_point_type_t<Space>>;
-    fit = fit + d;
-    fit = d + fit;
-    fit += d;
-    fit = fit - d;
-    fit -= d;
-    { fit != fit } -> std::convertible_to<bool>;
-    { fit == fit } -> std::convertible_to<bool>;
-  };
+template <typename Traj, typename Space = typename sequential_trajectory_traits<
+                             Traj>::topology>
+concept SequentialTrajectory = TemporalSpace<Space>&& requires(
+    const Traj& traj, const topology_point_type_t<Space>& pt) {
+  { traj.travel_distance(pt, pt) } -> std::convertible_to<double>;
+}
+&&requires(const Traj& traj) {
+  {
+    traj.begin_time_travel()
+    } -> std::convertible_to<
+        typename sequential_trajectory_traits<Traj>::point_time_iterator>;
+  {
+    traj.end_time_travel()
+    } -> std::convertible_to<
+        typename sequential_trajectory_traits<Traj>::point_time_iterator>;
+}
+&&requires(
+    double d,
+    typename sequential_trajectory_traits<Traj>::point_time_iterator& tit) {
+  { *tit } -> std::convertible_to<topology_point_type_t<Space>>;
+  tit = tit + d;
+  tit = d + tit;
+  tit += d;
+  tit = tit - d;
+  tit -= d;
+  { tit != tit } -> std::convertible_to<bool>;
+  { tit == tit } -> std::convertible_to<bool>;
+}
+&&requires(const Traj& traj) {
+  {
+    traj.begin_fraction_travel()
+    } -> std::convertible_to<
+        typename sequential_trajectory_traits<Traj>::point_fraction_iterator>;
+  {
+    traj.end_fraction_travel()
+    } -> std::convertible_to<
+        typename sequential_trajectory_traits<Traj>::point_fraction_iterator>;
+}
+&&requires(
+    double d,
+    typename sequential_trajectory_traits<Traj>::point_fraction_iterator& fit) {
+  { *fit } -> std::convertible_to<topology_point_type_t<Space>>;
+  fit = fit + d;
+  fit = d + fit;
+  fit += d;
+  fit = fit - d;
+  fit -= d;
+  { fit != fit } -> std::convertible_to<bool>;
+  { fit == fit } -> std::convertible_to<bool>;
+};
 
 }  // namespace ReaK::pp
 

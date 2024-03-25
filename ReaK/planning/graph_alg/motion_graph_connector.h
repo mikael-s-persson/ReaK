@@ -61,7 +61,7 @@ namespace ReaK::graph {
  * This callable class template implements a Motion-graph Connector.
  * A connector uses the accumulated distance to assess the local optimality of the wirings on a motion-graph.
  * The call operator accepts a visitor object to provide customized behavior because it can be used in many
- * different sampling-based motion-planners. The visitor must model the MotionGraphConnectorVisitorConcept concept.
+ * different sampling-based motion-planners. The visitor must model the MotionGraphConnectorVisitor concept.
  */
 struct motion_graph_connector {
 
@@ -74,9 +74,8 @@ struct motion_graph_connector {
    *
    * \tparam Graph The graph type that can store the generated roadmap, should model
    *         BidirectionalGraphConcept and MutableGraphConcept.
-   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-   * \tparam SBAStarVisitor The type of the node-connector visitor to be used, should model the
-   *MotionGraphConnectorVisitorConcept.
+   * \tparam Space The topology type that represents the free-space, should model BGL's Topology concept.
+   * \tparam Visitor The type of the node-connector visitor to be used.
    * \tparam PositionMap A property-map type that can store the position of each vertex.
    * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting
    *         vertex together with its optimal predecessor.
@@ -94,7 +93,7 @@ struct motion_graph_connector {
    *        the generated graph once the algorithm has finished.
    * \param super_space A topology (as defined by the Boost Graph Library). This topology
    *        should not include collision checking in its distance metric.
-   * \param conn_vis A node-connector visitor implementing the MotionGraphConnectorVisitorConcept. This is the
+   * \param conn_vis A node-connector visitor implementing the MotionGraphConnectorVisitor. This is the
    *        main point of customization and recording of results that the user can implement.
    * \param position A mapping that implements the MutablePropertyMap Concept. Also,
    *        the value_type of this map should be the same type as the topology's point_type.
@@ -108,20 +107,17 @@ struct motion_graph_connector {
    *        vertices of the graph that ought to be connected to a new
    *        vertex. The list should be sorted in order of increasing "distance".
    */
-  template <typename Graph, typename Topology, typename ConnectorVisitor,
+  template <typename Graph, pp::MetricSpace Space,
+            MotionGraphConnectorVisitor<Graph, Space> Visitor,
             typename PositionMap, typename DistanceMap, typename PredecessorMap,
             typename WeightMap, typename NcSelector>
   void operator()(const property_value_t<PositionMap>& p,
                   graph_vertex_t<Graph>& x_near,
                   graph_edge_bundle_t<Graph>& eprop, Graph& g,
-                  const Topology& super_space, const ConnectorVisitor& conn_vis,
+                  const Space& super_space, const Visitor& conn_vis,
                   PositionMap position, DistanceMap distance,
                   PredecessorMap predecessor, WeightMap weight,
                   NcSelector select_neighborhood) const {
-    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((
-        MotionGraphConnectorVisitorConcept<ConnectorVisitor, Graph, Topology>));
-
     using Vertex = graph_vertex_t<Graph>;
     using std::back_inserter;
 

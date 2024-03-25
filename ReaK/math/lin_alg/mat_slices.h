@@ -73,10 +73,10 @@ class mat_row_slice {
   static constexpr std::size_t dimensions = 0;
 
  private:
-  Matrix* m;           ///< Holds the reference to the matrix object.
-  int offset;          ///< Holds the offset from the start of the column.
-  int colIndex;        ///< Holds the index of column of the slice.
-  int count;           ///< Holds the number of elements of the column to take.
+  Matrix* m;     ///< Holds the reference to the matrix object.
+  int offset;    ///< Holds the offset from the start of the column.
+  int colIndex;  ///< Holds the index of column of the slice.
+  int count;     ///< Holds the number of elements of the column to take.
  public:
   /// Constructs the row-slice from a matrix M, taking the entire first column.
   /// \param aM The matrix from which to take the slice.
@@ -232,10 +232,10 @@ class mat_const_row_slice {
   static constexpr std::size_t dimensions = 0;
 
  private:
-  const Matrix* m;     ///< Holds the reference to the matrix object.
-  int offset;          ///< Holds the offset from the start of the column.
-  int colIndex;        ///< Holds the index of column of the slice.
-  int count;           ///< Holds the number of elements of the column to take.
+  const Matrix* m;  ///< Holds the reference to the matrix object.
+  int offset;       ///< Holds the offset from the start of the column.
+  int colIndex;     ///< Holds the index of column of the slice.
+  int count;        ///< Holds the number of elements of the column to take.
 
   explicit mat_const_row_slice(Matrix&&);
   mat_const_row_slice(Matrix&&, int, int, int);
@@ -336,10 +336,10 @@ class mat_col_slice {
   static constexpr std::size_t dimensions = 0;
 
  private:
-  Matrix* m;           ///< Holds the reference to the matrix object.
-  int offset;          ///< Holds the offset from the start of the row.
-  int rowIndex;        ///< Holds the index of row of the slice.
-  int count;           ///< Holds the number of elements of the row to take.
+  Matrix* m;     ///< Holds the reference to the matrix object.
+  int offset;    ///< Holds the offset from the start of the row.
+  int rowIndex;  ///< Holds the index of row of the slice.
+  int count;     ///< Holds the number of elements of the row to take.
  public:
   /// Constructs the column-slice from a matrix M, taking the entire first row.
   /// \param aM The matrix from which to take the slice.
@@ -494,10 +494,10 @@ class mat_const_col_slice {
   static constexpr std::size_t dimensions = 0;
 
  private:
-  const Matrix* m;     ///< Holds the reference to the matrix object.
-  int offset;          ///< Holds the offset from the start of the row.
-  int rowIndex;        ///< Holds the index of row of the slice.
-  int count;           ///< Holds the number of elements of the row to take.
+  const Matrix* m;  ///< Holds the reference to the matrix object.
+  int offset;       ///< Holds the offset from the start of the row.
+  int rowIndex;     ///< Holds the index of row of the slice.
+  int count;        ///< Holds the number of elements of the row to take.
 
   explicit mat_const_col_slice(Matrix&&);
   mat_const_col_slice(Matrix&&, int, int, int);

@@ -36,8 +36,8 @@
 #define RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
 #define RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
 
-#include "ReaK/topologies/spaces/ndof_spaces.h"
 #include "ReaK/topologies/spaces/hyperbox_topology.h"
+#include "ReaK/topologies/spaces/ndof_spaces.h"
 
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
 #include "ReaK/topologies/interpolation/linear_interp.h"

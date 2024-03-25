@@ -84,7 +84,8 @@ Matrix1 block_diag_mat(Matrix1 M1, const Matrix2& M2) {
 /// \param M1 first matrix (upper-left diagonal block).
 /// \param M2 second matrix (lower-right diagonal block).
 /// \return General block diagonal matrix.
-template <WritableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3>
+template <WritableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3>
 Matrix1 block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3) {
   append_block_diag(M1, M2);
   append_block_diag(M1, M3);
@@ -95,10 +96,10 @@ Matrix1 block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3) {
 /// \param M1 first matrix (upper-left diagonal block).
 /// \param M2 second matrix (lower-right diagonal block).
 /// \return General block diagonal matrix.
-template <WritableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4>
+template <WritableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4>
 Matrix1 block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
-               const Matrix4& M4) {
+                       const Matrix4& M4) {
   append_block_diag(M1, M2);
   append_block_diag(M1, M3);
   append_block_diag(M1, M4);
@@ -109,10 +110,11 @@ Matrix1 block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
 /// \param M1 first matrix (upper-left diagonal block).
 /// \param M2 second matrix (lower-right diagonal block).
 /// \return General block diagonal matrix.
-template <WritableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, ReadableMatrix Matrix5>
+template <WritableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          ReadableMatrix Matrix5>
 Matrix1 block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
-               const Matrix3& M4, const Matrix3& M5) {
+                       const Matrix3& M4, const Matrix3& M5) {
   append_block_diag(M1, M2);
   append_block_diag(M1, M3);
   append_block_diag(M1, M4);
@@ -127,10 +129,10 @@ Matrix1 block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
 /// \param MLR fourth matrix (lower-right block).
 /// \return Compound four-block matrix.
 /// \throw std::range_error if the dimensions of the four blocks don't allow proper juxtaposition.
-template <FullyWritableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4>
+template <FullyWritableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4>
 Matrix1 block_mat(Matrix1 MUL, const Matrix2& MUR, const Matrix3& MLL,
-          const Matrix4& MLR) {
+                  const Matrix4& MLR) {
   if ((MUL.get_row_count() != MUR.get_row_count()) ||
       (MUL.get_col_count() != MLL.get_col_count()) ||
       (MLL.get_row_count() != MLR.get_row_count()) ||

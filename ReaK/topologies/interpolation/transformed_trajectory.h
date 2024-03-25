@@ -96,8 +96,8 @@ struct transformed_point_iterator {
  *                 topology (of the InputTrajectory) and the given topology.
  */
 template <TemporalSpace Space, typename InputTrajectory, typename Mapping>
-  requires SpatialTrajectory<InputTrajectory>
-class transformed_trajectory : public shared_object {
+requires SpatialTrajectory<InputTrajectory> class transformed_trajectory
+    : public shared_object {
  public:
   using input_topology =
       typename spatial_trajectory_traits<InputTrajectory>::topology;

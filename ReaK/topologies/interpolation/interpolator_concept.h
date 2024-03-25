@@ -94,16 +94,24 @@ struct interpolator_factory_traits {
  *obtained.
  */
 template <typename Interp, typename Space, typename Metric>
-concept Interpolator = TemporalSpace<Space> && DistanceMetric<Metric, Space> &&
-  requires (Interp& interp, const topology_point_type_t<Space>& pt, const Metric& dist,
-            const topology_point_type_t<typename temporal_space_traits<Space>::time_topology>& t) {
-    interp.set_segment(&pt, &pt);
-    { interp.get_start_point() } -> std::convertible_to<const topology_point_type_t<Space>*>;
-    { interp.get_end_point() } -> std::convertible_to<const topology_point_type_t<Space>*>;
-    { interp.travel_distance_to(pt, dist) } -> std::convertible_to<double>;
-    { interp.travel_distance_from(pt, dist) } -> std::convertible_to<double>;
-    { interp.get_point_at_time(t) } -> std::convertible_to<topology_point_type_t<Space>>;
-  };
+concept Interpolator = TemporalSpace<Space>&& DistanceMetric<Metric, Space>&&
+requires(Interp& interp, const topology_point_type_t<Space>& pt,
+         const Metric& dist,
+         const topology_point_type_t<
+             typename temporal_space_traits<Space>::time_topology>& t) {
+  interp.set_segment(&pt, &pt);
+  {
+    interp.get_start_point()
+    } -> std::convertible_to<const topology_point_type_t<Space>*>;
+  {
+    interp.get_end_point()
+    } -> std::convertible_to<const topology_point_type_t<Space>*>;
+  { interp.travel_distance_to(pt, dist) } -> std::convertible_to<double>;
+  { interp.travel_distance_from(pt, dist) } -> std::convertible_to<double>;
+  {
+    interp.get_point_at_time(t)
+    } -> std::convertible_to<topology_point_type_t<Space>>;
+};
 
 /**
  * This concept class defines the requirements for a class to model a limited interpolator
@@ -127,11 +135,14 @@ concept Interpolator = TemporalSpace<Space> && DistanceMetric<Metric, Space> &&
  *the end-point at its associated time while respecting the limits.
  */
 template <typename Interp, typename Space, typename Metric>
-concept LimitedInterpolator = Interpolator<Interp, Space, Metric> &&
-  requires (const Interp& interp) {
-    { interp.get_minimum_travel_time() } -> std::convertible_to<topology_point_difference_type_t<typename temporal_space_traits<Space>::time_topology>>;
-    { interp.is_segment_feasible() } -> std::convertible_to<bool>;
-  };
+concept LimitedInterpolator =
+    Interpolator<Interp, Space, Metric>&& requires(const Interp& interp) {
+  {
+    interp.get_minimum_travel_time()
+    } -> std::convertible_to<topology_point_difference_type_t<
+        typename temporal_space_traits<Space>::time_topology>>;
+  { interp.is_segment_feasible() } -> std::convertible_to<bool>;
+};
 
 /**
  * This concept class defines the requirements for a class to model an interpolator
@@ -159,11 +170,17 @@ concept LimitedInterpolator = Interpolator<Interp, Space, Metric> &&
  *shared-pointer to a topology.
  */
 template <typename Factory, typename Space, typename Metric>
-concept InterpolatorFactory = Interpolator<typename interpolator_factory_traits<Factory>::interpolator_type, Space, Metric> &&
-  requires (Factory& factory, std::shared_ptr<Space> pspace, const typename interpolator_factory_traits<Factory>::point_type& pt) {
-    { factory.create_interpolator(&pt, &pt) } -> std::convertible_to<typename interpolator_factory_traits<Factory>::interpolator_type>;
-    factory.set_temporal_space(pspace);
-  };
+concept InterpolatorFactory = Interpolator<
+    typename interpolator_factory_traits<Factory>::interpolator_type, Space,
+    Metric>&&
+requires(Factory& factory, std::shared_ptr<Space> pspace,
+         const typename interpolator_factory_traits<Factory>::point_type& pt) {
+  {
+    factory.create_interpolator(&pt, &pt)
+    } -> std::convertible_to<
+        typename interpolator_factory_traits<Factory>::interpolator_type>;
+  factory.set_temporal_space(pspace);
+};
 
 }  // namespace ReaK::pp
 

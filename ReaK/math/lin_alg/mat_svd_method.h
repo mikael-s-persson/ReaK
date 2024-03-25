@@ -91,10 +91,11 @@ namespace ReaK {
  *
  * \author NIST
  */
-template <ReadableMatrix Matrix1, WritableMatrix Matrix2, WritableMatrix Matrix3,
-          WritableMatrix Matrix4>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2,
+          WritableMatrix Matrix3, WritableMatrix Matrix4>
 void decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
-                   mat_value_type_t<Matrix1> NumTol = 1E-15) requires DiagonalMatrix<Matrix3> {
+                   mat_value_type_t<Matrix1> NumTol = 1E-15) requires
+    DiagonalMatrix<Matrix3> {
   using ValueType = mat_value_type_t<Matrix1>;
   using std::abs;
   using std::sqrt;
@@ -603,8 +604,8 @@ mat_value_type_t<Matrix> two_norm_SVD(const Matrix& E) {
  * \return the two-norm.
  */
 template <ReadableMatrix Matrix>
-mat_value_type_t<Matrix> norm_2(
-    const Matrix& A, mat_value_type_t<Matrix> NumTol = 1E-15) {
+mat_value_type_t<Matrix> norm_2(const Matrix& A,
+                                mat_value_type_t<Matrix> NumTol = 1E-15) {
   using ValueType = mat_value_type_t<Matrix>;
 
   std::size_t nu = (A.get_row_count() > A.get_col_count() ? A.get_col_count()
@@ -675,8 +676,8 @@ int numrank_SVD(const Matrix& E, mat_value_type_t<Matrix> NumTol = 1E-8) {
  *
  * \author Mikael Persson
  */
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          WritableMatrix Matrix4>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, WritableMatrix Matrix4>
 void pseudoinvert_SVD(const Matrix1& U, const Matrix2& E, const Matrix3& V,
                       Matrix4& A_pinv,
                       mat_value_type_t<Matrix2> NumTol = 1E-15) {

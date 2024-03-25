@@ -64,22 +64,21 @@ namespace ReaK::ctrl {
  *
  * Models: SpatialTrajectoryConcept, PredictedTrajectoryConcept.
  *
- * \tparam BeliefTopology The topology of the belief-space, should model the BeliefSpaceConcept.
+ * \tparam BSpace The topology of the belief-space.
  * \tparam BeliefPredictorFactory The belief-state predictor factory type, should produce predictors that model
  *BeliefPredictorConcept.
  * \tparam InputTrajectory The input vector trajectory to provide input vectors at any given time, should model the
  *SpatialTrajectoryConcept over a vector-topology of input vectors.
  */
-template <typename BeliefTopology, typename BeliefPredictorFactory,
+template <BeliefSpace BSpace, typename BeliefPredictorFactory,
           typename InputTrajectory>
 class belief_predicted_trajectory
     : public pp::waypoint_container<pp::temporal_space<
-          BeliefTopology, pp::time_poisson_topology, pp::time_distance_only>> {
+          BSpace, pp::time_poisson_topology, pp::time_distance_only>> {
  public:
-  using self =
-      belief_predicted_trajectory<BeliefTopology, BeliefPredictorFactory,
-                                  InputTrajectory>;
-  using topology = pp::temporal_space<BeliefTopology, pp::time_poisson_topology,
+  using self = belief_predicted_trajectory<BSpace, BeliefPredictorFactory,
+                                           InputTrajectory>;
+  using topology = pp::temporal_space<BSpace, pp::time_poisson_topology,
                                       pp::time_distance_only>;
   using base_class_type = pp::waypoint_container<topology>;
 
@@ -121,10 +120,7 @@ class belief_predicted_trajectory
   using input_type =
       typename discrete_sss_traits<state_space_system>::input_type;
 
-  BOOST_CONCEPT_ASSERT((pp::TemporalSpaceConcept<topology>));
-  BOOST_CONCEPT_ASSERT((BeliefSpaceConcept<space_topology>));
-  BOOST_CONCEPT_ASSERT(
-      (BeliefPredictorConcept<predictor_type, space_topology>));
+  static_assert(BeliefPredictor<predictor_type, space_topology>);
 
   /**
    * This enum provides the different kinds of assumptions that can be made when making future
@@ -147,8 +143,8 @@ class belief_predicted_trajectory
 
   waypoint_descriptor updated_end;
 
-  virtual double travel_distance_impl(const point_type& a,
-                                      const point_type& b) const {
+  double travel_distance_impl(const point_type& a,
+                              const point_type& b) const override {
     using std::abs;
     return abs(b.time - a.time);
   }
@@ -176,9 +172,9 @@ class belief_predicted_trajectory
     return waypoint_pair(wpb_a.first, point_type(t, wpb_a.second->second.pt));
   }
 
-  virtual waypoint_pair move_time_diff_from_impl(
-      const point_type& a, const const_waypoint_bounds& wpb_a,
-      double dt) const {
+  waypoint_pair move_time_diff_from_impl(const point_type& a,
+                                         const const_waypoint_bounds& wpb_a,
+                                         double dt) const override {
     std::unique_lock<std::recursive_mutex> lock_this(pred_seg_mutex);
 
     if ((a.time + dt >= wpb_a.first->first) &&

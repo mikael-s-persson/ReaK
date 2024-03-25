@@ -82,8 +82,9 @@ struct tuple_sample_generator {
   tuple_sample_generator(Sampler& sampler, const Factory& factory)
       : p_sampler(&sampler), p_factory(&factory) {}
   template <typename PointType, typename SpaceType>
-  void operator()(PointType& result, const SpaceType& space) const {
+  int operator()(PointType& result, const SpaceType& space) const {
     generate_sample_impl(*p_sampler, result, space, *p_factory);
+    return int{};
   }
 };
 
@@ -92,8 +93,9 @@ struct tuple_sample_generator<Sampler, void> {
   Sampler* p_sampler;
   explicit tuple_sample_generator(Sampler& sampler) : p_sampler(&sampler) {}
   template <typename PointType, typename SpaceType>
-  void operator()(PointType& result, const SpaceType& space) const {
+  int operator()(PointType& result, const SpaceType& space) const {
     generate_sample_impl(*p_sampler, result, space);
+    return int{};
   }
 };
 
@@ -103,8 +105,9 @@ void generate_sample_impl(
     const Sampler& sampler, PointType& result,
     const metric_space_tuple<SpaceTuple, TupleDistMetric>& space,
     const Factory& factory) {
-  tuple_for_each(result, space,
-                 tuple_sample_generator<Sampler, Factory>(sampler, factory));
+  arithmetic_tuple_details::tuple_for_each(
+      result, space,
+      tuple_sample_generator<Sampler, Factory>(sampler, factory));
 }
 
 template <typename Sampler, typename PointType, typename SpaceTuple,
@@ -112,7 +115,8 @@ template <typename Sampler, typename PointType, typename SpaceTuple,
 void generate_sample_impl(
     const Sampler& sampler, PointType& result,
     const metric_space_tuple<SpaceTuple, TupleDistMetric>& space) {
-  tuple_for_each(result, space, tuple_sample_generator<Sampler>(sampler));
+  arithmetic_tuple_details::tuple_for_each(
+      result, space, tuple_sample_generator<Sampler>(sampler));
 }
 
 }  // namespace

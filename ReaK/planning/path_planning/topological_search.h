@@ -389,15 +389,15 @@ struct composite_NNsynchro {
 namespace detail {
 namespace {
 
-template <typename Topology, typename PositionMap>
+template <typename Space, typename PositionMap>
 struct linear_neighbor_search_distance_functor {
   using PointType = graph::property_value_t<PositionMap>;
   const PointType* p_point;
-  const Topology* p_space;
+  const Space* p_space;
   PositionMap position;
 
   linear_neighbor_search_distance_functor(const PointType* pPoint,
-                                          const Topology* pSpace,
+                                          const Space* pSpace,
                                           PositionMap aPosition)
       : p_point(pPoint), p_space(pSpace), position(aPosition) {}
 
@@ -441,14 +441,14 @@ struct linear_neighbor_search_base {
 
   /**
     * This function computes an approximation of the characteristic size of the vertices of a graph.
-    * \tparam Topology The topology type which contains the positions.
+    * \tparam Space The topology type which contains the positions.
     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
     * \param g A graph containing the vertices from which to find the nearest-neighbor.
     * \param space The topology objects which define the space in which the positions reside.
     * \param position The property-map which can retrieve the position associated to each vertex.
     */
-  template <typename Topology, typename PositionMap>
-  double get_characteristic_size(Graph& g, const Topology& space,
+  template <typename Space, typename PositionMap>
+  double get_characteristic_size(Graph& g, const Space& space,
                                  PositionMap position) const {
     auto [ui, ui_end] = vertices(g);
     std::size_t N = num_vertices(g);
@@ -482,30 +482,29 @@ struct linear_neighbor_search_base {
 
   /**
     * This call-operator finds the nearest vertex of a graph, to a given position.
-    * \tparam Topology The topology type which contains the positions.
+    * \tparam Space The topology type which contains the positions.
     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
     * \param p A position in the space, to which the nearest-neighbor is sought.
     * \param g A graph containing the vertices from which to find the nearest-neighbor.
     * \param space The topology objects which define the space in which the positions reside.
     * \param position The property-map which can retrieve the position associated to each vertex.
     */
-  template <typename Topology, typename PositionMap>
+  template <MetricSpace Space, typename PositionMap>
   graph::graph_vertex_t<Graph> operator()(
       const graph::property_value_t<PositionMap>& p, Graph& g,
-      const Topology& space, PositionMap position) const {
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+      const Space& space, PositionMap position) const {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
     auto [ui, ui_end] = vertices(g);
     return *(min_dist_linear_search(
         ui, ui_end,
-        detail::linear_neighbor_search_distance_functor<Topology, PositionMap>(
+        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, std::numeric_limits<double>::infinity()));
   }
 
   /**
     * This call-operator finds the nearest vertices of a graph, to a given position.
-    * \tparam Topology The topology type which contains the positions.
+    * \tparam Space The topology type which contains the positions.
     * \tparam PositionMap The property-map type which can store the position associated
     *         with each vertex.
     * \tparam OutputIterator The forward- output-iterator type which can contain the
@@ -521,18 +520,17 @@ struct linear_neighbor_search_base {
     *        considered a neighbor.
     * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
     */
-  template <typename Topology, typename PositionMap, typename OutputIterator>
+  template <MetricSpace Space, typename PositionMap, typename OutputIterator>
   OutputIterator operator()(
       const graph::property_value_t<PositionMap>& p,
-      OutputIterator output_first, Graph& g, const Topology& space,
+      OutputIterator output_first, Graph& g, const Space& space,
       PositionMap position, std::size_t max_neighbors = 1,
       double radius = std::numeric_limits<double>::infinity()) const {
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
     auto [ui, ui_end] = vertices(g);
     return min_dist_linear_search(
         ui, ui_end, output_first,
-        detail::linear_neighbor_search_distance_functor<Topology, PositionMap>(
+        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, max_neighbors, radius);
   }
@@ -540,7 +538,7 @@ struct linear_neighbor_search_base {
   /**
     * This call-operator finds the nearest vertex of a graph, to a given position.
     * \tparam ForwardIter A forward-iterator type.
-    * \tparam Topology The topology type which contains the positions.
+    * \tparam Space The topology type which contains the positions.
     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
     * \param p A position in the space, to which the nearest-neighbor is sought.
     * \param first The first of all candidates nearest-neighbors.
@@ -548,14 +546,13 @@ struct linear_neighbor_search_base {
     * \param space The topology objects which define the space in which the positions reside.
     * \param position The property-map which can retrieve the position associated to each vertex.
     */
-  template <typename ForwardIter, typename Topology, typename PositionMap>
+  template <typename ForwardIter, MetricSpace Space, typename PositionMap>
   ForwardIter operator()(const graph::property_value_t<PositionMap>& p,
                          ForwardIter first, ForwardIter last,
-                         const Topology& space, PositionMap position) const {
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+                         const Space& space, PositionMap position) const {
     return min_dist_linear_search(
         first, last,
-        detail::linear_neighbor_search_distance_functor<Topology, PositionMap>(
+        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, std::numeric_limits<double>::infinity());
   }
@@ -563,7 +560,7 @@ struct linear_neighbor_search_base {
   /**
     * This call-operator finds the nearest vertices of a graph, to a given position.
     * \tparam ForwardIter A forward-iterator type.
-    * \tparam Topology The topology type which contains the positions.
+    * \tparam Space The topology type which contains the positions.
     * \tparam PositionMap The property-map type which can store the position associated
     *         with each vertex.
     * \tparam OutputIterator The forward- output-iterator type which can contain the
@@ -580,17 +577,16 @@ struct linear_neighbor_search_base {
     *        considered a neighbor.
     * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
     */
-  template <typename ForwardIter, typename Topology, typename PositionMap,
+  template <typename ForwardIter, MetricSpace Space, typename PositionMap,
             typename OutputIterator>
   OutputIterator operator()(
       const graph::property_value_t<PositionMap>& p, ForwardIter first,
-      ForwardIter last, OutputIterator output_first, const Topology& space,
+      ForwardIter last, OutputIterator output_first, const Space& space,
       PositionMap position, std::size_t max_neighbors = 1,
       double radius = std::numeric_limits<double>::infinity()) const {
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     return min_dist_linear_search(
         first, last, output_first,
-        detail::linear_neighbor_search_distance_functor<Topology, PositionMap>(
+        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, max_neighbors, radius);
   }
@@ -617,14 +613,14 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
 
   /**
     * This function computes an approximation of the characteristic size of the vertices of a graph.
-    * \tparam Topology The topology type which contains the positions.
+    * \tparam Space The topology type which contains the positions.
     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
     * \param g A graph containing the vertices from which to find the nearest-neighbor.
     * \param space The topology objects which define the space in which the positions reside.
     * \param position The property-map which can retrieve the position associated to each vertex.
     */
-  template <typename Topology, typename PositionMap>
-  double get_characteristic_size(Graph& g, const Topology& space,
+  template <MetricSpace Space, typename PositionMap>
+  double get_characteristic_size(Graph& g, const Space& space,
                                  PositionMap position) const {
     auto [ui, ui_end] = vertices(g);
     std::size_t N = num_vertices(g);
@@ -681,18 +677,17 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
     *        considered a neighbor.
     * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
     */
-  template <typename Topology, typename PositionMap, typename OutputIterator>
+  template <MetricSpace Space, typename PositionMap, typename OutputIterator>
   std::pair<OutputIterator, OutputIterator> operator()(
       const graph::property_value_t<PositionMap>& p, OutputIterator pred_first,
-      OutputIterator succ_first, Graph& g, const Topology& space,
+      OutputIterator succ_first, Graph& g, const Space& space,
       PositionMap position, std::size_t max_neighbors = 1,
       double radius = std::numeric_limits<double>::infinity()) const {
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
     auto [ui, ui_end] = vertices(g);
     return min_dist_linear_search(
         p, ui, ui_end, pred_first, succ_first,
-        detail::linear_neighbor_search_distance_functor<Topology, PositionMap>(
+        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, max_neighbors, radius);
   }
@@ -700,7 +695,7 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
   /**
     * This call-operator finds the nearest vertices of a graph, to a given position.
     * \tparam ForwardIter A forward-iterator type.
-    * \tparam Topology The topology type which contains the positions.
+    * \tparam Space The topology type which contains the positions.
     * \tparam PositionMap The property-map type which can store the position associated
     *         with each vertex.
     * \tparam OutputIterator The forward- output-iterator type which can contain the
@@ -719,18 +714,16 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
     *        considered a neighbor.
     * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
     */
-  template <typename ForwardIter, typename Topology, typename PositionMap,
+  template <typename ForwardIter, MetricSpace Space, typename PositionMap,
             typename OutputIterator>
   std::pair<OutputIterator, OutputIterator> operator()(
       const graph::property_value_t<PositionMap>& p, ForwardIter first,
       ForwardIter last, OutputIterator pred_first, OutputIterator succ_first,
-      const Topology& space, PositionMap position,
-      std::size_t max_neighbors = 1,
+      const Space& space, PositionMap position, std::size_t max_neighbors = 1,
       double radius = std::numeric_limits<double>::infinity()) const {
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     return min_dist_linear_search(
         p, first, last, pred_first, succ_first,
-        detail::linear_neighbor_search_distance_functor<Topology, PositionMap>(
+        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, max_neighbors, radius);
   }
@@ -811,23 +804,23 @@ struct best_only_neighbor_search {
     * This function template computes the topological distance between a position and the position of a
     * vertex of a graph. This function is used as a helper to the call-operator overloads.
     * \tparam Vertex The vertex descriptor type.
-    * \tparam Topology The topology type which contains the positions.
+    * \tparam Space The topology type which contains the positions.
     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
     * \param p A position in the space.
     * \param u A vertex which has a position associated to it, via the position property-map.
     * \param space The topology objects which define the space in which the positions reside.
     * \param position The property-map which can retrieve the position associated to each vertex.
     */
-  template <typename Vertex, typename Topology, typename PositionMap>
+  template <typename Vertex, MetricSpace Space, typename PositionMap>
   double distance(const graph::property_value_t<PositionMap>& p, Vertex u,
-                  const Topology& space, PositionMap position) const {
+                  const Space& space, PositionMap position) const {
     return get(distance_metric, space)(p, get(position, u), space);
   }
 
-  template <typename Graph, typename Topology, typename PositionMap>
+  template <typename Graph, MetricSpace Space, typename PositionMap>
   void search(const graph::property_value_t<PositionMap>& p,
               graph::graph_vertex_t<Graph>& u, double& d_min, Graph& g,
-              const Topology& space, PositionMap position) {
+              const Space& space, PositionMap position) {
     using Vertex = graph::graph_vertex_t<Graph>;
     d_min = distance(p, u, space, position);
     while (out_degree(u, g)) {
@@ -851,7 +844,7 @@ struct best_only_neighbor_search {
     * This call-operator finds the nearest vertex of a graph, to a given position.
     * \tparam Graph The graph type which can contain the vertices, should
     *         model boost::VertexListGraphConcept and boost::IncidenceGraphConcept.
-    * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
+    * \tparam Space The topology type which contains the positions, should model the MetricSpaceConcept.
     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
     * \param p A position in the space, to which the nearest-neighbor is sought.
     * \param g A graph containing the vertices from which to find the nearest-neighbor,
@@ -859,13 +852,12 @@ struct best_only_neighbor_search {
     * \param space The topology objects which define the space in which the positions reside.
     * \param position The property-map which can retrieve the position associated to each vertex.
     */
-  template <typename Graph, typename Topology, typename PositionMap>
+  template <typename Graph, MetricSpace Space, typename PositionMap>
   graph::graph_vertex_t<Graph> operator()(
       const graph::property_value_t<PositionMap>& p, Graph& g,
-      const Topology& space, PositionMap position) {
+      const Space& space, PositionMap position) {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
     BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<Graph>));
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     using Vertex = graph::graph_vertex_t<Graph>;
     if (m_vertex_num_divider == 0) {
       m_vertex_num_divider = 1;
@@ -885,12 +877,12 @@ struct best_only_neighbor_search {
     return u_min;
   }
 
-  template <typename Graph, typename Topology, typename PositionMap,
+  template <typename Graph, MetricSpace Space, typename PositionMap,
             typename PriorityQueue, typename PriorityCompare>
   void search(const graph::property_value_t<PositionMap>& p,
               graph::graph_vertex_t<Graph> u, PriorityQueue& output,
               PriorityCompare p_compare, double d_min, Graph& g,
-              const Topology& space, PositionMap position,
+              const Space& space, PositionMap position,
               std::size_t max_neighbors, double& radius) {
     using Vertex = graph::graph_vertex_t<Graph>;
     if (m_compare(d_min, radius)) {
@@ -916,7 +908,7 @@ struct best_only_neighbor_search {
     * This call-operator finds the nearest vertices of a graph, to a given position.
     * \tparam Graph The graph type which can contain the vertices, should
     *         model boost::VertexListGraphConcept and boost::IncidenceGraphConcept.
-    * \tparam Topology The topology type which contains the positions.
+    * \tparam Space The topology type which contains the positions.
     * \tparam PositionMap The property-map type which can store the position associated
     *         with each vertex.
     * \tparam OutputIterator The forward- output-iterator type which can contain the
@@ -933,16 +925,15 @@ struct best_only_neighbor_search {
     *        considered a neighbor.
     * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
     */
-  template <typename Graph, typename Topology, typename PositionMap,
+  template <typename Graph, MetricSpace Space, typename PositionMap,
             typename OutputIterator>
   OutputIterator operator()(
       const graph::property_value_t<PositionMap>& p,
-      OutputIterator output_first, Graph& g, const Topology& space,
+      OutputIterator output_first, Graph& g, const Space& space,
       PositionMap position, std::size_t max_neighbors = 1,
       double radius = std::numeric_limits<double>::infinity()) {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
     BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<Graph>));
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     using Vertex = graph::graph_vertex_t<Graph>;
     const auto p_compare = [&](const auto& lhs, const auto& rhs) {
       return m_compare(lhs.first, rhs.first);

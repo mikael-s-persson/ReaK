@@ -60,7 +60,9 @@ namespace ReaK::pp {
  * \tparam Topology The topology on which the probability distribution function should apply.
  */
 template <typename Function, typename Space>
-concept ProbDistFunction = Topology<Space> && requires (const Function& pdf_function, const Space& space, const topology_point_type_t<Space>& p) {
+concept ProbDistFunction =
+    Topology<Space>&& requires(const Function& pdf_function, const Space& space,
+                               const topology_point_type_t<Space>& p) {
   { pdf_function(p, space) } -> std::convertible_to<double>;
 };
 
@@ -82,7 +84,9 @@ struct probability_distribution_traits {
 };
 
 template <typename Distribution>
-using probability_distribution_function_t = typename probability_distribution_traits<Distribution>::prob_dist_function_type;
+using probability_distribution_function_t =
+    typename probability_distribution_traits<
+        Distribution>::prob_dist_function_type;
 
 /**
  * This concept defines the requirements to fulfill in order to model a point distribution
@@ -103,10 +107,13 @@ using probability_distribution_function_t = typename probability_distribution_tr
  * \tparam ProbabilityDistribution The topology type to be checked for this concept.
  */
 template <typename Distribution>
-concept ProbabilityDistribution = Topology<Distribution> && ProbDistFunction<probability_distribution_function_t<Distribution>, Distribution> &&
-  requires (const Distribution& space) {
-    { get(prob_dist_function, space) } -> std::convertible_to<probability_distribution_function_t<Distribution>>;
-  };
+concept ProbabilityDistribution = Topology<Distribution>&& ProbDistFunction<
+    probability_distribution_function_t<Distribution>, Distribution>&&
+requires(const Distribution& space) {
+  {
+    get(prob_dist_function, space)
+    } -> std::convertible_to<probability_distribution_function_t<Distribution>>;
+};
 
 }  // namespace ReaK::pp
 

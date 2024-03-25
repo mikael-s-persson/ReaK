@@ -139,13 +139,16 @@ class mat_const_transpose_view {
 };
 
 template <typename Matrix>
-static constexpr bool is_square_matrix_v<mat_const_transpose_view<Matrix>> = is_square_matrix_v<Matrix>;
+static constexpr bool is_square_matrix_v<mat_const_transpose_view<Matrix>> =
+    is_square_matrix_v<Matrix>;
 
 template <typename Matrix>
-static constexpr bool is_symmetric_matrix_v<mat_const_transpose_view<Matrix>> = is_symmetric_matrix_v<Matrix>;
+static constexpr bool is_symmetric_matrix_v<mat_const_transpose_view<Matrix>> =
+    is_symmetric_matrix_v<Matrix>;
 
 template <typename Matrix>
-static constexpr bool is_diagonal_matrix_v<mat_const_transpose_view<Matrix>> = is_diagonal_matrix_v<Matrix>;
+static constexpr bool is_diagonal_matrix_v<mat_const_transpose_view<Matrix>> =
+    is_diagonal_matrix_v<Matrix>;
 
 template <WritableMatrix Matrix>
 class mat_transpose_view {
@@ -319,16 +322,20 @@ class mat_transpose_view {
 };
 
 template <typename Matrix>
-static constexpr bool is_fully_writable_matrix_v<mat_transpose_view<Matrix>> = is_fully_writable_matrix_v<Matrix>;
+static constexpr bool is_fully_writable_matrix_v<mat_transpose_view<Matrix>> =
+    is_fully_writable_matrix_v<Matrix>;
 
 template <typename Matrix>
-static constexpr bool is_square_matrix_v<mat_transpose_view<Matrix>> = is_square_matrix_v<Matrix>;
+static constexpr bool is_square_matrix_v<mat_transpose_view<Matrix>> =
+    is_square_matrix_v<Matrix>;
 
 template <typename Matrix>
-static constexpr bool is_symmetric_matrix_v<mat_transpose_view<Matrix>> = is_symmetric_matrix_v<Matrix>;
+static constexpr bool is_symmetric_matrix_v<mat_transpose_view<Matrix>> =
+    is_symmetric_matrix_v<Matrix>;
 
 template <typename Matrix>
-static constexpr bool is_diagonal_matrix_v<mat_transpose_view<Matrix>> = is_diagonal_matrix_v<Matrix>;
+static constexpr bool is_diagonal_matrix_v<mat_transpose_view<Matrix>> =
+    is_diagonal_matrix_v<Matrix>;
 
 template <WritableMatrix Matrix>
 auto transpose_view(Matrix& M) {

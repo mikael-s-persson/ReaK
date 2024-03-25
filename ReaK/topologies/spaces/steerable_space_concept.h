@@ -56,11 +56,10 @@ struct steerable_space_steer_record {
 // Get steer_record_type.
 template <Topology Space>
 struct steerable_space_steer_record<
-    Space,
-    std::void_t<decltype(std::get<1>(
-        std::declval<Space>().steer_position_toward(
-            std::declval<topology_point_type_t<Space>>(), 0.0,
-            std::declval<topology_point_type_t<Space>>())))>> {
+    Space, std::void_t<decltype(std::get<1>(
+               std::declval<Space>().steer_position_toward(
+                   std::declval<topology_point_type_t<Space>>(), 0.0,
+                   std::declval<topology_point_type_t<Space>>())))>> {
   using type = std::decay_t<decltype(std::get<1>(
       std::declval<std::add_const_t<Space>>().steer_position_toward(
           std::declval<topology_point_type_t<Space>>(), 0.0,
@@ -82,12 +81,10 @@ using steerable_space_steer_record_t =
  *from attempting to steer a fraction (d) away from one point (p1) to another (p3).
  */
 template <typename Space>
-concept SteerableSpace = Topology<Space> &&
-  requires (topology_point_type_t<Space>& p_out,
-            steerable_space_steer_record_t<Space>& st_rec,
-            const Space& space,
-            const topology_point_type_t<Space>& p_in,
-            double d) {
+concept SteerableSpace = Topology<Space>&& requires(
+    topology_point_type_t<Space>& p_out,
+    steerable_space_steer_record_t<Space>& st_rec, const Space& space,
+    const topology_point_type_t<Space>& p_in, double d) {
   std::tie(p_out, st_rec) = space.steer_position_toward(p_in, d, p_in);
 };
 

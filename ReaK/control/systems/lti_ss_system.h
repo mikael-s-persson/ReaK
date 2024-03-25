@@ -111,8 +111,8 @@ class lti_system_ss : public named_object {
    * \param aC The continuous-time system matrix C.
    * \param aD The continuous-time system matrix D.
    */
-  template <ReadableMatrix MatrixA, ReadableMatrix MatrixB, ReadableMatrix MatrixC,
-            ReadableMatrix MatrixD>
+  template <ReadableMatrix MatrixA, ReadableMatrix MatrixB,
+            ReadableMatrix MatrixC, ReadableMatrix MatrixD>
   lti_system_ss(const MatrixA& aA, const MatrixB& aB, const MatrixC& aC,
                 const MatrixD& aD, const std::string& aName = "")
       : A(aA), B(aB), C(aC), D(aD) {
@@ -218,8 +218,8 @@ class lti_system_ss : public named_object {
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template <WritableMatrix MatrixA, WritableMatrix MatrixB, WritableMatrix MatrixC,
-            WritableMatrix MatrixD>
+  template <WritableMatrix MatrixA, WritableMatrix MatrixB,
+            WritableMatrix MatrixC, WritableMatrix MatrixD>
   void get_linear_blocks(MatrixA& aA, MatrixB& aB, MatrixC& aC,
                          MatrixD& aD) const {
     aA = A;
@@ -235,8 +235,9 @@ class lti_system_ss : public named_object {
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template <WritableMatrix MatrixA, WritableMatrix MatrixB, WritableMatrix MatrixC,
-            WritableMatrix MatrixD, typename StateSpaceType>
+  template <WritableMatrix MatrixA, WritableMatrix MatrixB,
+            WritableMatrix MatrixC, WritableMatrix MatrixD,
+            typename StateSpaceType>
   void get_linear_blocks(MatrixA& aA, MatrixB& aB, MatrixC& aC, MatrixD& aD,
                          const StateSpaceType&, const time_type& = 0,
                          const point_type& = point_type(),

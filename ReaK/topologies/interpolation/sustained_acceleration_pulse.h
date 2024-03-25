@@ -42,8 +42,8 @@
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/interpolated_trajectory.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 
 #include "ReaK/topologies/interpolation/sustained_acceleration_pulse_detail.h"
 
@@ -79,10 +79,10 @@ PointType sap_interpolate(const PointType& a, const PointType& b, double t,
   using TimeSpaceType = typename temporal_space_traits<Space>::time_topology;
   static_assert(MetricSpace<SpaceType>);
   static_assert(TangentBundle<SpaceType, TimeSpaceType, 0, 1, 2>);
-  static_assert(SphereBoundedSpace<
-                        derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>);
-  static_assert(SphereBoundedSpace<
-                        derived_N_order_space_t<SpaceType, TimeSpaceType, 2>>);
+  static_assert(
+      SphereBoundedSpace<derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>);
+  static_assert(
+      SphereBoundedSpace<derived_N_order_space_t<SpaceType, TimeSpaceType, 2>>);
 
   using Space0 = derived_N_order_space_t<SpaceType, TimeSpaceType, 0>;
   using PointDiff0 = topology_point_difference_type_t<Space0>;
@@ -163,9 +163,8 @@ bool sap_is_in_bounds(const topology_point_type_t<Space>& pt,
 
   // Check if we can safely ramp-up to that acceleration:
   PointType result_a = pt;
-  detail::sap_constant_jerk_motion_impl<
-      max_derivation_order<Space, TimeSpace>>(result_a, dp2, space,
-                                                    t_space, dt2);
+  detail::sap_constant_jerk_motion_impl<max_derivation_order<Space, TimeSpace>>(
+      result_a, dp2, space, t_space, dt2);
   if (!space.is_in_bounds(result_a)) {
     return false;  // reject the sample.
   }
@@ -179,8 +178,8 @@ bool sap_is_in_bounds(const topology_point_type_t<Space>& pt,
 
     // Check if we can safely stop before the boundary:
     detail::svp_constant_accel_motion_impl<
-        max_derivation_order<Space, TimeSpace>>(result_a, dp1, space,
-                                                      t_space, dt1a);
+        max_derivation_order<Space, TimeSpace>>(result_a, dp1, space, t_space,
+                                                dt1a);
     if (!space.is_in_bounds(result_a)) {
       return false;  // reject the sample.
     }
@@ -188,9 +187,8 @@ bool sap_is_in_bounds(const topology_point_type_t<Space>& pt,
 
   // Check if we could have ramped-down from that inverse acceleration:
   PointType result_b = pt;
-  detail::sap_constant_jerk_motion_impl<
-      max_derivation_order<Space, TimeSpace>>(result_b, -dp2, space,
-                                                    t_space, -dt2);
+  detail::sap_constant_jerk_motion_impl<max_derivation_order<Space, TimeSpace>>(
+      result_b, -dp2, space, t_space, -dt2);
   if (!space.is_in_bounds(result_b)) {
     return false;  // reject the sample.
   }
@@ -204,8 +202,8 @@ bool sap_is_in_bounds(const topology_point_type_t<Space>& pt,
 
     // Check if we could have ramped up from within the boundary:
     detail::svp_constant_accel_motion_impl<
-        max_derivation_order<Space, TimeSpace>>(result_b, -dp1, space,
-                                                      t_space, -dt1b);
+        max_derivation_order<Space, TimeSpace>>(result_b, -dp1, space, t_space,
+                                                -dt1b);
     if (!space.is_in_bounds(result_b)) {
       return false;  // reject the sample.
     }
@@ -238,10 +236,10 @@ class sap_interpolator {
   using PointDiff2 = topology_point_difference_type_t<Space1>;
 
   static_assert(TangentBundle<SpaceType, TimeSpaceType, 0, 1, 2>);
-  static_assert(SphereBoundedSpace<
-                        derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>);
-  static_assert(SphereBoundedSpace<
-                        derived_N_order_space_t<SpaceType, TimeSpaceType, 2>>);
+  static_assert(
+      SphereBoundedSpace<derived_N_order_space_t<SpaceType, TimeSpaceType, 1>>);
+  static_assert(
+      SphereBoundedSpace<derived_N_order_space_t<SpaceType, TimeSpaceType, 2>>);
 
   static_assert(MetricSpace<Space0>);
   static_assert(MetricSpace<Space1>);
@@ -363,9 +361,9 @@ class sap_interpolator_factory : public serializable {
   double tolerance;
   unsigned int maximum_iterations;
 
-  explicit sap_interpolator_factory(
-      const std::shared_ptr<Space>& aSpace = {}, double aTolerance = 1e-6,
-      unsigned int aMaxIter = 60)
+  explicit sap_interpolator_factory(const std::shared_ptr<Space>& aSpace = {},
+                                    double aTolerance = 1e-6,
+                                    unsigned int aMaxIter = 60)
       : space(aSpace), tolerance(aTolerance), maximum_iterations(aMaxIter) {}
 
   void set_temporal_space(const std::shared_ptr<Space>& aSpace) {
@@ -412,13 +410,12 @@ template <TemporalSpace Space,
           DistanceMetric<Space> Metric =
               typename metric_space_traits<Space>::distance_metric_type>
 class sap_interp_traj
-    : public interpolated_trajectory<
-          Space, sap_interpolator_factory<Space>, Metric> {
+    : public interpolated_trajectory<Space, sap_interpolator_factory<Space>,
+                                     Metric> {
  public:
   using self = sap_interp_traj<Space, Metric>;
   using base_class_type =
-      interpolated_trajectory<Space, sap_interpolator_factory<Space>,
-                              Metric>;
+      interpolated_trajectory<Space, sap_interpolator_factory<Space>, Metric>;
 
   using point_type = typename base_class_type::point_type;
   using topology = typename base_class_type::topology;

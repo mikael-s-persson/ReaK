@@ -97,7 +97,7 @@ void mehrotra_method_on_augmented_form(
 
 TEST(SimplexMethod, BasicTests) {
   const double tolerance = 1e-6;
-  
+
   vect_n<double> c(2);
   mat<double, mat_structure::rectangular> A(1, 2);
   vect_n<double> b(1);
@@ -154,7 +154,7 @@ TEST(SimplexMethod, BasicTests) {
 
 TEST(MehrotraMethod, BasicTests) {
   const double tolerance = 1e-6;
-  
+
   vect_n<double> c(2);
   mat<double, mat_structure::rectangular> A(1, 2);
   vect_n<double> b(1);

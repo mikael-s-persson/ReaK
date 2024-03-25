@@ -80,7 +80,7 @@ static constexpr bool is_readable_matrix_v = ReadableMatrix<Matrix>;
  *  m(i,j) = e;   write access to the elements of m by a row and column index.
  */
 template <typename Matrix>
-concept WritableMatrix = ReadableMatrix<Matrix> && requires(Matrix& m) {
+concept WritableMatrix = ReadableMatrix<Matrix>&& requires(Matrix& m) {
   { m(0, 0) } -> std::assignable_from<mat_value_type_t<Matrix>>;
 };
 
@@ -97,11 +97,11 @@ static constexpr bool is_writable_matrix_v = WritableMatrix<Matrix>;
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
 template <typename Matrix>
-static constexpr bool is_fully_writable_matrix_v =
-    false;
+static constexpr bool is_fully_writable_matrix_v = false;
 
 template <typename Matrix>
-concept FullyWritableMatrix = WritableMatrix<Matrix> && is_fully_writable_matrix_v<Matrix>;
+concept FullyWritableMatrix =
+    WritableMatrix<Matrix>&& is_fully_writable_matrix_v<Matrix>;
 
 /**
  * This concept will fail to be instantiated if the Matrix class does not model
@@ -113,7 +113,8 @@ concept FullyWritableMatrix = WritableMatrix<Matrix> && is_fully_writable_matrix
  *  m.set_row_count(s)  can set the number of rows of the matrix.
  */
 template <typename Matrix>
-concept RowResizableMatrix = ReadableMatrix<Matrix> && requires(Matrix& m, int sz) {
+concept RowResizableMatrix = ReadableMatrix<Matrix>&& requires(Matrix& m,
+                                                               int sz) {
   m.set_row_count(sz);
 };
 
@@ -131,7 +132,8 @@ static constexpr bool is_row_resizable_matrix_v = RowResizableMatrix<Matrix>;
  *  m.set_col_count(s)  can set the number of columns of the matrix.
  */
 template <typename Matrix>
-concept ColResizableMatrix = ReadableMatrix<Matrix> && requires(Matrix& m, int sz) {
+concept ColResizableMatrix = ReadableMatrix<Matrix>&& requires(Matrix& m,
+                                                               int sz) {
   m.set_col_count(sz);
 };
 
@@ -148,7 +150,7 @@ template <typename Matrix>
 static constexpr bool is_square_matrix_v = false;
 
 template <typename Matrix>
-concept SquareMatrix = ReadableMatrix<Matrix> && is_square_matrix_v<Matrix>;
+concept SquareMatrix = ReadableMatrix<Matrix>&& is_square_matrix_v<Matrix>;
 
 /**
  * This meta-function evaluates whether a Matrix class is a symmetric matrix. The implementer of
@@ -159,7 +161,7 @@ template <typename Matrix>
 static constexpr bool is_symmetric_matrix_v = false;
 
 template <typename Matrix>
-concept SymmetricMatrix = SquareMatrix<Matrix> && is_symmetric_matrix_v<Matrix>;
+concept SymmetricMatrix = SquareMatrix<Matrix>&& is_symmetric_matrix_v<Matrix>;
 
 /**
  * This meta-function evaluates whether a Matrix class is a diagonal matrix. The implementer of
@@ -170,7 +172,7 @@ template <typename Matrix>
 static constexpr bool is_diagonal_matrix_v = false;
 
 template <typename Matrix>
-concept DiagonalMatrix = SymmetricMatrix<Matrix> && is_diagonal_matrix_v<Matrix>;
+concept DiagonalMatrix = SymmetricMatrix<Matrix>&& is_diagonal_matrix_v<Matrix>;
 
 }  // namespace ReaK
 

@@ -118,12 +118,11 @@ auto rrt_get_or_create_root(Graph& g, const Topology& space, RRTVisitor vis,
  * This function template is the unidirectional version of the RRT algorithm (refer to rr_tree.hpp dox).
  * \tparam Graph A mutable graph type that will represent the generated tree, should model boost::VertexListGraphConcept
  *and boost::MutableGraphConcept
- * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist,
+ * \tparam Space A topology type that will represent the space in which the configurations (or positions) exist,
  *should model BGL's Topology concept
- * \tparam RRTVisitor An RRT visitor type that implements the customizations to this RRT algorithm, should model the
- *RRTVisitorConcept.
+ * \tparam Visitor An RRT visitor type that implements the customizations to this RRT algorithm.
  * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
- * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
+ * \tparam Sampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
  * \tparam NNFinder A functor type which can perform a nearest-neighbor search of a point to a graph in the topology
  *(see topological_search.hpp).
  * \param g A mutable graph that should initially store the starting
@@ -144,15 +143,12 @@ auto rrt_get_or_create_root(Graph& g, const Topology& space, RRTVisitor vis,
  *        nearest neighbor search of a point to a graph in the topology. (see topological_search.hpp)
  *
  */
-template <typename Graph, typename Topology, typename RRTVisitor,
-          typename PositionMap, typename RandomSampler, typename NNFinder>
-void generate_rrt(Graph& g, const Topology& space, RRTVisitor vis,
-                  PositionMap position, RandomSampler get_sample,
+template <typename Graph, pp::Topology Space, RRTVisitor<Graph, Space> Visitor,
+          typename PositionMap, pp::RandomSampler<Space> Sampler,
+          typename NNFinder>
+void generate_rrt(Graph& g, const Space& space, Visitor vis,
+                  PositionMap position, Sampler get_sample,
                   NNFinder find_nearest_neighbor) {
-  BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor, Graph, Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (ReaK::pp::RandomSamplerConcept<RandomSampler, Topology>));
-
   detail::rrt_get_or_create_root(g, space, vis, get_sample, position);
 
   while (vis.keep_going()) {
@@ -164,10 +160,11 @@ void generate_rrt(Graph& g, const Topology& space, RRTVisitor vis,
 }
 
 struct rrt_generator {
-  template <typename Graph, typename Topology, typename RRTVisitor,
-            typename PositionMap, typename RandomSampler, typename NNFinder>
-  void operator()(Graph& g, const Topology& space, RRTVisitor vis,
-                  PositionMap position, RandomSampler get_sample,
+  template <typename Graph, pp::Topology Space,
+            RRTVisitor<Graph, Space> Visitor, typename PositionMap,
+            pp::RandomSampler<Space> Sampler, typename NNFinder>
+  void operator()(Graph& g, const Space& space, Visitor vis,
+                  PositionMap position, Sampler get_sample,
                   NNFinder find_nearest_neighbor) {
     generate_rrt(g, space, vis, position, get_sample, find_nearest_neighbor);
   }
@@ -177,12 +174,11 @@ struct rrt_generator {
  * This function is the bidirectional version of the RRT algorithm (refer to rr_tree.hpp dox).
  * \tparam Graph A mutable graph type that will represent the generated tree, should model boost::VertexListGraphConcept
  *and boost::MutableGraphConcept
- * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist,
+ * \tparam Space A topology type that will represent the space in which the configurations (or positions) exist,
  *should model BGL's Topology concept
- * \tparam BiRRTVisitor A Bi-RRT visitor type that implements the customizations to this Bi-RRT algorithm, should model
- *the BiRRTVisitorConcept.
+ * \tparam Visitor A Bi-RRT visitor type that implements the customizations to this Bi-RRT algorithm.
  * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
- * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
+ * \tparam Sampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
  * \tparam NNFinder A functor type which can perform a nearest-neighbor search of a point to a graph in the topology
  *(see topological_search.hpp).
  * \param g1 A mutable graph that should initially store the starting
@@ -207,16 +203,13 @@ struct rrt_generator {
  *        topology. (see topological_search.hpp)
  *
  */
-template <typename Graph, typename Topology, typename BiRRTVisitor,
-          typename PositionMap, typename RandomSampler, typename NNFinder>
-void generate_bidirectional_rrt(Graph& g1, Graph& g2, const Topology& space,
-                                BiRRTVisitor vis, PositionMap position,
-                                RandomSampler get_sample,
+template <typename Graph, pp::Topology Space,
+          BiRRTVisitor<Graph, Space> Visitor, typename PositionMap,
+          pp::RandomSampler<Space> Sampler, typename NNFinder>
+void generate_bidirectional_rrt(Graph& g1, Graph& g2, const Space& space,
+                                Visitor vis, PositionMap position,
+                                Sampler get_sample,
                                 NNFinder find_nearest_neighbor) {
-  BOOST_CONCEPT_ASSERT((BiRRTVisitorConcept<BiRRTVisitor, Graph, Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (ReaK::pp::RandomSamplerConcept<RandomSampler, Topology>));
-
   using Vertex = graph_vertex_t<Graph>;
   struct VTarget {
     Vertex v;
@@ -279,10 +272,11 @@ void generate_bidirectional_rrt(Graph& g1, Graph& g2, const Topology& space,
 }
 
 struct birrt_generator {
-  template <typename Graph, typename Topology, typename BiRRTVisitor,
-            typename PositionMap, typename RandomSampler, typename NNFinder>
-  void operator()(Graph& g1, Graph& g2, const Topology& space, BiRRTVisitor vis,
-                  PositionMap position, RandomSampler get_sample,
+  template <typename Graph, pp::Topology Space,
+            BiRRTVisitor<Graph, Space> Visitor, typename PositionMap,
+            pp::RandomSampler<Space> Sampler, typename NNFinder>
+  void operator()(Graph& g1, Graph& g2, const Space& space, Visitor vis,
+                  PositionMap position, Sampler get_sample,
                   NNFinder find_nearest_neighbor) {
     generate_bidirectional_rrt(g1, g2, space, vis, position, get_sample,
                                find_nearest_neighbor);

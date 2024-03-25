@@ -250,31 +250,28 @@ void adams_BM5_integrate_impl(
  * This class is a factory for integrators that use the 5th Order Adams-Bashforth-Moulton Method. Adams
  * methods are a type of multi-step predictor-corrector algorithm for numerical integration in which
  * the prediction step is first performed and then a fixed number of correction steps.
- * \tparam TemporalSpace The temporal space type (space-time topology) on which the computed trajectories lay.
- * \tparam StateSpaceSystem The continuous-time state-space system type to integrate (governing equations), see
- * SSSystemConcept.
- * \tparam InputTrajectory The trajectory type which can deliver input vectors at given times, see
- * pp::SpatialTrajectoryConcept.
+ * \tparam Space The temporal space type (space-time topology) on which the computed trajectories lay.
+ * \tparam StateSpaceSystem The continuous-time state-space system type to integrate (governing equations).
+ * \tparam InputTrajectory The trajectory type which can deliver input vectors at given times.
  */
-template <typename TemporalSpace, typename StateSpaceSystem,
-          typename InputTrajectory>
+template <pp::TemporalSpace Space,
+          SSSystem<typename pp::temporal_space_traits<Space>::space_topology>
+              StateSpaceSystem,
+          pp::SpatialTrajectory InputTrajectory>
 class adams_BM5_integrator_factory : public named_object {
  public:
-  using self = adams_BM5_integrator_factory<TemporalSpace, StateSpaceSystem,
-                                            InputTrajectory>;
-  using topology = TemporalSpace;
-  using point_type = typename pp::topology_traits<TemporalSpace>::point_type;
+  using self =
+      adams_BM5_integrator_factory<Space, StateSpaceSystem, InputTrajectory>;
+  using topology = Space;
+  using point_type = typename pp::topology_traits<Space>::point_type;
 
   using space_topology =
-      typename pp::temporal_space_traits<TemporalSpace>::space_topology;
+      typename pp::temporal_space_traits<Space>::space_topology;
   using time_topology =
-      typename pp::temporal_space_traits<TemporalSpace>::time_topology;
-
-  BOOST_CONCEPT_ASSERT((pp::TemporalSpaceConcept<TemporalSpace>));
-  BOOST_CONCEPT_ASSERT((SSSystemConcept<StateSpaceSystem, space_topology>));
+      typename pp::temporal_space_traits<Space>::time_topology;
 
  private:
-  std::shared_ptr<const TemporalSpace> m_t_space;
+  std::shared_ptr<const Space> m_t_space;
   std::shared_ptr<const StateSpaceSystem> m_sys;
   std::shared_ptr<const InputTrajectory> m_input_traj;
   double m_time_step;
@@ -335,12 +332,9 @@ class adams_BM5_integrator_factory : public named_object {
    */
   explicit adams_BM5_integrator_factory(
       const std::string& aName,
-      const std::shared_ptr<const TemporalSpace>& aTSpace =
-          std::shared_ptr<const TemporalSpace>(),
-      const std::shared_ptr<const StateSpaceSystem>& aSystem =
-          std::shared_ptr<const StateSpaceSystem>(),
-      const std::shared_ptr<const InputTrajectory>& aInputTraj =
-          std::shared_ptr<const InputTrajectory>(),
+      const std::shared_ptr<const Space>& aTSpace = {},
+      const std::shared_ptr<const StateSpaceSystem>& aSystem = {},
+      const std::shared_ptr<const InputTrajectory>& aInputTraj = {},
       double aTimeStep = 1e-3, std::size_t aCorrectionCount = 3)
       : named_object(),
         m_t_space(aTSpace),
@@ -355,14 +349,14 @@ class adams_BM5_integrator_factory : public named_object {
    * Sets the pointer to the temporal space used by this integrator factory.
    * \param aTSpace A pointer to the temporal space used by this integrator factory.
    */
-  void set_temporal_space(const std::shared_ptr<const TemporalSpace>& aTSpace) {
+  void set_temporal_space(const std::shared_ptr<const Space>& aTSpace) {
     m_t_space = aTSpace;
   }
   /**
    * Returns a pointer to the temporal space used by this integrator factory.
    * \return A pointer to the temporal space used by this integrator factory.
    */
-  const std::shared_ptr<const TemporalSpace>& get_temporal_space() const {
+  const std::shared_ptr<const Space>& get_temporal_space() const {
     return m_t_space;
   }
 

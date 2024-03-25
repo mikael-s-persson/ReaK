@@ -45,7 +45,7 @@ http_archive(
 git_repository(
     name = "boost_graph_extras",
     build_file = "@//third_party:boost_graph_extras.BUILD",
-    commit = "bdc86edbf2215474d8fa759054c9b592316f4ca3",
+    commit = "1f65698a093787dcc9ce6eef1629e243182343a7",
     remote = "https://github.com/mikael-s-persson/boost_graph_ext_mp.git",
 )
 

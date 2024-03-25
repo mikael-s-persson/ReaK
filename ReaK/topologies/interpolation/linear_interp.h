@@ -41,8 +41,8 @@
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/interpolated_trajectory.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 
 #include <cmath>
 #include <limits>
@@ -306,16 +306,17 @@ template <TemporalSpace Space,
           DistanceMetric<Space> Metric =
               typename metric_space_traits<Space>::distance_metric_type>
 class linear_interp_traj
-    : public interpolated_trajectory<
-          Space, linear_interpolator_factory<Space>, Metric> {
+    : public interpolated_trajectory<Space, linear_interpolator_factory<Space>,
+                                     Metric> {
  public:
   static_assert(TangentBundle<
-          typename temporal_space_traits<Space>::space_topology,
-          typename temporal_space_traits<Space>::time_topology, 0, 1>);
+                typename temporal_space_traits<Space>::space_topology,
+                typename temporal_space_traits<Space>::time_topology, 0, 1>);
 
   using self = linear_interp_traj<Space, Metric>;
   using base_class_type =
-      interpolated_trajectory<Space, linear_interpolator_factory<Space>, Metric>;
+      interpolated_trajectory<Space, linear_interpolator_factory<Space>,
+                              Metric>;
 
   using point_type = typename base_class_type::point_type;
   using topology = typename base_class_type::topology;

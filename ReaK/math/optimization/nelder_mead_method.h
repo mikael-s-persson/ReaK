@@ -148,7 +148,8 @@ void nelder_mead_method_impl(Function f, std::multimap<T, Vector>& pts,
  * \param rho The contraction coefficient (default 0.5).
  * \param sigma The shrink coefficient (default 0.5).
  */
-template <typename Function, WritableVector Vector, typename T, typename ForwardIter>
+template <typename Function, WritableVector Vector, typename T,
+          typename ForwardIter>
 void nelder_mead_method(ForwardIter first, ForwardIter last, Function f,
                         Vector& c, T tol = T(1e-6), T alpha = T(1.0),
                         T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {

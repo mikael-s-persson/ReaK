@@ -68,17 +68,20 @@ namespace ReaK::pp {
  */
 template <typename Space>
 concept ReversibleSpace =
-  (MetricSpace<Space> || SteerableSpace<Space>) &&
-  (!MetricSpace<Space> ||
-    requires (const Space& s, const topology_point_type_t<Space>& p, double d) {
-      { s.move_position_back_to(p, d, p) } -> std::convertible_to<topology_point_type_t<Space>>;
-    }) &&
-  (!SteerableSpace<Space> ||
-    requires (topology_point_type_t<Space>& p_out,
-              steerable_space_steer_record_t<Space>& st_rec,
-              const Space& s, const topology_point_type_t<Space>& p, double d) {
-      std::tie(p_out, st_rec) = s.steer_position_back_to(p, d, p);
-    });
+    (MetricSpace<Space> || SteerableSpace<Space>)&&(
+        !MetricSpace<Space> ||
+        requires(const Space& s, const topology_point_type_t<Space>& p,
+                 double d) {
+          {
+            s.move_position_back_to(p, d, p)
+            } -> std::convertible_to<topology_point_type_t<Space>>;
+        }) &&
+    (!SteerableSpace<Space> ||
+     requires(topology_point_type_t<Space> & p_out,
+              steerable_space_steer_record_t<Space>& st_rec, const Space& s,
+              const topology_point_type_t<Space>& p, double d) {
+       std::tie(p_out, st_rec) = s.steer_position_back_to(p, d, p);
+     });
 
 template <typename Space>
 static constexpr bool is_reversible_space_v = ReversibleSpace<Space>;

@@ -35,7 +35,7 @@
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
-#include "ReaK/topologies/spaces/Ndof_spaces.h"
+#include "ReaK/topologies/spaces/ndof_spaces.h"
 
 #include "ReaK/topologies/spaces/manip_free_dynamic_workspace.h"
 #include "ReaK/topologies/spaces/manip_free_workspace.h"

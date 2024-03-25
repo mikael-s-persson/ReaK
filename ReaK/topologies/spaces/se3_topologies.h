@@ -64,9 +64,8 @@ struct se3_0th_order_topology {
           differentiable_space<time_topology,
                                arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
                                Metric>,
-          differentiable_space<time_topology,
-                               arithmetic_tuple<quaternion_topology<T>>,
-                               Metric>>,
+          differentiable_space<
+              time_topology, arithmetic_tuple<quaternion_topology<T>>, Metric>>,
       Metric>;
 };
 
@@ -99,9 +98,8 @@ auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                            TupleMetric>(
           arithmetic_tuple(hyperbox_topology<vect<T, 3>>(
               aName + "_pos", aMinCorner, aMaxCorner))),
-      differentiable_space<time_topology,
-                           arithmetic_tuple<quaternion_topology<T>>,
-                           TupleMetric>(
+      differentiable_space<
+          time_topology, arithmetic_tuple<quaternion_topology<T>>, TupleMetric>(
           arithmetic_tuple(quaternion_topology<T>(aName + "_quat"))))};
 }
 
@@ -251,18 +249,15 @@ auto make_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
           ang_accel_3D_topology<T>(aName + "_ang_acc", aMaxAngularAccel))))};
 }
 
-template <typename T, int Order,
-          typename Metric = euclidean_tuple_distance>
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
 struct se3_topology {
   using type = std::conditional_t<
       (Order == 0), se3_0th_order_topology_t<T, Metric>,
-      std::conditional_t<(Order == 1),
-                         se3_1st_order_topology_t<T, Metric>,
+      std::conditional_t<(Order == 1), se3_1st_order_topology_t<T, Metric>,
                          se3_2nd_order_topology_t<T, Metric>>>;
 };
 
-template <typename T, int Order,
-          typename Metric = euclidean_tuple_distance>
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
 using se3_topology_t = typename se3_topology<T, Order, Metric>::type;
 
 template <typename SE3Space>
@@ -278,8 +273,7 @@ struct is_se3_space<metric_space_tuple<
                              arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
                              Metric>,
         differentiable_space<time_topology,
-                             arithmetic_tuple<quaternion_topology<T>>,
-                             Metric>>,
+                             arithmetic_tuple<quaternion_topology<T>>, Metric>>,
     Metric>> : std::true_type {};
 
 template <typename T, typename Metric>
@@ -574,20 +568,16 @@ auto make_rl_se3_space(const std::string& aName, const vect<T, 3>& aMinCorner,
                                          aMaxAngularJerk))))};
 }
 
-template <typename T, int Order,
-          typename Metric = euclidean_tuple_distance>
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
 struct se3_rl_topology {
   using type = std::conditional_t<
       (Order == 0), se3_0th_order_rl_topology_t<T, Metric>,
-      std::conditional_t<(Order == 1),
-                         se3_1st_order_rl_topology_t<T, Metric>,
+      std::conditional_t<(Order == 1), se3_1st_order_rl_topology_t<T, Metric>,
                          se3_2nd_order_rl_topology_t<T, Metric>>>;
 };
 
-template <typename T, int Order,
-          typename Metric = euclidean_tuple_distance>
-using se3_rl_topology_t =
-    typename se3_rl_topology<T, Order, Metric>::type;
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
+using se3_rl_topology_t = typename se3_rl_topology<T, Order, Metric>::type;
 
 template <typename SE3Space>
 struct is_rate_limited_se3_space : std::false_type {};
@@ -642,8 +632,7 @@ struct get_rate_limited_space<metric_space_tuple<
                              arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
                              Metric>,
         differentiable_space<time_topology,
-                             arithmetic_tuple<quaternion_topology<T>>,
-                             Metric>>,
+                             arithmetic_tuple<quaternion_topology<T>>, Metric>>,
     Metric>> {
   using type = metric_space_tuple<
       arithmetic_tuple<
@@ -727,9 +716,8 @@ struct get_rate_illimited_space<metric_space_tuple<
           differentiable_space<time_topology,
                                arithmetic_tuple<hyperbox_topology<vect<T, 3>>>,
                                Metric>,
-          differentiable_space<time_topology,
-                               arithmetic_tuple<quaternion_topology<T>>,
-                               Metric>>,
+          differentiable_space<
+              time_topology, arithmetic_tuple<quaternion_topology<T>>, Metric>>,
       Metric>;
 };
 

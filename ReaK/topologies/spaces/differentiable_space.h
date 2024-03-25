@@ -169,7 +169,8 @@ class differentiable_space
    * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
    * \tparam IndependentSpace2 The independent space against which the differentiation is done (e.g. time).
    */
-  template <int Idx, std::convertible_to<IndependentSpace> IndependentSpace2 = IndependentSpace>
+  template <int Idx, std::convertible_to<IndependentSpace> IndependentSpace2 =
+                         IndependentSpace>
   struct space {
     using type = arithmetic_tuple_element_t<Idx, SpaceTuple>;
   };

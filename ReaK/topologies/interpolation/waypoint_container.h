@@ -59,8 +59,7 @@ template <bool IsTemporalSpace, MetricSpace Space,
               typename metric_space_traits<Space>::distance_metric_type>
 class waypoint_container_base : public shared_object {
  public:
-  using self =
-      waypoint_container_base<IsTemporalSpace, Space, Metric>;
+  using self = waypoint_container_base<IsTemporalSpace, Space, Metric>;
   using topology = Space;
   using distance_metric = Metric;
   using point_type = typename topology_traits<Space>::point_type;
@@ -264,8 +263,7 @@ class waypoint_container_base : public shared_object {
  * \tparam MetricBase The distance metric used to assess the distance between points.
  */
 template <MetricSpace Space, DistanceMetric<Space> MetricBase>
-class waypoint_container_base<true, Space, MetricBase>
-    : public shared_object {
+class waypoint_container_base<true, Space, MetricBase> : public shared_object {
  public:
   using self = waypoint_container_base<true, Space, MetricBase>;
   using topology = Space;
@@ -764,13 +762,14 @@ class waypoint_container_base<true, Space, MetricBase>
  * \tparam Space The topology type on which the points and the path can reside.
  * \tparam Metric The distance metric used to assess the distance between points.
  */
-template <MetricSpace Space, DistanceMetric<Space> Metric = default_distance_metric>
+template <MetricSpace Space,
+          DistanceMetric<Space> Metric = default_distance_metric>
 class waypoint_container
     : public waypoint_container_base<TemporalSpace<Space>, Space, Metric> {
  public:
   using self = waypoint_container<Space, Metric>;
-  using base_class_type = waypoint_container_base<TemporalSpace<Space>,
-                                                  Space, Metric>;
+  using base_class_type =
+      waypoint_container_base<TemporalSpace<Space>, Space, Metric>;
 
   using container_type = typename base_class_type::container_type;
   using topology = typename base_class_type::topology;

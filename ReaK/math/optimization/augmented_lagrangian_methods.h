@@ -210,7 +210,7 @@ void bcl_newton_method_tr_impl(
         sub(La_H)(range(0, N), range(N, N + K)) = transpose_view(muJac_h);
         fill_g_jac(Jac_g, x, g_value);
         sub(L_grad)[range(0, N)] = x_grad - l_g * Jac_g - l_h * Jac_h +
-                              mu * g_value * Jac_g + mu * h_value * Jac_h;
+                                   mu * g_value * Jac_g + mu * h_value * Jac_h;
         sub(L_grad)[range(N, N + K)] = l_h - mu * h_value;
         fill_hessian(H, x, x_value, x_grad);
         JJ = transpose_view(Jac_g) * Jac_g + transpose_view(Jac_h) * Jac_h;
@@ -269,7 +269,7 @@ void bcl_newton_method_tr_impl(
       }
     }
     sub(L_grad)[range(0, N)] = x_grad - l_g * Jac_g - l_h * Jac_h +
-                          mu * g_value * Jac_g + mu * h_value * Jac_h;
+                               mu * g_value * Jac_g + mu * h_value * Jac_h;
     sub(L_grad)[range(N, N + K)] = l_h - mu * h_value;
   }
 }
@@ -677,7 +677,8 @@ void eq_cnstr_newton_method_tr(
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename HessianFunction,
-          ResizableVector Vector, typename IneqFunction, typename IneqJacFunction>
+          ResizableVector Vector, typename IneqFunction,
+          typename IneqJacFunction>
 void ineq_cnstr_newton_method_tr(
     Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
     IneqFunction h, IneqJacFunction fill_h_jac,

@@ -293,7 +293,8 @@ class mat_copy_sub_block {
   }
 };
 template <typename Matrix>
-static constexpr bool is_fully_writable_matrix_v<mat_copy_sub_block<Matrix>> = is_fully_writable_matrix_v<Matrix>;
+static constexpr bool is_fully_writable_matrix_v<mat_copy_sub_block<Matrix>> =
+    is_fully_writable_matrix_v<Matrix>;
 
 template <typename Matrix>
 class mat_sub_block {
@@ -520,7 +521,8 @@ class mat_sub_block {
 };
 
 template <typename Matrix>
-static constexpr bool is_fully_writable_matrix_v<mat_sub_block<Matrix>> = is_fully_writable_matrix_v<Matrix>;
+static constexpr bool is_fully_writable_matrix_v<mat_sub_block<Matrix>> =
+    is_fully_writable_matrix_v<Matrix>;
 
 template <typename Matrix>
 class mat_const_sub_block {

@@ -65,8 +65,8 @@ PointDiffType lift_to_space(const PointDiffType& dp, const TimeDiffType& dt,
 }
 
 /* Just a prototype. */
-template <int Idx, typename PointType, typename TimeDiffType,
-          Topology Space, Topology IndependentSpace>
+template <int Idx, typename PointType, typename TimeDiffType, Topology Space,
+          Topology IndependentSpace>
 PointType descend_to_space(const PointType& v, const TimeDiffType& dt,
                            const Space& /*unused*/,
                            const IndependentSpace& /*unused*/) {
@@ -130,25 +130,39 @@ using derived_N_order_space_t =
  */
 template <typename Space, typename IndependentSpace, std::size_t Order>
 concept TangentSpace =
-    Topology<Space> && Topology<IndependentSpace> &&
+    Topology<Space>&& Topology<IndependentSpace> &&
     (max_derivation_order_v<Space, IndependentSpace> >= Order) &&
-    Topology<derived_N_order_space_t<Space, IndependentSpace, Order>> &&
-    requires (const Space& diff_space, const IndependentSpace& i_space) {
-      { get_space<Order>(diff_space, i_space) } -> std::convertible_to<const derived_N_order_space_t<Space, IndependentSpace, Order>&>;
-    } &&
-    (Order == 0 ||
-      requires (const topology_point_difference_type_t<derived_N_order_space_t<Space, IndependentSpace, Order - 1>>& dp,
-                const topology_point_type_t<derived_N_order_space_t<Space, IndependentSpace, Order>>& v,
-                const topology_point_difference_type_t<IndependentSpace>& dt,
-                const Space& diff_space, const IndependentSpace& i_space) {
-        { lift_to_space<Order>(dp, dt, diff_space, i_space) } -> std::convertible_to<topology_point_type_t<derived_N_order_space_t<Space, IndependentSpace, Order>>>;
-        { descend_to_space<Order - 1>(v, dt, diff_space, i_space) } -> std::convertible_to<topology_point_difference_type_t<derived_N_order_space_t<Space, IndependentSpace, Order - 1>>>;
-      });
+    Topology<derived_N_order_space_t<Space, IndependentSpace,
+                                     Order>>&& requires(const Space& diff_space,
+                                                        const IndependentSpace&
+                                                            i_space) {
+  {
+    get_space<Order>(diff_space, i_space)
+    } -> std::convertible_to<
+        const derived_N_order_space_t<Space, IndependentSpace, Order>&>;
+}
+&&(Order == 0 ||
+   requires(
+       const topology_point_difference_type_t<
+           derived_N_order_space_t<Space, IndependentSpace, Order - 1>>& dp,
+       const topology_point_type_t<
+           derived_N_order_space_t<Space, IndependentSpace, Order>>& v,
+       const topology_point_difference_type_t<IndependentSpace>& dt,
+       const Space& diff_space, const IndependentSpace& i_space) {
+     {
+       lift_to_space<Order>(dp, dt, diff_space, i_space)
+       } -> std::convertible_to<topology_point_type_t<
+           derived_N_order_space_t<Space, IndependentSpace, Order>>>;
+     {
+       descend_to_space<Order - 1>(v, dt, diff_space, i_space)
+       } -> std::convertible_to<topology_point_difference_type_t<
+           derived_N_order_space_t<Space, IndependentSpace, Order - 1>>>;
+   });
 
 template <typename Space, typename IndependentSpace, std::size_t... Order>
-concept TangentBundle =
-    Topology<Space> && Topology<IndependentSpace> &&
-    (TangentSpace<Space, IndependentSpace, Order> && ... && true);
+concept TangentBundle = Topology<Space>&& Topology<IndependentSpace> &&
+                        (TangentSpace<Space, IndependentSpace, Order> && ... &&
+                         true);
 
 }  // namespace ReaK::pp
 

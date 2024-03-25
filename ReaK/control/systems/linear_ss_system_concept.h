@@ -68,10 +68,11 @@ struct NonLinearSystemType {
   template <typename System, typename StateSpaceType, typename Point,
             typename Input, typename Time, typename A_t, typename B_t,
             typename C_t, typename D_t>
-  static void constraints(const System& /*unused*/, const StateSpaceType& /*unused*/,
-                   const Point& /*unused*/, const Input& /*unused*/,
-                   const Time& /*unused*/, A_t& /*unused*/, B_t& /*unused*/,
-                   C_t& /*unused*/, D_t& /*unused*/) {}
+  static void constraints(const System& /*unused*/,
+                          const StateSpaceType& /*unused*/,
+                          const Point& /*unused*/, const Input& /*unused*/,
+                          const Time& /*unused*/, A_t& /*unused*/,
+                          B_t& /*unused*/, C_t& /*unused*/, D_t& /*unused*/) {}
 };
 
 /**
@@ -88,8 +89,9 @@ struct LTISystemType {
             typename Input, typename Time, typename A_t, typename B_t,
             typename C_t, typename D_t>
   static void constraints(const System& sys, const StateSpaceType& state_space,
-                   const Point& /*unused*/, const Input& /*unused*/,
-                   const Time& /*unused*/, A_t& A, B_t& B, C_t& C, D_t& D) {
+                          const Point& /*unused*/, const Input& /*unused*/,
+                          const Time& /*unused*/, A_t& A, B_t& B, C_t& C,
+                          D_t& D) {
     sys.get_linear_blocks(A, B, C, D, state_space);
   }
 };
@@ -109,8 +111,8 @@ struct LTVSystemType {
             typename Input, typename Time, typename A_t, typename B_t,
             typename C_t, typename D_t>
   static void constraints(const System& sys, const StateSpaceType& state_space,
-                   const Point& /*unused*/, const Input& /*unused*/,
-                   const Time& t, A_t& A, B_t& B, C_t& C, D_t& D) {
+                          const Point& /*unused*/, const Input& /*unused*/,
+                          const Time& t, A_t& A, B_t& B, C_t& C, D_t& D) {
     sys.get_linear_blocks(A, B, C, D, state_space, t);
   }
 };
@@ -130,8 +132,8 @@ struct LinearizedSystemType {
             typename Input, typename Time, typename A_t, typename B_t,
             typename C_t, typename D_t>
   static void constraints(const System& sys, const StateSpaceType& state_space,
-                   const Point& p, const Input& u, const Time& t, A_t& A,
-                   B_t& B, C_t& C, D_t& D) {
+                          const Point& p, const Input& u, const Time& t, A_t& A,
+                          B_t& B, C_t& C, D_t& D) {
     sys.get_linear_blocks(A, B, C, D, state_space, t, p, u);
   }
 };
@@ -160,23 +162,26 @@ struct LinearizedSystemType {
  * \tparam SystemType The concept class that tests the system-type, can be either LTISystemType, LTVSystemType or
  *LinearizedSystemType.
  */
-template <typename T, typename StateSpace,
-          typename SystemType = LTISystemType>
-concept LinearSSSystem = SSSystem<T, StateSpace> &&
-  requires (const T& sys, const StateSpace& space,
-            typename ss_system_traits<T>::point_type p,
-            typename ss_system_traits<T>::input_type u,
-            typename ss_system_traits<T>::time_type t,
-            typename ss_system_traits<T>::point_derivative_type dp_dt,
-            typename ss_system_traits<T>::output_type y,
-            typename linear_ss_system_traits<T>::matrixA_type A,
-            typename linear_ss_system_traits<T>::matrixB_type B,
-            typename linear_ss_system_traits<T>::matrixC_type C,
-            typename linear_ss_system_traits<T>::matrixD_type D) {
-    SystemType::constraints(sys, space, p, u, t, A, B, C, D);
-    dp_dt = ReaK::from_vect<decltype(dp_dt)>(A * to_vect<mat_value_type_t<decltype(A)>>(p) + B * to_vect<mat_value_type_t<decltype(B)>>(u));
-    y = ReaK::from_vect<decltype(y)>(C * to_vect<mat_value_type_t<decltype(C)>>(p) + D * to_vect<mat_value_type_t<decltype(D)>>(u));
-  };
+template <typename T, typename StateSpace, typename SystemType = LTISystemType>
+concept LinearSSSystem = SSSystem<T, StateSpace>&& requires(
+    const T& sys, const StateSpace& space,
+    typename ss_system_traits<T>::point_type p,
+    typename ss_system_traits<T>::input_type u,
+    typename ss_system_traits<T>::time_type t,
+    typename ss_system_traits<T>::point_derivative_type dp_dt,
+    typename ss_system_traits<T>::output_type y,
+    typename linear_ss_system_traits<T>::matrixA_type A,
+    typename linear_ss_system_traits<T>::matrixB_type B,
+    typename linear_ss_system_traits<T>::matrixC_type C,
+    typename linear_ss_system_traits<T>::matrixD_type D) {
+  SystemType::constraints(sys, space, p, u, t, A, B, C, D);
+  dp_dt = ReaK::from_vect<decltype(dp_dt)>(
+      A * to_vect<mat_value_type_t<decltype(A)>>(p) +
+      B * to_vect<mat_value_type_t<decltype(B)>>(u));
+  y = ReaK::from_vect<decltype(y)>(
+      C * to_vect<mat_value_type_t<decltype(C)>>(p) +
+      D * to_vect<mat_value_type_t<decltype(D)>>(u));
+};
 
 }  // namespace ReaK::ctrl
 

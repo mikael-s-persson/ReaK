@@ -927,6 +927,13 @@ auto norm_2(const Vector& v) noexcept {
   return sqrt(norm_2_sqr(v));
 }
 
+/// Magnitude of a scalar.
+template <typename Scalar>
+auto norm_2(const Scalar& v) noexcept {
+  using std::abs;
+  return abs(v);
+}
+
 /// Infinite norm of the vector.
 template <ReadableVector Vector>
 auto norm_inf(const Vector& v) noexcept {
@@ -1003,7 +1010,8 @@ Vector1& operator-=(Vector1& v1, const Vector2& v2) {
 }
 
 /// Scalar multiply-and-store operator for gain.
-template <WritableVector Vector, std::convertible_to<vect_value_type_t<Vector>> T>
+template <WritableVector Vector,
+          std::convertible_to<vect_value_type_t<Vector>> T>
 Vector& operator*=(Vector& v, const T& S) noexcept {
   using ValueType = vect_value_type_t<Vector>;
   for (int i = 0; i < v.size(); ++i) {
@@ -1013,7 +1021,8 @@ Vector& operator*=(Vector& v, const T& S) noexcept {
 }
 
 /// Scalar divide-and-store operator for gain.
-template <WritableVector Vector, std::convertible_to<vect_value_type_t<Vector>> T>
+template <WritableVector Vector,
+          std::convertible_to<vect_value_type_t<Vector>> T>
 Vector& operator/=(Vector& v, const T& S) noexcept {
   using ValueType = vect_value_type_t<Vector>;
   for (int i = 0; i < v.size(); ++i) {
@@ -1071,7 +1080,8 @@ vect_value_type_t<Vector1> operator*(const Vector1& v1, const Vector2& v2) {
 }
 
 /// Scalar-vector product.
-template <ReadableVector Vector, std::convertible_to<vect_value_type_t<Vector>> T>
+template <ReadableVector Vector,
+          std::convertible_to<vect_value_type_t<Vector>> T>
 vect_copy_t<Vector> operator*(const Vector& v, const T& S) {
   vect_copy_t<Vector> result;
   result = v;
@@ -1080,7 +1090,8 @@ vect_copy_t<Vector> operator*(const Vector& v, const T& S) {
 }
 
 /// Scalar-vector product.
-template <ReadableVector Vector, std::convertible_to<vect_value_type_t<Vector>> T>
+template <ReadableVector Vector,
+          std::convertible_to<vect_value_type_t<Vector>> T>
 vect_copy_t<Vector> operator*(const T& S, const Vector& v) {
   vect_copy_t<Vector> result;
   result = v;
@@ -1089,7 +1100,8 @@ vect_copy_t<Vector> operator*(const T& S, const Vector& v) {
 }
 
 /// Scalar-vector division.
-template <ReadableVector Vector, std::convertible_to<vect_value_type_t<Vector>> T>
+template <ReadableVector Vector,
+          std::convertible_to<vect_value_type_t<Vector>> T>
 vect_copy_t<Vector> operator/(const Vector& v, const T& S) {
   vect_copy_t<Vector> result;
   result = v;

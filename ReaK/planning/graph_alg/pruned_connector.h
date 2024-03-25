@@ -95,13 +95,15 @@ void put(infinite_double_value_prop_map /*unused*/, const T& /*unused*/,
 struct pruned_node_connector {
 
   template <typename Vertex, typename EdgeProp, typename Graph,
-            typename Topology, typename ConnectorVisitor, typename PositionMap,
+            pp::MetricSpace Space, typename Visitor, typename PositionMap,
             typename DistanceMap, typename PredecessorMap, typename WeightMap>
-  static void connect_best_predecessor(
-      Vertex v, Vertex& x_near, EdgeProp& eprop, Graph& g,
-      const Topology& super_space, const ConnectorVisitor& conn_vis,
-      PositionMap position, DistanceMap distance, PredecessorMap predecessor,
-      WeightMap weight, std::vector<Vertex>& Pred) {
+  requires NodeReConnectVisitor<Visitor, Graph>&&
+      NeighborhoodTrackingVisitor<Visitor, Graph> static void
+      connect_best_predecessor(Vertex v, Vertex& x_near, EdgeProp& eprop,
+                               Graph& g, const Space& super_space,
+                               const Visitor& conn_vis, PositionMap position,
+                               DistanceMap distance, PredecessorMap predecessor,
+                               WeightMap weight, std::vector<Vertex>& Pred) {
     const Vertex null_v = boost::graph_traits<Graph>::null_vertex();
 
     Vertex x_near_original = x_near;
@@ -136,15 +138,16 @@ struct pruned_node_connector {
   }
 
   template <typename Vertex, typename EdgeProp, typename Graph,
-            typename Topology, typename ConnectorVisitor, typename PositionMap,
+            pp::MetricSpace Space, typename Visitor, typename PositionMap,
             typename FwdDistanceMap, typename SuccessorMap, typename WeightMap>
-  static void connect_best_successor(Vertex v, Vertex& x_near, EdgeProp& eprop,
-                                     Graph& g, const Topology& super_space,
-                                     const ConnectorVisitor& conn_vis,
-                                     PositionMap position,
-                                     FwdDistanceMap fwd_distance,
-                                     SuccessorMap successor, WeightMap weight,
-                                     std::vector<Vertex>& Succ) {
+  requires NodeReConnectVisitor<Visitor, Graph>&&
+      NeighborhoodTrackingVisitor<Visitor, Graph> static void
+      connect_best_successor(Vertex v, Vertex& x_near, EdgeProp& eprop,
+                             Graph& g, const Space& super_space,
+                             const Visitor& conn_vis, PositionMap position,
+                             FwdDistanceMap fwd_distance,
+                             SuccessorMap successor, WeightMap weight,
+                             std::vector<Vertex>& Succ) {
     const Vertex null_v = boost::graph_traits<Graph>::null_vertex();
 
     Vertex x_near_original = x_near;
@@ -178,16 +181,18 @@ struct pruned_node_connector {
     conn_vis.affected_vertex(v, g);
   }
 
-  template <typename Vertex, typename Graph, typename Topology,
-            typename ConnectorVisitor, typename PositionMap,
-            typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
+  template <typename Vertex, typename Graph, pp::MetricSpace Space,
+            typename Visitor, typename PositionMap, typename FwdDistanceMap,
+            typename SuccessorMap, typename WeightMap,
             typename PredecessorMap = detail::null_vertex_prop_map<Graph>>
-  static void connect_predecessors(
-      Vertex v, Vertex x_near, Graph& g, const Topology& super_space,
-      const ConnectorVisitor& conn_vis, PositionMap position,
-      FwdDistanceMap fwd_distance, SuccessorMap successor, WeightMap weight,
-      std::vector<Vertex>& Pred,
-      PredecessorMap predecessor = PredecessorMap()) {
+  requires NodeReConnectVisitor<Visitor, Graph>&& NeighborhoodTrackingVisitor<
+      Visitor, Graph>&& SBMPVisitor<Visitor, Graph> static void
+  connect_predecessors(Vertex v, Vertex x_near, Graph& g,
+                       const Space& super_space, const Visitor& conn_vis,
+                       PositionMap position, FwdDistanceMap fwd_distance,
+                       SuccessorMap successor, WeightMap weight,
+                       std::vector<Vertex>& Pred,
+                       PredecessorMap predecessor = PredecessorMap()) {
     const Vertex null_v = boost::graph_traits<Graph>::null_vertex();
 
     for (Vertex u : Pred) {
@@ -222,17 +227,18 @@ struct pruned_node_connector {
     conn_vis.affected_vertex(v, g);
   }
 
-  template <typename Vertex, typename Graph, typename Topology,
-            typename ConnectorVisitor, typename PositionMap,
-            typename DistanceMap, typename PredecessorMap, typename WeightMap,
+  template <typename Vertex, typename Graph, pp::MetricSpace Space,
+            typename Visitor, typename PositionMap, typename DistanceMap,
+            typename PredecessorMap, typename WeightMap,
             typename SuccessorMap = detail::null_vertex_prop_map<Graph>>
-  static void connect_successors(Vertex v, Vertex x_near, Graph& g,
-                                 const Topology& super_space,
-                                 const ConnectorVisitor& conn_vis,
-                                 PositionMap position, DistanceMap distance,
-                                 PredecessorMap predecessor, WeightMap weight,
-                                 std::vector<Vertex>& Succ,
-                                 SuccessorMap successor = SuccessorMap()) {
+  requires NodeReConnectVisitor<Visitor, Graph>&& NeighborhoodTrackingVisitor<
+      Visitor, Graph>&& SBMPVisitor<Visitor, Graph> static void
+  connect_successors(Vertex v, Vertex x_near, Graph& g,
+                     const Space& super_space, const Visitor& conn_vis,
+                     PositionMap position, DistanceMap distance,
+                     PredecessorMap predecessor, WeightMap weight,
+                     std::vector<Vertex>& Succ,
+                     SuccessorMap successor = SuccessorMap()) {
     const Vertex null_v = boost::graph_traits<Graph>::null_vertex();
 
     for (Vertex u : Succ) {
@@ -267,10 +273,10 @@ struct pruned_node_connector {
     conn_vis.affected_vertex(v, g);
   }
 
-  template <typename Vertex, typename Graph, typename ConnectorVisitor,
-            typename DistanceMap, typename PredecessorMap, typename WeightMap>
-  static void update_successors(Vertex v, Graph& g,
-                                const ConnectorVisitor& conn_vis,
+  template <typename Vertex, typename Graph,
+            NeighborhoodTrackingVisitor<Graph> Visitor, typename DistanceMap,
+            typename PredecessorMap, typename WeightMap>
+  static void update_successors(Vertex v, Graph& g, const Visitor& conn_vis,
                                 DistanceMap distance,
                                 PredecessorMap predecessor, WeightMap weight) {
     // need to update all the children of the v node:
@@ -294,10 +300,10 @@ struct pruned_node_connector {
     }
   }
 
-  template <typename Vertex, typename Graph, typename ConnectorVisitor,
-            typename FwdDistanceMap, typename SuccessorMap, typename WeightMap>
-  static void update_predecessors(Vertex v, Graph& g,
-                                  const ConnectorVisitor& conn_vis,
+  template <typename Vertex, typename Graph,
+            NeighborhoodTrackingVisitor<Graph> Visitor, typename FwdDistanceMap,
+            typename SuccessorMap, typename WeightMap>
+  static void update_predecessors(Vertex v, Graph& g, const Visitor& conn_vis,
                                   FwdDistanceMap fwd_distance,
                                   SuccessorMap successor, WeightMap weight) {
     // need to update all the children of the v node:
@@ -322,10 +328,10 @@ struct pruned_node_connector {
   }
 
   template <typename Vertex, typename EdgeProp, typename Graph,
-            typename ConnectorVisitor, typename DistanceMap,
+            SBMPVisitor<Graph> Visitor, typename DistanceMap,
             typename PredecessorMap, typename WeightMap>
   static void create_pred_edge(Vertex v, Vertex& x_near, EdgeProp& eprop,
-                               Graph& g, const ConnectorVisitor& conn_vis,
+                               Graph& g, const Visitor& conn_vis,
                                DistanceMap distance, PredecessorMap predecessor,
                                WeightMap weight) {
     double d_near = get(weight, eprop) + get(distance, g[x_near]);
@@ -338,10 +344,10 @@ struct pruned_node_connector {
   }
 
   template <typename Vertex, typename EdgeProp, typename Graph,
-            typename ConnectorVisitor, typename FwdDistanceMap,
+            SBMPVisitor<Graph> Visitor, typename FwdDistanceMap,
             typename SuccessorMap, typename WeightMap>
   static void create_succ_edge(Vertex v, Vertex& x_near, EdgeProp& eprop,
-                               Graph& g, const ConnectorVisitor& conn_vis,
+                               Graph& g, const Visitor& conn_vis,
                                FwdDistanceMap fwd_distance,
                                SuccessorMap successor, WeightMap weight) {
     double d_near = get(weight, eprop) + get(fwd_distance, g[x_near]);
@@ -362,8 +368,8 @@ struct pruned_node_connector {
    *
    * \tparam Graph The graph type that can store the generated roadmap, should model
    *         BidirectionalGraphConcept and MutableGraphConcept.
-   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-   * \tparam SBAStarVisitor The type of the node-connector visitor to be used, should model the
+   * \tparam Space The topology type that represents the free-space, should model MetricSpace.
+   * \tparam Visitor The type of the node-connector visitor to be used, should model the
    *MotionGraphConnectorVisitorConcept.
    * \tparam PositionMap A property-map type that can store the position of each vertex.
    * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting
@@ -396,20 +402,17 @@ struct pruned_node_connector {
    *        vertices of the graph that ought to be connected to a new
    *        vertex. The list should be sorted in order of increasing "distance".
    */
-  template <typename Graph, typename Topology, typename ConnectorVisitor,
+  template <typename Graph, pp::MetricSpace Space,
+            MotionGraphConnectorVisitor<Graph, Space> Visitor,
             typename PositionMap, typename DistanceMap, typename PredecessorMap,
             typename WeightMap, typename NcSelector>
   void operator()(const property_value_t<PositionMap>& p,
                   graph_vertex_t<Graph>& x_near,
                   graph_edge_bundle_t<Graph>& eprop, Graph& g,
-                  const Topology& super_space, const ConnectorVisitor& conn_vis,
+                  const Space& super_space, const Visitor& conn_vis,
                   PositionMap position, DistanceMap distance,
                   PredecessorMap predecessor, WeightMap weight,
                   NcSelector select_neighborhood) const {
-    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((
-        MotionGraphConnectorVisitorConcept<ConnectorVisitor, Graph, Topology>));
-
     using Vertex = graph_vertex_t<Graph>;
     using std::back_inserter;
 
@@ -452,7 +455,8 @@ struct pruned_node_connector {
     update_successors(v, g, conn_vis, distance, predecessor, weight);
   }
 
-  template <typename Graph, typename Topology, typename ConnectorVisitor,
+  template <typename Graph, pp::MetricSpace Space,
+            MotionGraphConnectorVisitor<Graph, Space> Visitor,
             typename PositionMap, typename DistanceMap, typename PredecessorMap,
             typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
             typename NcSelector>
@@ -461,15 +465,11 @@ struct pruned_node_connector {
                   graph_edge_bundle_t<Graph>& eprop_pred,
                   graph_vertex_t<Graph>& x_succ,
                   graph_edge_bundle_t<Graph>& eprop_succ, Graph& g,
-                  const Topology& super_space, const ConnectorVisitor& conn_vis,
+                  const Space& super_space, const Visitor& conn_vis,
                   PositionMap position, DistanceMap distance,
                   PredecessorMap predecessor, FwdDistanceMap fwd_distance,
                   SuccessorMap successor, WeightMap weight,
                   NcSelector select_neighborhood) const {
-    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((
-        MotionGraphConnectorVisitorConcept<ConnectorVisitor, Graph, Topology>));
-
     using Vertex = graph_vertex_t<Graph>;
     using std::back_inserter;
     const Vertex null_v = boost::graph_traits<Graph>::null_vertex();

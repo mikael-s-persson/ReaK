@@ -36,50 +36,43 @@
 
 #include <type_traits>
 
-namespace ReaK {
+namespace ReaK::ctrl {
 
-namespace ctrl {
-
-template <typename InvariantSystem, typename BeliefState,
+template <InvariantDiscreteSystem ISystem, ContinuousBeliefState BState,
           typename SystemNoiseCovariance, typename MeasurementNoiseCovariance>
-void invariant_aggregate_kf_step(
-    const InvariantSystem& sys, BeliefState& b,
-    const discrete_sss_traits<InvariantSystem>::input_type& b_u,
-    const discrete_sss_traits<InvariantSystem>::output_type& b_z,
-    hamiltonian_mat_t<mat_value_type_t<
-        typename covariance_mat_traits<typename continuous_belief_state_traits<
-            BeliefState>::covariance_type>::matrix_type>>& ScSm,
-    hamiltonian_mat_t<mat_value_type_t<
-        typename covariance_mat_traits<typename continuous_belief_state_traits<
-            BeliefState>::covariance_type>::matrix_type>>& Sc,
-    typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
+requires CovarianceMatrix<typename discrete_sss_traits<ISystem>::input_type>&&
+    CovarianceMatrix<typename discrete_sss_traits<ISystem>::output_type> void
+    invariant_aggregate_kf_step(
+        const ISystem& sys, BState& b,
+        const discrete_sss_traits<ISystem>::input_type& b_u,
+        const discrete_sss_traits<ISystem>::output_type& b_z,
+        hamiltonian_mat_t<mat_value_type_t<typename covariance_mat_traits<
+            typename continuous_belief_state_traits<BState>::covariance_type>::
+                                               matrix_type>>& ScSm,
+        hamiltonian_mat_t<mat_value_type_t<typename covariance_mat_traits<
+            typename continuous_belief_state_traits<BState>::covariance_type>::
+                                               matrix_type>>& Sc,
+        typename discrete_sss_traits<ISystem>::time_type t = 0) {
   // here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  using StateType = typename discrete_sss_traits<InvariantSystem>::point_type;
-  using InputType = typename discrete_sss_traits<InvariantSystem>::input_type;
-  using OutputType = typename discrete_sss_traits<InvariantSystem>::output_type;
+  using StateType = typename discrete_sss_traits<ISystem>::point_type;
+  using InputType = typename discrete_sss_traits<ISystem>::input_type;
+  using OutputType = typename discrete_sss_traits<ISystem>::output_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
   using MatType = typename covariance_mat_traits<CovType>::matrix_type;
   using ValueType = mat_value_type_t<MatType>;
 
-  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT(
-      (CovarianceMatrixConcept<SystemNoiseCovariance, InputType>));
-  BOOST_CONCEPT_ASSERT(
-      (CovarianceMatrixConcept<MeasurementNoiseCovariance, OutputType>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
 
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type A;
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixB_type B;
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixC_type C;
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixD_type D;
+  typename discrete_linear_sss_traits<ISystem>::matrixA_type A;
+  typename discrete_linear_sss_traits<ISystem>::matrixB_type B;
+  typename discrete_linear_sss_traits<ISystem>::matrixC_type C;
+  typename discrete_linear_sss_traits<ISystem>::matrixD_type D;
 
   using HamilMat = typename hamiltonian_mat<ValueType>::type;
   using HamilMatUp = typename hamiltonian_mat<ValueType>::upper;
@@ -90,9 +83,9 @@ void invariant_aggregate_kf_step(
   using HamilMatLR = typename hamiltonian_mat<ValueType>::lower_right;
 
   using InvFrameType =
-      typename invariant_system_traits<InvariantSystem>::invariant_frame_type;
+      typename invariant_system_traits<ISystem>::invariant_frame_type;
   using InvErrorType =
-      typename invariant_system_traits<InvariantSystem>::invariant_error_type;
+      typename invariant_system_traits<ISystem>::invariant_error_type;
   using InvCorrType = typename invariant_system_traits<
       InvariantDiscreteSystem>::invariant_correction_type;
 

@@ -781,7 +781,7 @@ struct prediction_updater {
       pp::constant_trajectory<pp::vector_topology<vect_n<double>>>;
 
   using PredFactoryType = typename ctrl::try_TSOSAIKF_belief_transfer_factory<
-      Sat3DSystemType>::type;
+      Sat3DSystemType, typename Sat3DSystemType::state_space_type>::type;
   using BeliefPredTrajType =
       ctrl::belief_predicted_trajectory<BeliefSpaceType, PredFactoryType,
                                         InputTrajType>;
@@ -1074,8 +1074,8 @@ start_state_predictions(std::shared_ptr<Sat3DSystemType> satellite3D_system,
 
   using BeliefSpaceType = typename Sat3DSystemType::belief_space_type;
   using InputTrajType = constant_trajectory<vector_topology<vect_n<double>>>;
-  using PredFactoryType =
-      typename try_TSOSAIKF_belief_transfer_factory<Sat3DSystemType>::type;
+  using PredFactoryType = typename try_TSOSAIKF_belief_transfer_factory<
+      Sat3DSystemType, typename Sat3DSystemType::state_space_type>::type;
   using BeliefPredTrajType =
       belief_predicted_trajectory<BeliefSpaceType, PredFactoryType,
                                   InputTrajType>;

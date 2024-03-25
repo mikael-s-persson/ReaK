@@ -83,13 +83,18 @@ struct extrapolator_factory_traits {
  *obtained.
  */
 template <typename Extrap, typename Space>
-concept Extrapolator = TemporalSpace<Space> &&
-  requires (Extrap& extrap, const topology_point_type_t<Space>& pt,
-            const topology_point_type_t<typename temporal_space_traits<Space>::time_topology>& t) {
-    extrap.set_start_point(&pt);
-    { extrap.get_start_point() } -> std::convertible_to<const topology_point_type_t<Space>*>;
-    { extrap.get_point_at_time(t) } -> std::convertible_to<topology_point_type_t<Space>>;
-  };
+concept Extrapolator = TemporalSpace<Space>&& requires(
+    Extrap& extrap, const topology_point_type_t<Space>& pt,
+    const topology_point_type_t<
+        typename temporal_space_traits<Space>::time_topology>& t) {
+  extrap.set_start_point(&pt);
+  {
+    extrap.get_start_point()
+    } -> std::convertible_to<const topology_point_type_t<Space>*>;
+  {
+    extrap.get_point_at_time(t)
+    } -> std::convertible_to<topology_point_type_t<Space>>;
+};
 
 /**
  * This concept class defines the requirements for a class to model an extrapolator factory
@@ -117,11 +122,12 @@ concept Extrapolator = TemporalSpace<Space> &&
  *shared-pointer to a topology.
  */
 template <typename Factory, typename Space>
-concept ExtrapolatorFactoryConcept = TemporalSpace<Space> &&
-  requires (Factory& fact, const topology_point_type_t<Space>& pt, std::shared_ptr<Space> pspace) {
-    fact.set_temporal_space(pspace);
-    { fact.create_extrapolator(&pt) } -> Extrapolator<Space>;
-  };
+concept ExtrapolatorFactoryConcept = TemporalSpace<Space>&& requires(
+    Factory& fact, const topology_point_type_t<Space>& pt,
+    std::shared_ptr<Space> pspace) {
+  fact.set_temporal_space(pspace);
+  { fact.create_extrapolator(&pt) } -> Extrapolator<Space>;
+};
 
 }  // namespace ReaK::pp
 

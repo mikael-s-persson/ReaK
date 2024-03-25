@@ -42,8 +42,8 @@
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/interpolated_trajectory.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 
 #include "ReaK/topologies/interpolation/sustained_acceleration_pulse_ndof_detail.h"
 
@@ -204,8 +204,8 @@ bool sap_Ndof_is_in_bounds(const topology_point_type_t<Space>& pt,
  * \tparam TimeSpaceType The time topology.
  */
 template <MetricSpace SpaceType, Topology TimeSpaceType>
-  requires TangentBundle<SpaceType, TimeSpaceType, 0, 1, 2>
-class sap_Ndof_interpolator {
+requires TangentBundle<SpaceType, TimeSpaceType, 0, 1,
+                       2> class sap_Ndof_interpolator {
  public:
   using self = sap_Ndof_interpolator<SpaceType, TimeSpaceType>;
   using point_type = topology_point_type_t<SpaceType>;
@@ -393,8 +393,8 @@ template <TemporalSpace Space,
           DistanceMetric<Space> Metric =
               typename metric_space_traits<Space>::distance_metric_type>
 class sap_Ndof_interp_traj
-    : public interpolated_trajectory<
-          Space, sap_Ndof_interp_factory<Space>, Metric> {
+    : public interpolated_trajectory<Space, sap_Ndof_interp_factory<Space>,
+                                     Metric> {
  public:
   using self = sap_Ndof_interp_traj<Space, Metric>;
   using base_class_type =
@@ -413,8 +413,8 @@ class sap_Ndof_interp_traj
   explicit sap_Ndof_interp_traj(
       const std::shared_ptr<topology>& aSpace = std::make_shared<topology>(),
       const distance_metric& aDist = distance_metric())
-      : base_class_type(aSpace, aDist,
-                        sap_Ndof_interp_factory<Space>(aSpace)) {}
+      : base_class_type(aSpace, aDist, sap_Ndof_interp_factory<Space>(aSpace)) {
+  }
 
   /**
    * Constructs the path from a space, the start and end points.

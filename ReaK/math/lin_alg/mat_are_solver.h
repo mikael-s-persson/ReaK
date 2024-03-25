@@ -894,8 +894,9 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          FullyWritableMatrix Matrix5>
 void solve_care_problem(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
                         const Matrix4& R, Matrix5& P,
                         mat_value_type_t<Matrix1> NumTol = 1E-8,
@@ -1032,8 +1033,9 @@ void solve_care_problem(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6>
 void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
                     const Matrix4& R, Matrix5& K, Matrix6& P,
                     mat_value_type_t<Matrix1> NumTol = 1E-8,
@@ -1073,8 +1075,9 @@ void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, WritableMatrix Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          WritableMatrix Matrix5>
 void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
                     const Matrix4& R, Matrix5& K,
                     mat_value_type_t<Matrix1> NumTol = 1E-8,
@@ -1128,8 +1131,9 @@ void solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6,
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6,
           FullyWritableMatrix Matrix7>
 std::size_t solve_IHCT_LQR_with_reduction(
     const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R,
@@ -1229,8 +1233,9 @@ std::size_t solve_IHCT_LQR_with_reduction(
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, WritableMatrix Matrix5, WritableMatrix Matrix6>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          WritableMatrix Matrix5, WritableMatrix Matrix6>
 std::size_t solve_IHCT_LQR_with_reduction(
     const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R,
     Matrix5& K, Matrix6& P, mat_value_type_t<Matrix1> NumTol = 1E-8,
@@ -1279,8 +1284,9 @@ std::size_t solve_IHCT_LQR_with_reduction(
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, WritableMatrix Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          WritableMatrix Matrix5>
 std::size_t solve_IHCT_LQR_with_reduction(
     const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R,
     Matrix5& K, mat_value_type_t<Matrix1> NumTol = 1E-8,
@@ -1325,8 +1331,9 @@ std::size_t solve_IHCT_LQR_with_reduction(
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableVector Vector1,
-          ReadableMatrix Matrix3, ReadableMatrix Matrix4, FullyWritableMatrix Matrix5,
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableVector Vector1, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5,
           FullyWritableMatrix Matrix6, WritableVector Vector2>
 void solve_IHCT_AQR(const Matrix1& A, const Matrix2& B, const Vector1& c,
                     const Matrix3& Q, const Matrix4& R, Matrix5& K, Matrix6& P,
@@ -1393,8 +1400,9 @@ void solve_IHCT_AQR(const Matrix1& A, const Matrix2& B, const Vector1& c,
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableVector Vector1,
-          ReadableMatrix Matrix3, ReadableMatrix Matrix4, FullyWritableMatrix Matrix5,
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableVector Vector1, ReadableMatrix Matrix3,
+          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5,
           FullyWritableMatrix Matrix6, WritableVector Vector2>
 std::size_t solve_IHCT_AQR_with_reduction(
     const Matrix1& A, const Matrix2& B, const Vector1& c, const Matrix3& Q,
@@ -1495,10 +1503,12 @@ std::size_t solve_IHCT_AQR_with_reduction(
 /// \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, ReadableMatrix Matrix5, ReadableMatrix Matrix6,
-          ReadableMatrix Matrix7, FullyWritableMatrix Matrix8, FullyWritableMatrix Matrix9,
-          FullyWritableMatrix Matrix10, FullyWritableMatrix Matrix11>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          ReadableMatrix Matrix5, ReadableMatrix Matrix6,
+          ReadableMatrix Matrix7, FullyWritableMatrix Matrix8,
+          FullyWritableMatrix Matrix9, FullyWritableMatrix Matrix10,
+          FullyWritableMatrix Matrix11>
 void solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C,
                     const Matrix4& V, const Matrix5& W, const Matrix6& Q,
                     const Matrix7& R, Matrix8& K, Matrix9& P, Matrix10& L,
@@ -1608,8 +1618,9 @@ void solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C,
 /// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          FullyWritableMatrix Matrix5>
 void solve_dare_problem(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
                         const Matrix4& R, Matrix5& P,
                         mat_value_type_t<Matrix1> NumTol = 1E-8,
@@ -1746,8 +1757,9 @@ void solve_dare_problem(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
 /// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          FullyWritableMatrix Matrix5, FullyWritableMatrix Matrix6>
 void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
                     const Matrix4& R, Matrix5& K, Matrix6& P,
                     mat_value_type_t<Matrix1> NumTol = 1E-8,
@@ -1788,8 +1800,9 @@ void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
 /// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, WritableMatrix Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          WritableMatrix Matrix5>
 void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
                     const Matrix4& R, Matrix5& K,
                     mat_value_type_t<Matrix1> NumTol = 1E-8,
@@ -1840,10 +1853,12 @@ void solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
 /// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, ReadableMatrix Matrix5, ReadableMatrix Matrix6,
-          ReadableMatrix Matrix7, FullyWritableMatrix Matrix8, FullyWritableMatrix Matrix9,
-          FullyWritableMatrix Matrix10, FullyWritableMatrix Matrix11>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          ReadableMatrix Matrix5, ReadableMatrix Matrix6,
+          ReadableMatrix Matrix7, FullyWritableMatrix Matrix8,
+          FullyWritableMatrix Matrix9, FullyWritableMatrix Matrix10,
+          FullyWritableMatrix Matrix11>
 void solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
                     const Matrix4& V, const Matrix5& W, const Matrix6& Q,
                     const Matrix7& R, Matrix8& K, Matrix9& P, Matrix10& L,
@@ -1905,9 +1920,10 @@ void solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
 /// \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, ReadableMatrix Matrix5, ReadableMatrix Matrix6,
-          ReadableMatrix Matrix7, WritableMatrix Matrix8, WritableMatrix Matrix9>
+template <
+    ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
+    ReadableMatrix Matrix4, ReadableMatrix Matrix5, ReadableMatrix Matrix6,
+    ReadableMatrix Matrix7, WritableMatrix Matrix8, WritableMatrix Matrix9>
 void solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
                     const Matrix4& V, const Matrix5& W, const Matrix6& Q,
                     const Matrix7& R, Matrix8& K, Matrix9& L,
@@ -1957,8 +1973,9 @@ void solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
 /// \throws singularity_error if the CTSF problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          FullyWritableMatrix Matrix5>
 void solve_ctsf_problem(const Matrix1& A, const Matrix2& B, const Matrix3& C,
                         const Matrix4& D, Matrix5& P,
                         mat_value_type_t<Matrix1> NumTol = 1E-8,
@@ -2101,8 +2118,9 @@ void solve_ctsf_problem(const Matrix1& A, const Matrix2& B, const Matrix3& C,
 /// \throws singularity_error if the DTSF problem cannot be solved, usually because the system is not stabilizable.
 ///
 /// \author Mikael Persson
-template <ReadableMatrix Matrix1, ReadableMatrix Matrix2, ReadableMatrix Matrix3,
-          ReadableMatrix Matrix4, FullyWritableMatrix Matrix5>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          FullyWritableMatrix Matrix5>
 void solve_dtsf_problem(const Matrix1& F, const Matrix2& G, const Matrix3& H,
                         const Matrix4& J, Matrix5& P,
                         mat_value_type_t<Matrix1> NumTol = 1E-8,

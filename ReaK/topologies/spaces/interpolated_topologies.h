@@ -34,8 +34,8 @@
 
 #include "ReaK/core/base/defs.h"
 
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/spaces/default_random_sampler.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/proper_metric_concept.h"
 #include "ReaK/topologies/spaces/rate_limited_space_metamaps.h"

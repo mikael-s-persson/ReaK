@@ -42,8 +42,8 @@
 
 #include "boost/concept_check.hpp"
 
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/sustained_acceleration_pulse_ndof.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 
 #include <type_traits>
 #include <utility>

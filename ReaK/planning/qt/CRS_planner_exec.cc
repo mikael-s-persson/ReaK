@@ -57,11 +57,11 @@
 #include "ReaK/topologies/interpolation/trajectory_base.h"
 #include "ReaK/topologies/spaces/manip_planning_traits.h"
 
-#include "ReaK/topologies/spaces/Ndof_cubic_spaces.h"
-#include "ReaK/topologies/spaces/Ndof_linear_spaces.h"
-#include "ReaK/topologies/spaces/Ndof_quintic_spaces.h"
-#include "ReaK/topologies/spaces/Ndof_sap_spaces.h"
-#include "ReaK/topologies/spaces/Ndof_svp_spaces.h"
+#include "ReaK/topologies/interpolation/ndof_cubic_spaces.h"
+#include "ReaK/topologies/interpolation/ndof_linear_spaces.h"
+#include "ReaK/topologies/interpolation/ndof_quintic_spaces.h"
+#include "ReaK/topologies/interpolation/ndof_sap_spaces.h"
+#include "ReaK/topologies/interpolation/ndof_svp_spaces.h"
 
 template <typename ManipMdlType, typename InterpTag, int Order,
           typename ManipCSpaceTrajectory>

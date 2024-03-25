@@ -138,9 +138,9 @@ struct proximity_solver {
         std::cout << "Checking proximity between Box '" << bx_a->getName()
                   << "' and Box '" << bx_b->getName() << "'..." << std::endl;
 
-        result =
-            geom::findProximityByGJKEPA(geom::box_support_func(*bx_a, bx_a_pose),
-                                        geom::box_support_func(*bx_b, bx_b_pose));
+        result = geom::findProximityByGJKEPA(
+            geom::box_support_func(*bx_a, bx_a_pose),
+            geom::box_support_func(*bx_b, bx_b_pose));
 
         v1 = mShape1->getPose().rotateToGlobal(
             mShape1->getPose().transformFromGlobal(result.mPoint1));

@@ -56,6 +56,7 @@
 #include "ReaK/core/recorders/data_record_options.h"
 #include "ReaK/core/serialization/archiver.h"
 
+#include <bitset>
 #include <string>
 
 namespace ReaK::ctrl {
@@ -165,14 +166,14 @@ struct satellite_model_options {
   /// Specify the filename-stem for the output of the satellite system, when 'generate-files' is set.
   std::string sys_output_stem_name;
 
-  enum available_measurements {
-    pose_measures = 0,
-    gyro_measures = 16,
-    IMU_measures = 48
+  enum class available_measurements : std::uint8_t {
+    pose_measures,
+    gyro_measures,
+    IMU_measures
   };
 
-  enum model_kind {
-    invariant = 0,
+  enum class model_kind : std::uint8_t {
+    invariant,
     invar_mom,
     invar_mom2,
     invar_mom_em,
@@ -180,48 +181,69 @@ struct satellite_model_options {
     invar_mom_emdJ
   };
 
-  enum filtering_options { plain_KF = 0, TSOSAKF = 1024 };
+  enum class filtering_options : std::uint8_t { plain_KF, TSOSAKF };
+
+  struct system_kind_record {
+    model_kind model = model_kind::invariant;
+    std::bitset<8> measures{};
+    std::bitset<8> filters{};
+  };
 
   /// Stores the kind of system used to model the satellite (OR-combination of 'available_measurements' 'model_kind').
-  int system_kind;
+  system_kind_record system_kind;
+
+  bool has_gyro_measures() const {
+    return system_kind.measures[static_cast<std::size_t>(
+        available_measurements::gyro_measures)];
+  }
+
+  bool has_IMU_measures() const {
+    return system_kind.measures[static_cast<std::size_t>(
+        available_measurements::IMU_measures)];
+  }
+
+  bool has_TSOSAKF_filter() const {
+    return system_kind
+        .filters[static_cast<std::size_t>(filtering_options::TSOSAKF)];
+  }
 
   std::size_t get_measurement_count() const {
-    switch (system_kind & 48) {
-      case 16:
-        return 10;
-      case 48:
-        return 16;
-      default:
-        return 7;
+    std::size_t result = 7;
+    if (has_gyro_measures()) {
+      result = 10;
     }
+    if (has_IMU_measures()) {
+      result = 16;
+    }
+    return result;
   }
 
   std::size_t get_meas_error_count() const {
-    switch (system_kind & 48) {
-      case 16:
-        return 9;
-      case 48:
-        return 15;
-      default:
-        return 6;
+    std::size_t result = 6;
+    if (has_gyro_measures()) {
+      result = 9;
     }
+    if (has_IMU_measures()) {
+      result = 15;
+    }
+    return result;
   }
 
   std::size_t get_total_inv_state_count() const {
     std::size_t result = 0;
-    switch (system_kind & 15) {
-      case invar_mom_em:
+    switch (system_kind.model) {
+      case model_kind::invar_mom_em:
         result = 16;
         break;
-      case invar_mom_emd:
+      case model_kind::invar_mom_emd:
         result = 18;
         break;
-      case invar_mom_emdJ:
+      case model_kind::invar_mom_emdJ:
         result = 24;
         break;
-      case invariant:
-      case invar_mom2:
-      case invar_mom:
+      case model_kind::invariant:
+      case model_kind::invar_mom2:
+      case model_kind::invar_mom:
       default:
         result = 12;
         break;
@@ -235,76 +257,68 @@ struct satellite_model_options {
     std::string result;
 
     std::string kf_method = "imkf";
-    if ((system_kind & TSOSAKF) != 0) {
+    if (has_TSOSAKF_filter()) {
       kf_method = "tsosakf";
     }
 
-    switch (system_kind & 15) {
-      case invariant:
+    switch (system_kind.model) {
+      case model_kind::invariant:
         result = "iekf";
         break;
-      case invar_mom2:
+      case model_kind::invar_mom2:
         result = "imkfv2";
         break;
-      case invar_mom_em:
+      case model_kind::invar_mom_em:
         result = kf_method + "_em";
         break;
-      case invar_mom_emd:
+      case model_kind::invar_mom_emd:
         result = kf_method + "_emd";
         break;
-      case invar_mom_emdJ:
+      case model_kind::invar_mom_emdJ:
         result = kf_method + "_emdJ";
         break;
-      case invar_mom:
+      case model_kind::invar_mom:
       default:
         result = "imkf";
         break;
     }
-    switch (system_kind & 48) {
-      case 16:
-        result += "_gyro";
-        break;
-      case 48:
-        result += "_IMU";
-        break;
-      default:
-        break;
+
+    if (has_IMU_measures()) {
+      result += "_IMU";
+    } else if (has_gyro_measures()) {
+      result += "_gyro";
     }
     return result;
   }
 
   std::string get_sys_abbreviation() const {
     std::string result;
-    switch (system_kind & 15) {
-      case invariant:
+    switch (system_kind.model) {
+      case model_kind::invariant:
         result = "inv";
         break;
-      case invar_mom2:
+      case model_kind::invar_mom2:
         result = "invmid";
         break;
-      case invar_mom_em:
+      case model_kind::invar_mom_em:
         result = "invmid_em";
         break;
-      case invar_mom_emd:
+      case model_kind::invar_mom_emd:
         result = "invmid_emd";
         break;
-      case invar_mom_emdJ:
+      case model_kind::invar_mom_emdJ:
         result = "invmid_emdJ";
         break;
-      case invar_mom:
+      case model_kind::invar_mom:
       default:
         result = "invmom";
         break;
     }
-    switch (system_kind & 48) {
-      case 16:
-        result += "_gyro";
-        break;
-      case 48:
-        result += "_IMU";
-        break;
-      default:
-        break;
+
+    if (has_IMU_measures()) {
+      result += "_IMU";
+    } else if (has_gyro_measures()) {
+      result += "_gyro";
     }
     return result;
   }
@@ -426,9 +440,7 @@ struct satellite_model_options {
   satellite_model_options()
       : inertia_tensor(1.0, 0.0, 0.0, 1.0, 0.0, 1.0),
         input_disturbance(6, 0.0),
-        measurement_noise(6, 0.0),
-
-        system_kind(invariant | pose_measures) {}
+        measurement_noise(6, 0.0) {}
 
   virtual ~satellite_model_options() = default;
 

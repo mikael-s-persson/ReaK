@@ -61,51 +61,59 @@
 
 namespace ReaK::pp {
 
-template <typename FreeSpaceType, bool IsBidirPlanner = false>
+template <SubSpace FreeSpaceType, bool IsBidirPlanner = false>
 struct rrtstar_bundle_factory {
 
-  static constexpr bool is_bidir = IsBidirPlanner && is_reversible_space_v<FreeSpaceType>;
+  static constexpr bool is_bidir =
+      IsBidirPlanner && is_reversible_space_v<FreeSpaceType>;
 
-  using super_space_type = typename subspace_traits<FreeSpaceType>::super_space_type;
+  using super_space_type =
+      typename subspace_traits<FreeSpaceType>::super_space_type;
   using point_type = topology_point_type_t<super_space_type>;
 
-  using vertex_prop = std::conditional_t<is_bidir,
-                                         bidir_optimal_mg_vertex<FreeSpaceType>,
-                                         optimal_mg_vertex<FreeSpaceType>>;
+  using vertex_prop =
+      std::conditional_t<is_bidir, bidir_optimal_mg_vertex<FreeSpaceType>,
+                         optimal_mg_vertex<FreeSpaceType>>;
   using basic_vertex_prop = mg_vertex_data<FreeSpaceType>;
   using edge_prop = optimal_mg_edge<FreeSpaceType>;
 
-  using directionality_tag = typename motion_segment_directionality<FreeSpaceType>::type;
+  using directionality_tag =
+      typename motion_segment_directionality<FreeSpaceType>::type;
 
   using visitor_type = planning_visitor<FreeSpaceType>;
 
   using position_map = boost::data_member_property_map<point_type, vertex_prop>;
   using distance_map = boost::data_member_property_map<double, vertex_prop>;
-  using predecessor_map = boost::data_member_property_map<std::size_t, vertex_prop>;
-  using fwd_distance_map = std::conditional_t<is_bidir,
-                                              boost::data_member_property_map<double, vertex_prop>,
-                                              ReaK::graph::detail::infinite_double_value_prop_map>;
+  using predecessor_map =
+      boost::data_member_property_map<std::size_t, vertex_prop>;
+  using fwd_distance_map =
+      std::conditional_t<is_bidir,
+                         boost::data_member_property_map<double, vertex_prop>,
+                         ReaK::graph::detail::infinite_double_value_prop_map>;
 
   template <typename Graph>
-  using successor_map_t = std::conditional_t<is_bidir,
-                                             boost::data_member_property_map<std::size_t, vertex_prop>,
-                                             ReaK::graph::detail::null_vertex_prop_map<Graph>>;
+  using successor_map_t = std::conditional_t<
+      is_bidir, boost::data_member_property_map<std::size_t, vertex_prop>,
+      ReaK::graph::detail::null_vertex_prop_map<Graph>>;
 
   using weight_map = boost::data_member_property_map<double, edge_prop>;
 
   struct ls_motion_graph {
-    using type = boost::adjacency_list_BC<boost::vecBC, boost::poolBC, directionality_tag, vertex_prop, edge_prop>;
+    using type =
+        boost::adjacency_list_BC<boost::vecBC, boost::poolBC,
+                                 directionality_tag, vertex_prop, edge_prop>;
     using vertex_type = graph::graph_vertex_t<type>;
 
     struct space_part_type {
       template <typename GraphPositionMap>
       space_part_type(const type& /*unused*/,
                       const std::shared_ptr<const super_space_type>& /*unused*/,
-                      GraphPositionMap /*unused*/){}
+                      GraphPositionMap /*unused*/) {}
     };
 
     using nn_finder_type = linear_neighbor_search<type>;
-    static nn_finder_type get_nn_finder(type& /*unused*/, space_part_type& /*unused*/) {
+    static nn_finder_type get_nn_finder(type& /*unused*/,
+                                        space_part_type& /*unused*/) {
       return nn_finder_type();
     }
 
@@ -119,12 +127,17 @@ struct rrtstar_bundle_factory {
 
   template <unsigned int Arity, typename TreeStorageTag>
   struct dvp_motion_graph {
-    using type = boost::adjacency_list_BC<boost::vecBC, boost::poolBC, directionality_tag,
-        vertex_prop, edge_prop>;
+    using type =
+        boost::adjacency_list_BC<boost::vecBC, boost::poolBC,
+                                 directionality_tag, vertex_prop, edge_prop>;
     using vertex_type = graph::graph_vertex_t<type>;
 
-    using graph_position_map = typename boost::property_map<type, point_type basic_vertex_prop::*>::type;
-    using space_part_type = dvp_tree<vertex_type, super_space_type, graph_position_map, Arity, random_vp_chooser, TreeStorageTag>;
+    using graph_position_map =
+        typename boost::property_map<type,
+                                     point_type basic_vertex_prop::*>::type;
+    using space_part_type =
+        dvp_tree<vertex_type, super_space_type, graph_position_map, Arity,
+                 random_vp_chooser, TreeStorageTag>;
     static space_part_type get_space_part(
         type& mg, std::shared_ptr<const super_space_type> s_ptr) {
       return space_part_type(mg, s_ptr, get(&basic_vertex_prop::position, mg));
@@ -149,9 +162,11 @@ struct rrtstar_bundle_factory {
 
   template <unsigned int Arity, typename TreeStorageTag>
   struct alt_motion_graph {
-    using alt_graph_type = dvp_adjacency_list<vertex_prop, edge_prop, super_space_type,
-        position_map, Arity, random_vp_chooser, TreeStorageTag, boost::vecBC,
-        directionality_tag, boost::listBC>;
+    using alt_graph_type =
+        dvp_adjacency_list<vertex_prop, edge_prop, super_space_type,
+                           position_map, Arity, random_vp_chooser,
+                           TreeStorageTag, boost::vecBC, directionality_tag,
+                           boost::listBC>;
     using type = typename alt_graph_type::adj_list_type;
     using space_part_type = alt_graph_type;
     using vertex_type = graph::graph_vertex_t<type>;
@@ -204,7 +219,8 @@ struct rrtstar_bundle_factory {
 
   template <typename VertexProp>
   static fwd_distance_map dispatched_make_fwd_dist_map() {
-    if constexpr (std::is_convertible_v<VertexProp*, bidir_optimal_mg_vertex<FreeSpaceType>*>) {
+    if constexpr (std::is_convertible_v<
+                      VertexProp*, bidir_optimal_mg_vertex<FreeSpaceType>*>) {
       return fwd_distance_map(&VertexProp::fwd_distance_accum);
     } else {
       return fwd_distance_map();
@@ -213,7 +229,8 @@ struct rrtstar_bundle_factory {
 
   template <typename MotionGraphType, typename VertexProp>
   static successor_map_t<MotionGraphType> dispatched_make_succ_map() {
-    if constexpr (std::is_convertible_v<VertexProp*, bidir_optimal_mg_vertex<FreeSpaceType>*>) {
+    if constexpr (std::is_convertible_v<
+                      VertexProp*, bidir_optimal_mg_vertex<FreeSpaceType>*>) {
       return successor_map_t<MotionGraphType>(&VertexProp::successor);
     } else {
       return successor_map_t<MotionGraphType>();
@@ -270,7 +287,7 @@ struct rrtstar_bundle_factory {
   }
 };
 
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 template <typename RRTStarFactory>
 void rrtstar_planner<FreeSpaceType>::solve_planning_query_impl(
     planning_query<FreeSpaceType>& aQuery) {
@@ -346,7 +363,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query_impl(
     } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                DVP_BF2_TREE_KNN) {
 
-      using MGFactory = typename RRTStarFactory::template dvp_motion_graph<2, boost::bfl_d_ary_tree_storage<2>>;
+      using MGFactory = typename RRTStarFactory::template dvp_motion_graph<
+          2, boost::bfl_d_ary_tree_storage<2>>;
 
       RK_RRTSTAR_PLANNER_SETUP_LS_OR_DVP_SUPPORT_STRUCTURES
 
@@ -357,7 +375,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query_impl(
     } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                DVP_BF4_TREE_KNN) {
 
-      using MGFactory = typename RRTStarFactory::template dvp_motion_graph<4, boost::bfl_d_ary_tree_storage<4>>;
+      using MGFactory = typename RRTStarFactory::template dvp_motion_graph<
+          4, boost::bfl_d_ary_tree_storage<4>>;
 
       RK_RRTSTAR_PLANNER_SETUP_LS_OR_DVP_SUPPORT_STRUCTURES
 
@@ -370,7 +389,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query_impl(
     } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                DVP_COB2_TREE_KNN) {
 
-      using MGFactory = typename RRTStarFactory::template dvp_motion_graph<2, boost::vebl_d_ary_tree_storage<2>>;
+      using MGFactory = typename RRTStarFactory::template dvp_motion_graph<
+          2, boost::vebl_d_ary_tree_storage<2>>;
 
       RK_RRTSTAR_PLANNER_SETUP_LS_OR_DVP_SUPPORT_STRUCTURES
 
@@ -381,7 +401,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query_impl(
     } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                DVP_COB4_TREE_KNN) {
 
-      using MGFactory = typename RRTStarFactory::template dvp_motion_graph<4, boost::vebl_d_ary_tree_storage<4>>;
+      using MGFactory = typename RRTStarFactory::template dvp_motion_graph<
+          4, boost::vebl_d_ary_tree_storage<4>>;
 
       RK_RRTSTAR_PLANNER_SETUP_LS_OR_DVP_SUPPORT_STRUCTURES
 
@@ -399,7 +420,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query_impl(
 
     if ((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
 
-      using MGFactory = typename RRTStarFactory::template alt_motion_graph<2, boost::bfl_d_ary_tree_storage<2>>;
+      using MGFactory = typename RRTStarFactory::template alt_motion_graph<
+          2, boost::bfl_d_ary_tree_storage<2>>;
 
       RK_RRTSTAR_PLANNER_SETUP_ALT_SUPPORT_STRUCTURES
 
@@ -410,7 +432,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query_impl(
     } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                DVP_BF4_TREE_KNN) {
 
-      using MGFactory = typename RRTStarFactory::template alt_motion_graph<4, boost::bfl_d_ary_tree_storage<4>>;
+      using MGFactory = typename RRTStarFactory::template alt_motion_graph<
+          4, boost::bfl_d_ary_tree_storage<4>>;
 
       RK_RRTSTAR_PLANNER_SETUP_ALT_SUPPORT_STRUCTURES
 
@@ -423,7 +446,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query_impl(
     } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                DVP_COB2_TREE_KNN) {
 
-      using MGFactory = typename RRTStarFactory::template alt_motion_graph<2, boost::vebl_d_ary_tree_storage<2>>;
+      using MGFactory = typename RRTStarFactory::template alt_motion_graph<
+          2, boost::vebl_d_ary_tree_storage<2>>;
 
       RK_RRTSTAR_PLANNER_SETUP_ALT_SUPPORT_STRUCTURES
 
@@ -434,7 +458,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query_impl(
     } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                DVP_COB4_TREE_KNN) {
 
-      using MGFactory = typename RRTStarFactory::template alt_motion_graph<4, boost::vebl_d_ary_tree_storage<4>>;
+      using MGFactory = typename RRTStarFactory::template alt_motion_graph<
+          4, boost::vebl_d_ary_tree_storage<4>>;
 
       RK_RRTSTAR_PLANNER_SETUP_ALT_SUPPORT_STRUCTURES
 
@@ -452,7 +477,7 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query_impl(
 #undef RK_RRTSTAR_PLANNER_SETUP_ALT_SUPPORT_STRUCTURES
 }
 
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 void rrtstar_planner<FreeSpaceType>::solve_planning_query(
     planning_query<FreeSpaceType>& aQuery) {
   if ((this->m_planning_method_flags & PLANNING_DIRECTIONALITY_MASK) ==

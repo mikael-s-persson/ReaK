@@ -57,8 +57,7 @@ namespace ReaK::pp {
 template <MetricSpace Space,
           DistanceMetric<Space> Metric =
               typename metric_space_traits<Space>::distance_metric_type>
-class discrete_point_path
-    : public waypoint_container<Space, Metric> {
+class discrete_point_path : public waypoint_container<Space, Metric> {
  public:
   using self = discrete_point_path<Space, Metric>;
   using base_class_type = waypoint_container<Space, Metric>;

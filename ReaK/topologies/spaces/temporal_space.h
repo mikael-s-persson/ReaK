@@ -337,12 +337,12 @@ class extract_spatial_component : public serializable {
  * topology with a temporal dimension (time-stamp). The time-dimension resides on a line-segment
  * topology (see line_segment_topology), while the spatial topology and distance-metric
  * is provided by the user. Models TemporalSpace.
- * \tparam Topology The topology type which represents the spatial dimensions, should model MetricSpace.
- * \tparam TimeTopology The topology type which represents the time dimension, should model MetricSpace.
+ * \tparam Space The topology type which represents the spatial dimensions.
+ * \tparam TimeTopology The topology type which represents the time dimension.
  * \tparam TemporalDistanceMetric The distance metric type for the temporal-space, should model the
  * TemporalDistMetric.
  */
-template <MetricSpace Space, MetricSpace TimeTopology,
+template <Topology Space, Topology TimeTopology,
           typename TemporalDistanceMetric = spatial_distance_only>
 class temporal_space : public named_object {
  public:

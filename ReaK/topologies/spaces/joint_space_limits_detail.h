@@ -35,9 +35,9 @@
 #define REAK_TOPOLOGIES_SPACES_JOINT_SPACE_LIMITS_DETAIL_H_
 
 #include "ReaK/math/lin_alg/vect_concepts.h"
-#include "ReaK/topologies/spaces/ndof_spaces.h"
 #include "ReaK/topologies/spaces/differentiable_space.h"
 #include "ReaK/topologies/spaces/joint_space_topologies.h"
+#include "ReaK/topologies/spaces/ndof_spaces.h"
 #include "ReaK/topologies/spaces/se2_topologies.h"
 #include "ReaK/topologies/spaces/se3_topologies.h"
 
@@ -330,11 +330,13 @@ void create_rl_joint_space_impl(OutSpace& space_out, const InSpace& space_in,
 
     f3d_i += 2;
   } else {
-    tuple_for_each(space_out, space_in,
-                   [&](auto& space_elem_out, const auto& space_elem_in) {
-                     create_rl_joint_space_impl(space_elem_out, space_elem_in,
-                                                j_limits, gen_i, f2d_i, f3d_i);
-                   });
+    arithmetic_tuple_details::tuple_for_each(
+        space_out, space_in,
+        [&](auto& space_elem_out, const auto& space_elem_in) {
+          create_rl_joint_space_impl(space_elem_out, space_elem_in, j_limits,
+                                     gen_i, f2d_i, f3d_i);
+          return int{};
+        });
   }
 }
 
@@ -566,12 +568,13 @@ void create_normal_joint_space_impl(OutSpace& space_out,
 
     f3d_i += 2;
   } else {
-    tuple_for_each(space_out, space_in,
-                   [&](auto& space_elem_out, const auto& space_elem_in) {
-                     create_normal_joint_space_impl(space_elem_out,
-                                                    space_elem_in, j_limits,
-                                                    gen_i, f2d_i, f3d_i);
-                   });
+    arithmetic_tuple_details::tuple_for_each(
+        space_out, space_in,
+        [&](auto& space_elem_out, const auto& space_elem_in) {
+          create_normal_joint_space_impl(space_elem_out, space_elem_in,
+                                         j_limits, gen_i, f2d_i, f3d_i);
+          return int{};
+        });
   }
 }
 
@@ -663,17 +666,21 @@ void create_rl_joint_vector_impl(arithmetic_tuple<Arg0, Args...>& result,
       f3d_i += 2;
     } else {
       // Unknown, just recurse.
-      tuple_for_each(result, pt, [&](auto& elem_out, const auto& elem_in) {
-        create_rl_joint_vector_impl(elem_out, elem_in, j_limits, gen_i, f2d_i,
-                                    f3d_i);
-      });
+      arithmetic_tuple_details::tuple_for_each(
+          result, pt, [&](auto& elem_out, const auto& elem_in) {
+            create_rl_joint_vector_impl(elem_out, elem_in, j_limits, gen_i,
+                                        f2d_i, f3d_i);
+            return int{};
+          });
     }
   } else {
     // Unknown, just recurse (will probably fail).
-    tuple_for_each(result, pt, [&](auto& elem_out, const auto& elem_in) {
-      create_rl_joint_vector_impl(elem_out, elem_in, j_limits, gen_i, f2d_i,
-                                  f3d_i);
-    });
+    arithmetic_tuple_details::tuple_for_each(
+        result, pt, [&](auto& elem_out, const auto& elem_in) {
+          create_rl_joint_vector_impl(elem_out, elem_in, j_limits, gen_i, f2d_i,
+                                      f3d_i);
+          return int{};
+        });
   }
 }
 
@@ -761,17 +768,21 @@ void create_normal_joint_vector_impl(arithmetic_tuple<Arg0, Args...>& result,
       f3d_i += 2;
     } else {
       // Unknown, just recurse.
-      tuple_for_each(result, pt, [&](auto& elem_out, const auto& elem_in) {
-        create_normal_joint_vector_impl(elem_out, elem_in, j_limits, gen_i,
-                                        f2d_i, f3d_i);
-      });
+      arithmetic_tuple_details::tuple_for_each(
+          result, pt, [&](auto& elem_out, const auto& elem_in) {
+            create_normal_joint_vector_impl(elem_out, elem_in, j_limits, gen_i,
+                                            f2d_i, f3d_i);
+            return int{};
+          });
     }
   } else {
     // Unknown, just recurse (will probably fail).
-    tuple_for_each(result, pt, [&](auto& elem_out, const auto& elem_in) {
-      create_normal_joint_vector_impl(elem_out, elem_in, j_limits, gen_i, f2d_i,
-                                      f3d_i);
-    });
+    arithmetic_tuple_details::tuple_for_each(
+        result, pt, [&](auto& elem_out, const auto& elem_in) {
+          create_normal_joint_vector_impl(elem_out, elem_in, j_limits, gen_i,
+                                          f2d_i, f3d_i);
+          return int{};
+        });
   }
 }
 

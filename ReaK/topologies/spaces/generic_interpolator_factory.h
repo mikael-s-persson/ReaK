@@ -76,10 +76,11 @@ struct gen_interp_impl_initializer {
                               double aDt)
       : p_t_space(&t_space), p_factory(&factory), dt(aDt) {}
   template <typename Interpolator, typename Point, typename Space>
-  void operator()(Interpolator& interp, const Point& start_point,
-                  const Point& end_point, const Space& space) const {
+  int operator()(Interpolator& interp, const Point& start_point,
+                 const Point& end_point, const Space& space) const {
     interp.initialize(start_point, end_point, dt, space, *p_t_space,
                       *p_factory);
+    return int{};
   }
 };
 
@@ -92,11 +93,12 @@ struct gen_interp_impl_computer {
                            double aDt, double aDtTotal)
       : p_t_space(&t_space), p_factory(&factory), dt(aDt), dt_total(aDtTotal) {}
   template <typename Interpolator, typename Point, typename Space>
-  void operator()(const Interpolator& interp, Point& result,
-                  const Point& start_point, const Point& end_point,
-                  const Space& space) const {
+  int operator()(const Interpolator& interp, Point& result,
+                 const Point& start_point, const Point& end_point,
+                 const Space& space) const {
     interp.compute_point(result, start_point, end_point, space, *p_t_space, dt,
                          dt_total, *p_factory);
+    return int{};
   }
 };
 
@@ -104,11 +106,12 @@ struct gen_interp_impl_mintime {
   double* p_result;
   explicit gen_interp_impl_mintime(double& result) : p_result(&result) {}
   template <typename Interpolator>
-  void operator()(const Interpolator& interp) const {
+  int operator()(const Interpolator& interp) const {
     double r0 = interp.get_minimum_travel_time();
     if ((*p_result) < r0) {
       (*p_result) = r0;
     }
+    return int{};
   }
 };
 
@@ -137,9 +140,10 @@ class generic_interpolator_impl<InterpolatorImpl,
   void initialize(const point_type& start_point, const point_type& end_point,
                   double dt, const SpaceType& space,
                   const TimeSpaceType& t_space, const Factory& factory) {
-    tuple_for_each(interp, start_point, end_point, space,
-                   gen_interp_impl_initializer<TimeSpaceType, Factory>(
-                       t_space, factory, dt));
+    arithmetic_tuple_details::tuple_for_each(
+        interp, start_point, end_point, space,
+        gen_interp_impl_initializer<TimeSpaceType, Factory>(t_space, factory,
+                                                            dt));
   }
 
   template <typename Factory>
@@ -147,14 +151,16 @@ class generic_interpolator_impl<InterpolatorImpl,
                      const point_type& end_point, const SpaceType& space,
                      const TimeSpaceType& t_space, double dt, double dt_total,
                      const Factory& factory) const {
-    tuple_for_each(interp, result, start_point, end_point, space,
-                   gen_interp_impl_computer<TimeSpaceType, Factory>(
-                       t_space, factory, dt, dt_total));
+    arithmetic_tuple_details::tuple_for_each(
+        interp, result, start_point, end_point, space,
+        gen_interp_impl_computer<TimeSpaceType, Factory>(t_space, factory, dt,
+                                                         dt_total));
   }
 
   double get_minimum_travel_time() const {
     double result = 0.0;
-    tuple_for_each(interp, gen_interp_impl_mintime(result));
+    arithmetic_tuple_details::tuple_for_each(interp,
+                                             gen_interp_impl_mintime(result));
     return result;
   }
 };
@@ -220,9 +226,8 @@ class generic_interpolator {
   const point_type* get_end_point() const { return end_point; }
 
   template <typename Metric>
-    requires DistanceMetric<Metric, topology>
-  double travel_distance_to(const point_type& pt,
-                            const Metric& dist) const {
+  requires DistanceMetric<Metric, topology> double travel_distance_to(
+      const point_type& pt, const Metric& dist) const {
     if (parent && start_point) {
       return dist(pt, *start_point, *(parent->get_temporal_space()));
     }
@@ -230,9 +235,8 @@ class generic_interpolator {
   }
 
   template <typename Metric>
-    requires DistanceMetric<Metric, topology>
-  double travel_distance_from(const point_type& pt,
-                              const Metric& dist) const {
+  requires DistanceMetric<Metric, topology> double travel_distance_from(
+      const point_type& pt, const Metric& dist) const {
     if (parent && end_point) {
       return dist(*end_point, pt, *(parent->get_temporal_space()));
     }
