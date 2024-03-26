@@ -72,21 +72,12 @@ namespace ReaK::graph {
   *
   * conn_vis.vertex_to_be_removed(u, g);  This function is called just before a vertex is removed from the motion-graph
   *(i.e., pruned by the branch-and-bound heuristic).
-  *
-  * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
-  * \tparam Graph The graph type on which the visitor should be able to act.
-  * \tparam Topology The topology type on which the visitor class is required to work with.
   */
-template <typename ConnectorVisitor, typename Graph, typename Topology>
-struct BNBConnectorVisitorConcept
-    : MotionGraphConnectorVisitorConcept<ConnectorVisitor, Graph, Topology> {
-  ConnectorVisitor conn_vis;
-  Graph g;
-  graph_vertex_t<Graph> u;
-
-  BOOST_CONCEPT_USAGE(BNBConnectorVisitorConcept) {
-    conn_vis.vertex_to_be_removed(u, g);
-  }
+template <typename Visitor, typename Graph, typename Space>
+concept BNBConnectorVisitor =
+    MotionGraphConnectorVisitor<Visitor, Graph, Space>&& requires(
+        Visitor vis, Graph g, graph_vertex_t<Graph> u) {
+  vis.vertex_to_be_removed(u, g);
 };
 
 template <typename Graph>
@@ -114,9 +105,8 @@ struct bnb_ordering_data {
     }
   }
 
-  template <typename ConnectorVisitor>
-  void prune_worst_nodes(double threshold, Graph& g,
-                         const ConnectorVisitor& conn_vis) {
+  template <SBMPPruningVisitor<Graph> Visitor>
+  void prune_worst_nodes(double threshold, Graph& g, const Visitor& conn_vis) {
     // prune all the worst nodes:
     double top_value = get(key, Q.top());
     while (top_value > threshold) {
@@ -146,10 +136,11 @@ struct bnb_connector {
 
   explicit bnb_connector(bnb_ordering_data<Graph>& aData) : data(&aData){};
 
-  template <typename Topology, typename ConnectorVisitor, typename PositionMap,
-            typename DistanceMap, typename PredecessorMap, typename WeightMap>
-  void update_successors(Vertex v, Graph& g, const Topology& super_space,
-                         const ConnectorVisitor& conn_vis, PositionMap position,
+  template <pp::MetricSpace Space, BNBConnectorVisitor<Graph, Space> Visitor,
+            typename PositionMap, typename DistanceMap, typename PredecessorMap,
+            typename WeightMap>
+  void update_successors(Vertex v, Graph& g, const Space& super_space,
+                         const Visitor& conn_vis, PositionMap position,
                          DistanceMap distance, PredecessorMap predecessor,
                          WeightMap weight) const {
 
@@ -188,12 +179,13 @@ struct bnb_connector {
     }
   }
 
-  template <typename Topology, typename ConnectorVisitor, typename PositionMap,
-            typename FwdDistanceMap, typename SuccessorMap, typename WeightMap>
-  void update_predecessors(Vertex v, Graph& g, const Topology& super_space,
-                           const ConnectorVisitor& conn_vis,
-                           PositionMap position, FwdDistanceMap fwd_distance,
-                           SuccessorMap successor, WeightMap weight) const {
+  template <pp::MetricSpace Space, BNBConnectorVisitor<Graph, Space> Visitor,
+            typename PositionMap, typename FwdDistanceMap,
+            typename SuccessorMap, typename WeightMap>
+  void update_predecessors(Vertex v, Graph& g, const Space& super_space,
+                           const Visitor& conn_vis, PositionMap position,
+                           FwdDistanceMap fwd_distance, SuccessorMap successor,
+                           WeightMap weight) const {
 
     // need to update all the children of the v node:
     std::stack<Vertex> incons;
@@ -240,9 +232,8 @@ struct bnb_connector {
    *
    * \tparam Graph2 The graph type that can store the generated roadmap, should model
    *         BidirectionalGraphConcept and MutableGraphConcept.
-   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-   * \tparam SBAStarVisitor The type of the node-connector visitor to be used, should model the
-   *BNBConnectorVisitorConcept.
+   * \tparam Space The topology type that represents the free-space, should model BGL's Topology concept.
+   * \tparam Visitor The type of the node-connector visitor to be used.
    * \tparam PositionMap A property-map type that can store the position of each vertex.
    * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting
    *         vertex together with its optimal predecessor.
@@ -274,19 +265,15 @@ struct bnb_connector {
    *        vertices of the graph that ought to be connected to a new
    *        vertex. The list should be sorted in order of increasing "distance".
    */
-  template <typename Graph2, typename Topology, typename ConnectorVisitor,
-            typename PositionMap, typename DistanceMap, typename PredecessorMap,
-            typename WeightMap, typename NcSelector>
+  template <typename Graph2, pp::MetricSpace Space,
+            BNBConnectorVisitor<Graph2, Space> Visitor, typename PositionMap,
+            typename DistanceMap, typename PredecessorMap, typename WeightMap,
+            typename NcSelector>
   void operator()(const property_value_t<PositionMap>& p, Vertex& x_near,
-                  EdgeProp& eprop, Graph2& g, const Topology& super_space,
-                  const ConnectorVisitor& conn_vis, PositionMap position,
+                  EdgeProp& eprop, Graph2& g, const Space& super_space,
+                  const Visitor& conn_vis, PositionMap position,
                   DistanceMap distance, PredecessorMap predecessor,
                   WeightMap weight, NcSelector select_neighborhood) const {
-
-    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT(
-        (BNBConnectorVisitorConcept<ConnectorVisitor, Graph2, Topology>));
-
     double dist_from_start = get(ReaK::pp::distance_metric, super_space)(
         get(position, g[data->start_vertex]), p, super_space);
     double dist_to_goal = get(ReaK::pp::distance_metric, super_space)(
@@ -349,21 +336,18 @@ struct bnb_connector {
                       predecessor, weight);
   }
 
-  template <typename Graph2, typename Topology, typename ConnectorVisitor,
-            typename PositionMap, typename DistanceMap, typename PredecessorMap,
+  template <typename Graph2, pp::MetricSpace Space,
+            BNBConnectorVisitor<Graph2, Space> Visitor, typename PositionMap,
+            typename DistanceMap, typename PredecessorMap,
             typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
             typename NcSelector>
   void operator()(const property_value_t<PositionMap>& p, Vertex& x_pred,
                   EdgeProp& eprop_pred, Vertex& x_succ, EdgeProp& eprop_succ,
-                  Graph2& g, const Topology& super_space,
-                  const ConnectorVisitor& conn_vis, PositionMap position,
-                  DistanceMap distance, PredecessorMap predecessor,
-                  FwdDistanceMap fwd_distance, SuccessorMap successor,
-                  WeightMap weight, NcSelector select_neighborhood) const {
-    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((
-        MotionGraphConnectorVisitorConcept<ConnectorVisitor, Graph, Topology>));
-
+                  Graph2& g, const Space& super_space, const Visitor& conn_vis,
+                  PositionMap position, DistanceMap distance,
+                  PredecessorMap predecessor, FwdDistanceMap fwd_distance,
+                  SuccessorMap successor, WeightMap weight,
+                  NcSelector select_neighborhood) const {
     using std::back_inserter;
 
     double dist_from_start = get(ReaK::pp::distance_metric, super_space)(

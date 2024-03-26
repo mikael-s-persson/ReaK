@@ -33,6 +33,7 @@
 #include "ReaK/control/estimators/covariance_concept.h"
 #include "ReaK/control/systems/invariant_system_concept.h"
 #include "ReaK/control/systems/linear_ss_system_concept.h"
+#include "ReaK/topologies/spaces/metric_space_concept.h"
 
 #include <type_traits>
 
@@ -40,40 +41,34 @@ namespace ReaK::ctrl {
 
 namespace detail {
 
-template <typename T, typename InvariantSystem, typename StateSpaceType,
-          typename SystemNoiseCovariance, typename MeasurementNoiseCovariance>
-struct invariant_kb_system : public state_rate_function<T> {
+template <typename T, typename ISystem, typename StateSpaceType,
+          CovarianceMatrix<typename ss_system_traits<ISystem>::input_type>
+              SystemNoiseCovariance,
+          CovarianceMatrix<typename ss_system_traits<ISystem>::output_type>
+              MeasurementNoiseCovariance>
+requires InvariantContinuousSystem<ISystem,
+                                   StateSpaceType> struct invariant_kb_system
+    : public state_rate_function<T> {
 
   using value_type = T;
   using size_type = std::size_t;
-  using state_type = typename ss_system_traits<InvariantSystem>::point_type;
+  using state_type = typename ss_system_traits<ISystem>::point_type;
   using state_deriv_type =
-      typename ss_system_traits<InvariantSystem>::point_derivative_type;
-  using input_type = typename ss_system_traits<InvariantSystem>::input_type;
-  using output_type = typename ss_system_traits<InvariantSystem>::output_type;
+      typename ss_system_traits<ISystem>::point_derivative_type;
+  using input_type = typename ss_system_traits<ISystem>::input_type;
+  using output_type = typename ss_system_traits<ISystem>::output_type;
 
-  using matrixA_type =
-      typename linear_ss_system_traits<InvariantSystem>::matrixA_type;
-  using matrixB_type =
-      typename linear_ss_system_traits<InvariantSystem>::matrixB_type;
-  using matrixC_type =
-      typename linear_ss_system_traits<InvariantSystem>::matrixC_type;
-  using matrixD_type =
-      typename linear_ss_system_traits<InvariantSystem>::matrixD_type;
+  using matrixA_type = typename linear_ss_system_traits<ISystem>::matrixA_type;
+  using matrixB_type = typename linear_ss_system_traits<ISystem>::matrixB_type;
+  using matrixC_type = typename linear_ss_system_traits<ISystem>::matrixC_type;
+  using matrixD_type = typename linear_ss_system_traits<ISystem>::matrixD_type;
 
   using invariant_error_type =
-      typename invariant_system_traits<InvariantSystem>::invariant_error_type;
-  using invariant_correction_type = typename invariant_system_traits<
-      InvariantSystem>::invariant_correction_type;
+      typename invariant_system_traits<ISystem>::invariant_error_type;
+  using invariant_correction_type =
+      typename invariant_system_traits<ISystem>::invariant_correction_type;
 
-  BOOST_CONCEPT_ASSERT(
-      (InvariantContinuousSystemConcept<InvariantSystem, StateSpaceType>));
-  BOOST_CONCEPT_ASSERT(
-      (CovarianceMatrixConcept<SystemNoiseCovariance, input_type>));
-  BOOST_CONCEPT_ASSERT(
-      (CovarianceMatrixConcept<MeasurementNoiseCovariance, output_type>));
-
-  const InvariantSystem& sys;
+  const ISystem& sys;
   const StateSpaceType& state_space;
   const input_type& u;
   const output_type& z;
@@ -88,9 +83,9 @@ struct invariant_kb_system : public state_rate_function<T> {
   matrixC_type C;
   matrixD_type D;
 
-  invariant_kb_system(const InvariantSystem& aSys,
-                      const StateSpaceType& aStateSpace, const input_type& aU,
-                      const output_type& aZ, const SystemNoiseCovariance& aQ,
+  invariant_kb_system(const ISystem& aSys, const StateSpaceType& aStateSpace,
+                      const input_type& aU, const output_type& aZ,
+                      const SystemNoiseCovariance& aQ,
                       const MeasurementNoiseCovariance& aR)
       : sys(aSys), state_space(aStateSpace), u(aU), z(aZ), Q(aQ.get_matrix()) {
     invert_Cholesky(aR.get_matrix(), R_inv);
@@ -144,35 +139,27 @@ struct invariant_kb_system : public state_rate_function<T> {
 };
 }  // namespace detail
 
-template <typename InvariantSystem, typename StateSpaceType,
-          typename BeliefState, typename InputBelief,
-          typename MeasurementBelief>
+template <pp::Topology StateSpaceType,
+          InvariantContinuousSystem<StateSpaceType> ISystem,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          ContinuousBeliefState MeasurementBelief>
 void invariant_kalman_bucy_filter_step(
-    const InvariantSystem& sys,
+    const ISystem& sys,
     integrator<mat_value_type_t<
         typename covariance_mat_traits<typename continuous_belief_state_traits<
-            BeliefState>::covariance_type>::matrix_type>>& integ,
-    const StateSpaceType& state_space, BeliefState& b_x, const InputBelief& b_u,
+            BState>::covariance_type>::matrix_type>>& integ,
+    const StateSpaceType& state_space, BState& b_x, const InputBelief& b_u,
     const MeasurementBelief& b_z,
-    typename ss_system_traits<InvariantSystem>::time_difference_type dt,
-    typename ss_system_traits<InvariantSystem>::time_type t = 0) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
-  BOOST_CONCEPT_ASSERT(
-      (InvariantContinuousSystemConcept<InvariantSystem, StateSpaceType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+    typename ss_system_traits<ISystem>::time_difference_type dt,
+    typename ss_system_traits<ISystem>::time_type t = 0) {
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
 
-  using StateType = typename ss_system_traits<InvariantSystem>::point_type;
+  using StateType = typename ss_system_traits<ISystem>::point_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
   using MatType = typename covariance_mat_traits<CovType>::matrix_type;
   using ValueType = mat_value_type_t<MatType>;
 
@@ -198,7 +185,7 @@ void invariant_kalman_bucy_filter_step(
   }
 
   auto integ_sys = std::make_shared<detail::invariant_kb_system<
-      ValueType, InvariantSystem, StateSpaceType, InputCovType, OutputCovType>>(
+      ValueType, ISystem, StateSpaceType, InputCovType, OutputCovType>>(
       sys, state_space, b_u.get_mean_state(), b_z.get_mean_state(),
       b_u.get_covariance(), b_z.get_covariance());
 

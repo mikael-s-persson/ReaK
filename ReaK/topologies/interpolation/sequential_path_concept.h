@@ -34,9 +34,9 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_SEQUENTIAL_PATH_CONCEPT_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_SEQUENTIAL_PATH_CONCEPT_H_
 
-#include "boost/concept_check.hpp"
-
 #include "ReaK/topologies/spaces/metric_space_concept.h"
+
+#include <concepts>
 
 namespace ReaK::pp {
 
@@ -45,24 +45,22 @@ namespace ReaK::pp {
  * topology.
  * \tparam SequentialPath The spatial path type for which the traits are sought.
  */
-template <typename SequentialPath>
+template <typename Path>
 struct sequential_path_traits {
   /** This type describes a point in the space or topology. */
-  using point_type = typename SequentialPath::point_type;
+  using point_type = typename Path::point_type;
 
   /** This type describes an iterator, corresponding to a point on the path, which can be incremented by distance to
    * travel to the next iterator. */
-  using point_distance_iterator =
-      typename SequentialPath::point_distance_iterator;
+  using point_distance_iterator = typename Path::point_distance_iterator;
   /** This type describes an iterator, corresponding to a point on the path, which can be incremented by a fraction
    * between waypoints to travel to the next iterator. */
-  using point_fraction_iterator =
-      typename SequentialPath::point_fraction_iterator;
+  using point_fraction_iterator = typename Path::point_fraction_iterator;
 
   /** This type is the topology type in which the path exists. */
-  using topology = typename SequentialPath::topology;
+  using topology = typename Path::topology;
   /** This type is the distance metric type used on the topology and defining the travel distances along the path. */
-  using distance_metric = typename SequentialPath::distance_metric;
+  using distance_metric = typename Path::distance_metric;
 };
 
 /**
@@ -73,9 +71,9 @@ struct sequential_path_traits {
  *
  * Required concepts:
  *
- * The topology should model the MetricSpaceConcept.
+ * The topology should model the MetricSpace.
  *
- * The distance-metric should model the DistanceMetricConcept.
+ * The distance-metric should model the DistanceMetric.
  *
  * Valid expressions:
  *
@@ -113,57 +111,56 @@ struct sequential_path_traits {
  *
  * d = path.travel_distance(pt,pt);  The travel distance, along the path (p), between two points (pt,pt), can be
  *obtained.
- *
- * \tparam SequentialPath The type to be checked for the requirements of this concept.
- * \tparam Topology The topology in which the spatial-path should reside.
  */
-template <typename SequentialPath, typename Topology>
-struct SequentialPathConcept {
-
-  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (DistanceMetricConcept<
-          typename sequential_path_traits<SequentialPath>::distance_metric,
-          Topology>));
-
-  SequentialPath path;
-  typename topology_traits<Topology>::point_type pt;
-  double d;
-  bool b;
-  typename sequential_path_traits<SequentialPath>::point_distance_iterator dit;
-  typename sequential_path_traits<SequentialPath>::point_fraction_iterator fit;
-
-  BOOST_CONCEPT_USAGE(SequentialPathConcept) {
-    dit = path.begin_distance_travel();
-    dit = path.end_distance_travel();
-
-    pt = *dit;
-
-    dit = dit + d;
-    dit = d + dit;
-    dit += d;
-    dit = dit - d;
-    dit -= d;
-
-    b = (dit != dit);
-    b = (dit == dit);
-
-    fit = path.begin_fraction_travel();
-    fit = path.end_fraction_travel();
-
-    pt = *fit;
-
-    fit = fit + d;
-    fit = d + fit;
-    fit += d;
-    fit = fit - d;
-    fit -= d;
-
-    b = (fit != fit);
-    b = (fit == fit);
-
-    d = path.travel_distance(pt, pt);
-  }
+template <typename Path, typename Space>
+concept SequentialPath = Topology<Space>&& DistanceMetric<
+    typename sequential_path_traits<Path>::distance_metric, Space>&&
+requires(const Path& path, const topology_point_type_t<Space>& pt) {
+  { path.travel_distance(pt, pt) } -> std::convertible_to<double>;
+}
+&&requires(const Path& path) {
+  {
+    path.begin_distance_travel()
+    } -> std::convertible_to<
+        typename sequential_path_traits<Path>::point_distance_iterator>;
+  {
+    path.end_distance_travel()
+    } -> std::convertible_to<
+        typename sequential_path_traits<Path>::point_distance_iterator>;
+}
+&&requires(
+    double d,
+    typename sequential_path_traits<Path>::point_distance_iterator& dit) {
+  { *dit } -> std::convertible_to<topology_point_type_t<Space>>;
+  dit = dit + d;
+  dit = d + dit;
+  dit += d;
+  dit = dit - d;
+  dit -= d;
+  { dit != dit } -> std::convertible_to<bool>;
+  { dit == dit } -> std::convertible_to<bool>;
+}
+&&requires(const Path& path) {
+  {
+    path.begin_fraction_travel()
+    } -> std::convertible_to<
+        typename sequential_path_traits<Path>::point_fraction_iterator>;
+  {
+    path.end_fraction_travel()
+    } -> std::convertible_to<
+        typename sequential_path_traits<Path>::point_fraction_iterator>;
+}
+&&requires(
+    double d,
+    typename sequential_path_traits<Path>::point_fraction_iterator& fit) {
+  { *fit } -> std::convertible_to<topology_point_type_t<Space>>;
+  fit = fit + d;
+  fit = d + fit;
+  fit += d;
+  fit = fit - d;
+  fit -= d;
+  { fit != fit } -> std::convertible_to<bool>;
+  { fit == fit } -> std::convertible_to<bool>;
 };
 
 }  // namespace ReaK::pp

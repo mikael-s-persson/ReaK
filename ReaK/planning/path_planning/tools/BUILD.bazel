@@ -1,0 +1,51 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_binary(
+  name = "CRS_planner_run",
+  srcs = [
+    "CRS_planner_run.cc",
+  ],
+  deps = [
+    "//ReaK/core/base",
+    "//ReaK/math/lin_alg",
+    "//ReaK/mbd/models",
+    "//ReaK/mbd/models:models_po",
+    "//ReaK/planning/path_planning",
+    "//ReaK/planning/path_planning:path_planning_po",
+    "//ReaK/topologies/spaces",
+    "//ReaK/topologies/interpolation",
+    "//ReaK/topologies/interpolation:interpolated_spaces",
+    "@com_google_absl//absl/flags:flag",
+    "@com_google_absl//absl/flags:parse",
+  ],
+)
+
+# cc_binary(
+#   name = "X8_planner_run",
+#   srcs = [
+#     "X8_planner_run.cc",
+#   ],
+#   deps = [
+#     "//ReaK/core/base",
+#     "//ReaK/core/recorders",
+#     "//ReaK/geometry/shapes",
+#     "//ReaK/math/lin_alg",
+#     "//ReaK/mbd/kte",
+#     "//ReaK/mbd/models",
+#     "//ReaK/mbd/models:models_po",
+#     "//ReaK/planning/path_planning",
+#     "//ReaK/planning/path_planning:path_planning_po",
+#     "//ReaK/topologies/interpolation",
+#     "//ReaK/topologies/interpolation:interpolated_spaces",
+#     "//ReaK/control/controllers",
+#     "//ReaK/control/systems",
+#     "@com_google_absl//absl/flags:flag",
+#     "@com_google_absl//absl/flags:parse",
+#   ],
+# )

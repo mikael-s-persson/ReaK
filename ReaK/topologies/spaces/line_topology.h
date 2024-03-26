@@ -48,8 +48,8 @@
 namespace ReaK::pp {
 
 /**
- * This class implements an infinite line topology. This class models the TopologyConcept,
- * the LieGroupConcept, and the MetricSpaceConcept.
+ * This class implements an infinite line topology. This class models Topology,
+ * LieGroup, and MetricSpace.
  * \tparam T The value-type for the topology (should be an arithmetic type that is implicitly convertable to double).
  */
 template <typename T = double>
@@ -70,7 +70,7 @@ class line_topology : public named_object {
   }
 
   /*************************************************************************
-   *                             TopologyConcept
+   *                             Topology
    * **********************************************************************/
 
   /**
@@ -100,7 +100,7 @@ class line_topology : public named_object {
   virtual bool is_in_bounds(const point_type& a) const { return true; }
 
   /*************************************************************************
-  *                             MetricSpaceConcept
+  *                             MetricSpace
   * **********************************************************************/
 
   /**
@@ -128,7 +128,7 @@ class line_topology : public named_object {
   }
 
   /*************************************************************************
-  *                             LieGroupConcept
+  *                             LieGroup
   * **********************************************************************/
 
   /**
@@ -166,16 +166,10 @@ class line_topology : public named_object {
                               named_object)
 };
 
-template <typename T>
-struct is_metric_space<line_topology<T>> : std::true_type {};
-
-template <typename T>
-struct is_reversible_space<line_topology<T>> : std::true_type {};
-
 /**
  * This class implements a line-segment topology. The space extends from the minimum value up to some
- * maximum value. Models the TopologyConcept, LieGroupConcept, MetricSpaceConcept,
- * BoundedSpaceConcept, and SphereBoundedSpaceConcept, and also provides a distance-metric and a
+ * maximum value. Models Topology, LieGroup, MetricSpace,
+ * BoundedSpace, and SphereBoundedSpace, and also provides a distance-metric and a
  * random-sampler (default, uniform sampler).
  *
  * \tparam T A value-type (scalar value).
@@ -207,7 +201,7 @@ class line_segment_topology : public line_topology<T> {
       : line_topology<T>(aName), start_pt(aStart), end_pt(aEnd) {}
 
   /*************************************************************************
-  *                         for PointDistributionConcept
+  *                         for PointDistribution
   * **********************************************************************/
 
   /**
@@ -218,7 +212,7 @@ class line_segment_topology : public line_topology<T> {
   }
 
   /*************************************************************************
-  *                             BoundedSpaceConcept
+  *                             BoundedSpace
   * **********************************************************************/
 
   /**
@@ -288,7 +282,7 @@ class line_segment_topology : public line_topology<T> {
   }
 
   /*************************************************************************
-  *                             SphereBoundedSpaceConcept
+  *                             SphereBoundedSpace
   * **********************************************************************/
 
   /**
@@ -324,15 +318,6 @@ class line_segment_topology : public line_topology<T> {
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400006, 1, "line_segment_topology",
                               line_topology<T>)
 };
-
-template <typename T>
-struct is_metric_space<line_segment_topology<T>> : std::true_type {};
-
-template <typename T>
-struct is_reversible_space<line_segment_topology<T>> : std::true_type {};
-
-template <typename T>
-struct is_point_distribution<line_segment_topology<T>> : std::true_type {};
 
 extern template class line_topology<double>;
 extern template class line_segment_topology<double>;

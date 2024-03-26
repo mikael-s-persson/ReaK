@@ -61,7 +61,7 @@ class pptester_planner {
         mStart(-6.43, -5.89),
         mGoal(7.0, 7.0),
         mRobotRunning(false),
-        mBestPath(){}
+        mBestPath() {}
 
   virtual bool run(const cv::Mat& aWorldMap) = 0;
 

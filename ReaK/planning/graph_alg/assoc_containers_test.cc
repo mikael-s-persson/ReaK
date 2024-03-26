@@ -92,9 +92,7 @@ TYPED_TEST(IntIntMultiMapTest, IntIntMultiMapOperations) {
   using MappedType = typename Map::mapped_type;
   //   typedef typename Map::value_type ValueType;
   using ValueType = std::pair<KeyType, MappedType>;
-  using Iter = typename Map::iterator;
   using ConstIter = typename Map::const_iterator;
-  using ConstRevIter = typename Map::const_reverse_iterator;
 
   Map m;
   EXPECT_EQ(m.size(), 0);
@@ -229,9 +227,7 @@ TYPED_TEST(IntIntMultiSetTest, IntIntMultiSetOperations) {
   using Set = TypeParam;
   using std::swap;
   using ValueType = typename Set::value_type;
-  using Iter = typename Set::iterator;
   using ConstIter = typename Set::const_iterator;
-  using ConstRevIter = typename Set::const_reverse_iterator;
 
   Set s;
   EXPECT_EQ(s.size(), 0);

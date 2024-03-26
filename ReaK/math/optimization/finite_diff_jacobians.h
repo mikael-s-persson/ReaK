@@ -168,18 +168,17 @@ void compute_jacobian_5pts_central_impl(Function f, Vector1& x,
 }  // namespace detail
 
 template <typename Function, typename Vector1, typename Vector2,
-          typename Matrix, typename Scalar = mat_value_type_t<Matrix>>
+          WritableMatrix Matrix, typename Scalar = mat_value_type_t<Matrix>>
 void compute_jacobian_2pts_forward(Function f, Vector1& x, const Vector2& y,
                                    Matrix& jac, Scalar delta = Scalar(1e-6)) {
-  static_assert(is_writable_matrix_v<Matrix>);
-  if constexpr (!is_readable_vector_v<Vector1>) {
+  if constexpr (!ReadableVector<Vector1>) {
     vect<Scalar, 1> x_tmp;
     x_tmp[0] = x;
     compute_jacobian_2pts_forward(
         [&f](const vect<Scalar, 1>& x) { return f(x[0]); }, x_tmp, y, jac,
         delta);
     x = x_tmp[0];
-  } else if constexpr (!is_readable_vector_v<Vector2>) {
+  } else if constexpr (!ReadableVector<Vector2>) {
     vect<Scalar, 1> y_tmp;
     y_tmp[0] = y;
     compute_jacobian_2pts_forward(
@@ -189,7 +188,7 @@ void compute_jacobian_2pts_forward(Function f, Vector1& x, const Vector2& y,
           return result;
         },
         x, y_tmp, jac, delta);
-  } else if constexpr (is_fully_writable_matrix_v<Matrix>) {
+  } else if constexpr (FullyWritableMatrix<Matrix>) {
     detail::compute_jacobian_2pts_forward_impl(f, x, y, jac, delta);
   } else {
     mat<vect_value_type_t<Vector1>, mat_structure::rectangular> jac_tmp(
@@ -200,18 +199,17 @@ void compute_jacobian_2pts_forward(Function f, Vector1& x, const Vector2& y,
 }
 
 template <typename Function, typename Vector1, typename Vector2,
-          typename Matrix, typename Scalar = mat_value_type_t<Matrix>>
+          WritableMatrix Matrix, typename Scalar = mat_value_type_t<Matrix>>
 void compute_jacobian_2pts_central(Function f, Vector1& x, const Vector2& y,
                                    Matrix& jac, Scalar delta = Scalar(1e-6)) {
-  static_assert(is_writable_matrix_v<Matrix>);
-  if constexpr (!is_readable_vector_v<Vector1>) {
+  if constexpr (!ReadableVector<Vector1>) {
     vect<Scalar, 1> x_tmp;
     x_tmp[0] = x;
     compute_jacobian_2pts_central(
         [&f](const vect<Scalar, 1>& x) { return f(x[0]); }, x_tmp, y, jac,
         delta);
     x = x_tmp[0];
-  } else if constexpr (!is_readable_vector_v<Vector2>) {
+  } else if constexpr (!ReadableVector<Vector2>) {
     vect<Scalar, 1> y_tmp;
     y_tmp[0] = y;
     compute_jacobian_2pts_central(
@@ -221,7 +219,7 @@ void compute_jacobian_2pts_central(Function f, Vector1& x, const Vector2& y,
           return result;
         },
         x, y_tmp, jac, delta);
-  } else if constexpr (is_fully_writable_matrix_v<Matrix>) {
+  } else if constexpr (FullyWritableMatrix<Matrix>) {
     detail::compute_jacobian_2pts_central_impl(f, x, y, jac, delta);
   } else {
     mat<vect_value_type_t<Vector1>, mat_structure::rectangular> jac_tmp(
@@ -232,18 +230,17 @@ void compute_jacobian_2pts_central(Function f, Vector1& x, const Vector2& y,
 }
 
 template <typename Function, typename Vector1, typename Vector2,
-          typename Matrix, typename Scalar = mat_value_type_t<Matrix>>
+          WritableMatrix Matrix, typename Scalar = mat_value_type_t<Matrix>>
 void compute_jacobian_5pts_central(Function f, Vector1& x, const Vector2& y,
                                    Matrix& jac, Scalar delta = Scalar(1e-6)) {
-  static_assert(is_writable_matrix_v<Matrix>);
-  if constexpr (!is_readable_vector_v<Vector1>) {
+  if constexpr (!ReadableVector<Vector1>) {
     vect<Scalar, 1> x_tmp;
     x_tmp[0] = x;
     compute_jacobian_5pts_central(
         [&f](const vect<Scalar, 1>& x) { return f(x[0]); }, x_tmp, y, jac,
         delta);
     x = x_tmp[0];
-  } else if constexpr (!is_readable_vector_v<Vector2>) {
+  } else if constexpr (!ReadableVector<Vector2>) {
     vect<Scalar, 1> y_tmp;
     y_tmp[0] = y;
     compute_jacobian_5pts_central(
@@ -253,7 +250,7 @@ void compute_jacobian_5pts_central(Function f, Vector1& x, const Vector2& y,
           return result;
         },
         x, y_tmp, jac, delta);
-  } else if constexpr (is_fully_writable_matrix_v<Matrix>) {
+  } else if constexpr (FullyWritableMatrix<Matrix>) {
     detail::compute_jacobian_5pts_central_impl(f, x, y, jac, delta);
   } else {
     mat<vect_value_type_t<Vector1>, mat_structure::rectangular> jac_tmp(

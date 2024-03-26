@@ -61,10 +61,6 @@ namespace detail {}  // namespace detail
  *controllable).
  * \n
  *
- * \tparam Matrix1 A fully-writable (square) matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A fully-writable (square) matrix type.
- * \tparam Matrix4 A fully-writable (square) matrix type.
  * \param A square (n x n) matrix which represents state-to-state-derivative linear map (or state-to-state for a
  *discrete-time system).
  * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map (or
@@ -79,14 +75,10 @@ namespace detail {}  // namespace detail
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4>
+template <FullyWritableMatrix Matrix1, FullyWritableMatrix Matrix2,
+          FullyWritableMatrix Matrix3, FullyWritableMatrix Matrix4>
 int ctrl_reduction(Matrix1& A, Matrix2& B, Matrix3& Q, Matrix4& Z,
                    mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_fully_writable_matrix_v<Matrix1>);
-  static_assert(is_fully_writable_matrix_v<Matrix2>);
-  static_assert(is_fully_writable_matrix_v<Matrix3>);
-  static_assert(is_fully_writable_matrix_v<Matrix4>);
   if ((A.get_row_count() != A.get_col_count()) ||
       (B.get_row_count() != A.get_row_count())) {
     throw std::range_error(

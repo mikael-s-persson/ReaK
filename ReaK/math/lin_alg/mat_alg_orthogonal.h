@@ -32,8 +32,6 @@
 
 #include "ReaK/math/lin_alg/mat_alg_general.h"
 
-namespace ReaK {
-
-}  // namespace ReaK
+namespace ReaK {}  // namespace ReaK
 
 #endif  // REAK_MATH_LIN_ALG_MAT_ALG_ORTHOGONAL_H_

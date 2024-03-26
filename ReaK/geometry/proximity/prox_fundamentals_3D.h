@@ -74,7 +74,7 @@ struct cylinder_slacking_func {
   const cylinder* mCylinder;
   const pose_3D<double>* mGblPose;
 
-  static const std::size_t size = 3;
+  static constexpr std::size_t size = 3;
 
   cylinder_slacking_func(const cylinder& aCylinder,
                          const pose_3D<double>& aGblPose)
@@ -100,7 +100,7 @@ struct cylinder_slacking_jac {
   const cylinder* mCylinder;
   const pose_3D<double>* mGblPose;
 
-  static const std::size_t size = 3;
+  static constexpr std::size_t size = 3;
 
   cylinder_slacking_jac(const cylinder& aCylinder,
                         const pose_3D<double>& aGblPose)
@@ -153,7 +153,7 @@ struct ccylinder_slacking_func {
   const capped_cylinder* mCCylinder;
   const pose_3D<double>* mGblPose;
 
-  static const std::size_t size = 1;
+  static constexpr std::size_t size = 1;
 
   ccylinder_slacking_func(const capped_cylinder& aCCylinder,
                           const pose_3D<double>& aGblPose)
@@ -189,7 +189,7 @@ struct ccylinder_slacking_jac {
   const capped_cylinder* mCCylinder;
   const pose_3D<double>* mGblPose;
 
-  static const std::size_t size = 1;
+  static constexpr std::size_t size = 1;
 
   ccylinder_slacking_jac(const capped_cylinder& aCCylinder,
                          const pose_3D<double>& aGblPose)
@@ -241,7 +241,7 @@ struct box_slacking_func {
   const box* mBox;
   const pose_3D<double>* mGblPose;
 
-  static const std::size_t size = 6;
+  static constexpr std::size_t size = 6;
 
   box_slacking_func(const box& aBox, const pose_3D<double>& aGblPose)
       : mBox(&aBox), mGblPose(&aGblPose) {}
@@ -271,7 +271,7 @@ struct box_slacking_jac {
   const box* mBox;
   const pose_3D<double>* mGblPose;
 
-  static const std::size_t size = 6;
+  static constexpr std::size_t size = 6;
 
   box_slacking_jac(const box& aBox, const pose_3D<double>& aGblPose)
       : mBox(&aBox), mGblPose(&aGblPose) {}

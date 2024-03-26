@@ -45,7 +45,7 @@ namespace ReaK {
 /// a identity matrix (all entries zero except diagonal is all unity). This is useful to build for example a
 /// block-matrix with some identity-matrix blocks, and, of course, requires minimal storage space.
 ///
-/// Models: ReadableMatrixConcept and ResizableMatrixConcept.
+/// Models: ReadableMatrix and ResizableMatrix.
 ///
 /// \tparam T Arithmetic type of the elements of the matrix.
 /// \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
@@ -236,7 +236,7 @@ mat<T, mat_structure::identity> mat_ident(int aRowCount) {
 /// \param S some scalar.
 /// \return Scalar matrix.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
-std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
+std::enable_if_t<!ReadableVector<T> && !ReadableMatrix<T>,
                  mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>>
 operator*(
     const mat<T, mat_structure::identity, Alignment, RowCount, RowCount>& M,
@@ -250,7 +250,7 @@ operator*(
 /// \param M a null-matrix.
 /// \return Scalar matrix.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
-std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
+std::enable_if_t<!ReadableVector<T> && !ReadableMatrix<T>,
                  mat<T, mat_structure::scalar, Alignment, RowCount, RowCount>>
 operator*(
     const T& S,

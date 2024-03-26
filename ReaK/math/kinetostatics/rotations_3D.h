@@ -152,9 +152,8 @@ class rot_mat_3D {
 
   rot_mat_3D(const self&) noexcept = default;
 
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   explicit rot_mat_3D(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_col_count() != 3) || (M.get_row_count() != 3)) {
       throw std::range_error(
           "Right-hand-side of assignment to a 3D rotation matrix is not of "
@@ -443,12 +442,6 @@ std::ostream& operator<<(std::ostream& out_stream, const rot_mat_3D<T>& R) {
                     << "); (" << R(2, 0) << "; " << R(2, 1) << "; " << R(2, 2)
                     << "))";
 }
-
-template <typename T>
-struct is_readable_matrix<rot_mat_3D<T>> {
-  static constexpr bool value = true;
-  using type = is_readable_matrix<rot_mat_3D<T>>;
-};
 
 /// This class represents a rotation using quaternions (or Euler-Rodriguez parameters).
 /// The convention used is with the leading scalar.
@@ -753,9 +746,8 @@ class quaternion {
 
   quaternion(const self&) noexcept = default;
 
-  template <typename Vector>
+  template <ReadableVector Vector>
   explicit quaternion(const Vector& aV) noexcept {
-    static_assert(is_readable_vector_v<Vector>);
     auto v = unit(vect<value_type, 4>(aV[0], aV[1], aV[2], aV[3]));
     q[0] = v[0];
     q[1] = v[1];
@@ -900,7 +892,7 @@ class quaternion {
             std::enable_if_t<!std::is_same_v<rot_mat_3D<value_type>, Other>,
                              void*> = nullptr>
   friend auto operator*(const self& Q, const Other& R) {
-    if constexpr (is_readable_matrix_v<Other>) {
+    if constexpr (ReadableMatrix<Other>) {
       return Q.getRotMat() * R;
     } else {
       return Q * self{R};
@@ -912,7 +904,7 @@ class quaternion {
             std::enable_if_t<!std::is_same_v<rot_mat_3D<value_type>, Other>,
                              void*> = nullptr>
   friend auto operator*(const Other& R, const self& Q) {
-    if constexpr (is_readable_matrix_v<Other>) {
+    if constexpr (ReadableMatrix<Other>) {
       return R * Q.getRotMat();
     } else {
       return self{R} * Q;
@@ -1866,9 +1858,8 @@ class trans_mat_3D {
       : trans_mat_3D(static_cast<const_pointer>(M)) {}
 
   /// Constructor from a regular matrix.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   explicit trans_mat_3D(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_row_count() != 4) || (M.get_col_count() != 4)) {
       throw std::range_error(
           "Matrix for creating the 3D transformation matrix is not of correct "
@@ -2122,16 +2113,14 @@ class trans_mat_3D {
   }
 
   /// Multiply by a matrix.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   friend auto operator*(const self& M1, const Matrix& M2) {
-    static_assert(is_readable_matrix_v<Matrix>);
     return M1.getMat() * M2;
   }
 
   /// Multiply by a matrix.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   friend auto operator*(const Matrix& M1, const self& M2) {
-    static_assert(is_readable_matrix_v<Matrix>);
     return M1 * M2.getMat();
   }
 
@@ -2304,12 +2293,6 @@ std::ostream& operator<<(std::ostream& out_stream, const trans_mat_3D<T>& M) {
              << "; translation = " << M.getTranslation() << ")";
   return out_stream;
 }
-
-template <typename T>
-struct is_readable_matrix<trans_mat_3D<T>> {
-  static constexpr bool value = true;
-  using type = is_readable_matrix<trans_mat_3D<T>>;
-};
 
 }  // namespace ReaK
 

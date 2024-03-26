@@ -57,7 +57,7 @@
 
 namespace ReaK::pp {
 
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 void rrt_planner<FreeSpaceType>::solve_planning_query(
     planning_query<FreeSpaceType>& aQuery) {
 
@@ -69,7 +69,8 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
   using VertexProp = mg_vertex_data<FreeSpaceType>;
   using EdgeProp = mg_edge_data<FreeSpaceType>;
 
-  using DirectionalityTag = typename motion_segment_directionality<FreeSpaceType>::type;
+  using DirectionalityTag =
+      typename motion_segment_directionality<FreeSpaceType>::type;
 
   using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
@@ -87,38 +88,40 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
   if ((this->m_planning_method_flags & PLANNING_DIRECTIONALITY_MASK) ==
       UNIDIRECTIONAL_PLANNING) {
 
-#define RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)             \
-  using Vertex = graph::graph_vertex_t<MotionGraphType>;                       \
-  using GraphPositionMap = typename boost::property_map<                       \
-      MotionGraphType, PointType BasicVertexProp::*>::type;                    \
-  using SpacePartType = dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY,  \
-      random_vp_chooser, TREE_STORAGE>;                                        \
-  SpacePartType space_part(motion_graph, sup_space_ptr,                        \
-                           get(&BasicVertexProp::position, motion_graph));     \
+#define RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)            \
+  using Vertex = graph::graph_vertex_t<MotionGraphType>;                      \
+  using GraphPositionMap =                                                    \
+      typename boost::property_map<MotionGraphType,                           \
+                                   PointType BasicVertexProp::*>::type;       \
+  using SpacePartType = dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, \
+                                 random_vp_chooser, TREE_STORAGE>;            \
+  SpacePartType space_part(motion_graph, sup_space_ptr,                       \
+                           get(&BasicVertexProp::position, motion_graph));    \
+                                                                              \
+  using NNFinderType = multi_dvp_tree_search<MotionGraphType, SpacePartType>; \
+  NNFinderType nn_finder;                                                     \
+  nn_finder.graph_tree_map[&motion_graph] = &space_part;                      \
+                                                                              \
+  type_erased_knn_synchro<MotionGraphType, NNFinderType> NN_synchro(          \
+      nn_finder);                                                             \
+  vis.m_nn_synchro = &NN_synchro;
+
+#define RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(ARITY, TREE_STORAGE)             \
+  using ALTGraph =                                                             \
+      dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace, PositionMap, ARITY, \
+                         random_vp_chooser, TREE_STORAGE, boost::vecBC,        \
+                         DirectionalityTag, boost::listBC>;                    \
+  using MotionGraphType = typename ALTGraph::adj_list_type;                    \
                                                                                \
-  using NNFinderType = multi_dvp_tree_search<MotionGraphType, SpacePartType>;  \
+  ALTGraph space_part(sup_space_ptr, pos_map);                                 \
+  MotionGraphType motion_graph = space_part.get_adjacency_list();              \
+  vis.m_start_node = std::any(create_root(vp_start, motion_graph));            \
+                                                                               \
+  using NNFinderType = multi_dvp_tree_search<MotionGraphType, ALTGraph>;       \
   NNFinderType nn_finder;                                                      \
   nn_finder.graph_tree_map[&motion_graph] = &space_part;                       \
                                                                                \
-  type_erased_knn_synchro<MotionGraphType, NNFinderType> NN_synchro(           \
-      nn_finder);                                                              \
-  vis.m_nn_synchro = &NN_synchro;
-
-#define RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(ARITY, TREE_STORAGE)           \
-  using ALTGraph = dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace,      \
-      PositionMap, ARITY, random_vp_chooser, TREE_STORAGE, boost::vecBC,     \
-      DirectionalityTag, boost::listBC>;                                     \
-  using MotionGraphType = typename ALTGraph::adj_list_type;                  \
-                                                                             \
-  ALTGraph space_part(sup_space_ptr, pos_map);                               \
-  MotionGraphType motion_graph = space_part.get_adjacency_list();            \
-  vis.m_start_node = std::any(create_root(vp_start, motion_graph));          \
-                                                                             \
-  using NNFinderType = multi_dvp_tree_search<MotionGraphType, ALTGraph>;     \
-  NNFinderType nn_finder;                                                    \
-  nn_finder.graph_tree_map[&motion_graph] = &space_part;                     \
-                                                                             \
-  any_knn_synchro NN_synchro;                                                \
+  any_knn_synchro NN_synchro;                                                  \
   vis.m_nn_synchro = &NN_synchro;
 
 #define RK_RRT_PLANNER_CALL_RRT_FUNCTION                                \
@@ -128,8 +131,9 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
     if ((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) ==
         ADJ_LIST_MOTION_GRAPH) {
 
-      using MotionGraphType = boost::adjacency_list_BC<
-          boost::vecBC, boost::listBC, DirectionalityTag, VertexProp, EdgeProp>;
+      using MotionGraphType =
+          boost::adjacency_list_BC<boost::vecBC, boost::listBC,
+                                   DirectionalityTag, VertexProp, EdgeProp>;
 
       MotionGraphType motion_graph;
       vis.m_start_node = std::any(create_root(vp_start, motion_graph));
@@ -240,47 +244,49 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
     VertexProp vp_goal;
     vp_goal.position = p2p_query_ptr->goal_pos;
 
-#define RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)         \
-  using Vertex = graph::graph_vertex_t<MotionGraphType>;                       \
-  using GraphPositionMap = typename boost::property_map<MotionGraphType,       \
-      PointType BasicVertexProp::*>::type;                                     \
-  using SpacePartType = dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY,  \
-      random_vp_chooser, TREE_STORAGE>;                                        \
-  SpacePartType space_part1(motion_graph1, sup_space_ptr,                      \
-                            get(&BasicVertexProp::position, motion_graph1));   \
-  SpacePartType space_part2(motion_graph2, sup_space_ptr,                      \
-                            get(&BasicVertexProp::position, motion_graph2));   \
+#define RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)        \
+  using Vertex = graph::graph_vertex_t<MotionGraphType>;                      \
+  using GraphPositionMap =                                                    \
+      typename boost::property_map<MotionGraphType,                           \
+                                   PointType BasicVertexProp::*>::type;       \
+  using SpacePartType = dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, \
+                                 random_vp_chooser, TREE_STORAGE>;            \
+  SpacePartType space_part1(motion_graph1, sup_space_ptr,                     \
+                            get(&BasicVertexProp::position, motion_graph1));  \
+  SpacePartType space_part2(motion_graph2, sup_space_ptr,                     \
+                            get(&BasicVertexProp::position, motion_graph2));  \
+                                                                              \
+  using NNFinderType = multi_dvp_tree_search<MotionGraphType, SpacePartType>; \
+  NNFinderType nn_finder;                                                     \
+  nn_finder.graph_tree_map[&motion_graph1] = &space_part1;                    \
+  nn_finder.graph_tree_map[&motion_graph2] = &space_part2;                    \
+                                                                              \
+  type_erased_knn_synchro<MotionGraphType, NNFinderType> NN_synchro(          \
+      nn_finder);                                                             \
+  vis.m_nn_synchro = &NN_synchro;
+
+#define RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(ARITY, TREE_STORAGE)         \
+  using ALTGraph =                                                             \
+      dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace, PositionMap, ARITY, \
+                         random_vp_chooser, TREE_STORAGE, boost::vecBC,        \
+                         DirectionalityTag, boost::listBC>;                    \
+  using MotionGraphType = typename ALTGraph::adj_list_type;                    \
                                                                                \
-  using NNFinderType = multi_dvp_tree_search<MotionGraphType, SpacePartType>;  \
+  ALTGraph space_part1(sup_space_ptr, pos_map);                                \
+  ALTGraph space_part2(sup_space_ptr, pos_map);                                \
+                                                                               \
+  MotionGraphType motion_graph1 = space_part1.get_adjacency_list();            \
+  MotionGraphType motion_graph2 = space_part2.get_adjacency_list();            \
+                                                                               \
+  vis.m_start_node = std::any(create_root(vp_start, motion_graph1));           \
+  vis.m_goal_node = std::any(create_root(vp_goal, motion_graph2));             \
+                                                                               \
+  using NNFinderType = multi_dvp_tree_search<MotionGraphType, ALTGraph>;       \
   NNFinderType nn_finder;                                                      \
   nn_finder.graph_tree_map[&motion_graph1] = &space_part1;                     \
   nn_finder.graph_tree_map[&motion_graph2] = &space_part2;                     \
                                                                                \
-  type_erased_knn_synchro<MotionGraphType, NNFinderType> NN_synchro(           \
-      nn_finder);                                                              \
-  vis.m_nn_synchro = &NN_synchro;
-
-#define RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(ARITY, TREE_STORAGE)       \
-  using ALTGraph = dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace,      \
-      PositionMap, ARITY, random_vp_chooser, TREE_STORAGE, boost::vecBC,     \
-      DirectionalityTag, boost::listBC>;                                     \
-  using MotionGraphType = typename ALTGraph::adj_list_type;                  \
-                                                                             \
-  ALTGraph space_part1(sup_space_ptr, pos_map);                              \
-  ALTGraph space_part2(sup_space_ptr, pos_map);                              \
-                                                                             \
-  MotionGraphType motion_graph1 = space_part1.get_adjacency_list();          \
-  MotionGraphType motion_graph2 = space_part2.get_adjacency_list();          \
-                                                                             \
-  vis.m_start_node = std::any(create_root(vp_start, motion_graph1));         \
-  vis.m_goal_node = std::any(create_root(vp_goal, motion_graph2));           \
-                                                                             \
-  using NNFinderType = multi_dvp_tree_search<MotionGraphType, ALTGraph>;     \
-  NNFinderType nn_finder;                                                    \
-  nn_finder.graph_tree_map[&motion_graph1] = &space_part1;                   \
-  nn_finder.graph_tree_map[&motion_graph2] = &space_part2;                   \
-                                                                             \
-  any_knn_synchro NN_synchro;                                                \
+  any_knn_synchro NN_synchro;                                                  \
   vis.m_nn_synchro = &NN_synchro;
 
 #define RK_RRT_PLANNER_CALL_BIRRT_FUNCTION                        \
@@ -291,8 +297,9 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
     if ((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) ==
         ADJ_LIST_MOTION_GRAPH) {
 
-      using MotionGraphType = boost::adjacency_list_BC<
-          boost::vecBC, boost::listBC, DirectionalityTag, VertexProp, EdgeProp>;
+      using MotionGraphType =
+          boost::adjacency_list_BC<boost::vecBC, boost::listBC,
+                                   DirectionalityTag, VertexProp, EdgeProp>;
 
       MotionGraphType motion_graph1;
       MotionGraphType motion_graph2;

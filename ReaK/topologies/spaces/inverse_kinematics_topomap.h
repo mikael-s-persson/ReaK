@@ -42,9 +42,9 @@
 #include "ReaK/mbd/models/manip_clik_calculator.h"
 #include "ReaK/planning/path_planning/metric_space_search.h"
 
-#include "ReaK/topologies/spaces/Ndof_spaces.h"
 #include "ReaK/topologies/spaces/joint_space_limits.h"
 #include "ReaK/topologies/spaces/joint_space_topologies.h"
+#include "ReaK/topologies/spaces/ndof_spaces.h"
 #include "ReaK/topologies/spaces/se2_topologies.h"
 #include "ReaK/topologies/spaces/se3_topologies.h"
 

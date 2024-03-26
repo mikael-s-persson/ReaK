@@ -54,14 +54,11 @@ namespace ReaK::ctrl {
  *
  * Models: CovarianceMatrixConcept
  *
- * \tparam VectorType The state-vector type which the covariance matrix is the covariance of, should model
- *StateVectorConcept.
+ * \tparam VectorType The state-vector type which the covariance matrix is the covariance of.
  */
-template <typename VectorType>
+template <ReadableVector VectorType>
 class covariance_info_matrix : public named_object {
  public:
-  BOOST_CONCEPT_ASSERT((ReadableVectorConcept<VectorType>));
-
   using self = covariance_info_matrix<T>;
 
   using value_type = vect_value_type_t<VectorType>;
@@ -141,9 +138,8 @@ class covariance_info_matrix : public named_object {
   /**
    * Assignment to a readable matrix (covariance matrix).
    */
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator=(const Matrix& rhs) {
-    static_assert(is_readable_matrix_v<Matrix>);
     invert_Cholesky(rhs, mat_info, std::numeric_limits<value_type>::epsilon());
     return *this;
   }

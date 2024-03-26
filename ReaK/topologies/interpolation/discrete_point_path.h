@@ -51,20 +51,16 @@ namespace ReaK::pp {
  * the topology's move function). The path is represented by a set of waypoints and all intermediate points
  * are computed with the topology's move_position_toward function based on the distance or fraction of travel.
  * This class models the SpatialPathConcept and SequentialPathConcept.
- * \tparam Topology The topology type on which the points and the path can reside, should model the MetricSpaceConcept.
- * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the
- * DistanceMetricConcept.
+ * \tparam Space The topology type on which the points and the path can reside.
+ * \tparam Metric The distance metric used to assess the distance between points in the path.
  */
-template <typename Topology,
-          typename DistanceMetric =
-              typename metric_space_traits<Topology>::distance_metric_type>
-class discrete_point_path
-    : public waypoint_container<Topology, DistanceMetric> {
+template <MetricSpace Space,
+          DistanceMetric<Space> Metric =
+              typename metric_space_traits<Space>::distance_metric_type>
+class discrete_point_path : public waypoint_container<Space, Metric> {
  public:
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
-
-  using self = discrete_point_path<Topology, DistanceMetric>;
-  using base_class_type = waypoint_container<Topology, DistanceMetric>;
+  using self = discrete_point_path<Space, Metric>;
+  using base_class_type = waypoint_container<Space, Metric>;
 
   using const_waypoint_descriptor =
       typename base_class_type::const_waypoint_descriptor;

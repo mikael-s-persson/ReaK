@@ -47,8 +47,8 @@ namespace ReaK::pp {
 /**
  * This class is a Manhattan distance metric functor which models the DistanceMetricConcept.
  * This class will simply apply the Manhattan norm to the point-difference vectors in the
- * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model the
- * ReadableVectorConcept).
+ * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model
+ * ReadableVector).
  */
 struct manhattan_distance_metric : public serializable {
 
@@ -59,14 +59,13 @@ struct manhattan_distance_metric : public serializable {
 
   /**
    * This function returns the norm of a difference between two points on a topology.
-   * \tparam PointDiff The point-difference-type, should model the ReadableVectorConcept.
+   * \tparam PointDiff The point-difference-type.
    * \tparam Topology The topology.
    * \param a The point-difference.
    * \return The norm of the difference between two points on a topology.
    */
-  template <typename PointDiff, typename Topology>
+  template <ReadableVector PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& /*unused*/) const {
-    static_assert(is_readable_vector_v<PointDiff>);
     using std::abs;
     double result = 0.0;
     for (int i = 0; i < a.size(); ++i) {
@@ -107,8 +106,8 @@ using norm1_distance_metric = manhattan_distance_metric;
 /**
  * This class is a Euclidean distance metric functor which models the DistanceMetricConcept.
  * This class will simply apply the Euclidean norm to the point-difference vectors in the
- * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model the
- * ReadableVectorConcept).
+ * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model
+ * ReadableVector).
  */
 struct euclidean_distance_metric : public serializable {
 
@@ -119,14 +118,13 @@ struct euclidean_distance_metric : public serializable {
 
   /**
    * This function returns the norm of a difference between two points on a topology.
-   * \tparam PointDiff The point-difference-type, should model the ReadableVectorConcept.
+   * \tparam PointDiff The point-difference-type.
    * \tparam Topology The topology.
    * \param a The point-difference.
    * \return The norm of the difference between two points on a topology.
    */
-  template <typename PointDiff, typename Topology>
+  template <ReadableVector PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& /*unused*/) const {
-    static_assert(is_readable_vector_v<PointDiff>);
     double result = 0.0;
     for (int i = 0; i < a.size(); ++i) {
       result += a[i] * a[i];
@@ -167,8 +165,8 @@ using norm2_distance_metric = euclidean_distance_metric;
 /**
  * This class is a Infinity-norm distance metric functor which models the DistanceMetricConcept.
  * This class will simply apply the Infinity-norm to the point-difference vectors in the
- * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model the
- * ReadableVectorConcept).
+ * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model
+ * ReadableVector).
  */
 struct inf_norm_distance_metric : public serializable {
 
@@ -179,14 +177,13 @@ struct inf_norm_distance_metric : public serializable {
 
   /**
    * This function returns the norm of a difference between two points on a topology.
-   * \tparam PointDiff The point-difference-type, should model the ReadableVectorConcept.
+   * \tparam PointDiff The point-difference-type.
    * \tparam Topology The topology.
    * \param a The point-difference.
    * \return The norm of the difference between two points on a topology.
    */
-  template <typename PointDiff, typename Topology>
+  template <ReadableVector PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& /*unused*/) const {
-    static_assert(is_readable_vector_v<PointDiff>);
     using std::abs;
     double result = 0.0;
     for (int i = 0; i < a.size(); ++i) {
@@ -227,8 +224,8 @@ struct inf_norm_distance_metric : public serializable {
 /**
  * This class is a Euclidean distance metric functor which models the DistanceMetricConcept.
  * This class will simply apply the Euclidean norm to the point-difference vectors in the
- * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model the
- * ReadableVectorConcept).
+ * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model
+ * ReadableVector).
  */
 struct p_norm_distance_metric : public serializable {
 
@@ -242,14 +239,13 @@ struct p_norm_distance_metric : public serializable {
 
   /**
    * This function returns the norm of a difference between two points on a topology.
-   * \tparam PointDiff The point-difference-type, should model the ReadableVectorConcept.
+   * \tparam PointDiff The point-difference-type.
    * \tparam Topology The topology.
    * \param a The point-difference.
    * \return The norm of the difference between two points on a topology.
    */
-  template <typename PointDiff, typename Topology>
+  template <ReadableVector PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& /*unused*/) const {
-    static_assert(is_readable_vector_v<PointDiff>);
     using std::abs;
     using std::pow;
     double result = 0.0;

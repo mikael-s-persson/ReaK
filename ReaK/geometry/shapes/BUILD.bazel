@@ -1,0 +1,62 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+  name = "shapes",
+  srcs = [
+    "box.cc",
+    "capped_cylinder.cc",
+    "capped_rectangle.cc",
+    "circle.cc",
+    "composite_shape_2D.cc",
+    "composite_shape_3D.cc",
+    "coord_arrows_2D.cc",
+    "coord_arrows_3D.cc",
+    "cylinder.cc",
+    "geometry_2D.cc",
+    "geometry_3D.cc",
+    "grid_2D.cc",
+    "grid_3D.cc",
+    "line_seg_2D.cc",
+    "line_seg_3D.cc",
+    "plane.cc",
+    "rectangle.cc",
+    "shape_2D.cc",
+    "shape_3D.cc",
+    "sphere.cc",
+  ],
+  hdrs = [
+    "box.h",
+    "capped_cylinder.h",
+    "capped_rectangle.h",
+    "circle.h",
+    "color.h",
+    "colored_model.h",
+    "composite_shape_2D.h",
+    "composite_shape_3D.h",
+    "coord_arrows_2D.h",
+    "coord_arrows_3D.h",
+    "cylinder.h",
+    "geometry_2D.h",
+    "geometry_3D.h",
+    "grid_2D.h",
+    "grid_3D.h",
+    "line_seg_2D.h",
+    "line_seg_3D.h",
+    "plane.h",
+    "rectangle.h",
+    "shape_2D.h",
+    "shape_3D.h",
+    "sphere.h",
+  ],
+  deps = [
+    "//ReaK/core/base",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/kinetostatics",
+  ],
+)

@@ -1,0 +1,60 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_test", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+  name = "graph_alg",
+  hdrs = [
+    "adaptive_star_neighborhood.h",
+    "adj_list_tree_overlay.h",
+    "adstar_search.h",
+    "any_graph.h",
+    "anytime_sbastar.h",
+    "avl_tree_detail.h",
+    "avl_tree.h",
+    "bgl_raw_property_graph.h",
+    "branch_and_bound_connector.h",
+    "fadprm.h",
+    "lazy_connector.h",
+    "lazy_sbastar.h",
+    "motion_graph_connector.h",
+    "neighborhood_functors.h",
+    "node_generators.h",
+    "prm_connector.h",
+    "probabilistic_roadmap.h",
+    "pruned_connector.h",
+    "rr_graph.h",
+    "rr_tree.h",
+    "rrt_star.h",
+    "sbastar_rrtstar.h",
+    "sbastar_search.h",
+    "sbmp_visitor_concepts.h",
+    "simple_graph_traits.h",
+    "tree_organizer_concept.h",
+  ],
+  deps = [
+    "//ReaK/core/base",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/kinetostatics",
+    "//ReaK/topologies/spaces",
+    "//ReaK/topologies/interpolation",
+    "@boost_graph_extras//:boost_graph_extras",
+    "@boost//:graph",
+  ],
+)
+
+cc_test(
+  name = "assoc_containers_test",
+  srcs = [
+    "assoc_containers_test.cc",
+  ],
+  deps = [
+    ":graph_alg",
+    "//ReaK/core/base",
+    "@com_google_googletest//:gtest_main",
+  ],
+)

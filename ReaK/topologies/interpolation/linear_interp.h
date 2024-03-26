@@ -41,12 +41,10 @@
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 
-#include "ReaK/topologies/interpolation/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/interpolated_trajectory.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 
 #include <cmath>
-#include "boost/concept_check.hpp"
-
 #include <limits>
 #include <list>
 #include <map>
@@ -90,21 +88,20 @@ void linear_interpolate_impl(PointType& result, const PointType& a,
  * This function template computes a linear interpolation between two points in a
  * temporal and zero-differentiable topology.
  * \tparam PointType The point type on the temporal and zero-differentiable topology.
- * \tparam Topology The temporal and zero-differentiable topology type.
+ * \tparam Space The temporal and zero-differentiable topology type.
  * \param a The starting point of the interpolation.
  * \param b The ending point of the interpolation.
  * \param t The time value at which the interpolated point is sought.
  * \param space The space on which the points reside.
  * \return The interpolated point at time t, between a and b.
  */
-template <typename PointType, typename Topology>
+template <typename PointType, TemporalSpace Space>
 PointType linear_interpolate(const PointType& a, const PointType& b, double t,
-                             const Topology& space) {
-  using SpaceType = typename temporal_space_traits<Topology>::space_topology;
-  using TimeSpaceType = typename temporal_space_traits<Topology>::time_topology;
+                             const Space& space) {
+  using SpaceType = typename temporal_space_traits<Space>::space_topology;
+  using TimeSpaceType = typename temporal_space_traits<Space>::time_topology;
 
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT((TangentBundleConcept<SpaceType, 0, TimeSpaceType>));
+  static_assert(TangentBundle<SpaceType, TimeSpaceType, 0>);
 
   double t_factor = b.time - a.time;
   if (std::abs(t_factor) < std::numeric_limits<double>::epsilon()) {
@@ -119,7 +116,7 @@ PointType linear_interpolate(const PointType& a, const PointType& b, double t,
   using Space0 =
       typename derived_N_order_space<SpaceType, TimeSpaceType, 0>::type;
 
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+  static_assert(LieGroup<Space0>);
 
   using PointDiff0 = topology_point_difference_type_t<Space0>;
 
@@ -138,12 +135,9 @@ PointType linear_interpolate(const PointType& a, const PointType& b, double t,
 /**
  * This functor class implements a linear interpolation in a temporal and zero-differentiable
  * topology.
- * \tparam SpaceType The topology on which the interpolation is done, should model MetricSpaceConcept and
- * DifferentiableSpaceConcept zero times against time.
- * \tparam TimeSpaceType The time topology.
  */
 
-template <typename SpaceType, typename TimeSpaceType>
+template <Topology SpaceType, Topology TimeSpaceType>
 class linear_interpolator {
  public:
   using self = linear_interpolator<SpaceType, TimeSpaceType>;
@@ -154,9 +148,8 @@ class linear_interpolator {
   using PointType0 = topology_point_type_t<Space0>;
   using PointDiff0 = topology_point_difference_type_t<Space0>;
 
-  BOOST_CONCEPT_ASSERT((TopologyConcept<SpaceType>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
-  BOOST_CONCEPT_ASSERT((TangentBundleConcept<SpaceType, 0, TimeSpaceType>));
+  static_assert(LieGroup<Space0>);
+  static_assert(TangentBundle<SpaceType, TimeSpaceType, 0>);
 
  private:
   PointDiff0 delta_first_order;
@@ -239,17 +232,15 @@ class linear_interpolator {
 
 /**
  * This class is a factory class for linear interpolators on a temporal differentiable space.
- * \tparam TemporalTopology The temporal topology on which the interpolation is done, should model TemporalSpaceConcept.
+ * \tparam Space The temporal topology on which the interpolation is done.
  */
-template <typename TemporalTopology>
+template <TemporalSpace Space>
 class linear_interpolator_factory : public serializable {
  public:
-  using self = linear_interpolator_factory<TemporalTopology>;
-  using topology = TemporalTopology;
-  using point_type = topology_point_type_t<TemporalTopology>;
+  using self = linear_interpolator_factory<Space>;
+  using topology = Space;
+  using point_type = topology_point_type_t<Space>;
   using interpolator_type = generic_interpolator<self, linear_interpolator>;
-
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
 
  private:
   std::shared_ptr<topology> space;
@@ -308,28 +299,24 @@ struct get_tagged_temporal_interpolator<linear_interpolation_tag,
  * This class implements a trajectory in a temporal and zero-differentiable topology.
  * The trajectory is represented by a set of waypoints and all intermediate points
  * are computed with a linear interpolation. This class models the SpatialTrajectoryConcept.
- * \tparam Topology The topology type on which the points and the path can reside, should model the TemporalSpaceConcept
- * and the DifferentiableSpaceConcept (order 1 with space against time).
- * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the
- * DistanceMetricConcept.
+ * \tparam Space The topology type on which the points and the path can reside.
+ * \tparam Metric The distance metric used to assess the distance between points in the path.
  */
-template <typename Topology,
-          typename DistanceMetric =
-              typename metric_space_traits<Topology>::distance_metric_type>
+template <TemporalSpace Space,
+          DistanceMetric<Space> Metric =
+              typename metric_space_traits<Space>::distance_metric_type>
 class linear_interp_traj
-    : public interpolated_trajectory<
-          Topology, linear_interpolator_factory<Topology>, DistanceMetric> {
+    : public interpolated_trajectory<Space, linear_interpolator_factory<Space>,
+                                     Metric> {
  public:
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (TangentBundleConcept<
-          typename temporal_space_traits<Topology>::space_topology, 1,
-          typename temporal_space_traits<Topology>::time_topology>));
+  static_assert(TangentBundle<
+                typename temporal_space_traits<Space>::space_topology,
+                typename temporal_space_traits<Space>::time_topology, 0, 1>);
 
-  using self = linear_interp_traj<Topology, DistanceMetric>;
+  using self = linear_interp_traj<Space, Metric>;
   using base_class_type =
-      interpolated_trajectory<Topology, linear_interpolator_factory<Topology>,
-                              DistanceMetric>;
+      interpolated_trajectory<Space, linear_interpolator_factory<Space>,
+                              Metric>;
 
   using point_type = typename base_class_type::point_type;
   using topology = typename base_class_type::topology;
@@ -344,7 +331,7 @@ class linear_interp_traj
   explicit linear_interp_traj(const std::shared_ptr<topology>& aSpace,
                               const distance_metric& aDist = distance_metric())
       : base_class_type(aSpace, aDist,
-                        linear_interpolator_factory<Topology>(aSpace)) {}
+                        linear_interpolator_factory<Space>(aSpace)) {}
 
   linear_interp_traj() : linear_interp_traj(std::make_shared<topology>()) {}
 
@@ -359,7 +346,7 @@ class linear_interp_traj
                      const point_type& aStart, const point_type& aEnd,
                      const distance_metric& aDist = distance_metric())
       : base_class_type(aSpace, aStart, aEnd, aDist,
-                        linear_interpolator_factory<Topology>(aSpace)) {}
+                        linear_interpolator_factory<Space>(aSpace)) {}
 
   /**
    * Constructs the path from a range of points and their space.
@@ -374,7 +361,7 @@ class linear_interp_traj
                      const std::shared_ptr<topology>& aSpace,
                      const distance_metric& aDist = distance_metric())
       : base_class_type(aBegin, aEnd, aSpace, aDist,
-                        linear_interpolator_factory<Topology>(aSpace)) {}
+                        linear_interpolator_factory<Space>(aSpace)) {}
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces

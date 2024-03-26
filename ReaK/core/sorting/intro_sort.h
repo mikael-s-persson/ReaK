@@ -33,6 +33,7 @@
 #define REAK_CORE_SORTING_INTRO_SORT_H_
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <iterator>
 

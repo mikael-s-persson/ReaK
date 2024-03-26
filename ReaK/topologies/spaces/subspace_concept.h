@@ -41,20 +41,22 @@
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 
-#include "boost/concept_check.hpp"
+#include <concepts>
 
 /** Main namespace for ReaK */
 namespace ReaK::pp {
 
 /**
  * This traits class defines the types and constants associated to a sub-space.
- * \tparam Topology The topology type for which the topology traits are sought.
  */
-template <typename Topology>
+template <Topology Space>
 struct subspace_traits {
   /** The type of the super-space in which this sub-space is embedded. */
-  using super_space_type = typename Topology::super_space_type;
+  using super_space_type = typename Space::super_space_type;
 };
+
+template <Topology Space>
+using super_space_t = typename subspace_traits<Space>::super_space_type;
 
 /**
  * This concept defines the requirements to fulfill in order to model a sub-space
@@ -66,36 +68,28 @@ struct subspace_traits {
  *
  * \tparam Topology The topology type to be checked for this concept.
  */
-template <typename Topology>
-struct SubSpaceConcept {
-  Topology space;
-
-  BOOST_CONCEPT_USAGE(SubSpaceConcept) {
-    const typename subspace_traits<Topology>::super_space_type& super_space =
-        space.get_super_space();
-    RK_UNUSED(super_space);
-  }
+template <typename Space>
+concept SubSpace = Topology<Space>&& requires(const Space& space) {
+  {
+    space.get_super_space()
+    } -> std::convertible_to<const super_space_t<Space>&>;
 };
 
 struct subspace_map : public shared_object {
   using self = subspace_map;
 
   subspace_map() = default;
-  ;
 
-  template <typename PointType, typename SpaceIn>
-  PointType map_to_space(
-      const PointType& p_in, const SpaceIn& /*unused*/,
-      const typename subspace_traits<SpaceIn>::super_space_type& /*unused*/)
-      const {
+  template <typename PointType, Topology SpaceIn>
+  PointType map_to_space(const PointType& p_in, const SpaceIn& /*unused*/,
+                         const super_space_t<SpaceIn>& /*unused*/) const {
     return p_in;
   }
 
-  template <typename PointType, typename SpaceOut>
-  PointType map_to_space(
-      const PointType& p_in,
-      const typename subspace_traits<SpaceOut>::super_space_type& /*unused*/,
-      const SpaceOut& /*unused*/) const {
+  template <typename PointType, Topology SpaceOut>
+  PointType map_to_space(const PointType& p_in,
+                         const super_space_t<SpaceOut>& /*unused*/,
+                         const SpaceOut& /*unused*/) const {
     return p_in;
   }
 

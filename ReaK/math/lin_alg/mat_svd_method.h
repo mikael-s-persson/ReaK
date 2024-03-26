@@ -45,6 +45,7 @@
 #define REAK_MATH_LIN_ALG_MAT_SVD_METHOD_H_
 
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include <type_traits>
@@ -90,15 +91,11 @@ namespace ReaK {
  *
  * \author NIST
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2,
+          WritableMatrix Matrix3, WritableMatrix Matrix4>
 void decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
-                   mat_value_type_t<Matrix1> NumTol = 1E-15) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
-  static_assert(is_writable_matrix_v<Matrix3>);
-  static_assert(is_diagonal_matrix_v<Matrix3>);
-  static_assert(is_writable_matrix_v<Matrix4>);
+                   mat_value_type_t<Matrix1> NumTol = 1E-15) requires
+    DiagonalMatrix<Matrix3> {
   using ValueType = mat_value_type_t<Matrix1>;
   using std::abs;
   using std::sqrt;
@@ -588,9 +585,8 @@ void decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 mat_value_type_t<Matrix> two_norm_SVD(const Matrix& E) {
-  static_assert(is_readable_matrix_v<Matrix>);
   if (E.get_row_count() == 0) {
     throw std::range_error(
         "No singular values available for 2-norm evaluation!");
@@ -607,9 +603,9 @@ mat_value_type_t<Matrix> two_norm_SVD(const Matrix& E) {
  *               by zero and singularities.
  * \return the two-norm.
  */
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, mat_value_type_t<Matrix>> norm_2(
-    const Matrix& A, mat_value_type_t<Matrix> NumTol = 1E-15) {
+template <ReadableMatrix Matrix>
+mat_value_type_t<Matrix> norm_2(const Matrix& A,
+                                mat_value_type_t<Matrix> NumTol = 1E-15) {
   using ValueType = mat_value_type_t<Matrix>;
 
   std::size_t nu = (A.get_row_count() > A.get_col_count() ? A.get_col_count()
@@ -634,9 +630,8 @@ std::enable_if_t<is_readable_matrix_v<Matrix>, mat_value_type_t<Matrix>> norm_2(
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 mat_value_type_t<Matrix> condition_number_SVD(const Matrix& E) {
-  static_assert(is_readable_matrix_v<Matrix>);
   if (E.get_row_count() == 0) {
     throw std::range_error(
         "No singular values available for condition number evaluation!");
@@ -655,9 +650,8 @@ mat_value_type_t<Matrix> condition_number_SVD(const Matrix& E) {
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 int numrank_SVD(const Matrix& E, mat_value_type_t<Matrix> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix>);
   using std::abs;
   int r = 0;
   for (mat_size_type_t<Matrix> i = 0; i < E.get_row_count(); ++i) {
@@ -682,17 +676,12 @@ int numrank_SVD(const Matrix& E, mat_value_type_t<Matrix> NumTol = 1E-8) {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, WritableMatrix Matrix4>
 void pseudoinvert_SVD(const Matrix1& U, const Matrix2& E, const Matrix3& V,
                       Matrix4& A_pinv,
                       mat_value_type_t<Matrix2> NumTol = 1E-15) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
-  static_assert(is_writable_matrix_v<Matrix4>);
-
-  if constexpr (!is_fully_writable_matrix_v<Matrix4>) {
+  if constexpr (!FullyWritableMatrix<Matrix4>) {
     mat<mat_value_type_t<Matrix4>, mat_structure::rectangular> A_pinv_tmp(
         V.get_col_count(), U.get_row_count());
     pseudoinvert_SVD(U, E, V, A_pinv_tmp, NumTol);
@@ -731,13 +720,10 @@ void pseudoinvert_SVD(const Matrix1& U, const Matrix2& E, const Matrix3& V,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2>
 void pseudoinvert_SVD(const Matrix1& A, Matrix2& A_pinv,
                       mat_value_type_t<Matrix1> NumTol = 1E-15) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
-
-  if constexpr (!is_fully_writable_matrix_v<Matrix2>) {
+  if constexpr (!FullyWritableMatrix<Matrix2>) {
     mat<mat_value_type_t<Matrix2>, mat_structure::rectangular> A_pinv_tmp(
         A.get_col_count(), A.get_row_count());
     pseudoinvert_SVD(A, A_pinv_tmp, NumTol);

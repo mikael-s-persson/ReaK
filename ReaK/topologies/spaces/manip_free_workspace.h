@@ -42,7 +42,7 @@
 #include "ReaK/topologies/spaces/random_sampler_concept.h"
 #include "ReaK/topologies/spaces/reversible_space_concept.h"
 
-#include "ReaK/topologies/interpolation/interpolated_topologies.h"
+#include "ReaK/topologies/spaces/interpolated_topologies.h"
 #include "ReaK/topologies/spaces/proxy_model_updater.h"
 
 #include "ReaK/geometry/proximity/proxy_query_model.h"  // for proxy-query class
@@ -56,7 +56,7 @@ namespace ReaK::pp {
 
 namespace detail {
 
-template <typename BaseJointSpace>
+template <Topology BaseJointSpace>
 class manip_dk_proxy_env_impl {
  public:
   using point_type = topology_point_type_t<BaseJointSpace>;
@@ -94,7 +94,7 @@ class manip_dk_proxy_env_impl {
  * Here, the term quasi-static refers to the fact that proximity queries are performed against an
  * environment that is assumed to be unchanging (at least, not significantly while this topology is used).
  */
-template <typename BaseJointSpace>
+template <Topology BaseJointSpace>
 class manip_quasi_static_env : public named_object {
  public:
   using self = manip_quasi_static_env<BaseJointSpace>;
@@ -296,18 +296,6 @@ class manip_quasi_static_env : public named_object {
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400027, 1, "manip_quasi_static_env",
                               named_object)
 };
-
-template <typename BaseJointSpace>
-struct is_metric_space<manip_quasi_static_env<BaseJointSpace>>
-    : std::true_type {};
-
-template <typename BaseJointSpace>
-struct is_reversible_space<manip_quasi_static_env<BaseJointSpace>>
-    : std::true_type {};
-
-template <typename BaseJointSpace>
-struct is_point_distribution<manip_quasi_static_env<BaseJointSpace>>
-    : std::true_type {};
 
 template <typename BaseJointSpace>
 struct is_metric_symmetric<manip_quasi_static_env<BaseJointSpace>>

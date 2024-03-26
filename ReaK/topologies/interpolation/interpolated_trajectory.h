@@ -55,28 +55,21 @@ namespace ReaK::pp {
  * This class implements a trajectory in a temporal and once-differentiable topology.
  * The trajectory is represented by a set of waypoints and all intermediate points
  * are computed with a linear interpolation. This class models the SpatialTrajectoryConcept.
- * \tparam Topology The topology type on which the points and the path can reside, should model the
- * TemporalSpaceConcept.
- * \tparam InterpolatorFactory The interpolation factory type which can create interpolators for on the given topology,
- * should model the InterpolatorFactoryConcept.
- * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the
- * TemporalDistMetricConcept.
+ * \tparam Space The topology type on which the points and the path can reside.
+ * \tparam InterpFactory The interpolation factory type which can create interpolators for on the given topology.
+ * \tparam Metric The distance metric used to assess the distance between points in the path.
  */
-template <typename Topology, typename InterpolatorFactory,
-          typename DistanceMetric =
-              typename metric_space_traits<Topology>::distance_metric_type>
-class interpolated_trajectory
-    : public waypoint_container<Topology, DistanceMetric> {
+template <TemporalSpace Space, typename InterpFactory,
+          DistanceMetric<Space> Metric =
+              typename metric_space_traits<Space>::distance_metric_type>
+requires InterpolatorFactory<InterpFactory, Space,
+                             Metric> class interpolated_trajectory
+    : public waypoint_container<Space, Metric> {
  public:
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT((InterpolatorFactoryConcept<InterpolatorFactory,
-                                                   Topology, DistanceMetric>));
+  using self = interpolated_trajectory<Space, InterpFactory, Metric>;
+  using base_class_type = waypoint_container<Space, Metric>;
 
-  using self =
-      interpolated_trajectory<Topology, InterpolatorFactory, DistanceMetric>;
-  using base_class_type = waypoint_container<Topology, DistanceMetric>;
-
-  using interpolator_factory_type = InterpolatorFactory;
+  using interpolator_factory_type = InterpFactory;
   using interpolator_type = typename interpolator_factory_traits<
       interpolator_factory_type>::interpolator_type;
 

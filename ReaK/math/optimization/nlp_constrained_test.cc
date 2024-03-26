@@ -76,7 +76,8 @@ class NLPConstrainedProblemsTest : public ::testing::Test {
                                double tolerance);
 
   bool IsVectorFinite(const vect_n<double>& x) {
-    return std::all_of(x.begin(), x.end(), std::isfinite<double>);
+    return std::all_of(x.begin(), x.end(),
+                       [](double x) { return std::isfinite(x); });
   }
 
   using FunctionPtr = std::function<double(const vect_n<double>&)>;

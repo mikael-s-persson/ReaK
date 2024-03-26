@@ -45,7 +45,7 @@ namespace ReaK {
  * a identity matrix (all entries zero except diagonal is all unity). This is useful to build for example a
  * block-matrix with some identity-matrix blocks, and, of course, requires minimal storage space.
  *
- * Models: ReadableMatrixConcept and ResizableMatrixConcept.
+ * Models: ReadableMatrix and ResizableMatrix.
  *
  * \tparam T Arithmetic type of the elements of the matrix.
  * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
@@ -320,9 +320,9 @@ using mat_permutation_t = typename mat_permutation<T>::type;
 /// \param V some vector.
 /// \return A permutated vector.
 /// \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
-template <typename T, typename Vector, mat_alignment::tag Alignment,
+template <typename T, ReadableVector Vector, mat_alignment::tag Alignment,
           unsigned int RowCount>
-std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
+vect_copy_t<Vector> operator*(
     const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>& M,
     const Vector& V) {
   if (V.size() != M.get_col_count()) {
@@ -341,12 +341,11 @@ std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
 /// \param M some permutation matrix.
 /// \return A permutated vector.
 /// \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
-template <typename T, typename Vector, mat_alignment::tag Alignment,
+template <typename T, ReadableVector Vector, mat_alignment::tag Alignment,
           unsigned int RowCount>
-std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
-    const Vector& V,
-    const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>&
-        M) {
+vect_copy_t<Vector> operator*(const Vector& V,
+                              const mat<T, mat_structure::permutation,
+                                        Alignment, RowCount, RowCount>& M) {
   if (V.size() != M.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
   }
@@ -364,7 +363,7 @@ std::enable_if_t<is_readable_vector_v<Vector>, vect_copy_t<Vector>> operator*(
 /// \return A square matrix.
 /// \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
-std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
+std::enable_if_t<!ReadableVector<T> && !ReadableMatrix<T>,
                  mat<T, mat_structure::square, Alignment, RowCount, RowCount>>
 operator*(
     const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>& M,
@@ -383,7 +382,7 @@ operator*(
 /// \return A square matrix.
 /// \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount>
-std::enable_if_t<!is_readable_vector_v<T> && !is_readable_matrix_v<T>,
+std::enable_if_t<!ReadableVector<T> && !ReadableMatrix<T>,
                  mat<T, mat_structure::square, Alignment, RowCount, RowCount>>
 operator*(const T& S, const mat<T, mat_structure::permutation, Alignment,
                                 RowCount, RowCount>& M) {
@@ -401,12 +400,11 @@ operator*(const T& S, const mat<T, mat_structure::permutation, Alignment,
 /// \return A permuted matrix.
 /// \throw std::range_error if matrices' dimensions are not proper for multiplication.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount,
-          typename Matrix>
+          ReadableMatrix Matrix>
 std::enable_if_t<
-    is_readable_matrix_v<Matrix> &&
-        (mat_product_priority_v<Matrix> <
-         mat_product_priority_v<mat<T, mat_structure::permutation, Alignment,
-                                    RowCount, RowCount>>),
+    (mat_product_priority_v<Matrix> <
+     mat_product_priority_v<
+         mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>>),
     mat_product_result_t<Matrix, mat<T, mat_structure::permutation, Alignment,
                                      RowCount, RowCount>>>
 operator*(const Matrix& M1, const mat<T, mat_structure::permutation, Alignment,
@@ -431,15 +429,13 @@ operator*(const Matrix& M1, const mat<T, mat_structure::permutation, Alignment,
 /// \return A permuted matrix.
 /// \throw std::range_error if matrices' dimensions are not proper for multiplication.
 template <typename T, mat_alignment::tag Alignment, unsigned int RowCount,
-          typename Matrix>
-std::enable_if_t<
-    is_readable_matrix_v<Matrix> &&
-        (mat_product_priority_v<Matrix> <
-         mat_product_priority_v<mat<T, mat_structure::permutation, Alignment,
-                                    RowCount, RowCount>>),
-    mat_product_result_t<
-        mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>,
-        Matrix>>
+          ReadableMatrix Matrix>
+std::enable_if_t<(mat_product_priority_v<Matrix> <
+                  mat_product_priority_v<mat<T, mat_structure::permutation,
+                                             Alignment, RowCount, RowCount>>),
+                 mat_product_result_t<mat<T, mat_structure::permutation,
+                                          Alignment, RowCount, RowCount>,
+                                      Matrix>>
 operator*(
     const mat<T, mat_structure::permutation, Alignment, RowCount, RowCount>& M1,
     const Matrix& M2) {

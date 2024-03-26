@@ -44,38 +44,32 @@
 #include "ReaK/control/estimators/belief_state_concept.h"
 #include "ReaK/control/estimators/covariance_concept.h"
 #include "ReaK/control/systems/discrete_sss_concept.h"
+#include "ReaK/topologies/spaces/metric_space_concept.h"
 
 #include <type_traits>
 
 namespace ReaK::ctrl {
 
 /** UKF is not usable or even working at all! And does not consider Q as input-noise. */
-template <typename System, typename StateSpaceType, typename BeliefState,
-          typename InputBelief>
+template <pp::Topology StateSpaceType, DiscreteSSS<StateSpaceType> System,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief>
 void unscented_kalman_predict(
-    const System& sys, const StateSpaceType& state_space, BeliefState& b_x,
+    const System& sys, const StateSpaceType& state_space, BState& b_x,
     const InputBelief& b_u,
     typename discrete_sss_traits<System>::time_type t = 0,
-    typename belief_state_traits<BeliefState>::scalar_type alpha = 1E-3,
-    typename belief_state_traits<BeliefState>::scalar_type kappa = 1,
-    typename belief_state_traits<BeliefState>::scalar_type beta = 2) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
-  BOOST_CONCEPT_ASSERT((DiscreteSSSConcept<System, StateSpaceType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+    typename belief_state_traits<BState>::scalar_type alpha = 1E-3,
+    typename belief_state_traits<BState>::scalar_type kappa = 1,
+    typename belief_state_traits<BState>::scalar_type beta = 2) {
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
 
   using std::sqrt;
 
   using StateType = typename discrete_sss_traits<System>::point_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
   using MatType = typename covariance_mat_traits<CovType>::matrix_type;
   using ValueType = mat_value_type_t<MatType>;
   using SizeType = typename vect_n<ValueType>::size_type;
@@ -174,26 +168,19 @@ void unscented_kalman_predict(
 }
 
 /** UKF is not usable or even working at all! And does not consider Q as input-noise. */
-template <typename System, typename StateSpaceType, typename BeliefState,
-          typename InputBelief, typename MeasurementBelief>
+template <pp::Topology StateSpaceType, DiscreteSSS<StateSpaceType> System,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          ContinuousBeliefState MeasurementBelief>
 void unscented_kalman_update(
-    const System& sys, const StateSpaceType& state_space, BeliefState& b_x,
+    const System& sys, const StateSpaceType& state_space, BState& b_x,
     const InputBelief& b_u, const MeasurementBelief& b_z,
     typename discrete_sss_traits<System>::time_type t = 0,
-    typename belief_state_traits<BeliefState>::scalar_type alpha = 1E-3,
-    typename belief_state_traits<BeliefState>::scalar_type kappa = 1,
-    typename belief_state_traits<BeliefState>::scalar_type beta = 2) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  BOOST_CONCEPT_ASSERT((DiscreteSSSConcept<System, StateSpaceType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+    typename belief_state_traits<BState>::scalar_type alpha = 1E-3,
+    typename belief_state_traits<BState>::scalar_type kappa = 1,
+    typename belief_state_traits<BState>::scalar_type beta = 2) {
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
 
   using std::sqrt;
@@ -201,7 +188,7 @@ void unscented_kalman_update(
   using StateType = typename discrete_sss_traits<System>::point_type;
   using OutputType = typename discrete_sss_traits<System>::output_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
   using MatType = typename covariance_mat_traits<CovType>::matrix_type;
   using ValueType = mat_value_type_t<MatType>;
   using SizeType = typename vect_n<ValueType>::size_type;
@@ -328,19 +315,19 @@ void unscented_kalman_update(
 }
 
 /** UKF is not usable or even working at all! And does not consider Q as input-noise. */
-template <typename System, typename StateSpaceType, typename BeliefState,
-          typename InputBelief, typename MeasurementBelief>
+template <pp::Topology StateSpaceType, DiscreteSSS<StateSpaceType> System,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          ContinuousBeliefState MeasurementBelief>
 void unscented_kalman_filter_step(
-    const System& sys, const StateSpaceType& state_space, BeliefState& b_x,
+    const System& sys, const StateSpaceType& state_space, BState& b_x,
     const InputBelief& b_u, const MeasurementBelief& b_z,
     typename discrete_sss_traits<System>::time_type t = 0,
-    typename belief_state_traits<BeliefState>::scalar_type alpha = 1E-3,
-    typename belief_state_traits<BeliefState>::scalar_type kappa = 1,
-    typename belief_state_traits<BeliefState>::scalar_type beta = 2) {
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+    typename belief_state_traits<BState>::scalar_type alpha = 1E-3,
+    typename belief_state_traits<BState>::scalar_type kappa = 1,
+    typename belief_state_traits<BState>::scalar_type beta = 2) {
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
   unscented_kalman_predict(sys, state_space, b_x, b_u, t, alpha, kappa, beta);
   unscented_kalman_update(sys, state_space, b_x, b_u, b_z, t, alpha, kappa,

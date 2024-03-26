@@ -80,8 +80,9 @@ class ss_system_input_tuple : public named_object {
 
   void construct_input_dimensions() {
     total_input_dim = 0;
-    tuple_for_each(data, [&](auto& data_elem) {
+    arithmetic_tuple_details::tuple_for_each(data, [&](auto& data_elem) {
       data_elem.construct_input_dimensions(total_input_dim);
+      return int{};
     });
   }
 
@@ -149,8 +150,9 @@ class ss_system_input_tuple : public named_object {
       const pp::topology_point_type_t<StateSpaceType>& x,
       pp::topology_point_difference_type_t<StateSpaceType>& dx,
       const input_type& u, time_difference_type dt, time_type t = 0.0) const {
-    tuple_for_each(data, [&](const auto& data_elem) {
+    arithmetic_tuple_details::tuple_for_each(data, [&](const auto& data_elem) {
       data_elem.add_state_difference(params, space, x, dx, u, dt, t);
+      return int{};
     });
   }
 
@@ -178,9 +180,10 @@ class ss_system_input_tuple : public named_object {
       const pp::topology_point_type_t<StateSpaceType>& p_0,
       const pp::topology_point_type_t<StateSpaceType>& p_1,
       const input_type& u_0, const input_type& u_1) const {
-    tuple_for_each(data, [&](const auto& data_elem) {
+    arithmetic_tuple_details::tuple_for_each(data, [&](const auto& data_elem) {
       data_elem.add_state_transition_blocks(A, B, params, space, t_0, t_1, p_0,
                                             p_1, u_0, u_1);
+      return int{};
     });
   }
 
@@ -229,9 +232,10 @@ class ss_system_output_tuple : public named_object {
   void construct_output_dimensions() {
     total_output_dim = 0;
     total_inv_err_dim = 0;
-    tuple_for_each(data, [&](auto& data_elem) {
+    arithmetic_tuple_details::tuple_for_each(data, [&](auto& data_elem) {
       data_elem.construct_output_dimensions(total_output_dim,
                                             total_inv_err_dim);
+      return int{};
     });
   }
 
@@ -304,8 +308,9 @@ class ss_system_output_tuple : public named_object {
                              const StateSpaceType& space,
                              const pp::topology_point_type_t<StateSpaceType>& x,
                              output_type& y, time_type t) const {
-    tuple_for_each(data, [&](const auto& data_elem) {
+    arithmetic_tuple_details::tuple_for_each(data, [&](const auto& data_elem) {
       data_elem.set_output_from_state(params, space, x, y, t);
+      return int{};
     });
   }
 
@@ -326,8 +331,9 @@ class ss_system_output_tuple : public named_object {
       const FlyWeight& params, const StateSpaceType& space,
       const pp::topology_point_type_t<StateSpaceType>& x, const output_type& y,
       invariant_error_type& e, time_type t) const {
-    tuple_for_each(data, [&](const auto& data_elem) {
+    arithmetic_tuple_details::tuple_for_each(data, [&](const auto& data_elem) {
       data_elem.set_inv_err_from_output(params, space, x, y, e, t);
+      return int{};
     });
   }
 
@@ -351,8 +357,9 @@ class ss_system_output_tuple : public named_object {
       const StateSpaceType& space, time_type t,
       const pp::topology_point_type_t<StateSpaceType>& p,
       const InputType& u) const {
-    tuple_for_each(data, [&](const auto& data_elem) {
+    arithmetic_tuple_details::tuple_for_each(data, [&](const auto& data_elem) {
       data_elem.add_output_function_blocks(C, D, params, space, t, p, u);
+      return int{};
     });
   }
 
@@ -447,19 +454,21 @@ class ss_system_state_tuple : public named_object {
     total_state_dim = 0;
     total_inv_corr_dim = 0;
     total_actual_state_dim = 0;
-    tuple_for_each(systems, [&](auto& system_elem) {
+    arithmetic_tuple_details::tuple_for_each(systems, [&](auto& system_elem) {
       system_elem.construct_all_dimensions(total_state_dim, total_inv_corr_dim,
                                            total_actual_state_dim);
+      return int{};
     });
   }
 
  public:
   state_space_type create_state_space() const {
     state_space_type space;
-    tuple_for_each(space, systems,
-                   [&](auto& space_elem, const auto& system_elem) {
-                     space_elem = system_elem.create_state_space();
-                   });
+    arithmetic_tuple_details::tuple_for_each(
+        space, systems, [&](auto& space_elem, const auto& system_elem) {
+          space_elem = system_elem.create_state_space();
+          return int{};
+        });
     return space;
   }
 
@@ -511,9 +520,11 @@ class ss_system_state_tuple : public named_object {
    */
   state_belief_type get_zero_state_belief(double aCovValue = 1.0) const {
     point_type x_init;
-    tuple_for_each(x_init, systems, [&](auto& x_elem, const auto& system_elem) {
-      system_elem.get_zero_state(x_elem);
-    });
+    arithmetic_tuple_details::tuple_for_each(
+        x_init, systems, [&](auto& x_elem, const auto& system_elem) {
+          system_elem.get_zero_state(x_elem);
+          return int{};
+        });
     return state_belief_type(
         x_init,
         covar_type(covar_type::matrix_type(mat<double, mat_structure::diagonal>(
@@ -558,9 +569,11 @@ class ss_system_state_tuple : public named_object {
                                 const state_space_type& space,
                                 const point_type& x, const InputType& u,
                                 time_difference_type dt, time_type t) const {
-    tuple_for_each(systems, [&](const auto& system_elem) {
-      system_elem.add_to_fly_weight_params(params, space, x, u, dt, t);
-    });
+    arithmetic_tuple_details::tuple_for_each(
+        systems, [&](const auto& system_elem) {
+          system_elem.add_to_fly_weight_params(params, space, x, u, dt, t);
+          return int{};
+        });
   }
 
   /**
@@ -580,9 +593,11 @@ class ss_system_state_tuple : public named_object {
                             const state_space_type& space, const point_type& x,
                             point_difference_type& dx, const InputType& u,
                             time_difference_type dt, time_type t = 0.0) const {
-    tuple_for_each(systems, [&](const auto& system_elem) {
-      system_elem.add_state_difference(params, space, x, dx, u, dt, t);
-    });
+    arithmetic_tuple_details::tuple_for_each(
+        systems, [&](const auto& system_elem) {
+          system_elem.add_state_difference(params, space, x, dx, u, dt, t);
+          return int{};
+        });
   }
 
   /**
@@ -608,10 +623,12 @@ class ss_system_state_tuple : public named_object {
                                    time_type t_1, const point_type& p_0,
                                    const point_type& p_1, const InputType& u_0,
                                    const InputType& u_1) const {
-    tuple_for_each(systems, [&](const auto& system_elem) {
-      system_elem.add_state_transition_blocks(A, B, params, space, t_0, t_1,
-                                              p_0, p_1, u_0, u_1);
-    });
+    arithmetic_tuple_details::tuple_for_each(
+        systems, [&](const auto& system_elem) {
+          system_elem.add_state_transition_blocks(A, B, params, space, t_0, t_1,
+                                                  p_0, p_1, u_0, u_1);
+          return int{};
+        });
   }
 
   /**
@@ -632,9 +649,11 @@ class ss_system_state_tuple : public named_object {
                                  const point_type& x, point_type& x_c,
                                  const invariant_correction_type& c,
                                  const InputType& u, const time_type& t) const {
-    tuple_for_each(systems, [&](const auto& system_elem) {
-      system_elem.apply_correction_to_state(params, space, x, x_c, c, u, t);
-    });
+    arithmetic_tuple_details::tuple_for_each(
+        systems, [&](const auto& system_elem) {
+          system_elem.apply_correction_to_state(params, space, x, x_c, c, u, t);
+          return int{};
+        });
   }
 
   /**
@@ -658,10 +677,12 @@ class ss_system_state_tuple : public named_object {
                                   const point_type& x_0, const point_type& x_1,
                                   const InputType& u,
                                   const time_type& t) const {
-    tuple_for_each(systems, [&](const auto& system_elem) {
-      system_elem.set_invariant_frame_blocks(params, space, invar_frame, x_0,
-                                             x_1, u, t);
-    });
+    arithmetic_tuple_details::tuple_for_each(
+        systems, [&](const auto& system_elem) {
+          system_elem.set_invariant_frame_blocks(params, space, invar_frame,
+                                                 x_0, x_1, u, t);
+          return int{};
+        });
   }
 
   /*******************************************************************************
@@ -1127,18 +1148,6 @@ class state_space_system_tuple : public named_object {
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC230001B, 1, "state_space_system_tuple",
                               named_object)
 };
-
-template <typename SystemParamPack, typename StateModelsTuple,
-          typename InputModelsTuple, typename OutputModelsTuple>
-struct is_invariant_system<state_space_system_tuple<
-    SystemParamPack, StateModelsTuple, InputModelsTuple, OutputModelsTuple>>
-    : std::true_type {};
-
-template <typename SystemParamPack, typename StateModelsTuple,
-          typename InputModelsTuple, typename OutputModelsTuple>
-struct is_augmented_ss_system<state_space_system_tuple<
-    SystemParamPack, StateModelsTuple, InputModelsTuple, OutputModelsTuple>>
-    : std::true_type {};
 
 }  // namespace ReaK::ctrl
 

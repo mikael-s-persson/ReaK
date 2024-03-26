@@ -41,9 +41,10 @@
 
 #include "ReaK/core/base/defs.h"
 
+#include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 
-#include "boost/concept_check.hpp"
+#include <concepts>
 
 namespace ReaK::pp {
 
@@ -91,32 +92,25 @@ struct interpolator_factory_traits {
  *
  * pt = interp.get_point_at_time(t);  The point, along the interpolated segment (interp), at a given time (t) can be
  *obtained.
- *
- * \tparam Interpolator The trajectory type for which this concept is checked.
- * \tparam Topology The temporal-topology type on which the trajectory should be able to exist.
- * \tparam DistanceMetric The distance metric type to be used on the topology and along the interpolated segments.
  */
-template <typename Interpolator, typename Topology, typename DistanceMetric>
-struct InterpolatorConcept {
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric, Topology>));
-
-  Interpolator interp;
-  topology_point_type_t<Topology> pt;
-  const topology_point_type_t<Topology>* ppt;
-  using time_topology = typename temporal_space_traits<Topology>::time_topology;
-  topology_point_type_t<time_topology> t;
-  double d;
-  DistanceMetric dist;
-
-  BOOST_CONCEPT_USAGE(InterpolatorConcept) {
-    interp.set_segment(&pt, &pt);
-    ppt = interp.get_start_point();
-    ppt = interp.get_end_point();
-    d = interp.travel_distance_to(pt, dist);
-    d = interp.travel_distance_from(pt, dist);
-    pt = interp.get_point_at_time(t);
-  }
+template <typename Interp, typename Space, typename Metric>
+concept Interpolator = TemporalSpace<Space>&& DistanceMetric<Metric, Space>&&
+requires(Interp& interp, const topology_point_type_t<Space>& pt,
+         const Metric& dist,
+         const topology_point_type_t<
+             typename temporal_space_traits<Space>::time_topology>& t) {
+  interp.set_segment(&pt, &pt);
+  {
+    interp.get_start_point()
+    } -> std::convertible_to<const topology_point_type_t<Space>*>;
+  {
+    interp.get_end_point()
+    } -> std::convertible_to<const topology_point_type_t<Space>*>;
+  { interp.travel_distance_to(pt, dist) } -> std::convertible_to<double>;
+  { interp.travel_distance_from(pt, dist) } -> std::convertible_to<double>;
+  {
+    interp.get_point_at_time(t)
+    } -> std::convertible_to<topology_point_type_t<Space>>;
 };
 
 /**
@@ -130,7 +124,7 @@ struct InterpolatorConcept {
  *
  * Required concepts:
  *
- * The interpolator should model the InterpolatorConcept with the given topology and distance-metric.
+ * The interpolator should model Interpolator with the given topology and distance-metric.
  *
  * Valid expressions:
  *
@@ -139,26 +133,15 @@ struct InterpolatorConcept {
  *
  * bool b = interp.is_segment_feasible();  The segment can be tested for feasibility, i.e., if it is possible to reach
  *the end-point at its associated time while respecting the limits.
- *
- * \tparam Interpolator The trajectory type for which this concept is checked.
- * \tparam Topology The temporal-topology type on which the trajectory should be able to exist.
- * \tparam DistanceMetric The distance metric type to be used on the topology and along the interpolated segments.
  */
-template <typename LimitedInterpolator, typename Topology,
-          typename DistanceMetric>
-struct LimitedInterpolatorConcept
-    : public InterpolatorConcept<LimitedInterpolator, Topology,
-                                 DistanceMetric> {
-
-  topology_point_difference_type_t<
-      typename temporal_space_traits<Topology>::time_topology>
-      dt;
-
-  BOOST_CONCEPT_USAGE(LimitedInterpolatorConcept) {
-    dt = this->interp.get_minimum_travel_time();
-    bool b = this->interp.is_segment_feasible();
-    RK_UNUSED(b);
-  }
+template <typename Interp, typename Space, typename Metric>
+concept LimitedInterpolator =
+    Interpolator<Interp, Space, Metric>&& requires(const Interp& interp) {
+  {
+    interp.get_minimum_travel_time()
+    } -> std::convertible_to<topology_point_difference_type_t<
+        typename temporal_space_traits<Space>::time_topology>>;
+  { interp.is_segment_feasible() } -> std::convertible_to<bool>;
 };
 
 /**
@@ -185,30 +168,18 @@ struct LimitedInterpolatorConcept
  *
  * interp_fact.set_temporal_space(pspace);  The temporal space object used by the interpolators can be set as a const
  *shared-pointer to a topology.
- *
- * \tparam InterpolatorFactory The interpolator factory type for which this concept is checked.
- * \tparam Topology The temporal-topology type on which the interpolated segments should exist.
- * \tparam DistanceMetric The distance metric type to be used on the topology and along the interpolated segments.
  */
-template <typename InterpolatorFactory, typename Topology,
-          typename DistanceMetric>
-struct InterpolatorFactoryConcept {
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (InterpolatorConcept<typename interpolator_factory_traits<
-                               InterpolatorFactory>::interpolator_type,
-                           Topology, DistanceMetric>));
-
-  InterpolatorFactory interp_fact;
-  typename interpolator_factory_traits<InterpolatorFactory>::interpolator_type
-      interp;
-  typename interpolator_factory_traits<InterpolatorFactory>::point_type pt;
-  std::shared_ptr<Topology> pspace;
-
-  BOOST_CONCEPT_USAGE(InterpolatorFactoryConcept) {
-    interp = interp_fact.create_interpolator(&pt, &pt);
-    interp_fact.set_temporal_space(pspace);
-  }
+template <typename Factory, typename Space, typename Metric>
+concept InterpolatorFactory = Interpolator<
+    typename interpolator_factory_traits<Factory>::interpolator_type, Space,
+    Metric>&&
+requires(Factory& factory, std::shared_ptr<Space> pspace,
+         const typename interpolator_factory_traits<Factory>::point_type& pt) {
+  {
+    factory.create_interpolator(&pt, &pt)
+    } -> std::convertible_to<
+        typename interpolator_factory_traits<Factory>::interpolator_type>;
+  factory.set_temporal_space(pspace);
 };
 
 }  // namespace ReaK::pp

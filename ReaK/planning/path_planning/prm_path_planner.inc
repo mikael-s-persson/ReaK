@@ -65,7 +65,7 @@ namespace ReaK::pp {
  * collaborate with the FADPRM algorithms to generate the motion-graph and path-planning solutions.
  * This class template models the FADPRMVisitorConcept.
  */
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 struct prm_planner_visitor
     : density_plan_visitor<FreeSpaceType, prm_density_calculator> {
   using base_type = density_plan_visitor<FreeSpaceType, prm_density_calculator>;
@@ -74,19 +74,20 @@ struct prm_planner_visitor
   using planner_base_type = typename base_type::planner_base_type;
   using query_type = typename base_type::query_type;
 
-  explicit prm_planner_visitor(planner_base_type* aPlanner, query_type* aQuery = nullptr,
-                      any_knn_synchro* aNNSynchro = nullptr,
-                      std::any aStartNode = std::any(),
-                      std::any aGoalNode = std::any(),
-                      double aDensityCutoff = 0.0)
+  explicit prm_planner_visitor(planner_base_type* aPlanner,
+                               query_type* aQuery = nullptr,
+                               any_knn_synchro* aNNSynchro = nullptr,
+                               std::any aStartNode = std::any(),
+                               std::any aGoalNode = std::any(),
+                               double aDensityCutoff = 0.0)
       : base_type(aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode,
-                  aDensityCutoff){}
+                  aDensityCutoff) {}
 
   template <typename Graph>
   struct astar_heuristic_getter {
     using Vertex = graph::graph_vertex_t<Graph>;
     const Graph* p_g;
-    explicit astar_heuristic_getter(const Graph* pG) : p_g(pG){}
+    explicit astar_heuristic_getter(const Graph* pG) : p_g(pG) {}
     double operator()(Vertex u) const { return (*p_g)[u].heuristic_value; }
   };
 
@@ -105,16 +106,15 @@ struct prm_planner_visitor
         boost::default_astar_visitor(), get(&VertexProp::predecessor, g),
         get(&VertexProp::key_value, g), get(&VertexProp::distance_accum, g),
         get(&EdgeProp::weight, g), boost::identity_property_map(),
-        get(&VertexProp::astar_color, g), std::less<>(),
-        std::plus<>(), std::numeric_limits<double>::infinity(),
-        double(0.0));
+        get(&VertexProp::astar_color, g), std::less<>(), std::plus<>(),
+        std::numeric_limits<double>::infinity(), double(0.0));
 
     this->dispatched_register_solution(start_node, goal_node, goal_node, g,
                                        g[goal_node]);
   }
 };
 
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 void prm_planner<FreeSpaceType>::solve_planning_query(
     planning_query<FreeSpaceType>& aQuery) {
 
@@ -126,7 +126,8 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
   using VertexProp = dense_mg_vertex<astar_mg_vertex<FreeSpaceType>>;
   using EdgeProp = optimal_mg_edge<FreeSpaceType>;
 
-  using DirectionalityTag = typename motion_segment_directionality<FreeSpaceType>::type;
+  using DirectionalityTag =
+      typename motion_segment_directionality<FreeSpaceType>::type;
 
   using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
@@ -200,8 +201,9 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
 #endif
 
 #define RK_PRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)            \
-  using GraphPositionMap = typename boost::property_map<                      \
-      MotionGraphType, PointType BasicVertexProp::*>::type;                   \
+  using GraphPositionMap =                                                    \
+      typename boost::property_map<MotionGraphType,                           \
+                                   PointType BasicVertexProp::*>::type;       \
   using SpacePartType = dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, \
                                  random_vp_chooser, TREE_STORAGE>;            \
   SpacePartType space_part(motion_graph, sup_space_ptr,                       \
@@ -219,9 +221,10 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
       nn_finder, space_dim, 3.0 * space_Lc);
 
 #define RK_PRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(ARITY, TREE_STORAGE)             \
-  using ALTGraph = dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace,        \
-                        PositionMap, ARITY, random_vp_chooser, TREE_STORAGE,   \
-                        boost::vecBC, DirectionalityTag, boost::listBC>;       \
+  using ALTGraph =                                                             \
+      dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace, PositionMap, ARITY, \
+                         random_vp_chooser, TREE_STORAGE, boost::vecBC,        \
+                         DirectionalityTag, boost::listBC>;                    \
   using MotionGraphType = typename ALTGraph::adj_list_type;                    \
   using Vertex = graph::graph_vertex_t<MotionGraphType>;                       \
                                                                                \
@@ -246,8 +249,9 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
   if ((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) ==
       ADJ_LIST_MOTION_GRAPH) {
 
-    using MotionGraphType = boost::adjacency_list_BC<
-        boost::vecBC, boost::vecBC, DirectionalityTag, VertexProp, EdgeProp>;
+    using MotionGraphType =
+        boost::adjacency_list_BC<boost::vecBC, boost::vecBC, DirectionalityTag,
+                                 VertexProp, EdgeProp>;
     using Vertex = graph::graph_vertex_t<MotionGraphType>;
 
     MotionGraphType motion_graph;

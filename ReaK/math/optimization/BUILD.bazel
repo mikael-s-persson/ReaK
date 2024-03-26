@@ -1,0 +1,126 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+  name = "optimization",
+  hdrs = [
+    "augmented_lagrangian_methods.h",
+    "conjugate_gradient_methods.h",
+    "finite_diff_jacobians.h",
+    "function_types.h",
+    "gauss_newton_method.h",
+    "hessian_approx_update.h",
+    "jacobian_helper_functions.h",
+    "jacobian_transpose_method.h",
+    "levenberg_marquardt_method.h",
+    "limit_functions.h",
+    "line_search.h",
+    "mehrotra_method.h",
+    "nelder_mead_method.h",
+    "newton_methods.h",
+    "newton_search_directions.h",
+    "nl_interior_points_methods.h",
+    "optim_exceptions.h",
+    "quadratic_programs.h",
+    "quasi_newton_methods.h",
+    "sequential_qp_methods.h",
+    "simplex_method.h",
+    "trust_region_search.h",
+  ],
+  deps = [
+    "//ReaK/core/base",
+    "//ReaK/math/lin_alg",
+  ],
+)
+
+cc_test(
+  name = "lp_test",
+  srcs = [
+    "lp_test.cc",
+  ],
+  deps = [
+    ":optimization",
+    "//ReaK/math/lin_alg",
+    "@com_google_googletest//:gtest_main",
+  ],
+)
+
+cc_test(
+  name = "qp_test",
+  srcs = [
+    "qp_test.cc",
+  ],
+  deps = [
+    ":optimization",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/lin_alg:lin_alg_matchers",
+    "@com_google_googletest//:gtest_main",
+  ],
+)
+
+cc_test(
+  name = "line_search_test",
+  srcs = [
+    "line_search_test.cc",
+  ],
+  deps = [
+    ":optimization",
+    "@com_google_googletest//:gtest_main",
+  ],
+)
+
+cc_test(
+  name = "finite_diff_jacobians_test",
+  srcs = [
+    "finite_diff_jacobians_test.cc",
+  ],
+  deps = [
+    ":optimization",
+    "@com_google_googletest//:gtest_main",
+  ],
+)
+
+cc_test(
+  name = "nlp_unconstrained_test",
+  srcs = [
+    "nlp_unconstrained_test.cc",
+  ],
+  deps = [
+    ":optimization",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/lin_alg:lin_alg_matchers",
+    "@com_google_googletest//:gtest_main",
+  ],
+)
+
+cc_test(
+  name = "nlp_constrained_test",
+  srcs = [
+    "nlp_constrained_test.cc",
+  ],
+  deps = [
+    ":optimization",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/lin_alg:lin_alg_matchers",
+    "@com_google_googletest//:gtest_main",
+  ],
+)
+
+cc_test(
+  name = "nllsq_test",
+  srcs = [
+    "nllsq_test.cc",
+  ],
+  deps = [
+    ":optimization",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/lin_alg:lin_alg_matchers",
+    "@com_google_googletest//:gtest_main",
+  ],
+)
+

@@ -52,9 +52,8 @@ namespace ReaK {
 /**
  * Prints a matrix to a standard output stream (<<) as "((a11; a12); (a21; a22))". \test PASSED
  */
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, std::ostream&> operator<<(
-    std::ostream& out_stream, const Matrix& M) {
+template <ReadableMatrix Matrix>
+std::ostream& operator<<(std::ostream& out_stream, const Matrix& M) {
   out_stream << "(\n";
   if ((M.get_row_count() != 0) && (M.get_col_count() != 0)) {
     for (int i = 0; i < M.get_row_count(); ++i) {
@@ -171,10 +170,9 @@ void inplace_lower_multiply_with_fill_impl(const MatrixLower1& M1,
  * \throw std::range_error if the two matrix dimensions do not fit together.
  * \test PASSED
  */
-template <typename Matrix1, typename Matrix2>
-std::enable_if_t<is_readable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2>,
-                 mat_product_result_t<Matrix1, Matrix2>>
-operator*(const Matrix1& M1, const Matrix2& M2) {
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2>
+mat_product_result_t<Matrix1, Matrix2> operator*(const Matrix1& M1,
+                                                 const Matrix2& M2) {
   using result_type = mat_product_result_t<Matrix1, Matrix2>;
   if (M1.get_col_count() != M2.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
@@ -252,12 +250,12 @@ operator*(const Matrix1& M1, const Matrix2& M2) {
                                         mat_structure::skew_symmetric>) {
     // dense and sym/skew
     return M2.multiply_dense_and_this_mat(M1);
-  } else if constexpr (is_square_matrix_v<Matrix2>) {
+  } else if constexpr (SquareMatrix<Matrix2>) {
     // square/rect and square
     result_type result(M1);
     detail::dense_mat_multiply_impl(M1, M2, result);
     return result;
-  } else if constexpr (is_square_matrix_v<Matrix1>) {
+  } else if constexpr (SquareMatrix<Matrix1>) {
     // square and rect
     result_type result(M2);
     detail::dense_mat_multiply_impl(M1, M2, result);
@@ -278,12 +276,9 @@ operator*(const Matrix1& M1, const Matrix2& M2) {
  * \return Column-major matrix equal to M * S.
  * \test PASSED
  */
-template <typename Matrix, typename Scalar>
-std::enable_if_t<is_writable_matrix_v<Matrix> &&
-                     !is_readable_matrix_v<Scalar> &&
-                     !is_readable_vector_v<Scalar>,
-                 Matrix>
-operator*(Matrix M, const Scalar& S) {
+template <WritableMatrix Matrix,
+          std::convertible_to<mat_value_type_t<Matrix>> Scalar>
+Matrix operator*(Matrix M, const Scalar& S) {
   M *= S;
   return M;
 }
@@ -296,12 +291,9 @@ operator*(Matrix M, const Scalar& S) {
  * \return Column-major matrix equal to S * M.
  * \test PASSED
  */
-template <typename Matrix, typename Scalar>
-std::enable_if_t<is_writable_matrix_v<Matrix> &&
-                     !is_readable_matrix_v<Scalar> &&
-                     !is_readable_vector_v<Scalar>,
-                 Matrix>
-operator*(const Scalar& S, Matrix M) {
+template <WritableMatrix Matrix,
+          std::convertible_to<mat_value_type_t<Matrix>> Scalar>
+Matrix operator*(const Scalar& S, Matrix M) {
   M *= S;
   return M;
 }
@@ -315,17 +307,15 @@ operator*(const Scalar& S, Matrix M) {
  * \throw std::range_error if the matrix column count does not correspond to the vector dimension.
  * \test PASSED
  */
-template <typename Matrix, typename Vector>
-std::enable_if_t<is_readable_matrix_v<Matrix> && is_readable_vector_v<Vector>,
-                 vect_copy_t<Vector>>
-operator*(const Matrix& M, const Vector& V) {
+template <ReadableMatrix Matrix, ReadableVector Vector>
+vect_copy_t<Vector> operator*(const Matrix& M, const Vector& V) {
   using result_type = vect_copy_t<Vector>;
   if (V.size() != M.get_col_count()) {
     throw std::range_error("Matrix dimension mismatch.");
   }
   using ValueType = mat_value_type_t<Matrix>;
   result_type result;
-  if constexpr (is_resizable_vector_v<result_type>) {
+  if constexpr (ResizableVector<result_type>) {
     result.resize(M.get_row_count());
   } else {
     if (V.size() != M.get_row_count()) {
@@ -369,17 +359,15 @@ operator*(const Matrix& M, const Vector& V) {
  * \throw std::range_error if the matrix row count does not correspond to the vector dimension.
  * \test PASSED
  */
-template <typename Matrix, typename Vector>
-std::enable_if_t<is_readable_matrix_v<Matrix> && is_readable_vector_v<Vector>,
-                 vect_copy_t<Vector>>
-operator*(const Vector& V, const Matrix& M) {
+template <ReadableMatrix Matrix, ReadableVector Vector>
+vect_copy_t<Vector> operator*(const Vector& V, const Matrix& M) {
   using result_type = vect_copy_t<Vector>;
   if (V.size() != M.get_row_count()) {
     throw std::range_error("Matrix dimension mismatch.");
   }
   using ValueType = mat_value_type_t<Matrix>;
   result_type result;
-  if constexpr (is_resizable_vector_v<result_type>) {
+  if constexpr (ResizableVector<result_type>) {
     result.resize(M.get_col_count());
   } else {
     if (V.size() != M.get_col_count()) {
@@ -423,10 +411,8 @@ operator*(const Vector& V, const Matrix& M) {
  * \param M The matrix to be transposed.
  * \return The transpose of M.
  */
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>,
-                 mat_addition_result_t<Matrix, Matrix>>
-transpose(const Matrix& M) {
+template <ReadableMatrix Matrix>
+mat_addition_result_t<Matrix, Matrix> transpose(const Matrix& M) {
   using result_type = mat_addition_result_t<Matrix, Matrix>;
   result_type result(M);
   for (int j = 0; j < result.get_col_count(); ++j) {
@@ -445,10 +431,8 @@ transpose(const Matrix& M) {
  * \throw std::range_error if the two matrix dimensions do not fit together.
  * \test PASSED
  */
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>,
-                 mat_addition_result_t<Matrix, Matrix>>
-operator-(const Matrix& M) {
+template <ReadableMatrix Matrix>
+mat_addition_result_t<Matrix, Matrix> operator-(const Matrix& M) {
   using result_type = mat_addition_result_t<Matrix, Matrix>;
   result_type result(M);
   for (int j = 0; j < M.get_col_count(); ++j) {
@@ -469,10 +453,9 @@ operator-(const Matrix& M) {
  * \throw std::range_error if the two matrix dimensions do not fit together.
  * \test PASSED
  */
-template <typename Matrix1, typename Matrix2>
-std::enable_if_t<is_readable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2>,
-                 mat_addition_result_t<Matrix1, Matrix2>>
-operator+(const Matrix1& M1, const Matrix2& M2) {
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2>
+mat_addition_result_t<Matrix1, Matrix2> operator+(const Matrix1& M1,
+                                                  const Matrix2& M2) {
   if ((M1.get_row_count() != M2.get_row_count()) ||
       (M1.get_col_count() != M2.get_col_count())) {
     throw std::range_error("Matrix dimension mismatch.");
@@ -573,10 +556,9 @@ operator+(const Matrix1& M1, const Matrix2& M2) {
  * \throw std::range_error if the two matrix dimensions do not fit together.
  * \test PASSED
  */
-template <typename Matrix1, typename Matrix2>
-std::enable_if_t<is_readable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2>,
-                 mat_addition_result_t<Matrix1, Matrix2>>
-operator-(const Matrix1& M1, const Matrix2& M2) {
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2>
+mat_addition_result_t<Matrix1, Matrix2> operator-(const Matrix1& M1,
+                                                  const Matrix2& M2) {
   if ((M1.get_row_count() != M2.get_row_count()) ||
       (M1.get_col_count() != M2.get_col_count())) {
     throw std::range_error("Matrix dimension mismatch.");
@@ -676,10 +658,8 @@ operator-(const Matrix1& M1, const Matrix2& M2) {
  * Equality Comparison operator for general matrices, component-wise.
  * \test PASSED
  */
-template <typename Matrix1, typename Matrix2>
-std::enable_if_t<is_readable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2>,
-                 bool>
-operator==(const Matrix1& M1, const Matrix2& M2) {
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2>
+bool operator==(const Matrix1& M1, const Matrix2& M2) {
   if ((M1.get_row_count() != M2.get_row_count()) ||
       (M1.get_col_count() != M2.get_col_count())) {
     return false;
@@ -698,10 +678,8 @@ operator==(const Matrix1& M1, const Matrix2& M2) {
  * Inequality Comparison operator for general matrices, component-wise.
  * \test PASSED
  */
-template <typename Matrix1, typename Matrix2>
-std::enable_if_t<is_readable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2>,
-                 bool>
-operator!=(const Matrix1& M1, const Matrix2& M2) {
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2>
+bool operator!=(const Matrix1& M1, const Matrix2& M2) {
   return !(M1 == M2);
 }
 

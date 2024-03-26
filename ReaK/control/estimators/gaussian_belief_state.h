@@ -39,6 +39,7 @@
 #include "ReaK/core/base/global_rng.h"
 #include "ReaK/core/base/named_object.h"
 #include "ReaK/math/lin_alg/mat_cholesky.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_qr_decomp.h"
 #include "ReaK/math/lin_alg/mat_svd_method.h"
 
@@ -54,30 +55,26 @@ namespace ReaK::ctrl {
 /**
  * This class template is a functor that can compute the probability that a given state is part of
  * a gaussian belief-state. In other words, this is a probability distribution functor (PDF).
- * \tparam BeliefState The belief-state type to represent the Gaussian distribution of the state vector, should model
- * the ContinuousBeliefStateConcept.
  * \tparam Storage The storage strategy of the Covariance matrix, this is used for specializing the PDF implementation
  * for the most efficient way to compute the probabilities.
  */
-template <typename BeliefState,
+template <ContinuousBeliefState BState,
           covariance_storage::tag Storage =
               covariance_mat_traits<typename continuous_belief_state_traits<
-                  BeliefState>::covariance_type>::storage>
+                  BState>::covariance_type>::storage>
 struct gaussian_pdf {
-  using self = gaussian_pdf<BeliefState, Storage>;
+  using self = gaussian_pdf<BState, Storage>;
 
   using state_type =
-      typename continuous_belief_state_traits<BeliefState>::state_type;
+      typename continuous_belief_state_traits<BState>::state_type;
   using covariance_type =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
 
   using scalar_type =
       typename covariance_mat_traits<covariance_type>::value_type;
   using size_type = typename covariance_mat_traits<covariance_type>::size_type;
   using matrix_type =
       typename covariance_mat_traits<covariance_type>::matrix_type;
-
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
 
   state_type mean_state;
   mat<mat_value_type_t<matrix_type>, mat_structure::square> L;
@@ -87,7 +84,7 @@ struct gaussian_pdf {
    * Parametrized constructor.
    * \param aBelief The belief-state of the gaussian distribution.
    */
-  explicit gaussian_pdf(const BeliefState& aBelief)
+  explicit gaussian_pdf(const BState& aBelief)
       : mean_state(aBelief.get_mean_state()),
         L(aBelief.get_covariance().size()),
         factor(-1) {
@@ -133,8 +130,8 @@ struct gaussian_pdf {
    * \param space The state-space on which the state-vectors are distributed.
    * \return The probability of the given state-vector.
    */
-  template <typename Topology>
-  scalar_type operator()(const state_type& v, const Topology& space) const {
+  template <pp::Topology Space>
+  scalar_type operator()(const state_type& v, const Space& space) const {
     using ReaK::to_vect;
     using std::exp;
     using std::sqrt;
@@ -175,25 +172,21 @@ struct gaussian_pdf {
  * a gaussian belief-state. In other words, this is a probability distribution functor (PDF).
  * This class template specialization uses the fact that the covariance is represented as an information
  * matrix in order to have a more efficient implementation.
- * \tparam BeliefState The belief-state type to represent the Gaussian distribution of the state vector, should model
- * the ContinuousBeliefStateConcept.
  */
-template <typename BeliefState>
-struct gaussian_pdf<BeliefState, covariance_storage::information> {
-  using self = gaussian_pdf<BeliefState, covariance_storage::information>;
+template <ContinuousBeliefState BState>
+struct gaussian_pdf<BState, covariance_storage::information> {
+  using self = gaussian_pdf<BState, covariance_storage::information>;
 
   using state_type =
-      typename continuous_belief_state_traits<BeliefState>::state_type;
+      typename continuous_belief_state_traits<BState>::state_type;
   using covariance_type =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
 
   using scalar_type =
       typename covariance_mat_traits<covariance_type>::value_type;
   using size_type = typename covariance_mat_traits<covariance_type>::size_type;
   using matrix_type =
       typename covariance_mat_traits<covariance_type>::matrix_type;
-
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
 
   state_type mean_state;
   matrix_type E_inv;
@@ -203,7 +196,7 @@ struct gaussian_pdf<BeliefState, covariance_storage::information> {
    * Parametrized constructor.
    * \param aBelief The belief-state of the gaussian distribution.
    */
-  explicit gaussian_pdf(const BeliefState& aBelief)
+  explicit gaussian_pdf(const BState& aBelief)
       : mean_state(aBelief.get_mean_state()),
         E_inv(aBelief.get_covariance().get_inverse_matrix()),
         factor(-1) {
@@ -248,17 +241,15 @@ struct gaussian_pdf<BeliefState, covariance_storage::information> {
    * \param space The state-space on which the state-vectors are distributed.
    * \return The probability of the given state-vector.
    */
-  template <typename Topology>
-  scalar_type operator()(const state_type& v, const Topology& space) const {
+  template <pp::Topology Space>
+  scalar_type operator()(const state_type& v, const Space& space) const {
     using ReaK::to_vect;
     using std::abs;
     using std::exp;
     using std::sqrt;
-    using state_difference_type =
-        typename pp::topology_traits<Topology>::point_difference_type;
-    BOOST_CONCEPT_ASSERT((ReadableVectorConcept<state_difference_type>));
-    BOOST_CONCEPT_ASSERT(
-        (CovarianceMatrixConcept<covariance_type, state_difference_type>));
+    using state_difference_type = pp::topology_point_difference_type_t<Space>;
+    static_assert(ReadableVector<state_difference_type>);
+    static_assert(CovarianceMatrix<covariance_type, state_difference_type>);
 
     if (factor <= scalar_type(0)) {
       return scalar_type(0);
@@ -286,25 +277,21 @@ struct gaussian_pdf<BeliefState, covariance_storage::information> {
  * a gaussian belief-state. In other words, this is a probability distribution functor (PDF).
  * This class template specialization uses the fact that the covariance is represented as a decomposition of
  * the covariance matrix in order to have a more efficient implementation.
- * \tparam BeliefState The belief-state type to represent the Gaussian distribution of the state vector, should model
- * the ContinuousBeliefStateConcept.
  */
-template <typename BeliefState>
-struct gaussian_pdf<BeliefState, covariance_storage::decomposed> {
-  using self = gaussian_pdf<BeliefState, covariance_storage::decomposed>;
+template <ContinuousBeliefState BState>
+struct gaussian_pdf<BState, covariance_storage::decomposed> {
+  using self = gaussian_pdf<BState, covariance_storage::decomposed>;
 
   using state_type =
-      typename continuous_belief_state_traits<BeliefState>::state_type;
+      typename continuous_belief_state_traits<BState>::state_type;
   using covariance_type =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
 
   using scalar_type =
       typename covariance_mat_traits<covariance_type>::value_type;
   using size_type = typename covariance_mat_traits<covariance_type>::size_type;
   using matrix_type =
       typename covariance_mat_traits<covariance_type>::matrix_type;
-
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
 
   state_type mean_state;
   mat<mat_value_type_t<matrix_type>, mat_structure::square> QX;
@@ -317,7 +304,7 @@ struct gaussian_pdf<BeliefState, covariance_storage::decomposed> {
    * Parametrized constructor.
    * \param aBelief The belief-state of the gaussian distribution.
    */
-  explicit gaussian_pdf(const BeliefState& aBelief)
+  explicit gaussian_pdf(const BState& aBelief)
       : mean_state(aBelief.get_mean_state()), factor(-1) {
     decompose_QR(aBelief.get_covariance().get_covarying_block(), QX, RX);
     decompose_QR(aBelief.get_covariance().get_informing_inv_block(), QY, RY);
@@ -366,16 +353,14 @@ struct gaussian_pdf<BeliefState, covariance_storage::decomposed> {
    * \param space The state-space on which the state-vectors are distributed.
    * \return The probability of the given state-vector.
    */
-  template <typename Topology>
-  scalar_type operator()(const state_type& v, const Topology& space) const {
+  template <pp::Topology Space>
+  scalar_type operator()(const state_type& v, const Space& space) const {
     using ReaK::to_vect;
     using std::exp;
     using std::sqrt;
-    using state_difference_type =
-        typename pp::topology_traits<Topology>::point_difference_type;
-    BOOST_CONCEPT_ASSERT((WritableVectorConcept<state_difference_type>));
-    BOOST_CONCEPT_ASSERT(
-        (CovarianceMatrixConcept<covariance_type, state_difference_type>));
+    using state_difference_type = pp::topology_point_difference_type_t<Space>;
+    static_assert(WritableVector<state_difference_type>);
+    static_assert(CovarianceMatrix<covariance_type, state_difference_type>);
 
     if (factor <= scalar_type(0)) {
       return scalar_type(0);
@@ -492,17 +477,17 @@ auto gaussian_likelihood_ratio_of_diff(const Vector& dx, const Matrix& P) {
  * distribution function objects.
  * \tparam BeliefState The belief-state type for the Gaussian PDFs.
  * \tparam Storage The storage strategy for the covariance matrices.
- * \tparam Topology The topology type of the underlying state representations.
+ * \tparam Space The topology type of the underlying state representations.
  * \param N0 The first PDF.
  * \param N1 The second PDF.
  * \param space The topology of the underlying state representations.
  * \return The symmetric KL-divergence between the two Gaussian PDFs.
  */
-template <typename BeliefState, covariance_storage::tag Storage,
-          typename Topology>
-auto symKL_divergence(const gaussian_pdf<BeliefState, Storage>& N0,
-                      const gaussian_pdf<BeliefState, Storage>& N1,
-                      const Topology& space) {
+template <ContinuousBeliefState BState, covariance_storage::tag Storage,
+          pp::Topology Space>
+auto symKL_divergence(const gaussian_pdf<BState, Storage>& N0,
+                      const gaussian_pdf<BState, Storage>& N1,
+                      const Space& space) {
   using std::log;
   return -0.5 * log(N1(N0.mean_state, space) * N0(N1.mean_state, space)) -
          entropy(N0) - entropy(N1);
@@ -511,25 +496,21 @@ auto symKL_divergence(const gaussian_pdf<BeliefState, Storage>& N0,
 /**
  * This class template is a callable object (functor) which can generate random samples of
  * state-vectors taken from a gaussian belief-state.
- * \tparam BeliefState The belief-state type to represent the Gaussian distribution of the state vector, should model
- * the ContinuousBeliefStateConcept.
  */
-template <typename BeliefState>
+template <ContinuousBeliefState BState>
 struct gaussian_sampler {
-  using self = gaussian_sampler<BeliefState>;
+  using self = gaussian_sampler<BState>;
 
   using state_type =
-      typename continuous_belief_state_traits<BeliefState>::state_type;
+      typename continuous_belief_state_traits<BState>::state_type;
   using covariance_type =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
 
   using scalar_type =
       typename covariance_mat_traits<covariance_type>::value_type;
   using size_type = typename covariance_mat_traits<covariance_type>::size_type;
   using matrix_type =
       typename covariance_mat_traits<covariance_type>::matrix_type;
-
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
 
   state_type mean_state;
   mat<mat_value_type_t<matrix_type>, mat_structure::square> L;
@@ -538,7 +519,7 @@ struct gaussian_sampler {
    * Parametrized constructor.
    * \param aBelief The belief-state of the gaussian distribution.
    */
-  explicit gaussian_sampler(const BeliefState& aBelief)
+  explicit gaussian_sampler(const BState& aBelief)
       : mean_state(aBelief.get_mean_state()),
         L(aBelief.get_covariance().size()) {
     using std::sqrt;
@@ -587,18 +568,16 @@ struct gaussian_sampler {
    * \param space The state-space on which the state-vectors are distributed.
    * \return A random state-sample from the gaussian probability distribution
    */
-  template <typename Topology>
-  state_type operator()(const Topology& space) const {
+  template <pp::Topology Space>
+  state_type operator()(const Space& space) const {
     using ReaK::from_vect;
     using ReaK::to_vect;
 
     global_rng_type& rng = get_global_rng();
     std::normal_distribution<scalar_type> var_rnd;
 
-    using state_difference_type =
-        pp::topology_point_difference_type_t<Topology>;
-    BOOST_CONCEPT_ASSERT(
-        (CovarianceMatrixConcept<covariance_type, state_difference_type>));
+    using state_difference_type = pp::topology_point_difference_type_t<Space>;
+    static_assert(CovarianceMatrix<covariance_type, state_difference_type>);
 
     vect_n<scalar_type> z =
         to_vect<scalar_type>(space.difference(mean_state, mean_state));
@@ -610,10 +589,8 @@ struct gaussian_sampler {
   }
 };
 
-template <typename Vector, typename Matrix>
+template <WritableVector Vector, ReadableMatrix Matrix>
 Vector sample_gaussian_point(const Vector& mean, const Matrix& cov) {
-  static_assert(is_writable_vector_v<Vector>);
-  static_assert(is_readable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using std::sqrt;
 
@@ -642,10 +619,9 @@ Vector sample_gaussian_point(const Vector& mean, const Matrix& cov) {
   return mean + L * z;
 }
 
-template <typename Vector, typename ValueType>
+template <WritableVector Vector, typename ValueType>
 Vector sample_gaussian_point(
     Vector mean, const mat<ValueType, mat_structure::diagonal>& cov) {
-  static_assert(is_writable_vector_v<Vector>);
   using std::sqrt;
 
   global_rng_type& rng = get_global_rng();
@@ -658,11 +634,10 @@ Vector sample_gaussian_point(
   return mean;
 }
 
-template <typename StateSpace, typename Matrix>
+template <typename StateSpace, ReadableMatrix Matrix>
 pp::topology_point_type_t<StateSpace> sample_gaussian_point(
     const StateSpace& space, const pp::topology_point_type_t<StateSpace>& mean,
     const Matrix& cov) {
-  static_assert(is_readable_matrix_v<Matrix>);
   using DiffType = pp::topology_point_difference_type_t<StateSpace>;
   using ValueType = mat_value_type_t<Matrix>;
   using ReaK::from_vect;
@@ -720,10 +695,9 @@ pp::topology_point_type_t<StateSpace> sample_gaussian_point(
  *
  * \tparam StateType The state vector type which represents the mean-state of the belief, should model
  *         StateVectorConcept, by default it is the state-type associated with the covariance matrix type.
- * \tparam Covariance The covariance matrix type which represents the covariance of the state estimate, should
- *         model the CovarianceMatrixConcept.
+ * \tparam Covariance The covariance matrix type which represents the covariance of the state estimate.
  */
-template <typename StateType, typename Covariance>
+template <typename StateType, CovarianceMatrix<StateType> Covariance>
 class gaussian_belief_state : public virtual shared_object {
  public:
   using self = gaussian_belief_state<StateType, Covariance>;
@@ -737,12 +711,6 @@ class gaussian_belief_state : public virtual shared_object {
   using size_type = typename covariance_mat_traits<covariance_type>::size_type;
   using matrix_type =
       typename covariance_mat_traits<covariance_type>::matrix_type;
-
-  using pdf_type = gaussian_pdf<self>;
-  using random_sampler_type = gaussian_sampler<self>;
-
-  BOOST_CONCEPT_ASSERT(
-      (CovarianceMatrixConcept<Covariance, state_difference_type>));
 
   static constexpr belief_distribution::tag distribution =
       belief_distribution::unimodal;
@@ -758,7 +726,7 @@ class gaussian_belief_state : public virtual shared_object {
    * Returns the probability distribution functor associated with this belief-state's probability distribution.
    * \return The probability distribution functor associated with this belief-state's probability distribution.
    */
-  pdf_type get_pdf() const { return pdf_type(*this); }
+  auto get_pdf() const { return gaussian_pdf<self>(*this); }
 
   /**
    * Returns the most-likely state (i.e. the mean-state for a Gaussian distribution).
@@ -770,9 +738,7 @@ class gaussian_belief_state : public virtual shared_object {
    * Returns the random sampler functor associated with this belief-state's probability distribution.
    * \return The random sampler functor associated with this belief-state's probability distribution.
    */
-  random_sampler_type get_random_sampler() const {
-    return random_sampler_type(*this);
-  }
+  auto get_random_sampler() const { return gaussian_sampler<self>(*this); }
 
   /**
    * Returns the mean-state state.
@@ -855,46 +821,31 @@ class gaussian_belief_state : public virtual shared_object {
                               shared_object)
 };
 
-template <typename Covariance, typename StateType>
-struct is_belief_state<gaussian_belief_state<Covariance, StateType>> {
-  static constexpr bool value = true;
-  using type = is_belief_state<gaussian_belief_state<Covariance, StateType>>;
-};
-
-template <typename Covariance, typename StateType>
-struct is_continuous_belief_state<
-    gaussian_belief_state<Covariance, StateType>> {
-  static constexpr bool value = true;
-  using type =
-      is_continuous_belief_state<gaussian_belief_state<Covariance, StateType>>;
-};
-
 /**
  * This function computes the symmetric KL-divergence between two belief-states.
  * \tparam StateType The state-type for the Gaussian belief-states.
- * \tparam Covariance The covariance matrix type for the Gaussian belief-states, should model the
- * CovarianceMatrixConcept.
- * \tparam Topology The belief-space on which the belief-states lie, should model the CovarianceMatrixConcept.
+ * \tparam Covariance The covariance matrix type for the Gaussian belief-states.
+ * \tparam BSpace The belief-space on which the belief-states lie.
  * \param P The first Gaussian belief-state.
  * \param Q The second Gaussian belief-state.
  * \return The symmetric KL-divergence between the two Gaussian belief-states.
  */
-template <typename StateType, typename Covariance, typename Topology>
+template <typename StateType, CovarianceMatrix<StateType> Covariance,
+          BeliefSpace BSpace>
 auto symKL_divergence(const gaussian_belief_state<StateType, Covariance>& P,
                       const gaussian_belief_state<StateType, Covariance>& Q,
-                      const Topology& space) {
+                      const BSpace& space) {
   return symKL_divergence(P.get_pdf(), Q.get_pdf(), space.get_state_topology());
 }
 
 /**
  * This function computes the symmetric KL-divergence between two belief-states.
  * \tparam StateType The state-type for the Gaussian belief-state.
- * \tparam Covariance The covariance matrix type for the Gaussian belief-state, should model the
- * CovarianceMatrixConcept.
+ * \tparam Covariance The covariance matrix type for the Gaussian belief-state.
  * \param P The Gaussian belief-state.
  * \return The entropy of the Gaussian belief-state.
  */
-template <typename StateType, typename Covariance>
+template <typename StateType, CovarianceMatrix<StateType> Covariance>
 auto entropy(const gaussian_belief_state<StateType, Covariance>& P) {
   return entropy(P.get_pdf());
 }

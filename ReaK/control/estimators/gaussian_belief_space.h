@@ -54,38 +54,32 @@ namespace ctrl {
  * topology. The distance pseudo-metric used is the symmetric KL-divergence between two
  * belief-states.
  *
- * Models: TopologyConcept, MetricSpaceConcept, PointDistributionConcept, and ContinuousBeliefSpaceConcept.
+ * Models: Topology, MetricSpace, PointDistribution, and ContinuousBeliefSpace.
  *
- * \tparam StateTopology The topology to which the state-vector belongs, should model the ReaK::pp::TopologyConcept.
- * \tparam CovarianceTopology The topology to which the covariance matrix belongs, should model the
- *ReaK::pp::TopologyConcept.
+ * \tparam StateSpace The topology to which the state-vector belongs.
+ * \tparam CovarianceSpace The topology to which the covariance matrix belongs.
  */
-template <typename StateTopology, typename CovarianceTopology>
+template <pp::Topology StateSpace, pp::Topology CovarianceSpace>
 class gaussian_belief_space : public named_object {
  public:
-  using self = gaussian_belief_space<StateTopology, CovarianceTopology>;
-  using state_topology = StateTopology;
-  using covariance_topology = CovarianceTopology;
+  using self = gaussian_belief_space<StateSpace, CovarianceSpace>;
+  using state_space_type = StateSpace;
+  using covariance_space_type = CovarianceSpace;
 
-  using covariance_type =
-      typename pp::topology_traits<CovarianceTopology>::point_type;
+  using covariance_type = pp::topology_point_type_t<covariance_space_type>;
   using covariance_diff_type =
-      typename pp::topology_traits<CovarianceTopology>::point_difference_type;
+      pp::topology_point_difference_type_t<covariance_space_type>;
   using matrix_type =
       typename covariance_mat_traits<covariance_type>::matrix_type;
   using value_type =
       typename covariance_mat_traits<covariance_type>::value_type;
 
-  using mean_state_type =
-      typename pp::topology_traits<StateTopology>::point_type;
+  using mean_state_type = pp::topology_point_type_t<state_space_type>;
   using mean_state_diff_type =
-      typename pp::topology_traits<StateTopology>::point_difference_type;
+      pp::topology_point_difference_type_t<state_space_type>;
 
   using point_type = gaussian_belief_state<mean_state_type, covariance_type>;
   using point_difference_type = std::pair<point_type, point_type>;
-
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateTopology>));
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<CovarianceTopology>));
 
   static constexpr std::size_t dimensions = 0;
 
@@ -93,8 +87,8 @@ class gaussian_belief_space : public named_object {
   using random_sampler_type = pp::default_random_sampler;
 
  private:
-  std::shared_ptr<state_topology> mean_state_space;
-  std::shared_ptr<covariance_topology> covariance_space;
+  std::shared_ptr<state_space_type> mean_state_space;
+  std::shared_ptr<covariance_space_type> covariance_space;
 
  public:
   /**
@@ -103,9 +97,9 @@ class gaussian_belief_space : public named_object {
    * \param aCovarianceSpace The topology used for the covariance matrix.
    */
   explicit gaussian_belief_space(
-      std::shared_ptr<state_topology> aMeanStateSpace,
-      std::shared_ptr<covariance_topology> aCovarianceSpace =
-          std::make_shared<covariance_topology>(),
+      std::shared_ptr<state_space_type> aMeanStateSpace,
+      std::shared_ptr<covariance_space_type> aCovarianceSpace =
+          std::make_shared<covariance_space_type>(),
       const std::string& aName = "")
       : mean_state_space(std::move(aMeanStateSpace)),
         covariance_space(std::move(aCovarianceSpace)) {
@@ -113,7 +107,7 @@ class gaussian_belief_space : public named_object {
   }
 
   gaussian_belief_space()
-      : gaussian_belief_space(std::make_shared<state_topology>()) {}
+      : gaussian_belief_space(std::make_shared<state_space_type>()) {}
 
   /**
    * Computes the distance between two belief-states, using symmetric KL-divergence.
@@ -237,13 +231,15 @@ class gaussian_belief_space : public named_object {
    * Returns the state-topology on which the mean-states lie.
    * \return The state-topology on which the mean-states lie.
    */
-  const state_topology& get_state_topology() const { return *mean_state_space; }
+  const state_space_type& get_state_topology() const {
+    return *mean_state_space;
+  }
 
   /**
    * Returns the covariance-topology on which the covariances lie.
    * \return The covariance-topology on which the covariances lie.
    */
-  const covariance_topology& get_covariance_topology() const {
+  const covariance_space_type& get_covariance_topology() const {
     return *covariance_space;
   }
 
@@ -302,28 +298,6 @@ struct gaussian_ML_reduction {
 }  // namespace ctrl
 
 namespace pp {
-
-template <typename StateTopology, typename CovarianceTopology>
-struct is_metric_space<
-    ctrl::gaussian_belief_space<StateTopology, CovarianceTopology>>
-    : std::integral_constant<bool, is_metric_space_v<StateTopology> &&
-                                       is_metric_space_v<CovarianceTopology>> {
-};
-
-template <typename StateTopology, typename CovarianceTopology>
-struct is_reversible_space<
-    ctrl::gaussian_belief_space<StateTopology, CovarianceTopology>>
-    : std::integral_constant<bool,
-                             is_reversible_space_v<StateTopology> &&
-                                 is_reversible_space_v<CovarianceTopology>> {};
-
-template <typename StateTopology, typename CovarianceTopology>
-struct is_point_distribution<
-    ctrl::gaussian_belief_space<StateTopology, CovarianceTopology>>
-    : std::integral_constant<bool,
-                             is_point_distribution_v<StateTopology> &&
-                                 is_point_distribution_v<CovarianceTopology>> {
-};
 
 template <typename StateTopology, typename CovarianceTopology>
 struct is_metric_symmetric<

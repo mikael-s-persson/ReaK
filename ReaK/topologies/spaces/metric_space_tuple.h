@@ -48,8 +48,7 @@
 
 namespace ReaK::pp {
 
-namespace detail {
-namespace {
+namespace metric_space_tuple_details {
 
 template <typename SpaceTuple>
 struct topology_traits_tuple_impl {
@@ -69,17 +68,16 @@ template <typename SpaceTuple>
 struct topology_traits_tuple : topology_traits_tuple_impl<SpaceTuple> {};
 
 struct mst_random_point_computer {
-  template <typename Space, typename Point>
-  void operator()(const Space& s, Point& pt) const {
-    pt = get(random_sampler, s)(s);
+  template <typename Space>
+  auto operator()(const Space& s) const {
+    return get(random_sampler, s)(s);
   }
 };
 
 struct mst_difference_computer {
-  template <typename Space, typename PointDiff, typename Point>
-  void operator()(const Space& s, PointDiff& dp, const Point& p1,
-                  const Point& p2) const {
-    dp = s.difference(p1, p2);
+  template <typename Space, typename Point>
+  auto operator()(const Space& s, const Point& p1, const Point& p2) const {
+    return s.difference(p1, p2);
   }
 };
 
@@ -87,9 +85,8 @@ struct mst_move_position_toward_computer {
   double d;
   explicit mst_move_position_toward_computer(double aD) : d(aD) {}
   template <typename Space, typename Point>
-  void operator()(const Space& s, Point& pr, const Point& p1,
-                  const Point& p2) const {
-    pr = s.move_position_toward(p1, d, p2);
+  auto operator()(const Space& s, const Point& p1, const Point& p2) const {
+    return s.move_position_toward(p1, d, p2);
   }
 };
 
@@ -97,38 +94,37 @@ struct mst_move_position_back_to_computer {
   double d;
   explicit mst_move_position_back_to_computer(double aD) : d(aD) {}
   template <typename Space, typename Point>
-  void operator()(const Space& s, Point& pr, const Point& p1,
-                  const Point& p2) const {
-    pr = s.move_position_back_to(p1, d, p2);
+  auto operator()(const Space& s, const Point& p1, const Point& p2) const {
+    return s.move_position_back_to(p1, d, p2);
   }
 };
 
 struct mst_origin_computer {
-  template <typename Space, typename Point>
-  void operator()(const Space& s, Point& pr) const {
-    pr = s.origin();
+  template <typename Space>
+  auto operator()(const Space& s) const {
+    return s.origin();
   }
 };
 
 struct mst_adjust_computer {
   template <typename Space, typename Point, typename PointDiff>
-  void operator()(const Space& s, Point& pr, const Point& p,
-                  const PointDiff& dp) const {
-    pr = s.adjust(p, dp);
+  auto operator()(const Space& s, const Point& p, const PointDiff& dp) const {
+    return s.adjust(p, dp);
   }
 };
 
 struct mst_bring_point_in_bounds_computer {
   template <typename Space, typename Point>
-  void operator()(const Space& s, Point& p) const {
+  int operator()(const Space& s, Point& p) const {
     s.bring_point_in_bounds(p);
+    return int{};
   }
 };
 
 struct mst_get_diff_to_boundary_computer {
-  template <typename Space, typename PointDiff, typename Point>
-  void operator()(const Space& s, PointDiff& dp, const Point& p) const {
-    dp = s.get_diff_to_boundary(p);
+  template <typename Space, typename Point>
+  auto operator()(const Space& s, const Point& p) const {
+    return s.get_diff_to_boundary(p);
   }
 };
 
@@ -136,13 +132,13 @@ struct mst_is_in_bounds_computer {
   bool* p_result;
   explicit mst_is_in_bounds_computer(bool& result) : p_result(&result) {}
   template <typename Space, typename Point>
-  void operator()(const Space& s, const Point& p) const {
+  int operator()(const Space& s, const Point& p) const {
     (*p_result) = ((*p_result) && s.is_in_bounds(p));
+    return int{};
   }
 };
 
-}  // namespace
-}  // namespace detail
+}  // namespace metric_space_tuple_details
 
 /**
  * This class template can be used to glue together a number of spaces into a tuple. Depending on the models
@@ -165,7 +161,8 @@ class metric_space_tuple : public shared_object {
 
  public:
   using self = metric_space_tuple<SpaceTuple, TupleDistanceMetric>;
-  using self_traits = detail::topology_traits_tuple_impl<SpaceTuple>;
+  using self_traits =
+      metric_space_tuple_details::topology_traits_tuple_impl<SpaceTuple>;
 
   using point_type = typename self_traits::point_type;
   using point_difference_type = typename self_traits::point_difference_type;
@@ -219,9 +216,8 @@ class metric_space_tuple : public shared_object {
    * Generates a random point in the space, uniformly distributed.
    */
   point_type random_point() const {
-    point_type result;
-    tuple_for_each(m_spaces, result, detail::mst_random_point_computer());
-    return result;
+    return arithmetic_tuple_details::tuple_for_each(
+        m_spaces, metric_space_tuple_details::mst_random_point_computer());
   }
 
   /*************************************************************************
@@ -233,18 +229,17 @@ class metric_space_tuple : public shared_object {
    */
   point_difference_type difference(const point_type& p1,
                                    const point_type& p2) const {
-    point_difference_type result;
-    tuple_for_each(m_spaces, result, p1, p2, detail::mst_difference_computer());
-    return result;
+    return arithmetic_tuple_details::tuple_for_each(
+        m_spaces, p1, p2,
+        metric_space_tuple_details::mst_difference_computer());
   }
 
   /**
    * Returns the origin of the space (the lower-limit).
    */
   point_type origin() const {
-    point_type result;
-    tuple_for_each(m_spaces, result, detail::mst_origin_computer());
-    return result;
+    return arithmetic_tuple_details::tuple_for_each(
+        m_spaces, metric_space_tuple_details::mst_origin_computer());
   }
 
   /**
@@ -252,9 +247,8 @@ class metric_space_tuple : public shared_object {
    */
   point_type adjust(const point_type& p1,
                     const point_difference_type& dp) const {
-    point_type result;
-    tuple_for_each(m_spaces, result, p1, dp, detail::mst_adjust_computer());
-    return result;
+    return arithmetic_tuple_details::tuple_for_each(
+        m_spaces, p1, dp, metric_space_tuple_details::mst_adjust_computer());
   }
 
   /*************************************************************************
@@ -266,10 +260,9 @@ class metric_space_tuple : public shared_object {
    */
   point_type move_position_toward(const point_type& p1, double d,
                                   const point_type& p2) const {
-    point_type result;
-    tuple_for_each(m_spaces, result, p1, p2,
-                   detail::mst_move_position_toward_computer(d));
-    return result;
+    return arithmetic_tuple_details::tuple_for_each(
+        m_spaces, p1, p2,
+        metric_space_tuple_details::mst_move_position_toward_computer(d));
   }
 
   /**
@@ -277,10 +270,9 @@ class metric_space_tuple : public shared_object {
    */
   point_type move_position_back_to(const point_type& p1, double d,
                                    const point_type& p2) const {
-    point_type result;
-    tuple_for_each(m_spaces, result, p1, p2,
-                   detail::mst_move_position_back_to_computer(d));
-    return result;
+    return arithmetic_tuple_details::tuple_for_each(
+        m_spaces, p1, p2,
+        metric_space_tuple_details::mst_move_position_back_to_computer(d));
   }
 
   /*************************************************************************
@@ -291,17 +283,18 @@ class metric_space_tuple : public shared_object {
    * Brings a given point back with the bounds of the space.
    */
   void bring_point_in_bounds(point_type& p1) const {
-    tuple_for_each(m_spaces, p1, detail::mst_bring_point_in_bounds_computer());
+    arithmetic_tuple_details::tuple_for_each(
+        m_spaces, p1,
+        metric_space_tuple_details::mst_bring_point_in_bounds_computer());
   }
 
   /**
    * Returns the difference between two points (a - b).
    */
   point_difference_type get_diff_to_boundary(const point_type& p1) const {
-    point_difference_type result;
-    tuple_for_each(m_spaces, result, p1,
-                   detail::mst_get_diff_to_boundary_computer());
-    return result;
+    return arithmetic_tuple_details::tuple_for_each(
+        m_spaces, p1,
+        metric_space_tuple_details::mst_get_diff_to_boundary_computer());
   }
 
   /**
@@ -309,7 +302,9 @@ class metric_space_tuple : public shared_object {
    */
   bool is_in_bounds(const point_type& p1) const {
     bool result = true;
-    tuple_for_each(m_spaces, p1, detail::mst_is_in_bounds_computer(result));
+    arithmetic_tuple_details::tuple_for_each(
+        m_spaces, p1,
+        metric_space_tuple_details::mst_is_in_bounds_computer(result));
     return result;
   }
 

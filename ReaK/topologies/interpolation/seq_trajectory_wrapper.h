@@ -38,39 +38,36 @@
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"
 #include "ReaK/topologies/interpolation/sequential_trajectory_concept.h"
 
-#include "boost/concept_check.hpp"
-
 namespace ReaK::pp {
 
 /**
  * This class wraps a generic trajectory class into an OOP interface.
- * It, itself, also models the generic SpatialTrajectoryConcept, so this wrapper can
+ * It, itself, also models the generic SpatialTrajectory, so this wrapper can
  * be used for both purposes.
- * \tparam SequentialTraj The trajectory type to be wrapped.
  */
-template <typename SequentialTraj>
+template <typename SeqTraj>
 class seq_trajectory_wrapper
     : public seq_trajectory_base<
-          typename sequential_trajectory_traits<SequentialTraj>::topology> {
+          typename sequential_trajectory_traits<SeqTraj>::topology> {
  public:
   using base_type = seq_trajectory_base<
-      typename sequential_trajectory_traits<SequentialTraj>::topology>;
-  using self = seq_trajectory_wrapper<SequentialTraj>;
+      typename sequential_trajectory_traits<SeqTraj>::topology>;
+  using self = seq_trajectory_wrapper<SeqTraj>;
 
   using topology = typename base_type::topology;
   using point_type = typename base_type::point_type;
 
-  BOOST_CONCEPT_ASSERT((SequentialTrajectoryConcept<SequentialTraj, topology>));
+  using wrapped_type = SeqTraj;
 
-  using wrapped_type = SequentialTraj;
+  static_assert(SequentialTrajectory<wrapped_type, topology>);
 
  protected:
-  SequentialTraj m_traj;
+  SeqTraj m_traj;
 
   using base_pt_time_iterator_impl =
       typename base_type::point_time_iterator_impl;
-  using gen_pt_time_iterator = typename sequential_trajectory_traits<
-      SequentialTraj>::point_time_iterator;
+  using gen_pt_time_iterator =
+      typename sequential_trajectory_traits<SeqTraj>::point_time_iterator;
 
   struct point_time_iterator_impl : public base_pt_time_iterator_impl {
 
@@ -97,8 +94,8 @@ class seq_trajectory_wrapper
 
   using base_pt_frac_iterator_impl =
       typename base_type::point_fraction_iterator_impl;
-  using gen_pt_frac_iterator = typename sequential_trajectory_traits<
-      SequentialTraj>::point_fraction_iterator;
+  using gen_pt_frac_iterator =
+      typename sequential_trajectory_traits<SeqTraj>::point_fraction_iterator;
 
   struct point_fraction_iterator_impl : public base_pt_frac_iterator_impl {
 
@@ -139,9 +136,8 @@ class seq_trajectory_wrapper
    * \param aName The name for this object.
    * \param aTraj The wrapped trajectory object to use.
    */
-  explicit seq_trajectory_wrapper(
-      const std::string& aName = "",
-      const SequentialTraj& aTraj = SequentialTraj())
+  explicit seq_trajectory_wrapper(const std::string& aName = "",
+                                  const SeqTraj& aTraj = SeqTraj())
       : base_type(aName), m_traj(aTraj){};
 
   ~seq_trajectory_wrapper() override = default;

@@ -1,0 +1,24 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+  name = "controllers",
+  hdrs = [
+    "IHAQR_topology.h",
+    "lqr_controllers.h",
+    "MEAQR_topology.h",
+    "ss_controller_concept.h",
+  ],
+  deps = [
+    "//ReaK/core/base",
+    "//ReaK/math/lin_alg",
+    "//ReaK/control/integrators",
+    "//ReaK/topologies/interpolation",
+    "//ReaK/topologies/spaces",
+  ],
+)

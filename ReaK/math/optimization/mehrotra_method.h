@@ -37,6 +37,7 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_qr_decomp.h"
 
 #include "ReaK/math/optimization/optim_exceptions.h"
@@ -59,9 +60,6 @@ namespace ReaK::optim {
  *   Nocedal, Numerical Optimization, 2nd Ed..
  * \test Must create a unit-test for this. So far, this method fails the tests.
  *
- * \tparam Matrix A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
- * \tparam Vector1 A vector type, should model the WritableVectorConcept.
- * \tparam Vector2 A vector type, should model the WritableVectorConcept.
  * \param A The constraint matrix of dimension M*N.
  * \param b The b vector of dimension M.
  * \param c The cost vector of dimension N.
@@ -71,7 +69,7 @@ namespace ReaK::optim {
  *
  * \author Mikael Persson
  */
-template <typename Matrix, typename Vector1, typename Vector2>
+template <ReadableMatrix Matrix, WritableVector Vector1, WritableVector Vector2>
 void mehrotra_method(
     const Matrix& A, const Vector1& b, const Vector2& c, Vector2& x,
     unsigned int max_iter = 100,
@@ -257,10 +255,6 @@ void mehrotra_method(
  *   Nocedal, Numerical Optimization, 2nd Ed..
  * \test Must create a unit-test for this. TEST PASSED for equality constraints only.
  *
- * \tparam Matrix1 A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
- * \tparam Vector1 A vector type, should model the WritableVectorConcept.
- * \tparam Matrix2 A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
- * \tparam Vector2 A vector type, should model the WritableVectorConcept.
  * \param A The constraint matrix of dimension M*N.
  * \param b The b vector of dimension M.
  * \param G The constraint matrix of dimension N*N.
@@ -273,8 +267,9 @@ void mehrotra_method(
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Vector1, typename Matrix2,
-          typename Vector2, typename Matrix3, typename Vector3>
+template <ReadableMatrix Matrix1, WritableVector Vector1,
+          ReadableMatrix Matrix2, WritableVector Vector2,
+          ReadableMatrix Matrix3, ReadableVector Vector3>
 void mehrotra_QP_method(
     const Matrix1& A, const Vector1& b, const Matrix2& G, const Vector2& c,
     const Matrix3& E, const Vector3& d, Vector2& x, unsigned int max_iter,

@@ -35,6 +35,7 @@
 
 #include "ReaK/core/base/named_object.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/vect_alg.h"
 
 #include "ReaK/control/systems/linear_ss_system_concept.h"
@@ -110,15 +111,11 @@ class lti_system_ss : public named_object {
    * \param aC The continuous-time system matrix C.
    * \param aD The continuous-time system matrix D.
    */
-  template <typename MatrixA, typename MatrixB, typename MatrixC,
-            typename MatrixD>
+  template <ReadableMatrix MatrixA, ReadableMatrix MatrixB,
+            ReadableMatrix MatrixC, ReadableMatrix MatrixD>
   lti_system_ss(const MatrixA& aA, const MatrixB& aB, const MatrixC& aC,
                 const MatrixD& aD, const std::string& aName = "")
       : A(aA), B(aB), C(aC), D(aD) {
-    static_assert(is_readable_matrix_v<MatrixA>);
-    static_assert(is_readable_matrix_v<MatrixB>);
-    static_assert(is_readable_matrix_v<MatrixC>);
-    static_assert(is_readable_matrix_v<MatrixD>);
     setName(aName);
   }
 
@@ -145,9 +142,8 @@ class lti_system_ss : public named_object {
    * Sets the continuous-time system matrix A of the continuous-time system.
    * \param aA The new continuous-time system matrix A for the system.
    */
-  template <typename MatrixA>
+  template <ReadableMatrix MatrixA>
   void setA(const MatrixA& aA) {
-    static_assert(is_readable_matrix_v<MatrixA>);
     A = aA;
   }
 
@@ -155,9 +151,8 @@ class lti_system_ss : public named_object {
    * Sets the continuous-time system matrix B of the continuous-time system.
    * \param aB The new continuous-time system matrix B for the system.
    */
-  template <typename MatrixB>
+  template <ReadableMatrix MatrixB>
   void setB(const MatrixB& aB) {
-    static_assert(is_readable_matrix_v<MatrixB>);
     B = aB;
   }
 
@@ -165,9 +160,8 @@ class lti_system_ss : public named_object {
    * Sets the continuous-time system matrix C of the continuous-time system.
    * \param aC The new continuous-time system matrix C for the system.
    */
-  template <typename MatrixC>
+  template <ReadableMatrix MatrixC>
   void setC(const MatrixC& aC) {
-    static_assert(is_readable_matrix_v<MatrixC>);
     C = aC;
   }
 
@@ -175,9 +169,8 @@ class lti_system_ss : public named_object {
    * Sets the continuous-time system matrix D of the continuous-time system.
    * \param aD The new continuous-time system matrix D for the system.
    */
-  template <typename MatrixD>
+  template <ReadableMatrix MatrixD>
   void setD(const MatrixD& aD) {
-    static_assert(is_readable_matrix_v<MatrixD>);
     D = aD;
   }
 
@@ -225,14 +218,10 @@ class lti_system_ss : public named_object {
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template <typename MatrixA, typename MatrixB, typename MatrixC,
-            typename MatrixD>
+  template <WritableMatrix MatrixA, WritableMatrix MatrixB,
+            WritableMatrix MatrixC, WritableMatrix MatrixD>
   void get_linear_blocks(MatrixA& aA, MatrixB& aB, MatrixC& aC,
                          MatrixD& aD) const {
-    static_assert(is_writable_matrix_v<MatrixA>);
-    static_assert(is_writable_matrix_v<MatrixB>);
-    static_assert(is_writable_matrix_v<MatrixC>);
-    static_assert(is_writable_matrix_v<MatrixD>);
     aA = A;
     aB = B;
     aC = C;
@@ -246,16 +235,13 @@ class lti_system_ss : public named_object {
    * \param aC Stores, as output, the system matrix C.
    * \param aD Stores, as output, the system matrix D.
    */
-  template <typename MatrixA, typename MatrixB, typename MatrixC,
-            typename MatrixD, typename StateSpaceType>
+  template <WritableMatrix MatrixA, WritableMatrix MatrixB,
+            WritableMatrix MatrixC, WritableMatrix MatrixD,
+            typename StateSpaceType>
   void get_linear_blocks(MatrixA& aA, MatrixB& aB, MatrixC& aC, MatrixD& aD,
                          const StateSpaceType&, const time_type& = 0,
                          const point_type& = point_type(),
                          const input_type& = input_type()) const {
-    static_assert(is_writable_matrix_v<MatrixA>);
-    static_assert(is_writable_matrix_v<MatrixB>);
-    static_assert(is_writable_matrix_v<MatrixC>);
-    static_assert(is_writable_matrix_v<MatrixD>);
     aA = A;
     aB = B;
     aC = C;

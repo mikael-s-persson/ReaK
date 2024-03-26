@@ -139,6 +139,10 @@ struct prm_conn_visitor {
       }
     }
   }
+  template <typename Vertex, typename Graph>
+  void vertex_added(Vertex u, Graph& g) const {
+    m_vis.vertex_added(u, g);
+  }
 
   template <typename Vertex, typename Graph>
   void travel_explored(Vertex u, Vertex v, Graph& g) const {
@@ -192,12 +196,12 @@ struct prm_conn_visitor {
   std::set<CCRootValue>& m_cc_set;
 };
 
-template <typename Graph, typename Topology, typename PRMConnVisitor,
-          typename PositionMap, typename RandomSampler, typename MutableQueue,
-          typename NodeConnector, typename NcSelector>
-inline void generate_prm_impl(Graph& g, const Topology& super_space,
+template <typename Graph, pp::MetricSpace Space, typename PRMConnVisitor,
+          typename PositionMap, pp::RandomSampler<Space> Sampler,
+          typename MutableQueue, typename NodeConnector, typename NcSelector>
+inline void generate_prm_impl(Graph& g, const Space& super_space,
                               PRMConnVisitor& vis, PositionMap position,
-                              RandomSampler get_sample, MutableQueue Q,
+                              Sampler get_sample, MutableQueue Q,
                               NodeConnector connect_vertex,
                               const NcSelector& select_neighborhood,
                               double expand_probability) {
@@ -245,10 +249,8 @@ inline void generate_prm_impl(Graph& g, const Topology& super_space,
  * \tparam Graph A mutable graph type that can store the roadmap, should model boost::MutableGraphConcept
  *         and boost::VertexListGraphConcept (either bidirectional or undirected graph, the algorithm
  *         will deal with either cases as appropriate).
- * \tparam Topology A topology type on which the vertex positions lie, should model the TopologyConcept,
- *         the MetricSpaceConcept (has an attached distance-metric) and the PointDistributionConcept (has
- *         an attached random-sampler functor).
- * \tparam PRMVisitor A PRM visitor type, should model the PRMVisitorConcept.
+ * \tparam Space A topology type on which the vertex positions lie.
+ * \tparam Visitor A PRM visitor type.
  * \tparam PositionMap A property-map type that can store the position of each vertex.
  * \tparam DensityMap A property-map type that can store the density-measures for each vertex.
  * \tparam NcSelector A functor type that can select a list of vertices of the graph that are
@@ -260,7 +262,7 @@ inline void generate_prm_impl(Graph& g, const Topology& super_space,
  *        the generated graph once the algorithm has finished.
  * \param super_space A topology (as defined by ReaK) that represents the configuration-space
  *        used for the planning (a space with no obstacles).
- * \param vis A PRM visitor implementing the PRMVisitorConcept. This is the
+ * \param vis A PRM visitor implementing the PRMVisitor. This is the
  *        main point of customization and recording of results that the
  *        user can implement.
  * \param position A mapping that implements the MutablePropertyMap Concept. Also,
@@ -274,20 +276,16 @@ inline void generate_prm_impl(Graph& g, const Topology& super_space,
  * \param expand_probability The probability (between 0 and 1) that an expansion will be
  *        performed as opposed to a general sampling from the free-space.
  */
-template <typename Graph, typename Topology, typename PRMVisitor,
-          typename PositionMap, typename RandomSampler, typename DensityMap,
+template <typename Graph, pp::MetricSpace Space,
+          PRMVisitor<Graph, Space> Visitor, typename PositionMap,
+          pp::RandomSampler<Space> Sampler, typename DensityMap,
           typename NcSelector>
-inline void generate_prm(Graph& g, const Topology& super_space, PRMVisitor vis,
-                         PositionMap position, RandomSampler get_sample,
+inline void generate_prm(Graph& g, const Space& super_space, Visitor vis,
+                         PositionMap position, Sampler get_sample,
                          DensityMap density,
                          const NcSelector& select_neighborhood,
                          double expand_probability) {
-  BOOST_CONCEPT_ASSERT((PRMVisitorConcept<PRMVisitor, Graph, Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (ReaK::pp::MetricSpaceConcept<Topology>));  // for the distance-metric.
   BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-  BOOST_CONCEPT_ASSERT(
-      (ReaK::pp::RandomSamplerConcept<RandomSampler, Topology>));
 
   using Vertex = graph_vertex_t<Graph>;
   using VertexProp = graph_vertex_bundle_t<Graph>;

@@ -21,6 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "ReaK/control/systems/augmented_sss_concept.h"
 #include "ReaK/control/systems/satellite_invar_models.h"
 #include "ReaK/control/systems/satellite_modeling_po.h"
 
@@ -279,19 +280,19 @@ struct sat3D_meas_true_from_extractor {
         added_noise.resize(6, 0.0);
       }
 
-      meas_pt.pose[range(0, 3)] =
-          meas_pt.pose[range(0, 3)] + added_noise[range(0, 3)];
+      sub(meas_pt.pose)[range(0, 3)] =
+          sub(meas_pt.pose)[range(0, 3)] + sub(added_noise)[range(0, 3)];
       vect<double, 3> aa_noise(added_noise[3], added_noise[4], added_noise[5]);
-      quaternion<double> y_quat(meas_pt.pose[range(3, 6)]);
+      quaternion<double> y_quat(sub(meas_pt.pose)[range(3, 6)]);
       y_quat *= axis_angle<double>(norm_2(aa_noise), aa_noise).getQuaternion();
-      meas_pt.pose[range(3, 7)] =
+      sub(meas_pt.pose)[range(3, 7)] =
           vect<double, 4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
 
       if (!meas_pt.gyro.empty() && (added_noise.size() >= 9)) {
-        meas_pt.gyro += added_noise[range(6, 9)];
+        meas_pt.gyro += sub(added_noise)[range(6, 9)];
       }
       if (!meas_pt.IMU_a_m.empty() && (added_noise.size() >= 15)) {
-        meas_pt.IMU_a_m += added_noise[range(9, 15)];
+        meas_pt.IMU_a_m += sub(added_noise)[range(9, 15)];
       }
 
     } catch (recorder::end_of_record&) {
@@ -381,12 +382,12 @@ struct sat3D_estimate_result_to_recorder {
     } else {
       const vect_n<double>& z = b_z.get_mean_state();
       axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) *
-                                 quaternion<double>(z[range(3, 7)]));
-      (*rec) << (get_position(x_mean) - z[range(0, 3)])
+                                 quaternion<double>(sub(z)[range(3, 7)]));
+      (*rec) << (get_position(x_mean) - sub(z)[range(0, 3)])
              << (aa_diff.angle() * aa_diff.axis())
              << vect<double, 3>(0.0, 0.0, 0.0);
       if (z.size() >= 10) {
-        (*rec) << (get_ang_velocity(x_mean) - z[range(7, 10)]);
+        (*rec) << (get_ang_velocity(x_mean) - sub(z)[range(7, 10)]);
       } else {
         (*rec) << vect<double, 3>(0.0, 0.0, 0.0);
       }
@@ -445,28 +446,28 @@ struct sat3D_collect_stddevs {
     } else {
       const vect_n<double>& z = b_z.get_mean_state();
       axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) *
-                                 quaternion<double>(z[range(3, 7)]));
-      pos_err = get_position(x_mean) - z[range(0, 3)];
+                                 quaternion<double>(sub(z)[range(3, 7)]));
+      pos_err = get_position(x_mean) - sub(z)[range(0, 3)];
       aa_err = aa_diff.angle() * aa_diff.axis();
       vel_err = vect<double, 3>(0.0, 0.0, 0.0);
       if (z.size() >= 10) {
-        ang_vel_err = get_ang_velocity(x_mean) - z[range(7, 10)];
+        ang_vel_err = get_ang_velocity(x_mean) - sub(z)[range(7, 10)];
       } else {
         ang_vel_err = vect<double, 3>(0.0, 0.0, 0.0);
       }
     }
-    stddevs[range(0, 3)] =
-        (counter * stddevs[range(0, 3)] + elem_product(pos_err, pos_err)) /
+    sub(stddevs)[range(0, 3)] =
+        (counter * sub(stddevs)[range(0, 3)] + elem_product(pos_err, pos_err)) /
         (counter + 1);
-    stddevs[range(3, 6)] =
-        (counter * stddevs[range(3, 6)] + elem_product(aa_err, aa_err)) /
+    sub(stddevs)[range(3, 6)] =
+        (counter * sub(stddevs)[range(3, 6)] + elem_product(aa_err, aa_err)) /
         (counter + 1);
-    stddevs[range(6, 9)] =
-        (counter * stddevs[range(6, 9)] + elem_product(vel_err, vel_err)) /
+    sub(stddevs)[range(6, 9)] =
+        (counter * sub(stddevs)[range(6, 9)] + elem_product(vel_err, vel_err)) /
         (counter + 1);
-    stddevs[range(9, 12)] = (counter * stddevs[range(9, 12)] +
-                             elem_product(ang_vel_err, ang_vel_err)) /
-                            (counter + 1);
+    sub(stddevs)[range(9, 12)] = (counter * sub(stddevs)[range(9, 12)] +
+                                  elem_product(ang_vel_err, ang_vel_err)) /
+                                 (counter + 1);
 
     stddevs[12] = (counter * stddevs[12] + pos_err * pos_err) / (counter + 1);
     stddevs[13] = (counter * stddevs[13] + aa_err * aa_err) / (counter + 1);
@@ -546,22 +547,22 @@ struct sat3D_collect_prediction_stats {
     } else {
       const vect_n<double>& z = b_z.get_mean_state();
       axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) *
-                                 quaternion<double>(z[range(3, 7)]));
-      pos_err = get_position(x_mean) - z[range(0, 3)];
+                                 quaternion<double>(sub(z)[range(3, 7)]));
+      pos_err = get_position(x_mean) - sub(z)[range(0, 3)];
       aa_err = aa_diff.angle() * aa_diff.axis();
       vel_err = vect<double, 3>(0.0, 0.0, 0.0);
       if (z.size() >= 10) {
-        ang_vel_err = get_ang_velocity(x_mean) - z[range(7, 10)];
+        ang_vel_err = get_ang_velocity(x_mean) - sub(z)[range(7, 10)];
       } else {
         ang_vel_err = vect<double, 3>(0.0, 0.0, 0.0);
       }
     }
 
     vect_n<double> state_err(12);
-    state_err[range(0, 3)] = pos_err;
-    state_err[range(3, 6)] = vel_err;
-    state_err[range(6, 9)] = aa_err;
-    state_err[range(9, 12)] = ang_vel_err;
+    sub(state_err)[range(0, 3)] = pos_err;
+    sub(state_err)[range(3, 6)] = vel_err;
+    sub(state_err)[range(6, 9)] = aa_err;
+    sub(state_err)[range(9, 12)] = ang_vel_err;
 
     time_since_pred = time - (*stats)[0];
     (*stats)[1] = (counter * (*stats)[1] + (pos_err * pos_err)) / (counter + 1);
@@ -573,11 +574,11 @@ struct sat3D_collect_prediction_stats {
     const cov_matrix_type& P_xx = b.get_covariance().get_matrix();
 
     double pdf_to_est = ctrl::gaussian_pdf_at_diff(
-        state_err,
-        mat<double, mat_structure::square>(P_xx(range(0, 12), range(0, 12))));
+        state_err, mat<double, mat_structure::square>(
+                       sub(P_xx)(range(0, 12), range(0, 12))));
     double lr_to_est = ctrl::gaussian_likelihood_ratio_of_diff(
-        state_err,
-        mat<double, mat_structure::square>(P_xx(range(0, 12), range(0, 12))));
+        state_err, mat<double, mat_structure::square>(
+                       sub(P_xx)(range(0, 12), range(0, 12))));
 
     const cov_matrix_type& R = b_z.get_covariance().get_matrix();
 
@@ -585,21 +586,21 @@ struct sat3D_collect_prediction_stats {
     double lr_to_meas = 0.0;
     if (R.get_row_count() == 6) {
       vect_n<double> meas_err(6, 0.0);
-      meas_err[range(0, 3)] = state_err[range(0, 3)];
-      meas_err[range(3, 6)] = state_err[range(6, 9)];
+      sub(meas_err)[range(0, 3)] = sub(state_err)[range(0, 3)];
+      sub(meas_err)[range(3, 6)] = sub(state_err)[range(6, 9)];
       pdf_to_meas = ctrl::gaussian_pdf_at_diff(meas_err, R);
       lr_to_meas = ctrl::gaussian_likelihood_ratio_of_diff(meas_err, R);
     } else {
       vect_n<double> meas_err(9, 0.0);
-      meas_err[range(0, 3)] = state_err[range(0, 3)];
-      meas_err[range(3, 6)] = state_err[range(6, 9)];
-      meas_err[range(6, 9)] = state_err[range(9, 12)];
+      sub(meas_err)[range(0, 3)] = sub(state_err)[range(0, 3)];
+      sub(meas_err)[range(3, 6)] = sub(state_err)[range(6, 9)];
+      sub(meas_err)[range(6, 9)] = sub(state_err)[range(9, 12)];
       pdf_to_meas = ctrl::gaussian_pdf_at_diff(
           meas_err,
-          mat<double, mat_structure::square>(R(range(0, 9), range(0, 9))));
+          mat<double, mat_structure::square>(sub(R)(range(0, 9), range(0, 9))));
       lr_to_meas = ctrl::gaussian_likelihood_ratio_of_diff(
           meas_err,
-          mat<double, mat_structure::square>(R(range(0, 9), range(0, 9))));
+          mat<double, mat_structure::square>(sub(R)(range(0, 9), range(0, 9))));
     }
 
     (*stats)[5] =
@@ -640,16 +641,17 @@ struct estimation_error_norm_calc {
     using ReaK::to_vect;
 
     const CovMatType& P = curr_b.get_covariance().get_matrix();
-    double current_Pnorm = norm_2(P(range(0, 12), range(0, 12)));
+    double current_Pnorm = norm_2(sub(P)(range(0, 12), range(0, 12)));
 
     ReaK::mat<double, ReaK::mat_structure::diagonal> P_a_inv(
-        P(range(12, P.get_row_count()), range(12, P.get_row_count())));
+        sub(P)(range(12, P.get_row_count()), range(12, P.get_row_count())));
     P_a_inv.invert();
     ReaK::vect_n<double> dx = to_vect<double>(state_space.difference(
         prev_b.get_mean_state(), curr_b.get_mean_state()));
     ReaK::vect_n<double> dx_aug(P.get_row_count() - 12, 0.0);
-    dx_aug = dx[range(12, P.get_row_count())];
-    dx = P(range(0, 12), range(12, P.get_row_count())) * (P_a_inv * dx_aug);
+    dx_aug = sub(dx)[range(12, P.get_row_count())];
+    dx =
+        sub(P)(range(0, 12), range(12, P.get_row_count())) * (P_a_inv * dx_aug);
 
     // by triangular inequality, the state estimation variance cannot be more than Pnorm + norm(dx):
     avg_aug_state_diff =
@@ -700,17 +702,17 @@ void batch_KF_on_timeseries(
     vect_n<double> z_vect(
         cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(),
         0.0);
-    z_vect[range(0, 7)] = cur_meas.pose;
+    sub(z_vect)[range(0, 7)] = cur_meas.pose;
     if (!cur_meas.gyro.empty()) {
-      z_vect[range(7, 10)] = cur_meas.gyro;
+      sub(z_vect)[range(7, 10)] = cur_meas.gyro;
       if (!cur_meas.IMU_a_m.empty()) {
-        z_vect[range(10, 16)] = cur_meas.IMU_a_m;
+        sub(z_vect)[range(10, 16)] = cur_meas.IMU_a_m;
       }
     }
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
 
-    if (sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
+    if (sat_options.has_TSOSAKF_filter()) {
       ctrl::tsos_aug_inv_kalman_filter_step(sat_sys, state_space, b, b_u, b_z,
                                             meas_provider.get_current_time());
     } else {
@@ -756,17 +758,17 @@ void batch_KF_no_meas_predict(
     vect_n<double> z_vect(
         cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(),
         0.0);
-    z_vect[range(0, 7)] = cur_meas.pose;
+    sub(z_vect)[range(0, 7)] = cur_meas.pose;
     if (!cur_meas.gyro.empty()) {
-      z_vect[range(7, 10)] = cur_meas.gyro;
+      sub(z_vect)[range(7, 10)] = cur_meas.gyro;
       if (!cur_meas.IMU_a_m.empty()) {
-        z_vect[range(10, 16)] = cur_meas.IMU_a_m;
+        sub(z_vect)[range(10, 16)] = cur_meas.IMU_a_m;
       }
     }
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
 
-    if (sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
+    if (sat_options.has_TSOSAKF_filter()) {
       ctrl::tsos_aug_inv_kalman_filter_step(sat_sys, state_space, b, b_u, b_z,
                                             meas_provider.get_current_time());
     } else {
@@ -777,8 +779,8 @@ void batch_KF_no_meas_predict(
 #ifdef RK_SAT_PREDICT_USE_AUG_AVG_ERROR
     current_Pnorm = err_calc.evaluate_error(b, sat_sys, state_space);
 #else
-    current_Pnorm =
-        norm_2(b.get_covariance().get_matrix()(range(0, 12), range(0, 12)));
+    current_Pnorm = norm_2(
+        sub(b.get_covariance().get_matrix())(range(0, 12), range(0, 12)));
     std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15)
               << current_Pnorm << std::flush;
 #endif
@@ -799,17 +801,17 @@ void batch_KF_no_meas_predict(
     vect_n<double> z_vect(
         cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(),
         0.0);
-    z_vect[range(0, 7)] = cur_meas.pose;
+    sub(z_vect)[range(0, 7)] = cur_meas.pose;
     if (!cur_meas.gyro.empty()) {
-      z_vect[range(7, 10)] = cur_meas.gyro;
+      sub(z_vect)[range(7, 10)] = cur_meas.gyro;
       if (!cur_meas.IMU_a_m.empty()) {
-        z_vect[range(10, 16)] = cur_meas.IMU_a_m;
+        sub(z_vect)[range(10, 16)] = cur_meas.IMU_a_m;
       }
     }
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
 
-    if (sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
+    if (sat_options.has_TSOSAKF_filter()) {
       ctrl::tsos_aug_inv_kalman_predict(sat_sys, state_space, b, b_u,
                                         meas_provider.get_current_time());
     } else {
@@ -855,17 +857,17 @@ void batch_KF_ML_meas_predict(
     vect_n<double> z_vect(
         cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(),
         0.0);
-    z_vect[range(0, 7)] = cur_meas.pose;
+    sub(z_vect)[range(0, 7)] = cur_meas.pose;
     if (!cur_meas.gyro.empty()) {
-      z_vect[range(7, 10)] = cur_meas.gyro;
+      sub(z_vect)[range(7, 10)] = cur_meas.gyro;
       if (!cur_meas.IMU_a_m.empty()) {
-        z_vect[range(10, 16)] = cur_meas.IMU_a_m;
+        sub(z_vect)[range(10, 16)] = cur_meas.IMU_a_m;
       }
     }
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
 
-    if (sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
+    if (sat_options.has_TSOSAKF_filter()) {
       ctrl::tsos_aug_inv_kalman_filter_step(sat_sys, state_space, b, b_u, b_z,
                                             meas_provider.get_current_time());
     } else {
@@ -876,8 +878,8 @@ void batch_KF_ML_meas_predict(
 #ifdef RK_SAT_PREDICT_USE_AUG_AVG_ERROR
     current_Pnorm = err_calc.evaluate_error(b, sat_sys, state_space);
 #else
-    current_Pnorm =
-        norm_2(b.get_covariance().get_matrix()(range(0, 12), range(0, 12)));
+    current_Pnorm = norm_2(
+        sub(b.get_covariance().get_matrix())(range(0, 12), range(0, 12)));
     std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15)
               << current_Pnorm << std::flush;
 #endif
@@ -898,17 +900,17 @@ void batch_KF_ML_meas_predict(
     vect_n<double> z_vect(
         cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(),
         0.0);
-    z_vect[range(0, 7)] = cur_meas.pose;
+    sub(z_vect)[range(0, 7)] = cur_meas.pose;
     if (!cur_meas.gyro.empty()) {
-      z_vect[range(7, 10)] = cur_meas.gyro;
+      sub(z_vect)[range(7, 10)] = cur_meas.gyro;
       if (!cur_meas.IMU_a_m.empty()) {
-        z_vect[range(10, 16)] = cur_meas.IMU_a_m;
+        sub(z_vect)[range(10, 16)] = cur_meas.IMU_a_m;
       }
     }
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
 
-    if (sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
+    if (sat_options.has_TSOSAKF_filter()) {
       ctrl::tsos_aug_inv_kalman_predict(sat_sys, state_space, b, b_u,
                                         meas_provider.get_current_time());
     } else {
@@ -922,7 +924,7 @@ void batch_KF_ML_meas_predict(
                                              b_u.get_mean_state(),
                                              meas_provider.get_current_time()));
 
-    if (sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
+    if (sat_options.has_TSOSAKF_filter()) {
       ctrl::tsos_aug_inv_kalman_update(sat_sys, state_space, b, b_u, b_z_ml,
                                        meas_provider.get_current_time());
     } else {
@@ -940,7 +942,7 @@ void batch_KF_ML_meas_predict(
 
 template <typename Sat3DSystemType, typename MLTrajType>
 std::enable_if_t<
-    ReaK::ctrl::is_augmented_ss_system_v<Sat3DSystemType>,
+    ReaK::ctrl::AugmentedSystem<Sat3DSystemType>,
     std::shared_ptr<ReaK::pp::trajectory_base<ReaK::pp::temporal_space<
         ReaK::pp::se3_1st_order_topology_t<double>,
         ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only>>>>
@@ -973,11 +975,11 @@ construct_wrapped_trajectory(const std::shared_ptr<MLTrajType>& ML_traj,
 }
 
 template <typename Sat3DSystemType, typename MLTrajType>
-typename std::enable_if<
-    !ReaK::ctrl::is_augmented_ss_system<Sat3DSystemType>::value,
+std::enable_if_t<
+    !ReaK::ctrl::AugmentedSystem<Sat3DSystemType>,
     std::shared_ptr<ReaK::pp::trajectory_base<ReaK::pp::temporal_space<
         ReaK::pp::se3_1st_order_topology<double>::type,
-        ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only>>>>::type
+        ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only>>>>
 construct_wrapped_trajectory(const std::shared_ptr<MLTrajType>& ML_traj,
                              double /*unused*/, double /*unused*/) {
   using namespace ReaK;
@@ -1016,7 +1018,7 @@ struct prediction_updater {
 
   using PredFactoryType =
       typename ReaK::ctrl::try_TSOSAIKF_belief_transfer_factory<
-          Sat3DSystemType>::type;
+          Sat3DSystemType, StateSpaceType>::type;
   using BeliefPredTrajType =
       ReaK::ctrl::belief_predicted_trajectory<BeliefSpaceType, PredFactoryType,
                                               InputTrajType>;
@@ -1075,9 +1077,9 @@ struct prediction_updater {
     using BaseTempStateType =
         ReaK::pp::topology_traits<TemporalBaseSpaceType>::point_type;
     using BaseStateType = ReaK::pp::topology_traits<BaseSpaceType>::point_type;
-    using CovarType = ReaK::ctrl::covariance_matrix<ReaK::vect_n<double>>;
+    using BaseCovarType = ReaK::ctrl::covariance_matrix<ReaK::vect_n<double>>;
     using BaseStateBeliefType =
-        ReaK::ctrl::gaussian_belief_state<BaseStateType, CovarType>;
+        ReaK::ctrl::gaussian_belief_state<BaseStateType, BaseCovarType>;
 
     std::shared_ptr<ReaK::pp::trajectory_base<TemporalBaseSpaceType>>
         pred_traj = construct_wrapped_trajectory<Sat3DSystemType>(
@@ -1093,11 +1095,11 @@ struct prediction_updater {
                                         cur_meas.gyro.size() +
                                         cur_meas.IMU_a_m.size(),
                                     0.0);
-        z_vect[ReaK::range(0, 7)] = cur_meas.pose;
+        sub(z_vect)[ReaK::range(0, 7)] = cur_meas.pose;
         if (!cur_meas.gyro.empty()) {
-          z_vect[ReaK::range(7, 10)] = cur_meas.gyro;
+          sub(z_vect)[ReaK::range(7, 10)] = cur_meas.gyro;
           if (!cur_meas.IMU_a_m.empty()) {
-            z_vect[ReaK::range(10, 16)] = cur_meas.IMU_a_m;
+            sub(z_vect)[ReaK::range(10, 16)] = cur_meas.IMU_a_m;
           }
         }
         b_z.set_mean_state(z_vect);
@@ -1111,9 +1113,10 @@ struct prediction_updater {
         (*current_target_anim_time) = last_time;
 
         BaseTempStateType x_pred = pred_traj->get_point_at_time(last_time);
-        result_logger.add_record(BaseStateBeliefType(x_pred.pt, CovarType(12)),
-                                 b_u, b_z, meas_provider.get_current_time(),
-                                 meas_provider.get_current_gnd_truth_ptr());
+        result_logger.add_record(
+            BaseStateBeliefType(x_pred.pt, BaseCovarType(12)), b_u, b_z,
+            meas_provider.get_current_time(),
+            meas_provider.get_current_gnd_truth_ptr());
 
       } while (!should_stop && meas_provider.step_once());
     } catch (std::exception& e) {
@@ -1178,11 +1181,11 @@ void batch_KF_meas_predict_with_predictor(
     vect_n<double> z_vect(
         cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(),
         0.0);
-    z_vect[range(0, 7)] = cur_meas.pose;
+    sub(z_vect)[range(0, 7)] = cur_meas.pose;
     if (!cur_meas.gyro.empty()) {
-      z_vect[range(7, 10)] = cur_meas.gyro;
+      sub(z_vect)[range(7, 10)] = cur_meas.gyro;
       if (!cur_meas.IMU_a_m.empty()) {
-        z_vect[range(10, 16)] = cur_meas.IMU_a_m;
+        sub(z_vect)[range(10, 16)] = cur_meas.IMU_a_m;
       }
     }
     b_z.set_mean_state(z_vect);
@@ -1194,8 +1197,8 @@ void batch_KF_meas_predict_with_predictor(
 #ifdef RK_SAT_PREDICT_USE_AUG_AVG_ERROR
     current_Pnorm = err_calc.evaluate_error(b, sat_sys, state_space);
 #else
-    current_Pnorm =
-        norm_2(b.get_covariance().get_matrix()(range(0, 12), range(0, 12)));
+    current_Pnorm = norm_2(
+        sub(b.get_covariance().get_matrix())(range(0, 12), range(0, 12)));
     std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15)
               << current_Pnorm << std::flush;
 #endif
@@ -1225,8 +1228,8 @@ void batch_KF_meas_predict_with_predictor(
   using CovarType = typename Sat3DSystemType::covar_type;
   using CovarMatType = typename CovarType::matrix_type;
 
-  using PredFactoryType =
-      typename try_TSOSAIKF_belief_transfer_factory<Sat3DSystemType>::type;
+  using PredFactoryType = typename try_TSOSAIKF_belief_transfer_factory<
+      Sat3DSystemType, typename Sat3DSystemType::state_space_type>::type;
   using BeliefPredTrajType =
       belief_predicted_trajectory<BeliefSpaceType, PredFactoryType,
                                   InputTrajType>;
@@ -1319,50 +1322,57 @@ void generate_timeseries(
     sat3D_measurement_point meas;
     meas.u = vect_n<double>(6, 0.0);
     meas.pose = vect_n<double>(7, 0.0);
-    meas.pose[range(0, 3)] = y[range(0, 3)] + y_noise[range(0, 3)];
+    sub(meas.pose)[range(0, 3)] =
+        sub(y)[range(0, 3)] + sub(y_noise)[range(0, 3)];
 
     vect<double, 3> aa_noise(y_noise[3], y_noise[4], y_noise[5]);
-    quaternion<double> y_quat(y[range(3, 7)]);
+    quaternion<double> y_quat(sub(y)[range(3, 7)]);
     y_quat *= axis_angle<double>(norm_2(aa_noise), aa_noise).getQuaternion();
-    meas.pose[range(3, 7)] =
+    sub(meas.pose)[range(3, 7)] =
         vect<double, 4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
 
     std::size_t k = ground_truth.size();
     if (stat_results) {
-      std_devs[range(0, 6)] =
-          ((k - 1) * std_devs[range(0, 6)] +
-           elem_product(y_noise[range(0, 6)], y_noise[range(0, 6)])) /
+      sub(std_devs)[range(0, 6)] =
+          ((k - 1) * sub(std_devs)[range(0, 6)] +
+           elem_product(sub(y_noise)[range(0, 6)], sub(y_noise)[range(0, 6)])) /
           k;
       std_devs[6] =
-          ((k - 1) * std_devs[6] + norm_2_sqr(y_noise[range(0, 3)])) / k;
+          ((k - 1) * std_devs[6] + norm_2_sqr(sub(y_noise)[range(0, 3)])) / k;
       std_devs[7] = ((k - 1) * std_devs[7] + norm_2_sqr(aa_noise)) / k;
     }
 
     if (y.size() >= 10) {
-      meas.gyro = y[range(7, 10)] + y_noise[range(6, 9)];
+      meas.gyro = sub(y)[range(7, 10)] + sub(y_noise)[range(6, 9)];
       if (stat_results) {
-        std_devs[range(8, 11)] =
-            ((k - 1) * std_devs[range(8, 11)] +
-             elem_product(y_noise[range(6, 9)], y_noise[range(6, 9)])) /
+        sub(std_devs)[range(8, 11)] =
+            ((k - 1) * sub(std_devs)[range(8, 11)] +
+             elem_product(sub(y_noise)[range(6, 9)],
+                          sub(y_noise)[range(6, 9)])) /
             k;
         std_devs[11] =
-            ((k - 1) * std_devs[11] + norm_2_sqr(y_noise[range(6, 9)])) / k;
+            ((k - 1) * std_devs[11] + norm_2_sqr(sub(y_noise)[range(6, 9)])) /
+            k;
       }
       if (y.size() >= 16) {
-        meas.IMU_a_m = y[range(10, 16)] + y_noise[range(9, 15)];
+        meas.IMU_a_m = sub(y)[range(10, 16)] + sub(y_noise)[range(9, 15)];
         if (stat_results) {
-          std_devs[range(12, 15)] =
-              ((k - 1) * std_devs[range(12, 15)] +
-               elem_product(y_noise[range(9, 12)], y_noise[range(9, 12)])) /
+          sub(std_devs)[range(12, 15)] =
+              ((k - 1) * sub(std_devs)[range(12, 15)] +
+               elem_product(sub(y_noise)[range(9, 12)],
+                            sub(y_noise)[range(9, 12)])) /
               k;
-          std_devs[15] =
-              ((k - 1) * std_devs[15] + norm_2_sqr(y_noise[range(9, 12)])) / k;
-          std_devs[range(16, 19)] =
-              ((k - 1) * std_devs[range(16, 19)] +
-               elem_product(y_noise[range(12, 15)], y_noise[range(12, 15)])) /
+          std_devs[15] = ((k - 1) * std_devs[15] +
+                          norm_2_sqr(sub(y_noise)[range(9, 12)])) /
+                         k;
+          sub(std_devs)[range(16, 19)] =
+              ((k - 1) * sub(std_devs)[range(16, 19)] +
+               elem_product(sub(y_noise)[range(12, 15)],
+                            sub(y_noise)[range(12, 15)])) /
               k;
-          std_devs[19] =
-              ((k - 1) * std_devs[19] + norm_2_sqr(y_noise[range(12, 15)])) / k;
+          std_devs[19] = ((k - 1) * std_devs[19] +
+                          norm_2_sqr(sub(y_noise)[range(12, 15)])) /
+                         k;
         }
       }
     }
@@ -1665,13 +1675,13 @@ static void get_timeseries_from_rec(
       }
 
       meas_noisy.pose.resize(7);
-      meas_noisy.pose[range(0, 3)] =
-          meas_actual.pose[range(0, 3)] + added_noise[range(0, 3)];
+      sub(meas_noisy.pose)[range(0, 3)] =
+          sub(meas_actual.pose)[range(0, 3)] + sub(added_noise)[range(0, 3)];
 
       vect<double, 3> aa_noise(added_noise[3], added_noise[4], added_noise[5]);
-      quaternion<double> y_quat(meas_actual.pose[range(3, 7)]);
+      quaternion<double> y_quat(sub(meas_actual.pose)[range(3, 7)]);
       y_quat *= axis_angle<double>(norm_2(aa_noise), aa_noise).getQuaternion();
-      meas_noisy.pose[range(3, 7)] =
+      sub(meas_noisy.pose)[range(3, 7)] =
           vect<double, 4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
 
       if (merr_count >= 9) {
@@ -1680,7 +1690,7 @@ static void get_timeseries_from_rec(
         meas_actual.gyro[0] = nvr_in["w_x"];
         meas_actual.gyro[1] = nvr_in["w_y"];
         meas_actual.gyro[2] = nvr_in["w_z"];
-        meas_noisy.gyro = meas_actual.gyro + added_noise[range(6, 9)];
+        meas_noisy.gyro = meas_actual.gyro + sub(added_noise)[range(6, 9)];
         if (merr_count >= 15) {
           /* read off the IMU accel-mag measurements. */
           meas_actual.IMU_a_m.resize(6);
@@ -1690,7 +1700,8 @@ static void get_timeseries_from_rec(
           meas_actual.IMU_a_m[3] = nvr_in["mag_x"];
           meas_actual.IMU_a_m[4] = nvr_in["mag_y"];
           meas_actual.IMU_a_m[5] = nvr_in["mag_z"];
-          meas_noisy.IMU_a_m = meas_actual.IMU_a_m + added_noise[range(9, 15)];
+          meas_noisy.IMU_a_m =
+              meas_actual.IMU_a_m + sub(added_noise)[range(9, 15)];
         }
       }
 
@@ -1774,7 +1785,7 @@ int do_required_tasks(
 
   StateBeliefType b_init = satellite3D_system->get_zero_state_belief(10.0);
   if ((b_init.get_covariance().get_matrix().get_row_count() > 12) &&
-      (sat_options.system_kind & ctrl::satellite_predictor_options::TSOSAKF) &&
+      (sat_options.has_TSOSAKF_filter()) &&
       (sat_options.steady_param_covariance.get_row_count() + 12 ==
        b_init.get_covariance().get_matrix().get_row_count())) {
     mat<double, mat_structure::square> P(b_init.get_covariance().get_matrix());
@@ -2098,29 +2109,27 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (((sat_options.system_kind &
-        ReaK::ctrl::satellite_model_options::gyro_measures) == 0) &&
-      ((sat_options.system_kind &
-        ReaK::ctrl::satellite_model_options::IMU_measures) == 0)) {
+  if (!sat_options.has_gyro_measures() && !sat_options.has_IMU_measures()) {
 
-    if ((sat_options.system_kind &
-         ReaK::ctrl::satellite_model_options::invar_mom_em) != 0) {
+    if (sat_options.system_kind.model ==
+        ReaK::ctrl::satellite_model_options::model_kind::invar_mom_em) {
       int errcode = do_required_tasks(
           sat_options.get_em_airship_system(), sat_options, data_in, names_in,
           sat_options.sys_output_stem_name, data_out_stem_opt);
       if (errcode != 0) {
         return errcode;
       }
-    } else if ((sat_options.system_kind &
-                ReaK::ctrl::satellite_model_options::invar_mom_emd) != 0) {
+    } else if (sat_options.system_kind.model ==
+               ReaK::ctrl::satellite_model_options::model_kind::invar_mom_emd) {
       int errcode = do_required_tasks(
           sat_options.get_emd_airship_system(), sat_options, data_in, names_in,
           sat_options.sys_output_stem_name, data_out_stem_opt);
       if (errcode != 0) {
         return errcode;
       }
-    } else if ((sat_options.system_kind &
-                ReaK::ctrl::satellite_model_options::invar_mom_emdJ) != 0) {
+    } else if (sat_options.system_kind.model ==
+               ReaK::ctrl::satellite_model_options::model_kind::
+                   invar_mom_emdJ) {
       int errcode = do_required_tasks(
           sat_options.get_emdJ_airship_system(), sat_options, data_in, names_in,
           sat_options.sys_output_stem_name, data_out_stem_opt);
@@ -2136,21 +2145,20 @@ int main(int argc, char** argv) {
       }
     }
 
-  } else if (((sat_options.system_kind &
-               ReaK::ctrl::satellite_model_options::gyro_measures) != 0) &&
-             ((sat_options.system_kind &
-               ReaK::ctrl::satellite_model_options::IMU_measures) == 0)) {
+  } else if (sat_options.has_gyro_measures() &&
+             !sat_options.has_IMU_measures()) {
 
-    if ((sat_options.system_kind &
-         ReaK::ctrl::satellite_model_options::invar_mom_emd) != 0) {
+    if (sat_options.system_kind.model ==
+        ReaK::ctrl::satellite_model_options::model_kind::invar_mom_emd) {
       int errcode = do_required_tasks(
           sat_options.get_gyro_emd_airship_system(), sat_options, data_in,
           names_in, sat_options.sys_output_stem_name, data_out_stem_opt);
       if (errcode != 0) {
         return errcode;
       }
-    } else if ((sat_options.system_kind &
-                ReaK::ctrl::satellite_model_options::invar_mom_emdJ) != 0) {
+    } else if (sat_options.system_kind.model ==
+               ReaK::ctrl::satellite_model_options::model_kind::
+                   invar_mom_emdJ) {
       int errcode = do_required_tasks(
           sat_options.get_gyro_emdJ_airship_system(), sat_options, data_in,
           names_in, sat_options.sys_output_stem_name, data_out_stem_opt);

@@ -58,7 +58,7 @@ namespace ReaK::pp {
  * configuration space.
  * \tparam SBPPReporter The reporter type to use to report the progress of the path-planning.
  */
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 class rrtstar_planner : public sample_based_planner<FreeSpaceType> {
  public:
   using base_type = sample_based_planner<FreeSpaceType>;
@@ -67,8 +67,6 @@ class rrtstar_planner : public sample_based_planner<FreeSpaceType> {
   using space_type = FreeSpaceType;
   using super_space_type =
       typename subspace_traits<FreeSpaceType>::super_space_type;
-
-  BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
 
   using point_type = topology_point_type_t<super_space_type>;
   using point_difference_type =

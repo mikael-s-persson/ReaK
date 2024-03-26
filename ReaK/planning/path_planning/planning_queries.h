@@ -50,6 +50,19 @@
 
 namespace ReaK::pp {
 
+namespace details {
+
+template <TemporalSpace Space>
+auto solution_record_ptr_impl() {
+  return std::shared_ptr<seq_trajectory_base<Space>>();
+}
+template <Topology Space>
+auto solution_record_ptr_impl() {
+  return std::shared_ptr<seq_path_base<Space>>();
+}
+
+}  // namespace details
+
 /**
  * This class is the basic OOP interface for a path planner.
  * OOP-style planners are useful to hide away
@@ -58,7 +71,7 @@ namespace ReaK::pp {
  * to deal with in the user-space. The OOP planners are meant to offer a much simpler interface,
  * i.e., a member function that "solves the problem" and returns the solution path or trajectory.
  */
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 class planning_query : public named_object {
  public:
   using self = planning_query<FreeSpaceType>;
@@ -66,18 +79,12 @@ class planning_query : public named_object {
   using super_space_type =
       typename subspace_traits<FreeSpaceType>::super_space_type;
 
-  BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
-
   using point_type = topology_point_type_t<super_space_type>;
   using point_difference_type =
       topology_point_difference_type_t<super_space_type>;
 
-  using solution_base_type =
-      std::conditional_t<is_temporal_space_v<space_type>,
-                         seq_trajectory_base<super_space_type>,
-                         seq_path_base<super_space_type>>;
-
-  using solution_record_ptr = std::shared_ptr<solution_base_type>;
+  using solution_record_ptr =
+      decltype(details::solution_record_ptr_impl<super_space_type>());
 
   std::shared_ptr<space_type> space;
 

@@ -39,28 +39,50 @@
 #include "ReaK/math/lin_alg/vect_alg.h"
 #include "ReaK/math/lin_alg/vect_concepts.h"
 
-#include "boost/concept_check.hpp"
+#include <concepts>
+#include <utility>
 
 namespace ReaK::ctrl {
 
 /**
  * This class template is the traits class that defines the traits that a
  * state-vector should have.
- * \tparam StateVector The state-vector type for which the traits are sought.
  */
-template <typename StateVector>
+template <typename V>
 struct state_vector_traits {
-  /** This is the type of the state-vector descriptor, usually the same as StateVector. */
-  using state_type = typename StateVector::state_type;
+  /** This is the type of the state-vector descriptor, usually the same as V. */
+  using state_type = int;
   /** This is the type that describes the difference between two state-vectors. */
-  using state_difference_type = typename StateVector::state_difference_type;
+  using state_difference_type = int;
   /** This is the value-type of the elements of the state-vector. */
-  using value_type = typename StateVector::value_type;
+  using value_type = int;
   /** This is the type that describes the size of the state-vector. */
-  using size_type = typename StateVector::size_type;
+  using size_type = int;
 
   /** This constant describes the dimension of the state-vector (0 if only known at run-time). */
-  static constexpr std::size_t dimensions = StateVector::dimensions;
+  static constexpr std::size_t dimensions = 0;
+};
+template <typename V>
+concept HasAllStateVectorTraits = requires {
+  typename V::state_type;
+  typename V::state_difference_type;
+  typename V::value_type;
+  typename V::size_type;
+  V::dimensions;
+};
+template <HasAllStateVectorTraits V>
+struct state_vector_traits<V> {
+  /** This is the type of the state-vector descriptor, usually the same as V. */
+  using state_type = typename V::state_type;
+  /** This is the type that describes the difference between two state-vectors. */
+  using state_difference_type = typename V::state_difference_type;
+  /** This is the value-type of the elements of the state-vector. */
+  using value_type = typename V::value_type;
+  /** This is the type that describes the size of the state-vector. */
+  using size_type = typename V::size_type;
+
+  /** This constant describes the dimension of the state-vector (0 if only known at run-time). */
+  static constexpr std::size_t dimensions = V::dimensions;
 };
 
 /**
@@ -90,54 +112,25 @@ struct state_vector_traits {
  *
  * ds = unit(ds);  A state-difference can be made into a unit-vector.
  *
- * v = norm(ds);  A state-difference can be taken the norm of.
- *
- * sz = ds.size();  A state-difference has a size.
- *
- * \tparam StateVector The state-vector type to test for modeling the state-vector concept.
+ * v = norm_2(ds);  A state-difference can be taken the norm of.
  */
-template <typename StateVector>
-struct StateVectorConcept {
-  typename state_vector_traits<StateVector>::state_type s;
-  typename state_vector_traits<StateVector>::state_difference_type ds1, ds2;
-  typename state_vector_traits<StateVector>::value_type v;
-  typename state_vector_traits<StateVector>::size_type sz;
-
-  BOOST_CONCEPT_ASSERT(
-      (ReadableVectorConcept<
-          typename state_vector_traits<StateVector>::state_difference_type>));
-
-  BOOST_CONCEPT_USAGE(StateVectorConcept) {
-    ds1 = diff(s, s);
-    s = add(s, ds2);
-    ds1 = v * ds2;
-    ds1 *= v;
-    ds1 = ds2 + ds2;
-    ds1 += ds2;
-    ds1 = ds2 - ds2;
-    ds1 -= ds2;
-    ds1 = -ds2;
-    ds1 = unit(ds2);
-    v = norm_2(ds2);
-    sz = ds2.size();
-  }
+template <typename T>
+concept StateVector = requires(std::decay_t<T> s,
+                               std::decay_t<decltype(diff(s, s))> ds) {
+  { to_vect<double>(ds) } -> ReadableVector;
+  from_vect<decltype(ds)>(to_vect<double>(ds));
+  ds = diff(s, s);
+  s = add(s, ds);
+  ds = double{} * ds;
+  ds *= double{};
+  ds = ds + ds;
+  ds += ds;
+  ds = ds - ds;
+  ds -= ds;
+  ds = -ds;
+  ds = unit(ds);
+  { norm_2(ds) } -> std::convertible_to<double>;
 };
-
-/**
- * This meta-function is used to evaluate whether a type models the StateVectorConcept.
- * This does not attempt to instantiate the StateVectorConcept template because it would
- * break Sfinae rules. Instead, if one wants to make a new state-vector class, he should
- * specialize this meta-function to evaluate to true.
- * \tparam StateVector The type which may or may not be a state-vector type.
- */
-template <typename StateVector>
-struct is_state_vector {
-  static constexpr bool value = false;
-  using type = is_state_vector<StateVector>;
-};
-
-template <typename StateVector>
-static constexpr bool is_state_vector_v = is_state_vector_v<StateVector>;
 
 template <typename T, unsigned int Size>
 struct state_vector_traits<vect<T, Size>> {
@@ -147,12 +140,6 @@ struct state_vector_traits<vect<T, Size>> {
   using size_type = typename vect_traits<vect<T, Size>>::size_type;
 
   static constexpr std::size_t dimensions = vect_traits<state_type>::dimensions;
-};
-
-template <typename T, unsigned int Size>
-struct is_state_vector<vect<T, Size>> {
-  static constexpr bool value = true;
-  using type = is_state_vector<vect<T, Size>>;
 };
 
 }  // namespace ReaK::ctrl

@@ -52,9 +52,7 @@
 #include <random>
 #include <type_traits>
 
-namespace ReaK {
-
-namespace ctrl {
+namespace ReaK::ctrl {
 
 /**
  * This class template creates a topology for a covariance
@@ -290,18 +288,6 @@ auto get(ReaK::pp::distance_metric_t /*unused*/,
   return typename covar_topology<Covariance>::distance_metric_type();
 }
 
-}  // namespace ctrl
-
-namespace pp {
-
-template <typename Covariance>
-struct is_metric_space<ctrl::covar_topology<Covariance>> : std::true_type {};
-
-template <typename Covariance>
-struct is_reversible_space<ctrl::covar_topology<Covariance>> : std::true_type {
-};
-
-}  // namespace pp
-}  // namespace ReaK
+}  // namespace ReaK::ctrl
 
 #endif  // REAK_CONTROL_CONTROLLERS_COVAR_TOPOLOGY_H_

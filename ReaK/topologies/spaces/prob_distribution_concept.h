@@ -35,10 +35,9 @@
 #define REAK_TOPOLOGIES_SPACES_PROB_DISTRIBUTION_CONCEPT_H_
 
 #include "ReaK/core/base/defs.h"
-
-#include "boost/concept_check.hpp"
-
 #include "ReaK/topologies/spaces/metric_space_concept.h"
+
+#include <concepts>
 
 /** Main namespace for ReaK */
 namespace ReaK::pp {
@@ -60,18 +59,11 @@ namespace ReaK::pp {
  * \tparam ProbDistFunction The probability distribution function type to be checked for this concept.
  * \tparam Topology The topology on which the probability distribution function should apply.
  */
-template <typename ProbDistFunction, typename Topology>
-struct ProbDistFunctionConcept {
-  ProbDistFunction pdf_function;
-  Topology space;
-  topology_point_type_t<Topology> p;
-
-  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
-
-  BOOST_CONCEPT_USAGE(ProbDistFunctionConcept) {
-    double d = pdf_function(p, space);
-    RK_UNUSED(d);
-  }
+template <typename Function, typename Space>
+concept ProbDistFunction =
+    Topology<Space>&& requires(const Function& pdf_function, const Space& space,
+                               const topology_point_type_t<Space>& p) {
+  { pdf_function(p, space) } -> std::convertible_to<double>;
 };
 
 /**
@@ -84,12 +76,17 @@ enum prob_dist_function_t { prob_dist_function };
  * This traits class defines the types and constants associated to a probability distribution.
  * \tparam ProbabilityDistribution The topology type for which the probability distribution traits are sought.
  */
-template <typename ProbabilityDistribution>
+template <typename Distribution>
 struct probability_distribution_traits {
   /** The type that describes the probability distribution function type for the distribution. */
   using prob_dist_function_type =
-      typename ProbabilityDistribution::prob_dist_function_type;
+      typename Distribution::prob_dist_function_type;
 };
+
+template <typename Distribution>
+using probability_distribution_function_t =
+    typename probability_distribution_traits<
+        Distribution>::prob_dist_function_type;
 
 /**
  * This concept defines the requirements to fulfill in order to model a point distribution
@@ -109,22 +106,13 @@ struct probability_distribution_traits {
  *
  * \tparam ProbabilityDistribution The topology type to be checked for this concept.
  */
-template <typename ProbabilityDistribution>
-struct ProbabilityDistributionConcept {
-  topology_point_type_t<ProbabilityDistribution> p1, p2;
-  typename probability_distribution_traits<
-      ProbabilityDistribution>::prob_dist_function_type pdf_function;
-  ProbabilityDistribution space;
-
-  BOOST_CONCEPT_ASSERT((TopologyConcept<ProbabilityDistribution>));
-  BOOST_CONCEPT_ASSERT((ProbDistFunctionConcept<
-                        typename probability_distribution_traits<
-                            ProbabilityDistribution>::prob_dist_function_type,
-                        ProbabilityDistribution>));
-
-  BOOST_CONCEPT_USAGE(ProbabilityDistributionConcept) {
-    pdf_function = get(prob_dist_function, space);
-  }
+template <typename Distribution>
+concept ProbabilityDistribution = Topology<Distribution>&& ProbDistFunction<
+    probability_distribution_function_t<Distribution>, Distribution>&&
+requires(const Distribution& space) {
+  {
+    get(prob_dist_function, space)
+    } -> std::convertible_to<probability_distribution_function_t<Distribution>>;
 };
 
 }  // namespace ReaK::pp

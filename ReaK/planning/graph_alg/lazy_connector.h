@@ -62,18 +62,19 @@ namespace ReaK::graph {
  * This callable class template implements a Lazy Motion-graph Connector.
  * A Lazy-Connector uses the accumulated distance to assess the local optimality of the wirings on a motion-graph.
  * The call operator accepts a visitor object to provide customized behavior because it can be used in many
- * different sampling-based motion-planners. The visitor must model the MotionGraphConnectorVisitorConcept concept.
+ * different sampling-based motion-planners. The visitor must model the MotionGraphConnectorVisitor concept.
  */
 struct lazy_node_connector {
 
-  template <typename Vertex, typename EdgeProp, typename Graph,
-            typename Topology, typename ConnectorVisitor, typename PositionMap,
-            typename DistanceMap, typename PredecessorMap, typename WeightMap>
+  template <
+      typename Vertex, typename EdgeProp, typename Graph, pp::MetricSpace Space,
+      MotionGraphConnectorVisitor<Graph, Space> Visitor, typename PositionMap,
+      typename DistanceMap, typename PredecessorMap, typename WeightMap>
   static void connect_best_predecessor(
       Vertex v, Vertex& x_near, EdgeProp& eprop, Graph& g,
-      const Topology& super_space, const ConnectorVisitor& conn_vis,
-      PositionMap position, DistanceMap distance, PredecessorMap predecessor,
-      WeightMap weight, std::vector<Vertex>& Pred) {
+      const Space& super_space, const Visitor& conn_vis, PositionMap position,
+      DistanceMap distance, PredecessorMap predecessor, WeightMap weight,
+      std::vector<Vertex>& Pred) {
     Vertex x_near_original = x_near;
     double d_near = std::numeric_limits<double>::infinity();
     if (x_near != boost::graph_traits<Graph>::null_vertex()) {
@@ -109,12 +110,13 @@ struct lazy_node_connector {
     conn_vis.affected_vertex(v, g);
   }
 
-  template <typename Vertex, typename EdgeProp, typename Graph,
-            typename Topology, typename ConnectorVisitor, typename PositionMap,
-            typename FwdDistanceMap, typename SuccessorMap, typename WeightMap>
+  template <
+      typename Vertex, typename EdgeProp, typename Graph, pp::MetricSpace Space,
+      MotionGraphConnectorVisitor<Graph, Space> Visitor, typename PositionMap,
+      typename FwdDistanceMap, typename SuccessorMap, typename WeightMap>
   static void connect_best_successor(Vertex v, Vertex& x_near, EdgeProp& eprop,
-                                     Graph& g, const Topology& super_space,
-                                     const ConnectorVisitor& conn_vis,
+                                     Graph& g, const Space& super_space,
+                                     const Visitor& conn_vis,
                                      PositionMap position,
                                      FwdDistanceMap fwd_distance,
                                      SuccessorMap successor, WeightMap weight,
@@ -153,13 +155,13 @@ struct lazy_node_connector {
     conn_vis.affected_vertex(v, g);
   }
 
-  template <typename Vertex, typename Graph, typename Topology,
-            typename ConnectorVisitor, typename PositionMap,
-            typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
-            typename PredecessorMap>
+  template <typename Vertex, typename Graph, pp::MetricSpace Space,
+            MotionGraphConnectorVisitor<Graph, Space> Visitor,
+            typename PositionMap, typename FwdDistanceMap,
+            typename SuccessorMap, typename WeightMap, typename PredecessorMap>
   static void connect_predecessors(
-      Vertex v, Vertex x_near, Graph& g, const Topology& super_space,
-      const ConnectorVisitor& conn_vis, PositionMap position,
+      Vertex v, Vertex x_near, Graph& g, const Space& super_space,
+      const Visitor& conn_vis, PositionMap position,
       FwdDistanceMap fwd_distance, SuccessorMap successor, WeightMap weight,
       std::vector<Vertex>& Pred, PredecessorMap predecessor) {
     for (Vertex u : Pred) {
@@ -197,12 +199,13 @@ struct lazy_node_connector {
     // affected by travel attempts and new out-going edges.
     conn_vis.affected_vertex(v, g);
   }
-  template <typename Vertex, typename Graph, typename Topology,
-            typename ConnectorVisitor, typename PositionMap,
-            typename FwdDistanceMap, typename SuccessorMap, typename WeightMap>
+  template <typename Vertex, typename Graph, pp::MetricSpace Space,
+            MotionGraphConnectorVisitor<Graph, Space> Visitor,
+            typename PositionMap, typename FwdDistanceMap,
+            typename SuccessorMap, typename WeightMap>
   static void connect_predecessors(Vertex v, Vertex x_near, Graph& g,
-                                   const Topology& super_space,
-                                   const ConnectorVisitor& conn_vis,
+                                   const Space& super_space,
+                                   const Visitor& conn_vis,
                                    PositionMap position,
                                    FwdDistanceMap fwd_distance,
                                    SuccessorMap successor, WeightMap weight,
@@ -212,14 +215,14 @@ struct lazy_node_connector {
                          detail::null_vertex_prop_map<Graph>());
   }
 
-  template <typename Vertex, typename Graph, typename Topology,
-            typename ConnectorVisitor, typename PositionMap,
-            typename DistanceMap, typename PredecessorMap, typename WeightMap,
-            typename SuccessorMap>
+  template <typename Vertex, typename Graph, pp::MetricSpace Space,
+            MotionGraphConnectorVisitor<Graph, Space> Visitor,
+            typename PositionMap, typename DistanceMap, typename PredecessorMap,
+            typename WeightMap, typename SuccessorMap>
   static void connect_successors(Vertex v, Vertex x_near, Graph& g,
-                                 const Topology& super_space,
-                                 const ConnectorVisitor& conn_vis,
-                                 PositionMap position, DistanceMap distance,
+                                 const Space& super_space,
+                                 const Visitor& conn_vis, PositionMap position,
+                                 DistanceMap distance,
                                  PredecessorMap predecessor, WeightMap weight,
                                  std::vector<Vertex>& Succ,
                                  SuccessorMap successor) {
@@ -258,13 +261,14 @@ struct lazy_node_connector {
     // affected by travel attempts and new out-going edges.
     conn_vis.affected_vertex(v, g);
   }
-  template <typename Vertex, typename Graph, typename Topology,
-            typename ConnectorVisitor, typename PositionMap,
-            typename DistanceMap, typename PredecessorMap, typename WeightMap>
+  template <typename Vertex, typename Graph, pp::MetricSpace Space,
+            MotionGraphConnectorVisitor<Graph, Space> Visitor,
+            typename PositionMap, typename DistanceMap, typename PredecessorMap,
+            typename WeightMap>
   static void connect_successors(Vertex v, Vertex x_near, Graph& g,
-                                 const Topology& super_space,
-                                 const ConnectorVisitor& conn_vis,
-                                 PositionMap position, DistanceMap distance,
+                                 const Space& super_space,
+                                 const Visitor& conn_vis, PositionMap position,
+                                 DistanceMap distance,
                                  PredecessorMap predecessor, WeightMap weight,
                                  std::vector<Vertex>& Succ) {
     connect_successors(v, x_near, g, super_space, conn_vis, position, distance,
@@ -281,9 +285,8 @@ struct lazy_node_connector {
    *
    * \tparam Graph The graph type that can store the generated roadmap, should model
    *         BidirectionalGraphConcept and MutableGraphConcept.
-   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-   * \tparam SBAStarVisitor The type of the node-connector visitor to be used, should model the
-   *MotionGraphConnectorVisitorConcept.
+   * \tparam Space The topology type that represents the free-space, should model BGL's Topology concept.
+   * \tparam Visitor The type of the node-connector visitor to be used.
    * \tparam PositionMap A property-map type that can store the position of each vertex.
    * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting
    *         vertex together with its optimal predecessor.
@@ -315,20 +318,17 @@ struct lazy_node_connector {
    *        vertices of the graph that ought to be connected to a new
    *        vertex. The list should be sorted in order of increasing "distance".
    */
-  template <typename Graph, typename Topology, typename ConnectorVisitor,
+  template <typename Graph, pp::MetricSpace Space,
+            MotionGraphConnectorVisitor<Graph, Space> Visitor,
             typename PositionMap, typename DistanceMap, typename PredecessorMap,
             typename WeightMap, typename NcSelector>
   void operator()(const property_value_t<PositionMap>& p,
                   graph_vertex_t<Graph>& x_near,
                   graph_edge_bundle_t<Graph>& eprop, Graph& g,
-                  const Topology& super_space, const ConnectorVisitor& conn_vis,
+                  const Space& super_space, const Visitor& conn_vis,
                   PositionMap position, DistanceMap distance,
                   PredecessorMap predecessor, WeightMap weight,
                   NcSelector select_neighborhood) const {
-    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((
-        MotionGraphConnectorVisitorConcept<ConnectorVisitor, Graph, Topology>));
-
     using Vertex = graph_vertex_t<Graph>;
     using std::back_inserter;
 
@@ -372,7 +372,8 @@ struct lazy_node_connector {
                                              predecessor, weight);
   };
 
-  template <typename Graph, typename Topology, typename ConnectorVisitor,
+  template <typename Graph, pp::MetricSpace Space,
+            MotionGraphConnectorVisitor<Graph, Space> Visitor,
             typename PositionMap, typename DistanceMap, typename PredecessorMap,
             typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
             typename NcSelector>
@@ -381,15 +382,11 @@ struct lazy_node_connector {
                   graph_edge_bundle_t<Graph>& eprop_pred,
                   graph_vertex_t<Graph>& x_succ,
                   graph_edge_bundle_t<Graph>& eprop_succ, Graph& g,
-                  const Topology& super_space, const ConnectorVisitor& conn_vis,
+                  const Space& super_space, const Visitor& conn_vis,
                   PositionMap position, DistanceMap distance,
                   PredecessorMap predecessor, FwdDistanceMap fwd_distance,
                   SuccessorMap successor, WeightMap weight,
                   NcSelector select_neighborhood) const {
-    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((
-        MotionGraphConnectorVisitorConcept<ConnectorVisitor, Graph, Topology>));
-
     using Vertex = graph_vertex_t<Graph>;
     using std::back_inserter;
 

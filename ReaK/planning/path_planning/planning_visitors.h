@@ -62,12 +62,8 @@ struct planning_visitor_base {
   using point_type = topology_point_type_t<space_type>;
   using point_difference_type = topology_point_difference_type_t<space_type>;
 
-  using solution_base_type =
-      std::conditional_t<is_temporal_space_v<space_type>,
-                         seq_trajectory_base<super_space_type>,
-                         seq_path_base<super_space_type>>;
-
-  using solution_record_ptr = std::shared_ptr<solution_base_type>;
+  using solution_record_ptr =
+      typename planning_query<space_type>::solution_record_ptr;
 
   using planner_base_type = sample_based_planner<space_type>;
 

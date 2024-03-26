@@ -51,7 +51,6 @@ void compute_proximity_of_point(const plane& aPlane,
         vect<double, 3>(pt_rel[0], pt_rel[1], 0.0));
     aDistance = fact * pt_rel[2];
   } else {
-    vect<double, 3> rim_pt;
     if ((pt_rel[0] > -0.5 * aPlane.getDimensions()[0]) &&
         (pt_rel[0] < 0.5 * aPlane.getDimensions()[0])) {
       // The sphere is on the above or below the plane (y-axis).

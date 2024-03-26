@@ -75,11 +75,11 @@ class airship3D_imdt_em_sys : public named_object {
                        pp::hyperball_topology<vect<double, 3>>>,
       pp::manhattan_tuple_distance>;
 
-  using point_type = pp::topology_traits<state_space_type>::point_type;
+  using point_type = pp::topology_point_type_t<state_space_type>;
   using point_difference_type =
-      pp::topology_traits<state_space_type>::point_difference_type;
+      pp::topology_point_difference_type_t<state_space_type>;
   using point_derivative_type =
-      pp::topology_traits<state_space_type>::point_difference_type;
+      pp::topology_point_difference_type_t<state_space_type>;
 
   using time_type = double;
   using time_difference_type = double;
@@ -345,12 +345,6 @@ class airship3D_imdt_em_sys : public named_object {
                               "airship3D_imdt_em_sys", named_object)
 };
 
-template <>
-struct is_invariant_system<airship3D_imdt_em_sys> : std::true_type {};
-
-template <>
-struct is_augmented_ss_system<airship3D_imdt_em_sys> : std::true_type {};
-
 /**
  * This class implements an invariantized momentum-tracking discrete-time state-space system describe the
  * dynamics of a free-floating, near-buoyant, near-balanced 6-dof airship with drag. This is a simplified model,
@@ -373,11 +367,11 @@ class airship3D_imdt_emd_sys : public named_object {
                        pp::line_segment_topology<double>>,
       pp::manhattan_tuple_distance>;
 
-  using point_type = pp::topology_traits<state_space_type>::point_type;
+  using point_type = pp::topology_point_type_t<state_space_type>;
   using point_difference_type =
-      pp::topology_traits<state_space_type>::point_difference_type;
+      pp::topology_point_difference_type_t<state_space_type>;
   using point_derivative_type =
-      pp::topology_traits<state_space_type>::point_difference_type;
+      pp::topology_point_difference_type_t<state_space_type>;
 
   using time_type = double;
   using time_difference_type = double;
@@ -643,12 +637,6 @@ class airship3D_imdt_emd_sys : public named_object {
                               "airship3D_imdt_emd_sys", named_object)
 };
 
-template <>
-struct is_invariant_system<airship3D_imdt_emd_sys> : std::true_type {};
-
-template <>
-struct is_augmented_ss_system<airship3D_imdt_emd_sys> : std::true_type {};
-
 /**
  * This class implements an invariantized momentum-tracking discrete-time state-space system describe the
  * dynamics of a free-floating, near-buoyant, near-balanced 6-dof airship with drag. This is a simplified model,
@@ -776,12 +764,6 @@ class airship3D_gyro_imdt_emd_sys : public airship3D_imdt_emd_sys {
                               airship3D_imdt_emd_sys)
 };
 
-template <>
-struct is_invariant_system<airship3D_gyro_imdt_emd_sys> : std::true_type {};
-
-template <>
-struct is_augmented_ss_system<airship3D_gyro_imdt_emd_sys> : std::true_type {};
-
 /**
  * This class implements an invariantized momentum-tracking discrete-time state-space system describe the
  * dynamics of a free-floating, near-buoyant, near-balanced 6-dof airship with drag. This is a simplified model,
@@ -806,11 +788,11 @@ class airship3D_imdt_emdJ_sys : public named_object {
                        pp::hyperball_topology<vect<double, 3>>>,
       pp::manhattan_tuple_distance>;
 
-  using point_type = pp::topology_traits<state_space_type>::point_type;
+  using point_type = pp::topology_point_type_t<state_space_type>;
   using point_difference_type =
-      pp::topology_traits<state_space_type>::point_difference_type;
+      pp::topology_point_difference_type_t<state_space_type>;
   using point_derivative_type =
-      pp::topology_traits<state_space_type>::point_difference_type;
+      pp::topology_point_difference_type_t<state_space_type>;
 
   using time_type = double;
   using time_difference_type = double;
@@ -1076,12 +1058,6 @@ class airship3D_imdt_emdJ_sys : public named_object {
                               "airship3D_imdt_emdJ_sys", named_object)
 };
 
-template <>
-struct is_invariant_system<airship3D_imdt_emdJ_sys> : std::true_type {};
-
-template <>
-struct is_augmented_ss_system<airship3D_imdt_emdJ_sys> : std::true_type {};
-
 /**
  * This class implements an invariantized momentum-tracking discrete-time state-space system describe the
  * dynamics of a free-floating, near-buoyant, near-balanced 6-dof airship with drag. This is a simplified model,
@@ -1202,12 +1178,6 @@ class airship3D_gyro_imdt_emdJ_sys : public airship3D_imdt_emdJ_sys {
                               "airship3D_gyro_imdt_emdJ_sys",
                               airship3D_imdt_emdJ_sys)
 };
-
-template <>
-struct is_invariant_system<airship3D_gyro_imdt_emdJ_sys> : std::true_type {};
-
-template <>
-struct is_augmented_ss_system<airship3D_gyro_imdt_emdJ_sys> : std::true_type {};
 
 }  // namespace ReaK::ctrl
 

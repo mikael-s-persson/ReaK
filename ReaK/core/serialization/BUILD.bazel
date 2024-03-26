@@ -1,0 +1,62 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+  name = "serialization_base",
+  srcs = [],
+  hdrs = [
+    "archiver.h",
+    "archiving_exceptions.h",
+    "serializable.h",
+  ],
+  deps = [
+    "//ReaK/core/base:base_macros",
+    "//ReaK/core/rtti",
+  ],
+)
+
+cc_library(
+  name = "serialization",
+  srcs = [
+    "archiver_factory.cc",
+    "bin_archiver.cc",
+    "objtree_archiver.cc",
+    "protobuf_archiver.cc",
+    "scheme_builder.cc",
+    "xml_archiver.cc",
+  ],
+  hdrs = [
+    "archiver_factory.h",
+    "bin_archiver.h",
+    "objtree_archiver.h",
+    "protobuf_archiver.h",
+    "scheme_builder.h",
+    "type_schemes.h",
+    "xml_archiver.h",
+  ],
+  deps = [
+    ":serialization_base",
+    "//ReaK/core/base:base_macros",
+    "//ReaK/core/base",
+    "//ReaK/core/base:endian_conversions",
+    "//ReaK/core/rtti",
+    "@boost_graph_extras//:boost_graph_extras",
+    "@boost//:graph",
+  ],
+)
+
+cc_test(
+  name = "serialization_test",
+  srcs = [
+    "serialization_test.cc",
+  ],
+  deps = [
+    ":serialization",
+    "@com_google_googletest//:gtest_main",
+  ],
+)

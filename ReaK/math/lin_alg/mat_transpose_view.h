@@ -38,7 +38,7 @@
 
 namespace ReaK {
 
-template <typename Matrix>
+template <ReadableMatrix Matrix>
 class mat_const_transpose_view {
  public:
   using self = mat_const_transpose_view<Matrix>;
@@ -139,57 +139,18 @@ class mat_const_transpose_view {
 };
 
 template <typename Matrix>
-struct is_readable_matrix<mat_const_transpose_view<Matrix>> {
-  static constexpr bool value = is_readable_matrix_v<Matrix>;
-  using type = is_readable_matrix<Matrix>;
-};
+static constexpr bool is_square_matrix_v<mat_const_transpose_view<Matrix>> =
+    is_square_matrix_v<Matrix>;
 
 template <typename Matrix>
-struct is_writable_matrix<mat_const_transpose_view<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_writable_matrix<mat_const_transpose_view<Matrix>>;
-};
+static constexpr bool is_symmetric_matrix_v<mat_const_transpose_view<Matrix>> =
+    is_symmetric_matrix_v<Matrix>;
 
 template <typename Matrix>
-struct is_fully_writable_matrix<mat_const_transpose_view<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_fully_writable_matrix<mat_const_transpose_view<Matrix>>;
-};
+static constexpr bool is_diagonal_matrix_v<mat_const_transpose_view<Matrix>> =
+    is_diagonal_matrix_v<Matrix>;
 
-template <typename Matrix>
-struct is_row_resizable_matrix<mat_const_transpose_view<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_row_resizable_matrix<mat_const_transpose_view<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_col_resizable_matrix<mat_const_transpose_view<Matrix>> {
-  static constexpr bool value = false;
-  using type = is_col_resizable_matrix<mat_const_transpose_view<Matrix>>;
-};
-
-template <typename Matrix>
-struct is_square_matrix<mat_const_transpose_view<Matrix>> {
-  using value_type = bool;
-  static constexpr bool value = is_square_matrix_v<Matrix>;
-  using type = is_square_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_symmetric_matrix<mat_const_transpose_view<Matrix>> {
-  using value_type = bool;
-  static constexpr bool value = is_symmetric_matrix_v<Matrix>;
-  using type = is_symmetric_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_diagonal_matrix<mat_const_transpose_view<Matrix>> {
-  using value_type = bool;
-  static constexpr bool value = is_diagonal_matrix_v<Matrix>;
-  using type = is_diagonal_matrix<Matrix>;
-};
-
-template <typename Matrix>
+template <WritableMatrix Matrix>
 class mat_transpose_view {
  public:
   using self = mat_transpose_view<Matrix>;
@@ -228,9 +189,8 @@ class mat_transpose_view {
   /**
    * Standard assignment operator.
    */
-  template <typename Matrix2>
+  template <ReadableMatrix Matrix2>
   self& operator=(const Matrix2& rhs) {
-    static_assert(is_readable_matrix_v<Matrix2>);
     *m = mat_const_transpose_view<Matrix2>(rhs);
     return *this;
   }
@@ -327,7 +287,7 @@ class mat_transpose_view {
    */
   template <typename Matrix2>
   self& operator*=(const Matrix2& M) {
-    if constexpr (!is_readable_matrix_v<Matrix2>) {
+    if constexpr (!ReadableMatrix<Matrix2>) {
       return *this *= value_type(M);
     } else {
       *this = *this * M;
@@ -362,72 +322,34 @@ class mat_transpose_view {
 };
 
 template <typename Matrix>
-struct is_readable_matrix<mat_transpose_view<Matrix>> {
-  static constexpr bool value = is_readable_matrix_v<Matrix>;
-  using type = is_readable_matrix<Matrix>;
-};
+static constexpr bool is_fully_writable_matrix_v<mat_transpose_view<Matrix>> =
+    is_fully_writable_matrix_v<Matrix>;
 
 template <typename Matrix>
-struct is_writable_matrix<mat_transpose_view<Matrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<Matrix>;
-  using type = is_fully_writable_matrix<Matrix>;
-};
+static constexpr bool is_square_matrix_v<mat_transpose_view<Matrix>> =
+    is_square_matrix_v<Matrix>;
 
 template <typename Matrix>
-struct is_fully_writable_matrix<mat_transpose_view<Matrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<Matrix>;
-  using type = is_fully_writable_matrix<Matrix>;
-};
+static constexpr bool is_symmetric_matrix_v<mat_transpose_view<Matrix>> =
+    is_symmetric_matrix_v<Matrix>;
 
 template <typename Matrix>
-struct is_row_resizable_matrix<mat_transpose_view<Matrix>> {
-  static constexpr bool value = is_col_resizable_matrix_v<Matrix>;
-  using type = is_col_resizable_matrix<Matrix>;
-};
+static constexpr bool is_diagonal_matrix_v<mat_transpose_view<Matrix>> =
+    is_diagonal_matrix_v<Matrix>;
 
-template <typename Matrix>
-struct is_col_resizable_matrix<mat_transpose_view<Matrix>> {
-  static constexpr bool value = is_row_resizable_matrix_v<Matrix>;
-  using type = is_row_resizable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_square_matrix<mat_transpose_view<Matrix>> {
-  using value_type = bool;
-  static constexpr bool value = is_square_matrix_v<Matrix>;
-  using type = is_square_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_symmetric_matrix<mat_transpose_view<Matrix>> {
-  using value_type = bool;
-  static constexpr bool value = is_symmetric_matrix_v<Matrix>;
-  using type = is_symmetric_matrix<Matrix>;
-};
-
-template <typename Matrix>
-struct is_diagonal_matrix<mat_transpose_view<Matrix>> {
-  using value_type = bool;
-  static constexpr bool value = is_diagonal_matrix_v<Matrix>;
-  using type = is_diagonal_matrix<Matrix>;
-};
-
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, mat_transpose_view<Matrix>>
-transpose_view(Matrix& M) {
-  return mat_transpose_view<Matrix>(M);
+template <WritableMatrix Matrix>
+auto transpose_view(Matrix& M) {
+  return mat_transpose_view<std::decay_t<Matrix>>(M);
 }
 
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, mat_const_transpose_view<Matrix>>
-transpose_view(const Matrix& M) {
-  return mat_const_transpose_view<Matrix>(M);
+template <ReadableMatrix Matrix>
+auto transpose_view(const Matrix& M) {
+  return mat_const_transpose_view<std::decay_t<Matrix>>(M);
 }
 
-template <typename Matrix>
-std::enable_if_t<is_readable_matrix_v<Matrix>, mat_const_transpose_view<Matrix>>
-transpose_view(Matrix&& M) {
-  return mat_const_transpose_view<Matrix>(std::move(M));
+template <ReadableMatrix Matrix>
+auto transpose_view(Matrix&& M) {
+  return mat_const_transpose_view<std::decay_t<Matrix>>(M);
 }
 
 }  // namespace ReaK

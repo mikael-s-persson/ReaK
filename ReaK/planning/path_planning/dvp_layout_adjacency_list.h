@@ -73,7 +73,7 @@ namespace ReaK::pp {
  * respects the triangular inequality.
  * \tparam VertexProperty The bundled vertex properties for the adjacency-list.
  * \tparam EdgeProperty The bundled edge properties for the adjacency-list.
- * \tparam Topology The topology type on which the points can reside, should model the MetricSpaceConcept.
+ * \tparam Space The topology type on which the points can reside.
  * \tparam PositionMap The property-map type that can map the bundled vertex property to a position in the topology.
  * \tparam Arity The arity of the tree, e.g., 2 means a binary-tree.
  * \tparam VPChooser The functor type to use to choose the vantage-point out of a set of vertices.
@@ -85,7 +85,7 @@ namespace ReaK::pp {
  * \tparam EdgeListS The edge list container specifier for the adjacency-list (same as EdgeListS in
  * boost::adjacency_list_BC).
  */
-template <typename VertexProperty, typename EdgeProperty, typename Topology,
+template <typename VertexProperty, typename EdgeProperty, MetricSpace Space,
           typename PositionMap, unsigned int Arity = 2,
           typename VPChooser = random_vp_chooser,
           typename TreeStorageTag = boost::bfl_d_ary_tree_storage<Arity>,
@@ -94,14 +94,12 @@ template <typename VertexProperty, typename EdgeProperty, typename Topology,
           typename EdgeListS = boost::vecBC>
 class dvp_adjacency_list {
  public:
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
-
-  using self = dvp_adjacency_list<VertexProperty, EdgeProperty, Topology,
+  using self = dvp_adjacency_list<VertexProperty, EdgeProperty, Space,
                                   PositionMap, Arity, VPChooser, TreeStorageTag,
                                   OutEdgeListS, DirectedS, EdgeListS>;
 
-  using point_type = topology_point_type_t<Topology>;
-  using point_difference_type = topology_point_difference_type_t<Topology>;
+  using point_type = topology_point_type_t<Space>;
+  using point_difference_type = topology_point_difference_type_t<Space>;
   using distance_type = double;
 
  private:
@@ -143,7 +141,7 @@ class dvp_adjacency_list {
                                    boost::vertex_second_bundle_t>::type>;
 
   using dvp_impl_type =
-      dvp_tree_impl<tree_indexer, Topology, key_map_type, distance_map_type,
+      dvp_tree_impl<tree_indexer, Space, key_map_type, distance_map_type,
                     position_map_type, Arity, VPChooser>;
 
   using dvp_visitor_type = typename dvp_impl_type::mutation_visitor;
@@ -168,7 +166,7 @@ class dvp_adjacency_list {
    * \param aPosition The property-map that can be used to obtain the positions of the vertices.
    * \param aVPChooser The vantage-point chooser functor (policy class).
    */
-  explicit dvp_adjacency_list(const std::shared_ptr<const Topology>& aSpace,
+  explicit dvp_adjacency_list(const std::shared_ptr<const Space>& aSpace,
                               PositionMap aPosition,
                               VPChooser aVPChooser = VPChooser())
       : m_tree(),

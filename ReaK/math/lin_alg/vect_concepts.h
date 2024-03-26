@@ -37,10 +37,12 @@
 
 #include "ReaK/core/base/defs.h"
 
+#include <concepts>
+#include <iterator>
+#include <type_traits>
 #include <vector>
-#include "ReaK/math/lin_alg/vect_traits.h"
 
-#include "boost/concept_check.hpp"
+#include "ReaK/math/lin_alg/vect_traits.h"
 
 namespace ReaK {
 
@@ -63,88 +65,36 @@ namespace ReaK {
  * \tparam Vector The vector type.
  */
 template <typename Vector>
-struct ReadableVectorConcept {
-  Vector v;
-
-  typename vect_traits<Vector>::size_type s;
-  vect_value_type_t<Vector> cr;
-
-  typename vect_traits<Vector>::const_iterator it;
-
-  void constraints() {
-    cr = v[0];  // can be indexed and given an rvalue
-    s = v.size();
-    it = v.begin();
-    ++it;
-    bool b = (it != v.end());
-    RK_UNUSED(b);
-  }
+concept ReadableVector = requires(const Vector& v) {
+  { v[0] } -> std::convertible_to<vect_value_type_t<Vector>>;
+  { v.size() } -> std::integral<>;
+  { v.begin() } -> std::input_iterator<>;
+  { v.end() } -> std::input_iterator<>;
+  { v.begin() != v.end() } -> std::convertible_to<bool>;
 };
 
-/**
- * This meta-function evaluates whether a Vector class fulfills the ReadableVectorConcept,
- * however, it does not attempt to instantiate the Concept template (because no technique can
- * be used to catch the failed instantiation properly), instead, the default version results
- * in a false value, and the implementer of a vector class is required to provide a specialization
- * if he wants this meta-function to evaluate to true for that new vector class.
- */
+// Legacy
 template <typename Vector>
-struct is_readable_vector {
-  static constexpr bool value = false;
-  using type = is_readable_vector<Vector>;
-};
-
-template <typename Vector>
-static constexpr bool is_readable_vector_v = is_readable_vector<Vector>::value;
-
-template <typename T>
-struct is_readable_vector<std::vector<T>> {
-  static constexpr bool value = true;
-  using type = is_readable_vector<std::vector<T>>;
-};
+static constexpr bool is_readable_vector_v = ReadableVector<Vector>;
 
 /**
  * This concept class defines what makes a vector a writable vector, that is,
  * a vector whose elements can be written.
  *
- * Valid Expressions (in addition to those of ReadableVectorConcept):
+ * Valid Expressions (in addition to those of ReadableVector):
  *
  * v[i] = e;   can be indexed to be written.
  *
  * \tparam Vector The vector type.
  */
 template <typename Vector>
-struct WritableVectorConcept
-    : ReadableVectorConcept<Vector> {  // must also be readable.
-
-  vect_value_type_t<Vector> r;
-
-  void constraints() {
-    this->v[0] = r;  // can be indexed and given an lvalue
-  }
+concept WritableVector = ReadableVector<Vector>&& requires(Vector& v) {
+  { v[0] } -> std::assignable_from<vect_value_type_t<Vector>>;
 };
 
-/**
- * This meta-function evaluates whether a Vector class fulfills the WritableVectorConcept,
- * however, it does not attempt to instantiate the Concept template (because no technique can
- * be used to catch the failed instantiation properly), instead, the default version results
- * in a false value, and the implementer of a vector class is required to provide a specialization
- * if he wants this meta-function to evaluate to true for that new vector class.
- */
+// Legacy
 template <typename Vector>
-struct is_writable_vector {
-  static constexpr bool value = false;
-  using type = is_writable_vector<Vector>;
-};
-
-template <typename Vector>
-static constexpr bool is_writable_vector_v = is_writable_vector<Vector>::value;
-
-template <typename T>
-struct is_writable_vector<std::vector<T>> {
-  static constexpr bool value = true;
-  using type = is_writable_vector<std::vector<T>>;
-};
+static constexpr bool is_writable_vector_v = WritableVector<Vector>;
 
 /**
  * This concept class defines what makes a vector a resizable vector, that is,
@@ -157,36 +107,13 @@ struct is_writable_vector<std::vector<T>> {
  * \tparam Vector The vector type.
  */
 template <typename Vector>
-struct ResizableVectorConcept {
-  Vector v;
-
-  typename vect_traits<Vector>::size_type sz;
-
-  BOOST_CONCEPT_USAGE(ResizableVectorConcept) { v.resize(sz); };
+concept ResizableVector = ReadableVector<Vector>&& requires(Vector& v, int sz) {
+  {v.resize(sz)};
 };
 
-/**
- * This meta-function evaluates whether a Vector class fulfills the ResizableVectorConcept,
- * however, it does not attempt to instantiate the Concept template (because no technique can
- * be used to catch the failed instantiation properly), instead, the default version results
- * in a false value, and the implementer of a vector class is required to provide a specialization
- * if he wants this meta-function to evaluate to true for that new vector class.
- */
+// Legacy
 template <typename Vector>
-struct is_resizable_vector {
-  static constexpr bool value = false;
-  using type = is_resizable_vector<Vector>;
-};
-
-template <typename Vector>
-static constexpr bool is_resizable_vector_v =
-    is_resizable_vector<Vector>::value;
-
-template <typename T>
-struct is_resizable_vector<std::vector<T>> {
-  static constexpr bool value = true;
-  using type = is_resizable_vector<std::vector<T>>;
-};
+static constexpr bool is_resizable_vector_v = ResizableVector<Vector>;
 
 }  // namespace ReaK
 

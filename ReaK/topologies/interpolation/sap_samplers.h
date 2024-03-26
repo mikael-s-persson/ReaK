@@ -42,8 +42,6 @@
 
 #include "ReaK/topologies/interpolation/sustained_acceleration_pulse.h"
 
-#include "boost/concept_check.hpp"
-
 namespace ReaK::pp {
 
 /**
@@ -51,7 +49,7 @@ namespace ReaK::pp {
  * between points within a bounded tangent-bundle.
  * \tparam TimeSpaceType The time topology type against which the interpolation is done.
  */
-template <typename TimeSpaceType = time_topology>
+template <Topology TimeSpaceType = time_topology>
 struct sap_rate_limited_sampler : public serializable {
 
   using self = sap_rate_limited_sampler<TimeSpaceType>;
@@ -64,17 +62,14 @@ struct sap_rate_limited_sampler : public serializable {
 
   /**
    * This function returns a random sample-point on a topology.
-   * \tparam Topology The topology.
    * \param s The topology or space on which the sample-point lies.
    * \return A random sample-point on the topology.
    */
-  template <typename Topology>
-  topology_point_type_t<Topology> operator()(const Topology& s) const {
-    BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((PointDistributionConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((TangentBundleConcept<Topology, 2, TimeSpaceType>));
+  template <PointDistribution Space>
+  topology_point_type_t<Space> operator()(const Space& s) const {
+    static_assert(TangentBundle<Space, 2, TimeSpaceType>));
 
-    using PointType = topology_point_type_t<Topology>;
+    using PointType = topology_point_type_t<Space>;
 
     const auto& get_sample = get(random_sampler, s);
 
@@ -84,7 +79,7 @@ struct sap_rate_limited_sampler : public serializable {
           get_space<2>(s, *t_space)
               .origin();  // the acceleration value should always be 0 in SAP interpolation end-points.
 
-      if (sap_is_in_bounds<Topology, TimeSpaceType>(pt, s, *t_space))
+      if (sap_is_in_bounds<Space, TimeSpaceType>(pt, s, *t_space))
         return pt;
     }
   }

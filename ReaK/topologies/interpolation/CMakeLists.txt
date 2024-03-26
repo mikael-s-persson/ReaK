@@ -13,8 +13,6 @@ reak_cc_library(
     "discrete_point_path.h"
     "discrete_point_trajectory.h"
     "extrapolator_concept.h"
-    "generic_interpolator_factory.h"
-    "interpolated_topologies.h"
     "interpolated_trajectory.h"
     "interpolator_concept.h"
     "linear_interp.h"
@@ -24,12 +22,6 @@ reak_cc_library(
     "point_to_point_trajectory.h"
     "predicted_trajectory_concept.h"
     "quintic_hermite_interp.h"
-    "sap_metrics.h"
-    "sap_Ndof_metrics.h"
-    "sap_Ndof_reach_topologies.h"
-    "sap_Ndof_samplers.h"
-    "sap_reach_topologies.h"
-    "sap_samplers.h"
     "seq_path_base.h"
     "seq_path_wrapper.h"
     "seq_trajectory_base.h"
@@ -46,12 +38,6 @@ reak_cc_library(
     "sustained_velocity_pulse_detail.h"
     "sustained_velocity_pulse_Ndof.h"
     "sustained_velocity_pulse_Ndof_detail.h"
-    "svp_metrics.h"
-    "svp_Ndof_metrics.h"
-    "svp_Ndof_reach_topologies.h"
-    "svp_Ndof_samplers.h"
-    "svp_reach_topologies.h"
-    "svp_samplers.h"
     "trajectory_base.h"
     "transformed_trajectory.h"
     "waypoint_container.h"
@@ -59,6 +45,44 @@ reak_cc_library(
     ReaK::base
     ReaK::lin_alg
     ReaK::kinetostatics
+  PUBLIC
+)
+
+reak_cc_library(
+  NAME
+    interpolated_spaces
+  SRCS
+    "ndof_cubic_spaces_ext.cc"
+    "ndof_linear_spaces_ext.cc"
+    "ndof_quintic_spaces_ext.cc"
+    "ndof_sap_spaces_ext.cc"
+    "ndof_svp_spaces_ext.cc"
+  HDRS
+    "ndof_cubic_spaces.h"
+    "ndof_linear_spaces.h"
+    "ndof_quintic_spaces.h"
+    "ndof_sap_spaces.h"
+    "ndof_svp_spaces.h"
+    "sap_metrics.h"
+    "sap_ndof_metrics.h"
+    "sap_ndof_reach_topologies.h"
+    "sap_ndof_samplers.h"
+    "sap_reach_topologies.h"
+    "sap_samplers.h"
+    "svp_metrics.h"
+    "svp_ndof_metrics.h"
+    "svp_ndof_reach_topologies.h"
+    "svp_ndof_samplers.h"
+    "svp_reach_topologies.h"
+    "svp_samplers.h"
+  DEPS
+    ReaK::interpolation
+    ReaK::base
+    ReaK::sorting
+    ReaK::kinetostatics
+    ReaK::lin_alg
+    ReaK::root_finders
+    ReaK::spaces
   PUBLIC
 )
 

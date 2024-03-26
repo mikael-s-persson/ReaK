@@ -1,0 +1,96 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+  name = "estimators",
+  hdrs = [
+    "aggregate_kalman_filter.h",
+    "belief_state_concept.h",
+    "belief_state_predictor.h",
+    "covar_topology.h",
+    "covariance_concept.h",
+    "covariance_info_matrix.h",
+    "covariance_matrix.h",
+    "decomp_covariance_matrix.h",
+    "discrete_ss_predicted_traj.h",
+    "gaussian_belief_space.h",
+    "gaussian_belief_state.h",
+    "hybrid_kalman_filter.h",
+    "invariant_aggregate_kalman_filter.h",
+    "invariant_kalman_bucy_filter.h",
+    "invariant_kalman_filter.h",
+    "invariant_symplectic_kalman_filter.h",
+    "kalman_bucy_filter.h",
+    "kalman_filter.h",
+    "maximum_likelihood_mapping.h",
+    "state_estimator_concept.h",
+    "state_observer_concept.h",
+    "symplectic_kalman_filter.h",
+    "tsos_aug_inv_kalman_filter.h",
+    "tsos_aug_kalman_filter.h",
+    "unscented_kalman_filter.h",
+  ],
+  deps = [
+    "//ReaK/core/base",
+    "//ReaK/math/lin_alg",
+    "//ReaK/topologies/spaces",
+    "//ReaK/topologies/interpolation",
+  ],
+)
+
+cc_binary(
+  name = "estimate_airship",
+  srcs = [
+    "estimate_airship.cc",
+  ],
+  deps = [
+    ":estimators",
+    "//ReaK/control/systems",
+    "//ReaK/core/base",
+    "//ReaK/core/recorders:recorders_po",
+    "//ReaK/math/lin_alg",
+    "//ReaK/topologies/spaces",
+  ],
+)
+
+cc_binary(
+  name = "estimate_satellite3D",
+  srcs = [
+    "estimate_satellite3D.cc",
+  ],
+  deps = [
+    ":estimators",
+    "//ReaK/control/systems:satellite_modeling_po",
+    "//ReaK/control/systems",
+    "//ReaK/core/base",
+    "//ReaK/core/recorders:recorders_po",
+    "//ReaK/math/lin_alg",
+    "//ReaK/topologies/spaces",
+    "@com_google_absl//absl/flags:flag",
+    "@com_google_absl//absl/flags:parse",
+    "@com_google_absl//absl/log",
+  ],
+)
+
+cc_binary(
+  name = "predict_satellite3D",
+  srcs = [
+    "predict_satellite3D.cc",
+  ],
+  deps = [
+    ":estimators",
+    "//ReaK/control/systems",
+    "//ReaK/core/base",
+    "//ReaK/core/recorders:recorders_po",
+    "//ReaK/math/lin_alg",
+    "//ReaK/topologies/spaces",
+    "@com_google_absl//absl/flags:flag",
+    "@com_google_absl//absl/flags:parse",
+    "@com_google_absl//absl/log",
+  ],
+)

@@ -38,6 +38,8 @@
 #include "ReaK/math/lin_alg/mat_cholesky.h"
 
 #include "ReaK/control/estimators/covariance_concept.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
+#include "ReaK/math/lin_alg/vect_concepts.h"
 
 #include <type_traits>
 #include <utility>
@@ -52,14 +54,11 @@ namespace ReaK::ctrl {
  *
  * Models: CovarianceMatrixConcept
  *
- * \tparam VectorType The state-vector type which the covariance matrix is the covariance of, should model
- *ReadableVectorConcept.
+ * \tparam VectorType The state-vector type which the covariance matrix is the covariance of.
  */
-template <typename VectorType>
+template <ReadableVector VectorType>
 class covariance_matrix : public named_object {
  public:
-  BOOST_CONCEPT_ASSERT((ReadableVectorConcept<VectorType>));
-
   using self = covariance_matrix<VectorType>;
 
   using value_type = vect_value_type_t<VectorType>;
@@ -78,10 +77,9 @@ class covariance_matrix : public named_object {
    * Parametrized constructor.
    * \param aMat The covariance matrix to which to initialize this object.
    */
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   explicit covariance_matrix(Matrix aMat, const std::string& aName = "")
       : mat_cov(std::move(aMat)) {
-    static_assert(is_readable_matrix_v<Matrix>);
     setName(aName);
   }
 
@@ -104,6 +102,11 @@ class covariance_matrix : public named_object {
 
   covariance_matrix() : covariance_matrix(0) {}
 
+  covariance_matrix(const self& rhs) = default;
+  covariance_matrix(self&& rhs) = default;
+  self& operator=(const self& rhs) = default;
+  self& operator=(self&& rhs) = default;
+
   /**
    * Returns the covariance matrix (as a matrix object).
    * \return The covariance matrix (as a matrix object).
@@ -120,27 +123,10 @@ class covariance_matrix : public named_object {
   }
 
   /**
-   * Standard swap function.
-   */
-  friend void swap(self& lhs, self& rhs) noexcept {
-    using std::swap;
-    swap(lhs.mat_cov, rhs.mat_cov);
-  }
-
-  /**
-   * Standard assignment operator.
-   */
-  self& operator=(self rhs) {
-    swap(rhs, *this);
-    return *this;
-  }
-
-  /**
    * Assignment to a readable matrix (covariance matrix).
    */
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator=(const Matrix& rhs) {
-    static_assert(is_readable_matrix_v<Matrix>);
     mat_cov = rhs;
     return *this;
   }

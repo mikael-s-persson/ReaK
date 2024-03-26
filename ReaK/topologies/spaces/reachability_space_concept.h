@@ -111,27 +111,19 @@ struct reachability_topology_traits {
  * d = reachable_space.forward_norm(pd);  The forward-norm of a point-difference (pd) can be obtained.
  *
  * d = reachable_space.backward_norm(pd);  The backward-norm of a point-difference (pd) can be obtained.
- *
- * \tparam ReachabilityTopology The topology type for which this concept is checked.
  */
-template <typename ReachabilityTopology>
-struct ReachabilitySpaceConcept {
-  BOOST_CONCEPT_ASSERT(
-      (TemporalSpaceConcept<typename reachability_topology_traits<
-           ReachabilityTopology>::temporal_space_type>));
-
-  typename reachability_topology_traits<ReachabilityTopology>::point_type p1;
-  typename reachability_topology_traits<
-      ReachabilityTopology>::point_difference_type pd;
-  ReachabilityTopology reachable_space;
-  double d;
-
-  BOOST_CONCEPT_USAGE(ReachabilitySpaceConcept) {
-    d = reachable_space.forward_reach(p1);
-    d = reachable_space.backward_reach(p1);
-    d = reachable_space.forward_norm(pd);
-    d = reachable_space.backward_norm(pd);
-  }
+template <typename Space>
+concept ReachabilitySpace = Topology<Space>&& TemporalSpace<
+    typename reachability_topology_traits<Space>::temporal_space_type>&&
+requires(
+    const Space& space,
+    const typename reachability_topology_traits<Space>::point_type& p,
+    const typename reachability_topology_traits<Space>::point_difference_type&
+        dp) {
+  { space.forward_reach(p) } -> std::convertible_to<double>;
+  { space.backward_reach(p) } -> std::convertible_to<double>;
+  { space.forward_norm(dp) } -> std::convertible_to<double>;
+  { space.backward_norm(dp) } -> std::convertible_to<double>;
 };
 
 }  // namespace ReaK::pp

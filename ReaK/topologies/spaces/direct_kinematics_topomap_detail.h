@@ -36,9 +36,9 @@
 
 #include "ReaK/math/lin_alg/arithmetic_tuple.h"
 
-#include "ReaK/topologies/spaces/Ndof_spaces.h"
 #include "ReaK/topologies/spaces/joint_space_limits.h"
 #include "ReaK/topologies/spaces/joint_space_topologies.h"
+#include "ReaK/topologies/spaces/ndof_spaces.h"
 #include "ReaK/topologies/spaces/se2_topologies.h"
 #include "ReaK/topologies/spaces/se3_topologies.h"
 
@@ -62,11 +62,12 @@ void write_one_joint_coord_impl(
   } else if constexpr (is_se3_space_v<InSpace>) {
     *(model->getFrame3D(f3d_i++)) = get_frame_3D(pt);
   } else {
-    tuple_for_each(pt, space_in,
-                   [&](const auto& pt_elem, const auto& space_in_elem) {
-                     write_one_joint_coord_impl(pt_elem, space_in_elem, gen_i,
-                                                f2d_i, f3d_i, model);
-                   });
+    arithmetic_tuple_details::tuple_for_each(
+        pt, space_in, [&](const auto& pt_elem, const auto& space_in_elem) {
+          write_one_joint_coord_impl(pt_elem, space_in_elem, gen_i, f2d_i,
+                                     f3d_i, model);
+          return int{};
+        });
   }
 }
 
@@ -96,10 +97,12 @@ void read_one_dependent_coord_impl(
   } else if constexpr (is_se3_space_v<InSpace>) {
     set_frame_3D(pt, *(model->getDependentFrame3D(f3d_i++)->mFrame));
   } else {
-    tuple_for_each(pt, space_in, [&](auto& pt_elem, const auto& space_in_elem) {
-      read_one_dependent_coord_impl(pt_elem, space_in_elem, gen_i, f2d_i, f3d_i,
-                                    model);
-    });
+    arithmetic_tuple_details::tuple_for_each(
+        pt, space_in, [&](auto& pt_elem, const auto& space_in_elem) {
+          read_one_dependent_coord_impl(pt_elem, space_in_elem, gen_i, f2d_i,
+                                        f3d_i, model);
+          return int{};
+        });
   }
 }
 

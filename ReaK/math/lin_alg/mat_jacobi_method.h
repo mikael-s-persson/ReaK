@@ -48,6 +48,7 @@
 #define REAK_MATH_LIN_ALG_MAT_JACOBI_METHOD_H_
 
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include <type_traits>
@@ -175,17 +176,14 @@ void eigensolve_Jacobi_impl(Matrix1& A, Matrix2& E, Matrix3* Q,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <SymmetricMatrix Matrix1, WritableMatrix Matrix2,
+          FullyWritableMatrix Matrix3>
 void eigensolve_Jacobi(const Matrix1& A, Matrix2& E, Matrix3& Q,
                        mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_symmetric_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
-  static_assert(is_fully_writable_matrix_v<Matrix3>);
   mat<mat_value_type_t<Matrix1>, mat_structure::square> S(A);
   Q = mat<mat_value_type_t<Matrix1>, mat_structure::identity>(
       A.get_col_count());
-  if constexpr (is_diagonal_matrix_v<Matrix2>) {
+  if constexpr (DiagonalMatrix<Matrix2>) {
     E.set_col_count(A.get_col_count());
     detail::eigensolve_Jacobi_impl(S, E, &Q, NumTol);
   } else {
@@ -209,13 +207,10 @@ void eigensolve_Jacobi(const Matrix1& A, Matrix2& E, Matrix3& Q,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <SymmetricMatrix Matrix1, WritableMatrix Matrix2,
+          ReadableMatrix Matrix3>
 void linlsq_Jacobi(const Matrix1& A, Matrix2& x, const Matrix3& b,
                    mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_symmetric_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
-  static_assert(is_readable_matrix_v<Matrix3>);
   if (A.get_row_count() != b.get_row_count()) {
     throw std::range_error(
         "Linear Least-square solution is only possible if row count of b is "
@@ -259,12 +254,9 @@ struct Jacobi_linlsqsolver {
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <SymmetricMatrix Matrix1, WritableMatrix Matrix2>
 void pseudoinvert_Jacobi(const Matrix1& A, Matrix2& A_inv,
                          mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_symmetric_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
   using ValueType = mat_value_type_t<Matrix1>;
   using std::abs;
   mat<ValueType, mat_structure::square> S(A);
@@ -291,11 +283,9 @@ void pseudoinvert_Jacobi(const Matrix1& A, Matrix2& A_inv,
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
+template <SymmetricMatrix Matrix>
 mat_value_type_t<Matrix> determinant_Jacobi(
     const Matrix& A, mat_value_type_t<Matrix> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix>);
-  static_assert(is_symmetric_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   mat<ValueType, mat_structure::square> S(A);
   mat<ValueType, mat_structure::diagonal> E(A.get_row_count());

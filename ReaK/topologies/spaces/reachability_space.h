@@ -37,8 +37,6 @@
 #include "ReaK/topologies/spaces/reachability_space_concept.h"
 #include "ReaK/topologies/spaces/temporal_space.h"
 
-#include "boost/concept_check.hpp"
-
 namespace ReaK::pp {
 
 /**
@@ -248,17 +246,13 @@ struct reach_plus_time_metric : public serializable {
 
   /**
    * Computes the distance by calling the distance-function of the space-topology (s) on two points (a,b).
-   * \tparam Point The point type of points on the temporal-space.
-   * \tparam TemporalTopology The temporal-space type associated to the metric, should model TemporalSpaceConcept.
    * \param a The first point.
    * \param b The second point.
    * \param s The temporal-space.
    * \return the spatial-distance between the two points.
    */
-  template <typename Point, typename TemporalTopology>
-  double operator()(const Point& a, const Point& b,
-                    const TemporalTopology& s) const {
-    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+  template <typename Point, TemporalSpace Space>
+  double operator()(const Point& a, const Point& b, const Space& s) const {
     if (a.time > b.time) {
       return std::numeric_limits<
           double>::infinity();  // p2 is not reachable from p1.
@@ -272,15 +266,12 @@ struct reach_plus_time_metric : public serializable {
   }
   /**
    * Computes the norm by calling the norm-function of the space-topology (s) on a point-difference (a).
-   * \tparam PointDiff The point-difference type of points on the temporal-space.
-   * \tparam TemporalTopology The temporal-space type associated to the metric, should model TemporalSpaceConcept.
    * \param a The point-difference.
    * \param s The temporal-space.
    * \return The spatial-norm of the difference between the two points.
    */
-  template <typename PointDiff, typename TemporalTopology>
-  double operator()(const PointDiff& a, const TemporalTopology& s) const {
-    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+  template <typename PointDiff, TemporalSpace Space>
+  double operator()(const PointDiff& a, const Space& s) const {
     if (a.time < 0.0) {
       return std::numeric_limits<
           double>::infinity();  // p2 is not reachable from p1.
@@ -322,17 +313,13 @@ struct proper_reach_plus_time_metric : public serializable {
 
   /**
    * Computes the distance by calling the distance-function of the space-topology (s) on two points (a,b).
-   * \tparam Point The point type of points on the temporal-space.
-   * \tparam TemporalTopology The temporal-space type associated to the metric, should model TemporalSpaceConcept.
    * \param a The first point.
    * \param b The second point.
    * \param s The temporal-space.
    * \return the spatial-distance between the two points.
    */
-  template <typename Point, typename TemporalTopology>
-  double operator()(const Point& a, const Point& b,
-                    const TemporalTopology& s) const {
-    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+  template <typename Point, TemporalSpace Space>
+  double operator()(const Point& a, const Point& b, const Space& s) const {
     using std::abs;
     double reach_time = get(proper_metric, s.get_space_topology())(
         a.pt, b.pt, s.get_space_topology());
@@ -340,15 +327,12 @@ struct proper_reach_plus_time_metric : public serializable {
   }
   /**
    * Computes the norm by calling the norm-function of the space-topology (s) on a point-difference (a).
-   * \tparam PointDiff The point-difference type of points on the temporal-space.
-   * \tparam TemporalTopology The temporal-space type associated to the metric, should model TemporalSpaceConcept.
    * \param a The point-difference.
    * \param s The temporal-space.
    * \return The spatial-norm of the difference between the two points.
    */
-  template <typename PointDiff, typename TemporalTopology>
-  double operator()(const PointDiff& a, const TemporalTopology& s) const {
-    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+  template <typename PointDiff, TemporalSpace Space>
+  double operator()(const PointDiff& a, const Space& s) const {
     using std::abs;
     double reach_time = get(proper_metric, s.get_space_topology())(
         a.pt, s.get_space_topology());

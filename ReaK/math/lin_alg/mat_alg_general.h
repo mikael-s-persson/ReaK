@@ -60,8 +60,6 @@ namespace ReaK {
  * error if it is, all useful matrix class templates are, in fact, partial specializations of
  * this general class template.
  *
- * Models: ReadableMatrixConcept.
- *
  * \tparam T Arithmetic type of the elements of the matrix.
  * \tparam Structure Enum which defines the structure of the matrix, see mat_structure::tag.
  * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
@@ -79,58 +77,10 @@ class mat {
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
-struct is_readable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>> {
-  using value_type = bool;
-  static constexpr bool value = true;
-  using type =
-      is_readable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
-};
-
-template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, unsigned int RowCount,
-          unsigned int ColCount>
-struct is_writable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>> {
-  using value_type = bool;
-  static constexpr bool value = (Structure != mat_structure::identity) &&
-                                (Structure != mat_structure::nil) &&
-                                (Structure != mat_structure::permutation);
-  using type =
-      is_writable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
-};
-
-template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, unsigned int RowCount,
-          unsigned int ColCount>
-struct is_fully_writable_matrix<
-    mat<T, Structure, Alignment, RowCount, ColCount>> {
-  using value_type = bool;
-  static constexpr bool value = (Structure == mat_structure::rectangular) ||
-                                (Structure == mat_structure::square);
-  using type = is_fully_writable_matrix<
-      mat<T, Structure, Alignment, RowCount, ColCount>>;
-};
-
-template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, unsigned int RowCount,
-          unsigned int ColCount>
-struct is_row_resizable_matrix<
-    mat<T, Structure, Alignment, RowCount, ColCount>> {
-  using value_type = bool;
-  static constexpr bool value = (RowCount == 0);
-  using type =
-      is_row_resizable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
-};
-
-template <typename T, mat_structure::tag Structure,
-          mat_alignment::tag Alignment, unsigned int RowCount,
-          unsigned int ColCount>
-struct is_col_resizable_matrix<
-    mat<T, Structure, Alignment, RowCount, ColCount>> {
-  using value_type = bool;
-  static constexpr bool value = (ColCount == 0);
-  using type =
-      is_col_resizable_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
-};
+static constexpr bool is_fully_writable_matrix_v<
+    mat<T, Structure, Alignment, RowCount, ColCount>> =
+    (Structure == mat_structure::rectangular) ||
+    (Structure == mat_structure::square);
 
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
@@ -153,39 +103,29 @@ struct mat_addition_priority<mat<T, Structure, Alignment, RowCount, ColCount>> {
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
-struct is_square_matrix<mat<T, Structure, Alignment, RowCount, ColCount>> {
-  using value_type = bool;
-  static constexpr bool value =
-      ((Structure != mat_structure::rectangular &&
-        (Structure != mat_structure::nil))) ||
-      ((RowCount != 0) && (ColCount != 0) && (RowCount == ColCount));
-  using type =
-      is_square_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
-};
+static constexpr bool
+    is_square_matrix_v<mat<T, Structure, Alignment, RowCount, ColCount>> =
+        ((Structure != mat_structure::rectangular &&
+          (Structure != mat_structure::nil))) ||
+        ((RowCount != 0) && (ColCount != 0) && (RowCount == ColCount));
 
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
-struct is_symmetric_matrix<mat<T, Structure, Alignment, RowCount, ColCount>> {
-  using value_type = bool;
-  static constexpr bool value = ((Structure == mat_structure::symmetric) ||
-                                 (Structure == mat_structure::diagonal) ||
-                                 (Structure == mat_structure::tridiagonal) ||
-                                 (Structure == mat_structure::identity));
-  using type =
-      is_symmetric_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
-};
+static constexpr bool
+    is_symmetric_matrix_v<mat<T, Structure, Alignment, RowCount, ColCount>> =
+        ((Structure == mat_structure::symmetric) ||
+         (Structure == mat_structure::diagonal) ||
+         (Structure == mat_structure::tridiagonal) ||
+         (Structure == mat_structure::identity));
 
 template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
-struct is_diagonal_matrix<mat<T, Structure, Alignment, RowCount, ColCount>> {
-  using value_type = bool;
-  static constexpr bool value = ((Structure == mat_structure::diagonal ||
-                                  (Structure == mat_structure::identity)));
-  using type =
-      is_diagonal_matrix<mat<T, Structure, Alignment, RowCount, ColCount>>;
-};
+static constexpr bool
+    is_diagonal_matrix_v<mat<T, Structure, Alignment, RowCount, ColCount>> =
+        ((Structure == mat_structure::diagonal) ||
+         (Structure == mat_structure::identity));
 
 namespace rtti {
 

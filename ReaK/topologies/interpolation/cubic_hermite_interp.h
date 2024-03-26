@@ -39,12 +39,13 @@
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
+#include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 
-#include "ReaK/topologies/interpolation/generic_interpolator_factory.h"
 #include "ReaK/topologies/interpolation/interpolated_trajectory.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 
-#include "boost/concept_check.hpp"
+#include "ReaK/topologies/spaces/temporal_space_concept.h"
 
 #include <cmath>
 #include <limits>
@@ -126,21 +127,18 @@ inline void cubic_hermite_interpolate_impl(
 /**
  * This function template computes a cubic Hermite interpolation between two points in a
  * temporal and once-differentiable topology.
- * \tparam PointType The point type on the temporal and once-differentiable topology.
- * \tparam Topology The temporal and once-differentiable topology type.
  * \param a The starting point of the interpolation.
  * \param b The ending point of the interpolation.
  * \param t The time value at which the interpolated point is sought.
  * \param space The space on which the points reside.
  * \return The interpolated point at time t, between a and b.
  */
-template <typename PointType, typename Topology>
+template <typename PointType, TemporalSpace Space>
 PointType cubic_hermite_interpolate(const PointType& a, const PointType& b,
-                                    double t, const Topology& space) {
-  using SpaceType = typename temporal_space_traits<Topology>::space_topology;
-  using TimeSpaceType = typename temporal_space_traits<Topology>::time_topology;
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT((TangentBundleConcept<SpaceType, 1, TimeSpaceType>));
+                                    double t, const Space& space) {
+  using SpaceType = typename temporal_space_traits<Space>::space_topology;
+  using TimeSpaceType = typename temporal_space_traits<Space>::time_topology;
+  static_assert(TangentBundle<SpaceType, TimeSpaceType, 0, 1>);
 
   double t_factor = b.time - a.time;
   if (std::abs(t_factor) < std::numeric_limits<double>::epsilon()) {
@@ -155,8 +153,8 @@ PointType cubic_hermite_interpolate(const PointType& a, const PointType& b,
   using Space0 = derived_N_order_space_t<SpaceType, TimeSpaceType, 0>;
   using Space1 = derived_N_order_space<SpaceType, TimeSpaceType, 1>;
 
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
+  static_assert(LieGroup<Space0>);
+  static_assert(LieGroup<Space1>);
 
   using PointDiff0 = topology_point_difference_type_t<Space0>;
   using PointDiff1 = topology_point_difference_type_t<Space1>;
@@ -186,11 +184,10 @@ PointType cubic_hermite_interpolate(const PointType& a, const PointType& b,
 /**
  * This functor class implements a cubic Hermite interpolation in a temporal and once-differentiable
  * topology.
- * \tparam SpaceType The topology on which the interpolation is done, should model MetricSpaceConcept and
- * DifferentiableSpaceConcept once against time.
+ * \tparam SpaceType The topology on which the interpolation is done.
  * \tparam TimeSpaceType The time topology.
  */
-template <typename SpaceType, typename TimeSpaceType>
+template <MetricSpace SpaceType, Topology TimeSpaceType>
 class cubic_hermite_interpolator {
  public:
   using self = cubic_hermite_interpolator<SpaceType, TimeSpaceType>;
@@ -203,10 +200,9 @@ class cubic_hermite_interpolator {
   using PointType1 = topology_point_type_t<Space1>;
   using PointDiff1 = topology_point_difference_type_t<Space1>;
 
-  BOOST_CONCEPT_ASSERT((TopologyConcept<SpaceType>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
-  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
-  BOOST_CONCEPT_ASSERT((TangentBundleConcept<SpaceType, 1, TimeSpaceType>));
+  static_assert(LieGroup<Space0>);
+  static_assert(LieGroup<Space1>);
+  static_assert(TangentBundle<SpaceType, TimeSpaceType, 0, 1>);
 
  private:
   PointDiff0 delta_first_order;
@@ -300,18 +296,15 @@ class cubic_hermite_interpolator {
 
 /**
  * This class is a factory class for cubic Hermite interpolators on a temporal differentiable space.
- * \tparam TemporalTopology The temporal topology on which the interpolation is done, should model TemporalSpaceConcept.
  */
-template <typename TemporalTopology>
+template <TemporalSpace Space>
 class cubic_hermite_interp_factory : public serializable {
  public:
-  using self = cubic_hermite_interp_factory<TemporalTopology>;
-  using topology = TemporalTopology;
-  using point_type = topology_point_type_t<TemporalTopology>;
+  using self = cubic_hermite_interp_factory<Space>;
+  using topology = Space;
+  using point_type = topology_point_type_t<Space>;
   using interpolator_type =
       generic_interpolator<self, cubic_hermite_interpolator>;
-
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
 
  private:
   std::shared_ptr<topology> space;
@@ -368,28 +361,24 @@ struct get_tagged_temporal_interpolator<cubic_hermite_interpolation_tag,
  * This class implements a trajectory in a temporal and once-differentiable topology.
  * The trajectory is represented by a set of waypoints and all intermediate points
  * are computed with a cubic Hermite interpolation. This class models the SpatialTrajectoryConcept.
- * \tparam Topology The topology type on which the points and the path can reside, should model the TemporalSpaceConcept
- * and the DifferentiableSpaceConcept (order 1 with space against time).
- * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the
- * DistanceMetricConcept.
+ * \tparam Space The topology type on which the points and the path can reside.
+ * \tparam Metric The distance metric used to assess the distance between points in the path.
  */
-template <typename Topology,
-          typename DistanceMetric =
-              typename metric_space_traits<Topology>::distance_metric_type>
+template <TemporalSpace Space,
+          DistanceMetric<Space> Metric =
+              typename metric_space_traits<Space>::distance_metric_type>
 class cubic_hermite_interp_traj
-    : public interpolated_trajectory<
-          Topology, cubic_hermite_interp_factory<Topology>, DistanceMetric> {
+    : public interpolated_trajectory<Space, cubic_hermite_interp_factory<Space>,
+                                     Metric> {
  public:
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (TangentBundleConcept<
-          typename temporal_space_traits<Topology>::space_topology, 1,
-          typename temporal_space_traits<Topology>::time_topology>));
+  static_assert(TangentBundle<
+                typename temporal_space_traits<Space>::space_topology,
+                typename temporal_space_traits<Space>::time_topology, 0, 1>);
 
-  using self = cubic_hermite_interp_traj<Topology, DistanceMetric>;
+  using self = cubic_hermite_interp_traj<Space, Metric>;
   using base_class_type =
-      interpolated_trajectory<Topology, cubic_hermite_interp_factory<Topology>,
-                              DistanceMetric>;
+      interpolated_trajectory<Space, cubic_hermite_interp_factory<Space>,
+                              Metric>;
 
   using topology = typename base_class_type::topology;
   using distance_metric = typename base_class_type::distance_metric;
@@ -405,7 +394,7 @@ class cubic_hermite_interp_traj
       const std::shared_ptr<topology>& aSpace = std::make_shared<topology>(),
       const distance_metric& aDist = distance_metric())
       : base_class_type(aSpace, aDist,
-                        cubic_hermite_interp_factory<Topology>(aSpace)) {}
+                        cubic_hermite_interp_factory<Space>(aSpace)) {}
 
   /**
    * Constructs the path from a space, the start and end points.
@@ -418,7 +407,7 @@ class cubic_hermite_interp_traj
                             const point_type& aStart, const point_type& aEnd,
                             const distance_metric& aDist = distance_metric())
       : base_class_type(aSpace, aStart, aEnd, aDist,
-                        cubic_hermite_interp_factory<Topology>(aSpace)) {}
+                        cubic_hermite_interp_factory<Space>(aSpace)) {}
 
   /**
    * Constructs the path from a range of points and their space.
@@ -433,7 +422,7 @@ class cubic_hermite_interp_traj
                             const std::shared_ptr<topology>& aSpace,
                             const distance_metric& aDist = distance_metric())
       : base_class_type(aBegin, aEnd, aSpace, aDist,
-                        cubic_hermite_interp_factory<Topology>(aSpace)) {}
+                        cubic_hermite_interp_factory<Space>(aSpace)) {}
 
   /*******************************************************************************
                      ReaK's RTTI and Serialization interfaces

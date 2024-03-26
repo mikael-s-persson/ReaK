@@ -39,7 +39,7 @@ namespace ReaK {
 
 /// This class template forms the addition of two matrices, one diagonal and one square.
 ///
-/// Models: ReadableMatrixConcept.
+/// Models: ReadableMatrix.
 ///
 /// \tparam SquareMatrix Matrix type for the left matrix.
 /// \tparam DiagMatrix Matrix type for the right matrix.
@@ -103,24 +103,6 @@ class mat_damped_matrix {
     return (*m_sqr)(i, j);
   }
 
-  /// Sub-matrix operator, accessor for read only.
-  mat_const_sub_block<self> operator()(const std::pair<int, int>& r,
-                                       const std::pair<int, int>& c) const {
-    return sub(*this)(r, c);
-  }
-
-  /// Sub-matrix operator, accessor for read only.
-  mat_const_col_slice<self> operator()(int r,
-                                       const std::pair<int, int>& c) const {
-    return slice(*this)(r, c);
-  }
-
-  /// Sub-matrix operator, accessor for read only.
-  mat_const_row_slice<self> operator()(const std::pair<int, int>& r,
-                                       int c) const {
-    return slice(*this)(r, c);
-  }
-
   /// Gets the row-count (number of rows) of the matrix.
   /// \return number of rows of the matrix.
   int get_row_count() const noexcept { return m_sqr->get_row_count(); }
@@ -136,65 +118,25 @@ class mat_damped_matrix {
 };
 
 template <typename SquareMatrix, typename DiagMatrix>
-struct is_readable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
-  static constexpr bool value =
-      is_readable_matrix_v<SquareMatrix> && is_readable_matrix_v<DiagMatrix>;
-  using type = is_readable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>>;
-};
-
-template <typename SquareMatrix, typename DiagMatrix>
-struct is_writable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
-  static constexpr bool value = false;
-  using type = is_writable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>>;
-};
-
-template <typename SquareMatrix, typename DiagMatrix>
-struct is_fully_writable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_fully_writable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>>;
-};
-
-template <typename SquareMatrix, typename DiagMatrix>
-struct is_row_resizable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_row_resizable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>>;
-};
-
-template <typename SquareMatrix, typename DiagMatrix>
-struct is_col_resizable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_col_resizable_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>>;
-};
-
-template <typename SquareMatrix, typename DiagMatrix>
 mat_damped_matrix<SquareMatrix, DiagMatrix> make_damped_matrix(
     const SquareMatrix& aMSqr, const DiagMatrix& aMDiag) {
   return mat_damped_matrix<SquareMatrix, DiagMatrix>(aMSqr, aMDiag);
 };
 
 template <typename SquareMatrix, typename DiagMatrix>
-struct is_square_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
-  using value_type = bool;
-  static constexpr bool value = is_square_matrix_v<SquareMatrix>;
-  using type = is_square_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>>;
-};
+static constexpr bool
+    is_square_matrix_v<mat_damped_matrix<SquareMatrix, DiagMatrix>> =
+        is_square_matrix_v<SquareMatrix>;
 
 template <typename SquareMatrix, typename DiagMatrix>
-struct is_symmetric_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
-  using value_type = bool;
-  static constexpr bool value = is_symmetric_matrix_v<SquareMatrix>;
-  using type = is_symmetric_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>>;
-};
+static constexpr bool
+    is_symmetric_matrix_v<mat_damped_matrix<SquareMatrix, DiagMatrix>> =
+        is_symmetric_matrix_v<SquareMatrix>;
 
 template <typename SquareMatrix, typename DiagMatrix>
-struct is_diagonal_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>> {
-  using value_type = bool;
-  static constexpr bool value = is_diagonal_matrix_v<SquareMatrix>;
-  using type = is_diagonal_matrix<mat_damped_matrix<SquareMatrix, DiagMatrix>>;
-};
+static constexpr bool
+    is_diagonal_matrix_v<mat_damped_matrix<SquareMatrix, DiagMatrix>> =
+        is_diagonal_matrix_v<SquareMatrix>;
 
 }  // namespace ReaK
 

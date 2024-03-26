@@ -77,37 +77,29 @@ namespace ReaK::graph {
   *
   * Required concepts:
   *
-  * The visitor class should model SBMPVisitorConcept, NodePushingVisitorConcept, NodeReConnectVisitorConcept,
-  * NeighborhoodTrackingVisitorConcept, and NodeExploringVisitorConcept.
+  * The visitor class should model SBMPVisitor, NodePushingVisitor, NodeReConnectVisitor,
+  * NeighborhoodTrackingVisitor, and NodeExploringVisitor.
   *
   * Valid expressions:
   *
   * vis.publish_path(g);  A function to notify the visitor that at least one A* round has completed and its resulting
   *path (partial or complete) can be published (the path is encoded in the predecessor property-map).
-  *
-  * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
-  * \tparam Graph The graph type on which the visitor should be able to act.
-  * \tparam Topology The topology type on which the visitor class is required to work with.
   */
-template <typename Visitor, typename Graph, typename Topology>
-struct SBAStarVisitorConcept : SBMPVisitorConcept<Visitor, Graph> {
-
-  BOOST_CONCEPT_ASSERT((NodePushingVisitorConcept<Visitor, Graph, Topology>));
-  BOOST_CONCEPT_ASSERT((NodeReConnectVisitorConcept<Visitor, Graph>));
-  BOOST_CONCEPT_ASSERT((NeighborhoodTrackingVisitorConcept<Visitor, Graph>));
-  BOOST_CONCEPT_ASSERT((NodeExploringVisitorConcept<Visitor, Graph>));
-
-  BOOST_CONCEPT_USAGE(SBAStarVisitorConcept) { vis.publish_path(g); }
-  Visitor vis;
-  Graph g;
+template <typename Visitor, typename Graph, typename Space>
+concept SBAStarVisitor =
+    SBMPVisitor<Visitor, Graph>&& NodePushingVisitor<Visitor, Graph, Space>&&
+        NodeReConnectVisitor<Visitor, Graph>&& NeighborhoodTrackingVisitor<
+            Visitor, Graph>&& NodeExploringVisitor<Visitor, Graph>&&
+        requires(Visitor vis, Graph g) {
+  vis.publish_path(g);
 };
 
 /**
  * This class is simply an archetype visitor for the SBA* algorithm.
  */
-template <typename Topology>
+template <typename Space>
 struct sbastar_visitor_archetype : sbmp_visitor_archetype,
-                                   node_pushing_visitor_archetype<Topology>,
+                                   node_pushing_visitor_archetype<Space>,
                                    node_reconnect_visitor_archetype,
                                    neighborhood_tracking_visitor_archetype,
                                    node_exploring_visitor_archetype {
@@ -125,29 +117,19 @@ struct sbastar_visitor_archetype : sbmp_visitor_archetype,
   *
   * Required concepts:
   *
-  * The visitor class should model SBAStarVisitorConcept and NodeBackPushingVisitorConcept.
-  *
-  * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
-  * \tparam Graph The graph type on which the visitor should be able to act.
-  * \tparam Topology The topology type on which the visitor class is required to work with.
+  * The visitor class should model SBAStarVisitor and NodeBackPushingVisitor.
   */
-template <typename Visitor, typename Graph, typename Topology>
-struct SBAStarBidirVisitorConcept
-    : SBAStarVisitorConcept<Visitor, Graph, Topology> {
-
-  BOOST_CONCEPT_ASSERT(
-      (NodeBackPushingVisitorConcept<Visitor, Graph, Topology>));
-
-  BOOST_CONCEPT_USAGE(SBAStarBidirVisitorConcept) {}
-};
+template <typename Visitor, typename Graph, typename Space>
+concept SBAStarBidirVisitor = SBAStarVisitor<Visitor, Graph, Space>&&
+    NodeBackPushingVisitor<Visitor, Graph, Space>;
 
 /**
  * This class is simply an archetype visitor for the bi-directional SBA* algorithm.
  */
-template <typename Topology>
+template <typename Space>
 struct sbastar_bidir_visitor_archetype
-    : sbastar_visitor_archetype<Topology>,
-      node_back_pushing_visitor_archetype<Topology> {};
+    : sbastar_visitor_archetype<Space>,
+      node_back_pushing_visitor_archetype<Space> {};
 
 namespace detail {
 namespace {
@@ -338,11 +320,10 @@ struct sba_bidir_node_generator {
   }
 };
 
-template <typename Graph, typename Topology, typename SBAStarVisitor,
+template <typename Graph, pp::MetricSpace Space, typename Visitor,
           typename MotionGraphConnector, typename SBANodeGenerator,
           typename MutableQueue, typename NcSelector>
-void sbastar_search_loop(Graph& g, const Topology& super_space,
-                         SBAStarVisitor& sba_vis,
+void sbastar_search_loop(Graph& g, const Space& super_space, Visitor& sba_vis,
                          MotionGraphConnector connect_vertex,
                          SBANodeGenerator sba_generate_node, MutableQueue& Q,
                          NcSelector select_neighborhood) {
@@ -383,11 +364,10 @@ void sbastar_search_loop(Graph& g, const Topology& super_space,
   }  // while
 }
 
-template <typename Graph, typename Topology, typename SBAStarVisitor,
+template <typename Graph, pp::MetricSpace Space, typename Visitor,
           typename MotionGraphConnector, typename SBANodeGenerator,
           typename MutableQueue, typename NcSelector>
-void sbastar_bidir_loop(Graph& g, const Topology& super_space,
-                        SBAStarVisitor& sba_vis,
+void sbastar_bidir_loop(Graph& g, const Space& super_space, Visitor& sba_vis,
                         MotionGraphConnector connect_vertex,
                         SBANodeGenerator sba_generate_node, MutableQueue& Q,
                         NcSelector select_neighborhood) {
@@ -442,18 +422,17 @@ void sbastar_bidir_loop(Graph& g, const Topology& super_space,
   }  // while
 }
 
-template <typename Graph, typename Topology, typename SBAStarVisitor,
-          typename NodeConnector, typename KeyMap, typename PositionMap,
-          typename WeightMap, typename DensityMap, typename ConstrictionMap,
-          typename DistanceMap, typename PredecessorMap,
-          typename FwdDistanceMap, typename NcSelector>
+template <typename Graph, pp::MetricSpace Space,
+          SBAStarVisitor<Graph, Space> Visitor, typename NodeConnector,
+          typename KeyMap, typename PositionMap, typename WeightMap,
+          typename DensityMap, typename ConstrictionMap, typename DistanceMap,
+          typename PredecessorMap, typename FwdDistanceMap, typename NcSelector>
 void generate_sbastar_no_init_impl(
-    Graph& g, graph_vertex_t<Graph> start_vertex, const Topology& super_space,
-    SBAStarVisitor vis, NodeConnector connect_vertex, KeyMap key,
-    PositionMap position, WeightMap weight, DensityMap density,
-    ConstrictionMap constriction, DistanceMap distance,
-    PredecessorMap predecessor, FwdDistanceMap fwd_distance,
-    NcSelector select_neighborhood) {
+    Graph& g, graph_vertex_t<Graph> start_vertex, const Space& super_space,
+    Visitor vis, NodeConnector connect_vertex, KeyMap key, PositionMap position,
+    WeightMap weight, DensityMap density, ConstrictionMap constriction,
+    DistanceMap distance, PredecessorMap predecessor,
+    FwdDistanceMap fwd_distance, NcSelector select_neighborhood) {
   using Vertex = graph_vertex_t<Graph>;
 
   using IndexInHeapMap = boost::vector_property_map<std::size_t>;
@@ -468,10 +447,9 @@ void generate_sbastar_no_init_impl(
                                                   KeyMap, KeyCompareType>;
   MutableQueue Q(key, index_in_heap, KeyCompareType());
 
-  sbastar_bfs_visitor<Graph, SBAStarVisitor, MutableQueue, IndexInHeapMap,
-                      KeyMap, PositionMap, WeightMap, DensityMap,
-                      ConstrictionMap, DistanceMap, PredecessorMap,
-                      FwdDistanceMap>
+  sbastar_bfs_visitor<Graph, Visitor, MutableQueue, IndexInHeapMap, KeyMap,
+                      PositionMap, WeightMap, DensityMap, ConstrictionMap,
+                      DistanceMap, PredecessorMap, FwdDistanceMap>
       sba_bfs_vis(vis, Q, index_in_heap, key, position, weight, density,
                   constriction, distance, predecessor, fwd_distance);
 
@@ -483,19 +461,20 @@ void generate_sbastar_no_init_impl(
                       sba_node_generator(), Q, select_neighborhood);
 }
 
-template <typename Graph, typename Topology, typename SBAStarVisitor,
-          typename NodeConnector, typename KeyMap, typename PositionMap,
-          typename WeightMap, typename DensityMap, typename ConstrictionMap,
-          typename DistanceMap, typename PredecessorMap,
-          typename FwdDistanceMap, typename SuccessorMap, typename NcSelector>
+template <typename Graph, pp::MetricSpace Space,
+          SBAStarBidirVisitor<Graph, Space> Visitor, typename NodeConnector,
+          typename KeyMap, typename PositionMap, typename WeightMap,
+          typename DensityMap, typename ConstrictionMap, typename DistanceMap,
+          typename PredecessorMap, typename FwdDistanceMap,
+          typename SuccessorMap, typename NcSelector>
 void generate_sbastar_bidir_no_init_impl(
     Graph& g, graph_vertex_t<Graph> start_vertex,
-    graph_vertex_t<Graph> goal_vertex, const Topology& super_space,
-    SBAStarVisitor vis, NodeConnector connect_vertex, KeyMap key,
-    PositionMap position, WeightMap weight, DensityMap density,
-    ConstrictionMap constriction, DistanceMap distance,
-    PredecessorMap predecessor, FwdDistanceMap fwd_distance,
-    SuccessorMap successor, NcSelector select_neighborhood) {
+    graph_vertex_t<Graph> goal_vertex, const Space& super_space, Visitor vis,
+    NodeConnector connect_vertex, KeyMap key, PositionMap position,
+    WeightMap weight, DensityMap density, ConstrictionMap constriction,
+    DistanceMap distance, PredecessorMap predecessor,
+    FwdDistanceMap fwd_distance, SuccessorMap successor,
+    NcSelector select_neighborhood) {
   using Vertex = graph_vertex_t<Graph>;
 
   using IndexInHeapMap = boost::vector_property_map<std::size_t>;
@@ -511,10 +490,9 @@ void generate_sbastar_bidir_no_init_impl(
                                                   KeyMap, KeyCompareType>;
   MutableQueue Q(key, index_in_heap, KeyCompareType());
 
-  sbastar_bfs_visitor<Graph, SBAStarVisitor, MutableQueue, IndexInHeapMap,
-                      KeyMap, PositionMap, WeightMap, DensityMap,
-                      ConstrictionMap, DistanceMap, PredecessorMap,
-                      FwdDistanceMap, SuccessorMap>
+  sbastar_bfs_visitor<Graph, Visitor, MutableQueue, IndexInHeapMap, KeyMap,
+                      PositionMap, WeightMap, DensityMap, ConstrictionMap,
+                      DistanceMap, PredecessorMap, FwdDistanceMap, SuccessorMap>
       sba_bfs_vis(vis, Q, index_in_heap, key, position, weight, density,
                   constriction, distance, predecessor, fwd_distance, successor);
 
@@ -531,9 +509,9 @@ void generate_sbastar_bidir_no_init_impl(
                      sba_bidir_node_generator(), Q, select_neighborhood);
 }
 
-template <typename Graph, typename SBAStarVisitor, typename KeyMap,
+template <typename Graph, typename Visitor, typename KeyMap,
           typename DistanceMap, typename PredecessorMap>
-void initialize_sbastar_nodes(Graph& g, SBAStarVisitor vis, KeyMap key,
+void initialize_sbastar_nodes(Graph& g, Visitor vis, KeyMap key,
                               DistanceMap distance,
                               PredecessorMap predecessor) {
   for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
@@ -544,10 +522,10 @@ void initialize_sbastar_nodes(Graph& g, SBAStarVisitor vis, KeyMap key,
   }
 }
 
-template <typename Graph, typename SBAStarVisitor, typename KeyMap,
+template <typename Graph, typename Visitor, typename KeyMap,
           typename DistanceMap, typename PredecessorMap,
           typename FwdDistanceMap, typename SuccessorMap>
-void initialize_sbastar_nodes(Graph& g, SBAStarVisitor vis, KeyMap key,
+void initialize_sbastar_nodes(Graph& g, Visitor vis, KeyMap key,
                               DistanceMap distance, PredecessorMap predecessor,
                               FwdDistanceMap fwd_distance,
                               SuccessorMap successor) {
@@ -564,11 +542,11 @@ void initialize_sbastar_nodes(Graph& g, SBAStarVisitor vis, KeyMap key,
 }  // namespace
 }  // namespace detail
 
-template <typename Graph, typename Topology, typename SBAStarVisitor,
-          typename NcSelector, typename KeyMap, typename PositionMap,
-          typename WeightMap, typename DensityMap, typename ConstrictionMap,
-          typename DistanceMap, typename PredecessorMap,
-          typename FwdDistanceMap,
+template <typename Graph, pp::MetricSpace Space,
+          SBAStarVisitor<Graph, Space> Visitor, typename NcSelector,
+          typename KeyMap, typename PositionMap, typename WeightMap,
+          typename DensityMap, typename ConstrictionMap, typename DistanceMap,
+          typename PredecessorMap, typename FwdDistanceMap,
           typename SuccessorMap = detail::null_vertex_prop_map<Graph>>
 struct sbastar_bundle {
   using Vertex = graph_vertex_t<Graph>;
@@ -576,8 +554,8 @@ struct sbastar_bundle {
   Graph* m_g;
   Vertex m_start_vertex;
   Vertex m_goal_vertex;
-  const Topology* m_super_space;
-  SBAStarVisitor m_vis;
+  const Space* m_super_space;
+  Visitor m_vis;
   NcSelector m_select_neighborhood;
   KeyMap m_key;
   PositionMap m_position;
@@ -589,8 +567,8 @@ struct sbastar_bundle {
   FwdDistanceMap m_fwd_distance;
   SuccessorMap m_successor;
 
-  sbastar_bundle(Graph& g, Vertex start_vertex, const Topology& super_space,
-                 SBAStarVisitor vis, NcSelector select_neighborhood, KeyMap key,
+  sbastar_bundle(Graph& g, Vertex start_vertex, const Space& super_space,
+                 Visitor vis, NcSelector select_neighborhood, KeyMap key,
                  PositionMap position, WeightMap weight, DensityMap density,
                  ConstrictionMap constriction, DistanceMap distance,
                  PredecessorMap predecessor, FwdDistanceMap fwd_distance,
@@ -612,7 +590,7 @@ struct sbastar_bundle {
         m_successor(successor) {}
 
   sbastar_bundle(Graph& g, Vertex start_vertex, Vertex goal_vertex,
-                 const Topology& super_space, SBAStarVisitor vis,
+                 const Space& super_space, Visitor vis,
                  NcSelector select_neighborhood, KeyMap key,
                  PositionMap position, WeightMap weight, DensityMap density,
                  ConstrictionMap constriction, DistanceMap distance,
@@ -642,8 +620,8 @@ struct sbastar_bundle {
   * \tparam Graph The graph type that can store the generated roadmap, should model
   *         BidirectionalGraphConcept and MutableGraphConcept.
   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
-  * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-  * \tparam SBAStarVisitor The type of the SBA* visitor to be used, should model the SBAStarVisitorConcept.
+  * \tparam Space The topology type that represents the free-space, should model BGL's Topology concept.
+  * \tparam Visitor The type of the SBA* visitor to be used.
   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values
   *         for each vertex in the graph.
   * \tparam PositionMap A property-map type that can store the position of each vertex-property object.
@@ -691,60 +669,50 @@ struct sbastar_bundle {
   *        complete path).
   * \param fwd_distance The property-map which stores the estimated distance of each vertex to the goal.
   */
-template <typename Graph, typename Topology, typename SBAStarVisitor,
-          typename NcSelector, typename KeyMap, typename PositionMap,
-          typename WeightMap, typename DensityMap, typename ConstrictionMap,
-          typename DistanceMap, typename PredecessorMap,
-          typename FwdDistanceMap>
-sbastar_bundle<Graph, Topology, SBAStarVisitor, NcSelector, KeyMap, PositionMap,
+template <typename Graph, pp::MetricSpace Space,
+          SBAStarVisitor<Graph, Space> Visitor, typename NcSelector,
+          typename KeyMap, typename PositionMap, typename WeightMap,
+          typename DensityMap, typename ConstrictionMap, typename DistanceMap,
+          typename PredecessorMap, typename FwdDistanceMap>
+sbastar_bundle<Graph, Space, Visitor, NcSelector, KeyMap, PositionMap,
                WeightMap, DensityMap, ConstrictionMap, DistanceMap,
                PredecessorMap, FwdDistanceMap>
 make_sbastar_bundle(Graph& g, graph_vertex_t<Graph> start_vertex,
-                    const Topology& super_space, SBAStarVisitor vis,
+                    const Space& super_space, Visitor vis,
                     NcSelector select_neighborhood, KeyMap key,
                     PositionMap position, WeightMap weight, DensityMap density,
                     ConstrictionMap constriction, DistanceMap distance,
                     PredecessorMap predecessor, FwdDistanceMap fwd_distance) {
 
   BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (SBAStarVisitorConcept<SBAStarVisitor, Graph, Topology>));
 
-  return sbastar_bundle<Graph, Topology, SBAStarVisitor, NcSelector, KeyMap,
-                        PositionMap, WeightMap, DensityMap, ConstrictionMap,
-                        DistanceMap, PredecessorMap, FwdDistanceMap>(
-      g, start_vertex, super_space, vis, select_neighborhood, key, position,
-      weight, density, constriction, distance, predecessor, fwd_distance);
+  return {g,        start_vertex, super_space, vis,     select_neighborhood,
+          key,      position,     weight,      density, constriction,
+          distance, predecessor,  fwd_distance};
 }
 
-template <typename Graph, typename Topology, typename SBAStarVisitor,
-          typename NcSelector, typename KeyMap, typename PositionMap,
-          typename WeightMap, typename DensityMap, typename ConstrictionMap,
-          typename DistanceMap, typename PredecessorMap,
-          typename FwdDistanceMap>
-sbastar_bundle<Graph, Topology, SBAStarVisitor, NcSelector, KeyMap, PositionMap,
+template <typename Graph, pp::MetricSpace Space,
+          SBAStarVisitor<Graph, Space> Visitor, typename NcSelector,
+          typename KeyMap, typename PositionMap, typename WeightMap,
+          typename DensityMap, typename ConstrictionMap, typename DistanceMap,
+          typename PredecessorMap, typename FwdDistanceMap>
+sbastar_bundle<Graph, Space, Visitor, NcSelector, KeyMap, PositionMap,
                WeightMap, DensityMap, ConstrictionMap, DistanceMap,
                PredecessorMap, FwdDistanceMap>
 make_sbastar_bundle(Graph& g, graph_vertex_t<Graph> start_vertex,
-                    graph_vertex_t<Graph> goal_vertex,
-                    const Topology& super_space, SBAStarVisitor vis,
-                    NcSelector select_neighborhood, KeyMap key,
+                    graph_vertex_t<Graph> goal_vertex, const Space& super_space,
+                    Visitor vis, NcSelector select_neighborhood, KeyMap key,
                     PositionMap position, WeightMap weight, DensityMap density,
                     ConstrictionMap constriction, DistanceMap distance,
                     PredecessorMap predecessor, FwdDistanceMap fwd_distance) {
 
   BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (SBAStarVisitorConcept<SBAStarVisitor, Graph, Topology>));
 
-  return sbastar_bundle<Graph, Topology, SBAStarVisitor, NcSelector, KeyMap,
-                        PositionMap, WeightMap, DensityMap, ConstrictionMap,
-                        DistanceMap, PredecessorMap, FwdDistanceMap>(
-      g, start_vertex, goal_vertex, super_space, vis, select_neighborhood, key,
-      position, weight, density, constriction, distance, predecessor,
-      fwd_distance);
+  return {g,           start_vertex, goal_vertex,
+          super_space, vis,          select_neighborhood,
+          key,         position,     weight,
+          density,     constriction, distance,
+          predecessor, fwd_distance};
 }
 
 /**
@@ -754,8 +722,8 @@ make_sbastar_bundle(Graph& g, graph_vertex_t<Graph> start_vertex,
   * \tparam Graph The graph type that can store the generated roadmap, should model
   *         BidirectionalGraphConcept and MutableGraphConcept.
   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
-  * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-  * \tparam SBAStarVisitor The type of the SBA* visitor to be used, should model the SBAStarVisitorConcept.
+  * \tparam Space The topology type that represents the free-space, should model BGL's Topology concept.
+  * \tparam Visitor The type of the SBA* visitor to be used.
   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values
   *         for each vertex in the graph.
   * \tparam PositionMap A property-map type that can store the position of each vertex-property object.
@@ -808,35 +776,30 @@ make_sbastar_bundle(Graph& g, graph_vertex_t<Graph> start_vertex,
   *        remaining path to the goal).
   */
 
-template <typename Graph, typename Topology, typename SBAStarVisitor,
-          typename NcSelector, typename KeyMap, typename PositionMap,
-          typename WeightMap, typename DensityMap, typename ConstrictionMap,
-          typename DistanceMap, typename PredecessorMap,
-          typename FwdDistanceMap, typename SuccessorMap>
-sbastar_bundle<Graph, Topology, SBAStarVisitor, NcSelector, KeyMap, PositionMap,
+template <typename Graph, pp::MetricSpace Space,
+          SBAStarBidirVisitor<Graph, Space> Visitor, typename NcSelector,
+          typename KeyMap, typename PositionMap, typename WeightMap,
+          typename DensityMap, typename ConstrictionMap, typename DistanceMap,
+          typename PredecessorMap, typename FwdDistanceMap,
+          typename SuccessorMap>
+sbastar_bundle<Graph, Space, Visitor, NcSelector, KeyMap, PositionMap,
                WeightMap, DensityMap, ConstrictionMap, DistanceMap,
                PredecessorMap, FwdDistanceMap, SuccessorMap>
 make_sbastar_bundle(Graph& g, graph_vertex_t<Graph> start_vertex,
-                    graph_vertex_t<Graph> goal_vertex,
-                    const Topology& super_space, SBAStarVisitor vis,
-                    NcSelector select_neighborhood, KeyMap key,
+                    graph_vertex_t<Graph> goal_vertex, const Space& super_space,
+                    Visitor vis, NcSelector select_neighborhood, KeyMap key,
                     PositionMap position, WeightMap weight, DensityMap density,
                     ConstrictionMap constriction, DistanceMap distance,
                     PredecessorMap predecessor, FwdDistanceMap fwd_distance,
                     SuccessorMap successor) {
 
   BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (SBAStarBidirVisitorConcept<SBAStarVisitor, Graph, Topology>));
 
-  return sbastar_bundle<Graph, Topology, SBAStarVisitor, NcSelector, KeyMap,
-                        PositionMap, WeightMap, DensityMap, ConstrictionMap,
-                        DistanceMap, PredecessorMap, FwdDistanceMap,
-                        SuccessorMap>(g, start_vertex, goal_vertex, super_space,
-                                      vis, select_neighborhood, key, position,
-                                      weight, density, constriction, distance,
-                                      predecessor, fwd_distance, successor);
+  return {g,           start_vertex, goal_vertex,
+          super_space, vis,          select_neighborhood,
+          key,         position,     weight,
+          density,     constriction, distance,
+          predecessor, fwd_distance, successor};
 }
 
 /**

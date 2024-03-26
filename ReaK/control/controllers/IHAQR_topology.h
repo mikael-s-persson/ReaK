@@ -592,18 +592,6 @@ class IHAQR_topology : public named_object {
 
 template <typename StateSpace, typename StateSpaceSystem,
           typename StateSpaceSampler>
-struct is_metric_space<
-    IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>>
-    : std::true_type {};
-
-template <typename StateSpace, typename StateSpaceSystem,
-          typename StateSpaceSampler>
-struct is_point_distribution<
-    IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>>
-    : is_point_distribution<StateSpace> {};
-
-template <typename StateSpace, typename StateSpaceSystem,
-          typename StateSpaceSampler>
 struct is_metric_symmetric<
     IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>>
     : std::false_type {};
@@ -826,18 +814,6 @@ class IHAQR_topology_with_CD
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400033, 1, "IHAQR_topology_with_CD",
                               base_type)
 };
-
-template <typename StateSpace, typename StateSpaceSystem,
-          typename StateSpaceSampler>
-struct is_metric_space<
-    IHAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler>>
-    : std::true_type {};
-
-template <typename StateSpace, typename StateSpaceSystem,
-          typename StateSpaceSampler>
-struct is_point_distribution<
-    IHAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler>>
-    : is_point_distribution<StateSpace> {};
 
 template <typename StateSpace, typename StateSpaceSystem,
           typename StateSpaceSampler>

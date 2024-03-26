@@ -1,0 +1,95 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+  name = "systems",
+  srcs = [
+    "airship_assembled_models.cc",
+    "near_buoyant_airship_models.cc",
+    "quadrotor_system.cc",
+    "satellite_basic_models.cc",
+    "satellite_invar_models.cc",
+  ],
+  hdrs = [
+    "airship_assembled_models.h",
+    "airship_basic_mixins.h",
+    "airship_drag_mixins.h",
+    "airship_IMU_mixins.h",
+    "airship_sonar_mixins.h",
+    "airship_thruster_mixins.h",
+    "augmented_sss_concept.h",
+    "augmented_to_state_mapping.h",
+    "discrete_linear_sss_concept.h",
+    "discrete_sss_concept.h",
+    "discretized_lti_sys.h",
+    "invariant_system_concept.h",
+    "kte_nl_system.h",
+    "linear_ss_system_concept.h",
+    "lti_discrete_sys.h",
+    "lti_ss_system.h",
+    "near_buoyant_airship_models.h",
+    "num_int_dtnl_system.h",
+    "quadrotor_system.h",
+    "satellite_basic_models.h",
+    "satellite_invar_models.h",
+    "sss_exceptions.h",
+    "state_space_sys_concept.h",
+    "state_space_system_tuple.h",
+    "state_to_output_mapping.h",
+    "state_vector_concept.h",
+  ],
+  deps = [
+    "//ReaK/control/estimators",
+    "//ReaK/math/lin_alg",
+    "//ReaK/math/kinetostatics",
+    "//ReaK/topologies/spaces",
+  ],
+)
+
+cc_library(
+  name = "satellite_modeling_po",
+  srcs = [
+    "satellite_modeling_options.cc",
+    "satellite_modeling_po.cc",
+  ],
+  hdrs = [
+    "satellite_modeling_options.h",
+    "satellite_modeling_po.h",
+  ],
+  deps = [
+    ":systems",
+    "//ReaK/core/recorders:recorders_po",
+    "@com_google_absl//absl/flags:flag",
+  ],
+)
+
+cc_binary(
+  name = "build_quadrotor_space",
+  srcs = [
+    "build_quadrotor_space.cc",
+  ],
+  deps = [
+    ":systems",
+    "//ReaK/control/controllers",
+    "//ReaK/core/serialization",
+    "//ReaK/topologies/spaces",
+  ],
+)
+
+cc_binary(
+  name = "quadrotor_scene",
+  srcs = [
+    "quadrotor_scene.cc",
+  ],
+  deps = [
+    ":systems",
+    "//ReaK/control/controllers",
+    "//ReaK/core/serialization",
+    "//ReaK/topologies/spaces",
+  ],
+)

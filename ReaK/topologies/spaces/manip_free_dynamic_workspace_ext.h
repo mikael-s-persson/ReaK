@@ -38,7 +38,7 @@
 #include "ReaK/topologies/spaces/metric_space_tuple.h"
 #include "ReaK/topologies/spaces/rate_limited_spaces.h"
 
-#include "ReaK/topologies/spaces/Ndof_spaces.h"
+#include "ReaK/topologies/spaces/ndof_spaces.h"
 #include "ReaK/topologies/spaces/se2_topologies.h"
 #include "ReaK/topologies/spaces/se3_topologies.h"
 

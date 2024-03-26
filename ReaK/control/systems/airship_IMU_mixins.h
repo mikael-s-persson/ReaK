@@ -198,11 +198,11 @@ class sat_gyros_output_model : public named_object {
                       gyros_bias_state_model>) {
       // if there is an estimate of the gyro-bias, use it:
       if (!is_inv_err) {
-        y[range(start_index, start_index + 3)] +=
+        sub(y)[range(start_index, start_index + 3)] +=
             params.get_state_models()
                 .template get_state_for_system<gyros_bias_state_model>(x);
       } else {
-        y[range(inv_start_index, inv_start_index + 3)] -=
+        sub(y)[range(inv_start_index, inv_start_index + 3)] -=
             params.get_state_models()
                 .template get_state_for_system<gyros_bias_state_model>(x);
       }
@@ -218,7 +218,7 @@ class sat_gyros_output_model : public named_object {
         params.get_state_models()
             .template get_state_for_system<satellite_state_model>(x);
 
-    y[range(start_index, start_index + 3)] = get_ang_velocity(x_se3);
+    sub(y)[range(start_index, start_index + 3)] = get_ang_velocity(x_se3);
 
     add_output_from_state_for_gb(params, space, x, y, false);
   }
@@ -232,7 +232,7 @@ class sat_gyros_output_model : public named_object {
         params.get_state_models()
             .template get_state_for_system<satellite_state_model>(x);
 
-    e[range(inv_start_index, inv_start_index + 3)] =
+    sub(e)[range(inv_start_index, inv_start_index + 3)] =
         vect<double, 3>(y[start_index], y[start_index + 1],
                         y[start_index + 2]) -
         get_ang_velocity(x_se3);
@@ -448,12 +448,12 @@ class sat_accelerometer_output_model : public named_object {
                       accelerometer_bias_state_model>) {
       // if there is an estimate of the gyro-bias, use it:
       if (!is_inv_err) {
-        y[range(start_index, start_index + 3)] +=
+        sub(y)[range(start_index, start_index + 3)] +=
             params.get_state_models()
                 .template get_state_for_system<accelerometer_bias_state_model>(
                     x);
       } else {
-        y[range(inv_start_index, inv_start_index + 3)] -=
+        sub(y)[range(inv_start_index, inv_start_index + 3)] -=
             params.get_state_models()
                 .template get_state_for_system<accelerometer_bias_state_model>(
                     x);
@@ -471,7 +471,7 @@ class sat_accelerometer_output_model : public named_object {
             .template get_state_for_system<satellite_state_model>(x);
     auto& sys_params = params.get_system_parameters();
 
-    y[range(start_index, start_index + 3)] =
+    sub(y)[range(start_index, start_index + 3)] =
         invert(get_quaternion(x_se3).as_rotation()) *
         sys_params.gravity_acc_vect;
 
@@ -490,7 +490,7 @@ class sat_accelerometer_output_model : public named_object {
             .template get_state_for_system<satellite_state_model>(x);
     auto& sys_params = params.get_system_parameters();
 
-    e[range(inv_start_index, inv_start_index + 3)] =
+    sub(e)[range(inv_start_index, inv_start_index + 3)] =
         vect<double, 3>(y[start_index], y[start_index + 1],
                         y[start_index + 2]) -
         invert(get_quaternion(x_se3).as_rotation()) *
@@ -716,12 +716,12 @@ class sat_magnetometer_output_model : public named_object {
                       magnetometer_bias_state_model>) {
       // if there is an estimate of the gyro-bias, use it:
       if (!is_inv_err) {
-        y[range(start_index, start_index + 3)] +=
+        sub(y)[range(start_index, start_index + 3)] +=
             params.get_state_models()
                 .template get_state_for_system<magnetometer_bias_state_model>(
                     x);
       } else {
-        y[range(inv_start_index, inv_start_index + 3)] -=
+        sub(y)[range(inv_start_index, inv_start_index + 3)] -=
             params.get_state_models()
                 .template get_state_for_system<magnetometer_bias_state_model>(
                     x);
@@ -739,7 +739,7 @@ class sat_magnetometer_output_model : public named_object {
             .template get_state_for_system<satellite_state_model>(x);
     auto& sys_params = params.get_system_parameters();
 
-    y[range(start_index, start_index + 3)] =
+    sub(y)[range(start_index, start_index + 3)] =
         invert(get_quaternion(x_se3).as_rotation()) *
         sys_params.magnetic_field_vect;
 
@@ -756,7 +756,7 @@ class sat_magnetometer_output_model : public named_object {
             .template get_state_for_system<satellite_state_model>(x);
     auto& sys_params = params.get_system_parameters();
 
-    e[range(inv_start_index, inv_start_index + 3)] =
+    sub(e)[range(inv_start_index, inv_start_index + 3)] =
         vect<double, 3>(y[start_index], y[start_index + 1],
                         y[start_index + 2]) -
         invert(get_quaternion(x_se3).as_rotation()) *

@@ -114,9 +114,8 @@ class rot_mat_2D {
     q[1] = v[1];
   }
 
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   explicit rot_mat_2D(const Matrix& R) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((R.get_col_count() != 2) || (R.get_row_count() != 2)) {
       throw std::range_error(
           "Right-hand-side of 2D rotation matrix assignment is not a 2x2 "
@@ -190,9 +189,8 @@ class rot_mat_2D {
 
   self& operator=(const self& R) noexcept = default;
 
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator=(const Matrix& R) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((R.get_col_count() != 2) || (R.get_row_count() != 2)) {
       throw std::range_error(
           "Right-hand-side of 2D rotation matrix assignment is not a 2x2 "
@@ -212,9 +210,8 @@ class rot_mat_2D {
     return *this;
   }
 
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator*=(const Matrix& R) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((R.get_col_count() != 2) || (R.get_row_count() != 2)) {
       throw std::range_error(
           "Right-hand-side of 2D rotation matrix assignment is not a 2x2 "
@@ -238,9 +235,8 @@ class rot_mat_2D {
   }
 
   /// Matrix multiplication.
-  template <typename Matrix>
+  template <FullyWritableMatrix Matrix>
   friend Matrix operator*(const self& R, const Matrix& M) {
-    static_assert(is_fully_writable_matrix_v<Matrix>);
     if (M.get_row_count() != 2) {
       throw std::range_error(
           "Matrix M's row count is not 2, cannot perform 2D rotation!");
@@ -266,9 +262,8 @@ class rot_mat_2D {
   }
 
   /// Matrix multiplication.
-  template <typename Matrix>
+  template <FullyWritableMatrix Matrix>
   friend Matrix operator*(const Matrix& M, const self& R) {
-    static_assert(is_fully_writable_matrix_v<Matrix>);
     if (M.get_col_count() != 2) {
       throw std::range_error(
           "Matrix M's column count is not 2, cannot perform 2D rotation!");
@@ -361,12 +356,6 @@ std::ostream& operator<<(std::ostream& out_stream, const rot_mat_2D<T>& R) {
   return out_stream;
 }
 
-template <typename T>
-struct is_readable_matrix<rot_mat_2D<T>> {
-  static constexpr bool value = true;
-  using type = is_readable_matrix<rot_mat_2D<T>>;
-};
-
 /// This class is a transformation matrix 3 by 3, i.e. to rotate and translate a 2D vector.
 template <typename T>
 class trans_mat_2D {
@@ -456,9 +445,8 @@ class trans_mat_2D {
     q[8] = 1.0;
   }
 
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   explicit trans_mat_2D(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_col_count() != 3) || (M.get_row_count() != 3)) {
       throw std::range_error(
           "Right-hand-side of 2D transformation matrix assignment is not a 3x3 "
@@ -541,9 +529,8 @@ class trans_mat_2D {
 
   self& operator=(const self&) noexcept = default;
 
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_col_count() != 3) || (M.get_row_count() != 3)) {
       throw std::range_error(
           "Right-hand-side of 2D transformation matrix assignment is not a 3x3 "
@@ -564,9 +551,8 @@ class trans_mat_2D {
   /// Multiply-and-store operator.
   self& operator*=(const self& M) noexcept { return (*this = (*this) * M); }
 
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator*=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     return (*this = (*this) * M);
   }
 
@@ -601,9 +587,8 @@ class trans_mat_2D {
   }
 
   /// Matrix multiplication.
-  template <typename Matrix>
+  template <FullyWritableMatrix Matrix>
   friend Matrix operator*(const self& M1, const Matrix& M2) {
-    static_assert(is_fully_writable_matrix_v<Matrix>);
     if (M2.get_row_count() != 3) {
       throw std::range_error(
           "Matrix M's row count is not 3, 2D transformation impossible!");
@@ -621,9 +606,8 @@ class trans_mat_2D {
   }
 
   /// Matrix multiplication.
-  template <typename Matrix>
+  template <FullyWritableMatrix Matrix>
   friend Matrix operator*(const Matrix& M1, const self& M2) {
-    static_assert(is_fully_writable_matrix_v<Matrix>);
     if (M1.get_col_count() != 3) {
       throw std::range_error(
           "Matrix M1's column count is not 3, 2D transformation impossible!");
@@ -761,12 +745,6 @@ std::ostream& operator<<(std::ostream& out_stream, const trans_mat_2D<T>& M) {
              << "; translation = " << M.getTranslation() << ")";
   return out_stream;
 }
-
-template <typename T>
-struct is_readable_matrix<trans_mat_2D<T>> {
-  static constexpr bool value = true;
-  using type = is_readable_matrix<trans_mat_2D<T>>;
-};
 
 }  // namespace ReaK
 

@@ -44,12 +44,10 @@ namespace ReaK {
 /// \param M2 A matrix for which the 1-norm is sought.
 /// \param NumTol The numerical tolerance to consider a value to be zero.
 /// \return true iff both matrices are the same, within the given tolerance.
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2>
 bool is_equal_mat(
     const Matrix1& M1, const Matrix2& M2,
     mat_value_type_t<Matrix1> NumTol = mat_value_type_t<Matrix1>(1E-8)) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
   if ((M1.get_row_count() != M2.get_row_count()) ||
       (M1.get_col_count() != M2.get_col_count())) {
     return false;
@@ -73,10 +71,9 @@ bool is_equal_mat(
 /// \param A A matrix to verify for being diagonal.
 /// \param NumTol The numerical tolerance to consider a value to be zero.
 /// \return true iff the matrix is diagonal, within the given tolerance.
-template <class Matrix>
+template <ReadableMatrix Matrix>
 bool is_diagonal(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                       mat_value_type_t<Matrix>(1E-8)) {
-  static_assert(is_readable_matrix_v<Matrix>);
   if (A.get_row_count() != A.get_col_count()) {
     return false;
   }
@@ -99,10 +96,9 @@ bool is_diagonal(const Matrix& A, mat_value_type_t<Matrix> NumTol =
 /// \param A A matrix to verify for being symmetric.
 /// \param NumTol The numerical tolerance to consider a value to be zero.
 /// \return true iff the matrix is symmetric, within the given tolerance.
-template <class Matrix>
+template <ReadableMatrix Matrix>
 bool is_symmetric(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                        mat_value_type_t<Matrix>(1E-8)) {
-  static_assert(is_readable_matrix_v<Matrix>);
   if (A.get_row_count() != A.get_col_count()) {
     return false;
   }
@@ -125,10 +121,9 @@ bool is_symmetric(const Matrix& A, mat_value_type_t<Matrix> NumTol =
 /// \param A A matrix to verify for being the identity.
 /// \param NumTol The numerical tolerance to consider a value to be zero.
 /// \return true iff the matrix is the identity, within the given tolerance.
-template <class Matrix>
+template <ReadableMatrix Matrix>
 bool is_identity_mat(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                           mat_value_type_t<Matrix>(1E-8)) {
-  static_assert(is_readable_matrix_v<Matrix>);
   if (A.get_row_count() != A.get_col_count()) {
     return false;
   }
@@ -158,10 +153,9 @@ bool is_identity_mat(const Matrix& A, mat_value_type_t<Matrix> NumTol =
 /// \param A A matrix to verify for being null.
 /// \param NumTol The numerical tolerance to consider a value to be zero.
 /// \return true iff the matrix is null, within the given tolerance.
-template <class Matrix>
+template <ReadableMatrix Matrix>
 bool is_null_mat(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                       mat_value_type_t<Matrix>(1E-8)) {
-  static_assert(is_readable_matrix_v<Matrix>);
   using std::abs;
 
   for (int i = 0; i < A.get_row_count(); ++i) {
@@ -180,11 +174,9 @@ bool is_null_mat(const Matrix& A, mat_value_type_t<Matrix> NumTol =
 /// \param A A matrix to verify for being upper-triangular.
 /// \param NumTol The numerical tolerance to consider a value to be zero.
 /// \return true iff the matrix is upper-triangular, within the given tolerance.
-template <class Matrix>
+template <ReadableMatrix Matrix>
 bool is_upper_triangular(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                               mat_value_type_t<Matrix>(1E-8)) {
-  static_assert(is_readable_matrix_v<Matrix>);
-
   using std::abs;
   int N = A.get_row_count();
   if (N > A.get_col_count()) {
@@ -207,11 +199,9 @@ bool is_upper_triangular(const Matrix& A, mat_value_type_t<Matrix> NumTol =
 /// \param A A matrix to verify for being lower-triangular.
 /// \param NumTol The numerical tolerance to consider a value to be zero.
 /// \return true iff the matrix is lower-triangular, within the given tolerance.
-template <class Matrix>
+template <ReadableMatrix Matrix>
 bool is_lower_triangular(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                               mat_value_type_t<Matrix>(1E-8)) {
-  static_assert(is_readable_matrix_v<Matrix>);
-
   using std::abs;
 
   for (int i = 1; i < A.get_col_count(); i++) {
@@ -230,11 +220,9 @@ bool is_lower_triangular(const Matrix& A, mat_value_type_t<Matrix> NumTol =
 /// \param A A matrix to verify for being upper-hessenberg.
 /// \param NumTol The numerical tolerance to consider a value to be zero.
 /// \return true iff the matrix is upper-hessenberg, within the given tolerance.
-template <class Matrix>
+template <ReadableMatrix Matrix>
 bool is_upper_hessenberg(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                               mat_value_type_t<Matrix>(1E-8)) {
-  static_assert(is_readable_matrix_v<Matrix>);
-
   using std::abs;
   int N = A.get_row_count();
   if (N > A.get_col_count()) {
@@ -257,11 +245,9 @@ bool is_upper_hessenberg(const Matrix& A, mat_value_type_t<Matrix> NumTol =
 /// \param A A matrix to verify for being lower-hessenberg.
 /// \param NumTol The numerical tolerance to consider a value to be zero.
 /// \return true iff the matrix is lower-hessenberg, within the given tolerance.
-template <class Matrix>
+template <ReadableMatrix Matrix>
 bool is_lower_hessenberg(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                               mat_value_type_t<Matrix>(1E-8)) {
-  static_assert(is_readable_matrix_v<Matrix>);
-
   using std::abs;
 
   for (int i = 2; i < A.get_col_count(); i++) {
@@ -280,10 +266,9 @@ bool is_lower_hessenberg(const Matrix& A, mat_value_type_t<Matrix> NumTol =
 /// \param A A matrix to verify for being tri-diagonal.
 /// \param NumTol The numerical tolerance to consider a value to be zero.
 /// \return true iff the matrix is tri-diagonal, within the given tolerance.
-template <class Matrix>
+template <ReadableMatrix Matrix>
 bool is_tri_diagonal(const Matrix& A, mat_value_type_t<Matrix> NumTol =
                                           mat_value_type_t<Matrix>(1E-8)) {
-  static_assert(is_readable_matrix_v<Matrix>);
   if (A.get_row_count() != A.get_col_count()) {
     return false;
   }

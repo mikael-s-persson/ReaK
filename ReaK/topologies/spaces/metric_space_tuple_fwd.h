@@ -99,18 +99,6 @@ template <typename SpaceTuple,
 class metric_space_tuple;
 
 template <typename SpaceTuple, typename TupleDistanceMetric>
-struct is_metric_space<metric_space_tuple<SpaceTuple, TupleDistanceMetric>>
-    : std::true_type {};
-
-template <typename SpaceTuple, typename TupleDistanceMetric>
-struct is_reversible_space<metric_space_tuple<SpaceTuple, TupleDistanceMetric>>
-    : detail::is_reversible_space_tuple<SpaceTuple> {};
-
-template <typename SpaceTuple, typename TupleDistanceMetric>
-struct is_point_distribution<
-    metric_space_tuple<SpaceTuple, TupleDistanceMetric>> : std::true_type {};
-
-template <typename SpaceTuple, typename TupleDistanceMetric>
 struct is_metric_symmetric<metric_space_tuple<SpaceTuple, TupleDistanceMetric>>
     : std::integral_constant<
           bool, is_metric_symmetric_v<TupleDistanceMetric> &&

@@ -54,6 +54,7 @@
 #include "ReaK/math/lin_alg/mat_alg_upper_triangular.h"
 #include "ReaK/math/lin_alg/mat_comparisons.h"
 
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_operators.h"
 
 #include "ReaK/math/lin_alg/mat_composite_adaptor.h"
@@ -73,10 +74,8 @@ namespace ReaK {
 /// \param M1 first matrix (upper-left diagonal block).
 /// \param M2 second matrix (lower-right diagonal block).
 /// \return General block diagonal matrix.
-template <typename Matrix1, typename Matrix2>
-std::enable_if_t<is_writable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2>,
-                 Matrix1>
-block_diag_mat(Matrix1 M1, const Matrix2& M2) {
+template <WritableMatrix Matrix1, ReadableMatrix Matrix2>
+Matrix1 block_diag_mat(Matrix1 M1, const Matrix2& M2) {
   append_block_diag(M1, M2);
   return M1;
 }
@@ -85,12 +84,9 @@ block_diag_mat(Matrix1 M1, const Matrix2& M2) {
 /// \param M1 first matrix (upper-left diagonal block).
 /// \param M2 second matrix (lower-right diagonal block).
 /// \return General block diagonal matrix.
-template <typename Matrix1, typename Matrix2, typename Matrix3>
-std::enable_if_t<is_writable_matrix_v<Matrix1> &&
-                     is_readable_matrix_v<Matrix2> &&
-                     is_readable_matrix_v<Matrix3>,
-                 Matrix1>
-block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3) {
+template <WritableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3>
+Matrix1 block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3) {
   append_block_diag(M1, M2);
   append_block_diag(M1, M3);
   return M1;
@@ -100,14 +96,10 @@ block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3) {
 /// \param M1 first matrix (upper-left diagonal block).
 /// \param M2 second matrix (lower-right diagonal block).
 /// \return General block diagonal matrix.
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4>
-std::enable_if_t<
-    is_writable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2> &&
-        is_readable_matrix_v<Matrix3> && is_readable_matrix_v<Matrix4>,
-    Matrix1>
-block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
-               const Matrix4& M4) {
+template <WritableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4>
+Matrix1 block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
+                       const Matrix4& M4) {
   append_block_diag(M1, M2);
   append_block_diag(M1, M3);
   append_block_diag(M1, M4);
@@ -118,15 +110,11 @@ block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
 /// \param M1 first matrix (upper-left diagonal block).
 /// \param M2 second matrix (lower-right diagonal block).
 /// \return General block diagonal matrix.
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5>
-std::enable_if_t<
-    is_writable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2> &&
-        is_readable_matrix_v<Matrix3> && is_readable_matrix_v<Matrix4> &&
-        is_readable_matrix_v<Matrix5>,
-    Matrix1>
-block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
-               const Matrix3& M4, const Matrix3& M5) {
+template <WritableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4,
+          ReadableMatrix Matrix5>
+Matrix1 block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
+                       const Matrix3& M4, const Matrix3& M5) {
   append_block_diag(M1, M2);
   append_block_diag(M1, M3);
   append_block_diag(M1, M4);
@@ -141,14 +129,10 @@ block_diag_mat(Matrix1 M1, const Matrix2& M2, const Matrix3& M3,
 /// \param MLR fourth matrix (lower-right block).
 /// \return Compound four-block matrix.
 /// \throw std::range_error if the dimensions of the four blocks don't allow proper juxtaposition.
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4>
-std::enable_if_t<
-    is_fully_writable_matrix_v<Matrix1> && is_readable_matrix_v<Matrix2> &&
-        is_readable_matrix_v<Matrix3> && is_readable_matrix_v<Matrix4>,
-    Matrix1>
-block_mat(Matrix1 MUL, const Matrix2& MUR, const Matrix3& MLL,
-          const Matrix4& MLR) {
+template <FullyWritableMatrix Matrix1, ReadableMatrix Matrix2,
+          ReadableMatrix Matrix3, ReadableMatrix Matrix4>
+Matrix1 block_mat(Matrix1 MUL, const Matrix2& MUR, const Matrix3& MLL,
+                  const Matrix4& MLR) {
   if ((MUL.get_row_count() != MUR.get_row_count()) ||
       (MUL.get_col_count() != MLL.get_col_count()) ||
       (MLL.get_row_count() != MLR.get_row_count()) ||

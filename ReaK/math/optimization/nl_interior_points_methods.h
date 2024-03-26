@@ -124,7 +124,7 @@ void nl_intpoint_method_tr_impl(
   SizeType M = gt_value.size();
   Vector c;
   c.resize(M + K);
-  c[range(0, M)] = gt_value;
+  sub(c)[range(0, M)] = gt_value;
 
   mat<ValueType, mat_structure::rectangular> Jac_g(M, N);
   fill_g_jac(Jac_g, x, gt_value);
@@ -156,10 +156,10 @@ void nl_intpoint_method_tr_impl(
       Jac_aug(Jac_upper, Jac_lower);
 
   mS = mat<ValueType, mat_structure::diagonal>(-s);
-  c[range(M, M + K)] = ht_value - s;
+  sub(c)[range(M, M + K)] = ht_value - s;
 
-  ValueType gt_norm = norm_2(c[range(0, M)]) / sqrt(ValueType(M));
-  ValueType ht_norm = norm_2(c[range(M, M + K)]) / sqrt(ValueType(K));
+  ValueType gt_norm = norm_2(sub(c)[range(0, M)]) / sqrt(ValueType(M));
+  ValueType ht_norm = norm_2(sub(c)[range(M, M + K)]) / sqrt(ValueType(K));
 
   ValueType radius = ValueType(0.5) * max_radius;
   ValueType x_value = f(x);
@@ -177,8 +177,8 @@ void nl_intpoint_method_tr_impl(
   Vector p = v;
   Vector p_grad;
   p_grad.resize(N + K);
-  p_grad[range(0, N)] = x_grad;
-  p_grad[range(N, N + K)] = vect_scalar<ValueType>(K, -mu);
+  sub(p_grad)[range(0, N)] = x_grad;
+  sub(p_grad)[range(N, N + K)] = vect_scalar<ValueType>(K, -mu);
   ValueType norm_p = std::numeric_limits<ValueType>::max();
   ValueType norm_v = std::numeric_limits<ValueType>::max();
   Vector r = c;
@@ -196,8 +196,8 @@ void nl_intpoint_method_tr_impl(
   Vector yz;
   yz.resize(M + K);
   mat_vect_adaptor<Vector> yz_mat(yz);
-  vect_ref_view<Vector> y(yz[range(0, M)]);
-  vect_ref_view<Vector> z(yz[range(M, M + K)]);
+  vect_ref_view<Vector> y(sub(yz)[range(0, M)]);
+  vect_ref_view<Vector> z(sub(yz)[range(M, M + K)]);
   try {
     linlsq_QR(transpose_view(Jac_aug), yz_mat, mat_vect_adaptor<Vector>(p_grad),
               abs_tol);
@@ -255,9 +255,9 @@ void nl_intpoint_method_tr_impl(
   do {
 
     // compute error with mu.
-    Err_value =
-        norm_2(SES * vect_scalar<ValueType>(K, 1.0) + p_grad[range(N, N + K)]) /
-        sqrt(ValueType(K));
+    Err_value = norm_2(SES * vect_scalar<ValueType>(K, 1.0) +
+                       sub(p_grad)[range(N, N + K)]) /
+                sqrt(ValueType(K));
     if (Err_value < norm_star) {
       Err_value = norm_star;
     }
@@ -357,13 +357,13 @@ void nl_intpoint_method_tr_impl(
         x += p_x;
         x_value = xt_value;
         x_grad = df(x);
-        p_grad[range(0, N)] = x_grad;
+        sub(p_grad)[range(0, N)] = x_grad;
         s += p_s;
         mS = mat<ValueType, mat_structure::diagonal>(-s);
         log_s = log_st;
-        c[range(0, M)] = gt_value;
+        sub(c)[range(0, M)] = gt_value;
         gt_norm = norm_2(gt_value) / sqrt(ValueType(M));
-        c[range(M, M + K)] = ht_value;
+        sub(c)[range(M, M + K)] = ht_value;
         ht_norm = norm_2(ht_value) / sqrt(ValueType(K));
         c_norm_star = ct_norm_star;
         fill_g_jac(Jac_g, x, gt_value);
@@ -375,7 +375,7 @@ void nl_intpoint_method_tr_impl(
             radius = max_radius;
           }
         }
-        p_grad[range(N, N + K)] = vect_scalar<ValueType>(K, -mu);
+        sub(p_grad)[range(N, N + K)] = vect_scalar<ValueType>(K, -mu);
         linlsq_QR(transpose_view(Jac_aug), yz_mat,
                   mat_vect_adaptor<Vector>(p_grad), abs_tol);
         for (SizeType i = 0; i < K; ++i) {
@@ -392,7 +392,7 @@ void nl_intpoint_method_tr_impl(
         }
         // compute new error with mu.
         Err_value = norm_2(SES * vect_scalar<ValueType>(K, 1.0) +
-                           p_grad[range(N, N + K)]) /
+                           sub(p_grad)[range(N, N + K)]) /
                     sqrt(ValueType(K));
         if (Err_value < norm_star) {
           Err_value = norm_star;
@@ -427,7 +427,7 @@ void nl_intpoint_method_tr_impl(
       mu *= 0.1;
     }
 
-    p_grad[range(N, N + K)] = vect_scalar<ValueType>(K, -mu);
+    sub(p_grad)[range(N, N + K)] = vect_scalar<ValueType>(K, -mu);
     linlsq_QR(transpose_view(Jac_aug), yz_mat, mat_vect_adaptor<Vector>(p_grad),
               abs_tol);
     for (SizeType i = 0; i < K; ++i) {
@@ -647,12 +647,12 @@ void nl_intpoint_method_ls_impl(
     mat_vect_adaptor<Vector> yz_mat(yz);
     Vector p_grad;
     p_grad.resize(N + K);
-    p_grad[range(0, N)] = x_grad;
-    p_grad[range(N, N + K)] = vect_scalar<ValueType>(K, -mu);
+    sub(p_grad)[range(0, N)] = x_grad;
+    sub(p_grad)[range(N, N + K)] = vect_scalar<ValueType>(K, -mu);
     linlsq_QR(transpose_view(Jac_aug), yz_mat, mat_vect_adaptor<Vector>(p_grad),
               abs_tol);
-    y = yz[range(0, M)];
-    z = yz[range(M, M + K)];
+    y = sub(yz)[range(0, M)];
+    z = sub(yz)[range(M, M + K)];
   }
 
   Vector xt = x;
@@ -1417,19 +1417,19 @@ struct nlip_quasi_newton_tr_factory {
   /**
    * This function remaps the factory to one which will use a regularized solver within the trust-region.
    * You should regularize the matrix only if there are reasons to expect the Hessian to be near-singular.
-   * \param tau The initial relative damping factor to regularize the Hessian matrix.
+   * \param aTau The initial relative damping factor to regularize the Hessian matrix.
    */
   nlip_quasi_newton_tr_factory<
       Function, GradFunction, T, EqFunction, EqJacFunction, IneqFunction,
       IneqJacFunction, HessianUpdater, tr_solver_right_pinv_dogleg_reg<T>,
       LimitFunction>
-  regularize(const T& tau) const {
+  regularize(const T& aTau) const {
     return nlip_quasi_newton_tr_factory<
         Function, GradFunction, T, EqFunction, EqJacFunction, IneqFunction,
         IneqJacFunction, HessianUpdater, tr_solver_right_pinv_dogleg_reg<T>,
         LimitFunction>(f, df, max_radius, mu, max_iter, g, fill_g_jac, h,
-                       fill_h_jac, tol, eta, tau, update_hessian,
-                       tr_solver_right_pinv_dogleg_reg<T>(tau), impose_limits);
+                       fill_h_jac, tol, eta, aTau, update_hessian,
+                       tr_solver_right_pinv_dogleg_reg<T>(aTau), impose_limits);
   }
 
   /**

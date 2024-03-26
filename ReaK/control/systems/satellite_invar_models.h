@@ -303,9 +303,6 @@ class satellite2D_imdt_sys : public named_object {
                               "satellite2D_imdt_sys", named_object)
 };
 
-template <>
-struct is_invariant_system<satellite2D_imdt_sys> : std::true_type {};
-
 /**
  * This class implements an invariantized momentum-tracking discrete-time state-space system for
  * simple free-floating dynamics characteristic of satellites in orbit. This system
@@ -430,9 +427,6 @@ class satellite3D_imdt_sys : public satellite3D_inv_dt_system {
   RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_imdt_sys, 0xC2310015, 1,
                               "satellite3D_imdt_sys", satellite3D_inv_dt_system)
 };
-
-template <>
-struct is_invariant_system<satellite3D_imdt_sys> : std::true_type {};
 
 /**
  * This class implements an invariantized momentum-tracking discrete-time state-space system for
@@ -562,9 +556,6 @@ class satellite3D_gyro_imdt_sys : public satellite3D_gyro_inv_dt_system {
                               "satellite3D_gyro_imdt_sys",
                               satellite3D_gyro_inv_dt_system)
 };
-
-template <>
-struct is_invariant_system<satellite3D_gyro_imdt_sys> : std::true_type {};
 
 /**
  * This class implements an invariantized momentum-tracking discrete-time state-space system for
@@ -745,12 +736,6 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
   RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_IMU_imdt_sys, 0xC2310017, 1,
                               "satellite3D_IMU_imdt_sys", satellite3D_imdt_sys)
 };
-
-template <>
-struct is_invariant_system<satellite3D_IMU_imdt_sys> : std::true_type {};
-
-template <>
-struct is_augmented_ss_system<satellite3D_IMU_imdt_sys> : std::true_type {};
 
 }  // namespace ReaK::ctrl
 

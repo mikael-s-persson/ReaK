@@ -35,7 +35,9 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
+#include "ReaK/math/lin_alg/vect_concepts.h"
 
 #include <type_traits>
 #include <utility>
@@ -51,10 +53,8 @@ namespace ReaK::optim {
  * \param dx The change in the independent vector.
  * \param dy The change in the gradient vector of the function whose Hessian is approximated.
  */
-template <typename Matrix, typename Vector>
+template <WritableMatrix Matrix, ReadableVector Vector>
 void sr1_hessian_update(Matrix& B, const Vector& dx, const Vector& dy) {
-  static_assert(is_readable_vector_v<Vector>);
-  static_assert(is_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using SizeType = mat_size_type_t<Matrix>;
   using std::abs;
@@ -91,10 +91,8 @@ struct hessian_update_sr1 {
  * \param dx The change in the independent vector.
  * \param dy The change in the gradient vector of the function whose Hessian is approximated.
  */
-template <typename Matrix, typename Vector>
+template <WritableMatrix Matrix, ReadableVector Vector>
 void sr1_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& dy) {
-  static_assert(is_readable_vector_v<Vector>);
-  static_assert(is_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using SizeType = mat_size_type_t<Matrix>;
   using std::abs;
@@ -131,10 +129,8 @@ struct inv_hessian_update_sr1 {
  * \param dx The change in the independent vector.
  * \param dy The change in the gradient vector of the function whose Hessian is approximated.
  */
-template <typename Matrix, typename Vector>
+template <WritableMatrix Matrix, ReadableVector Vector>
 void dfp_hessian_update(Matrix& B, const Vector& dx, const Vector& dy) {
-  static_assert(is_readable_vector_v<Vector>);
-  static_assert(is_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using SizeType = mat_size_type_t<Matrix>;
   using std::abs;
@@ -173,10 +169,8 @@ struct hessian_update_dfp {
  * \param dx The change in the independent vector.
  * \param dy The change in the gradient vector of the function whose Hessian is approximated.
  */
-template <typename Matrix, typename Vector>
+template <WritableMatrix Matrix, ReadableVector Vector>
 void dfp_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& dy) {
-  static_assert(is_readable_vector_v<Vector>);
-  static_assert(is_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using SizeType = mat_size_type_t<Matrix>;
   using std::abs;
@@ -217,10 +211,8 @@ struct inv_hessian_update_dfp {
  * \param dx The change in the independent vector.
  * \param dy The change in the gradient vector of the function whose Hessian is approximated.
  */
-template <typename Matrix, typename Vector>
+template <WritableMatrix Matrix, ReadableVector Vector>
 void bfgs_hessian_update(Matrix& B, const Vector& dx, const Vector& dy) {
-  static_assert(is_readable_vector_v<Vector>);
-  static_assert(is_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using SizeType = mat_size_type_t<Matrix>;
   using std::abs;
@@ -261,10 +253,8 @@ struct hessian_update_bfgs {
  * \param dx The change in the independent vector.
  * \param dy The change in the gradient vector of the function whose Hessian is approximated.
  */
-template <typename Matrix, typename Vector>
+template <WritableMatrix Matrix, ReadableVector Vector>
 void bfgs_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& dy) {
-  static_assert(is_readable_vector_v<Vector>);
-  static_assert(is_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using SizeType = mat_size_type_t<Matrix>;
   using std::abs;
@@ -303,12 +293,10 @@ struct inv_hessian_update_bfgs {
  * \param dx The change in the independent vector.
  * \param dy The change in the gradient vector of the function whose Hessian is approximated.
  */
-template <typename Matrix, typename Vector>
+template <WritableMatrix Matrix, ReadableVector Vector>
 void broyden_class_hessian_update(
     Matrix& B, const Vector& dx, const Vector& dy,
     vect_value_type_t<Vector> phi = vect_value_type_t<Vector>(0.5)) {
-  static_assert(is_readable_vector_v<Vector>);
-  static_assert(is_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using SizeType = mat_size_type_t<Matrix>;
   using std::abs;
@@ -359,12 +347,10 @@ struct hessian_update_broyden {
  * \param dy The change in the gradient vector of the function whose Hessian is approximated.
  * \param phi The fraction defining the linear combination (from 0: BFGS update only, to 1: DFP update only).
  */
-template <typename Matrix, typename Vector>
+template <WritableMatrix Matrix, ReadableVector Vector>
 void broyden_class_inv_hessian_update(
     Matrix& H, const Vector& dx, const Vector& dy,
     vect_value_type_t<Vector> phi = vect_value_type_t<Vector>(0.5)) {
-  static_assert(is_readable_vector_v<Vector>);
-  static_assert(is_writable_matrix_v<Matrix>);
   using ValueType = mat_value_type_t<Matrix>;
   using SizeType = mat_size_type_t<Matrix>;
   using std::abs;
@@ -410,13 +396,13 @@ struct hessian_update_dual_exact {
   HessianFunction fill_hessian;
   explicit hessian_update_dual_exact(HessianFunction aFillHessian)
       : fill_hessian(std::move(aFillHessian)) {}
-  template <typename Matrix, typename T, typename Vector>
+  template <WritableMatrix Matrix, typename T, ReadableVector Vector>
   void operator()(Matrix& B, const Vector& x, const T& x_value,
                   const Vector& x_grad, const Vector& /*unused*/,
                   const Vector& /*unused*/) const {
     fill_hessian(B, x, x_value, x_grad);
   }
-  template <typename Matrix, typename T, typename Vector>
+  template <WritableMatrix Matrix, typename T, ReadableVector Vector>
   void operator()(Matrix& B, const Vector& x, const T& x_value,
                   const Vector& x_grad) const {
     fill_hessian(B, x, x_value, x_grad);
@@ -428,13 +414,13 @@ struct hessian_update_dual_quasi {
   HessianUpdater update_hessian;
   explicit hessian_update_dual_quasi(HessianUpdater aUpdateHessian)
       : update_hessian(aUpdateHessian) {}
-  template <typename Matrix, typename T, typename Vector>
+  template <WritableMatrix Matrix, typename T, ReadableVector Vector>
   void operator()(Matrix& B, const Vector& /*unused*/, const T& /*unused*/,
                   const Vector& /*unused*/, const Vector& dx,
                   const Vector& dy) const {
     update_hessian(B, dx, dy);
   }
-  template <typename Matrix, typename T, typename Vector>
+  template <WritableMatrix Matrix, typename T, ReadableVector Vector>
   void operator()(Matrix& /*unused*/, const Vector& /*unused*/,
                   const T& /*unused*/, const Vector& /*unused*/) const {}
 };

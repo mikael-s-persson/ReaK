@@ -1,0 +1,40 @@
+#
+# Copyright 2024 Sven Mikael Persson
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+  name = "sorting",
+  srcs = [],
+  hdrs = [
+    "bubble_sort.h",
+    "comb_sort.h",
+    "heap_sort.h",
+    "insertion_sort.h",
+    "intro_sort.h",
+    "merge_sort.h",
+    "quick_sort.h",
+    "selection_sort.h",
+    "shell_sort.h",
+  ],
+)
+
+cc_test(
+  name = "sorting_test",
+  srcs = ["sorting_test.cc",],
+  deps = [
+    ":sorting",
+    "@com_google_googletest//:gtest_main",
+  ],
+)
+
+cc_binary(
+  name = "sorting_perf",
+  srcs = ["sorting_perf.cc",],
+  deps = [
+    ":sorting",
+  ],
+)

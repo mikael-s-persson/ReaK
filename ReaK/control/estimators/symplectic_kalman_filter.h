@@ -45,6 +45,7 @@
 
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_cholesky.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_qr_decomp.h"
 #include "ReaK/math/lin_alg/mat_views.h"
 #include "ReaK/math/lin_alg/vect_concepts.h"
@@ -64,14 +65,10 @@ namespace ReaK::ctrl {
 
 /**
  * This function template performs one prediction step using the Symplectic Kalman Filter method.
- * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept
- *         at least as a DiscreteLinearizedSystemType.
- * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
- *         the pp::TopologyConcept.
- * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
+ * \tparam LinearSystem A discrete state-space system.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside.
+ * \tparam BState A belief state with a unimodular gaussian representation.
+ * \tparam InputBelief A belief state with a unimodular gaussian representation.
  * \param sys The discrete state-space system used in the state estimation.
  * \param state_space The state-space topology on which the state representations lie.
  * \param b_x As input, it stores the belief-state before the prediction step. As output, it stores
@@ -83,34 +80,24 @@ namespace ReaK::ctrl {
  * \param t The current time (before the prediction).
  *
  */
-template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
-          typename InputBelief, typename PredictionCovTransMatrix>
+template <pp::Topology StateSpaceType,
+          DiscreteLinearSSS<StateSpaceType, DiscreteLinearizedSystemType>
+              LinearSystem,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          FullyWritableMatrix PredictionCovTransMatrix>
 void symplectic_kalman_predict(
-    const LinearSystem& sys, const StateSpaceType& state_space,
-    BeliefState& b_x, const InputBelief& b_u, PredictionCovTransMatrix& Tc,
+    const LinearSystem& sys, const StateSpaceType& state_space, BState& b_x,
+    const InputBelief& b_u, PredictionCovTransMatrix& Tc,
     typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
-
   using StateType = typename discrete_sss_traits<LinearSystem>::point_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
 
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
-  BOOST_CONCEPT_ASSERT(
-      (DiscreteLinearSSSConcept<LinearSystem, StateSpaceType,
-                                DiscreteLinearizedSystemType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<PredictionCovTransMatrix>));
-  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+  static_assert(DecomposedCovariance<CovType>);
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
-  static_assert(is_fully_writable_matrix_v<PredictionCovTransMatrix>);
 
   using MatType =
       typename decomp_covariance_mat_traits<CovType>::matrix_block_type;
@@ -154,16 +141,11 @@ void symplectic_kalman_predict(
 
 /**
  * This function template performs one measurement update step using the Symplectic Kalman Filter method.
- * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept
- *         at least as a DiscreteLinearizedSystemType.
- * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
- *         the pp::TopologyConcept.
- * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam MeasurementBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
+ * \tparam LinearSystem A discrete state-space system.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside.
+ * \tparam BState A belief state with a unimodular gaussian representation.
+ * \tparam InputBelief A belief state with a unimodular gaussian representation.
+ * \tparam MeasurementBelief A belief state with a unimodular gaussian representation.
  * \tparam UpdateCovTransMatrix A matrix type to store the covariance transformation matrix.
  * \param sys The discrete state-space system used in the state estimation.
  * \param state_space The state-space topology on which the state representations lie.
@@ -177,40 +159,29 @@ void symplectic_kalman_predict(
  * \param t The current time.
  *
  */
-template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
-          typename InputBelief, typename MeasurementBelief,
-          typename UpdateCovTransMatrix>
+template <pp::Topology StateSpaceType,
+          DiscreteLinearSSS<StateSpaceType, DiscreteLinearizedSystemType>
+              LinearSystem,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          ContinuousBeliefState MeasurementBelief,
+          FullyWritableMatrix UpdateCovTransMatrix>
 void symplectic_kalman_update(
-    const LinearSystem& sys, const StateSpaceType& state_space,
-    BeliefState& b_x, const InputBelief& b_u, const MeasurementBelief& b_z,
+    const LinearSystem& sys, const StateSpaceType& state_space, BState& b_x,
+    const InputBelief& b_u, const MeasurementBelief& b_z,
     UpdateCovTransMatrix& Tm,
     typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-
   using StateType = typename discrete_sss_traits<LinearSystem>::point_type;
   using StateDiffType =
       typename discrete_sss_traits<LinearSystem>::point_difference_type;
   using OutputType = typename discrete_sss_traits<LinearSystem>::output_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
 
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
-  BOOST_CONCEPT_ASSERT(
-      (DiscreteLinearSSSConcept<LinearSystem, StateSpaceType,
-                                DiscreteLinearizedSystemType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<UpdateCovTransMatrix>));
-  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+  static_assert(DecomposedCovariance<CovType>);
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
-  static_assert(is_fully_writable_matrix_v<UpdateCovTransMatrix>);
 
   using MatType =
       typename decomp_covariance_mat_traits<CovType>::matrix_block_type;
@@ -260,16 +231,11 @@ void symplectic_kalman_update(
  * This function template performs one complete estimation step using the Symplectic Kalman
  * Filter method, which includes a prediction and measurement update step. This function is,
  * in general, more efficient than applying the prediction and update separately.
- * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept
- *         at least as a DiscreteLinearizedSystemType.
- * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
- *         the pp::TopologyConcept.
- * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam MeasurementBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
+ * \tparam LinearSystem A discrete state-space system.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside.
+ * \tparam BState A belief state with a unimodular gaussian representation.
+ * \tparam InputBelief A belief state with a unimodular gaussian representation.
+ * \tparam MeasurementBelief A belief state with a unimodular gaussian representation.
  * \tparam CovTransMatrix A matrix type to store the covariance transformation matrix.
  * \param sys The discrete state-space system used in the state estimation.
  * \param state_space The state-space topology on which the state representations lie.
@@ -283,40 +249,28 @@ void symplectic_kalman_update(
  * \param t The current time (before the prediction).
  *
  */
-template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
-          typename InputBelief, typename MeasurementBelief,
-          typename CovTransMatrix>
+template <pp::Topology StateSpaceType,
+          DiscreteLinearSSS<StateSpaceType, DiscreteLinearizedSystemType>
+              LinearSystem,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          ContinuousBeliefState MeasurementBelief,
+          FullyWritableMatrix CovTransMatrix>
 void symplectic_kalman_filter_step(
-    const LinearSystem& sys, const StateSpaceType& state_space,
-    BeliefState& b_x, const InputBelief& b_u, const MeasurementBelief& b_z,
-    CovTransMatrix& T,
+    const LinearSystem& sys, const StateSpaceType& state_space, BState& b_x,
+    const InputBelief& b_u, const MeasurementBelief& b_z, CovTransMatrix& T,
     typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-
   using StateType = typename discrete_sss_traits<LinearSystem>::point_type;
   using StateDiffType =
       typename discrete_sss_traits<LinearSystem>::point_difference_type;
   using OutputType = typename discrete_sss_traits<LinearSystem>::output_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
 
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
-  BOOST_CONCEPT_ASSERT(
-      (DiscreteLinearSSSConcept<LinearSystem, StateSpaceType,
-                                DiscreteLinearizedSystemType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<CovTransMatrix>));
-  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+  static_assert(DecomposedCovariance<CovType>);
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
-  static_assert(is_fully_writable_matrix_v<CovTransMatrix>);
 
   using MatType =
       typename decomp_covariance_mat_traits<CovType>::matrix_block_type;
@@ -387,13 +341,13 @@ void symplectic_kalman_filter_step(
  * Symplectic Kalman Filter method. This class template models the BeliefTransferConcept and
  * the BeliefPredictorConcept.
  * \tparam SKFTransferFactory The factory type which can create this kalman predictor.
- * \tparam BeliefSpace The belief-space type on which to operate.
+ * \tparam BSpace The belief-space type on which to operate.
  */
-template <typename SKFTransferFactory, typename BeliefSpace>
+template <typename SKFTransferFactory, ContinuousBeliefSpace BSpace>
 struct SKF_belief_transfer {
-  using self = SKF_belief_transfer<SKFTransferFactory, BeliefSpace>;
-  using belief_space = BeliefSpace;
-  using belief_state = typename pp::topology_traits<BeliefSpace>::point_type;
+  using self = SKF_belief_transfer<SKFTransferFactory, BSpace>;
+  using belief_space = BSpace;
+  using belief_state = typename pp::topology_traits<BSpace>::point_type;
 
   using state_space_system = typename SKFTransferFactory::state_space_system;
   using state_space_system_ptr = std::shared_ptr<state_space_system>;
@@ -420,9 +374,7 @@ struct SKF_belief_transfer {
   using output_belief_type =
       gaussian_belief_state<output_type, io_covariance_type>;
 
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<belief_state>));
-  BOOST_CONCEPT_ASSERT(
-      (DecomposedCovarianceConcept<covariance_type, vect_n<double>>));
+  static_assert(DecomposedCovariance<covariance_type, vect_n<double>>);
 
   const SKFTransferFactory* factory;
 
@@ -615,9 +567,9 @@ class SKF_belief_transfer_factory : public serializable {
   using input_type =
       typename discrete_sss_traits<state_space_system>::input_type;
 
-  template <typename BeliefSpace>
+  template <BeliefSpace BSpace>
   struct predictor {
-    using type = SKF_belief_transfer<self, BeliefSpace>;
+    using type = SKF_belief_transfer<self, BSpace>;
   };
 
  private:
@@ -700,12 +652,12 @@ class SKF_belief_transfer_factory : public serializable {
    */
   double get_reupdate_threshold() const { return reupdate_threshold; }
 
-  template <typename BeliefSpace>
-  SKF_belief_transfer<self, BeliefSpace> create_predictor(
-      const BeliefSpace& b_space,
-      const typename pp::topology_traits<BeliefSpace>::point_type* pb,
+  template <BeliefSpace BSpace>
+  SKF_belief_transfer<self, BSpace> create_predictor(
+      const BSpace& b_space,
+      const typename pp::topology_traits<BSpace>::point_type* pb,
       const time_type& t, const input_type& u) const {
-    return SKF_belief_transfer<self, BeliefSpace>(this, b_space, pb, t, u);
+    return SKF_belief_transfer<self, BSpace>(this, b_space, pb, t, u);
   }
 
   /*******************************************************************************

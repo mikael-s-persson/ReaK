@@ -46,7 +46,7 @@ namespace ReaK {
 /// a nil matrix (all entries zero). This is useful to build for example a
 /// block-matrix with some zero-matrix blocks, and, of course, the storage is minimal.
 ///
-/// Models: ReadableMatrixConcept and ResizableMatrixConcept.
+/// Models: ReadableMatrix and ResizableMatrix.
 ///
 /// \tparam T Arithmetic type of the elements of the matrix.
 /// \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or

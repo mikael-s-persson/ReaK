@@ -2,8 +2,8 @@
  * \file mat_concepts.h
  *
  * This header declares the various concepts to which a Matrix class can be expected
- * to fulfill. These concepts include ReadableMatrixConcept, WritableMatrixConcept,
- * and ResizableMatrixConcept. All these concepts are also
+ * to fulfill. These concepts include ReadableMatrix, WritableMatrix,
+ * and ResizableMatrix. All these concepts are also
  * paired with meta-functions that can evaluate whether a Matrix class fulfill the
  * concept or not, and return a compile-time constant bool (on the model of
  * std::bool_constant class). Note that these meta-functions cannot really check the
@@ -43,9 +43,9 @@
 #define REAK_MATH_LIN_ALG_MAT_CONCEPTS_H_
 
 #include "ReaK/math/lin_alg/mat_traits.h"
-#include "boost/concept/requires.hpp"
-#include "boost/concept_check.hpp"
 
+#include <concepts>
+#include <iterator>
 #include <type_traits>
 
 namespace ReaK {
@@ -61,93 +61,47 @@ namespace ReaK {
  *  s = m.get_row_count()  can obtain the number of rows of the matrix.
  */
 template <typename Matrix>
-struct ReadableMatrixConcept {
-  Matrix m;
-
-  mat_size_type_t<Matrix> s;
-  mat_value_type_t<Matrix> e;
-
-  using self = ReadableMatrixConcept<Matrix>;
-
-  BOOST_CONCEPT_USAGE(ReadableMatrixConcept) {
-    e = m(0, 0);  // can be indexed and given an rvalue
-    s = m.get_col_count();
-    s = m.get_row_count();
-  }
+concept ReadableMatrix = requires(const Matrix& m) {
+  { m(0, 0) } -> std::convertible_to<mat_value_type_t<Matrix>>;
+  { m.get_col_count() } -> std::integral<>;
+  { m.get_row_count() } -> std::integral<>;
 };
 
-/**
- * This meta-function evaluates whether a Matrix class fulfills the ReadableMatrixConcept,
- * however, it does not attempt to instantiate the Concept template (because no technique can
- * be used to catch the failed instantiation properly), instead, the default version results
- * in a false value, and the implementer of a matrix class is required to provide a specialization
- * if he wants this meta-function to evaluate to true for that new matrix class.
- */
+// Legacy
 template <typename Matrix>
-struct is_readable_matrix {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type = is_readable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-static constexpr bool is_readable_matrix_v = is_readable_matrix<Matrix>::value;
+static constexpr bool is_readable_matrix_v = ReadableMatrix<Matrix>;
 
 /**
  * This concept will fail to be instantiated if the Matrix class does not model
  * the writable matrix concept, meaning that its (i,j) operator can return a writable
- * value, and that it fulfills the ReadableMatrixConcept.
+ * value, and that it fulfills the ReadableMatrix.
  *
- * Required expressions for Matrix m in addition to that of ReadableMatrixConcept:
+ * Required expressions for Matrix m in addition to that of ReadableMatrix:
  *  m(i,j) = e;   write access to the elements of m by a row and column index.
  */
 template <typename Matrix>
-struct WritableMatrixConcept
-    : ReadableMatrixConcept<Matrix> {  // must also be readable.
-  Matrix m;
-
-  mat_value_type_t<Matrix> r;
-
-  BOOST_CONCEPT_USAGE(WritableMatrixConcept) {
-    m(0, 0) = r;  // can be indexed and given an lvalue
-  }
+concept WritableMatrix = ReadableMatrix<Matrix>&& requires(Matrix& m) {
+  { m(0, 0) } -> std::assignable_from<mat_value_type_t<Matrix>>;
 };
 
-/**
- * This meta-function evaluates whether a Matrix class fulfills the WritableMatrixConcept,
- * however, it does not attempt to instantiate the Concept template (because no technique can
- * be used to catch the failed instantiation properly), instead, the default version results
- * in a false value, and the implementer of a matrix class is required to provide a specialization
- * if he wants this meta-function to evaluate to true for that new matrix class.
- */
+// Legacy
 template <typename Matrix>
-struct is_writable_matrix {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type = is_writable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-static constexpr bool is_writable_matrix_v = is_writable_matrix<Matrix>::value;
+static constexpr bool is_writable_matrix_v = WritableMatrix<Matrix>;
 
 /**
- * This meta-function evaluates whether a Matrix class fulfills the WritableMatrixConcept and
+ * This meta-function evaluates whether a Matrix class fulfills the WritableMatrix and
  * can be considered as "fully writable" meaning that all the (i,j) values are independent and writable,
- * however, it does not attempt to instantiate the Concept template (because no technique can
+ * however, it does not attempt to instantiate the template (because no technique can
  * be used to catch the failed instantiation properly), instead, the default version results
  * in a false value, and the implementer of a matrix class is required to provide a specialization
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
 template <typename Matrix>
-struct is_fully_writable_matrix {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type = is_fully_writable_matrix<Matrix>;
-};
+static constexpr bool is_fully_writable_matrix_v = false;
 
 template <typename Matrix>
-static constexpr bool is_fully_writable_matrix_v =
-    is_fully_writable_matrix<Matrix>::value;
+concept FullyWritableMatrix =
+    WritableMatrix<Matrix>&& is_fully_writable_matrix_v<Matrix>;
 
 /**
  * This concept will fail to be instantiated if the Matrix class does not model
@@ -159,31 +113,14 @@ static constexpr bool is_fully_writable_matrix_v =
  *  m.set_row_count(s)  can set the number of rows of the matrix.
  */
 template <typename Matrix>
-struct RowResizableMatrixConcept {
-  Matrix m;
-
-  mat_size_type_t<Matrix> sz;
-
-  BOOST_CONCEPT_USAGE(RowResizableMatrixConcept) { m.set_row_count(sz); }
+concept RowResizableMatrix = ReadableMatrix<Matrix>&& requires(Matrix& m,
+                                                               int sz) {
+  m.set_row_count(sz);
 };
 
-/**
- * This meta-function evaluates whether a Matrix class fulfills the RowResizableMatrixConcept,
- * however, it does not attempt to instantiate the Concept template (because no technique can
- * be used to catch the failed instantiation properly), instead, the default version results
- * in a false value, and the implementer of a matrix class is required to provide a specialization
- * if he wants this meta-function to evaluate to true for that new matrix class.
- */
+// Legacy
 template <typename Matrix>
-struct is_row_resizable_matrix {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type = is_row_resizable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-static constexpr bool is_row_resizable_matrix_v =
-    is_row_resizable_matrix<Matrix>::value;
+static constexpr bool is_row_resizable_matrix_v = RowResizableMatrix<Matrix>;
 
 /**
  * This concept will fail to be instantiated if the Matrix class does not model
@@ -195,31 +132,14 @@ static constexpr bool is_row_resizable_matrix_v =
  *  m.set_col_count(s)  can set the number of columns of the matrix.
  */
 template <typename Matrix>
-struct ColResizableMatrixConcept {
-  Matrix m;
-
-  mat_size_type_t<Matrix> sz;
-
-  BOOST_CONCEPT_USAGE(ColResizableMatrixConcept) { m.set_col_count(sz); }
+concept ColResizableMatrix = ReadableMatrix<Matrix>&& requires(Matrix& m,
+                                                               int sz) {
+  m.set_col_count(sz);
 };
 
-/**
- * This meta-function evaluates whether a Matrix class fulfills the ColResizableMatrixConcept,
- * however, it does not attempt to instantiate the Concept template (because no technique can
- * be used to catch the failed instantiation properly), instead, the default version results
- * in a false value, and the implementer of a matrix class is required to provide a specialization
- * if he wants this meta-function to evaluate to true for that new matrix class.
- */
+// Legacy
 template <typename Matrix>
-struct is_col_resizable_matrix {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type = is_col_resizable_matrix<Matrix>;
-};
-
-template <typename Matrix>
-static constexpr bool is_col_resizable_matrix_v =
-    is_col_resizable_matrix<Matrix>::value;
+static constexpr bool is_col_resizable_matrix_v = ColResizableMatrix<Matrix>;
 
 /**
  * This meta-function evaluates whether a Matrix class is a square matrix. The implementer of
@@ -227,14 +147,10 @@ static constexpr bool is_col_resizable_matrix_v =
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
 template <typename Matrix>
-struct is_square_matrix {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type = is_square_matrix<Matrix>;
-};
+static constexpr bool is_square_matrix_v = false;
 
 template <typename Matrix>
-static constexpr bool is_square_matrix_v = is_square_matrix<Matrix>::value;
+concept SquareMatrix = ReadableMatrix<Matrix>&& is_square_matrix_v<Matrix>;
 
 /**
  * This meta-function evaluates whether a Matrix class is a symmetric matrix. The implementer of
@@ -242,15 +158,10 @@ static constexpr bool is_square_matrix_v = is_square_matrix<Matrix>::value;
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
 template <typename Matrix>
-struct is_symmetric_matrix {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type = is_symmetric_matrix<Matrix>;
-};
+static constexpr bool is_symmetric_matrix_v = false;
 
 template <typename Matrix>
-static constexpr bool is_symmetric_matrix_v =
-    is_symmetric_matrix<Matrix>::value;
+concept SymmetricMatrix = SquareMatrix<Matrix>&& is_symmetric_matrix_v<Matrix>;
 
 /**
  * This meta-function evaluates whether a Matrix class is a diagonal matrix. The implementer of
@@ -258,14 +169,10 @@ static constexpr bool is_symmetric_matrix_v =
  * if he wants this meta-function to evaluate to true for that new matrix class.
  */
 template <typename Matrix>
-struct is_diagonal_matrix {
-  using value_type = bool;
-  static constexpr bool value = false;
-  using type = is_diagonal_matrix<Matrix>;
-};
+static constexpr bool is_diagonal_matrix_v = false;
 
 template <typename Matrix>
-static constexpr bool is_diagonal_matrix_v = is_diagonal_matrix<Matrix>::value;
+concept DiagonalMatrix = SymmetricMatrix<Matrix>&& is_diagonal_matrix_v<Matrix>;
 
 }  // namespace ReaK
 

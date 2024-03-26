@@ -110,9 +110,9 @@ void bcl_newton_method_tr_impl(
   // + 0.5 * mu * (h_value - s) * (h_value - s) - l_h * (h_value - s)
   Vector L_grad;
   L_grad.resize(N + K);
-  L_grad[range(0, N)] =
+  sub(L_grad)[range(0, N)] =
       x_grad - l_g * Jac_g - l_h * Jac_h + mu * (g_value * Jac_g);
-  L_grad[range(N, N + K)] = l_h;  // - mu * (h_value - s)
+  sub(L_grad)[range(N, N + K)] = l_h;  // - mu * (h_value - s)
 
   Vector p = L_grad;
   Vector p_x = x;
@@ -158,16 +158,16 @@ void bcl_newton_method_tr_impl(
 
     do {
       solve_step(L_grad, La_H, p, norm_p, radius, abs_tol);
-      p_x = p[range(0, N)];
-      p_s = p[range(N, N + K)];
+      p_x = sub(p)[range(0, N)];
+      p_s = sub(p)[range(N, N + K)];
       impose_limits(x, p_x);  // impose limits on the x-space
       for (SizeType i = 0; i < K; ++i) {
         if (s[i] + p_s[i] < ValueType(0.0)) {
           p_s[i] = -s[i];  // impose non-negativity on the s-space.
         }
       }
-      p[range(0, N)] = p_x;
-      p[range(N, N + K)] = p_s;
+      sub(p)[range(0, N)] = p_x;
+      sub(p)[range(N, N + K)] = p_s;
       xt = x;
       xt += p_x;
       norm_p = norm_2(p);
@@ -209,9 +209,9 @@ void bcl_newton_method_tr_impl(
         muJac_h = -mu * Jac_h;
         sub(La_H)(range(0, N), range(N, N + K)) = transpose_view(muJac_h);
         fill_g_jac(Jac_g, x, g_value);
-        L_grad[range(0, N)] = x_grad - l_g * Jac_g - l_h * Jac_h +
-                              mu * g_value * Jac_g + mu * h_value * Jac_h;
-        L_grad[range(N, N + K)] = l_h - mu * h_value;
+        sub(L_grad)[range(0, N)] = x_grad - l_g * Jac_g - l_h * Jac_h +
+                                   mu * g_value * Jac_g + mu * h_value * Jac_h;
+        sub(L_grad)[range(N, N + K)] = l_h - mu * h_value;
         fill_hessian(H, x, x_value, x_grad);
         JJ = transpose_view(Jac_g) * Jac_g + transpose_view(Jac_h) * Jac_h;
         JJ *= mu;
@@ -268,9 +268,9 @@ void bcl_newton_method_tr_impl(
         omega = omega_star / norm_p_total;
       }
     }
-    L_grad[range(0, N)] = x_grad - l_g * Jac_g - l_h * Jac_h +
-                          mu * g_value * Jac_g + mu * h_value * Jac_h;
-    L_grad[range(N, N + K)] = l_h - mu * h_value;
+    sub(L_grad)[range(0, N)] = x_grad - l_g * Jac_g - l_h * Jac_h +
+                               mu * g_value * Jac_g + mu * h_value * Jac_h;
+    sub(L_grad)[range(N, N + K)] = l_h - mu * h_value;
   }
 }
 
@@ -568,8 +568,7 @@ make_constraint_newton_method_tr(Function f, GradFunction df,
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
- * \tparam Vector The vector type of the independent variable for the function (should be a resizable vector, modeling
- *the ResizableVectorConcept).
+ * \tparam Vector The vector type of the independent variable for the function.
  * \tparam EqFunction The functor type of the equality constraints function (vector function).
  * \tparam EqJacFunction The functor type of the equality constraints jacobian function.
  * \tparam IneqFunction The functor type of the inequality constraints function (vector function).
@@ -588,7 +587,7 @@ make_constraint_newton_method_tr(Function f, GradFunction df,
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename HessianFunction,
-          typename Vector, typename EqFunction, typename EqJacFunction,
+          ResizableVector Vector, typename EqFunction, typename EqJacFunction,
           typename IneqFunction, typename IneqJacFunction>
 void constraint_newton_method_tr(
     Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
@@ -619,8 +618,7 @@ void constraint_newton_method_tr(
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
- * \tparam Vector The vector type of the independent variable for the function (should be a resizable vector, modeling
- *the ResizableVectorConcept).
+ * \tparam Vector The vector type of the independent variable for the function.
  * \tparam EqFunction The functor type of the equality constraints function (vector function).
  * \tparam EqJacFunction The functor type of the equality constraints jacobian function.
  * \param f The function to minimize.
@@ -635,7 +633,7 @@ void constraint_newton_method_tr(
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename HessianFunction,
-          typename Vector, typename EqFunction, typename EqJacFunction>
+          ResizableVector Vector, typename EqFunction, typename EqJacFunction>
 void eq_cnstr_newton_method_tr(
     Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
     EqFunction g, EqJacFunction fill_g_jac,
@@ -664,8 +662,7 @@ void eq_cnstr_newton_method_tr(
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
- * \tparam Vector The vector type of the independent variable for the function (should be a resizable vector, modeling
- *the ResizableVectorConcept).
+ * \tparam Vector The vector type of the independent variable for the function.
  * \tparam IneqFunction The functor type of the inequality constraints function (vector function).
  * \tparam IneqJacFunction The functor type of the inequality constraints jacobian function.
  * \param f The function to minimize.
@@ -680,7 +677,8 @@ void eq_cnstr_newton_method_tr(
  * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename HessianFunction,
-          typename Vector, typename IneqFunction, typename IneqJacFunction>
+          ResizableVector Vector, typename IneqFunction,
+          typename IneqJacFunction>
 void ineq_cnstr_newton_method_tr(
     Function f, GradFunction df, HessianFunction fill_hessian, Vector& x,
     IneqFunction h, IneqJacFunction fill_h_jac,

@@ -36,42 +36,45 @@
 
 #include "ReaK/core/base/defs.h"
 
-#include "boost/concept_check.hpp"
-
 #include "ReaK/topologies/spaces/metric_space_concept.h"
+
+#include <concepts>
 
 namespace ReaK::ctrl {
 
 /**
  * This traits class defines the characteristics of a discrete-time state-space system.
- * \tparam DiscreteSystem The discrete-time state-space system type for which the traits are sought.
  */
-template <typename DiscreteSystem>
+template <typename T>
 struct discrete_sss_traits {
   /** The type which describes the state of the system. */
-  using point_type = typename DiscreteSystem::point_type;
+  using point_type = typename T::point_type;
   /** The type which describes the difference between two states of the system. */
-  using point_difference_type = typename DiscreteSystem::point_difference_type;
+  using point_difference_type = typename T::point_difference_type;
 
   /** The type which describes the time. */
-  using time_type = typename DiscreteSystem::time_type;
+  using time_type = typename T::time_type;
   /** The type which describes a time difference. */
-  using time_difference_type = typename DiscreteSystem::time_difference_type;
+  using time_difference_type = typename T::time_difference_type;
 
   /** The type which describes the input vector to the system. */
-  using input_type = typename DiscreteSystem::input_type;
+  using input_type = typename T::input_type;
   /** The type which describes the output of the system. */
-  using output_type = typename DiscreteSystem::output_type;
+  using output_type = typename T::output_type;
 
   /** This constant describes the dimensions of the state vector (0 if not known at compile-time). */
-  static constexpr std::size_t dimensions = DiscreteSystem::dimensions;
+  static constexpr std::size_t dimensions = T::dimensions;
   /** This constant describes the dimensions of the input vector (0 if not known at compile-time). */
-  static constexpr std::size_t input_dimensions =
-      DiscreteSystem::input_dimensions;
+  static constexpr std::size_t input_dimensions = T::input_dimensions;
   /** This constant describes the dimensions of the output vector (0 if not known at compile-time). */
-  static constexpr std::size_t output_dimensions =
-      DiscreteSystem::output_dimensions;
+  static constexpr std::size_t output_dimensions = T::output_dimensions;
 };
+
+template <typename T>
+struct discrete_sss_traits<const T> : discrete_sss_traits<T> {};
+
+template <typename T>
+struct discrete_sss_traits<T&> : discrete_sss_traits<T> {};
 
 /**
  * This concept class template defines the requirements for a type to be a discrete-time
@@ -95,33 +98,21 @@ struct discrete_sss_traits {
  *
  * o = sys.get_output_dimensions();  The state-space system (sys) can deliver the dimensions count (o) for the outputs
  *of the system.
- *
- * \tparam DiscreteSystem The type to be tested for being a discrete-time state-space system.
- * \tparam StateSpaceType The type of the state-space topology on which the state-space system should be able to act.
  */
-template <typename DiscreteSystem, typename StateSpaceType>
-struct DiscreteSSSConcept {
-  DiscreteSystem sys;
-  StateSpaceType state_space;
-  typename discrete_sss_traits<DiscreteSystem>::point_type p;
-  typename discrete_sss_traits<DiscreteSystem>::time_type t;
-  typename discrete_sss_traits<DiscreteSystem>::time_difference_type dt;
-  typename discrete_sss_traits<DiscreteSystem>::input_type u;
-  typename discrete_sss_traits<DiscreteSystem>::output_type y;
-
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
-
-  BOOST_CONCEPT_USAGE(DiscreteSSSConcept) {
-    dt = sys.get_time_step();
-    p = sys.get_next_state(state_space, p, u, t);
-    y = sys.get_output(state_space, p, u, t);
-    std::size_t s = sys.get_state_dimensions();
-    RK_UNUSED(s);
-    std::size_t i = sys.get_input_dimensions();
-    RK_UNUSED(i);
-    std::size_t o = sys.get_output_dimensions();
-    RK_UNUSED(o);
-  }
+template <typename T, typename StateSpace>
+concept DiscreteSSS = pp::Topology<StateSpace>&& requires(
+    const T& sys, const StateSpace& space,
+    typename discrete_sss_traits<T>::point_type p,
+    typename discrete_sss_traits<T>::input_type u,
+    typename discrete_sss_traits<T>::time_type t,
+    typename discrete_sss_traits<T>::time_difference_type dt,
+    typename discrete_sss_traits<T>::output_type y) {
+  dt = sys.get_time_step();
+  p = sys.get_next_state(space, p, u, t);
+  y = sys.get_output(space, p, u, t);
+  { sys.get_state_dimensions() } -> std::integral;
+  { sys.get_input_dimensions() } -> std::integral;
+  { sys.get_output_dimensions() } -> std::integral;
 };
 
 }  // namespace ReaK::ctrl

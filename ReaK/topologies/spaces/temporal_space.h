@@ -336,23 +336,23 @@ class extract_spatial_component : public serializable {
  * This class implementats a temporal-space which augments a
  * topology with a temporal dimension (time-stamp). The time-dimension resides on a line-segment
  * topology (see line_segment_topology), while the spatial topology and distance-metric
- * is provided by the user. Models the TemporalSpaceConcept.
- * \tparam Topology The topology type which represents the spatial dimensions, should model MetricSpaceConcept.
- * \tparam TimeTopology The topology type which represents the time dimension, should model MetricSpaceConcept.
+ * is provided by the user. Models TemporalSpace.
+ * \tparam Space The topology type which represents the spatial dimensions.
+ * \tparam TimeTopology The topology type which represents the time dimension.
  * \tparam TemporalDistanceMetric The distance metric type for the temporal-space, should model the
- * TemporalDistMetricConcept.
+ * TemporalDistMetric.
  */
-template <typename Topology, typename TimeTopology,
+template <Topology Space, Topology TimeTopology,
           typename TemporalDistanceMetric = spatial_distance_only>
 class temporal_space : public named_object {
  public:
   using time_topology = TimeTopology;
-  using space_topology = Topology;
+  using space_topology = Space;
 
   using distance_metric_type = TemporalDistanceMetric;
   using random_sampler_type = default_random_sampler;
 
-  using self = temporal_space<Topology, TimeTopology, TemporalDistanceMetric>;
+  using self = temporal_space<Space, TimeTopology, TemporalDistanceMetric>;
 
  protected:
   space_topology space;
@@ -393,8 +393,8 @@ class temporal_space : public named_object {
   const distance_metric_type& get_distance_metric() const { return dist; }
 
   friend const TemporalDistanceMetric& get(distance_metric_t /*unused*/,
-                                           const self& space) {
-    return space.dist;
+                                           const self& t_space) {
+    return t_space.dist;
   }
 
   /** Returns the underlying space topology. */
@@ -405,12 +405,12 @@ class temporal_space : public named_object {
   distance_metric_type& get_distance_metric() { return dist; }
 
   friend TemporalDistanceMetric& get(distance_metric_t /*unused*/,
-                                     self& space) {
-    return space.dist;
+                                     self& t_space) {
+    return t_space.dist;
   }
 
   /*************************************************************************
-   *                             TopologyConcept
+   *                             Topology
    * **********************************************************************/
 
   /**
@@ -453,7 +453,7 @@ class temporal_space : public named_object {
   }
 
   /*************************************************************************
-  *                             MetricSpaceConcept
+  *                             MetricSpace
   * **********************************************************************/
 
   /**
@@ -474,7 +474,7 @@ class temporal_space : public named_object {
   double norm(const point_difference_type& a) const { return dist(a, *this); }
 
   /*************************************************************************
-  *                             LieGroupConcept
+  *                             LieGroup
   * **********************************************************************/
 
   /**
@@ -504,7 +504,7 @@ class temporal_space : public named_object {
   }
 
   /*************************************************************************
-  *                             PointDistributionConcept
+  *                             PointDistribution
   * **********************************************************************/
 
   /**
@@ -538,35 +538,6 @@ class temporal_space : public named_object {
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400004, 1, "temporal_space",
                               named_object)
 };
-
-template <typename Topology, typename TimeTopology,
-          typename TemporalDistanceMetric>
-struct is_metric_space<
-    temporal_space<Topology, TimeTopology, TemporalDistanceMetric>>
-    : std::integral_constant<bool, is_metric_space_v<Topology> &&
-                                       is_metric_space_v<TimeTopology>> {};
-
-template <typename Topology, typename TimeTopology,
-          typename TemporalDistanceMetric>
-struct is_reversible_space<
-    temporal_space<Topology, TimeTopology, TemporalDistanceMetric>>
-    : std::integral_constant<bool, is_reversible_space_v<Topology> &&
-                                       is_reversible_space_v<TimeTopology>> {};
-
-template <typename Topology, typename TimeTopology,
-          typename TemporalDistanceMetric>
-struct is_point_distribution<
-    temporal_space<Topology, TimeTopology, TemporalDistanceMetric>>
-    : std::integral_constant<bool, is_point_distribution_v<Topology> &&
-                                       is_point_distribution_v<TimeTopology>> {
-};
-
-template <typename Topology, typename TimeTopology,
-          typename TemporalDistanceMetric>
-struct is_temporal_space<
-    temporal_space<Topology, TimeTopology, TemporalDistanceMetric>>
-    : is_metric_space<
-          temporal_space<Topology, TimeTopology, TemporalDistanceMetric>> {};
 
 template <typename Topology, typename TimeTopology,
           typename TemporalDistanceMetric>

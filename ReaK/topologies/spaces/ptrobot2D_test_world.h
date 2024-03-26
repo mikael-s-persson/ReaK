@@ -234,15 +234,6 @@ class ptrobot2D_test_world : public named_object {
                               "ptrobot2D_test_world", named_object)
 };
 
-template <>
-struct is_metric_space<ptrobot2D_test_world> : std::true_type {};
-
-template <>
-struct is_reversible_space<ptrobot2D_test_world> : std::true_type {};
-
-template <>
-struct is_point_distribution<ptrobot2D_test_world> : std::true_type {};
-
 }  // namespace ReaK::pp
 
 #endif  // REAK_TOPOLOGIES_SPACES_PTROBOT2D_TEST_WORLD_H_

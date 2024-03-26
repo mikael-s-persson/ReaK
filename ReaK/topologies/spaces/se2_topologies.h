@@ -51,55 +51,55 @@ namespace pp {
 /**
  * This meta-function defines the type for a 0th order SE(2) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se2_0th_order_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
           differentiable_space<time_topology,
                                arithmetic_tuple<hyperbox_topology<vect<T, 2>>>,
-                               DistanceMetric>,
+                               Metric>,
           differentiable_space<time_topology,
                                arithmetic_tuple<line_segment_topology<T>>,
-                               DistanceMetric>>,
-      DistanceMetric>;
+                               Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se2_0th_order_topology_t =
-    typename se2_0th_order_topology<T, DistanceMetric>::type;
+    typename se2_0th_order_topology<T, Metric>::type;
 
 /**
  * This meta-function defines the type for a 1st order SE(2) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se2_1st_order_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
           differentiable_space<time_topology,
                                arithmetic_tuple<hyperbox_topology<vect<T, 2>>,
                                                 hyperball_topology<vect<T, 2>>>,
-                               DistanceMetric>,
+                               Metric>,
           differentiable_space<time_topology,
                                arithmetic_tuple<line_segment_topology<T>,
                                                 line_segment_topology<T>>,
-                               DistanceMetric>>,
-      DistanceMetric>;
+                               Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se2_1st_order_topology_t =
-    typename se2_1st_order_topology<T, DistanceMetric>::type;
+    typename se2_1st_order_topology<T, Metric>::type;
 
 /**
  * This meta-function defines the type for a 2nd order SE(2) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se2_2nd_order_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
@@ -107,32 +107,29 @@ struct se2_2nd_order_topology {
                                arithmetic_tuple<hyperbox_topology<vect<T, 2>>,
                                                 hyperball_topology<vect<T, 2>>,
                                                 hyperball_topology<vect<T, 2>>>,
-                               DistanceMetric>,
+                               Metric>,
           differentiable_space<time_topology,
                                arithmetic_tuple<line_segment_topology<T>,
                                                 line_segment_topology<T>,
                                                 line_segment_topology<T>>,
-                               DistanceMetric>>,
-      DistanceMetric>;
+                               Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se2_2nd_order_topology_t =
-    typename se2_2nd_order_topology<T, DistanceMetric>::type;
+    typename se2_2nd_order_topology<T, Metric>::type;
 
-template <typename T, int Order,
-          typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
 struct se2_topology {
   using type = std::conditional_t<
-      (Order == 0), se2_0th_order_topology_t<T, DistanceMetric>,
-      std::conditional_t<(Order == 1),
-                         se2_1st_order_topology_t<T, DistanceMetric>,
-                         se2_2nd_order_topology_t<T, DistanceMetric>>>;
+      (Order == 0), se2_0th_order_topology_t<T, Metric>,
+      std::conditional_t<(Order == 1), se2_1st_order_topology_t<T, Metric>,
+                         se2_2nd_order_topology_t<T, Metric>>>;
 };
 
-template <typename T, int Order,
-          typename DistanceMetric = euclidean_tuple_distance>
-using se2_topology_t = typename se2_topology<T, Order, DistanceMetric>::type;
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
+using se2_topology_t = typename se2_topology<T, Order, Metric>::type;
 
 template <typename SE2Space>
 struct is_se2_space : std::false_type {};
@@ -140,73 +137,72 @@ struct is_se2_space : std::false_type {};
 template <typename SE2Space>
 static constexpr bool is_se2_space_v = is_se2_space<SE2Space>::value;
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_se2_space<metric_space_tuple<
     arithmetic_tuple<
         differentiable_space<time_topology,
                              arithmetic_tuple<hyperbox_topology<vect<T, 2>>>,
-                             DistanceMetric>,
-        differentiable_space<time_topology,
-                             arithmetic_tuple<line_segment_topology<T>>,
-                             DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+                             Metric>,
+        differentiable_space<
+            time_topology, arithmetic_tuple<line_segment_topology<T>>, Metric>>,
+    Metric>> : std::true_type {};
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_se2_space<metric_space_tuple<
     arithmetic_tuple<
         differentiable_space<time_topology,
                              arithmetic_tuple<hyperbox_topology<vect<T, 2>>,
                                               hyperball_topology<vect<T, 2>>>,
-                             DistanceMetric>,
+                             Metric>,
         differentiable_space<time_topology,
                              arithmetic_tuple<line_segment_topology<T>,
                                               line_segment_topology<T>>,
-                             DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+                             Metric>>,
+    Metric>> : std::true_type {};
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_se2_space<metric_space_tuple<
     arithmetic_tuple<
         differentiable_space<time_topology,
                              arithmetic_tuple<hyperbox_topology<vect<T, 2>>,
                                               hyperball_topology<vect<T, 2>>,
                                               hyperball_topology<vect<T, 2>>>,
-                             DistanceMetric>,
+                             Metric>,
         differentiable_space<
             time_topology,
             arithmetic_tuple<line_segment_topology<T>, line_segment_topology<T>,
                              line_segment_topology<T>>,
-            DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+            Metric>>,
+    Metric>> : std::true_type {};
 
 /**
  * This meta-function defines the type for a 0th order SE(2) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se2_0th_order_rl_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<hyperbox_topology<vect<T, 2>>>,
-                                DistanceMetric>,
+                                Metric>,
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<line_segment_topology<T>>,
-                                DistanceMetric>>,
-      DistanceMetric>;
+                                Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se2_0th_order_rl_topology_t =
-    typename se2_0th_order_rl_topology<T, DistanceMetric>::type;
+    typename se2_0th_order_rl_topology<T, Metric>::type;
 
 /**
  * This meta-function defines the type for a 1st order SE(2) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se2_1st_order_rl_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
@@ -214,24 +210,24 @@ struct se2_1st_order_rl_topology {
               time_topology,
               arithmetic_tuple<hyperbox_topology<vect<T, 2>>,
                                hyperball_topology<vect<T, 2>>>,
-              DistanceMetric>,
+              Metric>,
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<line_segment_topology<T>,
                                                  line_segment_topology<T>>,
-                                DistanceMetric>>,
-      DistanceMetric>;
+                                Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se2_1st_order_rl_topology_t =
-    typename se2_1st_order_rl_topology<T, DistanceMetric>::type;
+    typename se2_1st_order_rl_topology<T, Metric>::type;
 
 /**
  * This meta-function defines the type for a 2nd order SE(2) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
- * \tparam DistanceMetric The distance metric to apply to the tuple.
+ * \tparam Metric The distance metric to apply to the tuple.
  */
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 struct se2_2nd_order_rl_topology {
   using type = metric_space_tuple<
       arithmetic_tuple<
@@ -240,33 +236,29 @@ struct se2_2nd_order_rl_topology {
               arithmetic_tuple<hyperbox_topology<vect<T, 2>>,
                                hyperball_topology<vect<T, 2>>,
                                hyperball_topology<vect<T, 2>>>,
-              DistanceMetric>,
+              Metric>,
           reach_time_diff_space<time_topology,
                                 arithmetic_tuple<line_segment_topology<T>,
                                                  line_segment_topology<T>,
                                                  line_segment_topology<T>>,
-                                DistanceMetric>>,
-      DistanceMetric>;
+                                Metric>>,
+      Metric>;
 };
 
-template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, typename Metric = euclidean_tuple_distance>
 using se2_2nd_order_rl_topology_t =
-    typename se2_2nd_order_rl_topology<T, DistanceMetric>::type;
+    typename se2_2nd_order_rl_topology<T, Metric>::type;
 
-template <typename T, int Order,
-          typename DistanceMetric = euclidean_tuple_distance>
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
 struct se2_rl_topology {
   using type = std::conditional_t<
-      (Order == 0), se2_0th_order_rl_topology_t<T, DistanceMetric>,
-      std::conditional_t<(Order == 1),
-                         se2_1st_order_rl_topology_t<T, DistanceMetric>,
-                         se2_2nd_order_rl_topology_t<T, DistanceMetric>>>;
+      (Order == 0), se2_0th_order_rl_topology_t<T, Metric>,
+      std::conditional_t<(Order == 1), se2_1st_order_rl_topology_t<T, Metric>,
+                         se2_2nd_order_rl_topology_t<T, Metric>>>;
 };
 
-template <typename T, int Order,
-          typename DistanceMetric = euclidean_tuple_distance>
-using se2_rl_topology_t =
-    typename se2_rl_topology<T, Order, DistanceMetric>::type;
+template <typename T, int Order, typename Metric = euclidean_tuple_distance>
+using se2_rl_topology_t = typename se2_rl_topology<T, Order, Metric>::type;
 
 template <typename SE2Space>
 struct is_rate_limited_se2_space : std::false_type {};
@@ -275,44 +267,43 @@ template <typename SE2Space>
 static constexpr bool is_rate_limited_se2_space_v =
     is_rate_limited_se2_space<SE2Space>::value;
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_rate_limited_se2_space<metric_space_tuple<
     arithmetic_tuple<
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<hyperbox_topology<vect<T, 2>>>,
-                              DistanceMetric>,
-        reach_time_diff_space<time_topology,
-                              arithmetic_tuple<line_segment_topology<T>>,
-                              DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+                              Metric>,
+        reach_time_diff_space<
+            time_topology, arithmetic_tuple<line_segment_topology<T>>, Metric>>,
+    Metric>> : std::true_type {};
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_rate_limited_se2_space<metric_space_tuple<
     arithmetic_tuple<
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<hyperbox_topology<vect<T, 2>>,
                                                hyperball_topology<vect<T, 2>>>,
-                              DistanceMetric>,
+                              Metric>,
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<line_segment_topology<T>,
                                                line_segment_topology<T>>,
-                              DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+                              Metric>>,
+    Metric>> : std::true_type {};
 
-template <typename T, typename DistanceMetric>
+template <typename T, typename Metric>
 struct is_rate_limited_se2_space<metric_space_tuple<
     arithmetic_tuple<
         reach_time_diff_space<time_topology,
                               arithmetic_tuple<hyperbox_topology<vect<T, 2>>,
                                                hyperball_topology<vect<T, 2>>,
                                                hyperball_topology<vect<T, 2>>>,
-                              DistanceMetric>,
+                              Metric>,
         reach_time_diff_space<
             time_topology,
             arithmetic_tuple<line_segment_topology<T>, line_segment_topology<T>,
                              line_segment_topology<T>>,
-            DistanceMetric>>,
-    DistanceMetric>> : std::true_type {};
+            Metric>>,
+    Metric>> : std::true_type {};
 
 }  // namespace pp
 

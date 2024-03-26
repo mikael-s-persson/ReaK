@@ -52,9 +52,8 @@ namespace ReaK::pp {
 /**
  * This library provides classes that define a hyper-ball vector-topology. A hyper-ball vector-topology is
  * a vector-topology where the points are vector values and the boundary is a hyper-ellipsoid.
- * This class models the MetricSpaceConcept, the LieGroupConcept, the BoundedSpaceConcept,
- * the SphereBoundedSpaceConcept, and the PointDistributionConcept.
- * \tparam Vector The vector-type for the topology, should model an Arithmetic concept and WritableVectorConcept.
+ * This class models MetricSpace, LieGroup, BoundedSpace, SphereBoundedSpace, and PointDistribution.
+ * \tparam Vector The vector-type for the topology, should model an Arithmetic concept and WritableVector.
  */
 template <typename Vector>
 class hyperball_topology : public vector_topology<Vector> {
@@ -82,7 +81,7 @@ class hyperball_topology : public vector_topology<Vector> {
         radius_value(aRadius) {}
 
   /*************************************************************************
-   *                             MetricSpaceConcept
+   *                             MetricSpace
    * **********************************************************************/
 
   /**
@@ -102,7 +101,7 @@ class hyperball_topology : public vector_topology<Vector> {
   }
 
   /*************************************************************************
-   *                         for PointDistributionConcept
+   *                         for PointDistribution
    * **********************************************************************/
 
   /**
@@ -133,7 +132,7 @@ class hyperball_topology : public vector_topology<Vector> {
   }
 
   /*************************************************************************
-   *                             BoundedSpaceConcept
+   *                             BoundedSpace
    * **********************************************************************/
 
   /**
@@ -174,7 +173,7 @@ class hyperball_topology : public vector_topology<Vector> {
   point_type origin() const override { return center_point; }
 
   /*************************************************************************
-   *                             SphereBoundedSpaceConcept
+   *                             SphereBoundedSpace
    * **********************************************************************/
 
   /**
@@ -204,15 +203,6 @@ class hyperball_topology : public vector_topology<Vector> {
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400008, 1, "hyperball_topology",
                               vector_topology<Vector>)
 };
-
-template <typename Vector>
-struct is_metric_space<hyperball_topology<Vector>> : std::true_type {};
-
-template <typename Vector>
-struct is_reversible_space<hyperball_topology<Vector>> : std::true_type {};
-
-template <typename Vector>
-struct is_point_distribution<hyperball_topology<Vector>> : std::true_type {};
 
 extern template class hyperball_topology<vect<double, 2>>;
 extern template class hyperball_topology<vect<double, 3>>;

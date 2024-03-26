@@ -58,9 +58,11 @@ pose_3D<T> get_relative_pose_pointcloud(
   mat<T, mat_structure::rectangular> X(aPointCloud.size(), 3);
   mat<T, mat_structure::rectangular> B(aPointCloud.size(), 3);
 
+  int i = 0;
   for (const auto& [p1, p2] : aPointCloud) {
     slice(X)(i, range(0, 3)) = p1 - centroid_1;
     slice(B)(i, range(0, 3)) = p2 - centroid_2;
+    ++i;
   }
 
   // Solve the Orthogonal Procrustes problem: (Kabsch's algorithm)
@@ -88,6 +90,7 @@ rot_mat_3D<T> get_relative_rotation_vectcloud(
       slice(X)(i, range(0, 3)) = v1;
       slice(B)(i, range(0, 3)) = v2;
     }
+  }
 
   // Solve the Orthogonal Procrustes problem: (Kabsch's algorithm)
   mat<T, mat_structure::square> C(transpose_view(X) * B);

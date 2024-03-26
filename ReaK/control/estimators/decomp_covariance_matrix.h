@@ -52,14 +52,11 @@ namespace ReaK::ctrl {
  *
  * Models: CovarianceMatrixConcept and DecomposedCovarianceConcept.
  *
- * \tparam VectorType The state-vector type which the covariance matrix is the covariance of, should model
- *ReadableVectorConcept.
+ * \tparam VectorType The state-vector type which the covariance matrix is the covariance of.
  */
-template <typename VectorType>
+template <ReadableVector VectorType>
 class decomp_covariance_matrix : public named_object {
  public:
-  BOOST_CONCEPT_ASSERT((ReadableVectorConcept<VectorType>));
-
   using self = decomp_covariance_matrix<VectorType>;
 
   using value_type = vect_value_type_t<VectorType>;

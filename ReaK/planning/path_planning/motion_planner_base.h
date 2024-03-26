@@ -53,6 +53,7 @@
 #include "ReaK/planning/path_planning/any_sbmp_reporter.h"
 #include "ReaK/planning/path_planning/path_planner_options.h"
 #include "ReaK/planning/path_planning/planning_queries.h"
+#include "ReaK/topologies/spaces/temporal_space_concept.h"
 
 #include <type_traits>
 
@@ -66,7 +67,7 @@ namespace ReaK::pp {
  * to deal with in the user-space. The OOP planners are meant to offer a much simpler interface,
  * i.e., a member function that "solves the problem" and returns the solution path or trajectory.
  */
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 class planner_base : public named_object {
  public:
   using self = planner_base<FreeSpaceType>;
@@ -74,18 +75,12 @@ class planner_base : public named_object {
   using super_space_type =
       typename subspace_traits<FreeSpaceType>::super_space_type;
 
-  BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
-
   using point_type = topology_point_type_t<super_space_type>;
   using point_difference_type =
       topology_point_difference_type_t<super_space_type>;
 
-  using solution_base_type =
-      std::conditional_t<is_temporal_space_v<space_type>,
-                         seq_trajectory_base<super_space_type>,
-                         seq_path_base<super_space_type>>;
-
-  using solution_record_ptr = std::shared_ptr<solution_base_type>;
+  using solution_record_ptr =
+      typename planning_query<space_type>::solution_record_ptr;
 
  protected:
   std::shared_ptr<space_type> m_space;
@@ -162,7 +157,7 @@ class planner_base : public named_object {
  * to deal with in the user-space. The OOP planners are meant to offer a much simpler interface,
  * i.e., a member function that "solves the problem" and returns the solution path or trajectory.
  */
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 class sample_based_planner : public planner_base<FreeSpaceType> {
  protected:
   using base_type = planner_base<FreeSpaceType>;

@@ -32,8 +32,9 @@ class SoTimerSensor;
 
 template <typename Topology>
 struct coin_animation_data {
-  using temporal_space_type = ReaK::pp::temporal_space<
-      Topology, ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only>;
+  using temporal_space_type =
+      ReaK::pp::temporal_space<Topology, ReaK::pp::time_poisson_topology,
+                               ReaK::pp::time_distance_only>;
   using trajectory_type = ReaK::pp::trajectory_base<temporal_space_type>;
 
   std::shared_ptr<trajectory_type> trajectory;

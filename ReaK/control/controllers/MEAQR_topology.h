@@ -372,8 +372,8 @@ class MEAQR_topology : public named_object {
     using InputType =
         typename detail::MEAQR_ZIR_system<StateSpace,
                                           StateSpaceSystem>::input_type;
-    constant_trajectory<vector_topology<InputType>> input_traj =
-        constant_trajectory<vector_topology<InputType>>(InputType());
+    constant_trajectory<hyperbox_topology<InputType>> input_traj =
+        constant_trajectory<hyperbox_topology<InputType>>(InputType());
 
     // while not reached (fly-by) the goal yet:
     double current_time = 0.0;
@@ -876,27 +876,9 @@ class MEAQR_topology : public named_object {
 
 template <typename StateSpace, typename StateSpaceSystem,
           typename StateSpaceSampler>
-struct is_metric_space<
-    MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>>
-    : std::true_type {};
-
-template <typename StateSpace, typename StateSpaceSystem,
-          typename StateSpaceSampler>
-struct is_point_distribution<
-    MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>>
-    : is_point_distribution<StateSpace> {};
-
-template <typename StateSpace, typename StateSpaceSystem,
-          typename StateSpaceSampler>
 struct is_metric_symmetric<
     MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>>
     : std::false_type {};
-
-template <typename StateSpace, typename StateSpaceSystem,
-          typename StateSpaceSampler>
-struct is_steerable_space<
-    MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>>
-    : std::true_type {};
 
 template <typename StateSpace, typename StateSpaceSystem,
           typename StateSpaceSampler>
@@ -1115,27 +1097,9 @@ class MEAQR_topology_with_CD
 
 template <typename StateSpace, typename StateSpaceSystem,
           typename StateSpaceSampler>
-struct is_metric_space<
-    MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler>>
-    : std::true_type {};
-
-template <typename StateSpace, typename StateSpaceSystem,
-          typename StateSpaceSampler>
-struct is_point_distribution<
-    MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler>>
-    : is_point_distribution<StateSpace> {};
-
-template <typename StateSpace, typename StateSpaceSystem,
-          typename StateSpaceSampler>
 struct is_metric_symmetric<
     MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler>>
     : std::false_type {};
-
-template <typename StateSpace, typename StateSpaceSystem,
-          typename StateSpaceSampler>
-struct is_steerable_space<
-    MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler>>
-    : std::true_type {};
 
 }  // namespace ReaK::pp
 

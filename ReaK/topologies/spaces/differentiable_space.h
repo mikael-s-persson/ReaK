@@ -5,7 +5,7 @@
  * glue together a number of spaces by a differentiation relationship,
  * where each differentiation / integration operation (or more formally speaking, each lift and descent
  * through the tangent bundle) is governed by its own differentiation rule. This class template models
- * the MetricSpaceConcept (if all underlying spaces do as well), and models the DifferentiableSpaceConcept
+ * the MetricSpace (if all underlying spaces do as well), and models the DifferentiableSpace
  * for as high an order as there are differentiation rules and spaces to support.
  *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
@@ -124,7 +124,7 @@ using differentiation_rule_array_t =
  * where each differentiation / integration operation (or more formally speaking, each lift and descent
  * through the tangent bundle) is governed by its own differentiation rule. This class template is based
  * on the metric_space_tuple and will thus model all the concepts that metric_space_tuple models, and it
- * models the TangentBundleConcept for as high an order as there are differentiation rules and spaces provided.
+ * models the TangentBundle for as high an order as there are differentiation rules and spaces provided.
  *
  * \tparam IndependentSpace The type of the independent-space against which the differentiation is
  *                          taken (e.g. time_topology). There are no formal requirements on this type,
@@ -132,12 +132,12 @@ using differentiation_rule_array_t =
  *                          rules might require more of this type).
  * \tparam SpaceTuple A tuple type (e.g. arithmetic_tuple) which provides a set of spaces that are arranged
  *                    in sequence of differentiation levels (e.g. space 0 -- diff --> space 1 -- diff --> space 2 ...).
- * \tparam TupleDistanceMetric A distance metric type which models the DistanceMetricConcept and operates on a
+ * \tparam TupleDistanceMetric A distance metric type which models the DistanceMetric and operates on a
  *                             space-tuple (e.g. arithmetic_tuple).
  * \tparam DiffRuleTuple A tuple type (e.g. arithmetic_tuple) which provides a set of differentiation rules
  *                       to use in order to move vectors across the tangent bundle
  */
-template <typename IndependentSpace, typename SpaceTuple,
+template <Topology IndependentSpace, typename SpaceTuple,
           typename TupleDistanceMetric = manhattan_tuple_distance,
           typename DiffRule = default_differentiation_rule>
 class differentiable_space
@@ -169,10 +169,9 @@ class differentiable_space
    * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
    * \tparam IndependentSpace2 The independent space against which the differentiation is done (e.g. time).
    */
-  template <int Idx, typename IndependentSpace2 = IndependentSpace>
+  template <int Idx, std::convertible_to<IndependentSpace> IndependentSpace2 =
+                         IndependentSpace>
   struct space {
-    static_assert(std::is_convertible_v<const IndependentSpace2&,
-                                        const IndependentSpace&>);
     using type = arithmetic_tuple_element_t<Idx, SpaceTuple>;
   };
 
@@ -223,8 +222,7 @@ class differentiable_space
   template <int Idx>
   auto lift_to_space(
       const arithmetic_tuple_element_t<Idx - 1, point_difference_type>& dp,
-      const typename topology_traits<IndependentSpace>::point_difference_type&
-          dt,
+      const topology_point_difference_type_t<IndependentSpace>& dt,
       const IndependentSpace& t_space) const {
     arithmetic_tuple_element_t<Idx, point_type> result;
     get<Idx - 1>(m_diff_rules).lift(result, dp, dt, t_space);
@@ -243,8 +241,7 @@ class differentiable_space
   template <int Idx>
   auto descend_to_space(
       const arithmetic_tuple_element_t<Idx + 1, point_type>& v,
-      const typename topology_traits<IndependentSpace>::point_difference_type&
-          dt,
+      const topology_point_difference_type_t<IndependentSpace>& dt,
       const IndependentSpace& t_space) const {
     arithmetic_tuple_element_t<Idx, point_difference_type> result;
     get<Idx>(m_diff_rules).descend(result, v, dt, t_space);
@@ -268,25 +265,6 @@ class differentiable_space
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400003, 1, "differentiable_space",
                               base_type)
 };
-
-template <typename IndependentSpace, typename SpaceTuple,
-          typename TupleDistanceMetric, typename DiffRule>
-struct is_metric_space<differentiable_space<IndependentSpace, SpaceTuple,
-                                            TupleDistanceMetric, DiffRule>>
-    : std::true_type {};
-
-template <typename IndependentSpace, typename SpaceTuple,
-          typename TupleDistanceMetric, typename DiffRule>
-struct is_reversible_space<differentiable_space<IndependentSpace, SpaceTuple,
-                                                TupleDistanceMetric, DiffRule>>
-    : is_reversible_space<metric_space_tuple<SpaceTuple, TupleDistanceMetric>> {
-};
-
-template <typename IndependentSpace, typename SpaceTuple,
-          typename TupleDistanceMetric, typename DiffRule>
-struct is_point_distribution<differentiable_space<
-    IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRule>>
-    : std::true_type {};
 
 template <typename IndependentSpace, typename SpaceTuple,
           typename TupleDistanceMetric, typename DiffRule>

@@ -32,6 +32,7 @@
 #include "ReaK/control/estimators/belief_state_concept.h"
 #include "ReaK/control/estimators/covariance_concept.h"
 #include "ReaK/control/systems/linear_ss_system_concept.h"
+#include "ReaK/topologies/spaces/metric_space_concept.h"
 
 #include <type_traits>
 
@@ -40,15 +41,11 @@ namespace ReaK::ctrl {
 namespace detail {
 
 template <typename T, typename LinearSystem, typename StateSpaceType,
-          typename SystemNoiseCovariance>
-struct kalman_bucy_predictor : public state_rate_function<T> {
-
-  BOOST_CONCEPT_ASSERT((LinearSSSystemConcept<LinearSystem, StateSpaceType,
-                                              LinearizedSystemType>));
-  BOOST_CONCEPT_ASSERT(
-      (CovarianceMatrixConcept<
-          SystemNoiseCovariance,
-          pp::topology_traits<StateSpaceType>::point_difference_type>));
+          CovarianceMatrix<pp::topology_point_difference_type_t<StateSpaceType>>
+              SystemNoiseCovariance>
+requires LinearSSSystem<LinearSystem, StateSpaceType,
+                        LinearizedSystemType> struct kalman_bucy_predictor
+    : public state_rate_function<T> {
 
   using value_type = T;
   using size_type = std::size_t;
@@ -119,36 +116,29 @@ struct kalman_bucy_predictor : public state_rate_function<T> {
 
 }  // namespace detail
 
-template <typename LinearSystem, typename StateSpaceType, typename BeliefState,
-          typename InputBelief, typename MeasurementBelief>
+template <pp::Topology StateSpaceType,
+          LinearSSSystem<StateSpaceType, LinearizedSystemType> LinearSystem,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          ContinuousBeliefState MeasurementBelief>
 void hybrid_kalman_filter_step(
     const LinearSystem& sys,
     integrator<mat_value_type_t<
         typename covariance_mat_traits<typename continuous_belief_state_traits<
-            BeliefState>::covariance_type>::matrix_type>>& integ,
-    const StateSpaceType& state_space, BeliefState& b_x, const InputBelief& b_u,
+            BState>::covariance_type>::matrix_type>>& integ,
+    const StateSpaceType& state_space, BState& b_x, const InputBelief& b_u,
     const MeasurementBelief& b_z,
     typename ss_system_traits<LinearSystem>::time_difference_type dt,
     typename ss_system_traits<LinearSystem>::time_type t = 0) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
-  BOOST_CONCEPT_ASSERT((LinearSSSystemConcept<LinearSystem, StateSpaceType,
-                                              LinearizedSystemType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
 
   using StateType = typename ss_system_traits<LinearSystem>::point_type;
   using StateDiffType =
       typename ss_system_traits<LinearSystem>::point_difference_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
   using MatType = typename covariance_mat_traits<CovType>::matrix_type;
   using ValueType = mat_value_type_t<MatType>;
 

@@ -46,6 +46,7 @@
 
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_cholesky.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_qr_decomp.h"
 #include "ReaK/math/lin_alg/mat_views.h"
 #include "ReaK/math/lin_alg/vect_concepts.h"
@@ -66,14 +67,10 @@ namespace ReaK::ctrl {
 
 /**
  * This function template performs one prediction step using the Invariant Symplectic Kalman Filter method.
- * \tparam InvariantSystem An invariant discrete-time state-space system modeling the
- *         InvariantDiscreteSystemConcept.
- * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
- *         the pp::TopologyConcept.
- * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
+ * \tparam ISystem An invariant discrete-time state-space system.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside.
+ * \tparam BState A belief state with a unimodular gaussian representation.
+ * \tparam InputBelief A belief state with a unimodular gaussian representation.
  * \tparam InvCovTransMatrix A matrix type to store the invariant covariance transformation matrix.
  * \tparam InvFrameMatrix A matrix type to store the invariant frame transformation.
  * \param sys The invariant discrete-time state-space system used in the state estimation.
@@ -93,48 +90,34 @@ namespace ReaK::ctrl {
  * \param t The current time (before the prediction).
  *
  */
-template <typename InvariantSystem, typename StateSpaceType,
-          typename BeliefState, typename InputBelief,
-          typename InvCovTransMatrix, typename InvFrameMatrix>
+template <pp::Topology StateSpaceType,
+          InvariantDiscreteSystem<StateSpaceType> ISystem,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          FullyWritableMatrix InvCovTransMatrix, WritableMatrix InvFrameMatrix>
 void invariant_symplectic_kf_predict(
-    const InvariantSystem& sys, const StateSpaceType& state_space,
-    BeliefState& b_x, const InputBelief& b_u, InvCovTransMatrix& Tc,
-    InvFrameMatrix& Wp,
-    typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-
-  using StateType = typename discrete_sss_traits<InvariantSystem>::point_type;
-  using OutputType = typename discrete_sss_traits<InvariantSystem>::output_type;
+    const ISystem& sys, const StateSpaceType& state_space, BState& b_x,
+    const InputBelief& b_u, InvCovTransMatrix& Tc, InvFrameMatrix& Wp,
+    typename discrete_sss_traits<ISystem>::time_type t = 0) {
+  using StateType = typename discrete_sss_traits<ISystem>::point_type;
+  using OutputType = typename discrete_sss_traits<ISystem>::output_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
   using ErrorType =
-      typename invariant_system_traits<InvariantSystem>::invariant_error_type;
+      typename invariant_system_traits<ISystem>::invariant_error_type;
 
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
-  BOOST_CONCEPT_ASSERT(
-      (InvariantDiscreteSystemConcept<InvariantSystem, StateSpaceType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvCovTransMatrix>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvFrameMatrix>));
-  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+  static_assert(DecomposedCovariance<CovType>);
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
-  static_assert(is_fully_writable_matrix_v<InvCovTransMatrix>);
-  static_assert(is_writable_matrix_v<InvFrameMatrix>);
 
   using MatType =
       typename decomp_covariance_mat_traits<CovType>::matrix_block_type;
   using ValueType = mat_value_type_t<MatType>;
   using SizeType = mat_size_type_t<MatType>;
 
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type A;
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixB_type B;
+  typename discrete_linear_sss_traits<ISystem>::matrixA_type A;
+  typename discrete_linear_sss_traits<ISystem>::matrixB_type B;
 
   StateType x = b_x.get_mean_state();
   const MatType& X = b_x.get_covariance().get_covarying_block();
@@ -153,7 +136,7 @@ void invariant_symplectic_kf_predict(
   Tc.set_col_count(2 * N);
 
   set_block(Tc, A, 0, 0);
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type A_inv;
+  typename discrete_linear_sss_traits<ISystem>::matrixA_type A_inv;
   pseudoinvert_QR(A, A_inv);
   mat_sub_block<InvCovTransMatrix> T_lr(Tc, N, N, N, N);
   T_lr = transpose_view(A_inv);
@@ -168,16 +151,11 @@ void invariant_symplectic_kf_predict(
 
 /**
  * This function template performs one measurement update step using the Invariant Symplectic Kalman Filter method.
- * \tparam InvariantSystem An invariant discrete-time state-space system modeling the
- *         InvariantDiscreteSystemConcept.
- * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
- *         the pp::TopologyConcept.
- * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam MeasurementBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
+ * \tparam ISystem An invariant discrete-time state-space system.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside.
+ * \tparam BState A belief state with a unimodular gaussian representation.
+ * \tparam InputBelief A belief state with a unimodular gaussian representation.
+ * \tparam MeasurementBelief A belief state with a unimodular gaussian representation.
  * \tparam InvCovTransMatrix A matrix type to store the invariant covariance transformation matrix.
  * \tparam InvFrameMatrix A matrix type to store the invariant frame transformation.
  * \param sys The invariant discrete-time state-space system used in the state estimation.
@@ -196,52 +174,38 @@ void invariant_symplectic_kf_predict(
  * \param t The current time.
  *
  */
-template <typename InvariantSystem, typename StateSpaceType,
-          typename BeliefState, typename InputBelief,
-          typename MeasurementBelief, typename InvCovTransMatrix,
-          typename InvFrameMatrix>
+template <pp::Topology StateSpaceType,
+          InvariantDiscreteSystem<StateSpaceType> ISystem,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          ContinuousBeliefState MeasurementBelief,
+          FullyWritableMatrix InvCovTransMatrix, WritableMatrix InvFrameMatrix>
 void invariant_symplectic_kf_update(
-    const InvariantSystem& sys, const StateSpaceType& state_space,
-    BeliefState& b_x, const InputBelief& b_u, const MeasurementBelief& b_z,
-    InvCovTransMatrix& Tm, InvFrameMatrix& Wu,
-    typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-
-  using StateType = typename discrete_sss_traits<InvariantSystem>::point_type;
-  using OutputType = typename discrete_sss_traits<InvariantSystem>::output_type;
+    const ISystem& sys, const StateSpaceType& state_space, BState& b_x,
+    const InputBelief& b_u, const MeasurementBelief& b_z, InvCovTransMatrix& Tm,
+    InvFrameMatrix& Wu,
+    typename discrete_sss_traits<ISystem>::time_type t = 0) {
+  using StateType = typename discrete_sss_traits<ISystem>::point_type;
+  using OutputType = typename discrete_sss_traits<ISystem>::output_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
   using ErrorType =
-      typename invariant_system_traits<InvariantSystem>::invariant_error_type;
-  using CorrType = typename invariant_system_traits<
-      InvariantSystem>::invariant_correction_type;
+      typename invariant_system_traits<ISystem>::invariant_error_type;
+  using CorrType =
+      typename invariant_system_traits<ISystem>::invariant_correction_type;
 
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
-  BOOST_CONCEPT_ASSERT(
-      (InvariantDiscreteSystemConcept<InvariantSystem, StateSpaceType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvCovTransMatrix>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvFrameMatrix>));
-  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+  static_assert(DecomposedCovariance<CovType>);
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
-  static_assert(is_fully_writable_matrix_v<InvCovTransMatrix>);
-  static_assert(is_writable_matrix_v<InvFrameMatrix>);
 
   using MatType =
       typename decomp_covariance_mat_traits<CovType>::matrix_block_type;
   using ValueType = mat_value_type_t<MatType>;
   using SizeType = mat_size_type_t<MatType>;
 
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixC_type C;
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixD_type D;
+  typename discrete_linear_sss_traits<ISystem>::matrixC_type C;
+  typename discrete_linear_sss_traits<ISystem>::matrixD_type D;
 
   StateType x = b_x.get_mean_state();
   const MatType& X = b_x.get_covariance().get_covarying_block();
@@ -284,16 +248,11 @@ void invariant_symplectic_kf_update(
  * This function template performs one complete estimation step using the Invariant Symplectic Kalman
  * Filter method, which includes a prediction and measurement update step. This function is,
  * in general, more efficient than applying the prediction and update separately.
- * \tparam InvariantSystem An invariant discrete-time state-space system modeling the
- *         InvariantDiscreteSystemConcept.
- * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
- *         the pp::TopologyConcept.
- * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam MeasurementBelief A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
+ * \tparam ISystem An invariant discrete-time state-space system.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside.
+ * \tparam BState A belief state with a unimodular gaussian representation.
+ * \tparam InputBelief A belief state with a unimodular gaussian representation.
+ * \tparam MeasurementBelief A belief state with a unimodular gaussian representation.
  * \tparam InvCovTransMatrix A matrix type to store the invariant covariance transformation matrix.
  * \tparam InvFrameMatrix A matrix type to store the invariant frame transformation.
  * \param sys The invariant discrete-time state-space system used in the state estimation.
@@ -316,54 +275,39 @@ void invariant_symplectic_kf_update(
  * \param t The current time (before the prediction).
  *
  */
-template <typename InvariantSystem, typename StateSpaceType,
-          typename BeliefState, typename InputBelief,
-          typename MeasurementBelief, typename InvCovTransMatrix,
-          typename InvFrameMatrix>
+template <pp::Topology StateSpaceType,
+          InvariantDiscreteSystem<StateSpaceType> ISystem,
+          ContinuousBeliefState BState, ContinuousBeliefState InputBelief,
+          ContinuousBeliefState MeasurementBelief,
+          FullyWritableMatrix InvCovTransMatrix, WritableMatrix InvFrameMatrix>
 void invariant_symplectic_kf_step(
-    const InvariantSystem& sys, const StateSpaceType& state_space,
-    BeliefState& b_x, const InputBelief& b_u, const MeasurementBelief& b_z,
-    InvCovTransMatrix& T, InvFrameMatrix& W,
-    typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
-  // here the requirement is that the system models a linear system which is at worse a linearized system
-  // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
-  // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-
-  using StateType = typename discrete_sss_traits<InvariantSystem>::point_type;
-  using OutputType = typename discrete_sss_traits<InvariantSystem>::output_type;
+    const ISystem& sys, const StateSpaceType& state_space, BState& b_x,
+    const InputBelief& b_u, const MeasurementBelief& b_z, InvCovTransMatrix& T,
+    InvFrameMatrix& W, typename discrete_sss_traits<ISystem>::time_type t = 0) {
+  using StateType = typename discrete_sss_traits<ISystem>::point_type;
+  using OutputType = typename discrete_sss_traits<ISystem>::output_type;
   using CovType =
-      typename continuous_belief_state_traits<BeliefState>::covariance_type;
+      typename continuous_belief_state_traits<BState>::covariance_type;
   using ErrorType =
-      typename invariant_system_traits<InvariantSystem>::invariant_error_type;
-  using CorrType = typename invariant_system_traits<
-      InvariantSystem>::invariant_correction_type;
+      typename invariant_system_traits<ISystem>::invariant_error_type;
+  using CorrType =
+      typename invariant_system_traits<ISystem>::invariant_correction_type;
 
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
-  BOOST_CONCEPT_ASSERT(
-      (InvariantDiscreteSystemConcept<InvariantSystem, StateSpaceType>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvCovTransMatrix>));
-  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvFrameMatrix>));
-  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
-  static_assert(is_continuous_belief_state_v<BeliefState>);
-  static_assert(belief_state_traits<BeliefState>::representation ==
+  static_assert(DecomposedCovariance<CovType>);
+  static_assert(belief_state_traits<BState>::representation ==
                 belief_representation::gaussian);
-  static_assert(belief_state_traits<BeliefState>::distribution ==
+  static_assert(belief_state_traits<BState>::distribution ==
                 belief_distribution::unimodal);
-  static_assert(is_fully_writable_matrix_v<InvCovTransMatrix>);
-  static_assert(is_writable_matrix_v<InvFrameMatrix>);
 
   using MatType =
       typename decomp_covariance_mat_traits<CovType>::matrix_block_type;
   using ValueType = mat_value_type_t<MatType>;
   using SizeType = mat_size_type_t<MatType>;
 
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type A;
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixB_type B;
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixC_type C;
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixD_type D;
+  typename discrete_linear_sss_traits<ISystem>::matrixA_type A;
+  typename discrete_linear_sss_traits<ISystem>::matrixB_type B;
+  typename discrete_linear_sss_traits<ISystem>::matrixC_type C;
+  typename discrete_linear_sss_traits<ISystem>::matrixD_type D;
 
   StateType x = b_x.get_mean_state();
   MatType X = b_x.get_covariance().get_covarying_block();
@@ -382,7 +326,7 @@ void invariant_symplectic_kf_step(
   T.set_col_count(2 * N);
 
   set_block(T, A, 0, 0);
-  typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type A_inv;
+  typename discrete_linear_sss_traits<ISystem>::matrixA_type A_inv;
   pseudoinvert_QR(A, A_inv);
   mat_sub_block<InvCovTransMatrix> T_lr(T, N, N, N, N);
   T_lr = transpose_view(A_inv);
@@ -431,13 +375,13 @@ void invariant_symplectic_kf_step(
  * Invariant Symplectic Kalman Filter method. This class template models the BeliefTransferConcept and
  * the BeliefPredictorConcept.
  * \tparam ISKFTransferFactory The factory type which can create this kalman predictor.
- * \tparam BeliefSpace The belief-space type on which to operate.
+ * \tparam BSpace The belief-space type on which to operate.
  */
-template <typename ISKFTransferFactory, typename BeliefSpace>
+template <typename ISKFTransferFactory, ContinuousBeliefSpace BSpace>
 struct ISKF_belief_transfer {
-  using self = ISKF_belief_transfer<ISKFTransferFactory, BeliefSpace>;
-  using belief_space = BeliefSpace;
-  using belief_state = typename pp::topology_traits<BeliefSpace>::point_type;
+  using self = ISKF_belief_transfer<ISKFTransferFactory, BSpace>;
+  using belief_space = BSpace;
+  using belief_state = typename pp::topology_traits<BSpace>::point_type;
 
   using state_space_system = typename ISKFTransferFactory::state_space_system;
   using state_space_system_ptr = std::shared_ptr<state_space_system>;
@@ -464,9 +408,7 @@ struct ISKF_belief_transfer {
   using output_belief_type =
       gaussian_belief_state<output_type, io_covariance_type>;
 
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<belief_state>));
-  BOOST_CONCEPT_ASSERT(
-      (DecomposedCovarianceConcept<covariance_type, vect_n<double>>));
+  static_assert(DecomposedCovariance<covariance_type, vect_n<double>>);
 
   const ISKFTransferFactory* factory;
 
@@ -655,12 +597,12 @@ struct ISKF_belief_transfer {
  * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept
  *         at least as a DiscreteLinearizedSystemType.
  */
-template <typename InvariantSystem>
+template <typename ISystem>
 class ISKF_belief_transfer_factory : public serializable {
  public:
-  using self = ISKF_belief_transfer_factory<InvariantSystem>;
+  using self = ISKF_belief_transfer_factory<ISystem>;
 
-  using state_space_system = InvariantSystem;
+  using state_space_system = ISystem;
   using state_space_system_ptr = std::shared_ptr<state_space_system>;
   using covariance_type = covariance_matrix<vect_n<double>>;
   using matrix_type = covariance_mat_traits<covariance_type>::matrix_type;
@@ -672,9 +614,9 @@ class ISKF_belief_transfer_factory : public serializable {
   using input_type =
       typename discrete_sss_traits<state_space_system>::input_type;
 
-  template <typename BeliefSpace>
+  template <BeliefSpace BSpace>
   struct predictor {
-    using type = ISKF_belief_transfer<self, BeliefSpace>;
+    using type = ISKF_belief_transfer<self, BSpace>;
   };
 
  private:
@@ -760,12 +702,11 @@ class ISKF_belief_transfer_factory : public serializable {
    */
   double get_reupdate_threshold() const { return reupdate_threshold; };
 
-  template <typename BeliefSpace>
-  ISKF_belief_transfer<self, BeliefSpace> create_predictor(
-      const BeliefSpace& b_space,
-      const pp::topology_point_type_t<BeliefSpace>* pb, const time_type& t,
-      const input_type& u) const {
-    return ISKF_belief_transfer<self, BeliefSpace>(this, b_space, pb, t, u);
+  template <BeliefSpace BSpace>
+  ISKF_belief_transfer<self, BSpace> create_predictor(
+      const BSpace& b_space, const pp::topology_point_type_t<BSpace>* pb,
+      const time_type& t, const input_type& u) const {
+    return ISKF_belief_transfer<self, BSpace>(this, b_space, pb, t, u);
   }
 
   /*******************************************************************************

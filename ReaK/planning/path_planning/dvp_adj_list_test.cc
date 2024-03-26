@@ -36,9 +36,9 @@
 #include <chrono>
 #include <memory>
 
-using TopologyType = ReaK::pp::hyperbox_topology<ReaK::vect<double, 6>>;
+using SpaceType = ReaK::pp::hyperbox_topology<ReaK::vect<double, 6>>;
 
-using PointType = TopologyType::point_type;
+using PointType = SpaceType::point_type;
 
 struct WorldGridVertexProperties {
   PointType pos;
@@ -57,7 +57,7 @@ int main() {
       boost::data_member_property_map<PointType, WorldGridVertexProperties>;
 
   using WorldPartition2BF = ReaK::pp::dvp_adjacency_list<
-      WorldGridVertexProperties, WorldGridEdgeProperties, TopologyType,
+      WorldGridVertexProperties, WorldGridEdgeProperties, SpaceType,
       PositionMap, 2, ReaK::pp::random_vp_chooser,
       boost::bfl_d_ary_tree_storage<2>, boost::vecBC, boost::undirectedS,
       boost::vecBC>;
@@ -74,7 +74,7 @@ int main() {
           << std::endl;
 
   for (unsigned int grid_size : grid_sizes) {
-    std::shared_ptr<TopologyType> m_space = std::make_shared<TopologyType>(
+    std::shared_ptr<SpaceType> m_space = std::make_shared<SpaceType>(
         "", ReaK::vect<double, 6>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
         ReaK::vect<double, 6>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0));
 
@@ -83,7 +83,7 @@ int main() {
     WorldGrid2BF g2 = dvp2.get_adjacency_list();
 
     using RandSampler =
-        ReaK::pp::point_distribution_traits<TopologyType>::random_sampler_type;
+        ReaK::pp::point_distribution_traits<SpaceType>::random_sampler_type;
     RandSampler get_sample = get(ReaK::pp::random_sampler, *m_space);
 
     for (unsigned int j = 0; j < grid_size; ++j) {

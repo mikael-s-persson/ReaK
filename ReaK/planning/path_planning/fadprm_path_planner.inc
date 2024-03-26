@@ -68,7 +68,7 @@ namespace ReaK::pp {
  * collaborate with the FADPRM algorithms to generate the motion-graph and path-planning solutions.
  * This class template models the FADPRMVisitorConcept.
  */
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 struct fadprm_planner_visitor
     : density_plan_visitor<FreeSpaceType, prm_density_calculator> {
   using base_type = density_plan_visitor<FreeSpaceType, prm_density_calculator>;
@@ -84,18 +84,18 @@ struct fadprm_planner_visitor
                                   std::any aGoalNode = std::any(),
                                   double aDensityCutoff = 0.0)
       : base_type(aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode,
-                  aDensityCutoff){}
+                  aDensityCutoff) {}
 
   // AD* visitor functions:
 
   template <typename EdgeIter, typename Graph>
-  std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei,
-                                                 const Graph& /*unused*/) const {
+  std::pair<double, EdgeIter> detect_edge_change(
+      EdgeIter ei, const Graph& /*unused*/) const {
     return {0.0, ei};
   }
 };
 
-template <typename FreeSpaceType>
+template <SubSpace FreeSpaceType>
 void fadprm_planner<FreeSpaceType>::solve_planning_query(
     planning_query<FreeSpaceType>& aQuery) {
 
@@ -107,7 +107,8 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(
   using VertexProp = dense_mg_vertex<astar_mg_vertex<FreeSpaceType>>;
   using EdgeProp = optimal_mg_edge<FreeSpaceType>;
 
-  using DirectionalityTag = typename motion_segment_directionality<FreeSpaceType>::type;
+  using DirectionalityTag =
+      typename motion_segment_directionality<FreeSpaceType>::type;
 
   using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
@@ -177,10 +178,11 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(
 #endif
 
 #define RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)         \
-  using GraphPositionMap = typename boost::property_map<MotionGraphType,      \
-      PointType BasicVertexProp::*>::type;                                    \
+  using GraphPositionMap =                                                    \
+      typename boost::property_map<MotionGraphType,                           \
+                                   PointType BasicVertexProp::*>::type;       \
   using SpacePartType = dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, \
-      random_vp_chooser, TREE_STORAGE>;                                       \
+                                 random_vp_chooser, TREE_STORAGE>;            \
   SpacePartType space_part(motion_graph, sup_space_ptr,                       \
                            get(&BasicVertexProp::position, motion_graph));    \
                                                                               \
@@ -196,9 +198,10 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(
       nn_finder, space_dim, 3.0 * space_Lc);
 
 #define RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(ARITY, TREE_STORAGE)          \
-  using ALTGraph = dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace,        \
-      PositionMap, ARITY, random_vp_chooser, TREE_STORAGE, boost::vecBC,       \
-      DirectionalityTag, boost::listBC>;                                       \
+  using ALTGraph =                                                             \
+      dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace, PositionMap, ARITY, \
+                         random_vp_chooser, TREE_STORAGE, boost::vecBC,        \
+                         DirectionalityTag, boost::listBC>;                    \
   using MotionGraphType = typename ALTGraph::adj_list_type;                    \
   using Vertex = graph::graph_vertex_t<MotionGraphType>;                       \
                                                                                \
@@ -230,8 +233,9 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(
   if ((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) ==
       ADJ_LIST_MOTION_GRAPH) {
 
-    using MotionGraphType = boost::adjacency_list_BC<boost::vecBC,
-        boost::vecBC, DirectionalityTag, VertexProp, EdgeProp>;
+    using MotionGraphType =
+        boost::adjacency_list_BC<boost::vecBC, boost::vecBC, DirectionalityTag,
+                                 VertexProp, EdgeProp>;
     using Vertex = graph::graph_vertex_t<MotionGraphType>;
 
     MotionGraphType motion_graph;

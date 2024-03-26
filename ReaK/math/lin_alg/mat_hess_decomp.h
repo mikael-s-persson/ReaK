@@ -41,6 +41,7 @@
 #define REAK_MATH_LIN_ALG_MAT_HESS_DECOMP_H_
 
 #include "ReaK/math/lin_alg/mat_alg.h"
+#include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include "ReaK/math/lin_alg/mat_givens_rot.h"
@@ -196,9 +197,6 @@ void reduce_HessTri_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 /**
  * Performs the Upper-Hessenberg decomposition on a matrix, using the Householder method.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param Q holds as output, the unitary square matrix Q.
  * \param H holds as output, the upper-hessenberg matrix R in A = Q H Q^T.
@@ -209,19 +207,17 @@ void reduce_HessTri_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2,
+          WritableMatrix Matrix3>
 void decompose_Hess(const Matrix1& A, Matrix2& Q, Matrix3& H,
                     mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
-  static_assert(is_writable_matrix_v<Matrix3>);
   if (A.get_row_count() != A.get_col_count()) {
     throw std::range_error(
         "Upper-Hessenberg decomposition is only possible on a square matrix!");
   }
 
   auto Qtmp = [&]() {
-    if constexpr (is_fully_writable_matrix_v<Matrix2>) {
+    if constexpr (FullyWritableMatrix<Matrix2>) {
       Q = mat<mat_value_type_t<Matrix2>, mat_structure::identity>(
           A.get_row_count());
       return std::unique_ptr<Matrix2, null_deleter>(&Q, null_deleter());
@@ -233,7 +229,7 @@ void decompose_Hess(const Matrix1& A, Matrix2& Q, Matrix3& H,
     }
   }();
   auto Htmp = [&]() {
-    if constexpr (is_fully_writable_matrix_v<Matrix3>) {
+    if constexpr (FullyWritableMatrix<Matrix3>) {
       H = A;
       return std::unique_ptr<Matrix3, null_deleter>(&H, null_deleter());
     } else {
@@ -244,10 +240,10 @@ void decompose_Hess(const Matrix1& A, Matrix2& Q, Matrix3& H,
 
   detail::decompose_Hess_impl(*Htmp, Qtmp.get(), NumTol);
 
-  if constexpr (!is_fully_writable_matrix_v<Matrix2>) {
+  if constexpr (!FullyWritableMatrix<Matrix2>) {
     Q = *Qtmp;
   }
-  if constexpr (!is_fully_writable_matrix_v<Matrix3>) {
+  if constexpr (!FullyWritableMatrix<Matrix3>) {
     H = *Htmp;
   }
 }
@@ -255,8 +251,6 @@ void decompose_Hess(const Matrix1& A, Matrix2& Q, Matrix3& H,
 /**
  * Performs the Upper-Hessenberg decomposition on a matrix, using the Householder method.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param H holds as output, the upper-hessenberg matrix R in A = Q H Q^T.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
@@ -266,18 +260,16 @@ void decompose_Hess(const Matrix1& A, Matrix2& Q, Matrix3& H,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
+template <ReadableMatrix Matrix1, WritableMatrix Matrix2>
 void decompose_Hess(const Matrix1& A, Matrix2& H,
                     mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_writable_matrix_v<Matrix2>);
   if (A.get_row_count() != A.get_col_count()) {
     throw std::range_error(
         "Upper-Hessenberg decomposition is only possible on a square matrix!");
   }
 
   auto Htmp = [&]() {
-    if constexpr (is_fully_writable_matrix_v<Matrix2>) {
+    if constexpr (FullyWritableMatrix<Matrix2>) {
       H = A;
       return std::unique_ptr<Matrix2, null_deleter>(&H, null_deleter());
     } else {
@@ -289,7 +281,7 @@ void decompose_Hess(const Matrix1& A, Matrix2& H,
   detail::decompose_Hess_impl(*Htmp, static_cast<decltype(Htmp.get())>(nullptr),
                               NumTol);
 
-  if constexpr (!is_fully_writable_matrix_v<Matrix2>) {
+  if constexpr (!FullyWritableMatrix<Matrix2>) {
     H = *Htmp;
   }
 }
@@ -300,12 +292,6 @@ void decompose_Hess(const Matrix1& A, Matrix2& H,
  * upper-Hessenberg and R is upper-triangular, and are "similar" to matrices A and B through
  * the transformation H = Q^T * A * Z and R = Q^T * B * Z, where both Q and Z are orthogonal.
  *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A readable matrix type.
- * \tparam Matrix3 A fully-writable matrix type.
- * \tparam Matrix4 A fully-writable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
- * \tparam Matrix6 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param B square matrix with row-count == column-count.
  * \param H holds as output, the upper-hessenberg matrix H in H = Q^T A Z.
@@ -319,17 +305,12 @@ void decompose_Hess(const Matrix1& A, Matrix2& H,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4, typename Matrix5, typename Matrix6>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          WritableMatrix Matrix3, WritableMatrix Matrix4,
+          WritableMatrix Matrix5, WritableMatrix Matrix6>
 void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
                     Matrix5& Q, Matrix6& Z,
                     mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_writable_matrix_v<Matrix3>);
-  static_assert(is_writable_matrix_v<Matrix4>);
-  static_assert(is_writable_matrix_v<Matrix5>);
-  static_assert(is_writable_matrix_v<Matrix6>);
   if ((A.get_row_count() != A.get_col_count()) ||
       (B.get_row_count() != B.get_col_count())) {
     throw std::range_error(
@@ -337,7 +318,7 @@ void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
   }
 
   auto Htmp = [&]() {
-    if constexpr (is_fully_writable_matrix_v<Matrix3>) {
+    if constexpr (FullyWritableMatrix<Matrix3>) {
       H = A;
       return std::unique_ptr<Matrix3, null_deleter>(&H, null_deleter());
     } else {
@@ -346,7 +327,7 @@ void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
     }
   }();
   auto Rtmp = [&]() {
-    if constexpr (is_fully_writable_matrix_v<Matrix4>) {
+    if constexpr (FullyWritableMatrix<Matrix4>) {
       R = B;
       return std::unique_ptr<Matrix4, null_deleter>(&R, null_deleter());
     } else {
@@ -355,7 +336,7 @@ void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
     }
   }();
   auto Qtmp = [&]() {
-    if constexpr (is_fully_writable_matrix_v<Matrix5>) {
+    if constexpr (FullyWritableMatrix<Matrix5>) {
       Q = mat<mat_value_type_t<Matrix5>, mat_structure::identity>(
           A.get_row_count());
       return std::unique_ptr<Matrix5, null_deleter>(&Q, null_deleter());
@@ -367,7 +348,7 @@ void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
     }
   }();
   auto Ztmp = [&]() {
-    if constexpr (is_fully_writable_matrix_v<Matrix6>) {
+    if constexpr (FullyWritableMatrix<Matrix6>) {
       Z = mat<mat_value_type_t<Matrix6>, mat_structure::identity>(
           A.get_row_count());
       return std::unique_ptr<Matrix6, null_deleter>(&Z, null_deleter());
@@ -382,16 +363,16 @@ void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
   detail::reduce_HessTri_offset_impl(*Htmp, *Rtmp, Qtmp.get(), Ztmp.get(), 0,
                                      NumTol);
 
-  if constexpr (!is_fully_writable_matrix_v<Matrix3>) {
+  if constexpr (!FullyWritableMatrix<Matrix3>) {
     H = *Htmp;
   }
-  if constexpr (!is_fully_writable_matrix_v<Matrix4>) {
+  if constexpr (!FullyWritableMatrix<Matrix4>) {
     R = *Rtmp;
   }
-  if constexpr (!is_fully_writable_matrix_v<Matrix5>) {
+  if constexpr (!FullyWritableMatrix<Matrix5>) {
     Q = *Qtmp;
   }
-  if constexpr (!is_fully_writable_matrix_v<Matrix6>) {
+  if constexpr (!FullyWritableMatrix<Matrix6>) {
     Z = *Ztmp;
   }
 }
@@ -417,14 +398,10 @@ void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3,
-          typename Matrix4>
+template <ReadableMatrix Matrix1, ReadableMatrix Matrix2,
+          WritableMatrix Matrix3, WritableMatrix Matrix4>
 void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
                     mat_value_type_t<Matrix1> NumTol = 1E-8) {
-  static_assert(is_readable_matrix_v<Matrix1>);
-  static_assert(is_readable_matrix_v<Matrix2>);
-  static_assert(is_writable_matrix_v<Matrix3>);
-  static_assert(is_writable_matrix_v<Matrix4>);
   if ((A.get_row_count() != A.get_col_count()) ||
       (B.get_row_count() != B.get_col_count())) {
     throw std::range_error(
@@ -432,7 +409,7 @@ void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
   }
 
   auto Htmp = [&]() {
-    if constexpr (is_fully_writable_matrix_v<Matrix3>) {
+    if constexpr (FullyWritableMatrix<Matrix3>) {
       H = A;
       return std::unique_ptr<Matrix3, null_deleter>(&H, null_deleter());
     } else {
@@ -441,7 +418,7 @@ void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
     }
   }();
   auto Rtmp = [&]() {
-    if constexpr (is_fully_writable_matrix_v<Matrix4>) {
+    if constexpr (FullyWritableMatrix<Matrix4>) {
       R = B;
       return std::unique_ptr<Matrix4, null_deleter>(&R, null_deleter());
     } else {
@@ -454,10 +431,10 @@ void reduce_HessTri(const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
       *Htmp, *Rtmp, static_cast<decltype(Htmp.get())>(nullptr),
       static_cast<decltype(Rtmp.get())>(nullptr), 0, NumTol);
 
-  if constexpr (!is_fully_writable_matrix_v<Matrix3>) {
+  if constexpr (!FullyWritableMatrix<Matrix3>) {
     H = *Htmp;
   }
-  if constexpr (!is_fully_writable_matrix_v<Matrix4>) {
+  if constexpr (!FullyWritableMatrix<Matrix4>) {
     R = *Rtmp;
   }
 }

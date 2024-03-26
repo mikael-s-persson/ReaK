@@ -67,12 +67,12 @@ namespace ReaK {
 /// This class makes the concatenation of the two matrices look as if it was just one matrix (and so,
 /// this class is an adaptor).
 ///
-/// Models: ReadableMatrixConcept and all matrix concepts modeled by both LeftMatrix and RightMatrix,
-/// except for ResizableMatrixConcept.
+/// Models: ReadableMatrix and all matrix concepts modeled by both LeftMatrix and RightMatrix,
+/// except for ResizableMatrix.
 ///
 /// \tparam LeftMatrix Matrix type for the left matrix.
 /// \tparam RightMatrix Matrix type for the right matrix.
-template <typename LeftMatrix, typename RightMatrix>
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
 class mat_horiz_cat {
  public:
   using self = mat_horiz_cat<LeftMatrix, RightMatrix>;
@@ -152,11 +152,9 @@ class mat_horiz_cat {
 
   /// Templated assignment operator to assign the content of the matrix with the content
   /// of a matrix of another type (Matrix)
-  /// \tparam Matrix A readable matrix (models ReadableMatrixConcept)
   /// \param rhs Right-hand-side of the assignment.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator=(const Matrix& rhs) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((rhs.get_row_count() != ml.get_row_count()) ||
         (rhs.get_col_count() != ml.get_col_count() + mr.get_col_count())) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -210,9 +208,8 @@ class mat_horiz_cat {
   }
 
   /// Add-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator+=(const Matrix& M) {
-    BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
     if ((M.get_row_count() != ml.get_row_count()) ||
         (M.get_col_count() != ml.get_col_count() + mr.get_col_count())) {
       throw std::range_error("Matrix dimension mismatch.");
@@ -225,9 +222,8 @@ class mat_horiz_cat {
   }
 
   /// Sub-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator-=(const Matrix& M) {
-    BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
     if ((M.get_row_count() != ml.get_row_count()) ||
         (M.get_col_count() != ml.get_col_count() + mr.get_col_count())) {
       throw std::range_error("Matrix dimension mismatch.");
@@ -247,9 +243,8 @@ class mat_horiz_cat {
   }
 
   /// General Matrix multiplication.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator*=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_col_count() != get_col_count()) ||
         (M.get_row_count() != get_col_count())) {
       throw std::range_error("Matrix Dimension Mismatch.");
@@ -260,48 +255,21 @@ class mat_horiz_cat {
 };
 
 template <typename LeftMatrix, typename RightMatrix>
-struct is_readable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value =
-      is_readable_matrix_v<LeftMatrix> && is_readable_matrix_v<RightMatrix>;
-  using type = is_readable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_writable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value =
-      is_writable_matrix_v<LeftMatrix> && is_writable_matrix_v<RightMatrix>;
-  using type = is_writable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_fully_writable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<LeftMatrix> &&
-                                is_fully_writable_matrix_v<RightMatrix>;
-  using type = is_fully_writable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_row_resizable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = false;
-  using type = is_row_resizable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_col_resizable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = false;
-  using type = is_col_resizable_matrix<mat_horiz_cat<LeftMatrix, RightMatrix>>;
-};
+static constexpr bool
+    is_fully_writable_matrix_v<mat_horiz_cat<LeftMatrix, RightMatrix>> =
+        is_fully_writable_matrix_v<LeftMatrix>&&
+            is_fully_writable_matrix_v<RightMatrix>;
 
 /// This class template forms the horizontal concatenation of two matrices, which it takes by reference
 /// (and stores by pointer, to be copyable). This class makes the concatenation of the two matrices
 /// look as if it was just one matrix (and so, this class is an adaptor).
 ///
-/// Models: ReadableMatrixConcept and all matrix concepts modeled by both LeftMatrix and RightMatrix,
-/// except for ResizableMatrixConcept.
+/// Models: ReadableMatrix and all matrix concepts modeled by both LeftMatrix and RightMatrix,
+/// except for ResizableMatrix.
 ///
 /// \tparam LeftMatrix Matrix type for the left matrix.
 /// \tparam RightMatrix Matrix type for the right matrix.
-template <typename LeftMatrix, typename RightMatrix>
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
 class mat_ref_horiz_cat {
  public:
   using self = mat_ref_horiz_cat<LeftMatrix, RightMatrix>;
@@ -364,11 +332,9 @@ class mat_ref_horiz_cat {
 
   /// Templated assignment operator to assign the content of the matrix with the content
   /// of a matrix of another type (Matrix)
-  /// \tparam Matrix A readable matrix (models ReadableMatrixConcept)
   /// \param rhs Right-hand-side of the assignment.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator=(const Matrix& rhs) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((rhs.get_row_count() != ml->get_row_count()) ||
         (rhs.get_col_count() != ml->get_col_count() + mr->get_col_count())) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -423,9 +389,8 @@ class mat_ref_horiz_cat {
   }
 
   /// Add-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator+=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_row_count() != ml->get_row_count()) ||
         (M.get_col_count() != ml->get_col_count() + mr->get_col_count())) {
       throw std::range_error("Matrix dimension mismatch.");
@@ -439,9 +404,8 @@ class mat_ref_horiz_cat {
   }
 
   /// Sub-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator-=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_row_count() != ml->get_row_count()) ||
         (M.get_col_count() != ml->get_col_count() + mr->get_col_count())) {
       throw std::range_error("Matrix dimension mismatch.");
@@ -462,9 +426,8 @@ class mat_ref_horiz_cat {
   }
 
   /// General Matrix multiplication.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator*=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_col_count() != get_col_count()) ||
         (M.get_row_count() != get_col_count())) {
       throw std::range_error("Matrix Dimension Mismatch.");
@@ -475,51 +438,21 @@ class mat_ref_horiz_cat {
 };
 
 template <typename LeftMatrix, typename RightMatrix>
-struct is_readable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value =
-      is_readable_matrix_v<LeftMatrix> && is_readable_matrix_v<RightMatrix>;
-  using type = is_readable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_writable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value =
-      is_writable_matrix_v<LeftMatrix> && is_writable_matrix_v<RightMatrix>;
-  using type = is_writable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_fully_writable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<LeftMatrix> &&
-                                is_fully_writable_matrix_v<RightMatrix>;
-  using type =
-      is_fully_writable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_row_resizable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_row_resizable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_col_resizable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_col_resizable_matrix<mat_ref_horiz_cat<LeftMatrix, RightMatrix>>;
-};
+static constexpr bool
+    is_fully_writable_matrix_v<mat_ref_horiz_cat<LeftMatrix, RightMatrix>> =
+        is_fully_writable_matrix_v<LeftMatrix>&&
+            is_fully_writable_matrix_v<RightMatrix>;
 
 /// This class template forms the horizontal concatenation of two matrices, which it takes by const-reference
 /// (and stores by const-pointer, to be copyable). This class makes the concatenation of the two matrices
 /// look as if it was just one matrix (and so, this class is an adaptor).
 ///
-/// Models: ReadableMatrixConcept and all matrix concepts modeled by both LeftMatrix and RightMatrix,
-/// except for ResizableMatrixConcept.
+/// Models: ReadableMatrix and all matrix concepts modeled by both LeftMatrix and RightMatrix,
+/// except for ResizableMatrix.
 ///
 /// \tparam LeftMatrix Matrix type for the left matrix.
 /// \tparam RightMatrix Matrix type for the right matrix.
-template <typename LeftMatrix, typename RightMatrix>
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
 class mat_const_ref_horiz_cat {
  public:
   using self = mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>;
@@ -609,45 +542,6 @@ class mat_const_ref_horiz_cat {
   }
 };
 
-template <typename LeftMatrix, typename RightMatrix>
-struct is_readable_matrix<mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value =
-      is_readable_matrix_v<LeftMatrix> && is_readable_matrix_v<RightMatrix>;
-  using type =
-      is_readable_matrix<mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_writable_matrix<mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_writable_matrix<mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_fully_writable_matrix<
-    mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = false;
-  using type = is_fully_writable_matrix<
-      mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_row_resizable_matrix<
-    mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_row_resizable_matrix<mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
-template <typename LeftMatrix, typename RightMatrix>
-struct is_col_resizable_matrix<
-    mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_col_resizable_matrix<mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>>;
-};
-
 /// This function template will horizontally concatenate two matrices, by copying them into a
 /// composite matrix.
 /// \tparam LeftMatrix Matrix type for the left part of the composite matrix.
@@ -655,11 +549,8 @@ struct is_col_resizable_matrix<
 /// \param MU The value of the left part of the composite matrix.
 /// \param ML The value of the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices, by copy.
-template <typename LeftMatrix, typename RightMatrix>
-mat_horiz_cat<LeftMatrix, RightMatrix> hcat_copy(const LeftMatrix& ML,
-                                                 const RightMatrix& MR) {
-  static_assert(is_readable_matrix_v<LeftMatrix>);
-  static_assert(is_readable_matrix_v<RightMatrix>);
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto hcat_copy(const LeftMatrix& ML, const RightMatrix& MR) {
   return mat_horiz_cat<LeftMatrix, RightMatrix>(ML, MR);
 }
 
@@ -670,11 +561,8 @@ mat_horiz_cat<LeftMatrix, RightMatrix> hcat_copy(const LeftMatrix& ML,
 /// \param MU The matrix storing the left part of the composite matrix.
 /// \param ML The matrix storing the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices, by reference.
-template <typename LeftMatrix, typename RightMatrix>
-mat_ref_horiz_cat<LeftMatrix, RightMatrix> hcat(LeftMatrix& ML,
-                                                RightMatrix& MR) {
-  static_assert(is_readable_matrix_v<LeftMatrix>);
-  static_assert(is_readable_matrix_v<RightMatrix>);
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto hcat(LeftMatrix& ML, RightMatrix& MR) {
   return mat_ref_horiz_cat<LeftMatrix, RightMatrix>(ML, MR);
 }
 
@@ -685,11 +573,8 @@ mat_ref_horiz_cat<LeftMatrix, RightMatrix> hcat(LeftMatrix& ML,
 /// \param MU The matrix storing the left part of the composite matrix.
 /// \param ML The matrix storing the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices, by const-reference.
-template <typename LeftMatrix, typename RightMatrix>
-mat_const_ref_horiz_cat<LeftMatrix, RightMatrix> hcat(const LeftMatrix& ML,
-                                                      const RightMatrix& MR) {
-  static_assert(is_readable_matrix_v<LeftMatrix>);
-  static_assert(is_readable_matrix_v<RightMatrix>);
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto hcat(const LeftMatrix& ML, const RightMatrix& MR) {
   return mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>(ML, MR);
 }
 
@@ -701,10 +586,8 @@ mat_const_ref_horiz_cat<LeftMatrix, RightMatrix> hcat(const LeftMatrix& ML,
 /// \param MU The value of the left part of the composite matrix.
 /// \param ML The value of the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices, by copy.
-template <typename LeftMatrix, typename RightMatrix>
-mat_horiz_cat<LeftMatrix, RightMatrix> hcat(LeftMatrix&& ML, RightMatrix&& MR) {
-  static_assert(is_readable_matrix_v<LeftMatrix>);
-  static_assert(is_readable_matrix_v<RightMatrix>);
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto hcat(LeftMatrix&& ML, RightMatrix&& MR) {
   return mat_horiz_cat<LeftMatrix, RightMatrix>(std::move(ML), std::move(MR));
 }
 
@@ -717,11 +600,8 @@ mat_horiz_cat<LeftMatrix, RightMatrix> hcat(LeftMatrix&& ML, RightMatrix&& MR) {
 /// \param MU The matrix storing the left part of the composite matrix.
 /// \param ML The value of the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices.
-template <typename LeftMatrix, typename RightMatrix>
-mat_horiz_cat<mat_sub_block<LeftMatrix>, RightMatrix> hcat(LeftMatrix& ML,
-                                                           RightMatrix&& MR) {
-  static_assert(is_readable_matrix_v<LeftMatrix>);
-  static_assert(is_readable_matrix_v<RightMatrix>);
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto hcat(LeftMatrix& ML, RightMatrix&& MR) {
   return mat_horiz_cat<mat_sub_block<LeftMatrix>, RightMatrix>(
       mat_sub_block<LeftMatrix>(ML), std::move(MR));
 }
@@ -735,11 +615,8 @@ mat_horiz_cat<mat_sub_block<LeftMatrix>, RightMatrix> hcat(LeftMatrix& ML,
 /// \param MU The value of the left part of the composite matrix.
 /// \param ML The matrix storing the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices.
-template <typename LeftMatrix, typename RightMatrix>
-mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix>> hcat(LeftMatrix&& ML,
-                                                           RightMatrix& MR) {
-  static_assert(is_readable_matrix_v<LeftMatrix>);
-  static_assert(is_readable_matrix_v<RightMatrix>);
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto hcat(LeftMatrix&& ML, RightMatrix& MR) {
   return mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix>>(
       std::move(ML), mat_sub_block<RightMatrix>(MR));
 }
@@ -753,11 +630,8 @@ mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix>> hcat(LeftMatrix&& ML,
 /// \param MU The matrix storing the left part of the composite matrix.
 /// \param ML The value of the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices.
-template <typename LeftMatrix, typename RightMatrix>
-mat_horiz_cat<mat_const_sub_block<LeftMatrix>, RightMatrix> hcat(
-    const LeftMatrix& ML, RightMatrix&& MR) {
-  static_assert(is_readable_matrix_v<LeftMatrix>);
-  static_assert(is_readable_matrix_v<RightMatrix>);
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto hcat(const LeftMatrix& ML, RightMatrix&& MR) {
   return mat_horiz_cat<mat_const_sub_block<LeftMatrix>, RightMatrix>(
       mat_const_sub_block<LeftMatrix>(ML), std::move(MR));
 }
@@ -771,11 +645,8 @@ mat_horiz_cat<mat_const_sub_block<LeftMatrix>, RightMatrix> hcat(
 /// \param MU The value of the left part of the composite matrix.
 /// \param ML The matrix storing the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices.
-template <typename LeftMatrix, typename RightMatrix>
-mat_horiz_cat<LeftMatrix, mat_const_sub_block<RightMatrix>> hcat(
-    LeftMatrix&& ML, const RightMatrix& MR) {
-  static_assert(is_readable_matrix_v<LeftMatrix>);
-  static_assert(is_readable_matrix_v<RightMatrix>);
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto hcat(LeftMatrix&& ML, const RightMatrix& MR) {
   return mat_horiz_cat<LeftMatrix, mat_const_sub_block<RightMatrix>>(
       std::move(ML), mat_const_sub_block<RightMatrix>(MR));
 }
@@ -788,11 +659,8 @@ mat_horiz_cat<LeftMatrix, mat_const_sub_block<RightMatrix>> hcat(
 /// \param MU The value of the left part of the composite matrix.
 /// \param ML The value of the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices, by copy.
-template <typename LeftMatrix, typename RightMatrix>
-std::enable_if_t<is_readable_matrix_v<LeftMatrix> &&
-                     is_readable_matrix_v<RightMatrix>,
-                 mat_horiz_cat<LeftMatrix, RightMatrix>>
-operator&(LeftMatrix&& ML, RightMatrix&& MR) {
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto operator&(LeftMatrix&& ML, RightMatrix&& MR) {
   return mat_horiz_cat<LeftMatrix, RightMatrix>(std::move(ML), std::move(MR));
 }
 
@@ -805,11 +673,8 @@ operator&(LeftMatrix&& ML, RightMatrix&& MR) {
 /// \param MU The matrix storing the left part of the composite matrix.
 /// \param ML The value of the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices.
-template <typename LeftMatrix, typename RightMatrix>
-std::enable_if_t<is_readable_matrix_v<LeftMatrix> &&
-                     is_readable_matrix_v<RightMatrix>,
-                 mat_horiz_cat<mat_sub_block<LeftMatrix>, RightMatrix>>
-operator&(LeftMatrix& ML, RightMatrix&& MR) {
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto operator&(LeftMatrix& ML, RightMatrix&& MR) {
   return mat_horiz_cat<mat_sub_block<LeftMatrix>, RightMatrix>(
       mat_sub_block<LeftMatrix>(ML), std::move(MR));
 }
@@ -823,11 +688,8 @@ operator&(LeftMatrix& ML, RightMatrix&& MR) {
 /// \param MU The value of the left part of the composite matrix.
 /// \param ML The matrix storing the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices.
-template <typename LeftMatrix, typename RightMatrix>
-std::enable_if_t<is_readable_matrix_v<LeftMatrix> &&
-                     is_readable_matrix_v<RightMatrix>,
-                 mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix>>>
-operator&(LeftMatrix&& ML, RightMatrix& MR) {
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto operator&(LeftMatrix&& ML, RightMatrix& MR) {
   return mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix>>(
       std::move(ML), mat_sub_block<RightMatrix>(MR));
 }
@@ -841,11 +703,8 @@ operator&(LeftMatrix&& ML, RightMatrix& MR) {
 /// \param MU The matrix storing the left part of the composite matrix.
 /// \param ML The value of the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices.
-template <typename LeftMatrix, typename RightMatrix>
-std::enable_if_t<is_readable_matrix_v<LeftMatrix> &&
-                     is_readable_matrix_v<RightMatrix>,
-                 mat_horiz_cat<mat_const_sub_block<LeftMatrix>, RightMatrix>>
-operator&(const LeftMatrix& ML, RightMatrix&& MR) {
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto operator&(const LeftMatrix& ML, RightMatrix&& MR) {
   return mat_horiz_cat<mat_const_sub_block<LeftMatrix>, RightMatrix>(
       mat_const_sub_block<LeftMatrix>(ML), std::move(MR));
 }
@@ -859,11 +718,8 @@ operator&(const LeftMatrix& ML, RightMatrix&& MR) {
 /// \param MU The value of the left part of the composite matrix.
 /// \param ML The matrix storing the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices.
-template <typename LeftMatrix, typename RightMatrix>
-std::enable_if_t<is_readable_matrix_v<LeftMatrix> &&
-                     is_readable_matrix_v<RightMatrix>,
-                 mat_horiz_cat<LeftMatrix, mat_const_sub_block<RightMatrix>>>
-operator&(LeftMatrix&& ML, const RightMatrix& MR) {
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto operator&(LeftMatrix&& ML, const RightMatrix& MR) {
   return mat_horiz_cat<LeftMatrix, mat_const_sub_block<RightMatrix>>(
       std::move(ML), mat_const_sub_block<RightMatrix>(MR));
 }
@@ -877,11 +733,8 @@ operator&(LeftMatrix&& ML, const RightMatrix& MR) {
 /// \param MU The matrix storing the left part of the composite matrix.
 /// \param ML The matrix storing the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices.
-template <typename LeftMatrix, typename RightMatrix>
-std::enable_if_t<is_readable_matrix_v<LeftMatrix> &&
-                     is_readable_matrix_v<RightMatrix>,
-                 mat_ref_horiz_cat<LeftMatrix, RightMatrix>>
-operator&(LeftMatrix& ML, RightMatrix& MR) {
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto operator&(LeftMatrix& ML, RightMatrix& MR) {
   return mat_ref_horiz_cat<LeftMatrix, RightMatrix>(ML, MR);
 }
 
@@ -894,11 +747,8 @@ operator&(LeftMatrix& ML, RightMatrix& MR) {
 /// \param MU The matrix storing the left part of the composite matrix.
 /// \param ML The matrix storing the right part of the composite matrix.
 /// \return The composite matrix that horizontally concatenates the two given matrices.
-template <typename LeftMatrix, typename RightMatrix>
-std::enable_if_t<is_readable_matrix_v<LeftMatrix> &&
-                     is_readable_matrix_v<RightMatrix>,
-                 mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>>
-operator&(const LeftMatrix& ML, const RightMatrix& MR) {
+template <ReadableMatrix LeftMatrix, ReadableMatrix RightMatrix>
+auto operator&(const LeftMatrix& ML, const RightMatrix& MR) {
   return mat_const_ref_horiz_cat<LeftMatrix, RightMatrix>(ML, MR);
 }
 
@@ -906,12 +756,12 @@ operator&(const LeftMatrix& ML, const RightMatrix& MR) {
 /// This class makes the concatenation of the two matrices look as if it was just one matrix (and so,
 /// this class is an adaptor).
 ///
-/// Models: ReadableMatrixConcept and all matrix concepts modeled by both LeftMatrix and RightMatrix,
-/// except for ResizableMatrixConcept.
+/// Models: ReadableMatrix and all matrix concepts modeled by both LeftMatrix and RightMatrix,
+/// except for ResizableMatrix.
 ///
 /// \tparam UpperMatrix Matrix type for the upper matrix.
 /// \tparam LowerMatrix Matrix type for the lower matrix.
-template <typename UpperMatrix, typename LowerMatrix>
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
 class mat_vert_cat {
  public:
   using self = mat_vert_cat<UpperMatrix, LowerMatrix>;
@@ -989,11 +839,9 @@ class mat_vert_cat {
 
   /// Templated assignment operator to assign the content of the matrix with the content
   /// of a matrix of another type (Matrix)
-  /// \tparam Matrix A readable matrix (models ReadableMatrixConcept)
   /// \param rhs Right-hand-side of the assignment.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator=(const Matrix& rhs) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((rhs.get_row_count() != mu.get_row_count() + ml.get_row_count()) ||
         (rhs.get_col_count() != mu.get_col_count())) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -1047,9 +895,8 @@ class mat_vert_cat {
   }
 
   /// Add-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator+=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_row_count() != mu.get_row_count() + ml.get_row_count()) ||
         (M.get_col_count() != mu.get_col_count())) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -1062,9 +909,8 @@ class mat_vert_cat {
   }
 
   /// Sub-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator-=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_row_count() != mu.get_row_count() + ml.get_row_count()) ||
         (M.get_col_count() != mu.get_col_count())) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -1084,9 +930,9 @@ class mat_vert_cat {
   }
 
   /// General Matrix multiplication.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator*=(const Matrix& M) {
-    if constexpr (!is_readable_matrix_v<Matrix>) {
+    if constexpr (!ReadableMatrix<Matrix>) {
       return *this *= value_type(M);
     } else {
       if ((M.get_col_count() != get_col_count()) ||
@@ -1100,48 +946,21 @@ class mat_vert_cat {
 };
 
 template <typename UpperMatrix, typename LowerMatrix>
-struct is_readable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value =
-      is_readable_matrix_v<UpperMatrix> && is_readable_matrix_v<LowerMatrix>;
-  using type = is_readable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_writable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value =
-      is_writable_matrix_v<UpperMatrix> && is_writable_matrix_v<LowerMatrix>;
-  using type = is_writable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_fully_writable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<UpperMatrix> &&
-                                is_fully_writable_matrix_v<LowerMatrix>;
-  using type = is_fully_writable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_row_resizable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = false;
-  using type = is_row_resizable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_col_resizable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = false;
-  using type = is_col_resizable_matrix<mat_vert_cat<UpperMatrix, LowerMatrix>>;
-};
+static constexpr bool
+    is_fully_writable_matrix_v<mat_vert_cat<UpperMatrix, LowerMatrix>> =
+        is_fully_writable_matrix_v<UpperMatrix>&&
+            is_fully_writable_matrix_v<LowerMatrix>;
 
 /// This class template forms the vertical concatenation of two matrices, which it takes by reference
 /// (and stores by pointer, to be copyable). This class makes the concatenation of the two matrices
 /// look as if it was just one matrix (and so, this class is an adaptor).
 ///
-/// Models: ReadableMatrixConcept and all matrix concepts modeled by both UpperMatrix and LowerMatrix,
-/// except for ResizableMatrixConcept.
+/// Models: ReadableMatrix and all matrix concepts modeled by both UpperMatrix and LowerMatrix,
+/// except for ResizableMatrix.
 ///
 /// \tparam UpperMatrix Matrix type for the left matrix.
 /// \tparam LowerMatrix Matrix type for the right matrix.
-template <typename UpperMatrix, typename LowerMatrix>
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
 class mat_ref_vert_cat {
  public:
   using self = mat_ref_vert_cat<UpperMatrix, LowerMatrix>;
@@ -1194,11 +1013,9 @@ class mat_ref_vert_cat {
 
   /// Templated assignment operator to assign the content of the matrix with the content
   /// of a matrix of another type (Matrix)
-  /// \tparam Matrix A readable matrix (models ReadableMatrixConcept)
   /// \param rhs Right-hand-side of the assignment.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator=(const Matrix& rhs) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((rhs.get_row_count() != mu->get_row_count() + ml->get_row_count()) ||
         (rhs.get_col_count() != mu->get_col_count())) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -1253,9 +1070,8 @@ class mat_ref_vert_cat {
   }
 
   /// Add-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator+=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_row_count() != mu->get_row_count() + ml->get_row_count()) ||
         (M.get_col_count() != mu->get_col_count())) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -1268,9 +1084,8 @@ class mat_ref_vert_cat {
   }
 
   /// Sub-and-store operator with standard semantics.
-  template <typename Matrix>
+  template <ReadableMatrix Matrix>
   self& operator-=(const Matrix& M) {
-    static_assert(is_readable_matrix_v<Matrix>);
     if ((M.get_row_count() != mu->get_row_count() + ml->get_row_count()) ||
         (M.get_col_count() != mu->get_col_count())) {
       throw std::range_error("Matrix dimensions mismatch.");
@@ -1292,7 +1107,7 @@ class mat_ref_vert_cat {
   /// General Matrix multiplication.
   template <typename Matrix>
   self& operator*=(const Matrix& M) {
-    if constexpr (!is_readable_matrix_v<Matrix>) {
+    if constexpr (!ReadableMatrix<Matrix>) {
       return *this *= value_type(M);
     } else {
       if ((M.get_col_count() != get_col_count()) ||
@@ -1306,51 +1121,21 @@ class mat_ref_vert_cat {
 };
 
 template <typename UpperMatrix, typename LowerMatrix>
-struct is_readable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value =
-      is_readable_matrix_v<UpperMatrix> && is_readable_matrix_v<LowerMatrix>;
-  using type = is_readable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_writable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value =
-      is_writable_matrix_v<UpperMatrix> && is_writable_matrix_v<LowerMatrix>;
-  using type = is_writable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_fully_writable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = is_fully_writable_matrix_v<UpperMatrix> &&
-                                is_fully_writable_matrix_v<LowerMatrix>;
-  using type =
-      is_fully_writable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_row_resizable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_row_resizable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_col_resizable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_col_resizable_matrix<mat_ref_vert_cat<UpperMatrix, LowerMatrix>>;
-};
+static constexpr bool
+    is_fully_writable_matrix_v<mat_ref_vert_cat<UpperMatrix, LowerMatrix>> =
+        is_fully_writable_matrix_v<UpperMatrix>&&
+            is_fully_writable_matrix_v<LowerMatrix>;
 
 /// This class template forms the vertical concatenation of two matrices, which it takes by const-reference
 /// (and stores by const-pointer, to be copyable). This class makes the concatenation of the two matrices
 /// look as if it was just one matrix (and so, this class is an adaptor).
 ///
-/// Models: ReadableMatrixConcept and all matrix concepts modeled by both UpperMatrix and LowerMatrix,
-/// except for ResizableMatrixConcept, WritableMatrixConcept, and FullyWritableMatrixConcept.
+/// Models: ReadableMatrix and all matrix concepts modeled by both UpperMatrix and LowerMatrix,
+/// except for ResizableMatrix, WritableMatrix, and FullyWritableMatrix.
 ///
 /// \tparam UpperMatrix Matrix type for the left matrix.
 /// \tparam LowerMatrix Matrix type for the right matrix.
-template <typename UpperMatrix, typename LowerMatrix>
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
 class mat_const_ref_vert_cat {
  public:
   using self = mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>;
@@ -1439,45 +1224,6 @@ class mat_const_ref_vert_cat {
   }
 };
 
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_readable_matrix<mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value =
-      is_readable_matrix_v<UpperMatrix> && is_readable_matrix_v<LowerMatrix>;
-  using type =
-      is_readable_matrix<mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_writable_matrix<mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_writable_matrix<mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_fully_writable_matrix<
-    mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = false;
-  using type = is_fully_writable_matrix<
-      mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_row_resizable_matrix<
-    mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_row_resizable_matrix<mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
-template <typename UpperMatrix, typename LowerMatrix>
-struct is_col_resizable_matrix<
-    mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>> {
-  static constexpr bool value = false;
-  using type =
-      is_col_resizable_matrix<mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>>;
-};
-
 /// This function template will vertically concatenate two matrices, by copying them into a
 /// composite matrix.
 /// \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
@@ -1485,11 +1231,8 @@ struct is_col_resizable_matrix<
 /// \param MU The value of the upper part of the composite matrix.
 /// \param ML The value of the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices, by copy.
-template <typename UpperMatrix, typename LowerMatrix>
-mat_vert_cat<UpperMatrix, LowerMatrix> vcat_copy(const UpperMatrix& MU,
-                                                 const LowerMatrix& ML) {
-  static_assert(is_readable_matrix_v<UpperMatrix>);
-  static_assert(is_readable_matrix_v<LowerMatrix>);
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto vcat_copy(const UpperMatrix& MU, const LowerMatrix& ML) {
   return mat_vert_cat<UpperMatrix, LowerMatrix>(MU, ML);
 }
 
@@ -1500,11 +1243,8 @@ mat_vert_cat<UpperMatrix, LowerMatrix> vcat_copy(const UpperMatrix& MU,
 /// \param MU The matrix storing the upper part of the composite matrix.
 /// \param ML The matrix storing the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices, by reference.
-template <typename UpperMatrix, typename LowerMatrix>
-mat_ref_vert_cat<UpperMatrix, LowerMatrix> vcat(UpperMatrix& MU,
-                                                LowerMatrix& ML) {
-  static_assert(is_readable_matrix_v<UpperMatrix>);
-  static_assert(is_readable_matrix_v<LowerMatrix>);
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto vcat(UpperMatrix& MU, LowerMatrix& ML) {
   return mat_ref_vert_cat<UpperMatrix, LowerMatrix>(MU, ML);
 }
 
@@ -1515,11 +1255,8 @@ mat_ref_vert_cat<UpperMatrix, LowerMatrix> vcat(UpperMatrix& MU,
 /// \param MU The matrix storing the upper part of the composite matrix.
 /// \param ML The matrix storing the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices, by const-reference.
-template <typename UpperMatrix, typename LowerMatrix>
-mat_const_ref_vert_cat<UpperMatrix, LowerMatrix> vcat(const UpperMatrix& MU,
-                                                      const LowerMatrix& ML) {
-  static_assert(is_readable_matrix_v<UpperMatrix>);
-  static_assert(is_readable_matrix_v<LowerMatrix>);
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto vcat(const UpperMatrix& MU, const LowerMatrix& ML) {
   return mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>(MU, ML);
 }
 
@@ -1531,11 +1268,8 @@ mat_const_ref_vert_cat<UpperMatrix, LowerMatrix> vcat(const UpperMatrix& MU,
 /// \param MU The value of the upper part of the composite matrix.
 /// \param ML The value of the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices, by copy.
-template <typename UpperMatrix, typename LowerMatrix>
-mat_vert_cat<UpperMatrix, LowerMatrix> vcat(UpperMatrix&& MU,
-                                            LowerMatrix&& ML) {
-  static_assert(is_readable_matrix_v<UpperMatrix>);
-  static_assert(is_readable_matrix_v<LowerMatrix>);
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto vcat(UpperMatrix&& MU, LowerMatrix&& ML) {
   return mat_vert_cat<UpperMatrix, LowerMatrix>(std::move(MU), std::move(ML));
 }
 
@@ -1548,11 +1282,8 @@ mat_vert_cat<UpperMatrix, LowerMatrix> vcat(UpperMatrix&& MU,
 /// \param MU The matrix storing the upper part of the composite matrix.
 /// \param ML The value of the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices.
-template <typename UpperMatrix, typename LowerMatrix>
-mat_vert_cat<mat_sub_block<UpperMatrix>, LowerMatrix> vcat(UpperMatrix& MU,
-                                                           LowerMatrix&& ML) {
-  static_assert(is_readable_matrix_v<UpperMatrix>);
-  static_assert(is_readable_matrix_v<LowerMatrix>);
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto vcat(UpperMatrix& MU, LowerMatrix&& ML) {
   return mat_vert_cat<mat_sub_block<UpperMatrix>, LowerMatrix>(
       mat_sub_block<UpperMatrix>(MU), std::move(ML));
 }
@@ -1566,11 +1297,8 @@ mat_vert_cat<mat_sub_block<UpperMatrix>, LowerMatrix> vcat(UpperMatrix& MU,
 /// \param MU The value of the upper part of the composite matrix.
 /// \param ML The matrix storing the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices.
-template <typename UpperMatrix, typename LowerMatrix>
-mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix>> vcat(UpperMatrix&& MU,
-                                                           LowerMatrix& ML) {
-  static_assert(is_readable_matrix_v<UpperMatrix>);
-  static_assert(is_readable_matrix_v<LowerMatrix>);
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto vcat(UpperMatrix&& MU, LowerMatrix& ML) {
   return mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix>>(
       std::move(MU), mat_sub_block<LowerMatrix>(ML));
 }
@@ -1584,11 +1312,8 @@ mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix>> vcat(UpperMatrix&& MU,
 /// \param MU The matrix storing the upper part of the composite matrix.
 /// \param ML The value of the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices.
-template <typename UpperMatrix, typename LowerMatrix>
-mat_vert_cat<mat_const_sub_block<UpperMatrix>, LowerMatrix> vcat(
-    const UpperMatrix& MU, LowerMatrix&& ML) {
-  static_assert(is_readable_matrix_v<UpperMatrix>);
-  static_assert(is_readable_matrix_v<LowerMatrix>);
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto vcat(const UpperMatrix& MU, LowerMatrix&& ML) {
   return mat_vert_cat<mat_const_sub_block<UpperMatrix>, LowerMatrix>(
       mat_const_sub_block<UpperMatrix>(MU), std::move(ML));
 }
@@ -1602,11 +1327,8 @@ mat_vert_cat<mat_const_sub_block<UpperMatrix>, LowerMatrix> vcat(
 /// \param MU The value of the upper part of the composite matrix.
 /// \param ML The matrix storing the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices.
-template <typename UpperMatrix, typename LowerMatrix>
-mat_vert_cat<UpperMatrix, mat_const_sub_block<LowerMatrix>> vcat(
-    UpperMatrix&& MU, const LowerMatrix& ML) {
-  static_assert(is_readable_matrix_v<UpperMatrix>);
-  static_assert(is_readable_matrix_v<LowerMatrix>);
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto vcat(UpperMatrix&& MU, const LowerMatrix& ML) {
   return mat_vert_cat<UpperMatrix, mat_const_sub_block<LowerMatrix>>(
       std::move(MU), mat_const_sub_block<LowerMatrix>(ML));
 }
@@ -1619,11 +1341,8 @@ mat_vert_cat<UpperMatrix, mat_const_sub_block<LowerMatrix>> vcat(
 /// \param MU The value of the upper part of the composite matrix.
 /// \param ML The value of the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices, by copy.
-template <typename UpperMatrix, typename LowerMatrix>
-std::enable_if_t<is_readable_matrix_v<UpperMatrix> &&
-                     is_readable_matrix_v<LowerMatrix>,
-                 mat_vert_cat<UpperMatrix, LowerMatrix>>
-operator|(UpperMatrix&& MU, LowerMatrix&& ML) {
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto operator|(UpperMatrix&& MU, LowerMatrix&& ML) {
   return mat_vert_cat<UpperMatrix, LowerMatrix>(std::move(MU), std::move(ML));
 }
 
@@ -1636,11 +1355,8 @@ operator|(UpperMatrix&& MU, LowerMatrix&& ML) {
 /// \param MU The matrix storing the upper part of the composite matrix.
 /// \param ML The value of the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices.
-template <typename UpperMatrix, typename LowerMatrix>
-std::enable_if_t<is_readable_matrix_v<UpperMatrix> &&
-                     is_readable_matrix_v<LowerMatrix>,
-                 mat_vert_cat<mat_sub_block<UpperMatrix>, LowerMatrix>>
-operator|(UpperMatrix& MU, LowerMatrix&& ML) {
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto operator|(UpperMatrix& MU, LowerMatrix&& ML) {
   return mat_vert_cat<mat_sub_block<UpperMatrix>, LowerMatrix>(
       mat_sub_block<UpperMatrix>(MU), std::move(ML));
 }
@@ -1654,11 +1370,8 @@ operator|(UpperMatrix& MU, LowerMatrix&& ML) {
 /// \param MU The value of the upper part of the composite matrix.
 /// \param ML The matrix storing the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices.
-template <typename UpperMatrix, typename LowerMatrix>
-std::enable_if_t<is_readable_matrix_v<UpperMatrix> &&
-                     is_readable_matrix_v<LowerMatrix>,
-                 mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix>>>
-operator|(UpperMatrix&& MU, LowerMatrix& ML) {
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto operator|(UpperMatrix&& MU, LowerMatrix& ML) {
   return mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix>>(
       std::move(MU), mat_sub_block<LowerMatrix>(ML));
 }
@@ -1672,11 +1385,8 @@ operator|(UpperMatrix&& MU, LowerMatrix& ML) {
 /// \param MU The matrix storing the upper part of the composite matrix.
 /// \param ML The value of the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices.
-template <typename UpperMatrix, typename LowerMatrix>
-std::enable_if_t<is_readable_matrix_v<UpperMatrix> &&
-                     is_readable_matrix_v<LowerMatrix>,
-                 mat_vert_cat<mat_const_sub_block<UpperMatrix>, LowerMatrix>>
-operator|(const UpperMatrix& MU, LowerMatrix&& ML) {
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto operator|(const UpperMatrix& MU, LowerMatrix&& ML) {
   return mat_vert_cat<mat_const_sub_block<UpperMatrix>, LowerMatrix>(
       mat_const_sub_block<UpperMatrix>(MU), std::move(ML));
 }
@@ -1690,11 +1400,8 @@ operator|(const UpperMatrix& MU, LowerMatrix&& ML) {
 /// \param MU The value of the upper part of the composite matrix.
 /// \param ML The matrix storing the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices.
-template <typename UpperMatrix, typename LowerMatrix>
-std::enable_if_t<is_readable_matrix_v<UpperMatrix> &&
-                     is_readable_matrix_v<LowerMatrix>,
-                 mat_vert_cat<UpperMatrix, mat_const_sub_block<LowerMatrix>>>
-operator|(UpperMatrix&& MU, const LowerMatrix& ML) {
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto operator|(UpperMatrix&& MU, const LowerMatrix& ML) {
   return mat_vert_cat<UpperMatrix, mat_const_sub_block<LowerMatrix>>(
       std::move(MU), mat_const_sub_block<LowerMatrix>(ML));
 }
@@ -1708,11 +1415,8 @@ operator|(UpperMatrix&& MU, const LowerMatrix& ML) {
 /// \param MU The matrix storing the upper part of the composite matrix.
 /// \param ML The matrix storing the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices.
-template <typename UpperMatrix, typename LowerMatrix>
-std::enable_if_t<is_readable_matrix_v<UpperMatrix> &&
-                     is_readable_matrix_v<LowerMatrix>,
-                 mat_ref_vert_cat<UpperMatrix, LowerMatrix>>
-operator|(UpperMatrix& MU, LowerMatrix& ML) {
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto operator|(UpperMatrix& MU, LowerMatrix& ML) {
   return mat_ref_vert_cat<UpperMatrix, LowerMatrix>(MU, ML);
 }
 
@@ -1725,11 +1429,8 @@ operator|(UpperMatrix& MU, LowerMatrix& ML) {
 /// \param MU The matrix storing the upper part of the composite matrix.
 /// \param ML The matrix storing the lower part of the composite matrix.
 /// \return The composite matrix that vertically concatenates the two given matrices.
-template <typename UpperMatrix, typename LowerMatrix>
-std::enable_if_t<is_readable_matrix_v<UpperMatrix> &&
-                     is_readable_matrix_v<LowerMatrix>,
-                 mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>>
-operator|(const UpperMatrix& MU, const LowerMatrix& ML) {
+template <ReadableMatrix UpperMatrix, ReadableMatrix LowerMatrix>
+auto operator|(const UpperMatrix& MU, const LowerMatrix& ML) {
   return mat_const_ref_vert_cat<UpperMatrix, LowerMatrix>(MU, ML);
 }
 }  // namespace ReaK
