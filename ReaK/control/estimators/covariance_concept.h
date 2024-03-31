@@ -38,16 +38,11 @@
 #ifndef REAK_CONTROL_CONTROLLERS_COVARIANCE_CONCEPT_H_
 #define REAK_CONTROL_CONTROLLERS_COVARIANCE_CONCEPT_H_
 
+#include "ReaK/control/systems/state_vector_concept.h"
 #include "ReaK/core/base/defs.h"
-
 #include "ReaK/math/lin_alg/arithmetic_tuple.h"
 #include "ReaK/math/lin_alg/mat_concepts.h"
-
 #include "ReaK/topologies/spaces/metric_space_concept.h"
-
-#include "ReaK/control/systems/state_vector_concept.h"
-
-#include "boost/concept_check.hpp"
 
 namespace ReaK::ctrl {
 

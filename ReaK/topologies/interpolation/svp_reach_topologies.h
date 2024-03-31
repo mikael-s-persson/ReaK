@@ -36,21 +36,17 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/math/optimization/optim_exceptions.h"
-
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
-#include "ReaK/topologies/spaces/bounded_space_concept.h"
-#include "ReaK/topologies/spaces/generic_sampler_factory.h"
-#include "ReaK/topologies/spaces/rate_limited_spaces.h"
-#include "ReaK/topologies/spaces/reversible_space_concept.h"
-#include "ReaK/topologies/spaces/tangent_bundle_concept.h"
-
 #include "ReaK/topologies/interpolation/sustained_velocity_pulse.h"
 #include "ReaK/topologies/interpolation/svp_metrics.h"
 #include "ReaK/topologies/interpolation/svp_samplers.h"
+#include "ReaK/topologies/spaces/bounded_space_concept.h"
 #include "ReaK/topologies/spaces/generic_interpolator_factory.h"
+#include "ReaK/topologies/spaces/generic_sampler_factory.h"
 #include "ReaK/topologies/spaces/interpolated_topologies.h"
-
-#include "boost/concept_check.hpp"
+#include "ReaK/topologies/spaces/rate_limited_spaces.h"
+#include "ReaK/topologies/spaces/reversible_space_concept.h"
+#include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 
 namespace ReaK::pp {
 

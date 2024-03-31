@@ -35,19 +35,12 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
-
-#include "boost/concept_check.hpp"
-
+#include "ReaK/mbd/coin3D/frame_tracer_coin3d_impl.h"
 #include "ReaK/planning/path_planning/basic_sbmp_reporters.h"
 #include "ReaK/topologies/interpolation/trajectory_base.h"
-#include "boost/graph/graph_concepts.hpp"
-
 #include "ReaK/topologies/spaces/direct_kinematics_topomap.h"
-#include "ReaK/topologies/spaces/topological_map_concepts.h"
-
 #include "ReaK/topologies/spaces/proxy_model_updater.h"
-
-#include "ReaK/mbd/coin3D/frame_tracer_coin3d_impl.h"
+#include "ReaK/topologies/spaces/topological_map_concepts.h"
 
 #include <tuple>
 #include <type_traits>

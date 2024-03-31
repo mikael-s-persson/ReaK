@@ -33,10 +33,6 @@
 #ifndef REAK_PLANNING_GRAPH_ALG_TREE_ORGANIZER_CONCEPT_H_
 #define REAK_PLANNING_GRAPH_ALG_TREE_ORGANIZER_CONCEPT_H_
 
-#include "boost/concept_check.hpp"
-#include "boost/config.hpp"
-#include "boost/graph/graph_concepts.hpp"
-
 #include "ReaK/planning/graph_alg/simple_graph_traits.h"
 
 namespace ReaK::graph {
@@ -57,20 +53,13 @@ namespace ReaK::graph {
  * \tparam TreeOrganizerVisitor The visitor type to be checked for this concept.
  * \tparam TreeType The tree type on which the visitor must operate.
  */
-template <typename TreeOrganizerVisitor, typename TreeType>
-struct TreeOrganizerVisitorConcept {
-  TreeType tree;
-  TreeOrganizerVisitor vis;
-  graph_vertex_t<TreeType> v;
-  graph_vertex_property_t<TreeType> vp;
-
-  BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<TreeType>));
-
-  BOOST_CONCEPT_USAGE(TreeOrganizerVisitorConcept) {
-    vis.remove_vertex(v, tree);
-    vis.add_vertex(vp, tree);
-    vis.add_vertex(std::move(vp), tree);
-  }
+template <typename Visitor, typename TreeType>
+concept TreeOrganizerVisitor = requires(Visitor vis, TreeType tree,
+                                        graph_vertex_t<TreeType> v,
+                                        graph_vertex_property_t<TreeType> vp) {
+  vis.remove_vertex(v, tree);
+  vis.add_vertex(vp, tree);
+  vis.add_vertex(std::move(vp), tree);
 };
 
 }  // namespace ReaK::graph

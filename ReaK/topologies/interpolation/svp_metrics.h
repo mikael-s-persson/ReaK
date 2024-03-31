@@ -35,14 +35,10 @@
 #define REAK_TOPOLOGIES_INTERPOLATION_SVP_METRICS_H_
 
 #include "ReaK/core/base/defs.h"
-
-#include "ReaK/topologies/spaces/proper_metric_concept.h"
-#include "ReaK/topologies/spaces/time_topology.h"
-
 #include "ReaK/topologies/interpolation/sustained_velocity_pulse.h"
 #include "ReaK/topologies/spaces/generic_interpolator_factory.h"
-
-#include "boost/concept_check.hpp"
+#include "ReaK/topologies/spaces/proper_metric_concept.h"
+#include "ReaK/topologies/spaces/time_topology.h"
 
 #include <type_traits>
 

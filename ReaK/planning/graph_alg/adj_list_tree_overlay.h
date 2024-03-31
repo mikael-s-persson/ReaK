@@ -580,9 +580,8 @@ class alt_graph_view {
   struct mutation_visitor : mutation_visitor_base {
     GraphMutationVisitor m_vis;
 
-    BOOST_CONCEPT_ASSERT(
-        (TreeOrganizerVisitorConcept<GraphMutationVisitor,
-                                     alt_tree_view<AdjListOnTreeType>>));
+    static_assert(TreeOrganizerVisitor<GraphMutationVisitor,
+                                       alt_tree_view<AdjListOnTreeType>>);
 
     explicit mutation_visitor(GraphMutationVisitor aVis) : m_vis(aVis) {}
     ~mutation_visitor() override = default;

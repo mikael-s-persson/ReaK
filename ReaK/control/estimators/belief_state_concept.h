@@ -42,7 +42,6 @@
 #include "ReaK/control/systems/state_space_sys_concept.h"
 #include "ReaK/control/systems/state_vector_concept.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
-#include "boost/concept_check.hpp"
 
 namespace ReaK::ctrl {
 

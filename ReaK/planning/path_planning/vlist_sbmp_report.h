@@ -35,13 +35,9 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
-
-#include "boost/concept_check.hpp"
-
 #include "ReaK/topologies/interpolation/seq_path_base.h"
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"
 #include "ReaK/topologies/spaces/subspace_concept.h"
-#include "boost/graph/graph_concepts.hpp"
 
 #include <fstream>
 #include <type_traits>

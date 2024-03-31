@@ -34,15 +34,11 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
-
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
-
 #include "ReaK/topologies/spaces/temporal_space.h"
+#include "ReaK/topologies/spaces/temporal_space_concept.h"
 
 #include <cmath>
-#include "ReaK/topologies/spaces/temporal_space_concept.h"
-#include "boost/concept_check.hpp"
-
 #include <limits>
 #include <list>
 #include <map>

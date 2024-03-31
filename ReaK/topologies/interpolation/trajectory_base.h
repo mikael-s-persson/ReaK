@@ -37,16 +37,12 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
-
-#include <any>
-
+#include "ReaK/math/lin_alg/mat_num_exceptions.h"
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"
 #include "ReaK/topologies/interpolation/sequential_trajectory_concept.h"
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
 
-#include "ReaK/math/lin_alg/mat_num_exceptions.h"
-
-#include "boost/any.hpp"
+#include <any>
 
 namespace ReaK::pp {
 

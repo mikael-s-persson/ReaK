@@ -37,10 +37,7 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
-
 #include "ReaK/topologies/spaces/metric_space_concept.h"
-
-#include "boost/concept_check.hpp"
 
 namespace ReaK::pp {
 

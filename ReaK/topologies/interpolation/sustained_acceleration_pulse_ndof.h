@@ -35,19 +35,14 @@
 #define REAK_TOPOLOGIES_INTERPOLATION_SUSTAINED_ACCELERATION_PULSE_NDOF_H_
 
 #include "ReaK/core/base/defs.h"
-
+#include "ReaK/topologies/interpolation/interpolated_trajectory.h"
+#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_ndof_detail.h"
 #include "ReaK/topologies/spaces/bounded_space_concept.h"
+#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/rate_limited_spaces.h"
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
-
-#include "ReaK/topologies/interpolation/interpolated_trajectory.h"
-#include "ReaK/topologies/spaces/generic_interpolator_factory.h"
-
-#include "ReaK/topologies/interpolation/sustained_acceleration_pulse_ndof_detail.h"
-
-#include "boost/concept_check.hpp"
 
 #include <limits>
 #include <type_traits>

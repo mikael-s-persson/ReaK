@@ -36,9 +36,6 @@
 #define REAK_PLANNING_PATH_PLANNING_SBMP_REPORTER_CONCEPT_H_
 
 #include "ReaK/core/base/defs.h"
-
-#include "boost/concept_check.hpp"
-
 #include "ReaK/topologies/interpolation/seq_path_base.h"
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"
 
@@ -65,30 +62,18 @@ namespace ReaK::pp {
  * reporter.draw_motion_graph(free_space, g, pos_map);  The reporter can be asked to draw the current motion-graph.
  *
  * reporter.draw_solution(free_space, path);  The reporter can be asked to draw a solution path.
- *
- * \tparam SBMPReporter The reporter type to be checked for this concept.
- * \tparam FreeSpaceType The topology type that represents the C-free sub-space, should model SubSpaceConcept.
- * \tparam MotionGraph The motion-graph type that represents the motion samples.
- * \tparam PositionMap The property-map type to fetch positions associated to vertices of the motion graph.
  */
-template <typename SBMPReporter, typename FreeSpaceType, typename MotionGraph,
+template <typename Reporter, typename FreeSpaceType, typename MotionGraph,
           typename PositionMap>
-struct SBPPReporterConcept {
-  SBMPReporter reporter;
-  FreeSpaceType free_space;
-  MotionGraph g;
-  PositionMap pos_map;
-  std::shared_ptr<
-      seq_path_base<typename subspace_traits<FreeSpaceType>::super_space_type>>
-      path;
-
-  BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
-
-  BOOST_CONCEPT_USAGE(SBPPReporterConcept) {
-    reporter.reset_internal_state();
-    reporter.draw_motion_graph(free_space, g, pos_map);
-    reporter.draw_solution(free_space, path);
-  }
+concept SBPPReporter = Subspace<FreeSpaceType>&& requires(
+    Reporter reporter, FreeSpaceType free_space, MotionGraph g,
+    PositionMap pos_map,
+    std::shared_ptr<seq_path_base<
+        typename subspace_traits<FreeSpaceType>::super_space_type>>
+        path) {
+  reporter.reset_internal_state();
+  reporter.draw_motion_graph(free_space, g, pos_map);
+  reporter.draw_solution(free_space, path);
 };
 
 /**
@@ -112,30 +97,18 @@ struct SBPPReporterConcept {
  * reporter.draw_motion_graph(free_space, g, pos_map);  The reporter can be asked to draw the current motion-graph.
  *
  * reporter.draw_solution(free_space, traj);  The reporter can be asked to draw a solution trajectory.
- *
- * \tparam SBMPReporter The reporter type to be checked for this concept.
- * \tparam FreeSpaceType The topology type that represents the C-free sub-space, should model SubSpaceConcept.
- * \tparam MotionGraph The motion-graph type that represents the motion samples.
- * \tparam PositionMap The property-map type to fetch positions associated to vertices of the motion graph.
  */
-template <typename SBMPReporter, typename FreeSpaceType, typename MotionGraph,
+template <typename Reporter, typename FreeSpaceType, typename MotionGraph,
           typename PositionMap>
-struct SBMPReporterConcept {
-  SBMPReporter reporter;
-  FreeSpaceType free_space;
-  MotionGraph g;
-  PositionMap pos_map;
-  std::shared_ptr<seq_trajectory_base<
-      typename subspace_traits<FreeSpaceType>::super_space_type>>
-      traj;
-
-  BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
-
-  BOOST_CONCEPT_USAGE(SBMPReporterConcept) {
-    reporter.reset_internal_state();
-    reporter.draw_motion_graph(free_space, g, pos_map);
-    reporter.draw_solution(free_space, traj);
-  }
+concept SBMPReporter = Subspace<FreeSpaceType>&& requires(
+    Reporter reporter, FreeSpaceType free_space, MotionGraph g,
+    PositionMap pos_map,
+    std::shared_ptr<seq_trajectory_base<
+        typename subspace_traits<FreeSpaceType>::super_space_type>>
+        traj) {
+  reporter.reset_internal_state();
+  reporter.draw_motion_graph(free_space, g, pos_map);
+  reporter.draw_solution(free_space, traj);
 };
 
 }  // namespace ReaK::pp

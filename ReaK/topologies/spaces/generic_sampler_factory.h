@@ -33,16 +33,13 @@
 #define REAK_TOPOLOGIES_SPACES_GENERIC_SAMPLER_FACTORY_H_
 
 #include "ReaK/core/base/defs.h"
-
+#include "ReaK/math/lin_alg/arithmetic_tuple.h"
+#include "ReaK/topologies/spaces/metric_space_tuple.h"
 #include "ReaK/topologies/spaces/tangent_bundle_concept.h"
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 
-#include "ReaK/math/lin_alg/arithmetic_tuple.h"
-#include "ReaK/topologies/spaces/metric_space_tuple.h"
-
 #include <cmath>
 #include <utility>
-#include "boost/concept_check.hpp"
 
 namespace ReaK::pp {
 

@@ -42,7 +42,6 @@
 #include "ReaK/core/rtti/rtti.h"
 
 #include <type_traits>
-#include "boost/concept_check.hpp"
 
 namespace ReaK {
 

@@ -35,12 +35,8 @@
 #define REAK_TOPOLOGIES_INTERPOLATION_DISCRETE_POINT_TRAJECTORY_H_
 
 #include "ReaK/core/base/defs.h"
-
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
-
 #include "ReaK/topologies/interpolation/waypoint_container.h"
-
-#include "boost/concept_check.hpp"
 
 #include <utility>
 

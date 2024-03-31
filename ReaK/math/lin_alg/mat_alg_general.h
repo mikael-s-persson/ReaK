@@ -37,7 +37,6 @@
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/rtti/so_register_type.h"
 #include "ReaK/core/serialization/serializable.h"
-
 #include "ReaK/math/lin_alg/mat_composite_adaptor.h"
 #include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_slices.h"
@@ -49,8 +48,6 @@
 #include "ReaK/math/lin_alg/vect_concepts.h"
 
 #include <type_traits>
-
-#include "boost/concept_check.hpp"
 
 namespace ReaK {
 

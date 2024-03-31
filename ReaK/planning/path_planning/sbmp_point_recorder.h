@@ -35,21 +35,15 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
-
-#include "boost/concept_check.hpp"
-
+#include "ReaK/core/recorders/ascii_recorder.h"
+#include "ReaK/core/recorders/data_record.h"
 #include "ReaK/planning/path_planning/basic_sbmp_reporters.h"
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"
-#include "boost/graph/graph_concepts.hpp"
-
-#include <tuple>
-#include <type_traits>
-
 #include "ReaK/topologies/spaces/direct_kinematics_topomap.h"
 #include "ReaK/topologies/spaces/topological_map_concepts.h"
 
-#include "ReaK/core/recorders/ascii_recorder.h"
-#include "ReaK/core/recorders/data_record.h"
+#include <tuple>
+#include <type_traits>
 
 namespace ReaK::pp {
 

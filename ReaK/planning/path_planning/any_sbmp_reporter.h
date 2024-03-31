@@ -34,15 +34,12 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
-
 #include "ReaK/planning/graph_alg/any_graph.h"
 #include "ReaK/planning/path_planning/any_motion_graphs.h"
 #include "ReaK/planning/path_planning/planning_queries.h"
 #include "ReaK/topologies/interpolation/seq_path_base.h"
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"
 #include "ReaK/topologies/spaces/subspace_concept.h"
-
-#include "boost/concept_check.hpp"
 
 #include <functional>
 #include <type_traits>

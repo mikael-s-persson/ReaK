@@ -36,6 +36,7 @@
 #include <utility>
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
+#include "ReaK/math/lin_alg/arithmetic_tuple.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/proper_metric_concept.h"

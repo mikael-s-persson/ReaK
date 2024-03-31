@@ -36,14 +36,10 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/math/optimization/optim_exceptions.h"
-
-#include "ReaK/topologies/spaces/proper_metric_concept.h"
-#include "ReaK/topologies/spaces/time_topology.h"
-
-#include "boost/concept_check.hpp"
-
 #include "ReaK/topologies/interpolation/sustained_acceleration_pulse_ndof.h"
 #include "ReaK/topologies/spaces/generic_interpolator_factory.h"
+#include "ReaK/topologies/spaces/proper_metric_concept.h"
+#include "ReaK/topologies/spaces/time_topology.h"
 
 #include <type_traits>
 #include <utility>

@@ -36,7 +36,6 @@
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 
 #include <cmath>
-#include "boost/concept_check.hpp"
 
 #include "ReaK/topologies/spaces/temporal_space.h"
 #include "ReaK/topologies/spaces/time_topology.h"

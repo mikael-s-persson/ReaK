@@ -36,15 +36,11 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
-
 #include "ReaK/topologies/interpolation/interpolator_concept.h"
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
-
 #include "ReaK/topologies/interpolation/waypoint_container.h"
 
 #include <cmath>
-#include "boost/concept_check.hpp"
-
 #include <limits>
 #include <list>
 #include <map>
