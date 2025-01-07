@@ -84,12 +84,21 @@ class reachability_sorted_set {
         : u(aU), backward_reach(aBackwardReach), forward_reach(aForwardReach) {}
   };
 
-  struct backward {};
-  struct forward {};
+  struct backward {
+    bool operator()(const vertex_tuple& a, const vertex_tuple& b) const {
+      return a.backward_reach < b.backward_reach;
+    }
+  };
+  struct forward {
+    template <typename SetIter>
+    bool operator()(const SetIter& a, const SetIter& b) const {
+      return a->forward_reach < b->forward_reach;
+    }
+  };
 
   struct vertex_access {
     Vertex& operator()(vertex_tuple& elem) const noexcept { return elem.u; }
-    const Vertex& operator()(const vertex_tuple& elem) const throw() {
+    const Vertex& operator()(const vertex_tuple& elem) const noexcept {
       return elem.u;
     }
   };
@@ -99,47 +108,37 @@ class reachability_sorted_set {
   PositionMap m_position;
   const ReachabilityTopology& m_space;
 
-  using VertexMultiMap = boost::multi_index_container<
-      vertex_tuple,
-      boost::multi_index::indexed_by<
-          boost::multi_index::ordered_non_unique<
-              boost::multi_index::tag<backward>,
-              boost::multi_index::member<vertex_tuple, double,
-                                         &vertex_tuple::backward_reach>>,
-          boost::multi_index::ordered_non_unique<
-              boost::multi_index::tag<forward>,
-              boost::multi_index::member<vertex_tuple, double,
-                                         &vertex_tuple::forward_reach>>>>;
-
-  using BackwardReachIndex = VertexMultiMap::index<backward>::type;
-  using ForwardReachIndex = VertexMultiMap::index<forward>::type;
-
-  VertexMultiMap m_map;
+  using BackwardSet = std::multiset<vertex_tuple, backward>;
+  using BackwardIter = typename BackwardSet::const_iterator;
+  using ForwardSet = std::multiset<BackwardIter, forward>;
+  BackwardSet m_backward_set;
+  ForwardSet m_forward_set;
 
  public:
   /** The iterator type to iterate based on the backward reach ordering. */
-  using back_iterator = BackwardReachIndex::iterator;
+  using back_iterator = typename BackwardSet::iterator;
   /** The const-iterator type to iterate based on the backward reach ordering. */
-  using const_back_iterator = BackwardReachIndex::const_iterator;
+  using const_back_iterator = typename BackwardSet::const_iterator;
   /** The reverse-iterator type to iterate based on the backward reach ordering. */
-  using reverse_back_iterator = BackwardReachIndex::reverse_iterator;
+  using reverse_back_iterator = typename BackwardSet::reverse_iterator;
   /** The const-reverse-iterator type to iterate based on the backward reach ordering. */
   using const_reverse_back_iterator =
-      BackwardReachIndex::const_reverse_iterator;
+      typename BackwardSet::const_reverse_iterator;
 
   /** The iterator type to iterate based on the forward reach ordering. */
-  using forth_iterator = ForwardReachIndex::iterator;
+  using forth_iterator = typename ForwardSet::iterator;
   /** The const-iterator type to iterate based on the forward reach ordering. */
-  using const_forth_iterator = ForwardReachIndex::const_iterator;
+  using const_forth_iterator = typename ForwardSet::const_iterator;
   /** The reverse-iterator type to iterate based on the forward reach ordering. */
-  using reverse_forth_iterator = ForwardReachIndex::reverse_iterator;
+  using reverse_forth_iterator = typename ForwardSet::reverse_iterator;
   /** The const-reverse-iterator type to iterate based on the forward reach ordering. */
   using const_reverse_forth_iterator =
-      ForwardReachIndex::const_reverse_iterator;
+      typename ForwardSet::const_reverse_iterator;
 
-  using backward_range =
-      std::pair<const_reverse_back_iterator, const_reverse_back_iterator>;
-  using forward_range = std::pair<const_forth_iterator, const_forth_iterator>;
+  using backward_range = std::ranges::subrange<const_reverse_back_iterator,
+                                               const_reverse_back_iterator>;
+  using forward_range =
+      std::ranges::subrange<const_forth_iterator, const_forth_iterator>;
 
   /**
    * Parametrized constructor.
@@ -150,22 +149,22 @@ class reachability_sorted_set {
   reachability_sorted_set(Graph& g, PositionMap position,
                           const ReachabilityTopology& space)
       : m_g(g), m_position(position), m_space(space) {
-    for (auto [ui, ui_end] = vertices(m_g); ui != ui_end; ++ui) {
-      Point p = get(m_position, *ui);
-      m_map.insert(vertex_tuple(*ui, m_space.backward_reach(p),
-                                m_space.forward_reach(p)));
+    for (auto u : vertices(m_g)) {
+      Point p = get(m_position, u);
+      auto back_it = m_backward_set.emplace(u, m_space.backward_reach(p),
+                                            m_space.forward_reach(p));
+      m_forward_set.emplace(back_it);
     }
   }
 
   /**
    * Standard swap function. Swaps only the sorted set, not the graph, position-map or topology.
    */
-  friend void swap(
-      reachability_sorted_set<Graph, PositionMap, ReachabilityTopology>&
-          rhs) noexcept {
+  friend void swap(self& rhs) noexcept {
     using std::swap;
     // swap only the map since the other members should be the same.
-    std::swap(m_map, rhs.m_map);
+    std::swap(m_backward_set, rhs.m_backward_set);
+    std::swap(m_forward_set, rhs.m_forward_set);
   }
 
   /**
@@ -175,7 +174,17 @@ class reachability_sorted_set {
       : m_g(rhs.m_g),
         m_position(rhs.m_position),
         m_space(rhs.m_space),
-        m_map(rhs.m_map) {}
+        m_backward_set(rhs.m_backward_set) {
+    for (auto b_it = m_backward_set.begin(); b_it != m_backward_set.end();
+         ++b_it) {
+      m_forward_set.emplace(b_it);
+    }
+  }
+
+  /**
+   * Standard move-constructor.
+   */
+  reachability_sorted_set(self&& rhs) = default;
 
   /**
    * Standard assignment operator.
@@ -202,9 +211,9 @@ class reachability_sorted_set {
     double back_p = m_space.backward_reach(p);
     double forth_p = m_space.forward_reach(p);
     double t_p = back_p + forth_p;
-    const BackwardReachIndex& back_index = m_map.get<backward>();
-    auto itb = back_index.begin();
-    auto itb_end = back_index.upper_bound(back_p);
+    auto itb = m_backward_set.begin();
+    auto itb_end = m_backward_set.upper_bound(vertex_tuple{
+        bagl::graph_traits<Graph>::null_vertex(), back_p, forth_p});
 
     for (; itb != itb_end; ++itb) {
       double d_t = t_p - itb->backward_reach - itb->forward_reach;
@@ -246,9 +255,9 @@ class reachability_sorted_set {
     double back_p = m_space.backward_reach(p);
     double forth_p = m_space.forward_reach(p);
     double t_p = back_p + forth_p;
-    const BackwardReachIndex& back_index = m_map.get<backward>();
-    auto itb = back_index.lower_bound(back_p);
-    auto itb_end = back_index.end();
+    auto itb = m_backward_set.lower_bound(vertex_tuple{
+        bagl::graph_traits<Graph>::null_vertex(), back_p, forth_p});
+    auto itb_end = m_backward_set.end();
 
     for (; itb != itb_end; ++itb) {
       double d_t = itb->backward_reach + itb->forward_reach - t_p;
@@ -294,9 +303,9 @@ class reachability_sorted_set {
     double back_p = m_space.backward_reach(p);
     double forth_p = m_space.forward_reach(p);
     double t_p = back_p + forth_p;
-    const BackwardReachIndex& back_index = m_map.get<backward>();
-    const_back_iterator itb = back_index.begin();
-    const_back_iterator itb_end = back_index.upper_bound(back_p);
+    auto itb = m_backward_set.begin();
+    auto itb_end = m_backward_set.upper_bound(vertex_tuple{
+        bagl::graph_traits<Graph>::null_vertex(), back_p, forth_p});
 
     double back_max_radius = max_radius;
     for (; itb != itb_end; ++itb) {
@@ -322,14 +331,14 @@ class reachability_sorted_set {
     }
 
     itb = itb_end;
-    for (; itb != back_index.begin(); --itb) {
+    for (; itb != m_backward_set.begin(); --itb) {
       if (itb->backward_reach < back_p) {
         ++itb;
         break;
       }
     }
 
-    itb_end = back_index.end();
+    itb_end = m_backward_set.end();
 
     double forth_max_radius = max_radius;
     for (; itb != itb_end; ++itb) {
@@ -374,89 +383,35 @@ class reachability_sorted_set {
   /** The const-pointer-type for the set elements. */
   using const_pointer = const Vertex*;
 
-  struct key_compare {
-    PositionMap m_position;
-    const ReachabilityTopology* m_space;
-    key_compare(PositionMap p, const ReachabilityTopology* s)
-        : m_position(p), m_space(s) {}
-    bool operator()(Vertex u, Vertex v) const {
-      Point p_u = get(m_position, u);
-      Point p_v = get(m_position, v);
-      return (m_space->backward_reach(p_u) < m_space->backward_reach(p_v));
-    }
-  };
+  using key_compare = backward;
   /** The comparison functor for the set elements. */
   using value_compare = key_compare;
 
   /** The iterator for the set elements. */
-  using iterator =
-      boost::transform_iterator<vertex_access, BackwardReachIndex::iterator>;
+  using iterator = back_iterator;
   /** The const-iterator for the set elements. */
-  using const_iterator =
-      boost::transform_iterator<vertex_access,
-                                BackwardReachIndex::const_iterator>;
+  using const_iterator = const_back_iterator;
   /** The reverse-iterator for the set elements. */
-  using reverse_iterator =
-      boost::transform_iterator<vertex_access,
-                                BackwardReachIndex::reverse_iterator>;
+  using reverse_iterator = reverse_back_iterator;
   /** The const-reverse-iterator for the set elements. */
-  using const_reverse_iterator =
-      boost::transform_iterator<vertex_access,
-                                BackwardReachIndex::const_reverse_iterator>;
+  using const_reverse_iterator = const_reverse_back_iterator;
 
-  /**
-   * Returns the iterator at the begining of the set.
-   */
-  auto begin() { return iterator(m_map.begin(), vertex_access()); }
-  /**
-   * Returns the const-iterator at the begining of the set.
-   */
-  auto begin() const { return const_iterator(m_map.begin(), vertex_access()); }
-
-  /**
-   * Returns the iterator at the one-past-last element of the set.
-   */
-  auto end() { return iterator(m_map.end(), vertex_access()); }
-  /**
-   * Returns the const-iterator at the one-past-last element of the set.
-   */
-  auto end() const { return const_iterator(m_map.end(), vertex_access()); }
-
-  /**
-   * Returns the reverse-iterator at the begining of the set (actually the end).
-   */
-  auto rbegin() { return reverse_iterator(m_map.rbegin(), vertex_access()); }
-  /**
-   * Returns the const-reverse-iterator at the begining of the set (actually the end).
-   */
-  auto rbegin() const {
-    return const_reverse_iterator(m_map.rbegin(), vertex_access());
+  // Returns the range of vertices.
+  auto vertex_range() {
+    return std::ranges::subrange(m_backward_set) |
+           std::views::transform(vertex_access());
+  }
+  auto vertex_range() const {
+    return std::ranges::subrange(m_backward_set) |
+           std::views::transform(vertex_access());
   }
 
-  /**
-   * Returns the reverse-iterator at the one-past-last element of the set (actually the begin).
-   */
-  auto rend() { return reverse_iterator(m_map.rend(), vertex_access()); }
-  /**
-   * Returns the const-reverse-iterator at the one-past-last element of the set (actually the begin).
-   */
-  auto rend() const {
-    return const_reverse_iterator(m_map.rend(), vertex_access());
-  }
-
-  /**
-   * Checks if the set is empty.
-   * \return True if the set is empty.
-   */
-  bool empty() const { return m_map.empty(); }
-  /**
-   * Returns the size of the set.
-   */
-  std::size_t size() const { return m_map.size(); }
-  /**
-   * Returns the max-size of the set.
-   */
-  std::size_t max_size() const { return m_map.max_size(); }
+  // Checks if the set is empty.
+  bool empty() const { return m_backward_set.empty(); }
+  // Returns the size of the set.
+  std::size_t size() const { return m_backward_set.size(); }
+  // Returns the max-size of the set.
+  std::size_t max_size() const { return m_backward_set.max_size(); }
 
   /**
    * Inserts a value into the set.
@@ -466,9 +421,10 @@ class reachability_sorted_set {
    */
   std::pair<iterator, bool> insert(Vertex u) {
     Point p = get(m_position, u);
-    auto [it, insert_succeeded] = m_map.insert(
-        vertex_tuple(u, m_space.backward_reach(p), m_space.forward_reach(p)));
-    return {iterator(it, vertex_access()), insert_succeeded};
+    auto b_it = m_backward_set.emplace(u, m_space.backward_reach(p),
+                                       m_space.forward_reach(p));
+    m_forward_set.emplace(b_it);
+    return {b_it, true};
   }
 
   /**
@@ -479,10 +435,10 @@ class reachability_sorted_set {
    */
   iterator insert(iterator pos, Vertex u) {
     Point p = get(m_position, u);
-    return iterator(
-        m_map.insert(pos.base(), vertex_tuple(u, m_space.backward_reach(p),
-                                              m_space.forward_reach(p))),
-        vertex_access());
+    auto b_it = m_backward_set.emplace_hint(pos, u, m_space.backward_reach(p),
+                                            m_space.forward_reach(p));
+    m_forward_set.emplace(b_it);
+    return b_it;
   }
 
   /**
@@ -493,10 +449,10 @@ class reachability_sorted_set {
    */
   iterator insert(const_iterator pos, Vertex u) {
     Point p = get(m_position, u);
-    return iterator(
-        m_map.insert(pos.base(), vertex_tuple(u, m_space.backward_reach(p),
-                                              m_space.forward_reach(p))),
-        vertex_access());
+    auto b_it = m_backward_set.emplace_hint(pos, u, m_space.backward_reach(p),
+                                            m_space.forward_reach(p));
+    m_forward_set.emplace(b_it);
+    return b_it;
   }
 
   /**
@@ -508,8 +464,9 @@ class reachability_sorted_set {
   void insert(ForwardIter first, ForwardIter last) {
     for (; first != last; ++first) {
       Point p = get(m_position, *first);
-      m_map.insert(vertex_tuple(*first, m_space.backward_reach(p),
-                                m_space.forward_reach(p)));
+      auto b_it = m_backward_set.emplace(*first, m_space.backward_reach(p),
+                                         m_space.forward_reach(p));
+      m_forward_set.emplace(b_it);
     }
   }
 
@@ -517,13 +474,19 @@ class reachability_sorted_set {
    * Removes a value at a given position from the set.
    * \param pos The position of the element to be removed.
    */
-  void erase(iterator pos) { m_map.erase(pos.base()); }
+  void erase(iterator pos) {
+    m_forward_set.erase(pos);
+    m_backward_set.erase(pos);
+  }
 
   /**
    * Removes a value at a given position from the set.
    * \param pos The position of the element to be removed.
    */
-  void erase(const_iterator pos) { m_map.erase(pos.base()); }
+  void erase(const_iterator pos) {
+    m_forward_set.erase(pos);
+    m_backward_set.erase(pos);
+  }
 
   /**
    * Removes a value from the set.
@@ -532,11 +495,16 @@ class reachability_sorted_set {
    */
   std::size_t erase(Vertex u) {
     Point p = get(m_position, u);
-    auto it = m_map.lower_bound(m_space.backward_reach(p));
+    double back_p = m_space.backward_reach(p);
+    double forth_p = m_space.forward_reach(p);
+    auto it = m_backward_set.lower_bound(vertex_tuple{u, back_p, forth_p});
     std::size_t result = 0;
-    while ((it != m_map.end()) && (it->u == u)) {
-      m_map.erase(it++);
-      ++result;
+    while ((it != m_backward_set.end()) && (it->backward_reach <= back_p)) {
+      if (it->u == u) {
+        m_forward_set.erase(it);
+        m_backward_set.erase(it++);
+        ++result;
+      }
     }
     return result;
   }
@@ -557,16 +525,19 @@ class reachability_sorted_set {
   /**
    * Clears the set.
    */
-  void clear() { m_map.clear(); }
+  void clear() {
+    m_forward_set.clear();
+    m_backward_set.clear();
+  }
 
   /**
    * Returns the key-comparison functor.
    */
-  key_compare key_comp() const { return key_compare(m_position, &m_space); }
+  key_compare key_comp() const { return key_compare{}; }
   /**
    * Returns the value-comparison functor.
    */
-  value_compare value_comp() const { return key_compare(m_position, &m_space); }
+  value_compare value_comp() const { return key_compare{}; }
 
   /**
    * Finds a given value in the set.
@@ -575,11 +546,20 @@ class reachability_sorted_set {
    */
   iterator find(Vertex u) {
     Point p = get(m_position, u);
-    auto it = m_map.lower_bound(m_space.backward_reach(p));
-    if ((it != m_map.end()) && (it->u == u)) {
-      return iterator(it, vertex_access());
+    double back_p = m_space.backward_reach(p);
+    double forth_p = m_space.forward_reach(p);
+    auto [it, it_end] =
+        m_backward_set.equal_range(vertex_tuple{u, back_p, forth_p});
+    if (it == it_end) {
+      return m_backward_set.end();
     }
-    return iterator(m_map.end(), vertex_access());
+    while (it != it_end) {
+      if (it->u == u) {
+        return it;
+      }
+      ++it;
+    }
+    return m_backward_set.end();
   }
 
   /**
@@ -589,11 +569,20 @@ class reachability_sorted_set {
    */
   const_iterator find(Vertex u) const {
     Point p = get(m_position, u);
-    auto it = m_map.lower_bound(m_space.backward_reach(p));
-    if ((it != m_map.end()) && (it->u == u)) {
-      return const_iterator(it, vertex_access());
+    double back_p = m_space.backward_reach(p);
+    double forth_p = m_space.forward_reach(p);
+    auto [it, it_end] =
+        m_backward_set.equal_range(vertex_tuple{u, back_p, forth_p});
+    if (it == it_end) {
+      return m_backward_set.end();
     }
-    return const_iterator(m_map.end(), vertex_access());
+    while (it != it_end) {
+      if (it->u == u) {
+        return it;
+      }
+      ++it;
+    }
+    return m_backward_set.end();
   }
 
   /**
@@ -603,10 +592,15 @@ class reachability_sorted_set {
    */
   std::size_t count(Vertex u) const {
     Point p = get(m_position, u);
-    auto it = m_map.lower_bound(m_space.backward_reach(p));
+    double back_p = m_space.backward_reach(p);
+    double forth_p = m_space.forward_reach(p);
+    auto [it, it_end] =
+        m_backward_set.equal_range(vertex_tuple{u, back_p, forth_p});
     std::size_t result = 0;
-    while ((it != m_map.end()) && (it->u == u)) {
-      ++result;
+    while (it != it_end) {
+      if (it->u == u) {
+        ++result;
+      }
       ++it;
     }
     return result;
@@ -619,8 +613,9 @@ class reachability_sorted_set {
    */
   const_iterator lower_bound(Vertex u) const {
     Point p = get(m_position, u);
-    return const_iterator(m_map.lower_bound(m_space.backward_reach(p)),
-                          vertex_access());
+    double back_p = m_space.backward_reach(p);
+    double forth_p = m_space.forward_reach(p);
+    return m_backward_set.lower_bound(vertex_tuple{u, back_p, forth_p});
   }
 
   /**
@@ -630,8 +625,9 @@ class reachability_sorted_set {
    */
   const_iterator upper_bound(Vertex u) const {
     Point p = get(m_position, u);
-    return const_iterator(m_map.upper_bound(m_space.backward_reach(p)),
-                          vertex_access());
+    double back_p = m_space.backward_reach(p);
+    double forth_p = m_space.forward_reach(p);
+    return m_backward_set.upper_bound(vertex_tuple{u, back_p, forth_p});
   }
 
   /**
@@ -641,13 +637,9 @@ class reachability_sorted_set {
    */
   std::pair<const_iterator, const_iterator> equal_range(Vertex u) const {
     Point p = get(m_position, u);
-    auto it = m_map.lower_bound(m_space.backward_reach(p));
-    auto first = const_iterator(it, vertex_access());
-    while ((it != m_map.end()) && (it->u == u)) {
-      ++it;
-    }
-    auto last = const_iterator(it, vertex_access());
-    return {first, last};
+    double back_p = m_space.backward_reach(p);
+    double forth_p = m_space.forward_reach(p);
+    return m_backward_set.equal_range(vertex_tuple{u, back_p, forth_p});
   }
 
   /*********************************** END OF: STL set interface ***********************************/
