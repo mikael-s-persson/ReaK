@@ -11,7 +11,7 @@
  *
  * Second, a linear_neighbor_search algorithm is provided which simply does an exhaustive linear
  * search through all the vertices of a graph to find the nearest one to a given point, in a given
- * topology (as of topologies in the Boost Graph Library). This algorithms simply wraps the
+ * topology (as of topologies in the BAGL). This algorithms simply wraps the
  * min_dist_linear_search with the required distance and comparison function.
  *
  * Third, a best_only_neighbor_search algorithm is provided which is an approximation to an
@@ -51,10 +51,10 @@
 
 #include <cmath>
 
-#include "boost/graph/graph_concepts.hpp"
-#include "boost/graph/properties.hpp"
-#include "boost/graph/topology.hpp"
-#include "boost/property_map/property_map.hpp"
+#include "bagl/graph_concepts.h"
+#include "bagl/properties.h"
+#include "bagl/property_map.h"
+#include "bagl/topology.h"
 
 #include <algorithm>
 #include <iterator>
@@ -391,7 +391,7 @@ namespace {
 
 template <typename Space, typename PositionMap>
 struct linear_neighbor_search_distance_functor {
-  using PointType = graph::property_value_t<PositionMap>;
+  using PointType = bagl::property_traits_value_t<PositionMap>;
   const PointType* p_point;
   const Space* p_space;
   PositionMap position;
@@ -450,7 +450,9 @@ struct linear_neighbor_search_base {
   template <typename Space, typename PositionMap>
   double get_characteristic_size(Graph& g, const Space& space,
                                  PositionMap position) const {
-    auto [ui, ui_end] = vertices(g);
+    auto u_rg = vertices(g);
+    auto ui = u_rg.begin();
+    auto ui_end = u_rg.end();
     std::size_t N = num_vertices(g);
     std::size_t log_N = math::highest_set_bit(N) + 1;
     std::size_t step = N / log_N;
@@ -490,13 +492,13 @@ struct linear_neighbor_search_base {
     * \param position The property-map which can retrieve the position associated to each vertex.
     */
   template <MetricSpace Space, typename PositionMap>
-  graph::graph_vertex_t<Graph> operator()(
-      const graph::property_value_t<PositionMap>& p, Graph& g,
+  bagl::graph_vertex_descriptor_t<Graph> operator()(
+      const bagl::property_traits_value_t<PositionMap>& p, Graph& g,
       const Space& space, PositionMap position) const {
-    BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-    auto [ui, ui_end] = vertices(g);
+    static_assert(bagl::concepts::VertexListGraph<Graph>);
+    auto u_rg = vertices(g);
     return *(min_dist_linear_search(
-        ui, ui_end,
+        u_rg.begin(), u_rg.end(),
         detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, std::numeric_limits<double>::infinity()));
@@ -522,14 +524,14 @@ struct linear_neighbor_search_base {
     */
   template <MetricSpace Space, typename PositionMap, typename OutputIterator>
   OutputIterator operator()(
-      const graph::property_value_t<PositionMap>& p,
+      const bagl::property_traits_value_t<PositionMap>& p,
       OutputIterator output_first, Graph& g, const Space& space,
       PositionMap position, std::size_t max_neighbors = 1,
       double radius = std::numeric_limits<double>::infinity()) const {
-    BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-    auto [ui, ui_end] = vertices(g);
+    static_assert(bagl::concepts::VertexListGraph<Graph>);
+    auto u_rg = vertices(g);
     return min_dist_linear_search(
-        ui, ui_end, output_first,
+        u_rg.begin(), u_rg.end(), output_first,
         detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, max_neighbors, radius);
@@ -547,7 +549,7 @@ struct linear_neighbor_search_base {
     * \param position The property-map which can retrieve the position associated to each vertex.
     */
   template <typename ForwardIter, MetricSpace Space, typename PositionMap>
-  ForwardIter operator()(const graph::property_value_t<PositionMap>& p,
+  ForwardIter operator()(const bagl::property_traits_value_t<PositionMap>& p,
                          ForwardIter first, ForwardIter last,
                          const Space& space, PositionMap position) const {
     return min_dist_linear_search(
@@ -580,7 +582,7 @@ struct linear_neighbor_search_base {
   template <typename ForwardIter, MetricSpace Space, typename PositionMap,
             typename OutputIterator>
   OutputIterator operator()(
-      const graph::property_value_t<PositionMap>& p, ForwardIter first,
+      const bagl::property_traits_value_t<PositionMap>& p, ForwardIter first,
       ForwardIter last, OutputIterator output_first, const Space& space,
       PositionMap position, std::size_t max_neighbors = 1,
       double radius = std::numeric_limits<double>::infinity()) const {
@@ -622,7 +624,9 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
   template <MetricSpace Space, typename PositionMap>
   double get_characteristic_size(Graph& g, const Space& space,
                                  PositionMap position) const {
-    auto [ui, ui_end] = vertices(g);
+    auto u_rg = vertices(g);
+    auto ui = u_rg.begin();
+    auto ui_end = u_rg.end();
     std::size_t N = num_vertices(g);
     std::size_t log_N = math::highest_set_bit(N) + 1;
     std::size_t step = N / log_N;
@@ -679,14 +683,14 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
     */
   template <MetricSpace Space, typename PositionMap, typename OutputIterator>
   std::pair<OutputIterator, OutputIterator> operator()(
-      const graph::property_value_t<PositionMap>& p, OutputIterator pred_first,
-      OutputIterator succ_first, Graph& g, const Space& space,
-      PositionMap position, std::size_t max_neighbors = 1,
+      const bagl::property_traits_value_t<PositionMap>& p,
+      OutputIterator pred_first, OutputIterator succ_first, Graph& g,
+      const Space& space, PositionMap position, std::size_t max_neighbors = 1,
       double radius = std::numeric_limits<double>::infinity()) const {
-    BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-    auto [ui, ui_end] = vertices(g);
+    static_assert(bagl::concepts::VertexListGraph<Graph>);
+    auto u_rg = vertices(g);
     return min_dist_linear_search(
-        p, ui, ui_end, pred_first, succ_first,
+        p, u_rg.begin(), u_rg.end(), pred_first, succ_first,
         detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, max_neighbors, radius);
@@ -717,7 +721,7 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
   template <typename ForwardIter, MetricSpace Space, typename PositionMap,
             typename OutputIterator>
   std::pair<OutputIterator, OutputIterator> operator()(
-      const graph::property_value_t<PositionMap>& p, ForwardIter first,
+      const bagl::property_traits_value_t<PositionMap>& p, ForwardIter first,
       ForwardIter last, OutputIterator pred_first, OutputIterator succ_first,
       const Space& space, PositionMap position, std::size_t max_neighbors = 1,
       double radius = std::numeric_limits<double>::infinity()) const {
@@ -738,17 +742,16 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
   */
 template <typename Graph, typename CompareFunction = std::less<>>
 struct linear_neighbor_search
-    : linear_neighbor_search_base<
-          Graph, CompareFunction,
-          boost::is_directed_graph<Graph>::type::value> {
+    : linear_neighbor_search_base<Graph, CompareFunction,
+                                  bagl::is_directed_graph_v<Graph>> {
   /**
     * Default constructor.
     * \param compare The comparison functor for ordering the distances (strict weak ordering).
     */
   explicit linear_neighbor_search(CompareFunction compare)
-      : linear_neighbor_search_base<
-            Graph, CompareFunction,
-            boost::is_directed_graph<Graph>::type::value>(compare) {}
+      : linear_neighbor_search_base<Graph, CompareFunction,
+                                    bagl::is_directed_graph_v<Graph>>(compare) {
+  }
 
   linear_neighbor_search() : linear_neighbor_search(CompareFunction()) {}
 };
@@ -812,21 +815,21 @@ struct best_only_neighbor_search {
     * \param position The property-map which can retrieve the position associated to each vertex.
     */
   template <typename Vertex, MetricSpace Space, typename PositionMap>
-  double distance(const graph::property_value_t<PositionMap>& p, Vertex u,
+  double distance(const bagl::property_traits_value_t<PositionMap>& p, Vertex u,
                   const Space& space, PositionMap position) const {
     return get(distance_metric, space)(p, get(position, u), space);
   }
 
   template <typename Graph, MetricSpace Space, typename PositionMap>
-  void search(const graph::property_value_t<PositionMap>& p,
-              graph::graph_vertex_t<Graph>& u, double& d_min, Graph& g,
-              const Space& space, PositionMap position) {
-    using Vertex = graph::graph_vertex_t<Graph>;
+  void search(const bagl::property_traits_value_t<PositionMap>& p,
+              bagl::graph_vertex_descriptor_t<Graph>& u, double& d_min,
+              Graph& g, const Space& space, PositionMap position) {
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
     d_min = distance(p, u, space, position);
     while (out_degree(u, g)) {
       Vertex v_min = u;
-      for (auto [ei, ei_end] = out_edges(u, g); ei != ei_end; ++ei) {
-        Vertex v = target(*ei, g);
+      for (auto e : out_edges(u, g)) {
+        Vertex v = target(e, g);
         double d_v = distance(p, v, space, position);
         if (m_compare(d_v, d_min)) {
           d_min = d_v;
@@ -842,9 +845,8 @@ struct best_only_neighbor_search {
 
   /**
     * This call-operator finds the nearest vertex of a graph, to a given position.
-    * \tparam Graph The graph type which can contain the vertices, should
-    *         model boost::VertexListGraphConcept and boost::IncidenceGraphConcept.
-    * \tparam Space The topology type which contains the positions, should model the MetricSpaceConcept.
+    * \tparam Graph The graph type which can contain the vertices.
+    * \tparam Space The topology type which contains the positions.
     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
     * \param p A position in the space, to which the nearest-neighbor is sought.
     * \param g A graph containing the vertices from which to find the nearest-neighbor,
@@ -852,13 +854,13 @@ struct best_only_neighbor_search {
     * \param space The topology objects which define the space in which the positions reside.
     * \param position The property-map which can retrieve the position associated to each vertex.
     */
-  template <typename Graph, MetricSpace Space, typename PositionMap>
-  graph::graph_vertex_t<Graph> operator()(
-      const graph::property_value_t<PositionMap>& p, Graph& g,
-      const Space& space, PositionMap position) {
-    BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-    BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<Graph>));
-    using Vertex = graph::graph_vertex_t<Graph>;
+  template <bagl::concepts::VertexListGraph Graph, MetricSpace Space,
+            typename PositionMap>
+  requires bagl::concepts::IncidenceGraph<Graph>
+      bagl::graph_vertex_descriptor_t<Graph> operator()(
+          const bagl::property_traits_value_t<PositionMap>& p, Graph& g,
+          const Space& space, PositionMap position) {
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
     if (m_vertex_num_divider == 0) {
       m_vertex_num_divider = 1;
     }
@@ -879,12 +881,12 @@ struct best_only_neighbor_search {
 
   template <typename Graph, MetricSpace Space, typename PositionMap,
             typename PriorityQueue, typename PriorityCompare>
-  void search(const graph::property_value_t<PositionMap>& p,
-              graph::graph_vertex_t<Graph> u, PriorityQueue& output,
+  void search(const bagl::property_traits_value_t<PositionMap>& p,
+              bagl::graph_vertex_descriptor_t<Graph> u, PriorityQueue& output,
               PriorityCompare p_compare, double d_min, Graph& g,
               const Space& space, PositionMap position,
               std::size_t max_neighbors, double& radius) {
-    using Vertex = graph::graph_vertex_t<Graph>;
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
     if (m_compare(d_min, radius)) {
       output.push_back(std::pair<double, Vertex>(d_min, u));
       std::push_heap(output.begin(), output.end(), p_compare);
@@ -894,8 +896,8 @@ struct best_only_neighbor_search {
         radius = output.front().first;
       }
     }
-    for (auto [ei, ei_end] = out_edges(u, g); ei != ei_end; ++ei) {
-      Vertex v = target(*ei, g);
+    for (auto e : out_edges(u, g)) {
+      Vertex v = target(e, g);
       double d_v = distance(p, v, space, position);
       if (m_compare(d_v, d_min)) {
         search(p, v, output, p_compare, d_v, g, space, position, max_neighbors,
@@ -906,8 +908,7 @@ struct best_only_neighbor_search {
 
   /**
     * This call-operator finds the nearest vertices of a graph, to a given position.
-    * \tparam Graph The graph type which can contain the vertices, should
-    *         model boost::VertexListGraphConcept and boost::IncidenceGraphConcept.
+    * \tparam Graph The graph type which can contain the vertices.
     * \tparam Space The topology type which contains the positions.
     * \tparam PositionMap The property-map type which can store the position associated
     *         with each vertex.
@@ -925,16 +926,14 @@ struct best_only_neighbor_search {
     *        considered a neighbor.
     * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
     */
-  template <typename Graph, MetricSpace Space, typename PositionMap,
-            typename OutputIterator>
-  OutputIterator operator()(
-      const graph::property_value_t<PositionMap>& p,
-      OutputIterator output_first, Graph& g, const Space& space,
-      PositionMap position, std::size_t max_neighbors = 1,
-      double radius = std::numeric_limits<double>::infinity()) {
-    BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-    BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<Graph>));
-    using Vertex = graph::graph_vertex_t<Graph>;
+  template <bagl::concepts::VertexListGraph Graph, MetricSpace Space,
+            typename PositionMap, typename OutputIterator>
+  requires bagl::concepts::IncidenceGraph<Graph> OutputIterator
+  operator()(const bagl::property_traits_value_t<PositionMap>& p,
+             OutputIterator output_first, Graph& g, const Space& space,
+             PositionMap position, std::size_t max_neighbors = 1,
+             double radius = std::numeric_limits<double>::infinity()) {
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
     const auto p_compare = [&](const auto& lhs, const auto& rhs) {
       return m_compare(lhs.first, rhs.first);
     };

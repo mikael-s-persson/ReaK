@@ -177,8 +177,7 @@ void PPTestWindow::startRobot() {
     delete robot_exec_thread;
     robot_exec_thread = nullptr;
   };
-  robot_exec_thread =
-      new std::thread(boost::bind(&PPTestWindow::executePath, this));
+  robot_exec_thread = new std::thread([this]() { executePath(); });
 };
 
 void PPTestWindow::stopRobot() {
@@ -212,8 +211,13 @@ void PPTestWindow::startPlanner() {
       world_map_cvimage, rrt_prop.MaxEdgeLength->value() / pix_to_m,
       rrt_prop.RobotRadius->value() / pix_to_m, rrt_prop.MaxNumVert->value(),
       rrt_prop.MaxNumSol->value(),
-      boost::bind(&PPTestWindow::updateWorldMap, this, _1, _2),
-      boost::bind(&PPTestWindow::showResultMap, this, _1, _2, _3, _4),
+      [this](const cv::Mat& aImage, unsigned int aProgress) {
+        updateWorldMap(aImage, aProgress);
+      },
+      [this](const cv::Mat& aImage, unsigned int aProgress,
+             unsigned int aSolutionID, double aTotalDist) {
+        showResultMap(aImage, aProgress, aSolutionID, aTotalDist);
+      },
       rrt_prop.unidirCheck->isChecked(), rrt_prop.NNSearchDiv->value());
 
   rrt_test_world::pixel_coord p_start;

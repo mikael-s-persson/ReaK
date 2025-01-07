@@ -34,9 +34,9 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_MULTI_DVP_TREE_SEARCH_H_
 #define REAK_PLANNING_PATH_PLANNING_MULTI_DVP_TREE_SEARCH_H_
 
-#include "boost/graph/graph_concepts.hpp"
-#include "boost/graph/properties.hpp"
-#include "boost/property_map/property_map.hpp"
+#include "bagl/graph_concepts.h"
+#include "bagl/properties.h"
+#include "bagl/property_map.h"
 
 #include <map>  // for map in multi_dvp_tree_search
 
@@ -89,14 +89,14 @@ struct multi_dvp_tree_search_base {
    * \param position The property-map which can retrieve the position associated to each vertex.
    */
   template <typename Topology, typename PositionMap>
-  graph::graph_vertex_t<Graph> operator()(
-      const graph::property_value_t<PositionMap>& p, Graph& g,
+  bagl::graph_vertex_descriptor_t<Graph> operator()(
+      const bagl::property_traits_value_t<PositionMap>& p, Graph& g,
       const Topology& space, PositionMap position) const {
     auto it = graph_tree_map.find(&g);
     if ((it != graph_tree_map.end()) && (it->second != nullptr)) {
       return it->second->find_nearest(p);
     }
-    return boost::graph_traits<Graph>::null_vertex();
+    return bagl::graph_traits<Graph>::null_vertex();
   }
 
   /**
@@ -119,7 +119,7 @@ struct multi_dvp_tree_search_base {
    */
   template <typename Topology, typename PositionMap, typename OutputIterator>
   OutputIterator operator()(
-      const graph::property_value_t<PositionMap>& p,
+      const bagl::property_traits_value_t<PositionMap>& p,
       OutputIterator output_first, Graph& g, const Topology& space,
       PositionMap position, std::size_t max_neighbors = 1,
       double radius = std::numeric_limits<double>::infinity()) const {
@@ -198,15 +198,16 @@ struct multi_dvp_tree_search_base<Graph, DVPTree, true> {
    * \return A pair containing the nearest predecessor and successor vertex.
    */
   template <typename Topology, typename PositionMap>
-  std::pair<graph::graph_vertex_t<Graph>, graph::graph_vertex_t<Graph>>
-  operator()(const graph::property_value_t<PositionMap>& p, Graph& g,
+  std::pair<bagl::graph_vertex_descriptor_t<Graph>,
+            bagl::graph_vertex_descriptor_t<Graph>>
+  operator()(const bagl::property_traits_value_t<PositionMap>& p, Graph& g,
              const Topology& space, PositionMap position) const {
     auto it = graph_tree_map.find(&g);
     if ((it != graph_tree_map.end()) && (it->second)) {
       return it->second->find_nearest_pred_succ(p);
     }
-    return {boost::graph_traits<Graph>::null_vertex(),
-            boost::graph_traits<Graph>::null_vertex()};
+    return {bagl::graph_traits<Graph>::null_vertex(),
+            bagl::graph_traits<Graph>::null_vertex()};
   }
 
   /**
@@ -231,9 +232,10 @@ struct multi_dvp_tree_search_base<Graph, DVPTree, true> {
    */
   template <typename Topology, typename PositionMap, typename OutputIterator>
   std::pair<OutputIterator, OutputIterator> operator()(
-      const graph::property_value_t<PositionMap>& p, OutputIterator pred_first,
-      OutputIterator succ_first, Graph& g, const Topology& space,
-      PositionMap position, std::size_t max_neighbors = 1,
+      const bagl::property_traits_value_t<PositionMap>& p,
+      OutputIterator pred_first, OutputIterator succ_first, Graph& g,
+      const Topology& space, PositionMap position,
+      std::size_t max_neighbors = 1,
       double radius = std::numeric_limits<double>::infinity()) const {
     auto it = graph_tree_map.find(&g);
     if ((it != graph_tree_map.end()) && (it->second)) {
@@ -269,10 +271,10 @@ struct multi_dvp_tree_search_base<Graph, DVPTree, true> {
 template <typename Graph, typename DVPTree>
 struct multi_dvp_tree_search
     : multi_dvp_tree_search_base<Graph, DVPTree,
-                                 boost::is_directed_graph<Graph>::type::value> {
+                                 bagl::is_directed_graph_v<Graph>> {
   multi_dvp_tree_search()
-      : multi_dvp_tree_search_base<
-            Graph, DVPTree, boost::is_directed_graph<Graph>::type::value>() {}
+      : multi_dvp_tree_search_base<Graph, DVPTree,
+                                   bagl::is_directed_graph_v<Graph>>() {}
 };
 
 template <typename Graph, typename DVPTree>

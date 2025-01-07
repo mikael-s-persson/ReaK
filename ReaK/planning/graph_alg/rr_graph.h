@@ -46,60 +46,60 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include "boost/graph/graph_concepts.hpp"
-#include "boost/property_map/property_map.hpp"
+#include "bagl/graph_concepts.h"
+#include "bagl/properties.h"
+#include "bagl/property_map.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/random_sampler_concept.h"
 
 #include "ReaK/planning/graph_alg/node_generators.h"
 #include "ReaK/planning/graph_alg/sbmp_visitor_concepts.h"
-#include "ReaK/planning/graph_alg/simple_graph_traits.h"
 
-namespace ReaK {
+namespace ReaK::graph {
 
-namespace graph {
-
-namespace detail {
-namespace {
+namespace rrg_detail {
 
 template <typename Graph, typename Topology, typename RRGVisitor,
-          typename PositionMap, typename NodeGenerator, typename NcSelector>
+          bagl::concepts::ReadWriteVPropMemberMap<Graph> PositionMap,
+          typename NodeGenerator, typename NcSelector>
 void generate_rrg_loop(Graph& g, const Topology& space, RRGVisitor vis,
                        PositionMap position, NodeGenerator node_generator_func,
                        NcSelector select_neighborhood,
-                       unsigned int max_vertex_count) {
-  using Vertex = graph_vertex_t<Graph>;
-  using std::back_inserter;
+                       std::size_t max_vertex_count) {
+  using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
 
   while ((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
 
     auto [x_near, p_new, eprop] = node_generator_func(
-        g, vis, boost::bundle_prop_to_vertex_prop(position, g));
+        g, vis,
+        bagl::composite_property_map(position, get(bagl::vertex_all, g)));
 
-    std::vector<Vertex> Pred, Succ;
-    if constexpr (boost::is_undirected_graph<Graph>::value) {
-      select_neighborhood(p_new, back_inserter(Pred), g, space,
-                          boost::bundle_prop_to_vertex_prop(position, g));
+    std::vector<Vertex> pred;
+    std::vector<Vertex> succ;
+    if constexpr (bagl::is_undirected_graph_v<Graph>) {
+      select_neighborhood(
+          p_new, std::back_inserter(pred), g, space,
+          bagl::composite_property_map(position, get(bagl::vertex_all, g)));
     } else {
-      select_neighborhood(p_new, std::back_inserter(Pred),
-                          std::back_inserter(Succ), g, space,
-                          boost::bundle_prop_to_vertex_prop(position, g));
+      select_neighborhood(
+          p_new, std::back_inserter(pred), std::back_inserter(succ), g, space,
+          bagl::composite_property_map(position, get(bagl::vertex_all, g)));
     }
 
-    graph_vertex_bundle_t<Graph> xp_new;
+    bagl::vertex_property_type<Graph> xp_new;
     put(position, xp_new, p_new);
-    Vertex x_new = add_vertex(std::move(xp_new), g);
+    Vertex x_new = add_vertex(g, std::move(xp_new));
     vis.vertex_added(x_new, g);
 
     {
-      auto [e_new, e_new_exists] = add_edge(x_near, x_new, std::move(eprop), g);
+      auto [e_new, e_new_exists] = add_edge(x_near, x_new, g, std::move(eprop));
       if (e_new_exists) {
         vis.edge_added(e_new, g);
       }
     }
 
-    for (Vertex u : Pred) {
+    for (Vertex u : pred) {
       if (u == x_near) {
         continue;
       }
@@ -109,21 +109,21 @@ void generate_rrg_loop(Graph& g, const Topology& space, RRGVisitor vis,
         continue;
       }
 
-      auto [e_new, e_new_exists] = add_edge(u, x_new, std::move(eprop_new), g);
+      auto [e_new, e_new_exists] = add_edge(u, x_new, g, std::move(eprop_new));
       if (e_new_exists) {
         vis.edge_added(e_new, g);
       }
     }
 
-    if constexpr (!boost::is_undirected_graph<Graph>::value) {
-      for (Vertex u : Succ) {
+    if constexpr (!bagl::is_undirected_graph_v<Graph>) {
+      for (Vertex u : succ) {
         auto [can_connect, eprop_new] = vis.can_be_connected(x_new, u, g);
         if (!can_connect) {
           continue;
         }
 
         auto [e_new, e_new_exists] =
-            add_edge(x_new, u, std::move(eprop_new), g);
+            add_edge(x_new, u, g, std::move(eprop_new));
         if (e_new_exists) {
           vis.edge_added(e_new, g);
         }
@@ -132,13 +132,12 @@ void generate_rrg_loop(Graph& g, const Topology& space, RRGVisitor vis,
   }
 }
 
-}  // namespace
-}  // namespace detail
+}  // namespace rrg_detail
 
 /**
   * This function template is the unidirectional version of the RRG algorithm (refer to rr_graph.hpp dox).
   * \tparam Graph A mutable graph type that will represent the generated tree, should model
-  *boost::VertexListGraphConcept and boost::MutableGraphConcept
+  *bagl::concepts::VertexListGraph and bagl::concepts::MutableGraph
   * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist,
   *should model BGL's Topology concept
   * \tparam RRGVisitor An RRG visitor type that implements the customizations to this RRG algorithm, should model the
@@ -149,7 +148,7 @@ void generate_rrg_loop(Graph& g, const Topology& space, RRGVisitor vis,
   *topological_search.hpp).
   * \param g A mutable graph that should initially store the starting and goal
   *        vertex and will store the generated graph once the algorithm has finished.
-  * \param space A topology (as defined by the Boost Graph Library). Note
+  * \param space A topology (as defined by the Born Again Graph Library). Note
   *        that it is not required to generate only random points in
   *        the free-space.
   * \param vis A RRG visitor implementing the RRGVisitorConcept. This is the
@@ -165,32 +164,29 @@ void generate_rrg_loop(Graph& g, const Topology& space, RRGVisitor vis,
   *        should stop regardless of whether the resulting tree is satisfactory or not.
   *
   */
-template <typename Graph, typename Topology, typename RRGVisitor,
-          typename PositionMap, typename RandomSampler, typename NcSelector>
-inline void generate_rrg(Graph& g, const Topology& space, RRGVisitor vis,
-                         PositionMap position, RandomSampler get_sample,
-                         NcSelector select_neighborhood,
-                         unsigned int max_vertex_count) {
-  BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRGVisitor, Graph, Topology>));
-  BOOST_CONCEPT_ASSERT(
-      (ReaK::pp::RandomSamplerConcept<RandomSampler, Topology>));
-
+template <bagl::concepts::MutableGraph Graph, typename Topology,
+          RRGVisitorConcept<Graph, Topology> RRGVisitor,
+          bagl::concepts::ReadWriteVPropMemberMap<Graph> PositionMap,
+          pp::RandomSamplerConcept<Topology> RandomSampler, typename NcSelector>
+void generate_rrg(Graph& g, const Topology& space, RRGVisitor vis,
+                  PositionMap position, RandomSampler get_sample,
+                  NcSelector select_neighborhood,
+                  std::size_t max_vertex_count) {
   if (num_vertices(g) == 0) {
     auto p = get_sample(space);
     while (!vis.is_position_free(p)) {
       p = get_sample(space);
     }
 
-    graph_vertex_bundle_t<Graph> up;
+    bagl::vertex_property_type<Graph> up;
     put(position, up, p);
-    auto u = add_vertex(std::move(up), g);
+    auto u = add_vertex(g, std::move(up));
     vis.vertex_added(u, g);
   }
 
-  detail::generate_rrg_loop(
+  rrg_detail::generate_rrg_loop(
       g, space, vis, position,
-      rrg_node_generator<Topology, RandomSampler, NcSelector>(
-          &space, get_sample, select_neighborhood),
+      rrg_node_generator(&space, get_sample, select_neighborhood),
       select_neighborhood, max_vertex_count);
 }
 

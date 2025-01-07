@@ -605,7 +605,7 @@ mat_value_type_t<Matrix> two_norm_SVD(const Matrix& E) {
  */
 template <ReadableMatrix Matrix>
 mat_value_type_t<Matrix> norm_2(const Matrix& A,
-                                mat_value_type_t<Matrix> NumTol = 1E-15) {
+                                mat_value_type_t<Matrix> NumTol) {
   using ValueType = mat_value_type_t<Matrix>;
 
   std::size_t nu = (A.get_row_count() > A.get_col_count() ? A.get_col_count()
@@ -617,6 +617,11 @@ mat_value_type_t<Matrix> norm_2(const Matrix& A,
   decompose_SVD(A, U, E, V, NumTol);
 
   return E(0, 0);
+}
+
+template <ReadableMatrix Matrix>
+mat_value_type_t<Matrix> norm_2(const Matrix& A) {
+  return norm_2(A, 1E-15);
 }
 
 /**

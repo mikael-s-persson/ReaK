@@ -95,8 +95,8 @@ struct vlist_sbmp_report : public shared_object {
     ss << std::setw(6) << std::setfill('0') << num_vertices(g);
     std::ofstream file_out(file_path + "vlist_" + ss.str());
 
-    for (auto [vi, vi_end] = vertices(g); vi != vi_end; ++vi) {
-      print_to_stream(file_out, *vi, g);
+    for (auto v : vertices(g)) {
+      print_to_stream(file_out, v, g);
     }
 
     next_reporter.draw_motion_graph(free_space, g, pos);

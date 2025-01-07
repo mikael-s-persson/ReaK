@@ -38,7 +38,7 @@
 #include "ReaK/core/base/misc_math.h"
 
 #include <limits>
-#include "boost/property_map/property_map.hpp"
+#include "bagl/property_map.h"
 
 namespace ReaK::graph {
 
@@ -57,8 +57,8 @@ struct adaptive_star_nbhd {
 
   NNFinder find_neighbors;
   double c_space_dimensions;
-  mutable std::size_t next_logN_value;
-  mutable double gamma_value;
+  mutable std::size_t next_logN_value = 1;
+  mutable double gamma_value = std::numeric_limits<double>::infinity();
 
   /**
    * Parametrized constructor.
@@ -66,10 +66,7 @@ struct adaptive_star_nbhd {
    * \param aCSpaceDimensions The number of dimensions of the free-space (e.g., 3 for R^3).
    */
   adaptive_star_nbhd(NNFinder aFindNeighbors, double aCSpaceDimensions)
-      : find_neighbors(aFindNeighbors),
-        c_space_dimensions(aCSpaceDimensions),
-        next_logN_value(1),
-        gamma_value(std::numeric_limits<double>::infinity()) {}
+      : find_neighbors(aFindNeighbors), c_space_dimensions(aCSpaceDimensions) {}
 
   /**
    * This function fills the output iterator (like a back-inserter) with the neighborhood of the given
@@ -88,7 +85,7 @@ struct adaptive_star_nbhd {
    */
   template <typename OutputIterator, typename Graph, typename Topology,
             typename PositionMap>
-  void operator()(const property_value_t<PositionMap>& p,
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
                   OutputIterator output_first, Graph& g,
                   const Topology& free_space, PositionMap position) const {
     using std::pow;
@@ -126,7 +123,7 @@ struct adaptive_star_nbhd {
    */
   template <typename PredIterator, typename SuccIterator, typename Graph,
             typename Topology, typename PositionMap>
-  void operator()(const property_value_t<PositionMap>& p,
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
                   PredIterator pred_first, SuccIterator succ_first, Graph& g,
                   const Topology& free_space, PositionMap position) const {
     using std::log2;

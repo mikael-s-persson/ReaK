@@ -40,15 +40,11 @@
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 
-#include "boost/graph/graph_concepts.hpp"
-#include "boost/graph/properties.hpp"
-
-// BGL-Extra includes:
-#include "boost/graph/more_property_maps.hpp"
-#include "boost/graph/more_property_tags.hpp"
+#include "bagl/graph_concepts.h"
+#include "bagl/more_property_maps.h"
+#include "bagl/properties.h"
 
 #include "ReaK/planning/graph_alg/motion_graph_connector.h"
-#include "ReaK/planning/graph_alg/simple_graph_traits.h"
 
 #include <stack>
 
@@ -62,13 +58,14 @@ namespace ReaK::graph {
  */
 struct prm_node_connector {
 
-  template <typename Vertex, typename EdgeProp, typename Graph,
-            NeighborhoodTrackingVisitor<Graph> Visitor>
+  template <typename Graph, NeighborhoodTrackingVisitor<Graph> Visitor>
   requires SBMPVisitor<Visitor, Graph> void connect_to_first_pred(
-      Vertex v, Vertex x_near, EdgeProp& eprop, Graph& g, Visitor& conn_vis) {
+      bagl::graph_vertex_descriptor_t<Graph> v,
+      bagl::graph_vertex_descriptor_t<Graph> x_near,
+      bagl::edge_property_type<Graph>& eprop, Graph& g, Visitor& conn_vis) {
     conn_vis.travel_explored(x_near, v, g);
     conn_vis.travel_succeeded(x_near, v, g);
-    auto [e_new, e_new_exists] = add_edge(x_near, v, std::move(eprop), g);
+    auto [e_new, e_new_exists] = add_edge(x_near, v, g, std::move(eprop));
     if (e_new_exists) {
       conn_vis.edge_added(e_new, g);
       conn_vis.affected_vertex(x_near, g);
@@ -97,7 +94,7 @@ struct prm_node_connector {
    * \param g A mutable graph that should initially store the starting
    *        vertex (if not it will be randomly generated) and will store
    *        the generated graph once the algorithm has finished.
-   * \param super_space A topology (as defined by the Boost Graph Library). This topology
+   * \param super_space A topology (as defined by the Born Again Graph Library). This topology
    *        should not include collision checking in its distance metric.
    * \param conn_vis A node-connector visitor implementing the MotionGraphConnectorVisitor. This is the
    *        main point of customization and recording of results that the user can implement.
@@ -109,34 +106,35 @@ struct prm_node_connector {
    */
   template <typename Graph, pp::Topology Space,
             MotionGraphConnectorVisitor<Graph, Space> Visitor,
-            typename PositionMap, typename NcSelector>
-  void operator()(const property_value_t<PositionMap>& p,
-                  graph_vertex_t<Graph> x_near,
-                  graph_edge_bundle_t<Graph>& eprop, Graph& g,
+            bagl::concepts::ReadableVPropMemberMap<Graph> PositionMap,
+            typename NcSelector>
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
+                  bagl::graph_vertex_descriptor_t<Graph> x_near,
+                  bagl::edge_property_type<Graph>& eprop, Graph& g,
                   const Space& super_space, Visitor& conn_vis,
                   PositionMap position, const NcSelector& select_neighborhood) {
-    using Vertex = graph_vertex_t<Graph>;
-    using std::back_inserter;
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
 
-    std::vector<Vertex> Pred;
-    std::vector<Vertex> Succ;
-    if constexpr (boost::is_undirected_graph<Graph>::value) {
-      select_neighborhood(p, back_inserter(Pred), g, super_space,
-                          boost::bundle_prop_to_vertex_prop(position, g));
+    std::vector<Vertex> pred;
+    std::vector<Vertex> succ;
+    if constexpr (bagl::is_undirected_graph_v<Graph>) {
+      select_neighborhood(
+          p, std::back_inserter(pred), g, super_space,
+          bagl::composite_property_map(position, get(bagl::vertex_all, g)));
     } else {
-      select_neighborhood(p, back_inserter(Pred), back_inserter(Succ), g,
-                          super_space,
-                          boost::bundle_prop_to_vertex_prop(position, g));
+      select_neighborhood(
+          p, std::back_inserter(pred), std::back_inserter(succ), g, super_space,
+          bagl::composite_property_map(position, get(bagl::vertex_all, g)));
     }
 
     Vertex v = conn_vis.create_vertex(p, g);
 
-    if (x_near != boost::graph_traits<Graph>::null_vertex()) {
+    if (x_near != bagl::graph_traits<Graph>::null_vertex()) {
       connect_to_first_pred(v, x_near, eprop, g, conn_vis);
     }
     conn_vis.affected_vertex(v, g);
 
-    for (Vertex u : Pred) {
+    for (Vertex u : pred) {
       if (u == x_near) {
         continue;
       }
@@ -145,7 +143,7 @@ struct prm_node_connector {
       conn_vis.travel_explored(u, v, g);
       if (can_connect) {
         conn_vis.travel_succeeded(u, v, g);
-        auto [e_new, e_new_exists] = add_edge(u, v, std::move(eprop_new), g);
+        auto [e_new, e_new_exists] = add_edge(u, v, g, std::move(eprop_new));
         if (e_new_exists) {
           conn_vis.edge_added(e_new, g);
         }
@@ -155,13 +153,13 @@ struct prm_node_connector {
       conn_vis.affected_vertex(u, g);  // affected by travel attempts.
     }
 
-    if constexpr (!boost::is_undirected_graph<Graph>::value) {
-      for (Vertex u : Succ) {
+    if constexpr (!bagl::is_undirected_graph_v<Graph>) {
+      for (Vertex u : succ) {
         auto [can_connect, eprop_new] = conn_vis.can_be_connected(v, u, g);
         conn_vis.travel_explored(v, u, g);
         if (can_connect) {
           conn_vis.travel_succeeded(v, u, g);
-          auto [e_new, e_new_exists] = add_edge(v, u, std::move(eprop_new), g);
+          auto [e_new, e_new_exists] = add_edge(v, u, g, std::move(eprop_new));
           if (e_new_exists) {
             conn_vis.edge_added(e_new, g);
           }

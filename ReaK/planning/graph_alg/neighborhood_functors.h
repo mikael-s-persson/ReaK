@@ -37,7 +37,8 @@
 
 #include "ReaK/core/base/misc_math.h"
 
-#include "ReaK/planning/graph_alg/simple_graph_traits.h"
+#include "bagl/graph_traits.h"
+#include "bagl/property_map.h"
 
 namespace ReaK::graph {
 
@@ -90,7 +91,7 @@ struct star_neighborhood {
    */
   template <typename OutputIterator, typename Graph, typename Topology,
             typename PositionMap>
-  void operator()(const property_value_t<PositionMap>& p,
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
                   OutputIterator output_first, Graph& g,
                   const Topology& free_space, PositionMap position) const {
     using std::pow;
@@ -123,7 +124,7 @@ struct star_neighborhood {
    */
   template <typename PredIterator, typename SuccIterator, typename Graph,
             typename Topology, typename PositionMap>
-  void operator()(const property_value_t<PositionMap>& p,
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
                   PredIterator pred_first, SuccIterator succ_first, Graph& g,
                   const Topology& free_space, PositionMap position) const {
     using std::log2;
@@ -170,7 +171,7 @@ struct single_neighbor {
    */
   template <typename OutputIterator, typename Graph, typename Topology,
             typename PositionMap>
-  void operator()(const property_value_t<PositionMap>& p,
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
                   OutputIterator output_first, Graph& g,
                   const Topology& free_space, PositionMap position) const {
     find_neighbors(p, output_first, g, free_space, position, 1,
@@ -199,7 +200,7 @@ struct single_neighbor {
    */
   template <typename PredIterator, typename SuccIterator, typename Graph,
             typename Topology, typename PositionMap>
-  void operator()(const property_value_t<PositionMap>& p,
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
                   PredIterator pred_first, SuccIterator succ_first, Graph& g,
                   const Topology& free_space, PositionMap position) const {
     find_neighbors(p, pred_first, succ_first, g, free_space, position, 1,
@@ -247,7 +248,7 @@ struct fixed_neighborhood {
    */
   template <typename OutputIterator, typename Graph, typename Topology,
             typename PositionMap>
-  void operator()(const property_value_t<PositionMap>& p,
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
                   OutputIterator output_first, Graph& g,
                   const Topology& free_space, PositionMap position) const {
     find_neighbors(p, output_first, g, free_space, position, max_neighbor_count,
@@ -276,7 +277,7 @@ struct fixed_neighborhood {
    */
   template <typename PredIterator, typename SuccIterator, typename Graph,
             typename Topology, typename PositionMap>
-  void operator()(const property_value_t<PositionMap>& p,
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
                   PredIterator pred_first, SuccIterator succ_first, Graph& g,
                   const Topology& free_space, PositionMap position) const {
     find_neighbors(p, pred_first, succ_first, g, free_space, position,

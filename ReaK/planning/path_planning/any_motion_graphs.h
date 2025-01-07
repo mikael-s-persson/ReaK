@@ -26,15 +26,15 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with ReaK (as LICENSE in the root folder).
- *    If not, sMOTION_ee <http://www.gnu.org/licenses/>.
+ *    If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef REAK_PLANNING_PATH_PLANNING_ANY_MOTION_GRAPHS_H_
 #define REAK_PLANNING_PATH_PLANNING_ANY_MOTION_GRAPHS_H_
 
-#include "ReaK/math/lin_alg/arithmetic_tuple.h"
-#include "ReaK/planning/graph_alg/any_graph.h"
+#include "bagl/dynamic_graph.h"
 
+#include "ReaK/math/lin_alg/arithmetic_tuple.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/steerable_space_concept.h"
 
@@ -43,23 +43,6 @@
 #include <type_traits>
 
 namespace ReaK::pp {
-
-namespace detail {
-namespace {
-
-template <typename Topology, typename Graph>
-auto& try_get_steer_record(Graph& g, graph::graph_edge_t<Graph> e) {
-  if constexpr (is_steerable_space_v<Topology>) {
-    return g[e].steer_record;
-  } else {
-    throw std::invalid_argument(
-        "Required property 'edge_steer_record' on a non-steerable space!");
-    return g[e];
-  }
-}
-
-}  // namespace
-}  // namespace detail
 
 /**
  * This struct contains the data required on a per-vertex basis for any basic path-planning algorithm.
@@ -99,56 +82,18 @@ void print_mg_vertex(std::ostream& out, const mg_vertex_data<Topology>& vp) {
   }
 }
 
-/**
- * This class template can be used as a type-erased encapsulation of a graph used by any basic path-planning algorithm.
- * \tparam Topology The topology type on which the planning is performed.
- * \tparam Graph The graph type used by the path-planning algorithm.
- */
+// Make a type-erased encapsulation of a graph used by any path-planning algorithm.
 template <typename Topology, typename Graph>
-class any_motion_graph : public graph::type_erased_graph<Graph> {
- protected:
-  using self = any_motion_graph<Topology, Graph>;
-  using base_type = graph::type_erased_graph<Graph>;
-  using original_graph_type = typename base_type::original_graph_type;
-  using real_vertex_desc = typename base_type::real_vertex_desc;
-  using real_edge_desc = typename base_type::real_edge_desc;
-
-  void* get_property_by_ptr(std::string_view aProperty,
-                            const std::any& aElement) const override {
-
-    if (aProperty == "vertex_position") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .position));
-    }
-    if (aProperty == "edge_steer_record") {
-      return static_cast<void*>(&(detail::try_get_steer_record<Topology>(
-          *(this->p_graph), std::any_cast<real_edge_desc>(aElement))));
-    }
-
-    return base_type::get_property_by_ptr(aProperty, aElement);
+void add_motion_graph_property_maps(Graph& g, bagl::dynamic_properties& dp) {
+  using VBundled = bagl::vertex_bundle_type<Graph>;
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_position", get(&VBundled::position, g));
+  if constexpr (is_steerable_space_v<Topology>) {
+    using EBundled = bagl::edge_bundle_type<Graph>;
+    dp.property<bagl::graph_edge_descriptor_t<Graph>>(
+        "edge_steer_record", get(&EBundled::steer_record, g));
   }
-
-  std::any get_property_by_any(std::string_view aProperty,
-                               const std::any& aElement) const override {
-
-    if (aProperty == "vertex_position") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .position);
-    }
-    if (aProperty == "edge_steer_record") {
-      return std::any(detail::try_get_steer_record<Topology>(
-          *(this->p_graph), std::any_cast<real_edge_desc>(aElement)));
-    }
-
-    return base_type::get_property_by_any(aProperty, aElement);
-  }
-
- public:
-  explicit any_motion_graph(original_graph_type* aPGraph)
-      : base_type(aPGraph) {}
-};
+}
 
 /**
  * This struct contains the data required on a per-vertex basis for any optimal path-planning algorithm.
@@ -194,67 +139,18 @@ void print_mg_vertex(std::ostream& out, const optimal_mg_vertex<Topology>& vp) {
   out << " " << std::setw(10) << vp.distance_accum;
 }
 
-/**
- * This class template can be used as a type-erased encapsulation of a graph used by any optimal path-planning
- * algorithm.
- * \tparam Topology The topology type on which the planning is performed.
- * \tparam Graph The graph type used by the path-planning algorithm.
- */
+// Make a type-erased encapsulation of a graph used by any optimal path-planning algorithm.
 template <typename Topology, typename Graph>
-class any_optimal_motion_graph : public any_motion_graph<Topology, Graph> {
- protected:
-  using self = any_optimal_motion_graph<Topology, Graph>;
-  using base_type = any_motion_graph<Topology, Graph>;
-  using original_graph_type = typename base_type::original_graph_type;
-  using real_vertex_desc = typename base_type::real_vertex_desc;
-  using real_edge_desc = typename base_type::real_edge_desc;
-
-  void* get_property_by_ptr(std::string_view aProperty,
-                            const std::any& aElement) const override {
-
-    if (aProperty == "vertex_distance_accum") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .distance_accum));
-    }
-    if (aProperty == "vertex_predecessor") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .predecessor));
-    }
-    if (aProperty == "edge_weight") {
-      return static_cast<void*>(&(
-          (*(this->p_graph))[std::any_cast<real_edge_desc>(aElement)].weight));
-    }
-
-    return base_type::get_property_by_ptr(aProperty, aElement);
-  }
-
-  std::any get_property_by_any(std::string_view aProperty,
-                               const std::any& aElement) const override {
-
-    if (aProperty == "vertex_distance_accum") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .distance_accum);
-    }
-    if (aProperty == "vertex_predecessor") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .predecessor);
-    }
-    if (aProperty == "edge_weight") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_edge_desc>(aElement)].weight);
-    }
-
-    return base_type::get_property_by_any(aProperty, aElement);
-  }
-
- public:
-  explicit any_optimal_motion_graph(original_graph_type* aPGraph)
-      : base_type(aPGraph) {}
-};
+void add_optimal_property_maps(Graph& g, bagl::dynamic_properties& dp) {
+  using VBundled = bagl::vertex_bundle_type<Graph>;
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_distance_accum", get(&VBundled::distance_accum, g));
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_predecessor", get(&VBundled::predecessor, g));
+  using EBundled = bagl::edge_bundle_type<Graph>;
+  dp.property<bagl::graph_edge_descriptor_t<Graph>>("edge_weight",
+                                                    get(&EBundled::weight, g));
+}
 
 /**
  * This struct contains the data required on a per-vertex basis for any optimal path-planning algorithm.
@@ -282,60 +178,15 @@ void print_mg_vertex(std::ostream& out,
   out << " " << std::setw(10) << vp.fwd_distance_accum;
 }
 
-/**
- * This class template can be used as a type-erased encapsulation of a graph used by any optimal path-planning
- * algorithm.
- * \tparam Topology The topology type on which the planning is performed.
- * \tparam Graph The graph type used by the path-planning algorithm.
- */
+// Make a type-erased encapsulation of a graph used by any bidirectional optimal path-planning algorithm.
 template <typename Topology, typename Graph>
-class any_bidir_optimal_motion_graph
-    : public any_optimal_motion_graph<Topology, Graph> {
- protected:
-  using self = any_bidir_optimal_motion_graph<Topology, Graph>;
-  using base_type = any_optimal_motion_graph<Topology, Graph>;
-  using original_graph_type = typename base_type::original_graph_type;
-  using real_vertex_desc = typename base_type::real_vertex_desc;
-  using real_edge_desc = typename base_type::real_edge_desc;
-
-  void* get_property_by_ptr(std::string_view aProperty,
-                            const std::any& aElement) const override {
-
-    if (aProperty == "vertex_fwd_distance_accum") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .fwd_distance_accum));
-    }
-    if (aProperty == "vertex_successor") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .successor));
-    }
-
-    return base_type::get_property_by_ptr(aProperty, aElement);
-  }
-
-  std::any get_property_by_any(std::string_view aProperty,
-                               const std::any& aElement) const override {
-
-    if (aProperty == "vertex_fwd_distance_accum") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .fwd_distance_accum);
-    }
-    if (aProperty == "vertex_successor") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .successor);
-    }
-
-    return base_type::get_property_by_any(aProperty, aElement);
-  }
-
- public:
-  explicit any_bidir_optimal_motion_graph(original_graph_type* aPGraph)
-      : base_type(aPGraph) {}
-};
+void add_bidir_optimal_property_maps(Graph& g, bagl::dynamic_properties& dp) {
+  using VBundled = bagl::vertex_bundle_type<Graph>;
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_fwd_distance_accum", get(&VBundled::fwd_distance_accum, g));
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_successor", get(&VBundled::successor, g));
+}
 
 /**
  * This struct contains the data required on a per-vertex basis for any A*-like path-planning algorithm (heuristically
@@ -350,7 +201,7 @@ struct astar_mg_vertex : optimal_mg_vertex<Topology> {
   /// heuristic distances).
   double key_value;
   /// The color-value associated to the vertex, computed by the algorithm.
-  boost::default_color_type astar_color;
+  bagl::default_color_type astar_color;
 };
 
 template <typename Topology>
@@ -364,68 +215,17 @@ void print_mg_vertex(std::ostream& out, const astar_mg_vertex<Topology>& vp) {
       << vp.heuristic_value << " " << std::setw(10) << vp.key_value;
 }
 
-/**
- * This class template can be used as a type-erased encapsulation of a graph used by any A*-like path-planning
- * algorithm.
- * \tparam Topology The topology type on which the planning is performed.
- * \tparam Graph The graph type used by the path-planning algorithm.
- */
+// Make a type-erased encapsulation of a graph used by any A*-like path-planning algorithm.
 template <typename Topology, typename Graph>
-class any_astar_motion_graph
-    : public any_optimal_motion_graph<Topology, Graph> {
- protected:
-  using self = any_astar_motion_graph<Topology, Graph>;
-  using base_type = any_optimal_motion_graph<Topology, Graph>;
-  using original_graph_type = typename base_type::original_graph_type;
-  using real_vertex_desc = typename base_type::real_vertex_desc;
-  using real_edge_desc = typename base_type::real_edge_desc;
-
-  void* get_property_by_ptr(std::string_view aProperty,
-                            const std::any& aElement) const override {
-    if (aProperty == "vertex_heuristic_value") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .heuristic_value));
-    }
-    if (aProperty == "vertex_key_value") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .key_value));
-    }
-    if (aProperty == "vertex_astar_color") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .astar_color));
-    }
-
-    return base_type::get_property_by_ptr(aProperty, aElement);
-  }
-
-  std::any get_property_by_any(std::string_view aProperty,
-                               const std::any& aElement) const override {
-    if (aProperty == "vertex_heuristic_value") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .heuristic_value);
-    }
-    if (aProperty == "vertex_key_value") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .key_value);
-    }
-    if (aProperty == "vertex_astar_color") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .astar_color);
-    }
-
-    return base_type::get_property_by_any(aProperty, aElement);
-  }
-
- public:
-  explicit any_astar_motion_graph(original_graph_type* aPGraph)
-      : base_type(aPGraph) {}
-};
+void add_astar_property_maps(Graph& g, bagl::dynamic_properties& dp) {
+  using VBundled = bagl::vertex_bundle_type<Graph>;
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_heuristic_value", get(&VBundled::heuristic_value, g));
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_key_value", get(&VBundled::key_value, g));
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_astar_color", get(&VBundled::astar_color, g));
+}
 
 /**
  * This struct contains the data required on a per-vertex basis for any A*-like path-planning algorithm (heuristically
@@ -438,7 +238,7 @@ struct bidir_astar_mg_vertex : bidir_optimal_mg_vertex<Topology> {
   /// heuristic distances).
   double key_value;
   /// The color-value associated to the vertex, computed by the algorithm.
-  boost::default_color_type astar_color;
+  bagl::default_color_type astar_color;
 };
 
 template <typename Topology>
@@ -453,58 +253,15 @@ void print_mg_vertex(std::ostream& out,
       << vp.fwd_distance_accum << " " << std::setw(10) << vp.key_value;
 }
 
-/**
- * This class template can be used as a type-erased encapsulation of a graph used by any A*-like path-planning
- * algorithm.
- * \tparam Topology The topology type on which the planning is performed.
- * \tparam Graph The graph type used by the path-planning algorithm.
- */
+// Make a type-erased encapsulation of a graph used by any bidirectional A*-like path-planning algorithm.
 template <typename Topology, typename Graph>
-class any_bidir_astar_motion_graph
-    : public any_bidir_optimal_motion_graph<Topology, Graph> {
- protected:
-  using self = any_bidir_astar_motion_graph<Topology, Graph>;
-  using base_type = any_bidir_optimal_motion_graph<Topology, Graph>;
-  using original_graph_type = typename base_type::original_graph_type;
-  using real_vertex_desc = typename base_type::real_vertex_desc;
-  using real_edge_desc = typename base_type::real_edge_desc;
-
-  void* get_property_by_ptr(std::string_view aProperty,
-                            const std::any& aElement) const override {
-    if (aProperty == "vertex_key_value") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .key_value));
-    }
-    if (aProperty == "vertex_astar_color") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .astar_color));
-    }
-
-    return base_type::get_property_by_ptr(aProperty, aElement);
-  }
-
-  std::any get_property_by_any(std::string_view aProperty,
-                               const std::any& aElement) const override {
-    if (aProperty == "vertex_key_value") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .key_value);
-    }
-    if (aProperty == "vertex_astar_color") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .astar_color);
-    }
-
-    return base_type::get_property_by_any(aProperty, aElement);
-  }
-
- public:
-  explicit any_bidir_astar_motion_graph(original_graph_type* aPGraph)
-      : base_type(aPGraph) {}
-};
+void add_bidir_astar_property_maps(Graph& g, bagl::dynamic_properties& dp) {
+  using VBundled = bagl::vertex_bundle_type<Graph>;
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_key_value", get(&VBundled::key_value, g));
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_astar_color", get(&VBundled::astar_color, g));
+}
 
 /**
  * This struct contains the data required on a per-vertex basis for calculating the density
@@ -523,46 +280,13 @@ void print_mg_vertex(std::ostream& out, const dense_mg_vertex<BaseVertex>& vp) {
   out << " " << std::setw(10) << vp.density;
 }
 
-/**
- * This class template can be used as a type-erased encapsulation of a graph used
- * by a path-planning algorithm that uses a (non-recursive) density metric.
- * \tparam BaseMotionGraph The type-erased motion-graph base-type used.
- */
-template <typename BaseMotionGraph>
-class any_dense_motion_graph : public BaseMotionGraph {
- protected:
-  using self = any_dense_motion_graph<BaseMotionGraph>;
-  using base_type = BaseMotionGraph;
-  using original_graph_type = typename base_type::original_graph_type;
-  using real_vertex_desc = typename base_type::real_vertex_desc;
-  using real_edge_desc = typename base_type::real_edge_desc;
-
-  void* get_property_by_ptr(std::string_view aProperty,
-                            const std::any& aElement) const override {
-    if (aProperty == "vertex_density") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .density));
-    }
-
-    return base_type::get_property_by_ptr(aProperty, aElement);
-  }
-
-  std::any get_property_by_any(std::string_view aProperty,
-                               const std::any& aElement) const override {
-    if (aProperty == "vertex_density") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .density);
-    }
-
-    return base_type::get_property_by_any(aProperty, aElement);
-  }
-
- public:
-  explicit any_dense_motion_graph(original_graph_type* aPGraph)
-      : base_type(aPGraph) {}
-};
+// Add a density metric to the type-erased motion graph properties.
+template <typename Topology, typename Graph>
+void add_density_property_maps(Graph& g, bagl::dynamic_properties& dp) {
+  using VBundled = bagl::vertex_bundle_type<Graph>;
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_density", get(&VBundled::density, g));
+}
 
 /**
  * This struct contains the data required on a per-vertex basis for calculating the density
@@ -592,116 +316,70 @@ void print_mg_vertex(std::ostream& out,
       << std::setw(10) << vp.collision_count;
 }
 
-/**
- * This class template can be used as a type-erased encapsulation of a graph used
- * by a path-planning algorithm that uses a recursive density metric.
- * \tparam BaseMotionGraph The type-erased motion-graph base-type used.
- */
-template <typename BaseMotionGraph>
-class any_recursive_dense_mg : public BaseMotionGraph {
- protected:
-  using self = any_recursive_dense_mg<BaseMotionGraph>;
-  using base_type = BaseMotionGraph;
-  using original_graph_type = typename base_type::original_graph_type;
-  using real_vertex_desc = typename base_type::real_vertex_desc;
-  using real_edge_desc = typename base_type::real_edge_desc;
-
-  void* get_property_by_ptr(std::string_view aProperty,
-                            const std::any& aElement) const override {
-    if (aProperty == "vertex_density") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .density));
-    }
-    if (aProperty == "vertex_constriction") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .constriction));
-    }
-    if (aProperty == "vertex_expansion_trials") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .expansion_trials));
-    }
-    if (aProperty == "vertex_collision_count") {
-      return static_cast<void*>(
-          &((*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-                .collision_count));
-    }
-
-    return base_type::get_property_by_ptr(aProperty, aElement);
-  }
-
-  std::any get_property_by_any(std::string_view aProperty,
-                               const std::any& aElement) const override {
-    if (aProperty == "vertex_density") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .density);
-    }
-    if (aProperty == "vertex_constriction") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .constriction);
-    }
-    if (aProperty == "vertex_expansion_trials") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .expansion_trials);
-    }
-    if (aProperty == "vertex_collision_count") {
-      return std::any(
-          (*(this->p_graph))[std::any_cast<real_vertex_desc>(aElement)]
-              .collision_count);
-    }
-
-    return base_type::get_property_by_any(aProperty, aElement);
-  }
-
- public:
-  explicit any_recursive_dense_mg(original_graph_type* aPGraph)
-      : base_type(aPGraph) {}
-};
-
+// Add a recursive density metric to the type-erased motion graph properties.
 template <typename Topology, typename Graph>
-struct te_mg_selector {
-  using VertexProp = graph::graph_vertex_bundle_t<Graph>;
+void add_recursive_density_property_maps(Graph& g,
+                                         bagl::dynamic_properties& dp) {
+  using VBundled = bagl::vertex_bundle_type<Graph>;
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_density", get(&VBundled::density, g));
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_constriction", get(&VBundled::constriction, g));
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_expansion_trials", get(&VBundled::expansion_trials, g));
+  dp.property<bagl::graph_vertex_descriptor_t<Graph>>(
+      "vertex_collision_count", get(&VBundled::collision_count, g));
+}
 
-  static constexpr bool IsBasicMG =
-      std::is_convertible_v<VertexProp*, mg_vertex_data<Topology>*>;
-  static constexpr bool IsOptimMG =
-      std::is_convertible_v<VertexProp*, optimal_mg_vertex<Topology>*>;
-  static constexpr bool IsAStarMG =
-      std::is_convertible_v<VertexProp*, astar_mg_vertex<Topology>*>;
+namespace any_motion_graphs_detail {
 
-  using BaseVertexProp = std::conditional_t<
-      IsBasicMG,
-      std::conditional_t<
-          IsOptimMG,
-          std::conditional_t<IsAStarMG, astar_mg_vertex<Topology>,
-                             optimal_mg_vertex<Topology>>,
-          mg_vertex_data<Topology>>,
-      void>;
-
-  using BaseMG = std::conditional_t<
-      IsBasicMG,
-      std::conditional_t<
-          IsOptimMG,
-          std::conditional_t<IsAStarMG, any_astar_motion_graph<Topology, Graph>,
-                             any_optimal_motion_graph<Topology, Graph>>,
-          any_motion_graph<Topology, Graph>>,
-      graph::type_erased_graph<Graph>>;
-
-  static constexpr bool IsDenseMG =
-      std::is_convertible_v<VertexProp*, dense_mg_vertex<BaseVertexProp>*>;
-  static constexpr bool IsRecDenseMG =
-      std::is_convertible_v<VertexProp*,
-                            recursive_dense_mg_vertex<BaseVertexProp>*>;
-
-  using type = std::conditional_t<
-      IsDenseMG, any_dense_motion_graph<BaseMG>,
-      std::conditional_t<IsRecDenseMG, any_recursive_dense_mg<BaseMG>, BaseMG>>;
+template <typename VBundled>
+struct te_mg_dense_maker {
+  template <typename T, typename G>
+  static void add_prop_maps(G& /*g*/, bagl::dynamic_properties& /*dp*/) {}
 };
+template <typename BaseVBundled>
+struct te_mg_dense_maker<dense_mg_vertex<BaseVBundled>> {
+  template <typename T, typename G>
+  static void add_prop_maps(G& g, bagl::dynamic_properties& dp) {
+    add_density_property_maps<T>(g, dp);
+  }
+};
+template <typename BaseVBundled>
+struct te_mg_dense_maker<recursive_dense_mg_vertex<BaseVBundled>> {
+  template <typename T, typename G>
+  static void add_prop_maps(G& g, bagl::dynamic_properties& dp) {
+    add_recursive_density_property_maps<T>(g, dp);
+  }
+};
+
+}  // namespace any_motion_graphs_detail
+
+// Make a type-erased encapsulation of a graph used by any path-planning algorithm.
+template <typename Topology, typename Graph>
+void add_all_motion_graph_property_maps(Graph& g,
+                                        bagl::dynamic_properties& dp) {
+  using VBundled = bagl::vertex_bundle_type<Graph>;
+  if constexpr (std::is_convertible_v<VBundled*, mg_vertex_data<Topology>>) {
+    add_motion_graph_property_maps<Topology>(g, dp);
+  }
+  if constexpr (std::is_convertible_v<VBundled*, optimal_mg_vertex<Topology>>) {
+    add_optimal_property_maps<Topology>(g, dp);
+  }
+  if constexpr (std::is_convertible_v<VBundled*,
+                                      bidir_optimal_mg_vertex<Topology>>) {
+    add_bidir_optimal_property_maps<Topology>(g, dp);
+  }
+  if constexpr (std::is_convertible_v<VBundled*, astar_mg_vertex<Topology>>) {
+    add_astar_property_maps<Topology>(g, dp);
+  }
+  if constexpr (std::is_convertible_v<VBundled*,
+                                      bidir_astar_mg_vertex<Topology>>) {
+    add_bidir_astar_property_maps<Topology>(g, dp);
+  }
+  any_motion_graphs_detail::te_mg_dense_maker<VBundled>::template add_prop_maps<
+      Topology, Graph>(g, dp);
+}
 
 /**
  * This stateless functor type can be used to print out the information about an A*-like motion-graph vertex.
@@ -762,50 +440,58 @@ struct any_mg_vertex_printer : serializable {
    * \param u The vertex whose information is to be printed.
    * \param g The motion-graph to which the vertex belongs.
    */
-  void operator()(std::ostream& out, graph::any_graph::vertex_descriptor u,
-                  const graph::any_graph& g) const {
+  void operator()(std::ostream& out,
+                  bagl::dynamic_graph_observer::vertex_descriptor u,
+                  const bagl::dynamic_graph_observer& g) const {
     using ReaK::to_vect;
-    using ReaK::graph::get_dyn_prop;
 
     auto v_pos = to_vect<double>(
-        get_dyn_prop<const PointType&>("vertex_position", u, g));
+        bagl::get<const PointType&>("vertex_position", g.get_properties(), u));
     for (double x : v_pos) {
       out << " " << std::setw(10) << x;
     }
 
     if ((graph_kind & OPTIMAL_MOTION_GRAPH_KIND) != 0U) {
       out << " " << std::setw(10)
-          << get_dyn_prop<const double&>("vertex_distance_accum", u, g);
+          << bagl::get<const double&>("vertex_distance_accum",
+                                      g.get_properties(), u);
       if ((graph_kind & BIDIR_MOTION_GRAPH_KIND) != 0U) {
         out << " " << std::setw(10)
-            << get_dyn_prop<const double&>("vertex_fwd_distance_accum", u, g);
+            << bagl::get<const double&>("vertex_fwd_distance_accum",
+                                        g.get_properties(), u);
       }
     }
 
     if ((graph_kind & ASTAR_MOTION_GRAPH_KIND) != 0U) {
       if ((graph_kind & BIDIR_MOTION_GRAPH_KIND) != 0U) {
         out << " " << std::setw(10)
-            << get_dyn_prop<const double&>("vertex_key_value", u, g);
+            << bagl::get<const double&>("vertex_key_value", g.get_properties(),
+                                        u);
       } else {
         out << " " << std::setw(10)
-            << get_dyn_prop<const double&>("vertex_heuristic_value", u, g)
+            << bagl::get<const double&>("vertex_heuristic_value",
+                                        g.get_properties(), u)
             << " " << std::setw(10)
-            << get_dyn_prop<const double&>("vertex_key_value", u, g);
+            << bagl::get<const double&>("vertex_key_value", g.get_properties(),
+                                        u);
       }
     }
 
     if ((graph_kind & DENSE_MOTION_GRAPH_KIND) != 0U) {
       out << " " << std::setw(10)
-          << get_dyn_prop<const double&>("vertex_density", u, g);
+          << bagl::get<const double&>("vertex_density", g.get_properties(), u);
     } else if ((graph_kind & RECURSIVE_DENSE_MOTION_GRAPH_KIND) != 0U) {
       out << " " << std::setw(10)
-          << get_dyn_prop<const double&>("vertex_density", u, g) << " "
-          << std::setw(10)
-          << get_dyn_prop<const std::size_t&>("vertex_expansion_trials", u, g)
+          << bagl::get<const double&>("vertex_density", g.get_properties(), u)
           << " " << std::setw(10)
-          << get_dyn_prop<const double&>("vertex_constriction", u, g) << " "
-          << std::setw(10)
-          << get_dyn_prop<const std::size_t&>("vertex_collision_count", u, g);
+          << bagl::get<const std::size_t&>("vertex_expansion_trials",
+                                           g.get_properties(), u)
+          << " " << std::setw(10)
+          << bagl::get<const double&>("vertex_constriction", g.get_properties(),
+                                      u)
+          << " " << std::setw(10)
+          << bagl::get<const std::size_t&>("vertex_collision_count",
+                                           g.get_properties(), u);
     }
 
     out << std::endl;

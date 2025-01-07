@@ -21,20 +21,19 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <chrono>
 #include <fstream>
 #include <iostream>
+#include <memory>
 
-#include "boost/graph/adjacency_list_BC.hpp"
-#include "boost/graph/properties.hpp"
-#include "boost/graph/topology.hpp"
+#include "bagl/adjacency_list.h"
+#include "bagl/properties.h"
+#include "bagl/topology.h"
 
 #include "ReaK/math/lin_alg/vect_alg.h"
 #include "ReaK/planning/path_planning/dvp_layout_adjacency_list.h"
 #include "ReaK/planning/path_planning/topological_search.h"
 #include "ReaK/topologies/spaces/hyperbox_topology.h"
-
-#include <chrono>
-#include <memory>
 
 using SpaceType = ReaK::pp::hyperbox_topology<ReaK::vect<double, 6>>;
 
@@ -53,18 +52,20 @@ int main() {
 
   using namespace std::chrono;
 
-  using PositionMap =
-      boost::data_member_property_map<PointType, WorldGridVertexProperties>;
+  auto pos_map =
+      bagl::make_data_member_property_map(&WorldGridVertexProperties::pos);
+  using PositionMap = decltype(pos_map);
 
-  using WorldPartition2BF = ReaK::pp::dvp_adjacency_list<
-      WorldGridVertexProperties, WorldGridEdgeProperties, SpaceType,
-      PositionMap, 2, ReaK::pp::random_vp_chooser,
-      boost::bfl_d_ary_tree_storage<2>, boost::vecBC, boost::undirectedS,
-      boost::vecBC>;
+  using WorldPartition2BF =
+      ReaK::pp::dvp_adjacency_list<WorldGridVertexProperties,
+                                   WorldGridEdgeProperties, SpaceType,
+                                   PositionMap, 2, ReaK::pp::random_vp_chooser,
+                                   bagl::bfl_d_ary_tree_storage<2>, bagl::vec_s,
+                                   bagl::undirected_s, bagl::vec_s>;
 
   using WorldGrid2BF = WorldPartition2BF::adj_list_type;
 
-  const std::vector<unsigned int> grid_sizes = {
+  const std::vector<std::size_t> grid_sizes = {
       100,  200,  300,  400,  500,   800,   1000,  1100,  1300,  1500,
       1700, 1900, 2000, 2200, 2500,  3000,  3500,  4000,  4500,  5000,
       6000, 7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000, 30000};
@@ -73,22 +74,19 @@ int main() {
   outFile << "N\tVP2\t (all times in micro-seconds per query per vertex)"
           << std::endl;
 
-  for (unsigned int grid_size : grid_sizes) {
+  for (std::size_t grid_size : grid_sizes) {
     std::shared_ptr<SpaceType> m_space = std::make_shared<SpaceType>(
         "", ReaK::vect<double, 6>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
         ReaK::vect<double, 6>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0));
 
-    WorldPartition2BF dvp2(m_space,
-                           PositionMap(&WorldGridVertexProperties::pos));
+    WorldPartition2BF dvp2(m_space, pos_map);
     WorldGrid2BF g2 = dvp2.get_adjacency_list();
 
-    using RandSampler =
-        ReaK::pp::point_distribution_traits<SpaceType>::random_sampler_type;
-    RandSampler get_sample = get(ReaK::pp::random_sampler, *m_space);
+    auto get_sample = get(ReaK::pp::random_sampler, *m_space);
 
-    for (unsigned int j = 0; j < grid_size; ++j) {
+    for (std::size_t j = 0; j < grid_size; ++j) {
       auto vp = WorldGridVertexProperties(get_sample(*m_space));
-      add_vertex(vp, g2);
+      add_vertex(g2, std::move(vp));
     }
 
     outFile << grid_size;

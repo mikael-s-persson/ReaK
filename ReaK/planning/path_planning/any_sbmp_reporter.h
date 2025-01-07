@@ -34,12 +34,12 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
-#include "ReaK/planning/graph_alg/any_graph.h"
 #include "ReaK/planning/path_planning/any_motion_graphs.h"
 #include "ReaK/planning/path_planning/planning_queries.h"
 #include "ReaK/topologies/interpolation/seq_path_base.h"
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"
 #include "ReaK/topologies/spaces/subspace_concept.h"
+#include "any_motion_graphs.h"
 
 #include <functional>
 #include <type_traits>
@@ -63,9 +63,9 @@ class any_sbmp_reporter : public shared_object {
   using solution_record_ptr =
       typename planning_query<FreeSpaceType>::solution_record_ptr;
 
-  virtual void draw_any_motion_graph(const FreeSpaceType& /*unused*/,
-                                     const graph::any_graph& /*unused*/) const {
-  }
+  virtual void draw_any_motion_graph(
+      const FreeSpaceType& /*unused*/,
+      const bagl::dynamic_graph_observer& /*unused*/) const {}
   virtual void draw_any_solution(const FreeSpaceType& /*unused*/,
                                  const solution_record_ptr& /*unused*/) const {}
 
@@ -81,10 +81,10 @@ class any_sbmp_reporter : public shared_object {
   template <typename MotionGraph, typename PositionMap>
   void draw_motion_graph(const FreeSpaceType& space, const MotionGraph& g,
                          PositionMap /*unused*/) const {
-    using TEGraphType =
-        typename te_mg_selector<FreeSpaceType, MotionGraph>::type;
-    TEGraphType teg(const_cast<MotionGraph*>(&g));
-    this->draw_any_motion_graph(space, teg);
+    bagl::dynamic_properties dp;
+    add_all_motion_graph_property_maps<FreeSpaceType>(g, dp);
+    bagl::dynamic_graph_observer_wrapper<const MotionGraph> mg(g, dp);
+    this->draw_any_motion_graph(space, mg);
   }
 
   /**
@@ -150,14 +150,22 @@ class type_erased_sbmp_reporter : public any_sbmp_reporter<FreeSpaceType> {
   Reporter reporter;
 
  public:
-  void draw_any_motion_graph(const FreeSpaceType& space,
-                             const graph::any_graph& g) const override {
-    using PropType = detail::get_sbmp_reporter_any_property_type<
-        is_steerable_space_v<FreeSpaceType>, FreeSpaceType>;
-    reporter.draw_motion_graph(
-        space, g,
-        graph::get_dyn_prop<const typename PropType::type&>(PropType::name(),
-                                                            g));
+  void draw_any_motion_graph(
+      const FreeSpaceType& space,
+      const bagl::dynamic_graph_observer& g) const override {
+    if constexpr (is_steerable_space_v<FreeSpaceType>) {
+      reporter.draw_motion_graph(
+          space, g,
+          bagl::get_dynamic_property_map<
+              const steerable_space_steer_record_t<FreeSpaceType>&>(
+              "edge_steer_rec", g.get_properties()));
+    } else {
+      reporter.draw_motion_graph(
+          space, g,
+          bagl::get_dynamic_property_map<
+              const topology_point_type_t<FreeSpaceType>&>("vertex_position",
+                                                           g.get_properties()));
+    }
   }
   void draw_any_solution(const FreeSpaceType& space,
                          const solution_record_ptr& traj) const override {
@@ -207,14 +215,22 @@ class type_erased_sbmp_reporter<FreeSpaceType, Reporter*>
   Reporter* reporter;
 
  public:
-  void draw_any_motion_graph(const FreeSpaceType& space,
-                             const graph::any_graph& g) const override {
-    using PropType = detail::get_sbmp_reporter_any_property_type<
-        is_steerable_space_v<FreeSpaceType>, FreeSpaceType>;
-    reporter->draw_motion_graph(
-        space, g,
-        graph::get_dyn_prop<const typename PropType::type&>(PropType::name(),
-                                                            g));
+  void draw_any_motion_graph(
+      const FreeSpaceType& space,
+      const bagl::dynamic_graph_observer& g) const override {
+    if constexpr (is_steerable_space_v<FreeSpaceType>) {
+      reporter->draw_motion_graph(
+          space, g,
+          bagl::get_dynamic_property_map<
+              const steerable_space_steer_record_t<FreeSpaceType>&>(
+              "edge_steer_rec", g.get_properties()));
+    } else {
+      reporter->draw_motion_graph(
+          space, g,
+          bagl::get_dynamic_property_map<
+              const topology_point_type_t<FreeSpaceType>&>("vertex_position",
+                                                           g.get_properties()));
+    }
   }
   void draw_any_solution(const FreeSpaceType& space,
                          const solution_record_ptr& traj) const override {
@@ -276,11 +292,11 @@ class any_sbmp_reporter_chain : public shared_object {
   template <typename MotionGraph, typename PositionMap>
   void draw_motion_graph(const FreeSpaceType& space, const MotionGraph& g,
                          PositionMap /*unused*/) const {
-    using TEGraphType =
-        typename te_mg_selector<FreeSpaceType, MotionGraph>::type;
-    TEGraphType teg(const_cast<MotionGraph*>(&g));
+    bagl::dynamic_properties dp;
+    add_all_motion_graph_property_maps<FreeSpaceType>(g, dp);
+    bagl::dynamic_graph_observer_wrapper<const MotionGraph> mg(g, dp);
     for (auto& r : reporters) {
-      r->draw_any_motion_graph(space, teg);
+      r->draw_any_motion_graph(space, mg);
     }
   }
 

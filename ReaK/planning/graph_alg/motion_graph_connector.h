@@ -40,17 +40,12 @@
 #include <type_traits>
 #include <utility>
 
+#include "ReaK/planning/graph_alg/sbmp_visitor_concepts.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 
-#include "ReaK/planning/graph_alg/sbmp_visitor_concepts.h"
-#include "ReaK/planning/graph_alg/simple_graph_traits.h"
-
-#include "boost/graph/graph_concepts.hpp"
-#include "boost/graph/properties.hpp"
-
-// BGL-Extra includes:
-#include "boost/graph/more_property_maps.hpp"
-#include "boost/graph/more_property_tags.hpp"
+#include "bagl/graph_concepts.h"
+#include "bagl/more_property_maps.h"
+#include "bagl/properties.h"
 
 #include <stack>
 #include <vector>
@@ -91,7 +86,7 @@ struct motion_graph_connector {
    * \param g A mutable graph that should initially store the starting
    *        vertex (if not it will be randomly generated) and will store
    *        the generated graph once the algorithm has finished.
-   * \param super_space A topology (as defined by the Boost Graph Library). This topology
+   * \param super_space A topology (as defined by the Born Again Graph Library). This topology
    *        should not include collision checking in its distance metric.
    * \param conn_vis A node-connector visitor implementing the MotionGraphConnectorVisitor. This is the
    *        main point of customization and recording of results that the user can implement.
@@ -109,27 +104,30 @@ struct motion_graph_connector {
    */
   template <typename Graph, pp::MetricSpace Space,
             MotionGraphConnectorVisitor<Graph, Space> Visitor,
-            typename PositionMap, typename DistanceMap, typename PredecessorMap,
-            typename WeightMap, typename NcSelector>
-  void operator()(const property_value_t<PositionMap>& p,
-                  graph_vertex_t<Graph>& x_near,
-                  graph_edge_bundle_t<Graph>& eprop, Graph& g,
+            bagl::concepts::ReadableVPropMemberMap<Graph> PositionMap,
+            bagl::concepts::ReadWriteVPropMemberMap<Graph> DistanceMap,
+            bagl::concepts::ReadWriteVPropMemberMap<Graph> PredecessorMap,
+            bagl::concepts::ReadableEPropMemberMap<Graph> WeightMap,
+            typename NcSelector>
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
+                  bagl::graph_vertex_descriptor_t<Graph>& x_near,
+                  bagl::edge_property_type<Graph>& eprop, Graph& g,
                   const Space& super_space, const Visitor& conn_vis,
                   PositionMap position, DistanceMap distance,
                   PredecessorMap predecessor, WeightMap weight,
                   NcSelector select_neighborhood) const {
-    using Vertex = graph_vertex_t<Graph>;
-    using std::back_inserter;
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
 
-    std::vector<Vertex> Pred;
-    std::vector<Vertex> Succ;
-    if constexpr (boost::is_undirected_graph<Graph>::value) {
-      select_neighborhood(p, back_inserter(Pred), g, super_space,
-                          boost::bundle_prop_to_vertex_prop(position, g));
+    std::vector<Vertex> pred;
+    std::vector<Vertex> succ;
+    if constexpr (bagl::is_undirected_graph_v<Graph>) {
+      select_neighborhood(
+          p, std::back_inserter(pred), g, super_space,
+          bagl::composite_property_map(position, get(bagl::vertex_all, g)));
     } else {
-      select_neighborhood(p, back_inserter(Pred), back_inserter(Succ), g,
-                          super_space,
-                          boost::bundle_prop_to_vertex_prop(position, g));
+      select_neighborhood(
+          p, std::back_inserter(pred), std::back_inserter(succ), g, super_space,
+          bagl::composite_property_map(position, get(bagl::vertex_all, g)));
     }
 
     Vertex v = conn_vis.create_vertex(p, g);
@@ -137,12 +135,12 @@ struct motion_graph_connector {
     Vertex x_near_original = x_near;
     conn_vis.travel_explored(x_near, v, g);
     conn_vis.travel_succeeded(x_near, v, g);
-    double d_near = get(distance, g[x_near]) + get(weight, eprop);
+    double d_near = get(distance, get_property(g, x_near)) + get(weight, eprop);
     {
-      auto [e_new, e_new_exists] = add_edge(x_near, v, std::move(eprop), g);
+      auto [e_new, e_new_exists] = add_edge(x_near, v, g, std::move(eprop));
       if (e_new_exists) {
-        put(distance, g[v], d_near);
-        put(predecessor, g[v], x_near);
+        put(distance, get_property(g, v), d_near);
+        put(predecessor, get_property(g, v), x_near);
         conn_vis.edge_added(e_new, g);
         conn_vis.affected_vertex(x_near, g);
       }
@@ -150,7 +148,7 @@ struct motion_graph_connector {
     // affected by travel attempts and new in-going edge.
     conn_vis.affected_vertex(v, g);
 
-    for (Vertex u : Pred) {
+    for (Vertex u : pred) {
       if (u == x_near_original) {
         continue;
       }
@@ -159,14 +157,14 @@ struct motion_graph_connector {
       conn_vis.travel_explored(v, u, g);
       if (can_connect) {
         conn_vis.travel_succeeded(v, u, g);
-        double d_in = get(distance, g[u]) + get(weight, eprop2);
-        auto [e_new, e_new_exists] = add_edge(v, u, std::move(eprop2), g);
+        double d_in = get(distance, get_property(g, u)) + get(weight, eprop2);
+        auto [e_new, e_new_exists] = add_edge(v, u, g, std::move(eprop2));
         if (e_new_exists) {
           if (d_in < d_near) {
             d_near = d_in;
             x_near = u;
-            put(distance, g[v], d_in);
-            put(predecessor, g[v], u);
+            put(distance, get_property(g, v), d_in);
+            put(predecessor, get_property(g, v), u);
           }
           conn_vis.edge_added(e_new, g);
         }
@@ -178,13 +176,13 @@ struct motion_graph_connector {
     // affected by travel attempts and new edges.
     conn_vis.affected_vertex(v, g);
 
-    if constexpr (boost::is_directed_graph<Graph>::value) {
-      for (Vertex u : Succ) {
+    if constexpr (bagl::is_directed_graph_v<Graph>) {
+      for (Vertex u : succ) {
         auto [can_connect, eprop2] = conn_vis.can_be_connected(v, u, g);
         conn_vis.travel_explored(v, u, g);
         if (can_connect) {
           conn_vis.travel_succeeded(v, u, g);
-          auto [e_new, e_new_exists] = add_edge(v, u, std::move(eprop2), g);
+          auto [e_new, e_new_exists] = add_edge(v, u, g, std::move(eprop2));
           if (e_new_exists) {
             conn_vis.edge_added(e_new, g);
           }
@@ -201,15 +199,17 @@ struct motion_graph_connector {
     while (!incons.empty()) {
       Vertex s = incons.top();
       incons.pop();
-      for (auto [eo, eo_end] = out_edges(s, g); eo != eo_end; ++eo) {
-        Vertex t = target(*eo, g);
+      for (auto e : out_edges(s, g)) {
+        Vertex t = target(e, g);
         if (t == s) {
-          t = source(*eo, g);
+          t = source(e, g);
         }
-        if (s != get(predecessor, g[t])) {
+        if (s != get(predecessor, get_property(g, t))) {
           continue;
         }
-        put(distance, g[t], get(distance, g[s]) + get(weight, g[*eo]));
+        put(distance, get_property(g, t),
+            get(distance, get_property(g, s)) +
+                get(weight, get_property(g, e)));
         conn_vis.affected_vertex(t, g);  // affected by changed distance value.
         incons.push(t);
       }

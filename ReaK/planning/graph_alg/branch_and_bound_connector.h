@@ -37,6 +37,7 @@
 #define REAK_PLANNING_GRAPH_ALG_BRANCH_AND_BOUND_CONNECTOR_H_
 
 #include <functional>
+#include <limits>
 #include <stack>
 #include <tuple>
 #include <type_traits>
@@ -44,15 +45,11 @@
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 
 #include "ReaK/planning/graph_alg/lazy_connector.h"
-#include "ReaK/planning/graph_alg/simple_graph_traits.h"
 
-#include "boost/graph/detail/d_ary_heap.hpp"
-#include "boost/graph/graph_concepts.hpp"
-#include "boost/graph/properties.hpp"
-
-// BGL-Extra includes:
-#include "boost/graph/more_property_maps.hpp"
-#include "boost/graph/more_property_tags.hpp"
+#include "bagl/d_ary_heap.h"
+#include "bagl/graph_concepts.h"
+#include "bagl/more_property_maps.h"
+#include "bagl/properties.h"
 
 namespace ReaK::graph {
 
@@ -76,45 +73,46 @@ namespace ReaK::graph {
 template <typename Visitor, typename Graph, typename Space>
 concept BNBConnectorVisitor =
     MotionGraphConnectorVisitor<Visitor, Graph, Space>&& requires(
-        Visitor vis, Graph g, graph_vertex_t<Graph> u) {
+        Visitor vis, Graph g, bagl::graph_vertex_descriptor_t<Graph> u) {
   vis.vertex_to_be_removed(u, g);
 };
 
 template <typename Graph>
 struct bnb_ordering_data {
-  using Vertex = graph_vertex_t<Graph>;
-  using IndexInHeapMap = boost::vector_property_map<std::size_t>;
-  using KeyMap = boost::vector_property_map<double>;
+  using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
+  using IndexInHeapMap = bagl::vector_property_map<std::size_t>;
+  using KeyMap = bagl::vector_property_map<double>;
   using KeyCompareType = std::greater<>;  // <---- this is a max-heap.
-  using MutableQueue = boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap,
-                                                  KeyMap, KeyCompareType>;
+  using MutableQueue =
+      bagl::d_ary_heap_indirect<Vertex, 4,
+                                bagl::property_map_ref<IndexInHeapMap>,
+                                bagl::property_map_ref<KeyMap>, KeyCompareType>;
 
   Vertex start_vertex;
   Vertex goal_vertex;
   IndexInHeapMap index_in_heap;
   KeyMap key;
-  MutableQueue Q;  // priority queue holding the OPEN set.
+  MutableQueue q;  // priority queue holding the OPEN set.
 
   bnb_ordering_data(Graph& g, Vertex aStart, Vertex aGoal)
       : start_vertex(aStart),
         goal_vertex(aGoal),
-
-        Q(key, index_in_heap, KeyCompareType()) {
-    for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
-      put(index_in_heap, *ui, static_cast<std::size_t>(-1));
+        q(key.ref(), index_in_heap.ref(), KeyCompareType()) {
+    for (auto u : vertices(g)) {
+      put(index_in_heap, u, std::numeric_limits<std::size_t>::max());
     }
   }
 
   template <SBMPPruningVisitor<Graph> Visitor>
   void prune_worst_nodes(double threshold, Graph& g, const Visitor& conn_vis) {
     // prune all the worst nodes:
-    double top_value = get(key, Q.top());
+    double top_value = get(key, q.top());
     while (top_value > threshold) {
-      conn_vis.vertex_to_be_removed(Q.top(), g);
-      clear_vertex(Q.top(), g);
-      remove_vertex(Q.top(), g);
-      Q.pop();
-      top_value = get(key, Q.top());
+      conn_vis.vertex_to_be_removed(q.top(), g);
+      clear_vertex(q.top(), g);
+      remove_vertex(q.top(), g);
+      q.pop();
+      top_value = get(key, q.top());
     }
   }
 };
@@ -129,12 +127,12 @@ struct bnb_ordering_data {
 template <typename Graph>
 struct bnb_connector {
 
-  using Vertex = graph_vertex_t<Graph>;
-  using EdgeProp = graph_edge_bundle_t<Graph>;
+  using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
+  using EdgeProp = bagl::edge_property_type<Graph>;
 
   bnb_ordering_data<Graph>* data;
 
-  explicit bnb_connector(bnb_ordering_data<Graph>& aData) : data(&aData){};
+  explicit bnb_connector(bnb_ordering_data<Graph>& d) : data(&d){};
 
   template <pp::MetricSpace Space, BNBConnectorVisitor<Graph, Space> Visitor,
             typename PositionMap, typename DistanceMap, typename PredecessorMap,
@@ -150,32 +148,36 @@ struct bnb_connector {
     while (!incons.empty()) {
       Vertex s = incons.top();
       incons.pop();
-      for (auto [eo, eo_end] = out_edges(s, g); eo != eo_end; ++eo) {
-        Vertex t = target(*eo, g);
+      for (auto e : out_edges(s, g)) {
+        Vertex t = target(e, g);
         if (t == s) {
-          t = source(*eo, g);
+          t = source(e, g);
         }
-        if (s != get(predecessor, g[t])) {
+        if (s != get(predecessor, get_property(g, t))) {
           continue;
         }
-        put(distance, g[t], get(distance, g[s]) + get(weight, g[*eo]));
+        put(distance, get_property(g, t),
+            get(distance, get_property(g, s)) +
+                get(weight, get_property(g, e)));
 
         conn_vis.affected_vertex(t, g);  // affected by changed distance value.
 
         put(data->key, t,
-            get(distance, g[t]) + get(ReaK::pp::distance_metric, super_space)(
-                                      get(position, g[t]),
-                                      get(position, g[data->goal_vertex]),
-                                      super_space));
-        data->Q.push_or_update(t);
+            get(distance, get_property(g, t)) +
+                get(ReaK::pp::distance_metric, super_space)(
+                    get(position, get_property(g, t)),
+                    get(position, get_property(g, data->goal_vertex)),
+                    super_space));
+        data->q.push_or_update(t);
 
         incons.push(t);
       }
     }
 
-    if (get(predecessor, g[data->goal_vertex]) !=
-        boost::graph_traits<Graph>::null_vertex()) {
-      data->prune_worst_nodes(get(distance, g[data->goal_vertex]), g, conn_vis);
+    if (get(predecessor, get_property(g, data->goal_vertex)) !=
+        bagl::graph_traits<Graph>::null_vertex()) {
+      data->prune_worst_nodes(get(distance, get_property(g, data->goal_vertex)),
+                              g, conn_vis);
     }
   }
 
@@ -193,33 +195,35 @@ struct bnb_connector {
     while (!incons.empty()) {
       Vertex t = incons.top();
       incons.pop();
-      for (auto [ei, ei_end] = in_edges(t, g); ei != ei_end; ++ei) {
-        Vertex s = source(*ei, g);
+      for (auto e : in_edges(t, g)) {
+        Vertex s = source(e, g);
         if (t == s) {
-          s = target(*ei, g);
+          s = target(e, g);
         }
-        if (t != get(successor, g[s])) {
+        if (t != get(successor, get_property(g, s))) {
           continue;
         }
-        put(fwd_distance, g[s], get(fwd_distance, g[t]) + get(weight, g[*ei]));
+        put(fwd_distance, get_property(g, s),
+            get(fwd_distance, get_property(g, t)) +
+                get(weight, get_property(g, e)));
 
         conn_vis.affected_vertex(s, g);  // affected by changed distance value.
 
         put(data->key, s,
-            get(fwd_distance, g[s]) +
+            get(fwd_distance, get_property(g, s)) +
                 get(ReaK::pp::distance_metric, super_space)(
-                    get(position, g[data->start_vertex]), get(position, g[s]),
-                    super_space));
-        data->Q.push_or_update(s);
+                    get(position, get_property(g, data->start_vertex)),
+                    get(position, get_property(g, s)), super_space));
+        data->q.push_or_update(s);
 
         incons.push(s);
       }
     }
 
-    if (get(successor, g[data->start_vertex]) !=
-        boost::graph_traits<Graph>::null_vertex()) {
-      data->prune_worst_nodes(get(fwd_distance, g[data->start_vertex]), g,
-                              conn_vis);
+    if (get(successor, get_property(g, data->start_vertex)) !=
+        bagl::graph_traits<Graph>::null_vertex()) {
+      data->prune_worst_nodes(
+          get(fwd_distance, get_property(g, data->start_vertex)), g, conn_vis);
     }
   }
 
@@ -249,7 +253,7 @@ struct bnb_connector {
    * \param g A mutable graph that should initially store the starting
    *        vertex (if not it will be randomly generated) and will store
    *        the generated graph once the algorithm has finished.
-   * \param super_space A topology (as defined by the Boost Graph Library). This topology
+   * \param super_space A topology (as defined by the Born Again Graph Library). This topology
    *        should not include collision checking in its distance metric.
    * \param conn_vis A node-connector visitor implementing the BNBConnectorVisitorConcept. This is the
    *        main point of customization and recording of results that the user can implement.
@@ -266,42 +270,47 @@ struct bnb_connector {
    *        vertex. The list should be sorted in order of increasing "distance".
    */
   template <typename Graph2, pp::MetricSpace Space,
-            BNBConnectorVisitor<Graph2, Space> Visitor, typename PositionMap,
-            typename DistanceMap, typename PredecessorMap, typename WeightMap,
+            BNBConnectorVisitor<Graph2, Space> Visitor,
+            bagl::concepts::ReadableVPropMemberMap<Graph2> PositionMap,
+            bagl::concepts::ReadWriteVPropMemberMap<Graph2> DistanceMap,
+            bagl::concepts::ReadWriteVPropMemberMap<Graph2> PredecessorMap,
+            bagl::concepts::ReadableEPropMemberMap<Graph2> WeightMap,
             typename NcSelector>
-  void operator()(const property_value_t<PositionMap>& p, Vertex& x_near,
-                  EdgeProp& eprop, Graph2& g, const Space& super_space,
-                  const Visitor& conn_vis, PositionMap position,
-                  DistanceMap distance, PredecessorMap predecessor,
-                  WeightMap weight, NcSelector select_neighborhood) const {
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
+                  Vertex& x_near, EdgeProp& eprop, Graph2& g,
+                  const Space& super_space, const Visitor& conn_vis,
+                  PositionMap position, DistanceMap distance,
+                  PredecessorMap predecessor, WeightMap weight,
+                  NcSelector select_neighborhood) const {
     double dist_from_start = get(ReaK::pp::distance_metric, super_space)(
-        get(position, g[data->start_vertex]), p, super_space);
+        get(position, get_property(g, data->start_vertex)), p, super_space);
     double dist_to_goal = get(ReaK::pp::distance_metric, super_space)(
-        p, get(position, g[data->goal_vertex]), super_space);
+        p, get(position, get_property(g, data->goal_vertex)), super_space);
 
-    if ((get(predecessor, g[data->goal_vertex]) !=
-         boost::graph_traits<Graph>::null_vertex()) &&
+    if ((get(predecessor, get_property(g, data->goal_vertex)) !=
+         bagl::graph_traits<Graph>::null_vertex()) &&
         (dist_from_start + dist_to_goal >
-         get(distance, g[data->goal_vertex]))) {
+         get(distance, get_property(g, data->goal_vertex)))) {
       return;
     }
 
     using std::back_inserter;
     std::vector<Vertex> Pred;
     std::vector<Vertex> Succ;
-    if constexpr (boost::is_undirected_graph<Graph2>::value) {
-      select_neighborhood(p, back_inserter(Pred), g, super_space,
-                          boost::bundle_prop_to_vertex_prop(position, g));
+    if constexpr (bagl::is_undirected_graph_v<Graph2>) {
+      select_neighborhood(
+          p, back_inserter(Pred), g, super_space,
+          bagl::composite_property_map(position, get(bagl::vertex_all, g)));
     } else {
-      select_neighborhood(p, back_inserter(Pred), back_inserter(Succ), g,
-                          super_space,
-                          boost::bundle_prop_to_vertex_prop(position, g));
+      select_neighborhood(
+          p, back_inserter(Pred), back_inserter(Succ), g, super_space,
+          bagl::composite_property_map(position, get(bagl::vertex_all, g)));
     }
 
     Vertex v = conn_vis.create_vertex(p, g);
-    put(data->index_in_heap, v, static_cast<std::size_t>(-1));
+    put(data->index_in_heap, v, std::numeric_limits<std::size_t>::max());
 
-    if (x_near != boost::graph_traits<Graph>::null_vertex()) {
+    if (x_near != bagl::graph_traits<Graph>::null_vertex()) {
       conn_vis.travel_explored(x_near, v, g);
       conn_vis.travel_succeeded(x_near, v, g);
       conn_vis.affected_vertex(x_near, g);
@@ -310,23 +319,24 @@ struct bnb_connector {
     lazy_node_connector::connect_best_predecessor(
         v, x_near, eprop, g, super_space, conn_vis, position, distance,
         predecessor, weight, Pred);
-    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis,
-                                            distance, predecessor, weight);
+    pruned_node_connector::create_pred_edge(v, x_near, std::move(eprop), g,
+                                            conn_vis, distance, predecessor,
+                                            weight);
 
-    if ((get(predecessor, g[data->goal_vertex]) !=
-         boost::graph_traits<Graph>::null_vertex()) &&
-        (get(distance, g[v]) + dist_to_goal >
-         get(distance, g[data->goal_vertex]))) {
+    if ((get(predecessor, get_property(g, data->goal_vertex)) !=
+         bagl::graph_traits<Graph>::null_vertex()) &&
+        (get(distance, get_property(g, v)) + dist_to_goal >
+         get(distance, get_property(g, data->goal_vertex)))) {
       conn_vis.vertex_to_be_removed(v, g);
       clear_vertex(v, g);
       remove_vertex(v, g);
       return;
     }
 
-    put(data->key, v, get(distance, g[v]) + dist_to_goal);
-    data->Q.push(v);
+    put(data->key, v, get(distance, get_property(g, v)) + dist_to_goal);
+    data->q.push(v);
 
-    if constexpr (boost::is_undirected_graph<Graph2>::value) {
+    if constexpr (bagl::is_undirected_graph_v<Graph2>) {
       Pred.swap(Succ);
     }
     lazy_node_connector::connect_successors(v, x_near, g, super_space, conn_vis,
@@ -337,52 +347,57 @@ struct bnb_connector {
   }
 
   template <typename Graph2, pp::MetricSpace Space,
-            BNBConnectorVisitor<Graph2, Space> Visitor, typename PositionMap,
-            typename DistanceMap, typename PredecessorMap,
-            typename FwdDistanceMap, typename SuccessorMap, typename WeightMap,
+            BNBConnectorVisitor<Graph2, Space> Visitor,
+            bagl::concepts::ReadableVPropMemberMap<Graph2> PositionMap,
+            bagl::concepts::ReadWriteVPropMemberMap<Graph2> DistanceMap,
+            bagl::concepts::ReadWriteVPropMemberMap<Graph2> PredecessorMap,
+            bagl::concepts::ReadWriteVPropMemberMap<Graph2> FwdDistanceMap,
+            bagl::concepts::ReadWriteVPropMemberMap<Graph2> SuccessorMap,
+            bagl::concepts::ReadableEPropMemberMap<Graph2> WeightMap,
             typename NcSelector>
-  void operator()(const property_value_t<PositionMap>& p, Vertex& x_pred,
-                  EdgeProp& eprop_pred, Vertex& x_succ, EdgeProp& eprop_succ,
-                  Graph2& g, const Space& super_space, const Visitor& conn_vis,
-                  PositionMap position, DistanceMap distance,
-                  PredecessorMap predecessor, FwdDistanceMap fwd_distance,
-                  SuccessorMap successor, WeightMap weight,
-                  NcSelector select_neighborhood) const {
+  void operator()(const bagl::property_traits_value_t<PositionMap>& p,
+                  Vertex& x_pred, EdgeProp& eprop_pred, Vertex& x_succ,
+                  EdgeProp& eprop_succ, Graph2& g, const Space& super_space,
+                  const Visitor& conn_vis, PositionMap position,
+                  DistanceMap distance, PredecessorMap predecessor,
+                  FwdDistanceMap fwd_distance, SuccessorMap successor,
+                  WeightMap weight, NcSelector select_neighborhood) const {
     using std::back_inserter;
 
     double dist_from_start = get(ReaK::pp::distance_metric, super_space)(
-        get(position, g[data->start_vertex]), p, super_space);
+        get(position, get_property(g, data->start_vertex)), p, super_space);
     double dist_to_goal = get(ReaK::pp::distance_metric, super_space)(
-        p, get(position, g[data->goal_vertex]), super_space);
+        p, get(position, get_property(g, data->goal_vertex)), super_space);
 
-    if ((get(predecessor, g[data->goal_vertex]) !=
-         boost::graph_traits<Graph>::null_vertex()) &&
+    if ((get(predecessor, get_property(g, data->goal_vertex)) !=
+         bagl::graph_traits<Graph>::null_vertex()) &&
         (dist_from_start + dist_to_goal >
-         get(distance, g[data->goal_vertex]))) {
+         get(distance, get_property(g, data->goal_vertex)))) {
       return;
     }
 
     using std::back_inserter;
     std::vector<Vertex> Pred;
     std::vector<Vertex> Succ;
-    if constexpr (boost::is_undirected_graph<Graph2>::value) {
-      select_neighborhood(p, back_inserter(Pred), g, super_space,
-                          boost::bundle_prop_to_vertex_prop(position, g));
+    if constexpr (bagl::is_undirected_graph_v<Graph2>) {
+      select_neighborhood(
+          p, back_inserter(Pred), g, super_space,
+          bagl::composite_property_map(position, get(bagl::vertex_all, g)));
     } else {
-      select_neighborhood(p, back_inserter(Pred), back_inserter(Succ), g,
-                          super_space,
-                          boost::bundle_prop_to_vertex_prop(position, g));
+      select_neighborhood(
+          p, back_inserter(Pred), back_inserter(Succ), g, super_space,
+          bagl::composite_property_map(position, get(bagl::vertex_all, g)));
     }
 
     Vertex v = conn_vis.create_vertex(p, g);
-    put(data->index_in_heap, v, static_cast<std::size_t>(-1));
+    put(data->index_in_heap, v, std::numeric_limits<std::size_t>::max());
 
-    if (x_pred != boost::graph_traits<Graph>::null_vertex()) {
+    if (x_pred != bagl::graph_traits<Graph>::null_vertex()) {
       conn_vis.travel_explored(x_pred, v, g);
       conn_vis.travel_succeeded(x_pred, v, g);
       conn_vis.affected_vertex(x_pred, g);
     }
-    if (x_succ != boost::graph_traits<Graph>::null_vertex()) {
+    if (x_succ != bagl::graph_traits<Graph>::null_vertex()) {
       conn_vis.travel_explored(v, x_succ, g);
       conn_vis.travel_succeeded(v, x_succ, g);
       conn_vis.affected_vertex(x_succ, g);
@@ -391,48 +406,50 @@ struct bnb_connector {
     lazy_node_connector::connect_best_predecessor(
         v, x_pred, eprop_pred, g, super_space, conn_vis, position, distance,
         predecessor, weight, Pred);
-    if constexpr (boost::is_undirected_graph<Graph2>::value) {
+    if constexpr (bagl::is_undirected_graph_v<Graph2>) {
       Pred.swap(Succ);
     }
     lazy_node_connector::connect_best_successor(
         v, x_succ, eprop_succ, g, super_space, conn_vis, position, fwd_distance,
         successor, weight, Succ);
 
-    if ((x_pred == boost::graph_traits<Graph>::null_vertex()) &&
-        (x_succ == boost::graph_traits<Graph>::null_vertex())) {
+    if ((x_pred == bagl::graph_traits<Graph>::null_vertex()) &&
+        (x_succ == bagl::graph_traits<Graph>::null_vertex())) {
       conn_vis.vertex_to_be_removed(v, g);
       clear_vertex(v, g);
       remove_vertex(v, g);
       return;
     }
 
-    if (x_pred != boost::graph_traits<Graph>::null_vertex()) {
-      pruned_node_connector::create_pred_edge(
-          v, x_pred, eprop_pred, g, conn_vis, distance, predecessor, weight);
+    if (x_pred != bagl::graph_traits<Graph>::null_vertex()) {
+      pruned_node_connector::create_pred_edge(v, x_pred, std::move(eprop_pred),
+                                              g, conn_vis, distance,
+                                              predecessor, weight);
     }
-    if (x_succ != boost::graph_traits<Graph>::null_vertex()) {
-      pruned_node_connector::create_succ_edge(
-          v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor, weight);
+    if (x_succ != bagl::graph_traits<Graph>::null_vertex()) {
+      pruned_node_connector::create_succ_edge(v, x_succ, std::move(eprop_succ),
+                                              g, conn_vis, fwd_distance,
+                                              successor, weight);
     }
 
-    if ((get(predecessor, g[data->goal_vertex]) !=
-         boost::graph_traits<Graph>::null_vertex()) &&
-        (get(distance, g[v]) + dist_to_goal >
-         get(distance, g[data->goal_vertex]))) {
+    if ((get(predecessor, get_property(g, data->goal_vertex)) !=
+         bagl::graph_traits<Graph>::null_vertex()) &&
+        (get(distance, get_property(g, v)) + dist_to_goal >
+         get(distance, get_property(g, data->goal_vertex)))) {
       conn_vis.vertex_to_be_removed(v, g);
       clear_vertex(v, g);
       remove_vertex(v, g);
       return;
     }
-    put(data->key, v, get(distance, g[v]) + dist_to_goal);
-    data->Q.push(v);
+    put(data->key, v, get(distance, get_property(g, v)) + dist_to_goal);
+    data->q.push(v);
 
     lazy_node_connector::connect_successors(v, x_pred, g, super_space, conn_vis,
                                             position, distance, predecessor,
                                             weight, Succ, successor);
     update_successors(v, g, super_space, conn_vis, position, distance,
                       predecessor, weight);
-    if constexpr (boost::is_undirected_graph<Graph2>::value) {
+    if constexpr (bagl::is_undirected_graph_v<Graph2>) {
       Pred.swap(Succ);
     }
     lazy_node_connector::connect_predecessors(

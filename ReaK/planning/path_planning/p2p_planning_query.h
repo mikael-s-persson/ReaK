@@ -146,40 +146,42 @@ class path_planning_p2p_query : public planning_query<FreeSpaceType> {
 
  protected:
   solution_record_ptr register_solution_from_optimal_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node, double goal_distance,
-      graph::any_graph& g) override {
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      double goal_distance, bagl::dynamic_graph_observer& g) override {
     return detail::register_optimal_solution_path_impl<solution_path_wrapper>(
         *(this->space), g, start_node, goal_node, goal_pos, goal_distance,
         solutions);
   }
 
   solution_record_ptr register_solution_from_basic_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node, double goal_distance,
-      graph::any_graph& g) override {
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      double goal_distance, bagl::dynamic_graph_observer& g) override {
     return detail::register_basic_solution_path_impl<solution_path_wrapper>(
         *(this->space), g, start_node, goal_node, goal_pos, goal_distance,
         solutions);
   }
 
   solution_record_ptr register_joining_point_from_optimal_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node,
-      graph::any_graph::vertex_descriptor join1_node,
-      graph::any_graph::vertex_descriptor join2_node, double joining_distance,
-      graph::any_graph& g1, graph::any_graph& g2) override {
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join1_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join2_node,
+      double joining_distance, bagl::dynamic_graph_observer& g1,
+      bagl::dynamic_graph_observer& g2) override {
     return detail::register_optimal_solution_path_impl<solution_path_wrapper>(
         *(this->space), g1, g2, start_node, goal_node, join1_node, join2_node,
         joining_distance, solutions);
   }
 
   solution_record_ptr register_joining_point_from_basic_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node,
-      graph::any_graph::vertex_descriptor join1_node,
-      graph::any_graph::vertex_descriptor join2_node, double joining_distance,
-      graph::any_graph& g1, graph::any_graph& g2) override {
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join1_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join2_node,
+      double joining_distance, bagl::dynamic_graph_observer& g1,
+      bagl::dynamic_graph_observer& g2) override {
     return detail::register_basic_solution_path_impl<solution_path_wrapper>(
         *(this->space), g1, g2, start_node, goal_node, join1_node, join2_node,
         joining_distance, solutions);

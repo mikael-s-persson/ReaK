@@ -691,7 +691,7 @@ iarchive& objtree_iarchive::load_serializable_ptr(
 iarchive& objtree_iarchive::load_serializable_ptr(
     const std::pair<std::string, serializable_shared_pointer&>& Item) {
   Item.second = serializable_shared_pointer();
-  using Vertex = boost::graph_traits<object_graph>::vertex_descriptor;
+  using Vertex = bagl::graph_vertex_descriptor_t<object_graph>;
 
   std::vector<unsigned int> typeID;
   archive_object_header hdr = readHeader(Item.first, typeID);
@@ -920,11 +920,9 @@ objtree_oarchive::objtree_oarchive(std::shared_ptr<object_graph> aObjGraph,
     : obj_graph(std::move(aObjGraph)), obj_graph_root(aRoot) {
   current_ss = std::make_shared<std::stringstream>();
 
-  boost::graph_traits<object_graph>::vertex_iterator vi;
-  boost::graph_traits<object_graph>::vertex_iterator vi_end;
-  for (std::tie(vi, vi_end) = vertices(*obj_graph); vi != vi_end; ++vi) {
-    if ((*obj_graph)[*vi].p_obj) {
-      mObjRegMap[(*obj_graph)[*vi].p_obj] = static_cast<unsigned int>(*vi);
+  for (auto v : vertices(*obj_graph)) {
+    if ((*obj_graph)[v].p_obj) {
+      mObjRegMap[(*obj_graph)[v].p_obj] = static_cast<unsigned int>(v);
     }
   }
   current_node = obj_graph_root;
@@ -985,7 +983,7 @@ oarchive& objtree_oarchive::save_serializable_ptr(
     std::shared_ptr<std::stringstream> tmp = current_ss;
     current_ss = std::make_shared<std::stringstream>();
 
-    boost::graph_traits<object_graph>::vertex_descriptor tmp_v = current_node;
+    auto tmp_v = current_node;
     current_node = object_ID;
 
     Item.second->save(*this, type_version);
@@ -1142,7 +1140,7 @@ object_node_desc objtree_editor::add_new_object(
   }
   object_node_desc result = 0;
   if (obj_graph_graveyard.empty()) {
-    result = add_vertex(object_graph_node(aNewObj, ""), *obj_graph);
+    result = add_vertex(*obj_graph, object_graph_node(aNewObj, ""));
   } else {
     result = obj_graph_graveyard.top();
     obj_graph_graveyard.pop();
@@ -1167,11 +1165,8 @@ void objtree_editor::remove_object(object_node_desc aNode) {
   }
   std::vector<object_node_desc> v;
   v.reserve(out_degree(aNode, *obj_graph));
-  boost::graph_traits<object_graph>::out_edge_iterator eo;
-  boost::graph_traits<object_graph>::out_edge_iterator eo_end;
-  for (std::tie(eo, eo_end) = out_edges(aNode, *obj_graph); eo != eo_end;
-       ++eo) {
-    v.push_back(target(*eo, *obj_graph));
+  for (auto e : out_edges(aNode, *obj_graph)) {
+    v.push_back(target(e, *obj_graph));
   }
   clear_vertex(aNode, *obj_graph);
   for (unsigned long& it : v) {
@@ -1203,14 +1198,11 @@ std::string objtree_editor::get_object_name(object_node_desc aNode) const {
 
 std::vector<std::string> objtree_editor::get_objects_derived_from(
     rtti::so_type* aType) const {
-  boost::graph_traits<serialization::object_graph>::vertex_iterator vi;
-  boost::graph_traits<serialization::object_graph>::vertex_iterator vi_end;
-  std::tie(vi, vi_end) = vertices(*obj_graph);
   std::vector<std::string> result;
-  for (; vi != vi_end; ++vi) {
-    std::shared_ptr<serializable> p_obj = (*obj_graph)[*vi].p_obj;
+  for (auto v : vertices(*obj_graph)) {
+    std::shared_ptr<serializable> p_obj = (*obj_graph)[v].p_obj;
     if ((p_obj) && ((p_obj->castTo(aType)) != nullptr)) {
-      result.push_back(get_object_name(*vi));
+      result.push_back(get_object_name(v));
     }
   }
   return result;

@@ -42,12 +42,11 @@
 
 #include "ReaK/core/base/defs.h"
 
-// BGL-Extra includes:
-#include "boost/graph/adjacency_list_BC.hpp"
-#include "boost/graph/bfl_d_ary_tree.hpp"
+#include "bagl/adjacency_list.h"
+#include "bagl/bfl_d_ary_tree.h"
 
 #ifdef RK_PLANNERS_ENABLE_VEBL_TREE
-#include "boost/graph/vebl_d_ary_tree.hpp"
+#include "bagl/vebl_d_ary_tree.h"
 #endif
 
 #ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
@@ -63,7 +62,7 @@ namespace ReaK::pp {
 template <typename FreeSpaceType>
 struct motion_segment_directionality {
   using type = std::conditional_t<is_metric_symmetric_v<FreeSpaceType>,
-                                  boost::undirectedS, boost::bidirectionalS>;
+                                  bagl::undirected_s, bagl::bidirectional_s>;
 };
 
 template <typename FreeSpaceType>

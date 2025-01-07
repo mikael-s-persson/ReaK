@@ -152,9 +152,9 @@ struct differ_sbmp_report_to_space : public shared_object {
 
     if constexpr (is_steerable_space_v<FreeSpaceType>) {
       using PointType = topology_point_type_t<FreeSpaceType>;
-      for (auto [vi, vi_end] = vertices(g); vi != vi_end; ++vi) {
-        for (auto [ei, ei_end] = out_edges(*vi, g); ei != ei_end; ++ei) {
-          const auto& st_rec = get(steer_rec_or_pos, *ei);
+      for (auto v : vertices(g)) {
+        for (auto e : out_edges(v, g)) {
+          const auto& st_rec = get(steer_rec_or_pos, e);
           auto it = st_rec.begin_fraction_travel();
           auto prev_it = it;
           it += 0.1;
@@ -165,10 +165,10 @@ struct differ_sbmp_report_to_space : public shared_object {
         }
       }
     } else {
-      for (auto [vi, vi_end] = vertices(g); vi != vi_end; ++vi) {
-        for (auto [ei, ei_end] = out_edges(*vi, g); ei != ei_end; ++ei) {
-          free_space.draw_edge(get(steer_rec_or_pos, *vi),
-                               get(steer_rec_or_pos, target(*ei, g)), false);
+      for (auto v : vertices(g)) {
+        for (auto e : out_edges(v, g)) {
+          free_space.draw_edge(get(steer_rec_or_pos, v),
+                               get(steer_rec_or_pos, target(e, g)), false);
         }
       }
     }

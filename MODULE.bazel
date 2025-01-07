@@ -3,20 +3,33 @@
 #
 
 module(
-    name = "com_mikaelspersson_reak",
+    name = "reak",
 )
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
-bazel_dep(name = "bazel_skylib", version = "1.5.0")
-bazel_dep(name = "platforms", version = "0.0.8")
-bazel_dep(name = "abseil-cpp", version = "20230802.0", repo_name = "com_google_absl")
-bazel_dep(name = "rules_cc", version = "0.0.9")
-bazel_dep(name = "rules_python", version = "0.31.0")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "platforms", version = "0.0.10")
 
-bazel_dep(name = "googletest", version = "1.14.0", repo_name = "com_google_googletest")
+bazel_dep(name = "toolchains_llvm", version = "1.1.2")
+
+# Configure and register the toolchain.
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(
+   llvm_version = "17.0.6",
+)
+
+use_repo(llvm, "llvm_toolchain")
+
+register_toolchains("@llvm_toolchain//:all")
+
+bazel_dep(name = "abseil-cpp", version = "20240722.0.bcr.1", repo_name = "com_google_absl")
+bazel_dep(name = "rules_cc", version = "0.0.16")
+bazel_dep(name = "rules_python", version = "0.40.0")
+
+bazel_dep(name = "googletest", version = "1.15.2", repo_name = "com_google_googletest")
 bazel_dep(name = "google_benchmark", version = "1.8.3", repo_name = "com_google_benchmark")
 
 bazel_dep(name = "eigen", version = "3.4.0")
@@ -32,22 +45,9 @@ git_override(
     # Even better, set up Renovate and let it do the work for you (see "Suggestion: Updates" in the README).
 )
 
-# Boost libraries (header-only)
-http_archive(
-    name = "boost",
-    build_file = "@//third_party:boost.BUILD",
-    integrity = "sha256-JY7MZOXIC0PmX48kZ1HPtnYKzm6xgdu7eHd2WJFvV7Y=",
-    strip_prefix = "boost-boost-1.84.0",
-    url = "https://github.com/boostorg/boost/archive/refs/tags/boost-1.84.0.tar.gz",
-)
-
-# Boost Graph Library extras
+# Born Again Graph Library (BGL port)
 git_repository(
-    name = "boost_graph_extras",
-    build_file = "@//third_party:boost_graph_extras.BUILD",
-    commit = "1f65698a093787dcc9ce6eef1629e243182343a7",
-    remote = "https://github.com/mikael-s-persson/boost_graph_ext_mp.git",
+    name = "bagl",
+    commit = "10030bf6ceca313a066e987a4846f39ebb450369",
+    remote = "https://github.com/mikael-s-persson/bagl.git",
 )
-
-
-

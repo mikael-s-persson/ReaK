@@ -24,9 +24,9 @@
 #include <fstream>
 #include <iostream>
 
-#include "boost/graph/adjacency_list_BC.hpp"
-#include "boost/graph/properties.hpp"
-#include "boost/graph/topology.hpp"
+#include "bagl/adjacency_list.h"
+#include "bagl/properties.h"
+#include "bagl/topology.h"
 
 #include "ReaK/math/lin_alg/vect_alg.h"
 #include "ReaK/planning/path_planning/metric_space_search.h"
@@ -44,23 +44,22 @@ int main() {
   using PointType = TopologyType::point_type;
 
   using WorldGridVertexProperties =
-      boost::property<boost::vertex_position_t, PointType, boost::no_property>;
+      bagl::property<bagl::vertex_position_t, PointType, bagl::no_property>;
 
-  using WorldGridEdgeProperties = boost::no_property;
+  using WorldGridEdgeProperties = bagl::no_property;
 
   using WorldGridType =
-      boost::adjacency_list_BC<boost::vecBC, boost::vecBC, boost::undirectedS,
-                               WorldGridVertexProperties,
-                               WorldGridEdgeProperties>;
+      bagl::adjacency_list<bagl::vec_s, bagl::vec_s, bagl::undirected_s,
+                           WorldGridVertexProperties, WorldGridEdgeProperties>;
 
-  using VertexType = boost::graph_traits<WorldGridType>::vertex_descriptor;
+  using VertexType = bagl::graph_traits<WorldGridType>::vertex_descriptor;
   using WorldPartition4 = ReaK::pp::dvp_tree<
       VertexType, TopologyType,
-      boost::property_map<WorldGridType, boost::vertex_position_t>::type, 4>;
+      bagl::property_map_t<WorldGridType, bagl::vertex_position_t>, 4>;
 
   using WorldPartition2 = ReaK::pp::dvp_tree<
       VertexType, TopologyType,
-      boost::property_map<WorldGridType, boost::vertex_position_t>::type, 2>;
+      bagl::property_map_t<WorldGridType, bagl::vertex_position_t>, 2>;
 
   const std::vector<unsigned int> grid_sizes = {
       100,    200,    300,     400,     500,    800,   1000,  1100,
@@ -78,8 +77,7 @@ int main() {
     TopologyType m_space("",
                          ReaK::vect<double, 6>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
                          ReaK::vect<double, 6>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0));
-    boost::property_map<WorldGridType, boost::vertex_position_t>::type
-        m_position(get(boost::vertex_position, grid));
+    auto m_position = get(bagl::vertex_position, grid);
 
     for (unsigned int j = 0; j < grid_size; ++j) {
       VertexType v = add_vertex(grid);

@@ -41,10 +41,10 @@
 #include <utility>
 #include <vector>
 
-#include "boost/graph/graph_selectors.hpp"
-#include "boost/graph/graph_traits.hpp"
+#include "bagl/graph_selectors.h"
+#include "bagl/graph_traits.h"
 
-#include "boost/graph/adjacency_list_BC.hpp"
+#include "bagl/adjacency_list.h"
 
 namespace ReaK {
 
@@ -68,9 +68,9 @@ struct object_graph_node {
 };
 
 using object_graph =
-    boost::adjacency_list_BC<boost::vecBC, boost::vecBC, boost::bidirectionalS,
-                             object_graph_node>;
-using object_node_desc = boost::graph_traits<object_graph>::vertex_descriptor;
+    bagl::adjacency_list<bagl::vec_s, bagl::vec_s, bagl::bidirectional_s,
+                         object_graph_node>;
+using object_node_desc = bagl::graph_vertex_descriptor_t<object_graph>;
 
 class xml_field_editor {
  private:

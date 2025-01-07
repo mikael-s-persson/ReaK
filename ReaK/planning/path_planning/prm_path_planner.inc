@@ -44,9 +44,8 @@
 
 #include "ReaK/planning/path_planning/motion_graph_structures.h"
 
-// BGL-Extra includes:
-#include "boost/graph/more_property_maps.hpp"
-#include "boost/graph/more_property_tags.hpp"
+#include "bagl/astar_search.h"
+#include "bagl/more_property_maps.h"
 
 #include "ReaK/planning/path_planning/metric_space_search.h"
 #include "ReaK/planning/path_planning/topological_search.h"
@@ -55,8 +54,6 @@
 #include "ReaK/planning/path_planning/density_plan_visitors.h"
 #include "ReaK/planning/path_planning/p2p_planning_query.h"
 #include "ReaK/planning/path_planning/path_planner_options.h"
-
-#include "boost/graph/astar_search.hpp"
 
 namespace ReaK::pp {
 
@@ -85,7 +82,7 @@ struct prm_planner_visitor
 
   template <typename Graph>
   struct astar_heuristic_getter {
-    using Vertex = graph::graph_vertex_t<Graph>;
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
     const Graph* p_g;
     explicit astar_heuristic_getter(const Graph* pG) : p_g(pG) {}
     double operator()(Vertex u) const { return (*p_g)[u].heuristic_value; }
@@ -94,18 +91,18 @@ struct prm_planner_visitor
   template <typename Graph>
   void publish_path(Graph& g) const {
 
-    using Vertex = graph::graph_vertex_t<Graph>;
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
     using VertexProp = dense_mg_vertex<astar_mg_vertex<FreeSpaceType>>;
     using EdgeProp = optimal_mg_edge<FreeSpaceType>;
 
     Vertex start_node = std::any_cast<Vertex>(this->m_start_node);
     Vertex goal_node = std::any_cast<Vertex>(this->m_goal_node);
 
-    boost::astar_search(
+    bagl::astar_search(
         g, start_node, astar_heuristic_getter<Graph>(&g),
-        boost::default_astar_visitor(), get(&VertexProp::predecessor, g),
+        bagl::default_astar_visitor(), get(&VertexProp::predecessor, g),
         get(&VertexProp::key_value, g), get(&VertexProp::distance_accum, g),
-        get(&EdgeProp::weight, g), boost::identity_property_map(),
+        get(&EdgeProp::weight, g), bagl::identity_property_map(),
         get(&VertexProp::astar_color, g), std::less<>(), std::plus<>(),
         std::numeric_limits<double>::infinity(), double(0.0));
 
@@ -131,10 +128,10 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
 
   using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
-  using PositionMap = boost::data_member_property_map<PointType, VertexProp>;
+  using PositionMap = bagl::data_member_property_map<PointType, VertexProp>;
   auto pos_map = PositionMap(&VertexProp::position);
 
-  using DensityMap = boost::data_member_property_map<double, VertexProp>;
+  using DensityMap = bagl::data_member_property_map<double, VertexProp>;
   auto dens_map = DensityMap(&VertexProp::density);
 
   auto space_dim = double(this->get_space_dimensionality());
@@ -150,12 +147,10 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
       reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
           path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-
 #define RK_PRM_PLANNER_INITIALIZE_START_AND_GOAL                       \
   VertexProp vp_start;                                                 \
   vp_start.position = aQuery.get_start_position();                     \
-  Vertex start_node = add_vertex(std::move(vp_start), motion_graph);   \
+  Vertex start_node = add_vertex(motion_graph, std::move(vp_start));   \
   motion_graph[start_node].density = 0.0;                              \
   motion_graph[start_node].heuristic_value =                           \
       aQuery.get_heuristic_to_goal(motion_graph[start_node].position); \
@@ -165,7 +160,7 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
   if (p2p_query_ptr) {                                                 \
     VertexProp vp_goal;                                                \
     vp_goal.position = p2p_query_ptr->goal_pos;                        \
-    Vertex goal_node = add_vertex(std::move(vp_goal), motion_graph);   \
+    Vertex goal_node = add_vertex(motion_graph, std::move(vp_goal));   \
     motion_graph[goal_node].density = 0.0;                             \
     motion_graph[goal_node].heuristic_value = 0.0;                     \
     motion_graph[goal_node].distance_accum =                           \
@@ -173,37 +168,10 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
     motion_graph[goal_node].predecessor = goal_node;                   \
     vis.m_goal_node = std::any(goal_node);                             \
   }
-
-#else
-
-#define RK_PRM_PLANNER_INITIALIZE_START_AND_GOAL                       \
-  VertexProp vp_start;                                                 \
-  vp_start.position = aQuery.get_start_position();                     \
-  Vertex start_node = add_vertex(vp_start, motion_graph);              \
-  motion_graph[start_node].density = 0.0;                              \
-  motion_graph[start_node].heuristic_value =                           \
-      aQuery.get_heuristic_to_goal(motion_graph[start_node].position); \
-  motion_graph[start_node].distance_accum = 0.0;                       \
-  motion_graph[start_node].predecessor = start_node;                   \
-  vis.m_start_node = std::any(start_node);                             \
-  if (p2p_query_ptr) {                                                 \
-    VertexProp vp_goal;                                                \
-    vp_goal.position = p2p_query_ptr->goal_pos;                        \
-    Vertex goal_node = add_vertex(vp_goal, motion_graph);              \
-    motion_graph[goal_node].density = 0.0;                             \
-    motion_graph[goal_node].heuristic_value = 0.0;                     \
-    motion_graph[goal_node].distance_accum =                           \
-        std::numeric_limits<double>::infinity();                       \
-    motion_graph[goal_node].predecessor = goal_node;                   \
-    vis.m_goal_node = std::any(goal_node);                             \
-  }
-
-#endif
 
 #define RK_PRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)            \
   using GraphPositionMap =                                                    \
-      typename boost::property_map<MotionGraphType,                           \
-                                   PointType BasicVertexProp::*>::type;       \
+      bagl::property_map_t<MotionGraphType, PointType BasicVertexProp::*>;    \
   using SpacePartType = dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, \
                                  random_vp_chooser, TREE_STORAGE>;            \
   SpacePartType space_part(motion_graph, sup_space_ptr,                       \
@@ -223,10 +191,10 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
 #define RK_PRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(ARITY, TREE_STORAGE)             \
   using ALTGraph =                                                             \
       dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace, PositionMap, ARITY, \
-                         random_vp_chooser, TREE_STORAGE, boost::vecBC,        \
-                         DirectionalityTag, boost::listBC>;                    \
+                         random_vp_chooser, TREE_STORAGE, bagl::vec_s,         \
+                         DirectionalityTag, bagl::list_s>;                     \
   using MotionGraphType = typename ALTGraph::adj_list_type;                    \
-  using Vertex = graph::graph_vertex_t<MotionGraphType>;                       \
+  using Vertex = bagl::graph_vertex_descriptor_t<MotionGraphType>;             \
                                                                                \
   ALTGraph space_part(sup_space_ptr, pos_map);                                 \
   MotionGraphType motion_graph = space_part.get_adjacency_list();              \
@@ -250,9 +218,9 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
       ADJ_LIST_MOTION_GRAPH) {
 
     using MotionGraphType =
-        boost::adjacency_list_BC<boost::vecBC, boost::vecBC, DirectionalityTag,
-                                 VertexProp, EdgeProp>;
-    using Vertex = graph::graph_vertex_t<MotionGraphType>;
+        bagl::adjacency_list<bagl::vec_s, bagl::vec_s, DirectionalityTag,
+                             VertexProp, EdgeProp>;
+    using Vertex = bagl::graph_vertex_descriptor_t<MotionGraphType>;
 
     MotionGraphType motion_graph;
 
@@ -274,14 +242,14 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
     } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                DVP_BF2_TREE_KNN) {
 
-      RK_PRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage<2>)
+      RK_PRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, bagl::bfl_d_ary_tree_storage<2>)
 
       RK_PRM_PLANNER_MAKE_GENERATE_PRM_CALL
 
     } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                DVP_BF4_TREE_KNN) {
 
-      RK_PRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage<4>)
+      RK_PRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, bagl::bfl_d_ary_tree_storage<4>)
 
       RK_PRM_PLANNER_MAKE_GENERATE_PRM_CALL
 
@@ -291,7 +259,7 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
                DVP_COB2_TREE_KNN) {
 
       RK_PRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(2,
-                                            boost::vebl_d_ary_tree_storage<2>)
+                                            bagl::vebl_d_ary_tree_storage<2>)
 
       RK_PRM_PLANNER_MAKE_GENERATE_PRM_CALL
 
@@ -299,7 +267,7 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
                DVP_COB4_TREE_KNN) {
 
       RK_PRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(4,
-                                            boost::vebl_d_ary_tree_storage<4>)
+                                            bagl::vebl_d_ary_tree_storage<4>)
 
       RK_PRM_PLANNER_MAKE_GENERATE_PRM_CALL
 
@@ -313,7 +281,7 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
 
     if ((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
 
-      RK_PRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage<2>)
+      RK_PRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, bagl::bfl_d_ary_tree_storage<2>)
 
       RK_PRM_PLANNER_INITIALIZE_START_AND_GOAL
 
@@ -322,7 +290,7 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
     } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                DVP_BF4_TREE_KNN) {
 
-      RK_PRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage<4>)
+      RK_PRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, bagl::bfl_d_ary_tree_storage<4>)
 
       RK_PRM_PLANNER_INITIALIZE_START_AND_GOAL
 
@@ -334,7 +302,7 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
                DVP_COB2_TREE_KNN) {
 
       RK_PRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(2,
-                                            boost::vebl_d_ary_tree_storage<2>)
+                                            bagl::vebl_d_ary_tree_storage<2>)
 
       RK_PRM_PLANNER_INITIALIZE_START_AND_GOAL
 
@@ -344,7 +312,7 @@ void prm_planner<FreeSpaceType>::solve_planning_query(
                DVP_COB4_TREE_KNN) {
 
       RK_PRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(4,
-                                            boost::vebl_d_ary_tree_storage<4>)
+                                            bagl::vebl_d_ary_tree_storage<4>)
 
       RK_PRM_PLANNER_INITIALIZE_START_AND_GOAL
 

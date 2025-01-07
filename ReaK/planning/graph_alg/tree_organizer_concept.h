@@ -33,7 +33,9 @@
 #ifndef REAK_PLANNING_GRAPH_ALG_TREE_ORGANIZER_CONCEPT_H_
 #define REAK_PLANNING_GRAPH_ALG_TREE_ORGANIZER_CONCEPT_H_
 
-#include "ReaK/planning/graph_alg/simple_graph_traits.h"
+#include <utility>
+
+#include "bagl/graph_traits.h"
 
 namespace ReaK::graph {
 
@@ -45,21 +47,18 @@ namespace ReaK::graph {
  *
  * vis.remove_vertex(v, tree);  The visitor can perform the removal of the vertex (v) from the tree.
  *
- * v = vis.add_vertex(tree_vp, tree);  The visitor can perform the addition a vertex (v) with property (vp) to the tree.
- *
- * v = vis.add_vertex(std::move(tree_vp), tree);  The visitor can perform the addition a vertex (v) by moving in the
+ * v = vis.add_vertex(tree, std::move(tree_vp));  The visitor can perform the addition a vertex (v) by moving in the
  *property (vp) to the tree.
  *
  * \tparam TreeOrganizerVisitor The visitor type to be checked for this concept.
  * \tparam TreeType The tree type on which the visitor must operate.
  */
 template <typename Visitor, typename TreeType>
-concept TreeOrganizerVisitor = requires(Visitor vis, TreeType tree,
-                                        graph_vertex_t<TreeType> v,
-                                        graph_vertex_property_t<TreeType> vp) {
+concept TreeOrganizerVisitor = requires(
+    Visitor vis, TreeType tree, bagl::graph_vertex_descriptor_t<TreeType> v,
+    bagl::vertex_property_type<TreeType> vp) {
   vis.remove_vertex(v, tree);
-  vis.add_vertex(vp, tree);
-  vis.add_vertex(std::move(vp), tree);
+  vis.add_vertex(tree, std::move(vp));
 };
 
 }  // namespace ReaK::graph

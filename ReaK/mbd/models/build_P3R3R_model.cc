@@ -19,10 +19,9 @@
 
 #include "ReaK/core/serialization/archiver_factory.h"
 
-#include "boost/tuple/tuple.hpp"
-
 #include <filesystem>
 #include <memory>
+#include <tuple>
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"

@@ -32,7 +32,6 @@
 #ifndef REAK_PLANNING_GRAPH_ALG_SBMP_VISITOR_CONCEPTS_H_
 #define REAK_PLANNING_GRAPH_ALG_SBMP_VISITOR_CONCEPTS_H_
 
-#include "ReaK/planning/graph_alg/simple_graph_traits.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 
 #include <concepts>
@@ -57,8 +56,9 @@ namespace ReaK::graph {
   *still wants more vertices to be generated in the motion-graph.
   */
 template <typename Visitor, typename Graph>
-concept SBMPVisitor = requires(Visitor vis, Graph g, graph_vertex_t<Graph> u,
-                               graph_edge_t<Graph> e) {
+concept SBMPVisitor = requires(Visitor vis, Graph g,
+                               bagl::graph_vertex_descriptor_t<Graph> u,
+                               bagl::graph_edge_descriptor_t<Graph> e) {
   vis.vertex_added(u, g);
   vis.edge_added(e, g);
   { vis.keep_going() } -> std::convertible_to<bool>;
@@ -90,7 +90,7 @@ struct sbmp_visitor_archetype {
   */
 template <typename Visitor, typename Graph>
 concept SBMPPruningVisitor = SBMPVisitor<Visitor, Graph>&& requires(
-    Visitor vis, Graph g, graph_vertex_t<Graph> u) {
+    Visitor vis, Graph g, bagl::graph_vertex_descriptor_t<Graph> u) {
   vis.vertex_to_be_removed(u, g);
 };
 
@@ -118,7 +118,7 @@ struct sbmp_pruning_visitor_archetype : sbmp_visitor_archetype {
   */
 template <typename Visitor, typename Graph>
 concept SBMPJoiningVisitor = SBMPVisitor<Visitor, Graph>&& requires(
-    Visitor vis, Graph g, graph_vertex_t<Graph> u) {
+    Visitor vis, Graph g, bagl::graph_vertex_descriptor_t<Graph> u) {
   vis.joining_vertex_found(u, u, g, g);
 };
 
@@ -145,7 +145,9 @@ struct sbmp_joining_visitor_archetype : sbmp_visitor_archetype {
 template <typename Visitor, typename Graph, typename Space>
 concept NodeCreatorVisitor = pp::Topology<Space>&& requires(
     Visitor vis, Graph g, pp::topology_point_type_t<Space> p) {
-  { vis.create_vertex(p, g) } -> std::convertible_to<graph_vertex_t<Graph>>;
+  {
+    vis.create_vertex(p, g)
+    } -> std::convertible_to<bagl::graph_vertex_descriptor_t<Graph>>;
 };
 
 /**
@@ -154,7 +156,7 @@ concept NodeCreatorVisitor = pp::Topology<Space>&& requires(
 struct node_creator_visitor_archetype {
   template <typename Position, typename Graph>
   auto create_vertex(const Position& /*unused*/, Graph& /*unused*/) const {
-    return boost::graph_traits<Graph>::null_vertex();
+    return bagl::graph_traits<Graph>::null_vertex();
   }
 };
 
@@ -173,8 +175,9 @@ struct node_creator_visitor_archetype {
   */
 template <typename Visitor, typename Graph, typename Space>
 concept NodePullingVisitor = pp::Topology<Space>&& requires(
-    Visitor vis, Graph g, graph_vertex_t<Graph> u,
-    pp::topology_point_type_t<Space> p, bool b, graph_edge_bundle_t<Graph> ep) {
+    Visitor vis, Graph g, bagl::graph_vertex_descriptor_t<Graph> u,
+    pp::topology_point_type_t<Space> p, bool b,
+    bagl::edge_property_type<Graph> ep) {
   std::tie(p, b, ep) = vis.steer_towards_position(p, u, g);
 };
 
@@ -184,7 +187,7 @@ concept NodePullingVisitor = pp::Topology<Space>&& requires(
 struct node_pulling_visitor_archetype {
   template <typename Position, typename Vertex, typename Graph>
   auto steer_towards_position(const Position& p, Vertex u, Graph& g) const {
-    return std::tuple(p, false, graph_edge_bundle_t<Graph>());
+    return std::tuple(p, false, bagl::edge_property_type<Graph>());
   }
 };
 
@@ -203,8 +206,9 @@ struct node_pulling_visitor_archetype {
   */
 template <typename Visitor, typename Graph, typename Space>
 concept NodeBackPullingVisitor = pp::Topology<Space>&& requires(
-    Visitor vis, Graph g, graph_vertex_t<Graph> u,
-    pp::topology_point_type_t<Space> p, bool b, graph_edge_bundle_t<Graph> ep) {
+    Visitor vis, Graph g, bagl::graph_vertex_descriptor_t<Graph> u,
+    pp::topology_point_type_t<Space> p, bool b,
+    bagl::edge_property_type<Graph> ep) {
   std::tie(p, b, ep) = vis.steer_back_to_position(p, u, g);
 };
 
@@ -214,7 +218,7 @@ concept NodeBackPullingVisitor = pp::Topology<Space>&& requires(
 struct node_back_pulling_visitor_archetype {
   template <typename Position, typename Vertex, typename Graph>
   auto steer_back_to_position(const Position& p, Vertex u, Graph& g) const {
-    return std::tuple(p, false, graph_edge_bundle_t<Graph>());
+    return std::tuple(p, false, bagl::edge_property_type<Graph>());
   }
 };
 
@@ -234,8 +238,9 @@ struct node_back_pulling_visitor_archetype {
   */
 template <typename Visitor, typename Graph, typename Space>
 concept NodePushingVisitor = pp::Topology<Space>&& requires(
-    Visitor vis, Graph g, graph_vertex_t<Graph> u,
-    pp::topology_point_type_t<Space> p, bool b, graph_edge_bundle_t<Graph> ep) {
+    Visitor vis, Graph g, bagl::graph_vertex_descriptor_t<Graph> u,
+    pp::topology_point_type_t<Space> p, bool b,
+    bagl::edge_property_type<Graph> ep) {
   std::tie(p, b, ep) = vis.random_walk(u, g);
 };
 
@@ -247,7 +252,7 @@ struct node_pushing_visitor_archetype {
   using PointType = pp::topology_point_type_t<Space>;
   template <typename Vertex, typename Graph>
   auto random_walk(Vertex u, Graph& g) const {
-    return std::tuple(PointType(), false, graph_edge_bundle_t<Graph>());
+    return std::tuple(PointType(), false, bagl::edge_property_type<Graph>());
   }
 };
 
@@ -267,8 +272,9 @@ struct node_pushing_visitor_archetype {
   */
 template <typename Visitor, typename Graph, typename Space>
 concept NodeBackPushingVisitor = pp::Topology<Space>&& requires(
-    Visitor vis, Graph g, graph_vertex_t<Graph> u,
-    pp::topology_point_type_t<Space> p, bool b, graph_edge_bundle_t<Graph> ep) {
+    Visitor vis, Graph g, bagl::graph_vertex_descriptor_t<Graph> u,
+    pp::topology_point_type_t<Space> p, bool b,
+    bagl::edge_property_type<Graph> ep) {
   std::tie(p, b, ep) = vis.random_back_walk(u, g);
 };
 
@@ -280,7 +286,7 @@ struct node_back_pushing_visitor_archetype {
   using PointType = pp::topology_point_type_t<Space>;
   template <typename Vertex, typename Graph>
   auto random_back_walk(Vertex u, Graph& g) const {
-    return std::tuple(PointType(), false, graph_edge_bundle_t<Graph>());
+    return std::tuple(PointType(), false, bagl::edge_property_type<Graph>());
   }
 };
 
@@ -299,9 +305,9 @@ struct node_back_pushing_visitor_archetype {
   *could connect those two vertices.
   */
 template <typename Visitor, typename Graph>
-concept NodeReConnectVisitor = requires(Visitor vis, Graph g,
-                                        graph_vertex_t<Graph> u, bool b,
-                                        graph_edge_bundle_t<Graph> ep) {
+concept NodeReConnectVisitor =
+    requires(Visitor vis, Graph g, bagl::graph_vertex_descriptor_t<Graph> u,
+             bool b, bagl::edge_property_type<Graph> ep) {
   std::tie(b, ep) = vis.can_be_connected(u, u, g);
 };
 
@@ -311,7 +317,7 @@ concept NodeReConnectVisitor = requires(Visitor vis, Graph g,
 struct node_reconnect_visitor_archetype {
   template <typename Vertex, typename Graph>
   auto can_be_connected(Vertex u, Vertex /*unused*/, Graph& g) const {
-    return std::pair(false, graph_edge_bundle_t<Graph>());
+    return std::pair(false, bagl::edge_property_type<Graph>());
   }
 };
 
@@ -339,8 +345,8 @@ struct node_reconnect_visitor_archetype {
   *density metric.
   */
 template <typename Visitor, typename Graph>
-concept NeighborhoodTrackingVisitor = requires(Visitor vis, Graph g,
-                                               graph_vertex_t<Graph> u) {
+concept NeighborhoodTrackingVisitor =
+    requires(Visitor vis, Graph g, bagl::graph_vertex_descriptor_t<Graph> u) {
   vis.travel_explored(u, u, g);
   vis.travel_succeeded(u, u, g);
   vis.travel_failed(u, u, g);
@@ -420,9 +426,9 @@ struct collision_checking_visitor_archetype {
   *measure, i.e., it should no longer be elligible to be examined in the future.
   */
 template <typename Visitor, typename Graph>
-concept NodeExploringVisitor = requires(Visitor vis, Graph g,
-                                        graph_vertex_t<Graph> u,
-                                        graph_edge_t<Graph> e) {
+concept NodeExploringVisitor =
+    requires(Visitor vis, Graph g, bagl::graph_vertex_descriptor_t<Graph> u,
+             bagl::graph_edge_descriptor_t<Graph> e) {
   vis.initialize_vertex(u, g);
   vis.discover_vertex(u, g);
   vis.examine_vertex(u, g);

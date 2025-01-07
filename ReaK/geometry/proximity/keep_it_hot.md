@@ -253,14 +253,14 @@ This is a vector of pointers to shapes.The problem with this is that whenever we
 
     std::vector<shape_3D> mShapeList;
 
-But there's a problem here. The `shape_3D` is a base-class, and our original `shared_ptr<shape_3D>` pointers are actually pointing to different kinds of shapes. Here is how we can get out of this conundrum, with a nice little class template called `boost::variant` (from the [Boost.Variant](http://www.boost.org/doc/libs/1_57_0/doc/html/variant.html) library):
+But there's a problem here. The `shape_3D` is a base-class, and our original `shared_ptr<shape_3D>` pointers are actually pointing to different kinds of shapes. Here is how we can get out of this conundrum, with a nice little class template called `std::variant` library):
 
-    typedef boost::variant<box, sphere, plane, cylinder, capped_cylinder>
+    typedef std::variant<box, sphere, plane, cylinder, capped_cylinder>
         any_shape;
 
 std::vector<any_shape> mShapeList;
 
-What the `boost::variant` class does is create a `union` of all the types given
+What the `std::variant` class does is create a `union` of all the types given
     to it,
     and additionally,
     it also identifies which type of object it currently holds,
@@ -271,7 +271,7 @@ What the `boost::variant` class does is create a `union` of all the types given
                         the locality of memory access patterns
                     .
 
-        The `boost::variant` class template is used in a somewhat peculiar
+        The `std::variant` class template is used in a somewhat peculiar
             way.It uses a kind of generic visitation pattern,
     which is actually pretty nice,
     but it's not something I want to delve into too much here. Suffice to say, here is how the final `gatherCollisionPoints` function looks:
@@ -310,12 +310,12 @@ bool proxy_query_pair_3D::gatherCollisionPoints(
   std::vector<pose_3D<double>> mdl1_poses, mdl2_poses;
   for (auto& vshape1 : mModel1->mShapeList)
     mdl1_poses[&vshape1 - mModel1->mShapeList.data()] =
-        boost::apply_visitor(convert_to_shape_3D_visitor(), vshape1)
+        std::apply_visitor(convert_to_shape_3D_visitor(), vshape1)
             .getPose()
             .getGlobalPose();
   for (auto& vshape2 : mModel2->mShapeList)
     mdl2_poses[&vshape2 - mModel2->mShapeList.data()] =
-        boost::apply_visitor(convert_to_shape_3D_visitor(), vshape2)
+        std::apply_visitor(convert_to_shape_3D_visitor(), vshape2)
             .getPose()
             .getGlobalPose();
 
@@ -327,12 +327,12 @@ bool proxy_query_pair_3D::gatherCollisionPoints(
           mdl2_poses[&vshape2 - mModel2->mShapeList.data()].Position;
 
       if (norm_2(p2 - p1) -
-              boost::apply_visitor(get_bounding_radius_3D_visitor(), vshape1) -
-              boost::apply_visitor(get_bounding_radius_3D_visitor(), vshape2) >
+              std::apply_visitor(get_bounding_radius_3D_visitor(), vshape1) -
+              std::apply_visitor(get_bounding_radius_3D_visitor(), vshape2) >
           0.0)
         continue;
 
-      proximity_record_3D tmp = boost::apply_visitor(
+      proximity_record_3D tmp = std::apply_visitor(
           compute_proximity_3D_visitor(
               mdl1_poses[&vshape1 - mModel1->mShapeList.data()],
               mdl2_poses[&vshape2 - mModel2->mShapeList.data()]),
@@ -345,7 +345,7 @@ bool proxy_query_pair_3D::gatherCollisionPoints(
   return !aOutput.empty();
 };
 
-I agree that this is not pretty, but optimized code is rarely pretty. But I should note that this way of doing things removes the need for the long and tedious double-dispatching `compute_proximity` function (the one with all the nested if-else-if blocks). This is because the multi-visitor version of the `boost::apply_visitor` function of the Boost.Variant library will extract the type of both variant objects and call the visitor with both objects resolved to their actual types, which means that the call to `compute_proximity` that is done inside the `compute_proximity_3D_visitor` will actually get dispatched to the correct proximity computation algorithm for the particular pair of types involved, through overloading. This is pretty much the best way to solve the double-dispatch problem, as far as I know.
+I agree that this is not pretty, but optimized code is rarely pretty. But I should note that this way of doing things removes the need for the long and tedious double-dispatching `compute_proximity` function (the one with all the nested if-else-if blocks). This is because the multi-visitor version of the `std::apply_visitor` function will extract the type of both variant objects and call the visitor with both objects resolved to their actual types, which means that the call to `compute_proximity` that is done inside the `compute_proximity_3D_visitor` will actually get dispatched to the correct proximity computation algorithm for the particular pair of types involved, through overloading. This is pretty much the best way to solve the double-dispatch problem, as far as I know.
 
 Running the benchmark program again produces the following results:
 

@@ -43,6 +43,7 @@
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"
 
 #include "ReaK/planning/path_planning/any_motion_graphs.h"
+#include "any_motion_graphs.h"
 
 #include <type_traits>
 
@@ -132,28 +133,30 @@ class planning_query : public named_object {
 
  protected:
   virtual solution_record_ptr register_solution_from_optimal_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node, double goal_distance,
-      graph::any_graph& g) = 0;
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      double goal_distance, bagl::dynamic_graph_observer& g) = 0;
 
   virtual solution_record_ptr register_solution_from_basic_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node, double goal_distance,
-      graph::any_graph& g) = 0;
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      double goal_distance, bagl::dynamic_graph_observer& g) = 0;
 
   virtual solution_record_ptr register_joining_point_from_optimal_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node,
-      graph::any_graph::vertex_descriptor join1_node,
-      graph::any_graph::vertex_descriptor join2_node, double goal_distance,
-      graph::any_graph& g1, graph::any_graph& g2) = 0;
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join1_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join2_node,
+      double goal_distance, bagl::dynamic_graph_observer& g1,
+      bagl::dynamic_graph_observer& g2) = 0;
 
   virtual solution_record_ptr register_joining_point_from_basic_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node,
-      graph::any_graph::vertex_descriptor join1_node,
-      graph::any_graph::vertex_descriptor join2_node, double goal_distance,
-      graph::any_graph& g1, graph::any_graph& g2) = 0;
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join1_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join2_node,
+      double goal_distance, bagl::dynamic_graph_observer& g1,
+      bagl::dynamic_graph_observer& g2) = 0;
 
  public:
   /**
@@ -168,23 +171,19 @@ class planning_query : public named_object {
   template <typename Vertex, typename Graph>
   solution_record_ptr register_solution(Vertex start_node, Vertex goal_node,
                                         double goal_distance, Graph& g) {
-    if constexpr (std::is_convertible_v<graph::graph_vertex_bundle_t<Graph>*,
+    bagl::dynamic_properties dp;
+    ReaK::pp::add_all_motion_graph_property_maps<FreeSpaceType>(g, dp);
+    bagl::dynamic_graph_observer_wrapper<Graph> mg(g, dp);
+    using DynV = bagl::dynamic_graph_observer::vertex_descriptor;
+    if constexpr (std::is_convertible_v<bagl::vertex_bundle_type<Graph>*,
                                         optimal_mg_vertex<FreeSpaceType>*>) {
-      using TEGraph = any_optimal_motion_graph<FreeSpaceType, Graph>;
-      using TEVertex = graph::graph_vertex_t<TEGraph>;
-
-      TEGraph te_g(&g);
-      return register_solution_from_optimal_mg(TEVertex(std::any(start_node)),
-                                               TEVertex(std::any(goal_node)),
-                                               goal_distance, te_g);
+      return register_solution_from_optimal_mg(DynV{std::any(start_node)},
+                                               DynV{std::any(goal_node)},
+                                               goal_distance, mg);
     } else {
-      using TEGraph = any_motion_graph<FreeSpaceType, Graph>;
-      using TEVertex = graph::graph_vertex_t<TEGraph>;
-
-      TEGraph te_g(&g);
-      return register_solution_from_basic_mg(TEVertex(std::any(start_node)),
-                                             TEVertex(std::any(goal_node)),
-                                             goal_distance, te_g);
+      return register_solution_from_basic_mg(DynV{std::any(start_node)},
+                                             DynV{std::any(goal_node)},
+                                             goal_distance, mg);
     }
   }
 
@@ -201,27 +200,26 @@ class planning_query : public named_object {
   solution_record_ptr register_joining_point(
       Vertex start_node, Vertex goal_node, Vertex join1_node, Vertex join2_node,
       double joining_distance, Graph& g1, Graph& g2) {
-    if constexpr (std::is_convertible_v<graph::graph_vertex_bundle_t<Graph>*,
+    bagl::dynamic_properties dp1;
+    ReaK::pp::add_all_motion_graph_property_maps<FreeSpaceType>(g1, dp1);
+    bagl::dynamic_graph_observer_wrapper<Graph> mg1(g1, dp1);
+
+    bagl::dynamic_properties dp2;
+    ReaK::pp::add_all_motion_graph_property_maps<FreeSpaceType>(g2, dp2);
+    bagl::dynamic_graph_observer_wrapper<Graph> mg2(g2, dp2);
+
+    using DynV = bagl::dynamic_graph_observer::vertex_descriptor;
+    if constexpr (std::is_convertible_v<bagl::vertex_bundle_type<Graph>*,
                                         optimal_mg_vertex<FreeSpaceType>*>) {
-      using TEGraph = any_optimal_motion_graph<FreeSpaceType, Graph>;
-      using TEVertex = graph::graph_vertex_t<TEGraph>;
-
-      TEGraph te_g1(&g1);
-      TEGraph te_g2(&g2);
       return register_joining_point_from_optimal_mg(
-          TEVertex(std::any(start_node)), TEVertex(std::any(goal_node)),
-          TEVertex(std::any(join1_node)), TEVertex(std::any(join2_node)),
-          joining_distance, te_g1, te_g2);
+          DynV{std::any(start_node)}, DynV{std::any(goal_node)},
+          DynV{std::any(join1_node)}, DynV{std::any(join2_node)},
+          joining_distance, mg1, mg2);
     } else {
-      using TEGraph = any_motion_graph<FreeSpaceType, Graph>;
-      using TEVertex = graph::graph_vertex_t<TEGraph>;
-
-      TEGraph te_g1(&g1);
-      TEGraph te_g2(&g2);
       return register_joining_point_from_basic_mg(
-          TEVertex(std::any(start_node)), TEVertex(std::any(goal_node)),
-          TEVertex(std::any(join1_node)), TEVertex(std::any(join2_node)),
-          joining_distance, te_g1, te_g2);
+          DynV{std::any(start_node)}, DynV{std::any(goal_node)},
+          DynV{std::any(join1_node)}, DynV{std::any(join2_node)},
+          joining_distance, mg1, mg2);
     }
   }
 

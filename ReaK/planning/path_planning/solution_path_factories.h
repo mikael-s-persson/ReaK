@@ -45,29 +45,28 @@
 #include <map>
 
 namespace ReaK::pp::detail {
-namespace {
 
 template <typename SolutionWrapperType, typename FreeSpaceType,
           typename SolutionRecPtr>
 SolutionRecPtr register_basic_solution_path_impl(
-    FreeSpaceType& space, const graph::any_graph& g,
-    graph::any_graph::vertex_descriptor start_node,
-    graph::any_graph::vertex_descriptor goal_node,
+    FreeSpaceType& space, const bagl::dynamic_graph_observer& g,
+    bagl::dynamic_graph_observer::vertex_descriptor start_node,
+    bagl::dynamic_graph_observer::vertex_descriptor goal_node,
     const topology_point_type_t<FreeSpaceType>& goal_pos, double goal_distance,
     std::map<double, SolutionRecPtr>& solutions) {
   using super_space_type =
       typename subspace_traits<FreeSpaceType>::super_space_type;
   using point_type = topology_point_type_t<super_space_type>;
-  using Vertex = graph::any_graph::vertex_descriptor;
-  using Edge = graph::any_graph::edge_descriptor;
+  using Vertex = bagl::dynamic_graph_observer::vertex_descriptor;
+  using Edge = bagl::dynamic_graph_observer::edge_descriptor;
 
   using SolutionPathType = typename SolutionWrapperType::wrapped_type;
 
   std::shared_ptr<super_space_type> sup_space_ptr(&(space.get_super_space()),
                                                   null_deleter());
 
-  graph::any_graph::property_map_by_ptr<const point_type> position =
-      graph::get_dyn_prop<const point_type&>("vertex_position", g);
+  auto position = bagl::get_dynamic_property_map<const point_type&>(
+      "vertex_position", g.get_properties());
 
   double solutions_total_dist = goal_distance;
 
@@ -94,13 +93,14 @@ SolutionRecPtr register_basic_solution_path_impl(
   waypoints.push_front(position[goal_node]);
 
   while ((in_degree(goal_node, g)) &&
-         (!g.equal_descriptors(goal_node, start_node))) {
-    Edge e = *(in_edges(goal_node, g).first);
+         (!g.are_vertices_equal(goal_node, start_node))) {
+    Edge e = *(in_edges(goal_node, g).begin());
     Vertex u = source(e, g);
     if constexpr (is_steerable_space_v<FreeSpaceType>) {
       using SteerRecordType = steerable_space_steer_record_t<super_space_type>;
       auto steer_record =
-          graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g);
+          bagl::get_dynamic_property_map<const SteerRecordType&>(
+              "edge_steer_record", g.get_properties());
       const auto& sr = steer_record[e];
       for (auto it = sr.end_fraction_travel(); it != sr.begin_fraction_travel();
            it -= 1.0) {
@@ -113,7 +113,7 @@ SolutionRecPtr register_basic_solution_path_impl(
     goal_node = u;
   }
 
-  if (g.equal_descriptors(goal_node, start_node) &&
+  if (g.are_vertices_equal(goal_node, start_node) &&
       ((solutions.empty()) ||
        (solutions_total_dist < solutions.begin()->first))) {
     solutions[solutions_total_dist] = new_sol;
@@ -126,27 +126,27 @@ SolutionRecPtr register_basic_solution_path_impl(
 template <typename SolutionWrapperType, typename FreeSpaceType,
           typename SolutionRecPtr>
 SolutionRecPtr register_optimal_solution_path_impl(
-    FreeSpaceType& space, const graph::any_graph& g,
-    graph::any_graph::vertex_descriptor start_node,
-    graph::any_graph::vertex_descriptor goal_node,
+    FreeSpaceType& space, const bagl::dynamic_graph_observer& g,
+    bagl::dynamic_graph_observer::vertex_descriptor start_node,
+    bagl::dynamic_graph_observer::vertex_descriptor goal_node,
     const topology_point_type_t<FreeSpaceType>& goal_pos, double goal_distance,
     std::map<double, SolutionRecPtr>& solutions) {
   using super_space_type =
       typename subspace_traits<FreeSpaceType>::super_space_type;
   using point_type = topology_point_type_t<super_space_type>;
-  using Vertex = graph::any_graph::vertex_descriptor;
+  using Vertex = bagl::dynamic_graph_observer::vertex_descriptor;
 
   using SolutionPathType = typename SolutionWrapperType::wrapped_type;
 
   std::shared_ptr<super_space_type> sup_space_ptr(&(space.get_super_space()),
                                                   null_deleter());
 
-  graph::any_graph::property_map_by_ptr<const point_type> position =
-      graph::get_dyn_prop<const point_type&>("vertex_position", g);
-  graph::any_graph::property_map_by_ptr<const std::size_t> predecessor =
-      graph::get_dyn_prop<const std::size_t&>("vertex_predecessor", g);
-  graph::any_graph::property_map_by_ptr<const double> distance_accum =
-      graph::get_dyn_prop<const double&>("vertex_distance_accum", g);
+  auto position = bagl::get_dynamic_property_map<const point_type&>(
+      "vertex_position", g.get_properties());
+  auto predecessor = bagl::get_dynamic_property_map<const std::size_t&>(
+      "vertex_predecessor", g.get_properties());
+  auto distance_accum = bagl::get_dynamic_property_map<const double&>(
+      "vertex_distance_accum", g.get_properties());
 
   double solutions_total_dist = distance_accum[goal_node] + goal_distance;
 
@@ -178,12 +178,14 @@ SolutionRecPtr register_optimal_solution_path_impl(
 
   waypoints.push_front(position[goal_node]);
 
-  while (!g.equal_descriptors(goal_node, start_node)) {
+  while (!g.are_vertices_equal(goal_node, start_node)) {
     goal_node = Vertex(std::any(predecessor[goal_node]));
     if constexpr (is_steerable_space_v<FreeSpaceType>) {
-      auto [ei, ei_end] = in_edges(goal_node, g);
+      auto ei_rg = in_edges(goal_node, g);
+      auto ei = ei_rg.begin();
+      auto ei_end = ei_rg.end();
       while ((ei != ei_end) &&
-             (!g.equal_descriptors(goal_node, source(*ei, g)))) {
+             (!g.are_vertices_equal(goal_node, source(*ei, g)))) {
         ++ei;
       }
       if (ei == ei_end) {
@@ -191,7 +193,8 @@ SolutionRecPtr register_optimal_solution_path_impl(
       }
       using SteerRecordType = steerable_space_steer_record_t<super_space_type>;
       auto steer_record =
-          graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g);
+          bagl::get_dynamic_property_map<const SteerRecordType&>(
+              "edge_steer_record", g.get_properties());
       const auto& sr = steer_record[*ei];
       for (auto it = sr.end_fraction_travel(); it != sr.begin_fraction_travel();
            it -= 1.0) {
@@ -201,7 +204,7 @@ SolutionRecPtr register_optimal_solution_path_impl(
     waypoints.push_front(position[goal_node]);
   }
 
-  if (g.equal_descriptors(goal_node, start_node)) {
+  if (g.are_vertices_equal(goal_node, start_node)) {
     solutions[solutions_total_dist] = new_sol;
     return new_sol;
   }
@@ -212,27 +215,28 @@ SolutionRecPtr register_optimal_solution_path_impl(
 template <typename SolutionWrapperType, typename FreeSpaceType,
           typename SolutionRecPtr>
 SolutionRecPtr register_basic_solution_path_impl(
-    FreeSpaceType& space, const graph::any_graph& g1,
-    const graph::any_graph& g2, graph::any_graph::vertex_descriptor start_node,
-    graph::any_graph::vertex_descriptor goal_node,
-    graph::any_graph::vertex_descriptor join1_node,
-    graph::any_graph::vertex_descriptor join2_node, double joining_distance,
-    std::map<double, SolutionRecPtr>& solutions) {
+    FreeSpaceType& space, const bagl::dynamic_graph_observer& g1,
+    const bagl::dynamic_graph_observer& g2,
+    bagl::dynamic_graph_observer::vertex_descriptor start_node,
+    bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+    bagl::dynamic_graph_observer::vertex_descriptor join1_node,
+    bagl::dynamic_graph_observer::vertex_descriptor join2_node,
+    double joining_distance, std::map<double, SolutionRecPtr>& solutions) {
   using super_space_type =
       typename subspace_traits<FreeSpaceType>::super_space_type;
   using point_type = topology_point_type_t<super_space_type>;
-  using Vertex = graph::any_graph::vertex_descriptor;
-  using Edge = graph::any_graph::edge_descriptor;
+  using Vertex = bagl::dynamic_graph_observer::vertex_descriptor;
+  using Edge = bagl::dynamic_graph_observer::edge_descriptor;
 
   using SolutionPathType = typename SolutionWrapperType::wrapped_type;
 
   std::shared_ptr<super_space_type> sup_space_ptr(&(space.get_super_space()),
                                                   null_deleter());
 
-  graph::any_graph::property_map_by_ptr<const point_type> position1 =
-      graph::get_dyn_prop<const point_type&>("vertex_position", g1);
-  graph::any_graph::property_map_by_ptr<const point_type> position2 =
-      graph::get_dyn_prop<const point_type&>("vertex_position", g2);
+  auto position1 = bagl::get_dynamic_property_map<const point_type&>(
+      "vertex_position", g1.get_properties());
+  auto position2 = bagl::get_dynamic_property_map<const point_type&>(
+      "vertex_position", g2.get_properties());
 
   double solutions_total_dist = joining_distance;
 
@@ -255,13 +259,14 @@ SolutionRecPtr register_basic_solution_path_impl(
   waypoints.push_front(position1[join1_node]);
 
   while ((in_degree(join1_node, g1)) &&
-         (!g1.equal_descriptors(join1_node, start_node))) {
-    Edge e = *(in_edges(join1_node, g1).first);
+         (!g1.are_vertices_equal(join1_node, start_node))) {
+    Edge e = *(in_edges(join1_node, g1).begin());
     Vertex u = source(e, g1);
     if constexpr (is_steerable_space_v<FreeSpaceType>) {
       using SteerRecordType = steerable_space_steer_record_t<super_space_type>;
       auto steer_record1 =
-          graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g1);
+          bagl::get_dynamic_property_map<const SteerRecordType&>(
+              "edge_steer_record", g1.get_properties());
       const auto& sr = steer_record1[e];
       for (auto it = sr.end_fraction_travel(); it != sr.begin_fraction_travel();
            it -= 1.0) {
@@ -277,13 +282,14 @@ SolutionRecPtr register_basic_solution_path_impl(
   waypoints.push_back(position2[join2_node]);
 
   while ((in_degree(join2_node, g2)) &&
-         (!g2.equal_descriptors(join2_node, goal_node))) {
-    Edge e = *(in_edges(join2_node, g2).first);
+         (!g2.are_vertices_equal(join2_node, goal_node))) {
+    Edge e = *(in_edges(join2_node, g2).begin());
     Vertex u = source(e, g2);
     if constexpr (is_steerable_space_v<FreeSpaceType>) {
       using SteerRecordType = steerable_space_steer_record_t<super_space_type>;
       auto steer_record2 =
-          graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g2);
+          bagl::get_dynamic_property_map<const SteerRecordType&>(
+              "edge_steer_record", g2.get_properties());
       const auto& sr = steer_record2[e];
       for (auto it = sr.end_fraction_travel(); it != sr.begin_fraction_travel();
            it -= 1.0) {
@@ -296,8 +302,8 @@ SolutionRecPtr register_basic_solution_path_impl(
     waypoints.push_back(position2[join2_node]);
   }
 
-  if (g1.equal_descriptors(join1_node, start_node) &&
-      g2.equal_descriptors(join2_node, goal_node) &&
+  if (g1.are_vertices_equal(join1_node, start_node) &&
+      g2.are_vertices_equal(join2_node, goal_node) &&
       ((solutions.empty()) ||
        (solutions_total_dist < solutions.begin()->first))) {
     solutions[solutions_total_dist] = new_sol;
@@ -310,34 +316,35 @@ SolutionRecPtr register_basic_solution_path_impl(
 template <typename SolutionWrapperType, typename FreeSpaceType,
           typename SolutionRecPtr>
 SolutionRecPtr register_optimal_solution_path_impl(
-    FreeSpaceType& space, const graph::any_graph& g1,
-    const graph::any_graph& g2, graph::any_graph::vertex_descriptor start_node,
-    graph::any_graph::vertex_descriptor goal_node,
-    graph::any_graph::vertex_descriptor join1_node,
-    graph::any_graph::vertex_descriptor join2_node, double joining_distance,
-    std::map<double, SolutionRecPtr>& solutions) {
+    FreeSpaceType& space, const bagl::dynamic_graph_observer& g1,
+    const bagl::dynamic_graph_observer& g2,
+    bagl::dynamic_graph_observer::vertex_descriptor start_node,
+    bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+    bagl::dynamic_graph_observer::vertex_descriptor join1_node,
+    bagl::dynamic_graph_observer::vertex_descriptor join2_node,
+    double joining_distance, std::map<double, SolutionRecPtr>& solutions) {
   using super_space_type =
       typename subspace_traits<FreeSpaceType>::super_space_type;
   using point_type = topology_point_type_t<super_space_type>;
-  using Vertex = graph::any_graph::vertex_descriptor;
+  using Vertex = bagl::dynamic_graph_observer::vertex_descriptor;
 
   using SolutionPathType = typename SolutionWrapperType::wrapped_type;
 
   std::shared_ptr<super_space_type> sup_space_ptr(&(space.get_super_space()),
                                                   null_deleter());
 
-  graph::any_graph::property_map_by_ptr<const point_type> position1 =
-      graph::get_dyn_prop<const point_type&>("vertex_position", g1);
-  graph::any_graph::property_map_by_ptr<const std::size_t> predecessor1 =
-      graph::get_dyn_prop<const std::size_t&>("vertex_predecessor", g1);
-  graph::any_graph::property_map_by_ptr<const double> distance_accum1 =
-      graph::get_dyn_prop<const double&>("vertex_distance_accum", g1);
-  graph::any_graph::property_map_by_ptr<const point_type> position2 =
-      graph::get_dyn_prop<const point_type&>("vertex_position", g2);
-  graph::any_graph::property_map_by_ptr<const std::size_t> predecessor2 =
-      graph::get_dyn_prop<const std::size_t&>("vertex_predecessor", g2);
-  graph::any_graph::property_map_by_ptr<const double> distance_accum2 =
-      graph::get_dyn_prop<const double&>("vertex_distance_accum", g2);
+  auto position1 = bagl::get_dynamic_property_map<const point_type&>(
+      "vertex_position", g1.get_properties());
+  auto predecessor1 = bagl::get_dynamic_property_map<const std::size_t&>(
+      "vertex_predecessor", g1.get_properties());
+  auto distance_accum1 = bagl::get_dynamic_property_map<const double&>(
+      "vertex_distance_accum", g1.get_properties());
+  auto position2 = bagl::get_dynamic_property_map<const point_type&>(
+      "vertex_position", g2.get_properties());
+  auto predecessor2 = bagl::get_dynamic_property_map<const std::size_t&>(
+      "vertex_predecessor", g2.get_properties());
+  auto distance_accum2 = bagl::get_dynamic_property_map<const double&>(
+      "vertex_distance_accum", g2.get_properties());
 
   double solutions_total_dist = distance_accum1[join1_node] +
                                 distance_accum2[join2_node] + joining_distance;
@@ -366,12 +373,14 @@ SolutionRecPtr register_optimal_solution_path_impl(
 
   waypoints.push_front(position1[join1_node]);
 
-  while (!g1.equal_descriptors(join1_node, start_node)) {
+  while (!g1.are_vertices_equal(join1_node, start_node)) {
     join1_node = Vertex(std::any(predecessor1[join1_node]));
     if constexpr (is_steerable_space_v<FreeSpaceType>) {
-      auto [ei, ei_end] = in_edges(join1_node, g1);
+      auto ei_rg = in_edges(join1_node, g1);
+      auto ei = ei_rg.begin();
+      auto ei_end = ei_rg.end();
       while ((ei != ei_end) &&
-             (!g1.equal_descriptors(join1_node, source(*ei, g1)))) {
+             (!g1.are_vertices_equal(join1_node, source(*ei, g1)))) {
         ++ei;
       }
       if (ei == ei_end) {
@@ -379,7 +388,8 @@ SolutionRecPtr register_optimal_solution_path_impl(
       }
       using SteerRecordType = steerable_space_steer_record_t<super_space_type>;
       auto steer_record1 =
-          graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g1);
+          bagl::get_dynamic_property_map<const SteerRecordType&>(
+              "edge_steer_record", g1.get_properties());
       const auto& sr = steer_record1[*ei];
       for (auto it = sr.end_fraction_travel(); it != sr.begin_fraction_travel();
            it -= 1.0) {
@@ -391,12 +401,14 @@ SolutionRecPtr register_optimal_solution_path_impl(
 
   waypoints.push_back(position2[join2_node]);
 
-  while (!g2.equal_descriptors(join2_node, goal_node)) {
+  while (!g2.are_vertices_equal(join2_node, goal_node)) {
     join2_node = Vertex(std::any(predecessor2[join2_node]));
     if constexpr (is_steerable_space_v<FreeSpaceType>) {
-      auto [ei, ei_end] = in_edges(join2_node, g2);
+      auto ei_rg = in_edges(join2_node, g2);
+      auto ei = ei_rg.begin();
+      auto ei_end = ei_rg.end();
       while ((ei != ei_end) &&
-             (!g2.equal_descriptors(join2_node, source(*ei, g2)))) {
+             (!g2.are_vertices_equal(join2_node, source(*ei, g2)))) {
         ++ei;
       }
       if (ei == ei_end) {
@@ -404,7 +416,8 @@ SolutionRecPtr register_optimal_solution_path_impl(
       }
       using SteerRecordType = steerable_space_steer_record_t<super_space_type>;
       auto steer_record2 =
-          graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g2);
+          bagl::get_dynamic_property_map<const SteerRecordType&>(
+              "edge_steer_record", g2.get_properties());
       const auto& sr = steer_record2[*ei];
       for (auto it = sr.end_fraction_travel(); it != sr.begin_fraction_travel();
            it -= 1.0) {
@@ -414,8 +427,8 @@ SolutionRecPtr register_optimal_solution_path_impl(
     waypoints.push_back(position2[join2_node]);
   }
 
-  if (g1.equal_descriptors(join1_node, start_node) &&
-      g2.equal_descriptors(join2_node, goal_node)) {
+  if (g1.are_vertices_equal(join1_node, start_node) &&
+      g2.are_vertices_equal(join2_node, goal_node)) {
     solutions[solutions_total_dist] = new_sol;
     return new_sol;
   }
@@ -423,7 +436,6 @@ SolutionRecPtr register_optimal_solution_path_impl(
   return SolutionRecPtr();
 }
 
-}  // namespace
 }  // namespace ReaK::pp::detail
 
 #endif  // REAK_PLANNING_PATH_PLANNING_SOLUTION_PATH_FACTORIES_H_

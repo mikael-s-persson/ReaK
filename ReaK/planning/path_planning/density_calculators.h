@@ -64,8 +64,8 @@ struct prm_density_calculator {
     }
     std::size_t max_node_degree = space_dim + 1;
     double sum = 0.0;
-    for (auto [ei, ei_end] = out_edges(u, g); ei != ei_end; ++ei) {
-      sum += g[*ei].weight / sampling_radius;
+    for (auto e : out_edges(u, g)) {
+      sum += g[e].weight / sampling_radius;
     }
     sum /= double(deg_u) * double(deg_u) / double(max_node_degree);
     g[u].density = exp(-sum * sum);
@@ -140,9 +140,8 @@ struct sbastar_density_calculator {
                       double sampling_radius, std::size_t space_dim) const {
     g[u].density = 0.0;
     g[u].expansion_trials = 0;
-    for (auto [ei, ei_end] = out_edges(u, g); ei != ei_end; ++ei) {
-      double samp_sim =
-          compute_sample_similarity(g[*ei].weight, sampling_radius);
+    for (auto e : out_edges(u, g)) {
+      double samp_sim = compute_sample_similarity(g[e].weight, sampling_radius);
       register_sample(g[u].density, g[u].expansion_trials, samp_sim, space_dim);
     }
   }

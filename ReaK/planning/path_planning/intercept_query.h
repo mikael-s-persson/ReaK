@@ -218,11 +218,11 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
 
  protected:
   solution_record_ptr register_solution_from_optimal_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node, double goal_distance,
-      graph::any_graph& g) override {
-    graph::any_graph::property_map_by_ptr<const point_type> position =
-        graph::get_dyn_prop<const point_type&>("vertex_position", g);
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      double goal_distance, bagl::dynamic_graph_observer& g) override {
+    auto position = bagl::get_dynamic_property_map<const point_type&>(
+        "vertex_position", g.get_properties());
     std::pair<point_type, double> goal_pos_dist =
         get_distance_position_to_goal(position[goal_node]);
     return detail::register_optimal_solution_path_impl<
@@ -232,11 +232,11 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
   }
 
   solution_record_ptr register_solution_from_basic_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node, double goal_distance,
-      graph::any_graph& g) override {
-    graph::any_graph::property_map_by_ptr<const point_type> position =
-        graph::get_dyn_prop<const point_type&>("vertex_position", g);
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      double goal_distance, bagl::dynamic_graph_observer& g) override {
+    auto position = bagl::get_dynamic_property_map<const point_type&>(
+        "vertex_position", g.get_properties());
     std::pair<point_type, double> goal_pos_dist =
         get_distance_position_to_goal(position[goal_node]);
     return detail::register_basic_solution_path_impl<
@@ -246,11 +246,12 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
   }
 
   solution_record_ptr register_joining_point_from_optimal_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node,
-      graph::any_graph::vertex_descriptor join1_node,
-      graph::any_graph::vertex_descriptor join2_node, double joining_distance,
-      graph::any_graph& g1, graph::any_graph& g2) override {
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join1_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join2_node,
+      double joining_distance, bagl::dynamic_graph_observer& g1,
+      bagl::dynamic_graph_observer& g2) override {
     return detail::register_optimal_solution_path_impl<
         solution_trajectory_wrapper>(*(this->space), g1, g2, start_node,
                                      goal_node, join1_node, join2_node,
@@ -258,11 +259,12 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
   }
 
   solution_record_ptr register_joining_point_from_basic_mg(
-      graph::any_graph::vertex_descriptor start_node,
-      graph::any_graph::vertex_descriptor goal_node,
-      graph::any_graph::vertex_descriptor join1_node,
-      graph::any_graph::vertex_descriptor join2_node, double joining_distance,
-      graph::any_graph& g1, graph::any_graph& g2) override {
+      bagl::dynamic_graph_observer::vertex_descriptor start_node,
+      bagl::dynamic_graph_observer::vertex_descriptor goal_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join1_node,
+      bagl::dynamic_graph_observer::vertex_descriptor join2_node,
+      double joining_distance, bagl::dynamic_graph_observer& g1,
+      bagl::dynamic_graph_observer& g2) override {
     return detail::register_basic_solution_path_impl<
         solution_trajectory_wrapper>(*(this->space), g1, g2, start_node,
                                      goal_node, join1_node, join2_node,

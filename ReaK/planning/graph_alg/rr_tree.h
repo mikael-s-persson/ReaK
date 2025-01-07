@@ -59,23 +59,20 @@
 
 #include <tuple>
 #include <utility>
-#include "boost/graph/graph_concepts.hpp"
-#include "boost/property_map/property_map.hpp"
+
+#include "bagl/graph_concepts.h"
+#include "bagl/more_property_maps.h"
+#include "bagl/property_map.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/random_sampler_concept.h"
 
-// BGL-Extra includes:
-#include "boost/graph/more_property_maps.hpp"
-#include "boost/graph/tree_adaptor.hpp"
-
+#include "ReaK/planning/graph_alg/adj_list_tree_overlay.h"
 #include "ReaK/planning/graph_alg/sbmp_visitor_concepts.h"
-#include "ReaK/planning/graph_alg/simple_graph_traits.h"
 
 namespace ReaK::graph {
 
-namespace detail {
-namespace {
+namespace rrt_detail {
 
 template <typename Graph, typename Topology, typename RRTVisitor,
           typename PositionMap, typename Vertex, typename PositionValue>
@@ -84,14 +81,17 @@ auto expand_rrt_vertex(Graph& g, const Topology& space, RRTVisitor vis,
                        const PositionValue& p_target) {
   auto [p_v, reached_new, ep] = vis.steer_towards_position(p_target, u, g);
   if (reached_new) {  // i.e., a new position was reached, collision-free.
-    std::decay_t<decltype(g[u])> vp;
+    bagl::vertex_property_type<Graph> vp{};
     put(position, vp, p_v);
-    auto [v, e] = add_child_vertex(u, std::move(vp), std::move(ep), g);
+    auto [v, e, b] = add_child(u, g, std::move(vp), std::move(ep));
+    if (!b) {
+      return std::pair{u, false};
+    }
     vis.vertex_added(v, g);
     vis.edge_added(e, g);
     u = v;
   }
-  return std::make_pair(u, reached_new);
+  return std::pair{u, reached_new};
 }
 
 template <typename Graph, typename Topology, typename RRTVisitor,
@@ -103,21 +103,21 @@ auto rrt_get_or_create_root(Graph& g, const Topology& space, RRTVisitor vis,
     while (!vis.is_position_free(p)) {
       p = get_sample(space);
     }
-    std::decay_t<decltype(g[boost::graph_traits<Graph>::null_vertex()])> up;
+    bagl::vertex_property_type<Graph> up{};
     put(position, up, p);
-    auto u = create_root(std::move(up), g);
+    auto u = create_root(g, std::move(up));
     vis.vertex_added(u, g);
     return u;
   }
-  return get_root_vertex(g);
+  return tree_root(g);
 }
-}  // namespace
-}  // namespace detail
+
+}  // namespace rrt_detail
 
 /**
  * This function template is the unidirectional version of the RRT algorithm (refer to rr_tree.hpp dox).
- * \tparam Graph A mutable graph type that will represent the generated tree, should model boost::VertexListGraphConcept
- *and boost::MutableGraphConcept
+ * \tparam Graph A mutable graph type that will represent the generated tree, should model bagl::concepts::VertexListGraph
+ *and bagl::concepts::MutableGraph
  * \tparam Space A topology type that will represent the space in which the configurations (or positions) exist,
  *should model BGL's Topology concept
  * \tparam Visitor An RRT visitor type that implements the customizations to this RRT algorithm.
@@ -128,7 +128,7 @@ auto rrt_get_or_create_root(Graph& g, const Topology& space, RRTVisitor vis,
  * \param g A mutable graph that should initially store the starting
  *        vertex (if not it will be randomly generated) and will store
  *        the generated tree once the algorithm has finished.
- * \param space A topology (as defined by the Boost Graph Library). Note
+ * \param space A topology (as defined by the Born Again Graph Library). Note
  *        that it is not required to generate only random points in
  *        the free-space.
  * \param vis A RRT visitor implementing the RRTVisitorConcept. This is the
@@ -143,25 +143,28 @@ auto rrt_get_or_create_root(Graph& g, const Topology& space, RRTVisitor vis,
  *        nearest neighbor search of a point to a graph in the topology. (see topological_search.hpp)
  *
  */
-template <typename Graph, pp::Topology Space, RRTVisitor<Graph, Space> Visitor,
-          typename PositionMap, pp::RandomSampler<Space> Sampler,
-          typename NNFinder>
+template <bagl::concepts::MutableGraph Graph, pp::Topology Space,
+          RRTVisitor<Graph, Space> Visitor,
+          bagl::concepts::ReadWriteVPropMemberMap<Graph> PositionMap,
+          pp::RandomSampler<Space> Sampler, typename NNFinder>
 void generate_rrt(Graph& g, const Space& space, Visitor vis,
                   PositionMap position, Sampler get_sample,
                   NNFinder find_nearest_neighbor) {
-  detail::rrt_get_or_create_root(g, space, vis, get_sample, position);
+  rrt_detail::rrt_get_or_create_root(g, space, vis, get_sample, position);
 
   while (vis.keep_going()) {
     auto p_rnd = get_sample(space);
     auto u = find_nearest_neighbor(
-        p_rnd, g, space, boost::bundle_prop_to_vertex_prop(position, g));
-    detail::expand_rrt_vertex(g, space, vis, position, u, p_rnd);
+        p_rnd, g, space,
+        bagl::composite_property_map(position, get(bagl::vertex_all, g)));
+    rrt_detail::expand_rrt_vertex(g, space, vis, position, u, p_rnd);
   }
 }
 
 struct rrt_generator {
-  template <typename Graph, pp::Topology Space,
-            RRTVisitor<Graph, Space> Visitor, typename PositionMap,
+  template <bagl::concepts::MutableGraph Graph, pp::Topology Space,
+            RRTVisitor<Graph, Space> Visitor,
+            bagl::concepts::ReadWriteVPropMemberMap<Graph> PositionMap,
             pp::RandomSampler<Space> Sampler, typename NNFinder>
   void operator()(Graph& g, const Space& space, Visitor vis,
                   PositionMap position, Sampler get_sample,
@@ -172,8 +175,8 @@ struct rrt_generator {
 
 /**
  * This function is the bidirectional version of the RRT algorithm (refer to rr_tree.hpp dox).
- * \tparam Graph A mutable graph type that will represent the generated tree, should model boost::VertexListGraphConcept
- *and boost::MutableGraphConcept
+ * \tparam Graph A mutable graph type that will represent the generated tree, should model bagl::concepts::VertexListGraph
+ *and bagl::concepts::MutableGraph
  * \tparam Space A topology type that will represent the space in which the configurations (or positions) exist,
  *should model BGL's Topology concept
  * \tparam Visitor A Bi-RRT visitor type that implements the customizations to this Bi-RRT algorithm.
@@ -187,7 +190,7 @@ struct rrt_generator {
  * \param g2 A mutable graph that should initially store the goal
  *        vertex (if not it will be randomly generated) and will store
  *        the generated tree once the algorithm has finished.
- * \param space A topology (as defined by the Boost Graph Library). Note
+ * \param space A topology (as defined by the Born Again Graph Library). Note
  *        that it is not required to generate only random points in
  *        the free-space.
  * \param vis A RRT visitor implementing the RRTVisitorConcept. This is the
@@ -203,35 +206,37 @@ struct rrt_generator {
  *        topology. (see topological_search.hpp)
  *
  */
-template <typename Graph, pp::Topology Space,
-          BiRRTVisitor<Graph, Space> Visitor, typename PositionMap,
+template <bagl::concepts::MutableGraph Graph, pp::Topology Space,
+          BiRRTVisitor<Graph, Space> Visitor,
+          bagl::concepts::ReadWriteVPropMemberMap<Graph> PositionMap,
           pp::RandomSampler<Space> Sampler, typename NNFinder>
 void generate_bidirectional_rrt(Graph& g1, Graph& g2, const Space& space,
                                 Visitor vis, PositionMap position,
                                 Sampler get_sample,
                                 NNFinder find_nearest_neighbor) {
-  using Vertex = graph_vertex_t<Graph>;
+  using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
   struct VTarget {
     Vertex v;
     bool valid;
   };
 
-  VTarget v_target2 = {
-      .v = detail::rrt_get_or_create_root(g1, space, vis, get_sample, position),
-      .valid = true};
-  auto p_target2 = get(position, g1[v_target2.v]);
+  VTarget v_target2 = {.v = rrt_detail::rrt_get_or_create_root(
+                           g1, space, vis, get_sample, position),
+                       .valid = true};
+  auto p_target2 = get(position, get_property(g1, v_target2.v));
 
-  VTarget v_target1 = {
-      .v = detail::rrt_get_or_create_root(g2, space, vis, get_sample, position),
-      .valid = true};
-  auto p_target1 = get(position, g2[v_target1.v]);
+  VTarget v_target1 = {.v = rrt_detail::rrt_get_or_create_root(
+                           g2, space, vis, get_sample, position),
+                       .valid = true};
+  auto p_target1 = get(position, get_property(g2, v_target1.v));
 
   while (vis.keep_going()) {
     // first, expand the first graph towards its target:
     Vertex u1 = find_nearest_neighbor(
-        p_target1, g1, space, boost::bundle_prop_to_vertex_prop(position, g1));
+        p_target1, g1, space,
+        bagl::composite_property_map(position, get(bagl::vertex_all, g1)));
     auto [v1, v1_reached] =
-        detail::expand_rrt_vertex(g1, space, vis, position, u1, p_target1);
+        rrt_detail::expand_rrt_vertex(g1, space, vis, position, u1, p_target1);
     if (v1_reached && v_target1.valid) {
       // joining vertex has been reached!
       vis.joining_vertex_found(v1, v_target1.v, g1, g2);
@@ -242,7 +247,7 @@ void generate_bidirectional_rrt(Graph& g1, Graph& g2, const Space& space,
         p_target2 = get_sample(space);
         v_target2.valid = false;
       } else {
-        p_target2 = get(position, g1[v1]);
+        p_target2 = get(position, get_property(g1, v1));
         v_target2.v = v1;
         v_target2.valid = true;
       }
@@ -250,9 +255,10 @@ void generate_bidirectional_rrt(Graph& g1, Graph& g2, const Space& space,
 
     // then, expand the second graph towards its target:
     Vertex u2 = find_nearest_neighbor(
-        p_target2, g2, space, boost::bundle_prop_to_vertex_prop(position, g2));
+        p_target2, g2, space,
+        bagl::composite_property_map(position, get(bagl::vertex_all, g2)));
     auto [v2, v2_reached] =
-        detail::expand_rrt_vertex(g2, space, vis, position, u2, p_target2);
+        rrt_detail::expand_rrt_vertex(g2, space, vis, position, u2, p_target2);
     if (v2_reached && v_target2.valid) {
       // joining vertex has been reached!
       vis.joining_vertex_found(v_target2.v, v2, g1, g2);
@@ -263,7 +269,7 @@ void generate_bidirectional_rrt(Graph& g1, Graph& g2, const Space& space,
         p_target1 = get_sample(space);
         v_target1.valid = false;
       } else {
-        p_target1 = get(position, g2[v2]);
+        p_target1 = get(position, get_property(g2, v2));
         v_target1.v = v2;
         v_target1.valid = true;
       }
@@ -272,8 +278,9 @@ void generate_bidirectional_rrt(Graph& g1, Graph& g2, const Space& space,
 }
 
 struct birrt_generator {
-  template <typename Graph, pp::Topology Space,
-            BiRRTVisitor<Graph, Space> Visitor, typename PositionMap,
+  template <bagl::concepts::MutableGraph Graph, pp::Topology Space,
+            BiRRTVisitor<Graph, Space> Visitor,
+            bagl::concepts::ReadWriteVPropMemberMap<Graph> PositionMap,
             pp::RandomSampler<Space> Sampler, typename NNFinder>
   void operator()(Graph& g1, Graph& g2, const Space& space, Visitor vis,
                   PositionMap position, Sampler get_sample,

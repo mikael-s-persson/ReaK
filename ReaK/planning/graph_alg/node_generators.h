@@ -39,34 +39,32 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include "boost/graph/graph_concepts.hpp"
-#include "boost/property_map/property_map.hpp"
+#include "bagl/graph_concepts.h"
+#include "bagl/graph_traits.h"
+#include "bagl/property_map.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/random_sampler_concept.h"
 
-#include "ReaK/planning/graph_alg/simple_graph_traits.h"
-
 namespace ReaK::graph {
 
-namespace detail {
-namespace {
+namespace node_gen_detail {
 
 template <typename Graph>
 struct rrg_node_puller {
-  using Vertex = graph_vertex_t<Graph>;
-  using EdgeProp = graph_edge_bundle_t<Graph>;
+  using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
+  using EdgeProp = bagl::edge_property_type<Graph>;
 
   template <typename PositionValue, typename RRGVisitor,
             typename PredecessorMap = std::nullptr_t>
   static auto expand_to_nearest(PositionValue& p_new,
-                                const std::vector<Vertex>& Pred, Graph& g,
+                                const std::vector<Vertex>& pred, Graph& g,
                                 RRGVisitor vis,
                                 PredecessorMap predecessor = nullptr) {
-    const Vertex null_v = boost::graph_traits<Graph>::null_vertex();
-    for (Vertex u : Pred) {
+    const Vertex null_v = bagl::graph_traits<Graph>::null_vertex();
+    for (Vertex u : pred) {
       if constexpr (!std::is_same_v<PredecessorMap, std::nullptr_t>) {
-        if (get(predecessor, g[u]) == null_v) {
+        if (get(predecessor, get_property(g, u)) == null_v) {
           continue;
         }
       }
@@ -83,13 +81,13 @@ struct rrg_node_puller {
   template <typename PositionValue, typename RRGVisitor,
             typename SuccessorMap = std::nullptr_t>
   static auto retract_from_nearest(PositionValue& p_new,
-                                   const std::vector<Vertex>& Succ, Graph& g,
+                                   const std::vector<Vertex>& succ, Graph& g,
                                    RRGVisitor vis,
                                    SuccessorMap successor = nullptr) {
-    const Vertex null_v = boost::graph_traits<Graph>::null_vertex();
-    for (Vertex u : Succ) {
+    const Vertex null_v = bagl::graph_traits<Graph>::null_vertex();
+    for (Vertex u : succ) {
       if constexpr (!std::is_same_v<SuccessorMap, std::nullptr_t>) {
-        if (get(successor, g[u]) == null_v) {
+        if (get(successor, get_property(g, u)) == null_v) {
           continue;
         }
       }
@@ -103,8 +101,8 @@ struct rrg_node_puller {
     return std::tuple(null_v, false, EdgeProp());
   }
 };
-}  // namespace
-}  // namespace detail
+
+}  // namespace node_gen_detail
 
 /**
  * This node generator that can be used in RRT-like algorithms.
@@ -122,38 +120,36 @@ struct rrg_node_generator {
   RandomSampler get_sample;
   NcSelector select_neighborhood;
 
-  rrg_node_generator(const Topology* aSpace, RandomSampler aGetSample,
-                     NcSelector aSelectNeighborhood)
-      : space(aSpace),
-        get_sample(aGetSample),
-        select_neighborhood(aSelectNeighborhood) {}
+  rrg_node_generator(const Topology* s, RandomSampler gs, NcSelector sn)
+      : space(s), get_sample(gs), select_neighborhood(sn) {}
 
-  template <typename Graph, typename RRGVisitor, typename PositionMap>
+  template <typename Graph, typename RRGVisitor,
+            bagl::concepts::ReadableVertexPropertyMap<Graph> PositionMap>
   auto operator()(Graph& g, RRGVisitor vis, PositionMap g_position) const {
-    using Vertex = graph_vertex_t<Graph>;
-    using NodePuller = detail::rrg_node_puller<Graph>;
-    using std::back_inserter;
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
+    using NodePuller = node_gen_detail::rrg_node_puller<Graph>;
 
     std::size_t i = 0;
     while (true) {
       auto p_new = get_sample(*space);
 
-      std::vector<Vertex> Pred;
-      std::vector<Vertex> Succ;
-      if constexpr (boost::is_undirected_graph<Graph>::value) {
-        select_neighborhood(p_new, back_inserter(Pred), g, *space, g_position);
+      std::vector<Vertex> pred;
+      std::vector<Vertex> succ;
+      if constexpr (bagl::is_undirected_graph_v<Graph>) {
+        select_neighborhood(p_new, std::back_inserter(pred), g, *space,
+                            g_position);
       } else {
-        select_neighborhood(p_new, back_inserter(Pred), back_inserter(Succ), g,
-                            *space, g_position);
+        select_neighborhood(p_new, std::back_inserter(pred),
+                            std::back_inserter(succ), g, *space, g_position);
       }
 
       auto [x_near, was_expanded, ep] =
-          NodePuller::expand_to_nearest(p_new, Pred, g, vis);
+          NodePuller::expand_to_nearest(p_new, pred, g, vis);
       if (was_expanded) {
         return std::tuple(x_near, p_new, ep);
       }
       if (i >= 10) {
-        return std::tuple(boost::graph_traits<Graph>::null_vertex(), p_new, ep);
+        return std::tuple(bagl::graph_traits<Graph>::null_vertex(), p_new, ep);
       }
       ++i;
     }
@@ -179,44 +175,44 @@ struct rrg_bidir_generator {
   PredecessorMap predecessor;
   SuccessorMap successor;
 
-  rrg_bidir_generator(const Topology* aSpace, RandomSampler aGetSample,
-                      NcSelector aSelectNeighborhood, PredecessorMap aPred,
-                      SuccessorMap aSucc)
-      : space(aSpace),
-        get_sample(aGetSample),
-        select_neighborhood(aSelectNeighborhood),
-        predecessor(aPred),
-        successor(aSucc) {}
+  rrg_bidir_generator(const Topology* s, RandomSampler gs, NcSelector sn,
+                      PredecessorMap pred, SuccessorMap succ)
+      : space(s),
+        get_sample(gs),
+        select_neighborhood(sn),
+        predecessor(pred),
+        successor(succ) {}
 
-  template <typename Graph, typename RRGVisitor, typename PositionMap>
+  template <typename Graph, typename RRGVisitor,
+            bagl::concepts::ReadableVertexPropertyMap<Graph> PositionMap>
   auto operator()(Graph& g, RRGVisitor vis, PositionMap g_position) const {
-    using Vertex = graph_vertex_t<Graph>;
-    using NodePuller = detail::rrg_node_puller<Graph>;
-    using std::back_inserter;
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
+    using NodePuller = node_gen_detail::rrg_node_puller<Graph>;
 
-    const Vertex null_v = boost::graph_traits<Graph>::null_vertex();
+    const Vertex null_v = bagl::graph_traits<Graph>::null_vertex();
 
     int i = 0;
     while (true) {
       auto p_pred = get_sample(*space);
       auto p_succ = p_pred;
 
-      std::vector<Vertex> Pred;
-      std::vector<Vertex> Succ;
-      if constexpr (boost::is_undirected_graph<Graph>::value) {
-        select_neighborhood(p_pred, back_inserter(Pred), g, *space, g_position);
+      std::vector<Vertex> pred;
+      std::vector<Vertex> succ;
+      if constexpr (bagl::is_undirected_graph_v<Graph>) {
+        select_neighborhood(p_pred, std::back_inserter(pred), g, *space,
+                            g_position);
       } else {
-        select_neighborhood(p_pred, back_inserter(Pred), back_inserter(Succ), g,
-                            *space, g_position);
+        select_neighborhood(p_pred, std::back_inserter(pred),
+                            std::back_inserter(succ), g, *space, g_position);
       }
 
       auto [x_pred, was_expanded, ep_pred] =
-          NodePuller::expand_to_nearest(p_pred, Pred, g, vis, predecessor);
-      if constexpr (boost::is_undirected_graph<Graph>::value) {
-        Pred.swap(Succ);
+          NodePuller::expand_to_nearest(p_pred, pred, g, vis, predecessor);
+      if constexpr (bagl::is_undirected_graph_v<Graph>) {
+        pred.swap(succ);
       }
       auto [x_succ, was_retracted, ep_succ] =
-          NodePuller::retract_from_nearest(p_succ, Succ, g, vis, successor);
+          NodePuller::retract_from_nearest(p_succ, succ, g, vis, successor);
       if (was_expanded || was_retracted) {
         return std::tuple(x_pred, p_pred, ep_pred, x_succ, p_succ, ep_succ);
       }

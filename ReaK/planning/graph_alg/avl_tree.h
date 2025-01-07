@@ -38,9 +38,8 @@
 
 #include "ReaK/planning/graph_alg/avl_tree_detail.h"
 
-// BGL-Extra includes:
-#include "boost/graph/bfl_d_ary_tree.hpp"
-#include "boost/graph/vebl_d_ary_tree.hpp"
+#include "bagl/bfl_d_ary_tree.h"
+#include "bagl/vebl_d_ary_tree.h"
 
 namespace ReaK::graph {
 
@@ -60,10 +59,10 @@ namespace ReaK::graph {
  *                 return true if a is considered to go before b in the strict weak ordering the function defines.
  */
 template <typename T, typename Compare = std::less<T>>
-struct avlbfl_set : public avl_tree_impl<boost::bfl_d_ary_tree<2, T>, Compare,
-                                         detail::avl_set_style> {
-  using base_impl_type = avl_tree_impl<boost::bfl_d_ary_tree<2, T>, Compare,
-                                       detail::avl_set_style>;
+struct avlbfl_set : public avl_tree_impl<bagl::bfl_d_ary_tree<2, T>, Compare,
+                                         avl_detail::avl_set_style> {
+  using base_impl_type = avl_tree_impl<bagl::bfl_d_ary_tree<2, T>, Compare,
+                                       avl_detail::avl_set_style>;
   using value_type = typename base_impl_type::value_type;
   using allocator_type = typename base_impl_type::allocator_type;
 
@@ -83,25 +82,25 @@ struct avlbfl_set : public avl_tree_impl<boost::bfl_d_ary_tree<2, T>, Compare,
 
   /**
     * Builds a AVL-tree set from an iterator range.
-    * \param aFirst An input iterator (start of range).
-    * \param aLast An input iterator (end of range).
+    * \param first An input iterator (start of range).
+    * \param last An input iterator (end of range).
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlbfl_set(InputIterator aFirst, InputIterator aLast,
+  avlbfl_set(InputIterator first, InputIterator last,
              const Compare& comp = Compare(),
              const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aFirst, aLast, comp) {}
+      : base_impl_type(first, last, comp) {}
 
   /**
     * Builds a AVL-tree set from an initializer_list.
-    * \param aList An std::initializer_list.
+    * \param vlist An std::initializer_list.
     * \param comp A comparison functor.
     */
-  avlbfl_set(std::initializer_list<value_type> aList,
+  avlbfl_set(std::initializer_list<value_type> vlist,
              const Compare& comp = Compare(),
              const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aList, comp) {}
+      : base_impl_type(vlist, comp) {}
 };
 
 /**
@@ -121,10 +120,10 @@ struct avlbfl_set : public avl_tree_impl<boost::bfl_d_ary_tree<2, T>, Compare,
  */
 template <typename T, typename Compare = std::less<T>>
 struct avlbfl_multiset
-    : public avl_tree_impl<boost::bfl_d_ary_tree<2, T>, Compare,
-                           detail::avl_multiset_style> {
-  using base_impl_type = avl_tree_impl<boost::bfl_d_ary_tree<2, T>, Compare,
-                                       detail::avl_multiset_style>;
+    : public avl_tree_impl<bagl::bfl_d_ary_tree<2, T>, Compare,
+                           avl_detail::avl_multiset_style> {
+  using base_impl_type = avl_tree_impl<bagl::bfl_d_ary_tree<2, T>, Compare,
+                                       avl_detail::avl_multiset_style>;
   using value_type = typename base_impl_type::value_type;
   using allocator_type = typename base_impl_type::allocator_type;
 
@@ -145,25 +144,25 @@ struct avlbfl_multiset
 
   /**
     * Builds a AVL-tree multiset from an iterator range.
-    * \param aFirst An input iterator (start of range).
-    * \param aLast An input iterator (end of range).
+    * \param first An input iterator (start of range).
+    * \param last An input iterator (end of range).
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlbfl_multiset(InputIterator aFirst, InputIterator aLast,
+  avlbfl_multiset(InputIterator first, InputIterator last,
                   const Compare& comp = Compare(),
                   const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aFirst, aLast, comp) {}
+      : base_impl_type(first, last, comp) {}
 
   /**
     * Builds a AVL-tree multiset from an initializer_list.
-    * \param aList An std::initializer_list.
+    * \param vlist An std::initializer_list.
     * \param comp A comparison functor.
     */
-  avlbfl_multiset(std::initializer_list<value_type> aList,
+  avlbfl_multiset(std::initializer_list<value_type> vlist,
                   const Compare& comp = Compare(),
                   const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aList, comp) {}
+      : base_impl_type(vlist, comp) {}
 };
 
 /**
@@ -184,11 +183,11 @@ struct avlbfl_multiset
  */
 template <typename Key, typename T, typename Compare = std::less<Key>>
 struct avlbfl_map
-    : public avl_tree_impl<boost::bfl_d_ary_tree<2, std::pair<Key, T>>, Compare,
-                           detail::avl_map_style> {
+    : public avl_tree_impl<bagl::bfl_d_ary_tree<2, std::pair<Key, T>>, Compare,
+                           avl_detail::avl_map_style> {
   using base_impl_type =
-      avl_tree_impl<boost::bfl_d_ary_tree<2, std::pair<Key, T>>, Compare,
-                    detail::avl_map_style>;
+      avl_tree_impl<bagl::bfl_d_ary_tree<2, std::pair<Key, T>>, Compare,
+                    avl_detail::avl_map_style>;
   using value_type = typename base_impl_type::value_type;
   using allocator_type = typename base_impl_type::allocator_type;
 
@@ -208,25 +207,25 @@ struct avlbfl_map
 
   /**
     * Builds a AVL-tree map from an iterator range.
-    * \param aFirst An input iterator (start of range).
-    * \param aLast An input iterator (end of range).
+    * \param first An input iterator (start of range).
+    * \param last An input iterator (end of range).
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlbfl_map(InputIterator aFirst, InputIterator aLast,
+  avlbfl_map(InputIterator first, InputIterator last,
              const Compare& comp = Compare(),
              const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aFirst, aLast, comp) {}
+      : base_impl_type(first, last, comp) {}
 
   /**
     * Builds a AVL-tree map from an initializer_list.
-    * \param aList An std::initializer_list.
+    * \param vlist An std::initializer_list.
     * \param comp A comparison functor.
     */
-  avlbfl_map(std::initializer_list<value_type> aList,
+  avlbfl_map(std::initializer_list<value_type> vlist,
              const Compare& comp = Compare(),
              const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aList, comp) {}
+      : base_impl_type(vlist, comp) {}
 };
 
 /**
@@ -247,11 +246,11 @@ struct avlbfl_map
  */
 template <typename Key, typename T, typename Compare = std::less<Key>>
 struct avlbfl_multimap
-    : public avl_tree_impl<boost::bfl_d_ary_tree<2, std::pair<Key, T>>, Compare,
-                           detail::avl_multimap_style> {
+    : public avl_tree_impl<bagl::bfl_d_ary_tree<2, std::pair<Key, T>>, Compare,
+                           avl_detail::avl_multimap_style> {
   using base_impl_type =
-      avl_tree_impl<boost::bfl_d_ary_tree<2, std::pair<Key, T>>, Compare,
-                    detail::avl_multimap_style>;
+      avl_tree_impl<bagl::bfl_d_ary_tree<2, std::pair<Key, T>>, Compare,
+                    avl_detail::avl_multimap_style>;
   using value_type = typename base_impl_type::value_type;
   using allocator_type = typename base_impl_type::allocator_type;
 
@@ -272,25 +271,25 @@ struct avlbfl_multimap
 
   /**
     * Builds a AVL-tree multimap from an iterator range.
-    * \param aFirst An input iterator (start of range).
-    * \param aLast An input iterator (end of range).
+    * \param first An input iterator (start of range).
+    * \param last An input iterator (end of range).
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlbfl_multimap(InputIterator aFirst, InputIterator aLast,
+  avlbfl_multimap(InputIterator first, InputIterator last,
                   const Compare& comp = Compare(),
                   const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aFirst, aLast, comp) {}
+      : base_impl_type(first, last, comp) {}
 
   /**
     * Builds a AVL-tree multimap from an initializer_list.
-    * \param aList An std::initializer_list.
+    * \param vlist An std::initializer_list.
     * \param comp A comparison functor.
     */
-  avlbfl_multimap(std::initializer_list<value_type> aList,
+  avlbfl_multimap(std::initializer_list<value_type> vlist,
                   const Compare& comp = Compare(),
                   const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aList, comp) {}
+      : base_impl_type(vlist, comp) {}
 };
 
 /**
@@ -309,10 +308,10 @@ struct avlbfl_multimap
  *                 return true if a is considered to go before b in the strict weak ordering the function defines.
  */
 template <typename T, typename Compare = std::less<T>>
-struct avlvebl_set : public avl_tree_impl<boost::vebl_d_ary_tree<2, T>, Compare,
-                                          detail::avl_set_style> {
-  using base_impl_type = avl_tree_impl<boost::vebl_d_ary_tree<2, T>, Compare,
-                                       detail::avl_set_style>;
+struct avlvebl_set : public avl_tree_impl<bagl::vebl_d_ary_tree<2, T>, Compare,
+                                          avl_detail::avl_set_style> {
+  using base_impl_type = avl_tree_impl<bagl::vebl_d_ary_tree<2, T>, Compare,
+                                       avl_detail::avl_set_style>;
   using value_type = typename base_impl_type::value_type;
   using allocator_type = typename base_impl_type::allocator_type;
 
@@ -332,25 +331,25 @@ struct avlvebl_set : public avl_tree_impl<boost::vebl_d_ary_tree<2, T>, Compare,
 
   /**
     * Builds a AVL-tree set from an iterator range.
-    * \param aFirst An input iterator (start of range).
-    * \param aLast An input iterator (end of range).
+    * \param first An input iterator (start of range).
+    * \param last An input iterator (end of range).
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlvebl_set(InputIterator aFirst, InputIterator aLast,
+  avlvebl_set(InputIterator first, InputIterator last,
               const Compare& comp = Compare(),
               const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aFirst, aLast, comp) {}
+      : base_impl_type(first, last, comp) {}
 
   /**
     * Builds a AVL-tree set from an initializer_list.
-    * \param aList An std::initializer_list.
+    * \param vlist An std::initializer_list.
     * \param comp A comparison functor.
     */
-  avlvebl_set(std::initializer_list<value_type> aList,
+  avlvebl_set(std::initializer_list<value_type> vlist,
               const Compare& comp = Compare(),
               const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aList, comp) {}
+      : base_impl_type(vlist, comp) {}
 };
 
 /**
@@ -370,10 +369,10 @@ struct avlvebl_set : public avl_tree_impl<boost::vebl_d_ary_tree<2, T>, Compare,
  */
 template <typename T, typename Compare = std::less<T>>
 struct avlvebl_multiset
-    : public avl_tree_impl<boost::vebl_d_ary_tree<2, T>, Compare,
-                           detail::avl_multiset_style> {
-  using base_impl_type = avl_tree_impl<boost::vebl_d_ary_tree<2, T>, Compare,
-                                       detail::avl_multiset_style>;
+    : public avl_tree_impl<bagl::vebl_d_ary_tree<2, T>, Compare,
+                           avl_detail::avl_multiset_style> {
+  using base_impl_type = avl_tree_impl<bagl::vebl_d_ary_tree<2, T>, Compare,
+                                       avl_detail::avl_multiset_style>;
   using value_type = typename base_impl_type::value_type;
   using allocator_type = typename base_impl_type::allocator_type;
 
@@ -394,25 +393,25 @@ struct avlvebl_multiset
 
   /**
     * Builds a AVL-tree multiset from an iterator range.
-    * \param aFirst An input iterator (start of range).
-    * \param aLast An input iterator (end of range).
+    * \param first An input iterator (start of range).
+    * \param last An input iterator (end of range).
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlvebl_multiset(InputIterator aFirst, InputIterator aLast,
+  avlvebl_multiset(InputIterator first, InputIterator last,
                    const Compare& comp = Compare(),
                    const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aFirst, aLast, comp) {}
+      : base_impl_type(first, last, comp) {}
 
   /**
     * Builds a AVL-tree multiset from an initializer_list.
-    * \param aList An std::initializer_list.
+    * \param vlist An std::initializer_list.
     * \param comp A comparison functor.
     */
-  avlvebl_multiset(std::initializer_list<value_type> aList,
+  avlvebl_multiset(std::initializer_list<value_type> vlist,
                    const Compare& comp = Compare(),
                    const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aList, comp) {}
+      : base_impl_type(vlist, comp) {}
 };
 
 /**
@@ -433,11 +432,11 @@ struct avlvebl_multiset
  */
 template <typename Key, typename T, typename Compare = std::less<Key>>
 struct avlvebl_map
-    : public avl_tree_impl<boost::vebl_d_ary_tree<2, std::pair<Key, T>>,
-                           Compare, detail::avl_map_style> {
+    : public avl_tree_impl<bagl::vebl_d_ary_tree<2, std::pair<Key, T>>, Compare,
+                           avl_detail::avl_map_style> {
   using base_impl_type =
-      avl_tree_impl<boost::vebl_d_ary_tree<2, std::pair<Key, T>>, Compare,
-                    detail::avl_map_style>;
+      avl_tree_impl<bagl::vebl_d_ary_tree<2, std::pair<Key, T>>, Compare,
+                    avl_detail::avl_map_style>;
   using value_type = typename base_impl_type::value_type;
   using allocator_type = typename base_impl_type::allocator_type;
 
@@ -457,25 +456,25 @@ struct avlvebl_map
 
   /**
     * Builds a AVL-tree map from an iterator range.
-    * \param aFirst An input iterator (start of range).
-    * \param aLast An input iterator (end of range).
+    * \param first An input iterator (start of range).
+    * \param last An input iterator (end of range).
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlvebl_map(InputIterator aFirst, InputIterator aLast,
+  avlvebl_map(InputIterator first, InputIterator last,
               const Compare& comp = Compare(),
               const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aFirst, aLast, comp) {}
+      : base_impl_type(first, last, comp) {}
 
   /**
     * Builds a AVL-tree map from an initializer_list.
-    * \param aList An std::initializer_list.
+    * \param vlist An std::initializer_list.
     * \param comp A comparison functor.
     */
-  avlvebl_map(std::initializer_list<value_type> aList,
+  avlvebl_map(std::initializer_list<value_type> vlist,
               const Compare& comp = Compare(),
               const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aList, comp) {}
+      : base_impl_type(vlist, comp) {}
 };
 
 /**
@@ -496,11 +495,11 @@ struct avlvebl_map
  */
 template <typename Key, typename T, typename Compare = std::less<Key>>
 struct avlvebl_multimap
-    : public avl_tree_impl<boost::vebl_d_ary_tree<2, std::pair<Key, T>>,
-                           Compare, detail::avl_multimap_style> {
+    : public avl_tree_impl<bagl::vebl_d_ary_tree<2, std::pair<Key, T>>, Compare,
+                           avl_detail::avl_multimap_style> {
   using base_impl_type =
-      avl_tree_impl<boost::vebl_d_ary_tree<2, std::pair<Key, T>>, Compare,
-                    detail::avl_multimap_style>;
+      avl_tree_impl<bagl::vebl_d_ary_tree<2, std::pair<Key, T>>, Compare,
+                    avl_detail::avl_multimap_style>;
   using value_type = typename base_impl_type::value_type;
   using allocator_type = typename base_impl_type::allocator_type;
 
@@ -521,25 +520,25 @@ struct avlvebl_multimap
 
   /**
     * Builds a AVL-tree multimap from an iterator range.
-    * \param aFirst An input iterator (start of range).
-    * \param aLast An input iterator (end of range).
+    * \param first An input iterator (start of range).
+    * \param last An input iterator (end of range).
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlvebl_multimap(InputIterator aFirst, InputIterator aLast,
+  avlvebl_multimap(InputIterator first, InputIterator last,
                    const Compare& comp = Compare(),
                    const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aFirst, aLast, comp) {}
+      : base_impl_type(first, last, comp) {}
 
   /**
     * Builds a AVL-tree multimap from an initializer_list.
-    * \param aList An std::initializer_list.
+    * \param vlist An std::initializer_list.
     * \param comp A comparison functor.
     */
-  avlvebl_multimap(std::initializer_list<value_type> aList,
+  avlvebl_multimap(std::initializer_list<value_type> vlist,
                    const Compare& comp = Compare(),
                    const allocator_type& /*unused*/ = allocator_type())
-      : base_impl_type(aList, comp) {}
+      : base_impl_type(vlist, comp) {}
 };
 
 }  // namespace ReaK::graph

@@ -45,8 +45,7 @@ cc_library(
     "//ReaK/core/base",
     "//ReaK/core/base:endian_conversions",
     "//ReaK/core/rtti",
-    "@boost_graph_extras//:boost_graph_extras",
-    "@boost//:graph",
+    "@bagl//bagl",
   ],
 )
 

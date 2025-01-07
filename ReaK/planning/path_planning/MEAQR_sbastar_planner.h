@@ -51,9 +51,7 @@
 
 #include "ReaK/planning/path_planning/motion_graph_structures.h"
 
-// BGL-Extra includes:
-#include "boost/graph/more_property_maps.hpp"
-#include "boost/graph/more_property_tags.hpp"
+#include "bagl/more_property_maps.h"
 
 #include "ReaK/planning/path_planning/metric_space_search.h"
 #include "ReaK/planning/path_planning/topological_search.h"
@@ -400,26 +398,26 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
 
   using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
-  using PositionMap = boost::data_member_property_map<PointType, VertexProp>;
+  using PositionMap = bagl::data_member_property_map<PointType, VertexProp>;
   PositionMap pos_map = PositionMap(&VertexProp::position);
 
-  using DensityMap = boost::data_member_property_map<double, VertexProp>;
+  using DensityMap = bagl::data_member_property_map<double, VertexProp>;
   DensityMap dens_map = DensityMap(&VertexProp::density);
 
-  using ConstrictionMap = boost::data_member_property_map<double, VertexProp>;
+  using ConstrictionMap = bagl::data_member_property_map<double, VertexProp>;
   ConstrictionMap cons_map = ConstrictionMap(&VertexProp::constriction);
 
-  using DistanceMap = boost::data_member_property_map<double, VertexProp>;
+  using DistanceMap = bagl::data_member_property_map<double, VertexProp>;
   DistanceMap dist_map = DistanceMap(&VertexProp::distance_accum);
 
-  using HeuristicMap = boost::data_member_property_map<double, VertexProp>;
+  using HeuristicMap = bagl::data_member_property_map<double, VertexProp>;
   HeuristicMap heuristic_map = HeuristicMap(&VertexProp::heuristic_value);
 
   using PredecessorMap =
-      boost::data_member_property_map<std::size_t, VertexProp>;
+      bagl::data_member_property_map<std::size_t, VertexProp>;
   PredecessorMap pred_map = PredecessorMap(&VertexProp::predecessor);
 
-  using WeightMap = boost::data_member_property_map<double, EdgeProp>;
+  using WeightMap = bagl::data_member_property_map<double, EdgeProp>;
   WeightMap weight_map = WeightMap(&EdgeProp::weight);
 
   double space_dim = double(this->get_space_dimensionality());
@@ -437,16 +435,16 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
           path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
 
   using MotionGraphType =
-      boost::adjacency_list_BC<boost::vecBC, boost::vecBC,
-                               boost::bidirectionalS, VertexProp, EdgeProp>;
-  using Vertex = graph::graph_vertex_t<MotionGraphType>;
+      bagl::adjacency_list<bagl::vec_s, bagl::vec_s, bagl::bidirectional_s,
+                           VertexProp, EdgeProp>;
+  using Vertex = bagl::graph_vertex_descriptor_t<MotionGraphType>;
 
   MotionGraphType motion_graph;
 
 #define RK_MEAQR_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE              \
   VertexProp vp_start;                                                 \
   vp_start.position = aQuery.get_start_position();                     \
-  Vertex start_node = add_vertex(std::move(vp_start), motion_graph);   \
+  Vertex start_node = add_vertex(motion_graph, std::move(vp_start));   \
   motion_graph[start_node].constriction = 0.0;                         \
   motion_graph[start_node].collision_count = 0;                        \
   motion_graph[start_node].density = 0.0;                              \
@@ -459,7 +457,7 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
   if (p2p_query_ptr) {                                                 \
     VertexProp vp_goal;                                                \
     vp_goal.position = p2p_query_ptr->goal_pos;                        \
-    Vertex goal_node = add_vertex(std::move(vp_goal), motion_graph);   \
+    Vertex goal_node = add_vertex(motion_graph, std::move(vp_goal));   \
     motion_graph[goal_node].constriction = 0.0;                        \
     motion_graph[goal_node].collision_count = 0;                       \
     motion_graph[goal_node].density = 0.0;                             \
@@ -473,8 +471,7 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
 
 #define RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)   \
   using GraphPositionMap =                                                     \
-      typename boost::property_map<MotionGraphType,                            \
-                                   PointType BasicVertexProp::*>::type;        \
+      bagl::property_map_t<MotionGraphType, PointType BasicVertexProp::*>;     \
   using SpacePartType =                                                        \
       dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, \
                TREE_STORAGE, no_position_caching_policy>;                      \
@@ -504,7 +501,7 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
   ReaK::graph::make_sbastar_bundle(                                   \
       motion_graph, std::any_cast<Vertex>(vis.m_start_node),          \
       (vis.m_goal_node.empty()                                        \
-           ? boost::graph_traits<MotionGraphType>::null_vertex()      \
+           ? bagl::graph_traits<MotionGraphType>::null_vertex()       \
            : std::any_cast<Vertex>(vis.m_goal_node)),                 \
       this->m_space->get_super_space(), vis, nc_selector,             \
       get(&VertexProp::key_value, motion_graph), pos_map, weight_map, \
@@ -648,7 +645,7 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
              DVP_BF2_TREE_KNN) {
 
     RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
-        2, boost::bfl_d_ary_tree_storage<2>)
+        2, bagl::bfl_d_ary_tree_storage<2>)
 
     RK_MEAQR_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
 
@@ -656,7 +653,7 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
              DVP_BF4_TREE_KNN) {
 
     RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
-        4, boost::bfl_d_ary_tree_storage<4>)
+        4, bagl::bfl_d_ary_tree_storage<4>)
 
     RK_MEAQR_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
 
@@ -665,7 +662,7 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
              DVP_COB2_TREE_KNN) {
 
     RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
-        2, boost::vebl_d_ary_tree_storage<2>)
+        2, bagl::vebl_d_ary_tree_storage<2>)
 
     RK_MEAQR_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
 
@@ -673,7 +670,7 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
              DVP_COB4_TREE_KNN) {
 
     RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
-        4, boost::vebl_d_ary_tree_storage<4>)
+        4, bagl::vebl_d_ary_tree_storage<4>)
 
     RK_MEAQR_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
 #endif

@@ -44,10 +44,8 @@
 
 #include "ReaK/planning/path_planning/motion_graph_structures.h"
 
-// BGL-Extra includes:
-#include "boost/graph/more_property_maps.hpp"
-#include "boost/graph/more_property_tags.hpp"
-#include "boost/graph/tree_adaptor.hpp"
+#include "bagl/more_property_maps.h"
+#include "bagl/tree_adaptor.h"
 
 #include "ReaK/planning/path_planning/metric_space_search.h"
 #include "ReaK/planning/path_planning/topological_search.h"
@@ -270,16 +268,16 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
 
   using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
-  using PositionMap = boost::data_member_property_map<PointType, VertexProp>;
+  using PositionMap = bagl::data_member_property_map<PointType, VertexProp>;
   auto pos_map = PositionMap(&VertexProp::position);
 
-  using CostMap = boost::data_member_property_map<double, VertexProp>;
+  using CostMap = bagl::data_member_property_map<double, VertexProp>;
   auto cost_map = CostMap(&VertexProp::distance_accum);
 
-  using PredMap = boost::data_member_property_map<std::size_t, VertexProp>;
+  using PredMap = bagl::data_member_property_map<std::size_t, VertexProp>;
   auto pred_map = PredMap(&VertexProp::predecessor);
 
-  using WeightMap = boost::data_member_property_map<double, EdgeProp>;
+  using WeightMap = bagl::data_member_property_map<double, EdgeProp>;
   auto weight_map = WeightMap(&EdgeProp::weight);
 
   auto space_dim = static_cast<double>(this->get_space_dimensionality());
@@ -299,23 +297,23 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
           path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
 
   using MotionGraphType =
-      boost::adjacency_list_BC<boost::vecBC, boost::vecBC,
-                               boost::bidirectionalS, VertexProp, EdgeProp>;
-  using Vertex = graph::graph_vertex_t<MotionGraphType>;
+      bagl::adjacency_list<bagl::vec_s, bagl::vec_s, bagl::bidirectional_s,
+                           VertexProp, EdgeProp>;
+  using Vertex = bagl::graph_vertex_descriptor_t<MotionGraphType>;
 
   MotionGraphType motion_graph;
 
 #define RK_MEAQR_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE                      \
   VertexProp vp_start;                                                         \
   vp_start.position = aQuery.get_start_position();                             \
-  Vertex vs = add_vertex(vp_start, motion_graph);                              \
+  Vertex vs = add_vertex(motion_graph, std::move(vp_start));                   \
   motion_graph[vs].distance_accum = 0.0;                                       \
   motion_graph[vs].predecessor = vs;                                           \
   vis.m_start_node = std::any(vs);                                             \
   if (p2p_query_ptr) {                                                         \
     VertexProp vp_goal;                                                        \
     vp_goal.position = p2p_query_ptr->goal_pos;                                \
-    Vertex vg = add_vertex(vp_goal, motion_graph);                             \
+    Vertex vg = add_vertex(motion_graph, std::move(vp_goal));                  \
     motion_graph[vg].distance_accum = std::numeric_limits<double>::infinity(); \
     motion_graph[vg].predecessor = vg;                                         \
     vis.m_goal_node = std::any(vg);                                            \
@@ -323,8 +321,7 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
 
 #define RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)   \
   using GraphPositionMap =                                                     \
-      typename boost::property_map<MotionGraphType,                            \
-                                   PointType BasicVertexProp::*>::type;        \
+      bagl::property_map_t<MotionGraphType, PointType BasicVertexProp::*>;     \
   using SpacePartType =                                                        \
       dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, \
                TREE_STORAGE, no_position_caching_policy>;                      \
@@ -369,7 +366,7 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
              DVP_BF2_TREE_KNN) {
 
     RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
-        2, boost::bfl_d_ary_tree_storage<2>)
+        2, bagl::bfl_d_ary_tree_storage<2>)
 
     RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
 
@@ -377,7 +374,7 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
              DVP_BF4_TREE_KNN) {
 
     RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
-        4, boost::bfl_d_ary_tree_storage<4>)
+        4, bagl::bfl_d_ary_tree_storage<4>)
 
     RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
 
@@ -387,7 +384,7 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
              DVP_COB2_TREE_KNN) {
 
     RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
-        2, boost::vebl_d_ary_tree_storage<2>)
+        2, bagl::vebl_d_ary_tree_storage<2>)
 
     RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
 
@@ -395,7 +392,7 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
              DVP_COB4_TREE_KNN) {
 
     RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(
-        4, boost::vebl_d_ary_tree_storage<4>)
+        4, bagl::vebl_d_ary_tree_storage<4>)
 
     RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
 

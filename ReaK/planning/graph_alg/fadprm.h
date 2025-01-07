@@ -47,11 +47,11 @@
 
 #include <concepts>
 #include <functional>
+#include <limits>
 #include <type_traits>
 
 #include "ReaK/planning/graph_alg/adstar_search.h"
 #include "ReaK/planning/graph_alg/probabilistic_roadmap.h"
-#include "ReaK/planning/graph_alg/simple_graph_traits.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/random_sampler_concept.h"
 
@@ -90,25 +90,24 @@ class default_fadprm_visitor {
   using PointType = typename ReaK::pp::topology_traits<Space>::point_type;
 
   default_fadprm_visitor(const Space& free_space, PositionMap position)
-      : m_free_space(free_space), m_position(position) {}
-  default_fadprm_visitor(const default_fadprm_visitor<Space, PositionMap>& aVis)
-      : m_free_space(aVis.m_free_space), m_position(aVis.m_position) {}
+      : free_space_(free_space), position_(position) {}
+  default_fadprm_visitor(const default_fadprm_visitor<Space, PositionMap>&) =
+      default;
 
   // AD* visitor functions:
   template <typename Vertex, typename Graph>
-  void initialize_vertex(Vertex u, const Graph& g) const {}
+  void initialize_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
   template <typename Vertex, typename Graph>
-  void discover_vertex(Vertex u, const Graph& g) const {}
+  void discover_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
   template <typename Vertex, typename Graph>
-  void examine_vertex(Vertex u, const Graph& g) const {}
+  void examine_vertex(Vertex /*unused*/, const Graph& /*unused*/) const {}
   template <typename Edge, typename Graph>
-  void examine_edge(Edge e, const Graph& g) const {}
+  void examine_edge(Edge /*unused*/, const Graph& /*unused*/) const {}
   template <typename Graph>
-  void publish_path(const Graph& g) const {}
+  void publish_path(const Graph& /*unused*/) const {}
   template <typename EdgeIter, typename Graph>
-  std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei,
-                                                 const Graph& g) const {
-    RK_UNUSED(g);
+  std::pair<double, EdgeIter> detect_edge_change(
+      EdgeIter ei, const Graph& /*unused*/) const {
     return {0.0, ei};
   }
   template <typename Graph>
@@ -127,17 +126,16 @@ class default_fadprm_visitor {
     return {PointType(), false};
   }
   template <typename Vertex, typename Graph>
-  void update_density(Vertex /*unused*/, const Graph& g) const {}
+  void update_density(Vertex /*unused*/, const Graph& /*unused*/) const {}
 
   // Common to both PRM and AD* visitors:
   bool keep_going() const { return true; }
 
-  const Space& m_free_space;
-  PositionMap m_position;
+  const Space& free_space_;
+  PositionMap position_;
 };
 
-namespace detail {
-namespace {
+namespace fadprm_detail {
 
 template <pp::MetricSpace Space, typename AStarHeuristicMap,
           typename UniformCostVisitor, typename UpdatableQueue, typename List,
@@ -147,12 +145,11 @@ template <pp::MetricSpace Space, typename AStarHeuristicMap,
           typename ColorMap>
 struct fadprm_bfs_visitor {
 
-  using KeyValue = property_value_t<KeyMap>;
-  using ColorValue = property_value_t<ColorMap>;
-  using Color = boost::color_traits<ColorValue>;
-  using distance_type = property_value_t<DistanceMap>;
-  using weight_type = property_value_t<WeightMap>;
-  using PositionValue = property_value_t<PositionMap>;
+  using KeyValue = bagl::property_traits_value_t<KeyMap>;
+  using ColorValue = bagl::property_traits_value_t<ColorMap>;
+  using Color = bagl::color_traits<ColorValue>;
+  using DistanceValue = bagl::property_traits_value_t<DistanceMap>;
+  using PositionValue = bagl::property_traits_value_t<PositionMap>;
 
   fadprm_bfs_visitor(const Space& super_space, AStarHeuristicMap h,
                      UniformCostVisitor vis, UpdatableQueue& Q, List& I,
@@ -160,68 +157,69 @@ struct fadprm_bfs_visitor {
                      DistanceMap d, RHSMap rhs, WeightMap w, DensityMap dens,
                      PositionMap pos, NcSelector select_neighborhood,
                      ColorMap col, double& beta)
-      : m_super_space(super_space),
-        m_h(h),
-        m_vis(vis),
-        m_Q(Q),
-        m_I(I),
-        m_index_in_heap(index_in_heap),
-        m_predecessor(p),
-        m_key(k),
-        m_distance(d),
-        m_rhs(rhs),
-        m_weight(w),
-        m_density(dens),
-        m_position(pos),
-        m_select_neighborhood(select_neighborhood),
-        m_color(col),
-        m_beta(beta) {}
+      : super_space_(super_space),
+        h_(h),
+        vis_(vis),
+        q_(Q),
+        incons_(I),
+        index_in_heap_(index_in_heap),
+        predecessor_(p),
+        key_(k),
+        distance_(d),
+        rhs_(rhs),
+        weight_(w),
+        density_(dens),
+        position_(pos),
+        select_neighborhood_(select_neighborhood),
+        color_(col),
+        beta_(beta) {}
 
   template <class Vertex, class Graph>
   void initialize_vertex(Vertex u, Graph& g) const {
-    m_vis.initialize_vertex(u, g);
+    vis_.initialize_vertex(u, g);
   }
   template <class Vertex, class Graph>
   void discover_vertex(Vertex u, Graph& g) const {
-    m_vis.discover_vertex(u, g);
+    vis_.discover_vertex(u, g);
   }
   template <class Vertex, class Graph>
-  void inconsistent_vertex(Vertex u, Graph& g) const {}
+  void inconsistent_vertex(Vertex /*unused*/, Graph& /*unused*/) const {}
 
   template <class Graph>
-  graph_vertex_t<Graph> create_vertex(const PositionValue& p, Graph& g) const {
-    using Vertex = graph_vertex_t<Graph>;
-    using VertexProp = graph_vertex_bundle_t<Graph>;
+  bagl::graph_vertex_descriptor_t<Graph> create_vertex(const PositionValue& p,
+                                                       Graph& g) const {
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
+    using VertexProp = bagl::vertex_property_type<Graph>;
 
     VertexProp up;
-    put(m_position, up, p);
-    Vertex u = add_vertex(std::move(up), g);
-    m_vis.vertex_added(u, g);
-    put(m_color, u, Color::white());
-    put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-    put(m_distance, u, std::numeric_limits<double>::infinity());
-    put(m_rhs, u, std::numeric_limits<double>::infinity());
-    put(m_key, u,
+    put(position_, up, p);
+    Vertex u = add_vertex(g, std::move(up));
+    vis_.vertex_added(u, g);
+    put(color_, u, Color::white());
+    put(index_in_heap_, u, std::numeric_limits<std::size_t>::max());
+    put(distance_, u, std::numeric_limits<double>::infinity());
+    put(rhs_, u, std::numeric_limits<double>::infinity());
+    put(key_, u,
         KeyValue(std::numeric_limits<double>::infinity(),
                  std::numeric_limits<double>::infinity()));
-    put(m_predecessor, u, u);
+    put(predecessor_, u, u);
 
     return u;
   }
 
   template <typename Edge, typename Graph>
   void edge_added(Edge e, Graph& g) const {
-    m_vis.edge_added(e, g);
+    vis_.edge_added(e, g);
   }
 
   template <typename Vertex, typename Graph>
   void vertex_added(Vertex u, Graph& g) const {
-    m_vis.vertex_added(u, g);
+    vis_.vertex_added(u, g);
   }
 
   template <class Vertex, class Graph>
   void examine_vertex(Vertex u, Graph& g) {
-    m_vis.examine_vertex(u, g);
+    vis_.examine_vertex(u, g);
 
     prm_node_connector connect_vertex;
 
@@ -231,10 +229,10 @@ struct fadprm_bfs_visitor {
     }
     max_node_degree = (max_node_degree - out_degree(u, g)) / 2;
     for (std::size_t i = 0; i < max_node_degree; ++i) {
-      auto [p_rnd, expanding_worked, ep] = m_vis.random_walk(u, g);
+      auto [p_rnd, expanding_worked, ep] = vis_.random_walk(u, g);
       if (expanding_worked) {
-        connect_vertex(p_rnd, u, ep, g, m_super_space, *this, m_position,
-                       m_select_neighborhood);
+        connect_vertex(p_rnd, u, ep, g, super_space_, *this, position_,
+                       select_neighborhood_);
       } else {
         break;
       }
@@ -243,114 +241,111 @@ struct fadprm_bfs_visitor {
 
   template <class Edge, class Graph>
   void examine_edge(Edge e, Graph& g) const {
-    if (get(m_weight, e) < 0.0) {
-      throw boost::negative_edge();
+    if (get(weight_, e) < 0.0) {
+      throw bagl::negative_edge();
     }
-    m_vis.examine_edge(e, g);
+    vis_.examine_edge(e, g);
   }
   template <class Vertex, class Graph>
-  void forget_vertex(Vertex u, Graph& g) const {}
+  void forget_vertex(Vertex /*unused*/, Graph& /*unused*/) const {}
   template <class Vertex, class Graph>
-  void finish_vertex(Vertex u, Graph& g) const {}
+  void finish_vertex(Vertex /*unused*/, Graph& /*unused*/) const {}
   template <class Vertex, class Graph>
-  void recycle_vertex(Vertex u, Graph& g) const {}
+  void recycle_vertex(Vertex /*unused*/, Graph& /*unused*/) const {}
 
   template <typename Graph>
   void publish_path(const Graph& g) const {
-    m_vis.publish_path(g);
+    vis_.publish_path(g);
   }
 
-  bool keep_going() const { return m_vis.keep_going(); }
+  bool keep_going() const { return vis_.keep_going(); }
 
   template <typename EdgeIter, typename Graph>
   std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei,
                                                  const Graph& g) const {
-    return m_vis.detect_edge_change(ei, g);
+    return vis_.detect_edge_change(ei, g);
   }
 
   template <typename Graph>
   double adjust_epsilon(double old_eps, double /*unused*/,
                         const Graph& g) const {
-    return m_vis.adjust_relaxation(old_eps, g);
+    return vis_.adjust_relaxation(old_eps, g);
   }
 
   template <class Vertex, typename Graph>
   void update_key(Vertex u, Graph& g) const {
-    m_vis.affected_vertex(u, g);
-    distance_type g_u = get(m_distance, u);
-    distance_type rhs_u = get(m_rhs, u);
-    distance_type h_u = get(m_h, u);
+    vis_.affected_vertex(u, g);
+    DistanceValue g_u = get(distance_, u);
+    DistanceValue rhs_u = get(rhs_, u);
+    DistanceValue h_u = get(h_, u);
     if (rhs_u < g_u) {
-      distance_type f_u = rhs_u + h_u;  // 0.5 * ( rhs_u + h_u );
-      put(m_key, u,
-          KeyValue((1.0 - m_beta) * get(m_density, u) + m_beta * f_u, rhs_u));
+      DistanceValue f_u = rhs_u + h_u;  // 0.5 * ( rhs_u + h_u );
+      put(key_, u,
+          KeyValue((1.0 - beta_) * get(density_, u) + beta_ * f_u, rhs_u));
     } else {
-      distance_type f_u = g_u + h_u;  // 0.5 * ( g_u + h_u );
-      put(m_key, u, KeyValue(f_u, rhs_u));
+      DistanceValue f_u = g_u + h_u;  // 0.5 * ( g_u + h_u );
+      put(key_, u, KeyValue(f_u, rhs_u));
     }
   }
 
-  template <class Vertex, class Graph>
+  template <class Vertex, bagl::concepts::BidirectionalGraph Graph>
   void update_vertex(Vertex u, Graph& g) {
-    BOOST_CONCEPT_ASSERT((boost::BidirectionalGraphConcept<Graph>));
-
-    ColorValue col_u = get(m_color, u);
+    ColorValue col_u = get(color_, u);
 
     if (col_u == Color::white()) {
-      put(m_distance, u, std::numeric_limits<double>::infinity());
+      put(distance_, u, std::numeric_limits<double>::infinity());
       col_u = Color::green();
-      put(m_color, u, col_u);
+      put(color_, u, col_u);
     }
 
-    distance_type g_u = get(m_distance, u);
-    distance_type rhs_u = get(m_rhs, u);
+    DistanceValue g_u = get(distance_, u);
+    DistanceValue rhs_u = get(rhs_, u);
 
     if (rhs_u != 0.0) {
       rhs_u = std::numeric_limits<double>::infinity();
-      for (auto [ei, ei_end] = in_edges(u, g); ei != ei_end; ++ei) {
-        distance_type rhs_tmp =
-            get(m_weight, *ei) + get(m_distance, source(*ei, g));
+      for (auto e : in_edges(u, g)) {
+        DistanceValue rhs_tmp = get(weight_, e) + get(distance_, source(e, g));
         if (rhs_tmp < rhs_u) {
           rhs_u = rhs_tmp;
-          put(m_rhs, u, rhs_u);
-          put(m_predecessor, u, source(*ei, g));
+          put(rhs_, u, rhs_u);
+          put(predecessor_, u, source(e, g));
         }
       }
-      rhs_u = get(m_rhs, u);
+      rhs_u = get(rhs_, u);
     }
 
     if (rhs_u != g_u) {
       if ((col_u != Color::black()) && (col_u != Color::red())) {
         update_key(u, g);
-        m_Q.push_or_update(u);
-        put(m_color, u, Color::gray());
-        m_vis.discover_vertex(u, g);
+        q_.push_or_update(u);
+        put(color_, u, Color::gray());
+        vis_.discover_vertex(u, g);
       } else if (col_u == Color::black()) {
-        m_I.push_back(u);
-        put(m_color, u, Color::red());
+        incons_.push_back(u);
+        put(color_, u, Color::red());
       }
-    } else if (m_Q.contains(u)) {
-      put(m_key, u, KeyValue(0.0, 0.0));
-      m_Q.update(u);
-      m_Q.pop();  // remove from OPEN set
+    } else if (q_.contains(u)) {
+      put(key_, u, KeyValue(0.0, 0.0));
+      q_.update(u);
+      q_.pop();  // remove from OPEN set
       update_key(u, g);
-      put(m_color, u, Color::green());
+      put(color_, u, Color::green());
     }
   }
 
   template <typename Vertex, typename Graph>
   void travel_explored(Vertex u, Vertex v, Graph& g) const {
-    m_vis.travel_explored(u, v, g);
+    vis_.travel_explored(u, v, g);
   }
 
   template <typename Vertex, typename Graph>
   void travel_succeeded(Vertex u, Vertex v, Graph& g) const {
-    m_vis.travel_succeeded(u, v, g);
+    vis_.travel_succeeded(u, v, g);
   }
 
   template <typename Vertex, typename Graph>
   void travel_failed(Vertex u, Vertex v, Graph& g) const {
-    m_vis.travel_failed(u, v, g);
+    vis_.travel_failed(u, v, g);
   }
 
   template <typename Vertex, typename Graph>
@@ -360,42 +355,40 @@ struct fadprm_bfs_visitor {
   }
 
   template <typename Vertex, typename Graph>
-  std::pair<bool, graph_edge_bundle_t<Graph>> can_be_connected(Vertex u,
-                                                               Vertex v,
-                                                               Graph& g) const {
-    return m_vis.can_be_connected(u, v, g);
+  std::pair<bool, bagl::edge_bundle_type<Graph>> can_be_connected(
+      Vertex u, Vertex v, Graph& g) const {
+    return vis_.can_be_connected(u, v, g);
   }
 
   template <typename Vertex, typename Graph>
-  std::tuple<PositionValue, bool, graph_edge_bundle_t<Graph>> random_walk(
+  std::tuple<PositionValue, bool, bagl::edge_bundle_type<Graph>> random_walk(
       Vertex u, Graph& g) const {
-    return m_vis.random_walk(u, g);
+    return vis_.random_walk(u, g);
   }
 
   bool is_position_free(const PositionValue& p) const {
-    return m_vis.is_position_free(p);
+    return vis_.is_position_free(p);
   }
 
-  const Space& m_super_space;
-  AStarHeuristicMap m_h;
-  UniformCostVisitor m_vis;
-  UpdatableQueue& m_Q;
-  List& m_I;
-  IndexInHeapMap m_index_in_heap;
-  PredecessorMap m_predecessor;
-  KeyMap m_key;
-  DistanceMap m_distance;
-  RHSMap m_rhs;
-  WeightMap m_weight;
-  DensityMap m_density;
-  PositionMap m_position;
-  NcSelector m_select_neighborhood;
-  ColorMap m_color;
-  distance_type& m_beta;
+  const Space& super_space_;
+  AStarHeuristicMap h_;
+  UniformCostVisitor vis_;
+  UpdatableQueue& q_;
+  List& incons_;
+  IndexInHeapMap index_in_heap_;
+  PredecessorMap predecessor_;
+  KeyMap key_;
+  DistanceMap distance_;
+  RHSMap rhs_;
+  WeightMap weight_;
+  DensityMap density_;
+  PositionMap position_;
+  NcSelector select_neighborhood_;
+  ColorMap color_;
+  DistanceValue& beta_;
 };
 
-}  // namespace
-}  // namespace detail
+}  // namespace fadprm_detail
 
 /**
   * This function template generates a roadmap to connect a goal location to a start location
@@ -430,7 +423,7 @@ struct fadprm_bfs_visitor {
   *        vertex (if not it will be randomly generated) and will store
   *        the generated graph once the algorithm has finished.
   * \param start_vertex The starting point of the algorithm, on the graph.
-  * \param free_space A topology (as defined by the Boost Graph Library). Note
+  * \param free_space A topology (as defined by the Born Again Graph Library). Note
   *        that it is required to generate only random points in
   *        the free-space and to only allow interpolation within the free-space.
   * \param hval The property-map of A* heuristic function values for each vertex.
@@ -458,48 +451,51 @@ struct fadprm_bfs_visitor {
   * \param epsilon The initial epsilon value that relaxes the A* search to give the AD* its anytime
   *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
   */
-template <typename Graph, typename Vertex, pp::Topology Space,
-          typename AStarHeuristicMap, FADPRMVisitor<Graph, Space> Visitor,
-          typename PredecessorMap, typename DistanceMap, typename RHSMap,
-          typename WeightMap, typename PositionMap, typename DensityMap,
-          typename NcSelector, typename ColorMap>
-inline void generate_fadprm_no_init(
-    Graph& g, Vertex start_vertex, const Space& free_space,
-    AStarHeuristicMap hval, Visitor vis, PredecessorMap predecessor,
-    DistanceMap distance, RHSMap rhs, WeightMap weight, DensityMap density,
-    PositionMap position, NcSelector select_neighborhood, ColorMap color,
-    double epsilon) {
+template <bagl::concepts::VertexListGraph G,  // this is the actual graph.
+          pp::Topology Space,
+          bagl::concepts::ReadableVertexPropertyMap<G> AStarHeuristicMap,
+          FADPRMVisitor<G, Space> Visitor,
+          bagl::concepts::ReadWriteVertexPropertyMap<G> PredecessorMap,
+          bagl::concepts::ReadWriteVertexPropertyMap<G> DistanceMap,
+          bagl::concepts::ReadWriteVertexPropertyMap<G> RHSMap,
+          bagl::concepts::ReadableEdgePropertyMap<G> WeightMap,
+          bagl::concepts::ReadableVertexPropertyMap<G> DensityMap,
+          bagl::concepts::ReadWriteVPropMemberMap<G> PositionMap,
+          typename NcSelector,
+          bagl::concepts::ReadWriteVertexPropertyMap<G> ColorMap>
+void generate_fadprm_no_init(G& g,
+                             bagl::graph_vertex_descriptor_t<G> start_vertex,
+                             const Space& free_space, AStarHeuristicMap hval,
+                             Visitor vis, PredecessorMap predecessor,
+                             DistanceMap distance, RHSMap rhs, WeightMap weight,
+                             DensityMap density, PositionMap position,
+                             NcSelector select_neighborhood, ColorMap color,
+                             double epsilon) {
   using KeyValue = adstar_key_value<double>;
   using KeyCompareType = typename adstar_key_traits<KeyValue>::compare_type;
-  using KeyValueMap = boost::vector_property_map<KeyValue>;
-  KeyValueMap key_map;
+  auto key_map = bagl::vector_property_map(
+      num_vertices(g), get(bagl::vertex_index, g),
+      KeyValue(std::numeric_limits<double>::infinity(),
+               std::numeric_limits<double>::infinity()));
+  auto index_in_heap =
+      bagl::vector_property_map(num_vertices(g), get(bagl::vertex_index, g),
+                                std::numeric_limits<std::size_t>::max());
 
-  using IndexInHeapMap = boost::vector_property_map<std::size_t>;
-  IndexInHeapMap index_in_heap;
-  for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
-    put(index_in_heap, *ui, static_cast<std::size_t>(-1));
-    put(key_map, *ui,
-        KeyValue(std::numeric_limits<double>::infinity(),
-                 std::numeric_limits<double>::infinity()));
-  }
+  // priority queue holding the OPEN set.
+  auto q =
+      bagl::make_d_ary_heap_indirect<bagl::graph_vertex_descriptor_t<G>, 4>(
+          key_map.ref(), index_in_heap.ref(), KeyCompareType());
+  // list holding the INCONS set (inconsistent nodes).
+  std::vector<bagl::graph_vertex_descriptor_t<G>> incons;
 
-  using MutableQueue = boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap,
-                                                  KeyValueMap, KeyCompareType>;
-  MutableQueue Q(key_map, index_in_heap,
-                 KeyCompareType());  // priority queue holding the OPEN set.
-  std::vector<Vertex> I;  // list holding the INCONS set (inconsistent nodes).
+  auto bfs_vis = fadprm_detail::fadprm_bfs_visitor(
+      free_space, hval, vis, q, incons, index_in_heap.ref(), predecessor,
+      key_map.ref(), distance, rhs, weight, density, position,
+      select_neighborhood, color, epsilon);
 
-  detail::fadprm_bfs_visitor<
-      Space, AStarHeuristicMap, Visitor, MutableQueue, std::vector<Vertex>,
-      IndexInHeapMap, PredecessorMap, KeyValueMap, DistanceMap, RHSMap,
-      WeightMap, DensityMap, PositionMap, NcSelector, ColorMap>
-      bfs_vis(free_space, hval, vis, Q, I, index_in_heap, predecessor, key_map,
-              distance, rhs, weight, density, position, select_neighborhood,
-              color, epsilon);
-
-  detail::adstar_search_loop(
-      g, start_vertex, hval, bfs_vis, predecessor, distance, rhs, key_map,
-      weight, color, index_in_heap, Q, I, epsilon,
+  adstar_detail::adstar_search_loop(
+      g, start_vertex, hval, bfs_vis, predecessor, distance, rhs, key_map.ref(),
+      weight, color, index_in_heap.ref(), q, incons, epsilon,
       std::numeric_limits<double>::infinity(), 0.0, std::less<>(),
       std::equal_to<>(), std::plus<>(), std::multiplies<>());
 }
@@ -537,7 +533,7 @@ inline void generate_fadprm_no_init(
 *        vertex (if not it will be randomly generated) and will store
 *        the generated graph once the algorithm has finished.
 * \param start_vertex The starting point of the algorithm, on the graph.
-* \param free_space A topology (as defined by the Boost Graph Library). Note
+* \param free_space A topology (as defined by the Born Again Graph Library). Note
 *        that it is required to generate only random points in
 *        the free-space and to only allow interpolation within the free-space.
 * \param hval The property-map of A* heuristic function values for each vertex.
@@ -565,47 +561,42 @@ inline void generate_fadprm_no_init(
 * \param epsilon The initial epsilon value that relaxes the A* search to give the AD* its anytime
 *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
 */
-template <
-    typename Graph,  // this is the actual graph, should comply to BidirectionalMutableGraphConcept.
-    typename Vertex, pp::MetricSpace Space,
-    typename AStarHeuristicMap,  // this the map of heuristic function value for each vertex.
-    FADPRMVisitor<Graph, Space>
-        Visitor,  // this is a visitor class that can perform special operations at event points.
-    typename PredecessorMap,  // this is the map that stores the preceeding edge for each vertex.
-    typename DistanceMap,  // this is the map of distance values associated with each vertex.
-    typename RHSMap,
-    typename WeightMap,  // this is the map of edge weight (or cost) associated to each edge of the graph.
-    typename DensityMap, typename PositionMap, typename NcSelector,
-    typename ColorMap>  // this is a color map for each vertex, i.e. white=not visited, gray=discovered,
-                        // black=expanded.
+template <bagl::concepts::VertexListGraph G,  // this is the actual graph.
+          pp::MetricSpace Space,
+          bagl::concepts::ReadableVertexPropertyMap<G> AStarHeuristicMap,
+          FADPRMVisitor<G, Space> Visitor,
+          bagl::concepts::ReadWriteVertexPropertyMap<G> PredecessorMap,
+          bagl::concepts::ReadWriteVertexPropertyMap<G> DistanceMap,
+          bagl::concepts::ReadWriteVertexPropertyMap<G> RHSMap,
+          bagl::concepts::ReadableEdgePropertyMap<G> WeightMap,
+          bagl::concepts::ReadableVertexPropertyMap<G> DensityMap,
+          bagl::concepts::ReadWriteVPropMemberMap<G> PositionMap,
+          typename NcSelector,
+          bagl::concepts::ReadWriteVertexPropertyMap<G> ColorMap>
 requires pp::PointDistribution<Space> inline void generate_fadprm(
-    Graph& g, Vertex start_vertex, const Space& free_space,
-    AStarHeuristicMap hval, Visitor vis, PredecessorMap predecessor,
-    DistanceMap distance, RHSMap rhs, WeightMap weight, DensityMap density,
-    PositionMap position, NcSelector select_neighborhood, ColorMap color,
-    double epsilon) {
-  BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-
-  using ColorValue = property_value_t<ColorMap>;
-  using Color = boost::color_traits<ColorValue>;
-  using PositionValue = property_value_t<PositionMap>;
-  using VertexProp = graph_vertex_bundle_t<Graph>;
+    G& g, bagl::graph_vertex_descriptor_t<G> start_vertex,
+    const Space& free_space, AStarHeuristicMap hval, Visitor vis,
+    PredecessorMap predecessor, DistanceMap distance, RHSMap rhs,
+    WeightMap weight, DensityMap density, PositionMap position,
+    NcSelector select_neighborhood, ColorMap color, double epsilon) {
+  using ColorValue = bagl::property_traits_value_t<ColorMap>;
+  using Color = bagl::color_traits<ColorValue>;
+  using VertexProp = bagl::vertex_property_type<G>;
 
   if (num_vertices(g) == 0) {
     VertexProp up;
-    PositionValue p = get(ReaK::pp::random_sampler, free_space)(free_space);
+    auto p = get(ReaK::pp::random_sampler, free_space)(free_space);
     put(position, up, p);
-    Vertex u = add_vertex(std::move(up), g);
-    vis.vertex_added(u, g);
-    start_vertex = u;
+    start_vertex = add_vertex(g, std::move(up));
+    vis.vertex_added(start_vertex, g);
   }
 
-  for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
-    put(color, *ui, Color::white());
-    put(distance, *ui, std::numeric_limits<double>::infinity());
-    put(rhs, *ui, std::numeric_limits<double>::infinity());
-    put(predecessor, *ui, *ui);
-    vis.initialize_vertex(*ui, g);
+  for (auto u : vertices(g)) {
+    put(color, u, Color::white());
+    put(distance, u, std::numeric_limits<double>::infinity());
+    put(rhs, u, std::numeric_limits<double>::infinity());
+    put(predecessor, u, u);
+    vis.initialize_vertex(u, g);
   }
 
   generate_fadprm_no_init(g, start_vertex, free_space, hval, vis, predecessor,

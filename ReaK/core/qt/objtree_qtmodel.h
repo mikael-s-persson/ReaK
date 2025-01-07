@@ -75,10 +75,10 @@ class ObjTreeQtModel : public QAbstractItemModel {
                               serialization::object_node_desc())
         : g_node(aGNode) {}
   };
-  typedef boost::adjacency_list_BC<boost::vecBC, boost::vecBC,
-                                   boost::bidirectionalS, objtree_indirect_node>
+  typedef bagl::adjacency_list<bagl::vec_s, bagl::vec_s, bagl::bidirectional_s,
+                               objtree_indirect_node>
       obj_indirect_tree_type;
-  typedef boost::graph_traits<obj_indirect_tree_type>::vertex_descriptor
+  typedef bagl::graph_traits<obj_indirect_tree_type>::vertex_descriptor
       obj_indirect_node_desc;
   obj_indirect_tree_type obj_tree;
 

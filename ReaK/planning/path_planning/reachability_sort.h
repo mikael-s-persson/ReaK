@@ -35,14 +35,8 @@
 
 #include "ReaK/topologies/spaces/reachability_space_concept.h"
 
-#include "boost/graph/graph_concepts.hpp"
-#include "boost/graph/graph_traits.hpp"
-
-#include "boost/iterator/transform_iterator.hpp"
-#include "boost/multi_index/member.hpp"
-#include "boost/multi_index/ordered_index.hpp"
-#include "boost/multi_index/tag.hpp"
-#include "boost/multi_index_container.hpp"
+#include "bagl/graph_concepts.h"
+#include "bagl/graph_traits.h"
 
 #include <algorithm>
 #include <map>
@@ -62,15 +56,14 @@ namespace ReaK::pp {
  * \tparam ReachabilityTopology The topology type on which the points can reside, should model the
  * ReachabilitySpaceConcept.
  */
-template <typename Graph, typename PositionMap, typename ReachabilityTopology>
+template <typename Graph, typename PositionMap,
+          ReachabilitySpace ReachabilityTopology>
 class reachability_sorted_set {
  public:
-  BOOST_CONCEPT_ASSERT((ReachabilitySpaceConcept<ReachabilityTopology>));
-
   using self =
       reachability_sorted_set<Graph, PositionMap, ReachabilityTopology>;
 
-  using Vertex = graph::graph_vertex_t<Graph>;
+  using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
   using Point =
       typename reachability_topology_traits<ReachabilityTopology>::point_type;
 

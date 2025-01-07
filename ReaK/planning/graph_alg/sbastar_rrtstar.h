@@ -49,6 +49,8 @@
 #define REAK_PLANNING_GRAPH_ALG_SBASTAR_RRTSTAR_H_
 
 #include <cmath>
+#include <limits>
+#include <random>
 #include <utility>
 
 #include "ReaK/core/base/global_rng.h"
@@ -56,19 +58,16 @@
 #include "ReaK/topologies/spaces/random_sampler_concept.h"
 
 #include <tuple>
-#include "boost/graph/detail/d_ary_heap.hpp"
-#include "boost/graph/graph_concepts.hpp"
-#include "boost/graph/properties.hpp"
-
-// BGL-Extra includes:
-#include "boost/graph/more_property_maps.hpp"
-#include "boost/graph/more_property_tags.hpp"
+#include "adj_list_tree_overlay.h"
+#include "bagl/d_ary_heap.h"
+#include "bagl/graph_concepts.h"
+#include "bagl/more_property_maps.h"
+#include "bagl/properties.h"
 
 #include "ReaK/planning/graph_alg/branch_and_bound_connector.h"
 #include "ReaK/planning/graph_alg/lazy_connector.h"
 #include "ReaK/planning/graph_alg/node_generators.h"
 #include "ReaK/planning/graph_alg/sbastar_search.h"
-#include "ReaK/planning/graph_alg/simple_graph_traits.h"
 
 namespace ReaK::graph {
 
@@ -121,8 +120,7 @@ struct sbarrtstar_bidir_visitor_archetype
       node_back_pulling_visitor_archetype,
       node_back_pushing_visitor_archetype<Space> {};
 
-namespace detail {
-namespace {
+namespace sbastar_detail {
 
 template <typename Graph, pp::MetricSpace Space, typename Visitor,
           typename MotionGraphConnector, typename SBANodeGenerator,
@@ -131,66 +129,63 @@ void sbarrtstar_search_loop(Graph& g, const Space& super_space,
                             Visitor& sba_vis,
                             MotionGraphConnector connect_vertex,
                             SBANodeGenerator sba_generate_node,
-                            RRTNodeGenerator rrt_generate_node, MutableQueue& Q,
+                            RRTNodeGenerator rrt_generate_node, MutableQueue& q,
                             NcSelector select_neighborhood,
                             double initial_temperature) {
   using std::exp;
   using std::log;
-  std::size_t num_rrt_vertices = 0;
-  std::size_t num_sba_vertices = 0;
   std::uniform_real_distribution<double> unit_dist{};
 
   const auto connect_if_needed = [&](auto& x_near, auto& p_new, auto& eprop) {
-    if ((x_near != boost::graph_traits<Graph>::null_vertex()) &&
-        (get(sba_vis.m_predecessor, g[x_near]) !=
-         boost::graph_traits<Graph>::null_vertex())) {
+    if ((x_near != bagl::graph_traits<Graph>::null_vertex()) &&
+        (get(sba_vis.predecessor_, get_property(g, x_near)) !=
+         bagl::graph_traits<Graph>::null_vertex())) {
       connect_vertex(p_new, x_near, eprop, g, super_space, sba_vis,
-                     sba_vis.m_position, sba_vis.m_distance,
-                     sba_vis.m_predecessor, sba_vis.m_weight,
-                     select_neighborhood);
+                     sba_vis.position_, sba_vis.distance_, sba_vis.predecessor_,
+                     sba_vis.weight_, select_neighborhood);
     }
   };
 
-  while (!Q.empty() && sba_vis.keep_going()) {
-    double entropy =
-        1.0 - exp(-initial_temperature / log(double(num_vertices(g))));
+  while (!q.empty() && sba_vis.keep_going()) {
+    double entropy = 1.0 - exp(-initial_temperature /
+                               log(static_cast<double>(num_vertices(g))));
     // generate random-number between 0 and 1.
     double rand_value = unit_dist(ReaK::get_global_rng());
     bool use_sba_sampling = (rand_value > entropy);
 
     if (use_sba_sampling) {
-      auto u = Q.top();
-      Q.pop();
+      auto u = q.top();
+      q.pop();
 
       // stop if the best nodes do not meet the potential threshold.
       while (!sba_vis.has_search_potential(u, g)) {
-        if (Q.empty()) {
-          u = boost::graph_traits<Graph>::null_vertex();
+        if (q.empty()) {
+          u = bagl::graph_traits<Graph>::null_vertex();
           break;
         }
-        u = Q.top();
-        Q.pop();
+        u = q.top();
+        q.pop();
       }
-      if (u == boost::graph_traits<Graph>::null_vertex()) {
+      if (u == bagl::graph_traits<Graph>::null_vertex()) {
         break;  // no more nodes with search potential.
       }
 
       sba_vis.examine_vertex(u, g);
 
       auto [x_near, p_new, eprop] =
-          sba_generate_node(u, g, sba_vis, sba_vis.m_position);
-      ++num_sba_vertices;
+          sba_generate_node(u, g, sba_vis, sba_vis.position_);
 
       // then push it back on the OPEN queue.
-      if ((x_near != boost::graph_traits<Graph>::null_vertex()) || Q.empty()) {
+      if ((x_near != bagl::graph_traits<Graph>::null_vertex()) || q.empty()) {
         sba_vis.requeue_vertex(u, g);
       }
 
       connect_if_needed(x_near, p_new, eprop);
     } else {
-      auto [x_near, p_new, eprop] = rrt_generate_node(
-          g, sba_vis, boost::bundle_prop_to_vertex_prop(sba_vis.m_position, g));
-      ++num_rrt_vertices;
+      auto [x_near, p_new, eprop] =
+          rrt_generate_node(g, sba_vis,
+                            bagl::composite_property_map(
+                                sba_vis.position_, get(bagl::vertex_all, g)));
 
       connect_if_needed(x_near, p_new, eprop);
     }
@@ -203,72 +198,69 @@ template <typename Graph, pp::MetricSpace Space, typename Visitor,
 void sbarrtstar_bidir_loop(Graph& g, const Space& super_space, Visitor& sba_vis,
                            MotionGraphConnector connect_vertex,
                            SBANodeGenerator sba_generate_node,
-                           RRTNodeGenerator rrt_generate_node, MutableQueue& Q,
+                           RRTNodeGenerator rrt_generate_node, MutableQueue& q,
                            NcSelector select_neighborhood,
                            double initial_temperature) {
   using std::exp;
   using std::log;
-  std::size_t num_rrt_vertices = 0;
-  std::size_t num_sba_vertices = 0;
   std::uniform_real_distribution<double> unit_dist{};
 
   const auto connect_if_needed = [&](auto& x_near_pred, auto& p_new_pred,
                                      auto& ep_pred, auto& x_near_succ,
                                      auto& p_new_succ, auto& ep_succ) {
-    if (x_near_pred != boost::graph_traits<Graph>::null_vertex()) {
-      auto x_near_other = boost::graph_traits<Graph>::null_vertex();
-      graph_edge_bundle_t<Graph> ep_other;
+    if (x_near_pred != bagl::graph_traits<Graph>::null_vertex()) {
+      auto x_near_other = bagl::graph_traits<Graph>::null_vertex();
+      bagl::edge_bundle_type<Graph> ep_other;
       connect_vertex(p_new_pred, x_near_pred, ep_pred, x_near_other, ep_other,
-                     g, super_space, sba_vis, sba_vis.m_position,
-                     sba_vis.m_distance, sba_vis.m_predecessor,
-                     sba_vis.m_fwd_distance, sba_vis.m_successor,
-                     sba_vis.m_weight, select_neighborhood);
+                     g, super_space, sba_vis, sba_vis.position_,
+                     sba_vis.distance_, sba_vis.predecessor_,
+                     sba_vis.fwd_distance_, sba_vis.successor_, sba_vis.weight_,
+                     select_neighborhood);
     }
-    if (x_near_succ != boost::graph_traits<Graph>::null_vertex()) {
-      auto x_near_other = boost::graph_traits<Graph>::null_vertex();
-      graph_edge_bundle_t<Graph> ep_other;
+    if (x_near_succ != bagl::graph_traits<Graph>::null_vertex()) {
+      auto x_near_other = bagl::graph_traits<Graph>::null_vertex();
+      bagl::edge_bundle_type<Graph> ep_other;
       connect_vertex(p_new_succ, x_near_other, ep_other, x_near_succ, ep_succ,
-                     g, super_space, sba_vis, sba_vis.m_position,
-                     sba_vis.m_distance, sba_vis.m_predecessor,
-                     sba_vis.m_fwd_distance, sba_vis.m_successor,
-                     sba_vis.m_weight, select_neighborhood);
+                     g, super_space, sba_vis, sba_vis.position_,
+                     sba_vis.distance_, sba_vis.predecessor_,
+                     sba_vis.fwd_distance_, sba_vis.successor_, sba_vis.weight_,
+                     select_neighborhood);
     }
   };
 
-  while (!Q.empty() && sba_vis.keep_going()) {
-    double entropy =
-        1.0 - exp(-initial_temperature / log(double(num_vertices(g))));
+  while (!q.empty() && sba_vis.keep_going()) {
+    double entropy = 1.0 - exp(-initial_temperature /
+                               log(static_cast<double>(num_vertices(g))));
     // generate random-number between 0 and 1.
     double rand_value = unit_dist(ReaK::get_global_rng());
     bool use_sba_sampling = (rand_value > entropy);
 
     if (use_sba_sampling) {
-      auto u = Q.top();
-      Q.pop();
+      auto u = q.top();
+      q.pop();
 
       // stop if the best nodes do not meet the potential threshold.
       while (!sba_vis.has_search_potential(u, g)) {
-        if (Q.empty()) {
-          u = boost::graph_traits<Graph>::null_vertex();
+        if (q.empty()) {
+          u = bagl::graph_traits<Graph>::null_vertex();
           break;
         }
-        u = Q.top();
-        Q.pop();
+        u = q.top();
+        q.pop();
       }
-      if (u == boost::graph_traits<Graph>::null_vertex()) {
+      if (u == bagl::graph_traits<Graph>::null_vertex()) {
         break;  // no more nodes with search potential.
       }
 
       sba_vis.examine_vertex(u, g);
 
       auto [x_near_pred, p_new_pred, ep_pred, x_near_succ, p_new_succ,
-            ep_succ] = sba_generate_node(u, g, sba_vis, sba_vis.m_position);
-      ++num_sba_vertices;
+            ep_succ] = sba_generate_node(u, g, sba_vis, sba_vis.position_);
 
       // then push it back on the OPEN queue.
-      if ((x_near_pred != boost::graph_traits<Graph>::null_vertex()) ||
-          (x_near_succ != boost::graph_traits<Graph>::null_vertex()) ||
-          (Q.empty())) {
+      if ((x_near_pred != bagl::graph_traits<Graph>::null_vertex()) ||
+          (x_near_succ != bagl::graph_traits<Graph>::null_vertex()) ||
+          (q.empty())) {
         sba_vis.requeue_vertex(u, g);
       }
 
@@ -276,11 +268,10 @@ void sbarrtstar_bidir_loop(Graph& g, const Space& super_space, Visitor& sba_vis,
                         p_new_succ, ep_succ);
     } else {
       auto [x_near_pred, p_new_pred, ep_pred, x_near_succ, p_new_succ,
-            ep_succ] = rrt_generate_node(g, sba_vis,
-                                         boost::bundle_prop_to_vertex_prop(
-                                             sba_vis.m_position, g));
-
-      ++num_rrt_vertices;
+            ep_succ] =
+          rrt_generate_node(g, sba_vis,
+                            bagl::composite_property_map(
+                                sba_vis.position_, get(bagl::vertex_all, g)));
 
       connect_if_needed(x_near_pred, p_new_pred, ep_pred, x_near_succ,
                         p_new_succ, ep_succ);
@@ -288,91 +279,81 @@ void sbarrtstar_bidir_loop(Graph& g, const Space& super_space, Visitor& sba_vis,
   }  // while
 }
 
-template <typename Graph, pp::MetricSpace Space,
+template <bagl::concepts::VertexListGraph Graph, pp::MetricSpace Space,
           SBARRTStarVisitor<Graph, Space> Visitor, typename NodeConnector,
           typename KeyMap, typename PositionMap, typename WeightMap,
           typename DensityMap, typename ConstrictionMap, typename DistanceMap,
           typename PredecessorMap, typename FwdDistanceMap,
           typename RandomSampler, typename NcSelector>
 void generate_sbarrtstar_no_init_impl(
-    Graph& g, graph_vertex_t<Graph> start_vertex, const Space& super_space,
-    Visitor vis, NodeConnector connect_vertex, KeyMap key, PositionMap position,
-    WeightMap weight, DensityMap density, ConstrictionMap constriction,
-    DistanceMap distance, PredecessorMap predecessor,
-    FwdDistanceMap fwd_distance, RandomSampler get_sample,
-    NcSelector select_neighborhood, double SA_init_temperature = 0.0) {
-  using Vertex = graph_vertex_t<Graph>;
+    Graph& g, bagl::graph_vertex_descriptor_t<Graph> start_vertex,
+    const Space& super_space, Visitor vis, NodeConnector connect_vertex,
+    KeyMap key, PositionMap position, WeightMap weight, DensityMap density,
+    ConstrictionMap constriction, DistanceMap distance,
+    PredecessorMap predecessor, FwdDistanceMap fwd_distance,
+    RandomSampler get_sample, NcSelector select_neighborhood,
+    double SA_init_temperature = 0.0) {
+  using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
 
-  using IndexInHeapMap = boost::vector_property_map<std::size_t>;
-  IndexInHeapMap index_in_heap;
-  for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
-    put(index_in_heap, *ui, static_cast<std::size_t>(-1));
-  }
+  auto index_in_heap =
+      bagl::vector_property_map(num_vertices(g), get(bagl::vertex_index, g),
+                                std::numeric_limits<std::size_t>::max());
 
   // priority queue holding the OPEN set.
   using KeyCompareType = std::less<>;  // <---- this is a min-heap.
-  using MutableQueue = boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap,
-                                                  KeyMap, KeyCompareType>;
-  MutableQueue Q(key, index_in_heap, KeyCompareType());
+  auto q = bagl::make_d_ary_heap_indirect<Vertex, 4>(key, index_in_heap.ref(),
+                                                     KeyCompareType());
 
-  sbastar_bfs_visitor<Graph, Visitor, MutableQueue, IndexInHeapMap, KeyMap,
-                      PositionMap, WeightMap, DensityMap, ConstrictionMap,
-                      DistanceMap, PredecessorMap, FwdDistanceMap>
-      sba_bfs_vis(vis, Q, index_in_heap, key, position, weight, density,
-                  constriction, distance, predecessor, fwd_distance);
+  auto sba_bfs_vis = make_sbastar_bfs_visitor<Graph>(
+      vis, q, index_in_heap.ref(), key, position, weight, density, constriction,
+      distance, predecessor, fwd_distance);
 
-  put(distance, g[start_vertex], 0.0);
-  put(predecessor, g[start_vertex], start_vertex);
+  put(distance, get_property(g, start_vertex), 0.0);
+  put(predecessor, get_property(g, start_vertex), start_vertex);
   sba_bfs_vis.requeue_vertex(start_vertex, g);
 
-  sbarrtstar_search_loop(g, super_space, sba_bfs_vis, connect_vertex,
-                         sba_node_generator(),
-                         rrg_node_generator<Space, RandomSampler, NcSelector>(
-                             &super_space, get_sample, select_neighborhood),
-                         Q, select_neighborhood, SA_init_temperature);
+  sbarrtstar_search_loop(
+      g, super_space, sba_bfs_vis, connect_vertex, sba_node_generator(),
+      rrg_node_generator(&super_space, get_sample, select_neighborhood), q,
+      select_neighborhood, SA_init_temperature);
 }
 
-template <typename Graph, pp::MetricSpace Space,
+template <bagl::concepts::VertexListGraph Graph, pp::MetricSpace Space,
           SBARRTStarBidirVisitor<Graph, Space> Visitor, typename NodeConnector,
           typename KeyMap, typename PositionMap, typename WeightMap,
           typename DensityMap, typename ConstrictionMap, typename DistanceMap,
           typename PredecessorMap, typename FwdDistanceMap,
           typename SuccessorMap, typename RandomSampler, typename NcSelector>
 void generate_sbarrtstar_bidir_no_init_impl(
-    Graph& g, graph_vertex_t<Graph> start_vertex,
-    graph_vertex_t<Graph> goal_vertex, const Space& super_space, Visitor vis,
-    NodeConnector connect_vertex, KeyMap key, PositionMap position,
-    WeightMap weight, DensityMap density, ConstrictionMap constriction,
-    DistanceMap distance, PredecessorMap predecessor,
-    FwdDistanceMap fwd_distance, SuccessorMap successor,
-    RandomSampler get_sample, NcSelector select_neighborhood,
-    double SA_init_temperature = 0.0) {
-  using Vertex = graph_vertex_t<Graph>;
+    Graph& g, bagl::graph_vertex_descriptor_t<Graph> start_vertex,
+    bagl::graph_vertex_descriptor_t<Graph> goal_vertex,
+    const Space& super_space, Visitor vis, NodeConnector connect_vertex,
+    KeyMap key, PositionMap position, WeightMap weight, DensityMap density,
+    ConstrictionMap constriction, DistanceMap distance,
+    PredecessorMap predecessor, FwdDistanceMap fwd_distance,
+    SuccessorMap successor, RandomSampler get_sample,
+    NcSelector select_neighborhood, double SA_init_temperature = 0.0) {
+  using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
 
-  using IndexInHeapMap = boost::vector_property_map<std::size_t>;
-  IndexInHeapMap index_in_heap;
-  for (auto [ui, ui_end] = vertices(g); ui != ui_end; ++ui) {
-    put(index_in_heap, *ui, static_cast<std::size_t>(-1));
-  }
+  auto index_in_heap =
+      bagl::vector_property_map(num_vertices(g), get(bagl::vertex_index, g),
+                                std::numeric_limits<std::size_t>::max());
 
   // priority queue holding the OPEN set.
   using KeyCompareType = std::less<>;  // <---- this is a min-heap.
-  using MutableQueue = boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap,
-                                                  KeyMap, KeyCompareType>;
-  MutableQueue Q(key, index_in_heap, KeyCompareType());
+  auto q = bagl::make_d_ary_heap_indirect<Vertex, 4>(key, index_in_heap.ref(),
+                                                     KeyCompareType());
 
-  sbastar_bfs_visitor<Graph, Visitor, MutableQueue, IndexInHeapMap, KeyMap,
-                      PositionMap, WeightMap, DensityMap, ConstrictionMap,
-                      DistanceMap, PredecessorMap, FwdDistanceMap, SuccessorMap>
-      sba_bfs_vis(vis, Q, index_in_heap, key, position, weight, density,
-                  constriction, distance, predecessor, fwd_distance, successor);
+  auto sba_bfs_vis = make_sbastar_bfs_visitor<Graph>(
+      vis, q, index_in_heap.ref(), key, position, weight, density, constriction,
+      distance, predecessor, fwd_distance, successor);
 
-  put(distance, g[start_vertex], 0.0);
-  put(predecessor, g[start_vertex], start_vertex);
+  put(distance, get_property(g, start_vertex), 0.0);
+  put(predecessor, get_property(g, start_vertex), start_vertex);
   sba_bfs_vis.requeue_vertex(start_vertex, g);
-  if (goal_vertex != boost::graph_traits<Graph>::null_vertex()) {
-    put(fwd_distance, g[goal_vertex], 0.0);
-    put(successor, g[goal_vertex], goal_vertex);
+  if (goal_vertex != bagl::graph_traits<Graph>::null_vertex()) {
+    put(fwd_distance, get_property(g, goal_vertex), 0.0);
+    put(successor, get_property(g, goal_vertex), goal_vertex);
     sba_bfs_vis.requeue_vertex(goal_vertex, g);
   }
 
@@ -380,11 +361,10 @@ void generate_sbarrtstar_bidir_no_init_impl(
       g, super_space, sba_bfs_vis, connect_vertex, sba_bidir_node_generator(),
       rrg_bidir_generator(&super_space, get_sample, select_neighborhood,
                           predecessor, successor),
-      Q, select_neighborhood, SA_init_temperature);
+      q, select_neighborhood, SA_init_temperature);
 }
 
-}  // namespace
-}  // namespace detail
+}  // namespace sbastar_detail
 
 /**
   * This function template generates a roadmap to connect a goal location to a start location
@@ -402,16 +382,16 @@ template <typename SBAStarBundle, typename RandomSampler>
 void generate_sbarrtstar_no_init(const SBAStarBundle& bdl,
                                  RandomSampler get_sample,
                                  double SA_init_temperature = 0.0) {
-  using Graph = std::decay_t<decltype(*(bdl.m_g))>;
-  using Visitor = std::decay_t<decltype(bdl.m_vis)>;
-  using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
+  using Graph = std::decay_t<decltype(*bdl.g_)>;
+  using Visitor = std::decay_t<decltype(bdl.vis_)>;
+  using Space = std::decay_t<decltype(*bdl.super_space_)>;
   static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
 
-  detail::generate_sbarrtstar_no_init_impl(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis,
-      pruned_node_connector(), bdl.m_key, bdl.m_position, bdl.m_weight,
-      bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor,
-      bdl.m_fwd_distance, get_sample, bdl.m_select_neighborhood,
+  sbastar_detail::generate_sbarrtstar_no_init_impl(
+      *bdl.g_, bdl.start_vertex_, *bdl.super_space_, bdl.vis_,
+      pruned_node_connector(), bdl.key_, bdl.position_, bdl.weight_,
+      bdl.density_, bdl.constriction_, bdl.distance_, bdl.predecessor_,
+      bdl.fwd_distance_, get_sample, bdl.select_neighborhood_,
       SA_init_temperature);
 }
 
@@ -430,13 +410,13 @@ void generate_sbarrtstar_no_init(const SBAStarBundle& bdl,
 template <typename SBAStarBundle, typename RandomSampler>
 void generate_sbarrtstar(const SBAStarBundle& bdl, RandomSampler get_sample,
                          double SA_init_temperature = 0.0) {
-  using Graph = std::decay_t<decltype(*(bdl.m_g))>;
-  using Visitor = std::decay_t<decltype(bdl.m_vis)>;
-  using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
+  using Graph = std::decay_t<decltype(*bdl.g_)>;
+  using Visitor = std::decay_t<decltype(bdl.vis_)>;
+  using Space = std::decay_t<decltype(*bdl.super_space_)>;
   static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
 
-  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
-                                   bdl.m_distance, bdl.m_predecessor);
+  sbastar_detail::initialize_sbastar_nodes(*bdl.g_, bdl.vis_, bdl.key_,
+                                           bdl.distance_, bdl.predecessor_);
 
   generate_sbarrtstar_no_init(bdl, get_sample, SA_init_temperature);
 }
@@ -456,12 +436,12 @@ template <typename SBAStarBundle, typename RandomSampler>
 void generate_sbarrtstar_bidir_no_init(const SBAStarBundle& bdl,
                                        RandomSampler get_sample,
                                        double SA_init_temperature = 0.0) {
-  detail::generate_sbarrtstar_bidir_no_init_impl(
-      *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex, *(bdl.m_super_space),
-      bdl.m_vis, pruned_node_connector(), bdl.m_key, bdl.m_position,
-      bdl.m_weight, bdl.m_density, bdl.m_constriction, bdl.m_distance,
-      bdl.m_predecessor, bdl.m_fwd_distance, bdl.m_successor, get_sample,
-      bdl.m_select_neighborhood, SA_init_temperature);
+  sbastar_detail::generate_sbarrtstar_bidir_no_init_impl(
+      *bdl.g_, bdl.start_vertex_, bdl.goal_vertex_, *bdl.super_space_, bdl.vis_,
+      pruned_node_connector(), bdl.key_, bdl.position_, bdl.weight_,
+      bdl.density_, bdl.constriction_, bdl.distance_, bdl.predecessor_,
+      bdl.fwd_distance_, bdl.successor_, get_sample, bdl.select_neighborhood_,
+      SA_init_temperature);
 }
 
 /**
@@ -479,9 +459,9 @@ template <typename SBAStarBundle, typename RandomSampler>
 void generate_sbarrtstar_bidir(const SBAStarBundle& bdl,
                                RandomSampler get_sample,
                                double SA_init_temperature = 0.0) {
-  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
-                                   bdl.m_distance, bdl.m_predecessor,
-                                   bdl.m_fwd_distance, bdl.m_successor);
+  sbastar_detail::initialize_sbastar_nodes(*bdl.g_, bdl.vis_, bdl.key_,
+                                           bdl.distance_, bdl.predecessor_,
+                                           bdl.fwd_distance_, bdl.successor_);
 
   generate_sbarrtstar_bidir_no_init(bdl, get_sample, SA_init_temperature);
 }
@@ -502,18 +482,17 @@ template <typename SBAStarBundle, typename Sampler>
 void generate_lazy_sbarrtstar_no_init(const SBAStarBundle& bdl,
                                       Sampler get_sample,
                                       double SA_init_temperature = 0.0) {
-  using Graph = std::decay_t<decltype(*(bdl.m_g))>;
-  using Visitor = std::decay_t<decltype(bdl.m_vis)>;
-  using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
+  using Graph = std::decay_t<decltype(*bdl.g_)>;
+  using Visitor = std::decay_t<decltype(bdl.vis_)>;
+  using Space = std::decay_t<decltype(*bdl.super_space_)>;
   static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
   static_assert(pp::RandomSampler<Sampler, Space>);
 
-  detail::generate_sbarrtstar_no_init_impl(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis,
-      lazy_node_connector(), bdl.m_key, bdl.m_position, bdl.m_weight,
-      bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor,
-      bdl.m_fwd_distance, get_sample, bdl.m_select_neighborhood,
-      SA_init_temperature);
+  sbastar_detail::generate_sbarrtstar_no_init_impl(
+      *bdl.g_, bdl.start_vertex_, *bdl.super_space_, bdl.vis_,
+      lazy_node_connector(), bdl.key_, bdl.position_, bdl.weight_, bdl.density_,
+      bdl.constriction_, bdl.distance_, bdl.predecessor_, bdl.fwd_distance_,
+      get_sample, bdl.select_neighborhood_, SA_init_temperature);
 }
 
 /**
@@ -531,14 +510,14 @@ void generate_lazy_sbarrtstar_no_init(const SBAStarBundle& bdl,
 template <typename SBAStarBundle, typename Sampler>
 void generate_lazy_sbarrtstar(const SBAStarBundle& bdl, Sampler get_sample,
                               double SA_init_temperature = 0.0) {
-  using Graph = std::decay_t<decltype(*(bdl.m_g))>;
-  using Visitor = std::decay_t<decltype(bdl.m_vis)>;
-  using Space = std::decay_t<decltype(*(bdl.m_super_space))>;
+  using Graph = std::decay_t<decltype(*bdl.g_)>;
+  using Visitor = std::decay_t<decltype(bdl.vis_)>;
+  using Space = std::decay_t<decltype(*bdl.super_space_)>;
   static_assert(SBARRTStarVisitor<Visitor, Graph, Space>);
   static_assert(pp::RandomSampler<Sampler, Space>);
 
-  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
-                                   bdl.m_distance, bdl.m_predecessor);
+  sbastar_detail::initialize_sbastar_nodes(*bdl.g_, bdl.vis_, bdl.key_,
+                                           bdl.distance_, bdl.predecessor_);
 
   generate_lazy_sbarrtstar_no_init(bdl, get_sample, SA_init_temperature);
 }
@@ -559,12 +538,12 @@ template <typename SBAStarBundle, typename Sampler>
 void generate_lazy_sbarrtstar_bidir_no_init(const SBAStarBundle& bdl,
                                             Sampler get_sample,
                                             double SA_init_temperature = 0.0) {
-  detail::generate_sbarrtstar_bidir_no_init_impl(
-      *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex, *(bdl.m_super_space),
-      bdl.m_vis, lazy_node_connector(), bdl.m_key, bdl.m_position, bdl.m_weight,
-      bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor,
-      bdl.m_fwd_distance, bdl.m_successor, get_sample,
-      bdl.m_select_neighborhood, SA_init_temperature);
+  sbastar_detail::generate_sbarrtstar_bidir_no_init_impl(
+      *bdl.g_, bdl.start_vertex_, bdl.goal_vertex_, *bdl.super_space_, bdl.vis_,
+      lazy_node_connector(), bdl.key_, bdl.position_, bdl.weight_, bdl.density_,
+      bdl.constriction_, bdl.distance_, bdl.predecessor_, bdl.fwd_distance_,
+      bdl.successor_, get_sample, bdl.select_neighborhood_,
+      SA_init_temperature);
 }
 
 /**
@@ -583,9 +562,9 @@ template <typename SBAStarBundle, typename Sampler>
 void generate_lazy_sbarrtstar_bidir(const SBAStarBundle& bdl,
                                     Sampler get_sample,
                                     double SA_init_temperature = 0.0) {
-  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
-                                   bdl.m_distance, bdl.m_predecessor,
-                                   bdl.m_fwd_distance, bdl.m_successor);
+  sbastar_detail::initialize_sbastar_nodes(*bdl.g_, bdl.vis_, bdl.key_,
+                                           bdl.distance_, bdl.predecessor_,
+                                           bdl.fwd_distance_, bdl.successor_);
 
   generate_lazy_sbarrtstar_bidir_no_init(bdl, get_sample, SA_init_temperature);
 }
@@ -606,22 +585,22 @@ template <typename SBAStarBundle, typename Sampler>
 void generate_lazy_bnb_sbarrtstar_no_init(const SBAStarBundle& bdl,
                                           Sampler get_sample,
                                           double SA_init_temperature = 0.0) {
-  using Graph = std::decay_t<decltype(*(bdl.m_g))>;
-  if (bdl.m_goal_vertex == boost::graph_traits<Graph>::null_vertex()) {
-    detail::generate_sbarrtstar_no_init_impl(
-        *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis,
-        lazy_node_connector(), bdl.m_key, bdl.m_position, bdl.m_weight,
-        bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor,
-        bdl.m_fwd_distance, get_sample, bdl.m_select_neighborhood,
+  using Graph = std::decay_t<decltype(*bdl.g_)>;
+  if (bdl.goal_vertex_ == bagl::graph_traits<Graph>::null_vertex()) {
+    sbastar_detail::generate_sbarrtstar_no_init_impl(
+        *bdl.g_, bdl.start_vertex_, *bdl.super_space_, bdl.vis_,
+        lazy_node_connector(), bdl.key_, bdl.position_, bdl.weight_,
+        bdl.density_, bdl.constriction_, bdl.distance_, bdl.predecessor_,
+        bdl.fwd_distance_, get_sample, bdl.select_neighborhood_,
         SA_init_temperature);
   } else {
-    bnb_ordering_data<Graph> bnb_data(*(bdl.m_g), bdl.m_start_vertex,
-                                      bdl.m_goal_vertex);
-    detail::generate_sbarrtstar_no_init_impl(
-        *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis,
-        bnb_connector<Graph>(bnb_data), bdl.m_key, bdl.m_position, bdl.m_weight,
-        bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor,
-        bdl.m_fwd_distance, get_sample, bdl.m_select_neighborhood,
+    bnb_ordering_data<Graph> bnb_data(*bdl.g_, bdl.start_vertex_,
+                                      bdl.goal_vertex_);
+    sbastar_detail::generate_sbarrtstar_no_init_impl(
+        *bdl.g_, bdl.start_vertex_, *bdl.super_space_, bdl.vis_,
+        bnb_connector<Graph>(bnb_data), bdl.key_, bdl.position_, bdl.weight_,
+        bdl.density_, bdl.constriction_, bdl.distance_, bdl.predecessor_,
+        bdl.fwd_distance_, get_sample, bdl.select_neighborhood_,
         SA_init_temperature);
   }
 }
@@ -641,8 +620,8 @@ void generate_lazy_bnb_sbarrtstar_no_init(const SBAStarBundle& bdl,
 template <typename SBAStarBundle, typename Sampler>
 void generate_lazy_bnb_sbarrtstar(const SBAStarBundle& bdl, Sampler get_sample,
                                   double SA_init_temperature = 0.0) {
-  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
-                                   bdl.m_distance, bdl.m_predecessor);
+  sbastar_detail::initialize_sbastar_nodes(*bdl.g_, bdl.vis_, bdl.key_,
+                                           bdl.distance_, bdl.predecessor_);
 
   generate_lazy_bnb_sbarrtstar_no_init(bdl, get_sample, SA_init_temperature);
 }
@@ -663,23 +642,23 @@ template <typename SBAStarBundle, typename Sampler>
 void generate_lazy_bnb_sbarrtstar_bidir_no_init(
     const SBAStarBundle& bdl, Sampler get_sample,
     double SA_init_temperature = 0.0) {
-  using Graph = std::decay_t<decltype(*(bdl.m_g))>;
-  if (bdl.m_goal_vertex == boost::graph_traits<Graph>::null_vertex()) {
-    detail::generate_sbarrtstar_bidir_no_init_impl(
-        *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex, *(bdl.m_super_space),
-        bdl.m_vis, lazy_node_connector(), bdl.m_key, bdl.m_position,
-        bdl.m_weight, bdl.m_density, bdl.m_constriction, bdl.m_distance,
-        bdl.m_predecessor, bdl.m_fwd_distance, bdl.m_successor, get_sample,
-        bdl.m_select_neighborhood, SA_init_temperature);
+  using Graph = std::decay_t<decltype(*bdl.g_)>;
+  if (bdl.goal_vertex_ == bagl::graph_traits<Graph>::null_vertex()) {
+    sbastar_detail::generate_sbarrtstar_bidir_no_init_impl(
+        *bdl.g_, bdl.start_vertex_, bdl.goal_vertex_, *bdl.super_space_,
+        bdl.vis_, lazy_node_connector(), bdl.key_, bdl.position_, bdl.weight_,
+        bdl.density_, bdl.constriction_, bdl.distance_, bdl.predecessor_,
+        bdl.fwd_distance_, bdl.successor_, get_sample, bdl.select_neighborhood_,
+        SA_init_temperature);
   } else {
-    bnb_ordering_data<Graph> bnb_data(*(bdl.m_g), bdl.m_start_vertex,
-                                      bdl.m_goal_vertex);
-    detail::generate_sbarrtstar_bidir_no_init_impl(
-        *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex, *(bdl.m_super_space),
-        bdl.m_vis, bnb_connector<Graph>(bnb_data), bdl.m_key, bdl.m_position,
-        bdl.m_weight, bdl.m_density, bdl.m_constriction, bdl.m_distance,
-        bdl.m_predecessor, bdl.m_fwd_distance, bdl.m_successor, get_sample,
-        bdl.m_select_neighborhood, SA_init_temperature);
+    bnb_ordering_data<Graph> bnb_data(*bdl.g_, bdl.start_vertex_,
+                                      bdl.goal_vertex_);
+    sbastar_detail::generate_sbarrtstar_bidir_no_init_impl(
+        *bdl.g_, bdl.start_vertex_, bdl.goal_vertex_, *bdl.super_space_,
+        bdl.vis_, bnb_connector<Graph>(bnb_data), bdl.key_, bdl.position_,
+        bdl.weight_, bdl.density_, bdl.constriction_, bdl.distance_,
+        bdl.predecessor_, bdl.fwd_distance_, bdl.successor_, get_sample,
+        bdl.select_neighborhood_, SA_init_temperature);
   }
 }
 
@@ -699,9 +678,9 @@ template <typename SBAStarBundle, typename Sampler>
 void generate_lazy_bnb_sbarrtstar_bidir(const SBAStarBundle& bdl,
                                         Sampler get_sample,
                                         double SA_init_temperature = 0.0) {
-  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_key,
-                                   bdl.m_distance, bdl.m_predecessor,
-                                   bdl.m_fwd_distance, bdl.m_successor);
+  sbastar_detail::initialize_sbastar_nodes(*bdl.g_, bdl.vis_, bdl.key_,
+                                           bdl.distance_, bdl.predecessor_,
+                                           bdl.fwd_distance_, bdl.successor_);
 
   generate_lazy_bnb_sbarrtstar_bidir_no_init(bdl, get_sample,
                                              SA_init_temperature);

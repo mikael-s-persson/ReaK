@@ -23,15 +23,14 @@
 
 #include <iostream>
 
-#include "boost/graph/adjacency_list_BC.hpp"
-#include "boost/graph/properties.hpp"
+#include "bagl/adjacency_list.h"
+#include "bagl/astar_search.h"
+#include "bagl/properties.h"
 
 #include <functional>
 
 #include "ReaK/math/lin_alg/vect_alg.h"
 #include "ReaK/planning/graph_alg/adstar_search.h"
-
-#include "boost/graph/astar_search.hpp"
 
 #include <FreeImage.h>
 
@@ -39,36 +38,35 @@
 
 //#define TESTING_ASTAR
 
-using namespace boost;
-
 class adstar_test_world {
  public:
-  using WorldGridVertexProperties = property<
-      vertex_position_t, ReaK::vect<int, 3>,
-      property<
-          vertex_heuristic_t, double,
-          property<
-              vertex_rhs_t, double,
-              property<
-                  vertex_key_t, ReaK::graph::adstar_key_value<double>,
-                  property<vertex_distance_t, double,
-                           property<vertex_color_t, default_color_type,
-                                    property<vertex_predecessor_t,
-                                             adjacency_list_BC_traits<
-                                                 vecBC, vecBC, bidirectionalS>::
-                                                 vertex_descriptor,
-                                             no_property>>>>>>>;
+  using WorldGridVertexProperties = bagl::property<
+      bagl::vertex_position_t, ReaK::vect<int, 3>,
+      bagl::property<
+          bagl::vertex_heuristic_t, double,
+          bagl::property<
+              bagl::vertex_rhs_t, double,
+              bagl::property<
+                  bagl::vertex_key_t, ReaK::graph::adstar_key_value<double>,
+                  bagl::property<
+                      bagl::vertex_distance_t, double,
+                      bagl::property<
+                          bagl::vertex_color_t, bagl::default_color_type,
+                          bagl::property<bagl::vertex_predecessor_t,
+                                         bagl::adjacency_list_traits<
+                                             vec_s, vec_s, bidirectional_s>::
+                                             vertex_descriptor,
+                                         bagl::no_property>>>>>>>;
 
-  using WorldGridEdgeProperties = property<edge_weight_t, double, no_property>;
+  using WorldGridEdgeProperties =
+      bagl::property<bagl::edge_weight_t, double, bagl::no_property>;
 
   using WorldGridType =
-      adjacency_list_BC<vecBC, vecBC, bidirectionalS, WorldGridVertexProperties,
-                        WorldGridEdgeProperties>;
+      bagl::adjacency_list<bagl::vec_s, bagl::vec_s, bagl::bidirectional_s,
+                           WorldGridVertexProperties, WorldGridEdgeProperties>;
 
-  using VertexType =
-      adjacency_list_BC_traits<vecBC, vecBC, bidirectionalS>::vertex_descriptor;
-  using EdgeType =
-      adjacency_list_BC_traits<vecBC, vecBC, bidirectionalS>::edge_descriptor;
+  using VertexType = bagl::graph_vertex_descriptor_t<WorldGridType>;
+  using EdgeType = bagl::graph_edge_descriptor_t<WorldGridType>;
 
  private:
   FIBITMAP* world_map_image;
@@ -84,12 +82,12 @@ class adstar_test_world {
   int blocked_periods;
   double initial_epsilon;
 
-  property_map<WorldGridType, vertex_predecessor_t>::type m_pred;
-  property_map<WorldGridType, vertex_position_t>::type m_position;
-  property_map<WorldGridType, vertex_distance_t>::type m_distance;
-  property_map<WorldGridType, vertex_heuristic_t>::type m_heuristic;
-  property_map<WorldGridType, vertex_color_t>::type m_color;
-  property_map<WorldGridType, edge_weight_t>::type m_weight;
+  bagl::property_map_t<WorldGridType, bagl::vertex_predecessor_t> m_pred;
+  bagl::property_map_t<WorldGridType, bagl::vertex_position_t> m_position;
+  bagl::property_map_t<WorldGridType, bagl::vertex_distance_t> m_distance;
+  bagl::property_map_t<WorldGridType, bagl::vertex_heuristic_t> m_heuristic;
+  bagl::property_map_t<WorldGridType, bagl::vertex_color_t> m_color;
+  bagl::property_map_t<WorldGridType, bagl::edge_weight_t> m_weight;
 
   double updateEdgeWeight(EdgeType e) {
     ReaK::vect<int, 3> target_pos = get(m_position, target(e, grid));
@@ -143,11 +141,10 @@ class adstar_test_world {
   template <typename EdgeIter>
   std::pair<double, EdgeIter> checkChanges(EdgeIter out_iter) {
     double max_change = 0.0;
-    graph_traits<WorldGridType>::edge_iterator ei, ei_end;
-    for (tie(ei, ei_end) = edges(grid); ei != ei_end; ++ei) {
-      double ei_change = updateEdgeWeight(*ei);
+    for (auto e : edges(grid)) {
+      double ei_change = updateEdgeWeight(e);
       if (std::abs(ei_change) > 1E-3) {
-        *(out_iter++) = *ei;
+        *(out_iter++) = e;
         if (std::abs(ei_change) > max_change) {
           max_change = std::abs(ei_change);
         }
@@ -239,11 +236,10 @@ class adstar_test_world {
     // now v stores the next position, so lets move there:
     double rhs_pos = std::numeric_limits<double>::infinity();
     u = get(m_pred, current_pos);
-    boost::graph_traits<WorldGridType>::in_edge_iterator ei, ei_end;
-    for (tie(ei, ei_end) = in_edges(current_pos, grid); ei != ei_end; ++ei) {
-      double rhs_tmp = get(m_weight, *ei) + get(m_distance, source(*ei, grid));
+    for (auto e : in_edges(current_pos, grid)) {
+      double rhs_tmp = get(m_weight, e) + get(m_distance, source(e, grid));
       if (rhs_tmp < rhs_pos) {
-        u = source(*ei, grid);
+        u = source(e, grid);
         rhs_pos = rhs_tmp;
       }
     }
@@ -259,18 +255,17 @@ class adstar_test_world {
     std::cout.flush();
 
     ReaK::vect<int, 3> current_coord = get(m_position, current_pos);
-    graph_traits<WorldGridType>::vertex_iterator ui, ui_end;
-    for (tie(ui, ui_end) = vertices(grid); ui != ui_end; ++ui) {
+    for (auto w : vertices(grid)) {
       // compute the heuristic value for each node.
-      ReaK::vect<int, 3> pos = get(m_position, *ui);
-      if (*ui != current_pos) {
-        put(m_heuristic, *ui,
+      ReaK::vect<int, 3> pos = get(m_position, w);
+      if (w != current_pos) {
+        put(m_heuristic, w,
             std::sqrt(double(pos[0] - current_coord[0]) *
                           double(pos[0] - current_coord[0]) +
                       double(pos[1] - current_coord[1]) *
                           double(pos[1] - current_coord[1])));
       } else {
-        put(m_heuristic, *ui, 0.0);
+        put(m_heuristic, w, 0.0);
       }
     }
 
@@ -337,79 +332,76 @@ class adstar_test_world {
       }
     }
 
-    // std::pair<EdgeType,bool> ep = add_edge(vertex(0,grid),vertex(1,grid),1.0,grid);
+    // std::pair<EdgeType,bool> ep = add_edge(vertex(0,grid),vertex(1,grid),grid,1.0);
 
     FIBITMAP* hval_image = FreeImage_ConvertToGreyscale(world_map_image);
     BYTE* hval_bits = FreeImage_GetBits(hval_image);
     ReaK::vect<int, 3> current_coord = get(m_position, current_pos);
-    graph_traits<WorldGridType>::vertex_iterator ui, ui_end;
-    for (tie(ui, ui_end) = vertices(grid); ui != ui_end; ++ui) {
+    for (auto u : vertices(grid)) {
       // compute the heuristic value for each node.
-      ReaK::vect<int, 3> pos = get(m_position, *ui);
-      if (*ui != current_pos) {
-        put(m_heuristic, *ui,
+      ReaK::vect<int, 3> pos = get(m_position, u);
+      if (u != current_pos) {
+        put(m_heuristic, u,
             std::sqrt(double(pos[0] - current_coord[0]) *
                           double(pos[0] - current_coord[0]) +
                       double(pos[1] - current_coord[1]) *
                           double(pos[1] - current_coord[1])));
       } else {
-        put(m_heuristic, *ui, 0.0);
+        put(m_heuristic, u, 0.0);
       }
-      *hval_bits = int(get(m_heuristic, *ui)) % 256;
+      *hval_bits = int(get(m_heuristic, u)) % 256;
       hval_bits++;
 
       // add edges in the graph and initialize their weights.
       std::pair<EdgeType, bool> ep;
       if (pos[1] > 0) {
-        ep = add_edge(*ui, vertex((pos[1] - 1) * grid_width + pos[0], grid),
-                      grid);
+        ep =
+            add_edge(u, vertex((pos[1] - 1) * grid_width + pos[0], grid), grid);
         if (ep.second) {
           initEdgeWeight(ep.first);
         }
         if (pos[0] > 0) {
-          ep = add_edge(
-              *ui, vertex((pos[1] - 1) * grid_width + pos[0] - 1, grid), grid);
+          ep = add_edge(u, vertex((pos[1] - 1) * grid_width + pos[0] - 1, grid),
+                        grid);
           if (ep.second)
             initEdgeWeight(ep.first);
         }
         if (pos[0] < grid_width - 1) {
-          ep = add_edge(
-              *ui, vertex((pos[1] - 1) * grid_width + pos[0] + 1, grid), grid);
+          ep = add_edge(u, vertex((pos[1] - 1) * grid_width + pos[0] + 1, grid),
+                        grid);
           if (ep.second)
             initEdgeWeight(ep.first);
         }
       }
       if (pos[1] < grid_height - 1) {
-        ep = add_edge(*ui, vertex((pos[1] + 1) * grid_width + pos[0], grid),
-                      grid);
+        ep =
+            add_edge(u, vertex((pos[1] + 1) * grid_width + pos[0], grid), grid);
         if (ep.second) {
           initEdgeWeight(ep.first);
         }
         if (pos[0] > 0) {
-          ep = add_edge(
-              *ui, vertex((pos[1] + 1) * grid_width + pos[0] - 1, grid), grid);
+          ep = add_edge(u, vertex((pos[1] + 1) * grid_width + pos[0] - 1, grid),
+                        grid);
           if (ep.second) {
             initEdgeWeight(ep.first);
           }
         }
         if (pos[0] < grid_width - 1) {
-          ep = add_edge(
-              *ui, vertex((pos[1] + 1) * grid_width + pos[0] + 1, grid), grid);
+          ep = add_edge(u, vertex((pos[1] + 1) * grid_width + pos[0] + 1, grid),
+                        grid);
           if (ep.second) {
             initEdgeWeight(ep.first);
           }
         }
       };
       if (pos[0] > 0) {
-        ep =
-            add_edge(*ui, vertex(pos[1] * grid_width + pos[0] - 1, grid), grid);
+        ep = add_edge(u, vertex(pos[1] * grid_width + pos[0] - 1, grid), grid);
         if (ep.second) {
           initEdgeWeight(ep.first);
         }
       }
       if (pos[0] < grid_width - 1) {
-        ep =
-            add_edge(*ui, vertex(pos[1] * grid_width + pos[0] + 1, grid), grid);
+        ep = add_edge(u, vertex(pos[1] * grid_width + pos[0] + 1, grid), grid);
         if (ep.second) {
           initEdgeWeight(ep.first);
         }

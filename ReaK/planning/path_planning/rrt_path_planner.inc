@@ -45,10 +45,8 @@
 #include "ReaK/planning/path_planning/metric_space_search.h"
 #include "ReaK/planning/path_planning/topological_search.h"
 
-// BGL-Extra includes:
-#include "boost/graph/more_property_maps.hpp"
-#include "boost/graph/more_property_tags.hpp"
-#include "boost/graph/tree_adaptor.hpp"
+#include "bagl/more_property_maps.h"
+#include "bagl/tree_adaptor.h"
 
 #include "ReaK/planning/path_planning/any_motion_graphs.h"
 #include "ReaK/planning/path_planning/p2p_planning_query.h"
@@ -74,7 +72,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
 
   using BasicVertexProp = mg_vertex_data<FreeSpaceType>;
 
-  using PositionMap = boost::data_member_property_map<PointType, VertexProp>;
+  using PositionMap = bagl::data_member_property_map<PointType, VertexProp>;
   auto pos_map = PositionMap(&VertexProp::position);
 
   std::shared_ptr<const SuperSpace> sup_space_ptr(
@@ -89,10 +87,9 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
       UNIDIRECTIONAL_PLANNING) {
 
 #define RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)            \
-  using Vertex = graph::graph_vertex_t<MotionGraphType>;                      \
+  using Vertex = bagl::graph_vertex_descriptor_t<MotionGraphType>;            \
   using GraphPositionMap =                                                    \
-      typename boost::property_map<MotionGraphType,                           \
-                                   PointType BasicVertexProp::*>::type;       \
+      bagl::property_map_t<MotionGraphType, PointType BasicVertexProp::*>;    \
   using SpacePartType = dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, \
                                  random_vp_chooser, TREE_STORAGE>;            \
   SpacePartType space_part(motion_graph, sup_space_ptr,                       \
@@ -109,13 +106,13 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
 #define RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(ARITY, TREE_STORAGE)             \
   using ALTGraph =                                                             \
       dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace, PositionMap, ARITY, \
-                         random_vp_chooser, TREE_STORAGE, boost::vecBC,        \
-                         DirectionalityTag, boost::listBC>;                    \
+                         random_vp_chooser, TREE_STORAGE, bagl::vec_s,         \
+                         DirectionalityTag, bagl::list_s>;                     \
   using MotionGraphType = typename ALTGraph::adj_list_type;                    \
                                                                                \
   ALTGraph space_part(sup_space_ptr, pos_map);                                 \
   MotionGraphType motion_graph = space_part.get_adjacency_list();              \
-  vis.m_start_node = std::any(create_root(vp_start, motion_graph));            \
+  vis.m_start_node = std::any(create_root(motion_graph, vp_start));            \
                                                                                \
   using NNFinderType = multi_dvp_tree_search<MotionGraphType, ALTGraph>;       \
   NNFinderType nn_finder;                                                      \
@@ -132,11 +129,11 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
         ADJ_LIST_MOTION_GRAPH) {
 
       using MotionGraphType =
-          boost::adjacency_list_BC<boost::vecBC, boost::listBC,
-                                   DirectionalityTag, VertexProp, EdgeProp>;
+          bagl::adjacency_list<bagl::vec_s, bagl::list_s,
+                               DirectionalityTag, VertexProp, EdgeProp>;
 
       MotionGraphType motion_graph;
-      vis.m_start_node = std::any(create_root(vp_start, motion_graph));
+      vis.m_start_node = std::any(create_root(motion_graph, vp_start));
 
       if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
           LINEAR_SEARCH_KNN) {
@@ -150,16 +147,14 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
       } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                  DVP_BF2_TREE_KNN) {
 
-        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(2,
-                                              boost::bfl_d_ary_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, bagl::bfl_d_ary_tree_storage<2>)
 
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
 
       } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                  DVP_BF4_TREE_KNN) {
 
-        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(4,
-                                              boost::bfl_d_ary_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, bagl::bfl_d_ary_tree_storage<4>)
 
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
 
@@ -168,16 +163,14 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
       } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                  DVP_COB2_TREE_KNN) {
 
-        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(2,
-                                              boost::vebl_d_ary_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, bagl::vebl_d_ary_tree_storage<2>)
 
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
 
       } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                  DVP_COB4_TREE_KNN) {
 
-        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(4,
-                                              boost::vebl_d_ary_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, bagl::vebl_d_ary_tree_storage<4>)
 
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
 
@@ -192,16 +185,14 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
       if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
           DVP_BF2_TREE_KNN) {
 
-        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(2,
-                                              boost::bfl_d_ary_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, bagl::bfl_d_ary_tree_storage<2>)
 
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
 
       } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                  DVP_BF4_TREE_KNN) {
 
-        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(4,
-                                              boost::bfl_d_ary_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, bagl::bfl_d_ary_tree_storage<4>)
 
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
 
@@ -210,16 +201,14 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
       } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                  DVP_COB2_TREE_KNN) {
 
-        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(2,
-                                              boost::vebl_d_ary_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, bagl::vebl_d_ary_tree_storage<2>)
 
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
 
       } else if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
                  DVP_COB4_TREE_KNN) {
 
-        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(4,
-                                              boost::vebl_d_ary_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, bagl::vebl_d_ary_tree_storage<4>)
 
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
 
@@ -245,10 +234,9 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
     vp_goal.position = p2p_query_ptr->goal_pos;
 
 #define RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE)        \
-  using Vertex = graph::graph_vertex_t<MotionGraphType>;                      \
+  using Vertex = bagl::graph_vertex_descriptor_t<MotionGraphType>;            \
   using GraphPositionMap =                                                    \
-      typename boost::property_map<MotionGraphType,                           \
-                                   PointType BasicVertexProp::*>::type;       \
+      bagl::property_map_t<MotionGraphType, PointType BasicVertexProp::*>;    \
   using SpacePartType = dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, \
                                  random_vp_chooser, TREE_STORAGE>;            \
   SpacePartType space_part1(motion_graph1, sup_space_ptr,                     \
@@ -268,8 +256,8 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
 #define RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(ARITY, TREE_STORAGE)         \
   using ALTGraph =                                                             \
       dvp_adjacency_list<VertexProp, EdgeProp, SuperSpace, PositionMap, ARITY, \
-                         random_vp_chooser, TREE_STORAGE, boost::vecBC,        \
-                         DirectionalityTag, boost::listBC>;                    \
+                         random_vp_chooser, TREE_STORAGE, bagl::vec_s,         \
+                         DirectionalityTag, bagl::list_s>;                     \
   using MotionGraphType = typename ALTGraph::adj_list_type;                    \
                                                                                \
   ALTGraph space_part1(sup_space_ptr, pos_map);                                \
@@ -278,8 +266,8 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
   MotionGraphType motion_graph1 = space_part1.get_adjacency_list();            \
   MotionGraphType motion_graph2 = space_part2.get_adjacency_list();            \
                                                                                \
-  vis.m_start_node = std::any(create_root(vp_start, motion_graph1));           \
-  vis.m_goal_node = std::any(create_root(vp_goal, motion_graph2));             \
+  vis.m_start_node = std::any(create_root(motion_graph1, vp_start));           \
+  vis.m_goal_node = std::any(create_root(motion_graph2, vp_goal));             \
                                                                                \
   using NNFinderType = multi_dvp_tree_search<MotionGraphType, ALTGraph>;       \
   NNFinderType nn_finder;                                                      \
@@ -298,14 +286,14 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
         ADJ_LIST_MOTION_GRAPH) {
 
       using MotionGraphType =
-          boost::adjacency_list_BC<boost::vecBC, boost::listBC,
-                                   DirectionalityTag, VertexProp, EdgeProp>;
+          bagl::adjacency_list<bagl::vec_s, bagl::list_s,
+                               DirectionalityTag, VertexProp, EdgeProp>;
 
       MotionGraphType motion_graph1;
       MotionGraphType motion_graph2;
 
-      vis.m_start_node = std::any(create_root(vp_start, motion_graph1));
-      vis.m_goal_node = std::any(create_root(vp_goal, motion_graph2));
+      vis.m_start_node = std::any(create_root(motion_graph1, vp_start));
+      vis.m_goal_node = std::any(create_root(motion_graph2, vp_goal));
 
       if ((this->m_data_structure_flags & KNN_METHOD_MASK) ==
           LINEAR_SEARCH_KNN) {
@@ -320,7 +308,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
                  DVP_BF2_TREE_KNN) {
 
         RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(
-            2, boost::bfl_d_ary_tree_storage<2>)
+            2, bagl::bfl_d_ary_tree_storage<2>)
 
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
 
@@ -328,7 +316,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
                  DVP_BF4_TREE_KNN) {
 
         RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(
-            4, boost::bfl_d_ary_tree_storage<4>)
+            4, bagl::bfl_d_ary_tree_storage<4>)
 
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
 
@@ -338,7 +326,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
                  DVP_COB2_TREE_KNN) {
 
         RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(
-            2, boost::vebl_d_ary_tree_storage<2>)
+            2, bagl::vebl_d_ary_tree_storage<2>)
 
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
 
@@ -346,7 +334,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
                  DVP_COB4_TREE_KNN) {
 
         RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(
-            4, boost::vebl_d_ary_tree_storage<4>)
+            4, bagl::vebl_d_ary_tree_storage<4>)
 
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
 
@@ -362,7 +350,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
           DVP_BF2_TREE_KNN) {
 
         RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(
-            2, boost::bfl_d_ary_tree_storage<2>)
+            2, bagl::bfl_d_ary_tree_storage<2>)
 
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
 
@@ -370,7 +358,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
                  DVP_BF4_TREE_KNN) {
 
         RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(
-            4, boost::bfl_d_ary_tree_storage<4>)
+            4, bagl::bfl_d_ary_tree_storage<4>)
 
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
 
@@ -380,7 +368,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
                  DVP_COB2_TREE_KNN) {
 
         RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(
-            2, boost::vebl_d_ary_tree_storage<2>)
+            2, bagl::vebl_d_ary_tree_storage<2>)
 
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
 
@@ -388,7 +376,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
                  DVP_COB4_TREE_KNN) {
 
         RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(
-            4, boost::vebl_d_ary_tree_storage<4>)
+            4, bagl::vebl_d_ary_tree_storage<4>)
 
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
 

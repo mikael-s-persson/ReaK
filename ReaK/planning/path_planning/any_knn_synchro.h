@@ -34,7 +34,7 @@
 
 #include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
-#include "ReaK/planning/graph_alg/any_graph.h"
+#include "bagl/dynamic_graph.h"
 
 namespace ReaK::pp {
 
@@ -46,11 +46,12 @@ class any_knn_synchro {
   using self = any_knn_synchro;
 
  protected:
-  virtual void added_vertex_impl(graph::any_graph::vertex_descriptor /*unused*/,
-                                 graph::any_graph& /*unused*/) const {}
+  virtual void added_vertex_impl(
+      bagl::dynamic_graph_mutator::vertex_descriptor /*unused*/,
+      bagl::dynamic_graph_mutator& /*unused*/) const {}
   virtual void removed_vertex_impl(
-      graph::any_graph::vertex_descriptor /*unused*/,
-      graph::any_graph& /*unused*/) const {}
+      bagl::dynamic_graph_mutator::vertex_descriptor /*unused*/,
+      bagl::dynamic_graph_mutator& /*unused*/) const {}
 
  public:
   virtual ~any_knn_synchro() = default;
@@ -64,9 +65,10 @@ class any_knn_synchro {
    */
   template <typename Vertex, typename Graph>
   void added_vertex(Vertex v, Graph& g) const {
-    graph::type_erased_graph<Graph> teg(&g);
-    this->added_vertex_impl(graph::any_graph::vertex_descriptor(std::any(v)),
-                            teg);
+    bagl::dynamic_properties dp;
+    bagl::dynamic_graph_mutator_wrapper<Graph> teg{g, dp};
+    this->added_vertex_impl(
+        bagl::dynamic_graph_mutator::vertex_descriptor{std::any(v)}, teg);
   }
 
   /**
@@ -78,9 +80,10 @@ class any_knn_synchro {
    */
   template <typename Vertex, typename Graph>
   void removed_vertex(Vertex v, Graph& g) const {
-    graph::type_erased_graph<Graph> teg(&g);
-    this->removed_vertex_impl(graph::any_graph::vertex_descriptor(std::any(v)),
-                              teg);
+    bagl::dynamic_properties dp;
+    bagl::dynamic_graph_mutator_wrapper<Graph> teg{g, dp};
+    this->removed_vertex_impl(
+        bagl::dynamic_graph_mutator::vertex_descriptor{std::any(v)}, teg);
   }
 };
 
@@ -97,22 +100,24 @@ class type_erased_knn_synchro : public any_knn_synchro {
   using self = type_erased_knn_synchro<Graph, KNNSynchro>;
 
  protected:
-  using Vertex = graph::graph_vertex_t<Graph>;
+  using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
 
   KNNSynchro synchro;
 
-  void added_vertex_impl(graph::any_graph::vertex_descriptor tev,
-                         graph::any_graph& teg) const override {
+  void added_vertex_impl(bagl::dynamic_graph_mutator::vertex_descriptor tev,
+                         bagl::dynamic_graph_mutator& teg) const override {
     synchro.added_vertex(
         std::any_cast<Vertex>(tev),
-        static_cast<graph::type_erased_graph<Graph>&>(teg).base());
+        static_cast<bagl::dynamic_graph_mutator_wrapper<Graph>&>(teg)
+            .real_graph());
   }
 
-  void removed_vertex_impl(graph::any_graph::vertex_descriptor tev,
-                           graph::any_graph& teg) const override {
+  void removed_vertex_impl(bagl::dynamic_graph_mutator::vertex_descriptor tev,
+                           bagl::dynamic_graph_mutator& teg) const override {
     synchro.removed_vertex(
         std::any_cast<Vertex>(tev),
-        static_cast<graph::type_erased_graph<Graph>&>(teg).base());
+        static_cast<bagl::dynamic_graph_mutator_wrapper<Graph>&>(teg)
+            .real_graph());
   }
 
  public:

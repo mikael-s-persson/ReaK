@@ -24,9 +24,9 @@
 #include <fstream>
 #include <iostream>
 
-#include "boost/graph/adjacency_list_BC.hpp"
-#include "boost/graph/properties.hpp"
-#include "boost/graph/topology.hpp"
+#include "bagl/adjacency_list.h"
+#include "bagl/properties.h"
+#include "bagl/topology.h"
 
 #include "ReaK/math/lin_alg/vect_alg.h"
 #include "ReaK/planning/path_planning/metric_space_search.h"
@@ -109,11 +109,11 @@ int main(int argc, char** argv) {
   }
 
   using WorldGridType =
-      boost::adjacency_list_BC<boost::vecBC, boost::vecBC, boost::undirectedS,
-                               MEAQR_vprop, boost::no_property>;
-  using VertexType = boost::graph_traits<WorldGridType>::vertex_descriptor;
+      bagl::adjacency_list<bagl::vec_s, bagl::vec_s, bagl::undirected_s,
+                           MEAQR_vprop, bagl::no_property>;
+  using VertexType = bagl::graph_traits<WorldGridType>::vertex_descriptor;
   using PositionMapType =
-      boost::property_map<WorldGridType, MEAQR_PointType MEAQR_vprop::*>::type;
+      bagl::property_map<WorldGridType, MEAQR_PointType MEAQR_vprop::*>::type;
 
   using WorldPartition2 =
       ReaK::pp::dvp_tree<VertexType, X8_MEAQR_space_type, PositionMapType, 2>;

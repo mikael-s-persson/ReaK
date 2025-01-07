@@ -33,24 +33,20 @@
 
 #include "ReaK/core/base/named_object.h"
 
-// BGL-Extra includes:
-#include "boost/graph/tree_adaptor.hpp"
+#include "bagl/tree_adaptor.h"
 
 namespace ReaK {
 
 namespace qt {
 
 void ObjTreeQtModel::updateObjTreeNode(obj_indirect_node_desc u) {
-  typedef boost::graph_traits<serialization::object_graph>::out_edge_iterator
-      OutEdgeIter;
-  OutEdgeIter eo, eo_end;
-  std::tie(eo, eo_end) = out_edges(obj_tree[u].g_node, *obj_graph);
-  for (; eo != eo_end; ++eo)
+  for (auto e : out_edges(obj_tree[u].g_node, *obj_graph)) {
     updateObjTreeNode(
-        add_child_vertex(u, objtree_indirect_node(target(*eo, *obj_graph)),
+        add_child_vertex(u, objtree_indirect_node(target(e, *obj_graph)),
                          obj_tree)
             .first);
-};
+  }
+}
 
 void ObjTreeQtModel::refreshObjTree() {
   emit aboutToResetModel();
@@ -61,7 +57,7 @@ void ObjTreeQtModel::refreshObjTree() {
   updateObjTreeNode(t_root);
   endResetModel();
   emit justAfterModelReset();
-};
+}
 
 //     std::shared_ptr< serialization::object_graph > obj_graph;
 //     serialization::object_node_desc root_node;
@@ -73,16 +69,18 @@ ObjTreeQtModel::ObjTreeQtModel(
   obj_indirect_node_desc t_root =
       create_root(objtree_indirect_node(root_node), obj_tree);
   updateObjTreeNode(t_root);
-};
+}
 
-ObjTreeQtModel::~ObjTreeQtModel(){};
+ObjTreeQtModel::~ObjTreeQtModel() {}
 
 QVariant ObjTreeQtModel::data(const QModelIndex& index, int role) const {
-  if (!index.isValid())
+  if (!index.isValid()) {
     return QVariant();
+  }
 
-  if (role != Qt::DisplayRole)
+  if (role != Qt::DisplayRole) {
     return QVariant();
+  }
 
   serialization::object_node_desc item(
       obj_tree[obj_indirect_node_desc(index.internalId())].g_node);
@@ -105,106 +103,112 @@ QVariant ObjTreeQtModel::data(const QModelIndex& index, int role) const {
                                   .c_str()));
     } else {
       return QVariant(QString(s_tmp.c_str()));
-    };
-  };
+    }
+  }
   return QVariant();
-};
+}
 
 Qt::ItemFlags ObjTreeQtModel::flags(const QModelIndex& index) const {
-  if (!index.isValid())
+  if (!index.isValid()) {
     return 0;
+  }
 
-  if (index.column() < 1)
+  if (index.column() < 1) {
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
-  else
+  } else {
     return Qt::ItemIsEnabled;
-};
+  }
+}
 
 QVariant ObjTreeQtModel::headerData(int section, Qt::Orientation orientation,
                                     int role) const {
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-    if (section == 0)
+    if (section == 0) {
       return QVariant(QString("Object Name"));
-    else if (section == 1)
+    } else if (section == 1) {
       return QVariant(QString("Type"));
-  };
+    }
+  }
 
   return QVariant();
-};
+}
 
 QModelIndex ObjTreeQtModel::index(int row, int column,
                                   const QModelIndex& parent) const {
-  if (!hasIndex(row, column, parent))
+  if (!hasIndex(row, column, parent)) {
     return QModelIndex();
+  }
 
   obj_indirect_node_desc parentItem = 0;
 
-  if (parent.isValid())
+  if (parent.isValid()) {
     parentItem = obj_indirect_node_desc(parent.internalId());
+  }
 
-  if (row >= int(out_degree(parentItem, obj_tree)))
+  if (row >= int(out_degree(parentItem, obj_tree))) {
     return QModelIndex();
+  }
 
-  typedef boost::graph_traits<obj_indirect_tree_type>::out_edge_iterator
-      OutEdgeIter;
-  OutEdgeIter eo, eo_end;
-  std::tie(eo, eo_end) = out_edges(parentItem, obj_tree);
+  auto eo_rg = out_edges(parentItem, obj_tree);
+  auto eo = eo_rg.begin();
   std::advance(eo, row);
   obj_indirect_node_desc child = target(*eo, obj_tree);
   return createIndex(row, column, quint32(child));
-};
+}
 
 QModelIndex ObjTreeQtModel::parent(const QModelIndex& index) const {
-  if (!index.isValid())
+  if (!index.isValid()) {
     return QModelIndex();
+  }
 
   obj_indirect_node_desc childItem(index.internalId());
-  typedef boost::graph_traits<obj_indirect_tree_type>::in_edge_iterator
-      InEdgeIter;
-  InEdgeIter ei, ei_end;
-  std::tie(ei, ei_end) = in_edges(childItem, obj_tree);
-  if (ei == ei_end)
+  auto ei_rg = in_edges(childItem, obj_tree);
+  if (ei_rg.empty()) {
     return QModelIndex();
+  }
+  auto ei = ei_rg.begin();
   obj_indirect_node_desc parentItem = source(*ei, obj_tree);
 
-  if (parentItem == root_node)
+  if (parentItem == root_node) {
     return QModelIndex();
+  }
 
   // find the row in the parent of the parent node:
-  typedef boost::graph_traits<obj_indirect_tree_type>::out_edge_iterator
-      OutEdgeIter;
-  OutEdgeIter eo, eo_end;
   obj_indirect_node_desc grandparent =
-      source(*(in_edges(parentItem, obj_tree).first), obj_tree);
-  std::tie(eo, eo_end) = out_edges(grandparent, obj_tree);
+      source(*(in_edges(parentItem, obj_tree).begin()), obj_tree);
   int i = 0;
-  for (; eo != eo_end; ++eo, ++i)
-    if (target(*eo, obj_tree) == parentItem)
+  for (auto e : out_edges(grandparent, obj_tree)) {
+    if (target(e, obj_tree) == parentItem) {
       break;
+    }
+  }
 
   return createIndex(i, 0, quint32(parentItem));
-};
+}
 
 int ObjTreeQtModel::rowCount(const QModelIndex& parent) const {
-  if (!parent.isValid())
+  if (!parent.isValid()) {
     return out_degree(obj_indirect_node_desc(0), obj_tree);
-  else
+  } else {
     return out_degree(obj_indirect_node_desc(parent.internalId()), obj_tree);
-};
+  }
+}
 
 int ObjTreeQtModel::columnCount(const QModelIndex& parent) const {
   return 2;
-};
+}
 
 void ObjTreeQtModel::treeChanged() {
   refreshObjTree();
-};
+}
 
 void ObjTreeQtModel::itemSelected(const QModelIndex& index) {
-  if (index.isValid())
+  if (index.isValid()) {
     emit objectNodeSelected(
         obj_tree[obj_indirect_node_desc(index.internalId())].g_node);
-};
-};  // namespace qt
+  }
+}
 
-};  // namespace ReaK
+}  // namespace qt
+
+}  // namespace ReaK

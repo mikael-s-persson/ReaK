@@ -12,11 +12,9 @@ cc_library(
     "adaptive_star_neighborhood.h",
     "adj_list_tree_overlay.h",
     "adstar_search.h",
-    "any_graph.h",
     "anytime_sbastar.h",
     "avl_tree_detail.h",
     "avl_tree.h",
-    "bgl_raw_property_graph.h",
     "branch_and_bound_connector.h",
     "fadprm.h",
     "lazy_connector.h",
@@ -33,7 +31,6 @@ cc_library(
     "sbastar_rrtstar.h",
     "sbastar_search.h",
     "sbmp_visitor_concepts.h",
-    "simple_graph_traits.h",
     "tree_organizer_concept.h",
   ],
   deps = [
@@ -42,8 +39,7 @@ cc_library(
     "//ReaK/math/kinetostatics",
     "//ReaK/topologies/spaces",
     "//ReaK/topologies/interpolation",
-    "@boost_graph_extras//:boost_graph_extras",
-    "@boost//:graph",
+    "@bagl//bagl",
   ],
 )
 

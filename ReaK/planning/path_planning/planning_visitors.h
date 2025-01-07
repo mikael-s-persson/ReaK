@@ -103,7 +103,7 @@ struct planning_visitor_base {
   void dispatched_register_solution(
       Vertex start, Vertex goal, Vertex /*unused*/, Graph& g,
       const optimal_mg_vertex<space_type>& /*unused*/) const {
-    if ((g[goal].predecessor != boost::graph_traits<Graph>::null_vertex()) &&
+    if ((g[goal].predecessor != bagl::graph_traits<Graph>::null_vertex()) &&
         (g[goal].distance_accum < m_query->get_best_solution_distance())) {
       solution_record_ptr srp = m_query->register_solution(start, goal, 0.0, g);
       if (srp) {
@@ -115,7 +115,7 @@ struct planning_visitor_base {
   template <typename Graph>
   void publish_path(Graph& g) const {
     if (m_goal_node.has_value()) {
-      using Vertex = graph::graph_vertex_t<Graph>;
+      using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
       auto goal_node = std::any_cast<Vertex>(m_goal_node);
       dispatched_register_solution(std::any_cast<Vertex>(m_start_node),
                                    goal_node, goal_node, g, g[goal_node]);
@@ -136,7 +136,7 @@ struct planning_visitor_base {
                                     Vertex /*unused*/,
                                     Graph& /*unused*/) const {
     vp.distance_accum = std::numeric_limits<double>::infinity();
-    vp.predecessor = boost::graph_traits<Graph>::null_vertex();
+    vp.predecessor = bagl::graph_traits<Graph>::null_vertex();
   }
 
   template <typename Vertex, typename Graph>
@@ -144,7 +144,7 @@ struct planning_visitor_base {
                                     Vertex /*unused*/,
                                     Graph& /*unused*/) const {
     vp.distance_accum = std::numeric_limits<double>::infinity();
-    vp.predecessor = boost::graph_traits<Graph>::null_vertex();
+    vp.predecessor = bagl::graph_traits<Graph>::null_vertex();
     vp.heuristic_value = m_query->get_heuristic_to_goal(vp.position);
   }
 
@@ -154,9 +154,9 @@ struct planning_visitor_base {
     vp.distance_accum = get(distance_metric, m_query->space->get_super_space())(
         g[std::any_cast<Vertex>(m_start_node)].position, vp.position,
         m_query->space->get_super_space());
-    vp.predecessor = boost::graph_traits<Graph>::null_vertex();
+    vp.predecessor = bagl::graph_traits<Graph>::null_vertex();
     vp.fwd_distance_accum = m_query->get_heuristic_to_goal(vp.position);
-    vp.successor = boost::graph_traits<Graph>::null_vertex();
+    vp.successor = bagl::graph_traits<Graph>::null_vertex();
   }
 
   /***************************************************
@@ -190,11 +190,11 @@ struct planning_visitor_base {
 
   template <typename Edge, typename Graph>
   void edge_added(Edge e, Graph& g) const {
-    using Vertex = graph::graph_vertex_t<Graph>;
+    using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
 
     if ((((m_planner->get_planning_method_flags() &
            PLANNING_DIRECTIONALITY_MASK) == BIDIRECTIONAL_PLANNING) &&
-         (!std::is_convertible_v<graph::graph_vertex_bundle_t<Graph>*,
+         (!std::is_convertible_v<bagl::vertex_bundle_type<Graph>*,
                                  optimal_mg_vertex<space_type>*>)) ||
         (m_goal_node.has_value())) {
       return;  // do not check goal connection for a bi-directional planner
@@ -312,7 +312,7 @@ struct planning_visitor_base {
 
   template <typename Vertex, typename Graph>
   auto steer_towards_position(const point_type& p, Vertex u, Graph& g) const {
-    std::tuple<point_type, bool, graph::graph_edge_bundle_t<Graph>> result;
+    std::tuple<point_type, bool, bagl::edge_bundle_type<Graph>> result;
     double traveled_dist =
         dispatched_steer_towards_position(*(m_query->space), g[u].position, p,
                                           get<0>(result), 1.0, get<2>(result));
@@ -333,7 +333,7 @@ struct planning_visitor_base {
 
   template <typename Vertex, typename Graph>
   auto steer_back_to_position(const point_type& p, Vertex u, Graph& g) const {
-    std::tuple<point_type, bool, graph::graph_edge_bundle_t<Graph>> result;
+    std::tuple<point_type, bool, bagl::edge_bundle_type<Graph>> result;
     double traveled_dist =
         dispatched_steer_back_to_position(*(m_query->space), p, g[u].position,
                                           get<0>(result), 1.0, get<2>(result));
@@ -354,7 +354,7 @@ struct planning_visitor_base {
 
   template <typename Vertex, typename Graph>
   auto can_be_connected(Vertex u, Vertex v, const Graph& g) const {
-    std::pair<bool, graph::graph_edge_bundle_t<Graph>> result;
+    std::pair<bool, bagl::edge_bundle_type<Graph>> result;
     point_type p_result;
     double traveled_dist = dispatched_steer_towards_position(
         *(m_query->space), g[u].position, g[v].position, p_result, 1.0,
@@ -374,7 +374,7 @@ struct planning_visitor_base {
 
   template <typename Vertex, typename Graph>
   auto random_walk(Vertex u, Graph& g) const {
-    std::tuple<point_type, bool, graph::graph_edge_bundle_t<Graph>> result;
+    std::tuple<point_type, bool, bagl::edge_bundle_type<Graph>> result;
 
     const super_space_type& sup_space = m_query->space->get_super_space();
     auto get_sample = get(random_sampler, sup_space);
@@ -413,7 +413,7 @@ struct planning_visitor_base {
 
   template <typename Vertex, typename Graph>
   auto random_back_walk(Vertex u, Graph& g) const {
-    std::tuple<point_type, bool, graph::graph_edge_bundle_t<Graph>> result;
+    std::tuple<point_type, bool, bagl::edge_bundle_type<Graph>> result;
 
     const super_space_type& sup_space = m_query->space->get_super_space();
     auto get_sample = get(random_sampler, sup_space);
