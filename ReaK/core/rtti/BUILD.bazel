@@ -7,33 +7,34 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-  name = "rtti",
-  srcs = [
-    "so_type.cc",
-    "so_type_repo.cc",
-  ],
-  hdrs = [
-    "rtti.h",
-    "so_register_type.h",
-    "so_type.h",
-    "so_type_repo.h",
-    "typed_containers.h",
-    "typed_object.h",
-    "typed_primitives.h",
-  ],
-  deps = [
-    "//ReaK/core/base:cnst_string",
-  ],
+    name = "rtti",
+    srcs = [
+        "so_type.cc",
+        "so_type_repo.cc",
+    ],
+    hdrs = [
+        "rtti.h",
+        "so_register_type.h",
+        "so_type.h",
+        "so_type_repo.h",
+        "typed_containers.h",
+        "typed_object.h",
+        "typed_primitives.h",
+    ],
+    deps = [
+        "//ReaK/core/base:cnst_string",
+    ],
 )
 
 cc_test(
-  name = "rtti_test",
-  srcs = [
-    "rtti_test.cc",
-  ],
-  deps = [
-    ":rtti",
-    "//ReaK/core/base",
-    "@com_google_googletest//:gtest_main",
-  ],
+    name = "rtti_test",
+    srcs = [
+        "rtti_test.cc",
+    ],
+    deps = [
+        ":rtti",
+        "//ReaK/core/base",
+        "//ReaK/core/base:base_macros",
+        "@com_google_googletest//:gtest_main",
+    ],
 )

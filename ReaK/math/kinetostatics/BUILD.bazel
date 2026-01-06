@@ -7,64 +7,65 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-  name = "kinetostatics",
-  hdrs = [
-    "calibrate_frames_3D.h",
-    "frame_2D.h",
-    "frame_3D.h",
-    "gen_coord.h",
-    "kinetostatics.h",
-    "motion_jacobians.h",
-    "pose_2D.h",
-    "pose_3D.h",
-    "quat_alg.h",
-    "quat_num.h",
-    "rotations.h",
-    "rotations_2D.h",
-    "rotations_3D.h",
-  ],
-  deps = [
-    "//ReaK/core/base",
-    "//ReaK/math/lin_alg",
-  ],
+    name = "kinetostatics",
+    hdrs = [
+        "calibrate_frames_3D.h",
+        "frame_2D.h",
+        "frame_3D.h",
+        "gen_coord.h",
+        "kinetostatics.h",
+        "motion_jacobians.h",
+        "pose_2D.h",
+        "pose_3D.h",
+        "quat_alg.h",
+        "quat_num.h",
+        "rotations.h",
+        "rotations_2D.h",
+        "rotations_3D.h",
+    ],
+    deps = [
+        "//ReaK/core/base",
+        "//ReaK/core/serialization:serialization_base",
+        "//ReaK/math/lin_alg",
+    ],
 )
 
 cc_test(
-  name = "rotations_test",
-  srcs = [
-    "rotations_test.cc",
-  ],
-  deps = [
-    ":kinetostatics",
-    "//ReaK/core/base",
-    "//ReaK/math/lin_alg",
-    "//ReaK/math/lin_alg:lin_alg_matchers",
-    "@com_google_googletest//:gtest_main",
-  ],
+    name = "rotations_test",
+    srcs = [
+        "rotations_test.cc",
+    ],
+    deps = [
+        ":kinetostatics",
+        "//ReaK/core/base:base_macros",
+        "//ReaK/math/lin_alg",
+        "//ReaK/math/lin_alg:lin_alg_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
 
 cc_test(
-  name = "quat_alg_test",
-  srcs = [
-    "quat_alg_test.cc",
-  ],
-  deps = [
-    ":kinetostatics",
-    "//ReaK/math/lin_alg",
-    "//ReaK/math/lin_alg:lin_alg_matchers",
-    "@com_google_googletest//:gtest_main",
-  ],
+    name = "quat_alg_test",
+    srcs = [
+        "quat_alg_test.cc",
+    ],
+    deps = [
+        ":kinetostatics",
+        "//ReaK/math/lin_alg:lin_alg_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
 
 cc_binary(
-  name = "lie_group_num_test",
-  srcs = [
-    "lie_group_num_test.cc",
-  ],
-  deps = [
-    ":kinetostatics",
-    "//ReaK/math/lin_alg",
-  ],
+    name = "lie_group_num_test",
+    srcs = [
+        "lie_group_num_test.cc",
+    ],
+    deps = [
+        ":kinetostatics",
+        "//ReaK/core/base:base_macros",
+        "//ReaK/math/lin_alg",
+    ],
 )
 
 # if(Python3_FOUND)

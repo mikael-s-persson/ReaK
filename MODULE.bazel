@@ -10,10 +10,10 @@ http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "ht
 
 git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
-bazel_dep(name = "bazel_skylib", version = "1.7.1")
-bazel_dep(name = "platforms", version = "0.0.10")
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
+bazel_dep(name = "platforms", version = "1.0.0")
 
-bazel_dep(name = "toolchains_llvm", version = "1.1.2")
+bazel_dep(name = "toolchains_llvm", version = "1.6.0")
 
 # Configure and register the toolchain.
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
@@ -25,29 +25,28 @@ use_repo(llvm, "llvm_toolchain")
 
 register_toolchains("@llvm_toolchain//:all")
 
-bazel_dep(name = "abseil-cpp", version = "20240722.0.bcr.1", repo_name = "com_google_absl")
-bazel_dep(name = "rules_cc", version = "0.0.16")
-bazel_dep(name = "rules_python", version = "0.40.0")
+bazel_dep(name = "abseil-cpp", version = "20250512.1", repo_name = "com_google_absl")
+bazel_dep(name = "rules_cc", version = "0.2.16")
+bazel_dep(name = "rules_python", version = "1.7.0")
 
-bazel_dep(name = "googletest", version = "1.15.2", repo_name = "com_google_googletest")
-bazel_dep(name = "google_benchmark", version = "1.8.3", repo_name = "com_google_benchmark")
+bazel_dep(name = "googletest", version = "1.17.0.bcr.2", repo_name = "com_google_googletest")
+bazel_dep(name = "google_benchmark", version = "1.8.4", repo_name = "com_google_benchmark")
 
 bazel_dep(name = "eigen", version = "3.4.0")
 
-# Hedron's Compile Commands Extractor for Bazel
-# https://github.com/hedronvision/bazel-compile-commands-extractor
-bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+# Aspects to extract C++ metadata and fix dependency issues.
+# bazel run -c dbg //:cc_meta_refresh_all -- -c dbg
+# bazel run -c dbg @bazel_cc_meta//cc_meta:fix_deps
+bazel_dep(name = "bazel_cc_meta", version = "0.0.0")
 git_override(
-    module_name = "hedron_compile_commands",
-    commit = "af167878427c469db96444b65f026d064ec62a4f",
-    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
-    # Replace the commit hash (above) with the latest (https://github.com/hedronvision/bazel-compile-commands-extractor/commits/main).
-    # Even better, set up Renovate and let it do the work for you (see "Suggestion: Updates" in the README).
+    module_name = "bazel_cc_meta",
+    commit = "ccabddc2a9016b3ee0a620e32ee6e71ecc8aa5f6",
+    remote = "https://github.com/mikael-s-persson/bazel_cc_meta.git",
 )
 
 # Born Again Graph Library (BGL port)
 git_repository(
     name = "bagl",
-    commit = "10030bf6ceca313a066e987a4846f39ebb450369",
+    commit = "e95426473a3871b90bfe0d548e79929312fa82be",
     remote = "https://github.com/mikael-s-persson/bagl.git",
 )

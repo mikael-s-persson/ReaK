@@ -7,75 +7,69 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-  name = "recorders",
-  srcs = [
-    "ascii_recorder.cc",
-    "bin_recorder.cc",
-    "data_record.cc",
-    #"network_recorder.cc",
-    "vector_recorder.cc",
-  ],
-  hdrs = [
-    "ascii_recorder.h",
-    "bin_recorder.h",
-    "data_record.h",
-    #"network_recorder.h",
-    "vector_recorder.h",
-  ],
-  #defines = ["ENABLE_NETWORK_RECORDER"],
-  deps = [
-    "//ReaK/core/base",
-    "//ReaK/core/base:base_macros",
-    "//ReaK/core/rtti",
-    "//ReaK/core/base:endian_conversions",
-    #${Boost_LIBRARIES}   # For network recorder with boost::asio
-    #${EXTRA_SYSTEM_LIBS}
-  ],
+    name = "recorders",
+    srcs = [
+        "ascii_recorder.cc",
+        "bin_recorder.cc",
+        "data_record.cc",
+        #"network_recorder.cc",
+        "vector_recorder.cc",
+    ],
+    hdrs = [
+        "ascii_recorder.h",
+        "bin_recorder.h",
+        "data_record.h",
+        #"network_recorder.h",
+        "vector_recorder.h",
+    ],
+    #defines = ["ENABLE_NETWORK_RECORDER"],
+    deps = [
+        "//ReaK/core/base",
+        "//ReaK/core/base:base_macros",
+        #${Boost_LIBRARIES}   # For network recorder with boost::asio
+        #${EXTRA_SYSTEM_LIBS}
+    ],
 )
 
 cc_test(
-  name = "recorders_test",
-  srcs = [
-    "recorders_test.cc",
-  ],
-  #defines = ["ENABLE_NETWORK_RECORDER"],
-  deps = [
-    ":recorders",
-    "//ReaK/core/rtti",
-    "@com_google_googletest//:gtest_main",
-  ],
+    name = "recorders_test",
+    srcs = [
+        "recorders_test.cc",
+    ],
+    #defines = ["ENABLE_NETWORK_RECORDER"],
+    deps = [
+        ":recorders",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
 
 cc_library(
-  name = "recorders_po",
-  srcs = [
-    "data_record_options.cc",
-    "data_record_po.cc",
-  ],
-  hdrs = [
-    "data_record_options.h",
-    "data_record_po.h",
-  ],
-  #defines = ["ENABLE_NETWORK_RECORDER"],
-  deps = [
-    ":recorders",
-    "//ReaK/core/serialization",
-    "//ReaK/core/base:base_macros",
-    "@com_google_absl//absl/flags:flag",
-    "@com_google_absl//absl/strings",
-  ],
+    name = "recorders_po",
+    srcs = [
+        "data_record_options.cc",
+        "data_record_po.cc",
+    ],
+    hdrs = [
+        "data_record_options.h",
+        "data_record_po.h",
+    ],
+    #defines = ["ENABLE_NETWORK_RECORDER"],
+    deps = [
+        ":recorders",
+        "//ReaK/core/serialization",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/strings",
+    ],
 )
 
 cc_binary(
-  name = "convert_datastream",
-  srcs = [
-    "convert_datastream.cc",
-  ],
-  deps = [
-    ":recorders",
-    ":recorders_po",
-    "//ReaK/core/rtti",
-    "@com_google_absl//absl/flags:flag",
-    "@com_google_absl//absl/flags:parse",
-  ],
+    name = "convert_datastream",
+    srcs = [
+        "convert_datastream.cc",
+    ],
+    deps = [
+        ":recorders_po",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+    ],
 )

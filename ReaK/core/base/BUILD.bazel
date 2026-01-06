@@ -7,62 +7,63 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-  name = "base_macros",
-  srcs = [],
-  hdrs = ["defs.h",],
+    name = "base_macros",
+    srcs = [],
+    hdrs = ["defs.h"],
 )
 
 cc_library(
-  name = "cnst_string",
-  srcs = [],
-  hdrs = ["cnst_string.h",],
-  deps = [
-    ":base_macros",
-  ],
+    name = "cnst_string",
+    srcs = [],
+    hdrs = ["cnst_string.h"],
+    deps = [
+        ":base_macros",
+    ],
 )
 
 cc_test(
-  name = "cnst_string_test",
-  srcs = ["cnst_string_test.cc",],
-  deps = [
-    ":cnst_string",
-    "@com_google_googletest//:gtest_main",
-  ],
+    name = "cnst_string_test",
+    srcs = ["cnst_string_test.cc"],
+    deps = [
+        ":base_macros",
+        ":cnst_string",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
 
 cc_library(
-  name = "endian_conversions",
-  srcs = [],
-  hdrs = ["endian_conversions.h",],
-  deps = [
-    ":base_macros",
-  ],
+    name = "endian_conversions",
+    srcs = [],
+    hdrs = ["endian_conversions.h"],
+    deps = [
+        ":base_macros",
+    ],
 )
 
 cc_test(
-  name = "endian_conversions_test",
-  srcs = ["endian_conversions_test.cc",],
-  deps = [
-    ":endian_conversions",
-    "@com_google_googletest//:gtest_main",
-  ],
+    name = "endian_conversions_test",
+    srcs = ["endian_conversions_test.cc"],
+    deps = [
+        ":base_macros",
+        ":endian_conversions",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
 
 cc_library(
-  name = "base",
-  srcs = [],
-  hdrs = [
-    "global_rng.h",
-    "misc_math.h",
-    "named_object.h",
-    "scope_guard.h",
-    "shared_object.h",
-  ],
-  deps = [
-    ":base_macros",
-    "//ReaK/core/rtti",
-    "//ReaK/core/serialization:serialization_base",
-  ],
+    name = "base",
+    srcs = [],
+    hdrs = [
+        "global_rng.h",
+        "misc_math.h",
+        "named_object.h",
+        "scope_guard.h",
+        "shared_object.h",
+    ],
+    deps = [
+        ":base_macros",
+        "//ReaK/core/serialization:serialization_base",
+    ],
 )
 
 # if(Python3_FOUND)

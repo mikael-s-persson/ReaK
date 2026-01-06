@@ -7,71 +7,73 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-  name = "models",
-  srcs = [
-    "free_floating_platform.cc",
-    "manip_3R3R_arm.cc",
-    "manip_3R_arm.cc",
-    "manip_clik_calculator.cc",
-    "manip_dynamics_model.cc",
-    "manip_ERA_arm.cc",
-    "manip_kinematics_helper.cc",
-    "manip_kinematics_model.cc",
-    "manip_P3R3R_arm.cc",
-    "manip_SCARA_arm.cc",
-    "manip_SSRMS_arm.cc",
-    "uav_kinematics.cc",
-  ],
-  hdrs = [
-    "direct_kinematics_model.h",
-    "free_floating_platform.h",
-    "inverse_dynamics_model.h",
-    "inverse_kinematics_model.h",
-    "joint_space_limits.h",
-    "manip_3R3R_arm.h",
-    "manip_3R_arm.h",
-    "manip_clik_calculator.h",
-    "manip_dynamics_model.h",
-    "manip_ERA_arm.h",
-    "manip_kinematics_helper.h",
-    "manip_kinematics_model.h",
-    "manip_P3R3R_arm.h",
-    "manip_SCARA_arm.h",
-    "manip_SSRMS_arm.h",
-    "uav_kinematics.h",
-  ],
-  deps = [
-    "//ReaK/core/base",
-    "//ReaK/math/integrators",
-    "//ReaK/math/lin_alg",
-    "//ReaK/math/kinetostatics",
-    "//ReaK/mbd/kte",
-  ],
+    name = "models",
+    srcs = [
+        "free_floating_platform.cc",
+        "manip_3R3R_arm.cc",
+        "manip_3R_arm.cc",
+        "manip_ERA_arm.cc",
+        "manip_P3R3R_arm.cc",
+        "manip_SCARA_arm.cc",
+        "manip_SSRMS_arm.cc",
+        "manip_clik_calculator.cc",
+        "manip_dynamics_model.cc",
+        "manip_kinematics_helper.cc",
+        "manip_kinematics_model.cc",
+        "uav_kinematics.cc",
+    ],
+    hdrs = [
+        "direct_kinematics_model.h",
+        "free_floating_platform.h",
+        "inverse_dynamics_model.h",
+        "inverse_kinematics_model.h",
+        "joint_space_limits.h",
+        "manip_3R3R_arm.h",
+        "manip_3R_arm.h",
+        "manip_ERA_arm.h",
+        "manip_P3R3R_arm.h",
+        "manip_SCARA_arm.h",
+        "manip_SSRMS_arm.h",
+        "manip_clik_calculator.h",
+        "manip_dynamics_model.h",
+        "manip_kinematics_helper.h",
+        "manip_kinematics_model.h",
+        "uav_kinematics.h",
+    ],
+    deps = [
+        "//ReaK/core/base",
+        "//ReaK/core/base:base_macros",
+        "//ReaK/math/integrators",
+        "//ReaK/math/kinetostatics",
+        "//ReaK/math/lin_alg",
+        "//ReaK/math/optimization",
+        "//ReaK/mbd/kte",
+    ],
 )
 
 cc_library(
-  name = "models_po",
-  srcs = [
-    "chaser_target_model_data.cc",
-    "chaser_target_model_data_po.cc",
-    "navigation_model_data.cc",
-  ],
-  hdrs = [
-    "chaser_target_model_data.h",
-    "chaser_target_model_data_po.h",
-    "navigation_model_data.h",
-  ],
-  deps = [
-    ":models",
-    "//ReaK/core/base",
-    "//ReaK/core/serialization",
-    "//ReaK/math/lin_alg",
-    "//ReaK/math/kinetostatics",
-    "//ReaK/geometry/shapes",
-    "//ReaK/geometry/proximity",
-    "//ReaK/mbd/kte",
-    "@com_google_absl//absl/flags:flag",
-  ],
+    name = "models_po",
+    srcs = [
+        "chaser_target_model_data.cc",
+        "chaser_target_model_data_po.cc",
+        "navigation_model_data.cc",
+    ],
+    hdrs = [
+        "chaser_target_model_data.h",
+        "chaser_target_model_data_po.h",
+        "navigation_model_data.h",
+    ],
+    deps = [
+        ":models",
+        "//ReaK/core/base",
+        "//ReaK/core/base:base_macros",
+        "//ReaK/core/serialization",
+        "//ReaK/geometry/proximity",
+        "//ReaK/geometry/shapes",
+        "//ReaK/math/optimization",
+        "//ReaK/mbd/kte",
+        "@com_google_absl//absl/flags:flag",
+    ],
 )
 
 # if(Python3_FOUND)
@@ -90,99 +92,78 @@ cc_library(
 # endif()
 
 cc_binary(
-  name = "build_airship3D_target",
-  srcs = [
-    "build_airship3D_target.cc",
-  ],
-  deps = [
-    ":models",
-    ":models_po",
-    "//ReaK/core/base",
-    "//ReaK/core/serialization",
-    "//ReaK/math/lin_alg",
-    "//ReaK/math/kinetostatics",
-    "//ReaK/geometry/shapes",
-    "//ReaK/geometry/proximity",
-    "//ReaK/mbd/kte",
-    "@com_google_absl//absl/flags:flag",
-    "@com_google_absl//absl/flags:parse",
-  ],
+    name = "build_airship3D_target",
+    srcs = [
+        "build_airship3D_target.cc",
+    ],
+    deps = [
+        ":models",
+        "//ReaK/core/serialization",
+        "//ReaK/geometry/proximity",
+        "//ReaK/geometry/shapes",
+        "//ReaK/mbd/kte",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+    ],
 )
 
 cc_binary(
-  name = "build_P3R3R_model",
-  srcs = [
-    "build_P3R3R_model.cc",
-  ],
-  deps = [
-    ":models",
-    ":models_po",
-    "//ReaK/core/base",
-    "//ReaK/core/serialization",
-    "//ReaK/math/lin_alg",
-    "//ReaK/math/kinetostatics",
-    "//ReaK/geometry/shapes",
-    "//ReaK/geometry/proximity",
-    "//ReaK/mbd/kte",
-    "@com_google_absl//absl/flags:flag",
-    "@com_google_absl//absl/flags:parse",
-  ],
+    name = "build_P3R3R_model",
+    srcs = [
+        "build_P3R3R_model.cc",
+    ],
+    deps = [
+        ":models",
+        "//ReaK/core/serialization",
+        "//ReaK/geometry/shapes",
+        "//ReaK/mbd/kte",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+    ],
 )
 
 cc_binary(
-  name = "get_CRS_rel_world_transform",
-  srcs = [
-    "get_CRS_rel_world_transform.cc",
-  ],
-  deps = [
-    ":models",
-    ":models_po",
-    "//ReaK/core/base",
-    "//ReaK/core/recorders:recorders_po",
-    "//ReaK/math/lin_alg",
-    "//ReaK/math/kinetostatics",
-    "//ReaK/mbd/kte",
-    "@com_google_absl//absl/flags:flag",
-    "@com_google_absl//absl/flags:parse",
-  ],
+    name = "get_CRS_rel_world_transform",
+    srcs = [
+        "get_CRS_rel_world_transform.cc",
+    ],
+    deps = [
+        ":models",
+        "//ReaK/core/recorders:recorders_po",
+        "//ReaK/math/kinetostatics",
+        "@com_google_absl//absl/flags:parse",
+    ],
 )
 
 cc_binary(
-  name = "pose_to_grapple",
-  srcs = [
-    "pose_to_grapple.cc",
-  ],
-  deps = [
-    ":models",
-    ":models_po",
-    "//ReaK/core/base",
-    "//ReaK/core/recorders:recorders_po",
-    "//ReaK/math/lin_alg",
-    "//ReaK/math/kinetostatics",
-    "//ReaK/geometry/shapes",
-    "//ReaK/geometry/proximity",
-    "//ReaK/mbd/kte",
-    "@com_google_absl//absl/flags:flag",
-    "@com_google_absl//absl/flags:parse",
-  ],
+    name = "pose_to_grapple",
+    srcs = [
+        "pose_to_grapple.cc",
+    ],
+    deps = [
+        ":models",
+        "//ReaK/core/recorders:recorders_po",
+        "//ReaK/core/serialization",
+        "//ReaK/geometry/proximity",
+        "//ReaK/geometry/shapes",
+        "//ReaK/mbd/kte",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+    ],
 )
 
 cc_binary(
-  name = "CRS_jtctrl_to_EE",
-  srcs = [
-    "CRS_jtctrl_to_EE.cc",
-  ],
-  deps = [
-    ":models",
-    ":models_po",
-    "//ReaK/core/base",
-    "//ReaK/core/recorders:recorders_po",
-    "//ReaK/math/lin_alg",
-    "//ReaK/math/kinetostatics",
-    "//ReaK/geometry/shapes",
-    "//ReaK/geometry/proximity",
-    "//ReaK/mbd/kte",
-    "@com_google_absl//absl/flags:flag",
-    "@com_google_absl//absl/flags:parse",
-  ],
+    name = "CRS_jtctrl_to_EE",
+    srcs = [
+        "CRS_jtctrl_to_EE.cc",
+    ],
+    deps = [
+        ":models",
+        "//ReaK/core/recorders:recorders_po",
+        "//ReaK/core/serialization",
+        "//ReaK/geometry/proximity",
+        "//ReaK/geometry/shapes",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+    ],
 )

@@ -7,39 +7,32 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-  name = "root_finders",
-  hdrs = [
-    "bisection_method.h",
-    "broyden_method.h",
-    "newton_raphson_method.h",
-    "secant_method.h",
-    "special_secant_methods.h",
-  ],
-  deps = [
-    "//ReaK/core/base",
-    "//ReaK/math/lin_alg",
-  ],
+    name = "root_finders",
+    hdrs = [
+        "bisection_method.h",
+        "broyden_method.h",
+        "newton_raphson_method.h",
+        "secant_method.h",
+        "special_secant_methods.h",
+    ],
+    deps = ["//ReaK/math/lin_alg"],
 )
 
 cc_test(
-  name = "root_finders_test",
-  srcs = [
-    "root_finders_test.cc",
-  ],
-  deps = [
-    ":root_finders",
-    "//ReaK/math/lin_alg",
-    "@com_google_googletest//:gtest_main",
-  ],
+    name = "root_finders_test",
+    srcs = [
+        "root_finders_test.cc",
+    ],
+    deps = [
+        ":root_finders",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
 
 cc_binary(
-  name = "root_finders_perf",
-  srcs = [
-    "root_finders_perf.cc",
-  ],
-  deps = [
-    ":root_finders",
-    "//ReaK/math/lin_alg",
-  ],
+    name = "root_finders_perf",
+    srcs = [
+        "root_finders_perf.cc",
+    ],
+    deps = [":root_finders"],
 )

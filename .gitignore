@@ -12,3 +12,7 @@ bazel-bin
 bazel-out
 bazel-testlogs
 .cache
+
+compile_commands.json
+dependency_issues.json
+target_exports.json
