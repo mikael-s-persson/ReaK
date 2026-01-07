@@ -34,7 +34,6 @@
 #define REAK_TOPOLOGIES_SPACES_TEMPORAL_SPACE_H_
 
 #include <utility>
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 #include "ReaK/math/lin_alg/arithmetic_tuple.h"
 

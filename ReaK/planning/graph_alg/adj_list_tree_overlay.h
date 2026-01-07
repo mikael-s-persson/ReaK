@@ -32,7 +32,6 @@
 #ifndef REAK_PLANNING_GRAPH_ALG_ADJ_LIST_TREE_OVERLAY_H_
 #define REAK_PLANNING_GRAPH_ALG_ADJ_LIST_TREE_OVERLAY_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "bagl/adjacency_list.h"
 #include "bagl/bfl_d_ary_tree.h"

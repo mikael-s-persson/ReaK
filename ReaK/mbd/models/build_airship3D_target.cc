@@ -38,6 +38,7 @@
 #include "ReaK/core/serialization/archiver_factory.h"
 
 #include <filesystem>
+#include <numbers>
 #include <memory>
 
 #include "absl/flags/flag.h"
@@ -140,7 +141,7 @@ int main(int argc, char** argv) {
       airship3D_output_frame,
       vect<double, 3>(gr_radius * std::cos(gr_beta), 0.0,
                       gr_radius * std::sin(gr_beta)),
-      quaternion<double>::yrot(-0.5 * M_PI - gr_beta).getQuaternion(),
+      quaternion<double>::yrot(-0.5 * std::numbers::pi - gr_beta).getQuaternion(),
       vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
       vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
       vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0));
@@ -160,7 +161,7 @@ int main(int argc, char** argv) {
           std::shared_ptr<pose_3D<double>>(),
           vect<double, 3>((gr_radius + 0.05) * std::cos(gr_beta), 0.0,
                           (gr_radius + 0.05) * std::sin(gr_beta)),
-          quaternion<double>::yrot(-0.5 * M_PI - gr_beta).getQuaternion()),
+          quaternion<double>::yrot(-0.5 * std::numbers::pi - gr_beta).getQuaternion()),
       vect<double, 3>(0.08, 0.003, 0.1));
 
   auto grapple_arrows = std::make_shared<coord_arrows_3D>(

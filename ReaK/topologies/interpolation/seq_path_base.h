@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_SEQ_PATH_BASE_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_SEQ_PATH_BASE_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"

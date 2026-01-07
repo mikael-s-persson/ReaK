@@ -30,6 +30,7 @@
 #include "ReaK/mbd/models/manip_ERA_arm.h"
 
 #include <cmath>
+#include <numbers>
 #include <utility>
 
 namespace ReaK::kte {
@@ -192,7 +193,7 @@ void manip_ERA_kinematics::doDirectMotion() {
 }
 
 static inline double clamp_to_pi_range(double a) {
-  return (a > M_PI ? a - 2.0 * M_PI : (a < -M_PI ? a + 2.0 * M_PI : a));
+  return (a > std::numbers::pi ? a - 2.0 * std::numbers::pi : (a < -std::numbers::pi ? a + 2.0 * std::numbers::pi : a));
 }
 
 void manip_ERA_kinematics::doInverseMotion() {

@@ -29,6 +29,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <numbers>
 #include <sstream>
 
 namespace ReaK::optim {
@@ -855,7 +856,7 @@ NLPConstrainedProblemsTest::NLPConstrainedProblemsTest() {
     vect_n<double> result(6);
     result[0] = 2.0;
     result[1] = 0.5;
-    result[2] = M_PI * 0.5;
+    result[2] = std::numbers::pi * 0.5;
     result[3] = 0.1;
     result[4] = 0.1;
     result[5] = 0.1;
@@ -982,7 +983,7 @@ NLPConstrainedProblemsTest::NLPConstrainedProblemsTest() {
   // Variables.
   // Multiple solutions, so only check gradient projection.
   funcs_sol.emplace_back(8, std::numeric_limits<double>::quiet_NaN());
-  funcs_start.emplace_back(0.66, M_PI * 0.35, M_PI * 0.35, M_PI * 0.35, 0.03,
+  funcs_start.emplace_back(0.66, std::numbers::pi * 0.35, std::numbers::pi * 0.35, std::numbers::pi * 0.35, 0.03,
                            0.03, 0.03, 0.03);
   funcs_lower.emplace_back(8, -std::numeric_limits<double>::infinity());
   funcs_upper.emplace_back(8, std::numeric_limits<double>::infinity());
@@ -1026,7 +1027,7 @@ NLPConstrainedProblemsTest::NLPConstrainedProblemsTest() {
     vect_n<double> result(3);
     result[0] = 2.0;
     result[1] = 0.5;
-    result[2] = M_PI * 0.5;
+    result[2] = std::numbers::pi * 0.5;
     return result;
   };
   funcs_g.emplace_back(
@@ -1045,7 +1046,7 @@ NLPConstrainedProblemsTest::NLPConstrainedProblemsTest() {
         result[2] -= x[1] + x[2] + x[3];
         result[0] /= l[0];
         result[1] /= (l[1] + l[2] + l[3]);
-        result[2] /= M_PI;
+        result[2] /= std::numbers::pi;
         return result;
       });
   funcs_g_jac.emplace_back(
@@ -1082,10 +1083,10 @@ NLPConstrainedProblemsTest::NLPConstrainedProblemsTest() {
         J(1, 1) /= l[1] + l[2] + l[3];
         J(1, 2) /= l[1] + l[2] + l[3];
         J(1, 3) /= l[1] + l[2] + l[3];
-        J(2, 0) /= M_PI;
-        J(2, 1) /= M_PI;
-        J(2, 2) /= M_PI;
-        J(2, 3) /= M_PI;
+        J(2, 0) /= std::numbers::pi;
+        J(2, 1) /= std::numbers::pi;
+        J(2, 2) /= std::numbers::pi;
+        J(2, 3) /= std::numbers::pi;
       });
   // Inequality constraints.
   funcs_h.emplace_back([](const vect_n<double>& x) {
@@ -1111,7 +1112,7 @@ NLPConstrainedProblemsTest::NLPConstrainedProblemsTest() {
   // Variables.
   // Multiple solutions, so only check gradient projection.
   funcs_sol.emplace_back(4, std::numeric_limits<double>::quiet_NaN());
-  funcs_start.emplace_back(0.66, M_PI * 0.35, M_PI * 0.35, M_PI * 0.35);
+  funcs_start.emplace_back(0.66, std::numbers::pi * 0.35, std::numbers::pi * 0.35, std::numbers::pi * 0.35);
   funcs_lower.emplace_back(4, -std::numeric_limits<double>::infinity());
   funcs_upper.emplace_back(4, std::numeric_limits<double>::infinity());
 }

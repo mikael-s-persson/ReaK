@@ -45,7 +45,6 @@
 #include <type_traits>
 #include <vector>
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/rtti/so_register_type.h"
 #include "ReaK/core/rtti/typed_primitives.h"
 #include "ReaK/core/serialization/archiver.h"

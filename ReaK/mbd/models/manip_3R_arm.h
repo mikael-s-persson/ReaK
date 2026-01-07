@@ -32,7 +32,6 @@
 #ifndef REAK_MBD_MODELS_MANIP_3R_ARM_H_
 #define REAK_MBD_MODELS_MANIP_3R_ARM_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/mbd/kte/kte_map_chain.h"
 #include "ReaK/mbd/models/inverse_kinematics_model.h"
 

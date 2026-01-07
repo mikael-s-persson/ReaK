@@ -48,7 +48,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_PROPER_METRIC_CONCEPT_H_
 #define REAK_TOPOLOGIES_SPACES_PROPER_METRIC_CONCEPT_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/serialization/serializable.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"

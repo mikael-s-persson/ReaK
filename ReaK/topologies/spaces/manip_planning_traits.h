@@ -32,7 +32,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_MANIP_PLANNING_TRAITS_H_
 #define REAK_TOPOLOGIES_SPACES_MANIP_PLANNING_TRAITS_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/topologies/spaces/manip_free_dynamic_workspace.h"
 #include "ReaK/topologies/spaces/manip_free_workspace.h"

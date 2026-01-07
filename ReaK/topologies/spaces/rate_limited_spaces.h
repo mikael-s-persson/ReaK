@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_RATE_LIMITED_SPACES_H_
 #define REAK_TOPOLOGIES_SPACES_RATE_LIMITED_SPACES_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/serialization/serializable.h"
 
 #include "ReaK/math/lin_alg/arithmetic_tuple.h"

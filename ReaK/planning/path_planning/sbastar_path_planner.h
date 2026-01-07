@@ -42,7 +42,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_SBASTAR_PATH_PLANNER_H_
 #define REAK_PLANNING_PATH_PLANNING_SBASTAR_PATH_PLANNER_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/planning/path_planning/motion_planner_base.h"
@@ -222,5 +221,7 @@ class sbastar_planner : public sample_based_planner<FreeSpaceType> {
 };
 
 }  // namespace ReaK::pp
+
+#include "ReaK/planning/path_planning/sbastar_path_planner.inc"
 
 #endif  // REAK_PLANNING_PATH_PLANNING_SBASTAR_PATH_PLANNER_H_

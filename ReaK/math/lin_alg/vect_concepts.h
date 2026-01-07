@@ -35,7 +35,6 @@
 #ifndef REAK_MATH_LIN_ALG_VECT_CONCEPTS_H_
 #define REAK_MATH_LIN_ALG_VECT_CONCEPTS_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include <concepts>
 #include <iterator>

@@ -146,8 +146,7 @@ int main(int argc, char** argv) {
 
     try {
       (*serialization::open_oarchive(file_name)) << plan_options;
-    } catch (std::exception& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] std::exception& e) {
       std::cerr << "Error: Could not generate the planner options file!"
                 << std::endl;
     }

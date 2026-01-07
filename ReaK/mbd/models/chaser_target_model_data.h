@@ -33,7 +33,6 @@
 #ifndef REAK_MBD_MODELS_CHASER_TARGET_MODEL_DATA_H_
 #define REAK_MBD_MODELS_CHASER_TARGET_MODEL_DATA_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/mbd/models/inverse_kinematics_model.h"

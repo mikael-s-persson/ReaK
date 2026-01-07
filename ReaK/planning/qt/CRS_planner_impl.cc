@@ -97,24 +97,20 @@ union double_to_ulong {
 
 template <typename UnionT>
 void ntoh_2ui32(UnionT& value) {
-#if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
-  uint32_t tmp = ntohl(value.ui32[0]);
-  value.ui32[0] = ntohl(value.ui32[1]);
-  value.ui32[1] = tmp;
-#endif
-  // NOTE: for 64-bit values, there is no point in supporting PDP-endianness, as 64-bit values are not supported by PDP
-  // platforms.
+  if constexpr (std::endian::native != std::endian::big) {
+    uint32_t tmp = ntohl(value.ui32[0]);
+    value.ui32[0] = ntohl(value.ui32[1]);
+    value.ui32[1] = tmp;
+  }
 };
 
 template <typename UnionT>
 void hton_2ui32(UnionT& value) {
-#if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
-  uint32_t tmp = htonl(value.ui32[0]);
-  value.ui32[0] = htonl(value.ui32[1]);
-  value.ui32[1] = tmp;
-#endif
-  // NOTE: for 64-bit values, there is no point in supporting PDP-endianness, as 64-bit values are not supported by PDP
-  // platforms.
+  if constexpr (std::endian::native != std::endian::big) {
+    uint32_t tmp = htonl(value.ui32[0]);
+    value.ui32[0] = htonl(value.ui32[1]);
+    value.ui32[1] = tmp;
+  }
 };
 
 #ifdef RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
@@ -252,9 +248,7 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
           *(p->ct_config.sceneData.chaser_kin_model->getDependentFrame3D(0)
                 ->mFrame) = *(p->ct_config.sceneData.target_frame);
           p->ct_config.sceneData.chaser_kin_model->doInverseMotion();
-        } catch (optim::infeasible_problem& e) {
-          RK_UNUSED(e);
-        };
+        } catch ([[maybe_unused]] optim::infeasible_problem& e) {}
         p->ct_config.sceneData.chaser_kin_model->doDirectMotion();
       };
     };

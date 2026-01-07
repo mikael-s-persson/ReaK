@@ -422,66 +422,36 @@ class adstar_test_world {
     explicit visitor(adstar_test_world* aParent) : parent(aParent) {}
 
     template <typename Vertex, typename Graph>
-    void initialize_vertex(Vertex u, const Graph& g) const {
-      RK_UNUSED(u);
-      RK_UNUSED(g);
-    }
+    void initialize_vertex([[maybe_unused]] Vertex u, [[maybe_unused]] const Graph& g) const {}
     template <typename Vertex, typename Graph>
-    void discover_vertex(Vertex u, const Graph& g) const {
-      RK_UNUSED(u);
-      RK_UNUSED(g);
-    }
+    void discover_vertex([[maybe_unused]] Vertex u, [[maybe_unused]] const Graph& g) const {}
     template <typename Vertex, typename Graph>
-    void inconsistent_vertex(Vertex u, const Graph& g) const {
-      RK_UNUSED(u);
-      RK_UNUSED(g);
-    }
+    void inconsistent_vertex([[maybe_unused]] Vertex u, [[maybe_unused]] const Graph& g) const {}
     template <typename Vertex, typename Graph>
-    void examine_vertex(Vertex u, const Graph& g) const {
-      RK_UNUSED(u);
-      RK_UNUSED(g);
-    }
+    void examine_vertex([[maybe_unused]] Vertex u, [[maybe_unused]] const Graph& g) const {}
     template <typename Edge, typename Graph>
-    void examine_edge(Edge e, const Graph& g) const {
-      RK_UNUSED(e);
-      RK_UNUSED(g);
-    }
+    void examine_edge([[maybe_unused]] Edge e, [[maybe_unused]] const Graph& g) const {}
     template <typename Edge, typename Graph>
-    void edge_relaxed(Edge e, const Graph& g) const {
-      RK_UNUSED(e);
-      RK_UNUSED(g);
-    }
+    void edge_relaxed([[maybe_unused]] Edge e, [[maybe_unused]] const Graph& g) const {}
     template <typename Vertex, typename Graph>
-    void forget_vertex(Vertex u, const Graph& g) const {
-      RK_UNUSED(u);
-      RK_UNUSED(g);
-    }
+    void forget_vertex([[maybe_unused]] Vertex u, [[maybe_unused]] const Graph& g) const {}
     template <typename Vertex, typename Graph>
-    void finish_vertex(Vertex u, const Graph& g) const {
-      RK_UNUSED(u);
-      RK_UNUSED(g);
-    }
+    void finish_vertex([[maybe_unused]] Vertex u, [[maybe_unused]] const Graph& g) const {}
     template <typename Vertex, typename Graph>
-    void recycle_vertex(Vertex u, const Graph& g) const {
-      RK_UNUSED(u);
-      RK_UNUSED(g);
-    }
+    void recycle_vertex([[maybe_unused]] Vertex u, [[maybe_unused]] const Graph& g) const {}
     template <typename Graph>
-    void publish_path(const Graph& g) const {
-      RK_UNUSED(g);
+    void publish_path([[maybe_unused]] const Graph& g) const {
       parent->updatePath();
     }
     bool keep_going() const { return parent->isGoalNotReached; };
     template <typename EdgeIter, typename Graph>
     std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei,
-                                                   const Graph& g) const {
-      RK_UNUSED(g);
+                                                   [[maybe_unused]] const Graph& g) const {
       return parent->checkChanges(ei);
     }
     template <typename Graph>
     double adjust_epsilon(double old_eps, double w_change,
-                          const Graph& g) const {
-      RK_UNUSED(g);
+                          [[maybe_unused]] const Graph& g) const {
       return parent->adjustEpsilon(old_eps, w_change);
     }
   };

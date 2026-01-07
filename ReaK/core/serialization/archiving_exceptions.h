@@ -33,7 +33,6 @@
 #ifndef REAK_CORE_SERIALIZATION_ARCHIVING_EXCEPTIONS_H_
 #define REAK_CORE_SERIALIZATION_ARCHIVING_EXCEPTIONS_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include <exception>
 #include <sstream>

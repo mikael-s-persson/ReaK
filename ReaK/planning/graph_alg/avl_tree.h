@@ -34,7 +34,6 @@
 #ifndef REAK_PLANNING_GRAPH_ALG_AVL_TREE_H_
 #define REAK_PLANNING_GRAPH_ALG_AVL_TREE_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/planning/graph_alg/avl_tree_detail.h"
 

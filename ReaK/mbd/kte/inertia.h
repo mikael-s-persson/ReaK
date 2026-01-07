@@ -33,7 +33,6 @@
 #ifndef REAK_MBD_KTE_INERTIA_H_
 #define REAK_MBD_KTE_INERTIA_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/mbd/kte/kte_map.h"
 

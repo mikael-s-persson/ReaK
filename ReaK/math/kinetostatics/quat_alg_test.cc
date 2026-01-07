@@ -26,6 +26,7 @@
 #include "gtest/gtest.h"
 
 #include <cmath>
+#include <numbers>
 
 namespace ReaK {
 namespace {
@@ -35,9 +36,9 @@ using ::ReaK::testing::VectorIsNear;
 const double tolerance = 10.0 * std::numeric_limits<double>::epsilon();
 
 TEST(QuatAlg, QuatTests) {
-  quat<double> q_45z(std::cos(0.125 * M_PI), 0.0, 0.0, std::sin(0.125 * M_PI));
-  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
-                                                  0.0, std::sin(0.125 * M_PI)),
+  quat<double> q_45z(std::cos(0.125 * std::numbers::pi), 0.0, 0.0, std::sin(0.125 * std::numbers::pi));
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0,
+                                                  0.0, std::sin(0.125 * std::numbers::pi)),
                                   tolerance));
   quat<double> q_ident = q_45z * conj(q_45z);
   EXPECT_THAT(q_ident,
@@ -50,22 +51,22 @@ TEST(QuatAlg, QuatTests) {
               VectorIsNear(vect<double, 4>(0.0, 0.0, 0.0, 0.0), tolerance));
   quat<double> q_45z_cpy(q_45z);
   EXPECT_THAT(q_45z_cpy,
-              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
-                                           std::sin(0.125 * M_PI)),
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0, 0.0,
+                                           std::sin(0.125 * std::numbers::pi)),
                            tolerance));
   q_45z_cpy = q_45z;
   EXPECT_THAT(q_45z_cpy,
-              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
-                                           std::sin(0.125 * M_PI)),
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0, 0.0,
+                                           std::sin(0.125 * std::numbers::pi)),
                            tolerance));
   q_ident = q_45z * q_45z;
-  EXPECT_THAT(q_ident, VectorIsNear(vect<double, 4>(std::cos(0.25 * M_PI), 0.0,
-                                                    0.0, std::sin(0.25 * M_PI)),
+  EXPECT_THAT(q_ident, VectorIsNear(vect<double, 4>(std::cos(0.25 * std::numbers::pi), 0.0,
+                                                    0.0, std::sin(0.25 * std::numbers::pi)),
                                     tolerance));
   q_ident *= conj(q_45z);
   EXPECT_THAT(q_ident,
-              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
-                                           std::sin(0.125 * M_PI)),
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0, 0.0,
+                                           std::sin(0.125 * std::numbers::pi)),
                            tolerance));
   q_ident *= invert(q_45z);
   EXPECT_THAT(q_ident,
@@ -74,13 +75,13 @@ TEST(QuatAlg, QuatTests) {
   EXPECT_NEAR(norm_2(q_45z), 1.0, tolerance);
   q_45z *= 2.0;
   q_45z = unit(q_45z);
-  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
-                                                  0.0, std::sin(0.125 * M_PI)),
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0,
+                                                  0.0, std::sin(0.125 * std::numbers::pi)),
                                   tolerance));
 
   q_45z = sqrt(pow(q_45z, quat<double>(2.0)));
-  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
-                                                  0.0, std::sin(0.125 * M_PI)),
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0,
+                                                  0.0, std::sin(0.125 * std::numbers::pi)),
                                   tolerance));
 
   quat<double> temp = cos(q_45z) * cos(q_45z) + sin(q_45z) * sin(q_45z);
@@ -107,32 +108,32 @@ TEST(QuatAlg, QuatTests) {
 }
 
 TEST(QuatAlg, UnitQuatTests) {
-  unit_quat<double> q_45z(std::cos(0.125 * M_PI), 0.0, 0.0,
-                          std::sin(0.125 * M_PI));
-  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
-                                                  0.0, std::sin(0.125 * M_PI)),
+  unit_quat<double> q_45z(std::cos(0.125 * std::numbers::pi), 0.0, 0.0,
+                          std::sin(0.125 * std::numbers::pi));
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0,
+                                                  0.0, std::sin(0.125 * std::numbers::pi)),
                                   tolerance));
   unit_quat<double> q_ident = q_45z * conj(q_45z);
   EXPECT_THAT(q_ident,
               VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
   unit_quat<double> q_45z_cpy(q_45z);
   EXPECT_THAT(q_45z_cpy,
-              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
-                                           std::sin(0.125 * M_PI)),
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0, 0.0,
+                                           std::sin(0.125 * std::numbers::pi)),
                            tolerance));
   q_45z_cpy = q_45z;
   EXPECT_THAT(q_45z_cpy,
-              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
-                                           std::sin(0.125 * M_PI)),
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0, 0.0,
+                                           std::sin(0.125 * std::numbers::pi)),
                            tolerance));
   q_ident = q_45z * q_45z;
-  EXPECT_THAT(q_ident, VectorIsNear(vect<double, 4>(std::cos(0.25 * M_PI), 0.0,
-                                                    0.0, std::sin(0.25 * M_PI)),
+  EXPECT_THAT(q_ident, VectorIsNear(vect<double, 4>(std::cos(0.25 * std::numbers::pi), 0.0,
+                                                    0.0, std::sin(0.25 * std::numbers::pi)),
                                     tolerance));
   q_ident *= conj(q_45z);
   EXPECT_THAT(q_ident,
-              VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0, 0.0,
-                                           std::sin(0.125 * M_PI)),
+              VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0, 0.0,
+                                           std::sin(0.125 * std::numbers::pi)),
                            tolerance));
   q_ident *= invert(q_45z);
   EXPECT_THAT(q_ident,
@@ -140,7 +141,7 @@ TEST(QuatAlg, UnitQuatTests) {
   EXPECT_NEAR(norm_2_sqr(q_45z), 1.0, tolerance);
   EXPECT_NEAR(norm_2(q_45z), 1.0, tolerance);
 
-  vect<double, 3> v_45z(0.0, 0.0, 0.125 * M_PI);
+  vect<double, 3> v_45z(0.0, 0.0, 0.125 * std::numbers::pi);
   quat<double> temp = (exp(v_45z) * exp(v_45z)) * conj(exp(v_45z + v_45z));
   EXPECT_THAT(temp,
               VectorIsNear(vect<double, 4>(1.0, 0.0, 0.0, 0.0), tolerance));
@@ -148,13 +149,13 @@ TEST(QuatAlg, UnitQuatTests) {
   EXPECT_THAT(v_zero, VectorIsNear(vect<double, 3>(0.0, 0.0, 0.0), tolerance));
 
   q_45z = sqrt(q_45z * q_45z);
-  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
-                                                  0.0, std::sin(0.125 * M_PI)),
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0,
+                                                  0.0, std::sin(0.125 * std::numbers::pi)),
                                   tolerance));
 
   q_45z = sqrt(pow(q_45z, 2.0));
-  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * M_PI), 0.0,
-                                                  0.0, std::sin(0.125 * M_PI)),
+  EXPECT_THAT(q_45z, VectorIsNear(vect<double, 4>(std::cos(0.125 * std::numbers::pi), 0.0,
+                                                  0.0, std::sin(0.125 * std::numbers::pi)),
                                   tolerance));
 }
 

@@ -30,7 +30,6 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/mbd/kte/damper.h"
 #include "ReaK/mbd/kte/driving_actuator.h"

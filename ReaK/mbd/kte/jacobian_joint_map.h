@@ -36,7 +36,6 @@
 
 #include <map>
 #include <utility>
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/kinetostatics/kinetostatics.h"
 #include "ReaK/math/kinetostatics/motion_jacobians.h"
 

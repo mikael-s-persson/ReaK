@@ -33,7 +33,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_P2P_PLANNING_QUERY_H_
 #define REAK_PLANNING_PATH_PLANNING_P2P_PLANNING_QUERY_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"

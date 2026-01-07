@@ -33,10 +33,11 @@
 #ifndef REAK_MBD_MODELS_MANIP_SSRMS_ARM_H_
 #define REAK_MBD_MODELS_MANIP_SSRMS_ARM_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/mbd/kte/kte_map_chain.h"
 
 #include "ReaK/mbd/models/inverse_kinematics_model.h"
+
+#include <numbers>
 
 namespace ReaK::kte {
 
@@ -76,11 +77,11 @@ class manip_SSRMS_kinematics : public inverse_kinematics_model {
                                                            0.504, 0.504, 0.635,
                                                            0.0),
       const vect_n<double>& aJointLowerBounds =
-          vect_n<double>(-1.5 * M_PI, -1.5 * M_PI, -1.5 * M_PI, -1.5 * M_PI,
-                         -1.5 * M_PI, -1.5 * M_PI, -1.5 * M_PI),
+          vect_n<double>(-1.5 * std::numbers::pi, -1.5 * std::numbers::pi, -1.5 * std::numbers::pi, -1.5 * std::numbers::pi,
+                         -1.5 * std::numbers::pi, -1.5 * std::numbers::pi, -1.5 * std::numbers::pi),
       const vect_n<double>& aJointUpperBounds =
-          vect_n<double>(1.5 * M_PI, 1.5 * M_PI, 1.5 * M_PI, 1.5 * M_PI,
-                         1.5 * M_PI, 1.5 * M_PI, 1.5 * M_PI));
+          vect_n<double>(1.5 * std::numbers::pi, 1.5 * std::numbers::pi, 1.5 * std::numbers::pi, 1.5 * std::numbers::pi,
+                         1.5 * std::numbers::pi, 1.5 * std::numbers::pi, 1.5 * std::numbers::pi));
 
   ~manip_SSRMS_kinematics() override = default;
   ;

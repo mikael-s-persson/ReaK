@@ -17,7 +17,6 @@ cc_library(
     deps = [
         "//ReaK/control/controllers:concepts",
         "//ReaK/control/systems:concepts",
-        "//ReaK/core/base:base_macros",
         "//ReaK/math/lin_alg",
         "//ReaK/topologies/spaces:concepts",
     ],
@@ -52,7 +51,6 @@ cc_library(
         ":concepts",
         "//ReaK/control/systems:concepts",
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/math/integrators",
         "//ReaK/math/lin_alg",
         "//ReaK/topologies/interpolation",

@@ -34,7 +34,6 @@
 #ifndef REAK_MBD_KTE_REVOLUTE_JOINT_H_
 #define REAK_MBD_KTE_REVOLUTE_JOINT_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include <utility>
 #include "ReaK/math/kinetostatics/motion_jacobians.h"

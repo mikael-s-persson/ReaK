@@ -37,7 +37,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_PRM_PATH_PLANNER_H_
 #define REAK_PLANNING_PATH_PLANNING_PRM_PATH_PLANNER_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/planning/path_planning/motion_planner_base.h"
@@ -145,5 +144,7 @@ class prm_planner : public sample_based_planner<FreeSpaceType> {
 };
 
 }  // namespace ReaK::pp
+
+#include "ReaK/planning/path_planning/prm_path_planner.inc"
 
 #endif  // REAK_PLANNING_PATH_PLANNING_PRM_PATH_PLANNER_H_

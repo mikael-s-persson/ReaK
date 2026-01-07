@@ -38,7 +38,6 @@
 #ifndef REAK_MATH_LIN_ALG_MAT_TRAITS_H_
 #define REAK_MATH_LIN_ALG_MAT_TRAITS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/rtti/rtti.h"
 
 #include <type_traits>

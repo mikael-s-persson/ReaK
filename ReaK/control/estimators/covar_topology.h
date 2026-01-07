@@ -36,7 +36,6 @@
 #ifndef REAK_CONTROL_CONTROLLERS_COVAR_TOPOLOGY_H_
 #define REAK_CONTROL_CONTROLLERS_COVAR_TOPOLOGY_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/global_rng.h"
 #include "ReaK/core/base/named_object.h"
 #include "ReaK/math/lin_alg/mat_exp_methods.h"

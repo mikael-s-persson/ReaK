@@ -47,7 +47,6 @@
 #ifndef REAK_MBD_COIN3D_OI_SCENE_GRAPH_H_
 #define REAK_MBD_COIN3D_OI_SCENE_GRAPH_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/geometry/shapes/color.h"
 #include "ReaK/geometry/shapes/colored_model.h"

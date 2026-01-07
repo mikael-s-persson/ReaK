@@ -24,7 +24,6 @@
 #ifndef REAK_MBD_QT_VIEW3D_MENU_H_
 #define REAK_MBD_QT_VIEW3D_MENU_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include <QMenu>
 

@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_DIRECT_KINEMATICS_TOPOMAP_H_
 #define REAK_TOPOLOGIES_SPACES_DIRECT_KINEMATICS_TOPOMAP_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 
 #include "ReaK/mbd/models/direct_kinematics_model.h"

@@ -33,7 +33,6 @@
 #ifndef REAK_MBD_MODELS_JOINT_SPACE_LIMITS_H_
 #define REAK_MBD_MODELS_JOINT_SPACE_LIMITS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 #include "ReaK/math/lin_alg/vect_alg.h"
 

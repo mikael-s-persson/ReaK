@@ -14,10 +14,7 @@ cc_library(
         "archiving_exceptions.h",
         "serializable.h",
     ],
-    deps = [
-        "//ReaK/core/base:base_macros",
-        "//ReaK/core/rtti",
-    ],
+    deps = ["//ReaK/core/rtti"],
 )
 
 cc_library(

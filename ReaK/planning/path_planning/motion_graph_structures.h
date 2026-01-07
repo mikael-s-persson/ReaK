@@ -40,7 +40,6 @@
 // #define RK_PLANNERS_ENABLE_VEBL_TREE
 // #define RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
 
-#include "ReaK/core/base/defs.h"
 
 #include "bagl/adjacency_list.h"
 #include "bagl/bfl_d_ary_tree.h"

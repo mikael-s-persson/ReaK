@@ -34,8 +34,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_SUSTAINED_VELOCITY_PULSE_NDOF_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_SUSTAINED_VELOCITY_PULSE_NDOF_H_
 
-#include "ReaK/core/base/defs.h"
-
 #include "ReaK/topologies/spaces/bounded_space_concept.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/rate_limited_spaces.h"
@@ -233,14 +231,12 @@ requires
   template <typename Factory>
   void initialize(const point_type& start_point, const point_type& end_point,
                   double dt, const SpaceType& space,
-                  const TimeSpaceType& t_space, const Factory& factory) {
-    RK_UNUSED(factory);
+                  const TimeSpaceType& t_space, [[maybe_unused]] const Factory& factory) {
     try {
       min_delta_time = detail::svp_compute_Ndof_interpolation_data_impl(
           start_point, end_point, peak_velocity, space, t_space, dt,
           &best_peak_velocity);
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {
       min_delta_time = std::numeric_limits<double>::infinity();
     }
   }
@@ -261,8 +257,7 @@ requires
   void compute_point(point_type& result, const point_type& start_point,
                      const point_type& end_point, const SpaceType& space,
                      const TimeSpaceType& t_space, double dt, double dt_total,
-                     const Factory& factory) const {
-    RK_UNUSED(factory);
+                     [[maybe_unused]] const Factory& factory) const {
     if (min_delta_time == std::numeric_limits<double>::infinity()) {
       return;
     }

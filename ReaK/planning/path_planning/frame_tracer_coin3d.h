@@ -33,7 +33,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_FRAME_TRACER_COIN3D_H_
 #define REAK_PLANNING_PATH_PLANNING_FRAME_TRACER_COIN3D_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 #include "ReaK/mbd/coin3D/frame_tracer_coin3d_impl.h"
 #include "ReaK/planning/path_planning/basic_sbmp_reporters.h"

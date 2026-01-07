@@ -32,7 +32,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_MANIP_SCARA_WORKSPACES_H_
 #define REAK_TOPOLOGIES_SPACES_MANIP_SCARA_WORKSPACES_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/mbd/models/manip_SCARA_arm.h"
 #include "ReaK/topologies/spaces/manip_planning_traits.h"

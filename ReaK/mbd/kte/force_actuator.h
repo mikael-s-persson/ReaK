@@ -37,7 +37,6 @@
 #define REAK_MBD_KTE_FORCE_ACTUATOR_H_
 
 #include <utility>
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/mbd/kte/kte_map.h"
 

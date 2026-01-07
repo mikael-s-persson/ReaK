@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_SVP_REACH_TOPOLOGIES_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_SVP_REACH_TOPOLOGIES_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/optimization/optim_exceptions.h"
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
 #include "ReaK/topologies/interpolation/sustained_velocity_pulse.h"
@@ -88,8 +87,7 @@ struct svp_reach_topo_impl {
       interp.compute_point(result, a, b, b_space, time_topology(), dt, dt_min,
                            rt_dist);
       return result;
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {
       return a;
     }
   }
@@ -130,8 +128,7 @@ struct svp_reach_topo_impl {
       interp.compute_point(result, a, b, b_space, time_topology(), dt, dt_min,
                            rt_dist);
       return result;
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {
       return a;
     }
   }
@@ -153,8 +150,7 @@ struct svp_reach_topo_impl {
       interp.compute_point(result, a, b, b_space, time_topology(), dt, dt_min,
                            rt_dist);
       return result;
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {
       return b;
     }
   }
@@ -195,8 +191,7 @@ struct svp_reach_topo_impl {
       interp.compute_point(result, a, b, b_space, time_topology(), dt, dt_min,
                            rt_dist);
       return result;
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {
       return b;
     }
   }
@@ -292,8 +287,7 @@ struct svp_reach_topo_impl<BaseTopology, true> {
                            b_space.get_time_topology(), dt, dt_total, rt_dist);
       result.time += dt;
       return result;
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {
       return a;
     }
   }
@@ -350,8 +344,7 @@ struct svp_reach_topo_impl<BaseTopology, true> {
                            b_space.get_time_topology(), dt, dt_total, rt_dist);
       result.time = a.time + dt;
       return result;
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {
       return a;
     }
   };
@@ -383,8 +376,7 @@ struct svp_reach_topo_impl<BaseTopology, true> {
                            b_space.get_time_topology(), dt, dt_total, rt_dist);
       result.time = a.time + dt;
       return result;
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {
       return b;
     }
   }
@@ -441,8 +433,7 @@ struct svp_reach_topo_impl<BaseTopology, true> {
                            b_space.get_time_topology(), dt, dt_total, rt_dist);
       result.time = a.time + dt;
       return result;
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {
       return b;
     }
   }

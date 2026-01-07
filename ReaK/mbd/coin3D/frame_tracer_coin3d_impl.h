@@ -33,7 +33,6 @@
 #ifndef REAK_MBD_COIN3D_FRAME_TRACER_COIN3D_IMPL_H_
 #define REAK_MBD_COIN3D_FRAME_TRACER_COIN3D_IMPL_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/math/lin_alg/vect_alg.h"
 

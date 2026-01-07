@@ -231,8 +231,7 @@ struct sat3D_meas_true_from_extractor {
         meas_pt.gyro[0] = nvr_in["w_x"];
         meas_pt.gyro[1] = nvr_in["w_y"];
         meas_pt.gyro[2] = nvr_in["w_z"];
-      } catch (ReaK::recorder::out_of_bounds& e) {
-        RK_UNUSED(e);
+      } catch ([[maybe_unused]] ReaK::recorder::out_of_bounds& e) {
         meas_pt.gyro.resize(0);
       }
 
@@ -244,8 +243,7 @@ struct sat3D_meas_true_from_extractor {
         meas_pt.IMU_a_m[3] = nvr_in["mag_x"];
         meas_pt.IMU_a_m[4] = nvr_in["mag_y"];
         meas_pt.IMU_a_m[5] = nvr_in["mag_z"];
-      } catch (ReaK::recorder::out_of_bounds& e) {
-        RK_UNUSED(e);
+      } catch ([[maybe_unused]] ReaK::recorder::out_of_bounds& e) {
         meas_pt.IMU_a_m.resize(0);
       }
 
@@ -262,8 +260,7 @@ struct sat3D_meas_true_from_extractor {
         set_ang_velocity(gnd_pt,
                          vect<double, 3>(nvr_in["w_x_true"], nvr_in["w_y_true"],
                                          nvr_in["w_z_true"]));
-      } catch (ReaK::recorder::out_of_bounds& e) {
-        RK_UNUSED(e);
+      } catch ([[maybe_unused]] ReaK::recorder::out_of_bounds& e) {
         set_position(gnd_pt, vect<double, 3>(meas_pt.pose[0], meas_pt.pose[1],
                                              meas_pt.pose[2]));
         set_quaternion(gnd_pt,
@@ -1734,8 +1731,7 @@ static void get_timeseries_from_rec(
                          vect<double, 3>(nvr_in["w_x_true"], nvr_in["w_y_true"],
                                          nvr_in["w_z_true"]));
         ground_truth.emplace_back(t, x);
-      } catch (ReaK::recorder::out_of_bounds& e) {
-        RK_UNUSED(e);
+      } catch ([[maybe_unused]] ReaK::recorder::out_of_bounds& e) {
         if (sat_options.artificial_noise.get_row_count() >= 6) {
           sat3D_state_type x;
           set_position(x,

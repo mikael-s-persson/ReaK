@@ -35,7 +35,6 @@
 #ifndef REAK_MATH_OPTIMIZATION_LINE_SEARCH_H_
 #define REAK_MATH_OPTIMIZATION_LINE_SEARCH_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include <array>
 #include <cmath>

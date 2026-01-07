@@ -24,7 +24,6 @@
 #ifndef REAK_MATH_INTEGRATORS_INTEGRATORS_TEST_PROBLEMS_H_
 #define REAK_MATH_INTEGRATORS_INTEGRATORS_TEST_PROBLEMS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/integrators/integrator.h"
 
 namespace ReaK {

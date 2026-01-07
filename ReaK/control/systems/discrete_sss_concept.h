@@ -34,7 +34,6 @@
 #ifndef REAK_CONTROL_SYSTEMS_DISCRETE_SSS_CONCEPT_H_
 #define REAK_CONTROL_SYSTEMS_DISCRETE_SSS_CONCEPT_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 

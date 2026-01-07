@@ -33,7 +33,6 @@
 #ifndef REAK_MATH_LIN_ALG_NAMED_COMPOUND_RECORDS_H_
 #define REAK_MATH_LIN_ALG_NAMED_COMPOUND_RECORDS_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/core/recorders/data_record.h"
 

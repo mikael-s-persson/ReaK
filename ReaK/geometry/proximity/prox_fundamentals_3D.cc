@@ -25,6 +25,7 @@
 
 #include "ReaK/math/optimization/line_search.h"
 
+#include <numbers>
 #include <queue>
 #include <vector>
 
@@ -333,7 +334,7 @@ vect<double, 3> cylinder_support_func::operator()(vect<double, 3> v) const {
     using std::round;
     using std::sin;
     // octogonal facets: (octogon vs. circle is pretty OK approximation, with 8-pts vs. infinite).
-    double theta = round(atan2(v[1], v[0]) * 8.0 / M_PI) * M_PI / 8.0;
+    double theta = round(atan2(v[1], v[0]) * 8.0 / std::numbers::pi) * std::numbers::pi / 8.0;
     v[0] = cos(theta) * cy_rad;
     v[1] = sin(theta) * cy_rad;
 #endif
@@ -367,14 +368,14 @@ vect<double, 3> ccylinder_support_func::operator()(vect<double, 3> v) const {
     using std::round;
     using std::sin;
     // octogonal facets: (octogon vs. circle is pretty OK approximation, with 8-pts vs. infinite).
-    double theta = round(atan2(v[1], v[0]) * 8.0 / M_PI) * M_PI / 8.0;
+    double theta = round(atan2(v[1], v[0]) * 8.0 / std::numbers::pi) * std::numbers::pi / 8.0;
     v[0] = cos(theta) * cy_rad;
     v[1] = sin(theta) * cy_rad;
 #endif
     if (abs(v[2]) > 1e-5) {
       double phi = atan2(v[2], v_radius);
 #ifdef REAK_PROX_SUPPORTS_USE_DISCRETE_APPROX
-      phi = round(phi * 8.0 / M_PI) * M_PI / 8.0;
+      phi = round(phi * 8.0 / std::numbers::pi) * std::numbers::pi / 8.0;
 #endif
       v[0] *= cos(phi);
       v[1] *= cos(phi);

@@ -28,6 +28,7 @@
 
 #include "ReaK/core/serialization/archiving_exceptions.h"
 
+#include <bit>
 #include <cstdint>
 #include <fstream>
 #include <sstream>
@@ -61,35 +62,28 @@ union ulong_to_uword {
 };
 
 void le2h_1ui32(std::uint32_t& value) {
-#if RK_BYTE_ORDER == RK_ORDER_BIG_ENDIAN
-  ulong_to_uword tmp;
-  tmp.ui32 = value;
-  std::uint8_t tmp_b = tmp.ui8[0];
-  tmp.ui8[0] = tmp.ui8[3];
-  tmp.ui8[3] = tmp_b;
-  tmp_b = tmp.ui8[1];
-  tmp.ui8[1] = tmp.ui8[2];
-  tmp.ui8[2] = tmp_b;
-  value = tmp.ui32;
-#elif RK_BYTE_ORDER == RK_ORDER_PDP_ENDIAN
-  ulong_to_uword tmp;
-  tmp.ui32 = value;
-  std::uint16_t tmp2 = tmp.ui16[0];
-  tmp.ui16[0] = tmp.ui16[1];
-  tmp.ui16[1] = tmp2;
-  value = tmp.ui32;
-#endif
+  if constexpr (std::endian::native == std::endian::big) {
+    ulong_to_uword tmp;
+    tmp.ui32 = value;
+    std::uint8_t tmp_b = tmp.ui8[0];
+    tmp.ui8[0] = tmp.ui8[3];
+    tmp.ui8[3] = tmp_b;
+    tmp_b = tmp.ui8[1];
+    tmp.ui8[1] = tmp.ui8[2];
+    tmp.ui8[2] = tmp_b;
+    value = tmp.ui32;
+  }
 }
 
 template <typename UnionT>
 void le2h_2ui32(UnionT& value) {
-#if RK_BYTE_ORDER == RK_ORDER_BIG_ENDIAN
-  le2h_1ui32(value.ui32[0]);
-  le2h_1ui32(value.ui32[1]);
-  std::uint32_t tmp = value.ui32[0];
-  value.ui32[0] = value.ui32[1];
-  value.ui32[1] = tmp;
-#endif
+  if constexpr (std::endian::native == std::endian::big) {
+    le2h_1ui32(value.ui32[0]);
+    le2h_1ui32(value.ui32[1]);
+    std::uint32_t tmp = value.ui32[0];
+    value.ui32[0] = value.ui32[1];
+    value.ui32[1] = tmp;
+  }
 }
 
 }  // namespace

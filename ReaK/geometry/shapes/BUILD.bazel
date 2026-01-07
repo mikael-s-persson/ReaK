@@ -56,7 +56,6 @@ cc_library(
     ],
     deps = [
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/core/serialization:serialization_base",
         "//ReaK/math/kinetostatics",
     ],

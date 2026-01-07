@@ -17,6 +17,7 @@
 
 #include "ReaK/geometry/proximity/proxy_query_model.h"
 
+#include <numbers>
 #include <memory>
 #include "ReaK/core/serialization/xml_archiver.h"
 
@@ -35,7 +36,7 @@ int main(int argc, char** argv) {
         "floor", std::shared_ptr<pose_3D<double>>(),
         pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                         vect<double, 3>(2.5, 2.5, 0.0),
-                        quaternion<double>::xrot(M_PI).getQuaternion()),
+                        quaternion<double>::xrot(std::numbers::pi).getQuaternion()),
         vect<double, 2>(5.0, 5.0));
 
     std::shared_ptr<box> building = std::make_shared<box>(
@@ -72,7 +73,7 @@ int main(int argc, char** argv) {
         "floor", std::shared_ptr<pose_3D<double>>(),
         pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                         vect<double, 3>(5.0, 5.0, 0.0),
-                        quaternion<double>::xrot(M_PI).getQuaternion()),
+                        quaternion<double>::xrot(std::numbers::pi).getQuaternion()),
         vect<double, 2>(10.0, 10.0));
 
     std::shared_ptr<box> wall1 = std::make_shared<box>(

@@ -47,10 +47,8 @@ void damper_gen::doMotion(kte_pass_flag aFlag,
   }
 }
 
-void damper_gen::doForce(kte_pass_flag aFlag,
-                         const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+void damper_gen::doForce([[maybe_unused]] kte_pass_flag aFlag,
+                         [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mAnchor1) || (!mAnchor2)) {
     return;
   }
@@ -93,10 +91,8 @@ void damper_2D::doMotion(kte_pass_flag aFlag,
   }
 }
 
-void damper_2D::doForce(kte_pass_flag aFlag,
-                        const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+void damper_2D::doForce([[maybe_unused]] kte_pass_flag aFlag,
+                        [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mAnchor1) || (!mAnchor2)) {
     return;
   }
@@ -145,10 +141,8 @@ void damper_3D::doMotion(kte_pass_flag aFlag,
   }
 }
 
-void damper_3D::doForce(kte_pass_flag aFlag,
-                        const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+void damper_3D::doForce([[maybe_unused]] kte_pass_flag aFlag,
+                        [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mAnchor1) || (!mAnchor2)) {
     return;
   }

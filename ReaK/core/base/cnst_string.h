@@ -32,8 +32,6 @@
 #ifndef REAK_CORE_BASE_CNST_STRING_H_
 #define REAK_CORE_BASE_CNST_STRING_H_
 
-#include "ReaK/core/base/defs.h"
-
 #include <array>
 #include <cstdint>
 #include <string>

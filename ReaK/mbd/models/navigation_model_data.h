@@ -33,7 +33,6 @@
 #ifndef REAK_MBD_MODELS_NAVIGATION_MODEL_DATA_H_
 #define REAK_MBD_MODELS_NAVIGATION_MODEL_DATA_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/mbd/models/joint_space_limits.h"

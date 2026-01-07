@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_METRIC_SPACE_TUPLE_FWD_H_
 #define REAK_TOPOLOGIES_SPACES_METRIC_SPACE_TUPLE_FWD_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/arithmetic_tuple.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/reversible_space_concept.h"

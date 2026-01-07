@@ -26,6 +26,7 @@
 #include "ReaK/geometry/proximity/prox_fundamentals_3D.h"
 
 #include <iostream>
+#include <numbers>
 
 using namespace ReaK;
 
@@ -92,12 +93,12 @@ auto bx7 =
 template <typename BF1, typename BF2>
 double get_brute_force_dist(BF1& bf1, BF2& bf2) {
   double min_dist_brute = std::numeric_limits<double>::infinity();
-  for (double i = 0; i < 2.0 * M_PI; i += M_PI / 8.0) {
-    for (double j = 0; j < M_PI; j += M_PI / 16.0) {
+  for (double i = 0; i < 2.0 * std::numbers::pi; i += std::numbers::pi / 8.0) {
+    for (double j = 0; j < std::numbers::pi; j += std::numbers::pi / 16.0) {
       vect<double, 3> u(cos(i) * sin(j), sin(i) * sin(j), cos(j));
       vect<double, 3> pt1 = bf1(u);
-      for (double k = 0; k < 2.0 * M_PI; k += M_PI / 8.0) {
-        for (double l = 0; l < M_PI; l += M_PI / 16.0) {
+      for (double k = 0; k < 2.0 * std::numbers::pi; k += std::numbers::pi / 8.0) {
+        for (double l = 0; l < std::numbers::pi; l += std::numbers::pi / 16.0) {
           vect<double, 3> v(cos(k) * sin(l), sin(k) * sin(l), cos(l));
           vect<double, 3> pt2 = bf2(v);
           double d = norm_2(pt2 - pt1);

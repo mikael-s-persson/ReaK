@@ -109,9 +109,7 @@ void ChaserTargetInteractWidget::onTargetChange() {
       *(pSceneData->chaser_kin_model->getDependentFrame3D(0)->mFrame) =
           *(pSceneData->target_frame);
       pSceneData->chaser_kin_model->doInverseMotion();
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
-    };
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {};
     pSceneData->chaser_kin_model->doDirectMotion();
   };
 };

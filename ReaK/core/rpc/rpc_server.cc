@@ -652,8 +652,7 @@ struct server::impl {
               // Send the call packet.
               temp_out_buf.consume(socket.send(temp_out_buf.data()));
               break;
-            } catch (std::exception& e) {
-              RK_UNUSED(e);
+            } catch ([[maybe_unused]] std::exception& e) {
               continue;
             }
           }  // UNTIL (TCP packet was sent)
@@ -793,8 +792,7 @@ struct server::impl {
           self_is_port_server.store(true);
         }
 
-      } catch (std::exception& e) {
-        RK_UNUSED(e);
+      } catch ([[maybe_unused]] std::exception& e) {
         // TODO Do something, what? FIXME
         RK_RPC_LOG(
             "Failed the send the NEWPORT request... exception: " << e.what());

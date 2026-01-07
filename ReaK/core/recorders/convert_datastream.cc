@@ -82,8 +82,7 @@ int main(int argc, char** argv) {
       for (auto& i : names_in) {
         try {
           nvr_out[i] = nvr_in[i];
-        } catch (out_of_bounds& e) {
-          RK_UNUSED(e);
+        } catch ([[maybe_unused]] out_of_bounds& e) {
           nvr_out[i] = 0.0;
         }
       }
@@ -120,9 +119,7 @@ int main(int argc, char** argv) {
     std::cerr << "Error! Creation of data-streams failed! Invalid argument: "
               << e.what() << std::endl;
     return 1;
-  } catch (end_of_record& e) {
-    RK_UNUSED(e);
-  }
+  } catch ([[maybe_unused]] end_of_record& e) {}
 
   return 0;
 }

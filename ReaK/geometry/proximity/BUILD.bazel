@@ -95,7 +95,6 @@ cc_binary(
     ],
     deps = [
         ":proximity",
-        "//ReaK/core/base:base_macros",
         "//ReaK/core/rtti",
         "//ReaK/core/serialization",
         "//ReaK/geometry/shapes",

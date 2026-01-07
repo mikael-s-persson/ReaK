@@ -37,7 +37,6 @@ cc_test(
     ],
     deps = [
         ":kinetostatics",
-        "//ReaK/core/base:base_macros",
         "//ReaK/math/lin_alg",
         "//ReaK/math/lin_alg:lin_alg_matchers",
         "@com_google_googletest//:gtest_main",
@@ -63,7 +62,6 @@ cc_binary(
     ],
     deps = [
         ":kinetostatics",
-        "//ReaK/core/base:base_macros",
         "//ReaK/math/lin_alg",
     ],
 )

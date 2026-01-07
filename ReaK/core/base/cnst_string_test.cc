@@ -22,8 +22,6 @@
  */
 #include "ReaK/core/base/cnst_string.h"
 
-#include "ReaK/core/base/defs.h"
-
 #include "gtest/gtest.h"
 
 namespace ReaK {

@@ -94,8 +94,7 @@ int main(int argc, char** argv) {
     nvr_in["q_4"];
     nvr_in["q_5"];
     nvr_in["q_6"];
-  } catch (recorder::out_of_bounds& e) {
-    RK_UNUSED(e);
+  } catch ([[maybe_unused]] recorder::out_of_bounds& e) {
     std::cerr << "Could not recognize the input data fields!" << std::endl;
     return 4;
   }
@@ -146,9 +145,7 @@ int main(int argc, char** argv) {
                   << cur_EE.Velocity << cur_EE.AngVelocity;
       (*data_out) << recorder::data_recorder::end_value_row;
     }
-  } catch (recorder::end_of_record& e) {
-    RK_UNUSED(e);
-  }
+  } catch ([[maybe_unused]] recorder::end_of_record& e) {}
 
   (*data_out) << recorder::data_recorder::flush;
 

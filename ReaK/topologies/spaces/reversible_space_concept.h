@@ -37,7 +37,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_REVERSIBLE_SPACE_CONCEPT_H_
 #define REAK_TOPOLOGIES_SPACES_REVERSIBLE_SPACE_CONCEPT_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include <cmath>
 #include <concepts>

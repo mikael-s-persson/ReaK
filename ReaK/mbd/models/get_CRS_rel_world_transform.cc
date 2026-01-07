@@ -11,6 +11,7 @@
 
 #include "ReaK/core/recorders/data_record_po.h"
 
+#include <numbers>
 #include <memory>
 #include "ReaK/math/kinetostatics/calibrate_frames_3D.h"
 
@@ -38,7 +39,7 @@ int main(int argc, char** argv) {
       "CRS_A465_kte_model",
       std::make_shared<frame_3D<double>>(
           base_frame, vect<double, 3>(0.0, -3.3, 0.3),  // aGlobalToBasePlate
-          axis_angle<double>(M_PI * 0.5, vect<double, 3>(0.0, 0.0, 1.0))
+          axis_angle<double>(std::numbers::pi * 0.5, vect<double, 3>(0.0, 0.0, 1.0))
               .getQuaternion(),  // align the x-axis along the track.
           vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
           vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
@@ -79,9 +80,7 @@ int main(int argc, char** argv) {
       std::cout << " CRS = " << cur_pt.first << " and World = " << cur_pt.second
                 << std::endl;
     }
-  } catch (end_of_record& e) {
-    RK_UNUSED(e);
-  }
+  } catch ([[maybe_unused]] end_of_record& e) {}
 
   pose_3D<double> CRS_wo = get_relative_pose_pointcloud(calib_pts);
 

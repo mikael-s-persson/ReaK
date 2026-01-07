@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_PROXY_TRAJ_APPLICATOR_H_
 #define REAK_TOPOLOGIES_SPACES_PROXY_TRAJ_APPLICATOR_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/topologies/spaces/proxy_model_updater.h"
 

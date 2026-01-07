@@ -38,7 +38,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_REACHABILITY_SPACE_CONCEPT_H_
 #define REAK_TOPOLOGIES_SPACES_REACHABILITY_SPACE_CONCEPT_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 
 namespace ReaK::pp {

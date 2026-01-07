@@ -33,7 +33,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_JOINT_SPACE_LIMITS_H_
 #define REAK_TOPOLOGIES_SPACES_JOINT_SPACE_LIMITS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/mbd/models/joint_space_limits.h"

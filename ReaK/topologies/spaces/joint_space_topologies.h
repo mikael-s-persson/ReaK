@@ -35,7 +35,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_JOINT_SPACE_TOPOLOGIES_H_
 #define REAK_TOPOLOGIES_SPACES_JOINT_SPACE_TOPOLOGIES_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/topologies/spaces/differentiable_space.h"
 #include "ReaK/topologies/spaces/metric_space_tuple.h"

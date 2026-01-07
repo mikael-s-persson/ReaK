@@ -35,7 +35,6 @@
 #define REAK_TOPOLOGIES_SPACES_METRIC_SPACE_TUPLE_H_
 
 #include <utility>
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 #include "ReaK/core/serialization/serializable.h"
 #include "ReaK/math/lin_alg/arithmetic_tuple.h"

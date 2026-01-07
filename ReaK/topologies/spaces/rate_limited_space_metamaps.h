@@ -32,7 +32,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_RATE_LIMITED_SPACE_METAMAPS_H_
 #define REAK_TOPOLOGIES_SPACES_RATE_LIMITED_SPACE_METAMAPS_H_
 
-#include "ReaK/core/base/defs.h"
 
 namespace ReaK::pp {
 

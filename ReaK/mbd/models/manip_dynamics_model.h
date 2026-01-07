@@ -32,7 +32,6 @@
 #ifndef REAK_MBD_MODELS_MANIP_DYNAMICS_MODEL_H_
 #define REAK_MBD_MODELS_MANIP_DYNAMICS_MODEL_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/integrators/integrator.h"
 #include "ReaK/math/kinetostatics/kinetostatics.h"
 #include "ReaK/mbd/kte/kte_system_input.h"

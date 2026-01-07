@@ -159,15 +159,12 @@ class mat_row_slice {
   /// Resizes the vector.
   /// \param sz The new size for the vector.
   /// \param c The value to fill any additional elements to the vector.
-  void resize(int sz, const_reference c = value_type()) const {
-    RK_UNUSED(sz);
-    RK_UNUSED(c);
-  }
+  void resize([[maybe_unused]] int sz, [[maybe_unused]] const_reference c = value_type()) const {}
   /// Checks whether the vector is empty.
   bool empty() const { return false; }
   /// Reserve a certain amount of capacity for future additions.
   /// \param sz The new capacity for the vector.
-  void reserve(int sz) const { RK_UNUSED(sz); }
+  void reserve([[maybe_unused]] int sz) const {}
 
   /// Returns an iterator to the first element of the vector.
   iterator begin() { return m->first_row(m->first_col() + colIndex) + offset; }

@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_POINT_TO_POINT_TRAJECTORY_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_POINT_TO_POINT_TRAJECTORY_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
 #include "ReaK/topologies/interpolation/waypoint_container.h"
 

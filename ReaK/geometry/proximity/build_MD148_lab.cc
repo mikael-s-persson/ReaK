@@ -41,6 +41,7 @@
 #include "ReaK/core/serialization/archiver_factory.h"
 
 #include <filesystem>
+#include <numbers>
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
@@ -94,7 +95,7 @@ int main(int argc, char** argv) {
       "MD148_north_wall", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(1.2, -1.0, 1.5),
-          axis_angle<double>(M_PI * 0.5, vect<double, 3>(0.0, -1.0, 0.0))
+          axis_angle<double>(std::numbers::pi * 0.5, vect<double, 3>(0.0, -1.0, 0.0))
               .getQuaternion()),
       vect<double, 2>(3.0, 6.0));
 
@@ -102,7 +103,7 @@ int main(int argc, char** argv) {
       "MD148_west_wall", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(-0.8, 2.0, 1.5),
-          axis_angle<double>(M_PI * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
+          axis_angle<double>(std::numbers::pi * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
               .getQuaternion()),
       vect<double, 2>(4.0, 3.0));
 
@@ -116,7 +117,7 @@ int main(int argc, char** argv) {
       "MD148_operator_wall", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(-0.8, -3.5, 1.5),
-          axis_angle<double>(M_PI * 0.5, vect<double, 3>(-1.0, 0.0, 0.0))
+          axis_angle<double>(std::numbers::pi * 0.5, vect<double, 3>(-1.0, 0.0, 0.0))
               .getQuaternion()),
       vect<double, 2>(4.0, 3.0));
 
@@ -124,7 +125,7 @@ int main(int argc, char** argv) {
       "MD148_robot_track_left", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.1, -1.71, 0.15),
-          axis_angle<double>(M_PI * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
+          axis_angle<double>(std::numbers::pi * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
               .getQuaternion()),
       3.42, 0.18);
 
@@ -132,7 +133,7 @@ int main(int argc, char** argv) {
       "MD148_robot_track_right", std::shared_ptr<pose_3D<double>>(),
       pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(-0.1, -1.71, 0.15),
-          axis_angle<double>(M_PI * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
+          axis_angle<double>(std::numbers::pi * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
               .getQuaternion()),
       3.42, 0.18);
 

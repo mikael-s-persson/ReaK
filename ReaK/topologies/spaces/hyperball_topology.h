@@ -33,7 +33,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_HYPERBALL_TOPOLOGY_H_
 #define REAK_TOPOLOGIES_SPACES_HYPERBALL_TOPOLOGY_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/global_rng.h"
 #include "ReaK/core/base/named_object.h"
 #include "ReaK/math/lin_alg/vect_alg.h"

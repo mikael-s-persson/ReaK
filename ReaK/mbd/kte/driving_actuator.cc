@@ -26,9 +26,7 @@
 namespace ReaK::kte {
 
 void driving_actuator_gen::doForce(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mFrame) || (!mJoint)) {
     return;
   }
@@ -38,9 +36,7 @@ void driving_actuator_gen::doForce(
 }
 
 void driving_actuator_2D::doForce(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mFrame) || (!mJoint)) {
     return;
   }
@@ -51,9 +47,7 @@ void driving_actuator_2D::doForce(
 }
 
 void driving_actuator_3D::doForce(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mFrame) || (!mJoint)) {
     return;
   }

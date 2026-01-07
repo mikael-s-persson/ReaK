@@ -21,7 +21,6 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/math/kinetostatics/frame_3D.h"
 #include "ReaK/math/kinetostatics/pose_3D.h"
@@ -32,6 +31,7 @@
 #include "ReaK/core/rtti/typed_primitives.h"
 
 #include <memory>
+#include <numbers>
 #include "ReaK/geometry/proximity/proxy_query_model.h"
 #include "ReaK/geometry/shapes/box.h"
 #include "ReaK/geometry/shapes/capped_cylinder.h"
@@ -52,12 +52,12 @@ int main() {
 
   pose_3D<double> xz_pose(std::weak_ptr<pose_3D<double>>(),
                           vect<double, 3>(0.0, 0.0, 0.0),
-                          quaternion<double>::xrot(M_PI * 0.5).getQuaternion());
+                          quaternion<double>::xrot(std::numbers::pi * 0.5).getQuaternion());
 
   pose_3D<double> armLF_pose = xz_pose;
   armLF_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.117, 0.0, -0.117),
-      quaternion<double>::yrot(M_PI * 0.75).getQuaternion()));
+      quaternion<double>::yrot(std::numbers::pi * 0.75).getQuaternion()));
 
   auto armLF = std::make_shared<capped_cylinder>("X8_armLF", out_frame,
                                                  armLF_pose, 0.331, 0.02);
@@ -65,7 +65,7 @@ int main() {
   pose_3D<double> armRF_pose = xz_pose;
   armRF_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.117, 0.0, 0.117),
-      quaternion<double>::yrot(M_PI * 0.25).getQuaternion()));
+      quaternion<double>::yrot(std::numbers::pi * 0.25).getQuaternion()));
 
   auto armRF = std::make_shared<capped_cylinder>("X8_armRF", out_frame,
                                                  armRF_pose, 0.331, 0.02);
@@ -73,7 +73,7 @@ int main() {
   pose_3D<double> armRB_pose = xz_pose;
   armRB_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(-0.117, 0.0, 0.117),
-      quaternion<double>::yrot(-M_PI * 0.25).getQuaternion()));
+      quaternion<double>::yrot(-std::numbers::pi * 0.25).getQuaternion()));
 
   auto armRB = std::make_shared<capped_cylinder>("X8_armRB", out_frame,
                                                  armRB_pose, 0.331, 0.02);
@@ -81,23 +81,23 @@ int main() {
   pose_3D<double> armLB_pose = xz_pose;
   armLB_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(-0.117, 0.0, -0.117),
-      quaternion<double>::yrot(-M_PI * 0.75).getQuaternion()));
+      quaternion<double>::yrot(-std::numbers::pi * 0.75).getQuaternion()));
 
   auto armLB = std::make_shared<capped_cylinder>("X8_armLB", out_frame,
                                                  armLB_pose, 0.331, 0.02);
 
   armLF_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.0, 0.1655),
-      quaternion<double>::xrot(M_PI * 0.5).getQuaternion()));
+      quaternion<double>::xrot(std::numbers::pi * 0.5).getQuaternion()));
   armRF_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.0, 0.1655),
-      quaternion<double>::xrot(M_PI * 0.5).getQuaternion()));
+      quaternion<double>::xrot(std::numbers::pi * 0.5).getQuaternion()));
   armRB_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.0, 0.1655),
-      quaternion<double>::xrot(M_PI * 0.5).getQuaternion()));
+      quaternion<double>::xrot(std::numbers::pi * 0.5).getQuaternion()));
   armLB_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.0, 0.1655),
-      quaternion<double>::xrot(M_PI * 0.5).getQuaternion()));
+      quaternion<double>::xrot(std::numbers::pi * 0.5).getQuaternion()));
 
   auto motorLF = std::make_shared<capped_cylinder>("X8_motorLF", out_frame,
                                                    armLF_pose, 0.1, 0.03);
@@ -158,7 +158,7 @@ int main() {
   pose_3D<double> skid_pose = xz_pose;
   skid_pose.addBefore(pose_3D<double>(
       std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.25, 0.0),
-      quaternion<double>::yrot(M_PI * 0.5).getQuaternion()));
+      quaternion<double>::yrot(std::numbers::pi * 0.5).getQuaternion()));
 
   skid_pose.addBefore(pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                                       vect<double, 3>(0.15, 0.0, 0.0),

@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_PREDICTED_TRAJECTORY_CONCEPT_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_PREDICTED_TRAJECTORY_CONCEPT_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/topologies/interpolation/spatial_path_concept.h"
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"

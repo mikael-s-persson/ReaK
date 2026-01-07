@@ -66,9 +66,7 @@ planning_space_options get_planning_space_options_from_flags() {
       (*serialization::open_iarchive(
           absl::GetFlag(FLAGS_pp_space_definition))) >>
           space_options;
-    } catch (std::exception& e) {
-      RK_UNUSED(e);
-    }
+    } catch ([[maybe_unused]] std::exception& e) {}
   }
 
   if (absl::GetFlag(FLAGS_pp_space_order) >= 0) {

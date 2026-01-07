@@ -37,7 +37,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_RRT_PATH_PLANNER_H_
 #define REAK_PLANNING_PATH_PLANNING_RRT_PATH_PLANNER_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/planning/path_planning/any_sbmp_reporter.h"
@@ -136,5 +135,7 @@ class rrt_planner : public sample_based_planner<FreeSpaceType> {
 };
 
 }  // namespace ReaK::pp
+
+#include "ReaK/planning/path_planning/rrt_path_planner.inc"
 
 #endif  // REAK_PLANNING_PATH_PLANNING_RRT_PATH_PLANNER_H_

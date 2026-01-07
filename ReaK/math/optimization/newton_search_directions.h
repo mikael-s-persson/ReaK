@@ -32,7 +32,6 @@
 #ifndef REAK_MATH_OPTIMIZATION_NEWTON_SEARCH_DIRECTIONS_H_
 #define REAK_MATH_OPTIMIZATION_NEWTON_SEARCH_DIRECTIONS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_cholesky.h"
 #include "ReaK/math/lin_alg/mat_damped_matrix.h"

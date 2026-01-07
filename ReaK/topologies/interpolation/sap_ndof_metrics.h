@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_SAP_NDOF_METRICS_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_SAP_NDOF_METRICS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/optimization/optim_exceptions.h"
 #include "ReaK/topologies/interpolation/sustained_acceleration_pulse_ndof.h"
 #include "ReaK/topologies/spaces/generic_interpolator_factory.h"
@@ -81,8 +80,7 @@ struct sap_Ndof_reach_time_metric : public serializable {
           interp;
       interp.initialize(a, b, 0.0, s, *t_space, *this);
       return interp.get_minimum_travel_time();
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {
       return std::numeric_limits<double>::infinity();
     }
   }
@@ -104,8 +102,7 @@ struct sap_Ndof_reach_time_metric : public serializable {
       interp.initialize(s.origin(), s.adjust(s.origin(), a), 0.0, s, *t_space,
                         *this);
       return interp.get_minimum_travel_time();
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {
       return std::numeric_limits<double>::infinity();
     }
   }
@@ -176,9 +173,7 @@ struct sap_Ndof_reach_time_metric<TimeSpaceType, true> : public serializable {
       if (d2 < d) {
         d = d2;
       }
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
-    }
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {}
     if (d == std::numeric_limits<double>::infinity()) {
       return get(proper_metric, s)(a, b, s);
     }
@@ -211,9 +206,7 @@ struct sap_Ndof_reach_time_metric<TimeSpaceType, true> : public serializable {
       if (d2 < d) {
         d = d2;
       }
-    } catch (optim::infeasible_problem& e) {
-      RK_UNUSED(e);
-    }
+    } catch ([[maybe_unused]] optim::infeasible_problem& e) {}
     if (d == std::numeric_limits<double>::infinity()) {
       return get(proper_metric, s)(a, s);
     }

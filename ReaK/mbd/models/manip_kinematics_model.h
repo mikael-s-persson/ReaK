@@ -36,7 +36,6 @@
 #ifndef REAK_MBD_MODELS_MANIP_KINEMATICS_MODEL_H_
 #define REAK_MBD_MODELS_MANIP_KINEMATICS_MODEL_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/kinetostatics/kinetostatics.h"
 #include "ReaK/mbd/kte/kte_map_chain.h"
 #include "ReaK/mbd/models/direct_kinematics_model.h"

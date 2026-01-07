@@ -33,7 +33,6 @@
 #ifndef REAK_MBD_MODELS_INVERSE_DYNAMICS_MODEL_H_
 #define REAK_MBD_MODELS_INVERSE_DYNAMICS_MODEL_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 #include "ReaK/math/kinetostatics/kinetostatics.h"
 #include "ReaK/mbd/kte/kte_map.h"

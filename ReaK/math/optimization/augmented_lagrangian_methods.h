@@ -33,7 +33,6 @@
 #ifndef REAK_MATH_OPTIMIZATION_AUGMENTED_LAGRANGIAN_METHODS_H_
 #define REAK_MATH_OPTIMIZATION_AUGMENTED_LAGRANGIAN_METHODS_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"

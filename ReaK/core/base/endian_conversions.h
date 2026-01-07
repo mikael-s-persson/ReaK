@@ -32,10 +32,9 @@
 #ifndef REAK_CORE_BASE_ENDIAN_CONVERSIONS_H_
 #define REAK_CORE_BASE_ENDIAN_CONVERSIONS_H_
 
-#include "ReaK/core/base/defs.h"
-
 #include <netinet/in.h>
 #include <cstdint>
+#include <bit>
 
 namespace ReaK {
 
@@ -67,52 +66,48 @@ union llong_to_ulong {
 
 template <typename UnionT>
 void ntoh_1ui16(UnionT& value) {
-#if RK_BYTE_ORDER != RK_ORDER_BIG_ENDIAN
-  value.ui16 = ntohs(value.ui16);
-#endif
+  if constexpr (std::endian::native != std::endian::big) {
+    value.ui16 = ntohs(value.ui16);
+  }
 }
 
 template <typename UnionT>
 void hton_1ui16(UnionT& value) {
-#if RK_BYTE_ORDER != RK_ORDER_BIG_ENDIAN
-  value.ui16 = htons(value.ui16);
-#endif
+  if constexpr (std::endian::native != std::endian::big) {
+    value.ui16 = htons(value.ui16);
+  }
 }
 
 template <typename UnionT>
 void ntoh_1ui32(UnionT& value) {
-#if RK_BYTE_ORDER != RK_ORDER_BIG_ENDIAN
-  value.ui32 = ntohl(value.ui32);
-#endif
+  if constexpr (std::endian::native != std::endian::big) {
+    value.ui32 = ntohl(value.ui32);
+  }
 }
 
 template <typename UnionT>
 void hton_1ui32(UnionT& value) {
-#if RK_BYTE_ORDER != RK_ORDER_BIG_ENDIAN
-  value.ui32 = htonl(value.ui32);
-#endif
+  if constexpr (std::endian::native != std::endian::big) {
+    value.ui32 = htonl(value.ui32);
+  }
 }
 
 template <typename UnionT>
 void ntoh_2ui32(UnionT& value) {
-#if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
-  uint32_t tmp = ntohl(value.ui32[0]);
-  value.ui32[0] = ntohl(value.ui32[1]);
-  value.ui32[1] = tmp;
-#endif
-  // NOTE: for 64-bit values, there is no point in supporting PDP-endianness, as 64-bit values are not supported by PDP
-  // platforms.
+  if constexpr (std::endian::native != std::endian::big) {
+    uint32_t tmp = ntohl(value.ui32[0]);
+    value.ui32[0] = ntohl(value.ui32[1]);
+    value.ui32[1] = tmp;
+  }
 }
 
 template <typename UnionT>
 void hton_2ui32(UnionT& value) {
-#if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
-  uint32_t tmp = htonl(value.ui32[0]);
-  value.ui32[0] = htonl(value.ui32[1]);
-  value.ui32[1] = tmp;
-#endif
-  // NOTE: for 64-bit values, there is no point in supporting PDP-endianness, as 64-bit values are not supported by PDP
-  // platforms.
+  if constexpr (std::endian::native != std::endian::big) {
+    uint32_t tmp = htonl(value.ui32[0]);
+    value.ui32[0] = htonl(value.ui32[1]);
+    value.ui32[1] = tmp;
+  }
 }
 
 // Overloaded versions for different primitive types:

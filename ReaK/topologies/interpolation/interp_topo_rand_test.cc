@@ -197,9 +197,7 @@ void try_interpolation(const std::string& aMethodName, std::size_t mc_runs,
 
       ++succ_count;
 
-    } catch (std::exception& e) {
-      RK_UNUSED(e);
-    };
+    } catch ([[maybe_unused]] std::exception& e) {}
   };
 };
 

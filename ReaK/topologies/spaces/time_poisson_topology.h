@@ -35,7 +35,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_TIME_POISSON_TOPOLOGY_H_
 #define REAK_TOPOLOGIES_SPACES_TIME_POISSON_TOPOLOGY_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/global_rng.h"
 
 #include <cmath>

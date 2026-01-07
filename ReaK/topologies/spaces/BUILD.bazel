@@ -25,7 +25,6 @@ cc_library(
     ],
     deps = [
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/core/serialization:serialization_base",
     ],
 )
@@ -94,7 +93,6 @@ cc_library(
     deps = [
         ":concepts",
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/core/serialization:serialization_base",
         "//ReaK/math/kinetostatics",
         "//ReaK/math/lin_alg",
@@ -132,7 +130,6 @@ cc_library(
         ":concepts",
         ":spaces",
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/geometry/proximity",
         "//ReaK/math/kinetostatics",
         "//ReaK/math/lin_alg",

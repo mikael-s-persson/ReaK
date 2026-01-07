@@ -26,9 +26,7 @@
 namespace ReaK::kte {
 
 void force_actuator_gen::doMotion(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mFrame) || (!mJoint)) {
     return;
   }
@@ -44,9 +42,7 @@ void force_actuator_gen::doMotion(
 }
 
 void force_actuator_gen::doForce(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mFrame) || (!mJoint)) {
     return;
   }
@@ -61,9 +57,7 @@ void force_actuator_gen::clearForce() {
 }
 
 void force_actuator_2D::doMotion(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mFrame) || (!mJoint)) {
     return;
   }
@@ -79,9 +73,7 @@ void force_actuator_2D::doMotion(
 }
 
 void force_actuator_2D::doForce(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mFrame) || (!mJoint)) {
     return;
   }
@@ -97,9 +89,7 @@ void force_actuator_2D::clearForce() {
 }
 
 void force_actuator_3D::doMotion(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mFrame) || (!mJoint)) {
     return;
   }
@@ -115,9 +105,7 @@ void force_actuator_3D::doMotion(
 }
 
 void force_actuator_3D::doForce(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mFrame) || (!mJoint)) {
     return;
   }

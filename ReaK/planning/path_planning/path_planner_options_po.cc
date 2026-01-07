@@ -94,9 +94,7 @@ planning_option_collection get_planning_option_from_flags() {
       (*serialization::open_iarchive(
           absl::GetFlag(FLAGS_pp_planner_options))) >>
           plan_options;
-    } catch (std::exception& e) {
-      RK_UNUSED(e);
-    }
+    } catch ([[maybe_unused]] std::exception& e) {}
   }
 
   if (!absl::GetFlag(FLAGS_pp_planner_alg).empty()) {

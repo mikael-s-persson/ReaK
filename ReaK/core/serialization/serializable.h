@@ -32,7 +32,6 @@
 #ifndef REAK_CORE_SERIALIZATION_SERIALIZABLE_H_
 #define REAK_CORE_SERIALIZATION_SERIALIZABLE_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/rtti/typed_object.h"
 #include "ReaK/core/serialization/archiver.h"
 
@@ -62,10 +61,7 @@ class serializable : public typed_object {
    * \param A any type of output archive.
    * \param Version the version of this object that is to be saved (always the latest version).
    */
-  virtual void save(serialization::oarchive& A, unsigned int Version) const {
-    RK_UNUSED(A);
-    RK_UNUSED(Version);
-  }
+  virtual void save([[maybe_unused]] serialization::oarchive& A, [[maybe_unused]] unsigned int Version) const {}
 
   /**
    * This method loads the content of the object from a serial archive of any type.
@@ -76,10 +72,7 @@ class serializable : public typed_object {
    * \param Version the version of this object that was saved (it is the user's responsability to maintain backward
    *compatibility as much as desired).
    */
-  virtual void load(serialization::iarchive& A, unsigned int Version) {
-    RK_UNUSED(A);
-    RK_UNUSED(Version);
-  }
+  virtual void load([[maybe_unused]] serialization::iarchive& A, [[maybe_unused]] unsigned int Version) {}
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(serializable, 0x80000000, 1, "serializable",
                               typed_object)

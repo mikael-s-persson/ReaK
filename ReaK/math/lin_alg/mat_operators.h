@@ -34,7 +34,6 @@
 #ifndef REAK_MATH_LIN_ALG_MAT_OPERATORS_H_
 #define REAK_MATH_LIN_ALG_MAT_OPERATORS_H_
 
-#include "ReaK/core/base/defs.h"
 
 //#include "ReaK/math/lin_alg/vect_alg.h"
 #include "ReaK/math/lin_alg/mat_concepts.h"

@@ -32,7 +32,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_ANY_SBMP_REPORTER_H_
 #define REAK_PLANNING_PATH_PLANNING_ANY_SBMP_REPORTER_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 #include "ReaK/planning/path_planning/any_motion_graphs.h"
 #include "ReaK/planning/path_planning/planning_queries.h"

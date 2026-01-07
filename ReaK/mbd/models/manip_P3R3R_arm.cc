@@ -30,6 +30,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numbers>
 #include <utility>
 
 namespace ReaK::kte {
@@ -123,10 +124,10 @@ void manip_P3R3R_kinematics::doInverseMotion() {
     c2_max = cos(m_arm_model.joint_lower_bounds[1]);
   }
   double c2_min = -1.0;
-  if ((m_arm_model.joint_upper_bounds[1] < M_PI) &&
-      (m_arm_model.joint_lower_bounds[1] > -M_PI)) {
-    if (M_PI - m_arm_model.joint_upper_bounds[1] >
-        M_PI + m_arm_model.joint_lower_bounds[1]) {
+  if ((m_arm_model.joint_upper_bounds[1] < std::numbers::pi) &&
+      (m_arm_model.joint_lower_bounds[1] > -std::numbers::pi)) {
+    if (std::numbers::pi - m_arm_model.joint_upper_bounds[1] >
+        std::numbers::pi + m_arm_model.joint_lower_bounds[1]) {
       c2_min = cos(m_arm_model.joint_lower_bounds[1]);
     } else {
       c2_min = cos(m_arm_model.joint_upper_bounds[1]);
@@ -145,10 +146,10 @@ void manip_P3R3R_kinematics::doInverseMotion() {
   }
   double c3_min = -1.0;
   double c3_min_s3 = 0.0;
-  if ((m_arm_model.joint_upper_bounds[2] < M_PI) &&
-      (m_arm_model.joint_lower_bounds[2] > -M_PI)) {
-    if (M_PI - m_arm_model.joint_upper_bounds[2] >
-        M_PI + m_arm_model.joint_lower_bounds[2]) {
+  if ((m_arm_model.joint_upper_bounds[2] < std::numbers::pi) &&
+      (m_arm_model.joint_lower_bounds[2] > -std::numbers::pi)) {
+    if (std::numbers::pi - m_arm_model.joint_upper_bounds[2] >
+        std::numbers::pi + m_arm_model.joint_lower_bounds[2]) {
       c3_min = cos(m_arm_model.joint_lower_bounds[2]);
       c3_min_s3 = sin(m_arm_model.joint_lower_bounds[2]);
     } else {
@@ -169,8 +170,8 @@ void manip_P3R3R_kinematics::doInverseMotion() {
     c23_max = cos(j23_lower_bound);
   }
   double c23_min = -1.0;
-  if ((j23_upper_bound < M_PI) && (j23_lower_bound > -M_PI)) {
-    if (M_PI - j23_upper_bound > M_PI + j23_lower_bound) {
+  if ((j23_upper_bound < std::numbers::pi) && (j23_lower_bound > -std::numbers::pi)) {
+    if (std::numbers::pi - j23_upper_bound > std::numbers::pi + j23_lower_bound) {
       c3_min = cos(j23_lower_bound);
     } else {
       c3_min = cos(j23_upper_bound);

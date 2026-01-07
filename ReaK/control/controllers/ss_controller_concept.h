@@ -41,7 +41,6 @@
 #ifndef REAK_CONTROL_CONTROLLERS_SS_CONTROLLER_CONCEPT_H_
 #define REAK_CONTROL_CONTROLLERS_SS_CONTROLLER_CONCEPT_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 
 #include "ReaK/control/systems/discrete_linear_sss_concept.h"

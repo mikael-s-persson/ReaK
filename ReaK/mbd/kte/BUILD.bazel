@@ -68,7 +68,6 @@ cc_library(
     ],
     deps = [
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/geometry/proximity",
         "//ReaK/geometry/shapes",
         "//ReaK/math/kinetostatics",

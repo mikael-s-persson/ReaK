@@ -21,7 +21,6 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/planning/path_planning/rrtstar_manip_planners.h"
 #include "ReaK/planning/path_planning/rrtstar_path_planner.inc"

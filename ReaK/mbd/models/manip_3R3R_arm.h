@@ -33,9 +33,10 @@
 #ifndef REAK_MBD_MODELS_MANIP_3R3R_ARM_H_
 #define REAK_MBD_MODELS_MANIP_3R3R_ARM_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/mbd/kte/kte_map_chain.h"
 #include "ReaK/mbd/models/inverse_kinematics_model.h"
+
+#include <numbers>
 
 namespace ReaK::kte {
 
@@ -85,12 +86,12 @@ class manip_3R3R_kinematics : public inverse_kinematics_model {
       double aBaseToShoulder = 0.0, double aShoulderToElbow = 1.0,
       double aElbowToJoint4 = 0.5, double aJoint4ToWrist = 0.5,
       double aWristToFlange = 0.2,
-      const vect_n<double>& aJointLowerBounds = vect_n<double>(-M_PI, -M_PI,
-                                                               -M_PI, -M_PI,
-                                                               -M_PI, -M_PI),
-      const vect_n<double>& aJointUpperBounds = vect_n<double>(M_PI, M_PI, M_PI,
-                                                               M_PI, M_PI,
-                                                               M_PI));
+      const vect_n<double>& aJointLowerBounds = vect_n<double>(-std::numbers::pi, -std::numbers::pi,
+                                                               -std::numbers::pi, -std::numbers::pi,
+                                                               -std::numbers::pi, -std::numbers::pi),
+      const vect_n<double>& aJointUpperBounds = vect_n<double>(std::numbers::pi, std::numbers::pi, std::numbers::pi,
+                                                               std::numbers::pi, std::numbers::pi,
+                                                               std::numbers::pi));
 
   ~manip_3R3R_kinematics() override = default;
 

@@ -67,7 +67,7 @@
 #include <Inventor/nodes/SoTransformation.h>      // for SoTransformation
 #include <Inventor/nodes/SoTranslation.h>         // for SoTranslation
 #include <cmath>
-
+#include <numbers>
 #include <memory>
 #include <stack>
 
@@ -257,7 +257,7 @@ static void read_sg_into_models(SoSeparator* aRoot, colored_model_3D* aModel,
       pose_3D<double> final_pose = *anchor_stack.top();
       final_pose.addBefore(pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.0, 0.0),
-          quaternion<double>::xrot(M_PI * 0.5).getQuaternion()));
+          quaternion<double>::xrot(std::numbers::pi * 0.5).getQuaternion()));
       std::shared_ptr<cylinder> new_cyl(
           new cylinder(ptmp->getName().getString(), anchor_ptr, final_pose,
                        ptmp->height.getValue(), ptmp->radius.getValue()));
@@ -315,7 +315,7 @@ static void read_sg_into_models(SoSeparator* aRoot, colored_model_3D* aModel,
       pose_3D<double> final_pose = *anchor_stack.top();
       final_pose.addBefore(pose_3D<double>(
           std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.0, 0.0),
-          quaternion<double>::xrot(M_PI * 0.5).getQuaternion()));
+          quaternion<double>::xrot(std::numbers::pi * 0.5).getQuaternion()));
       std::shared_ptr<cylinder> new_cyl(
           new cylinder(ptmp->getName().getString(), anchor_ptr, final_pose,
                        ptmp->height.getValue(), ptmp->radius.getValue()));

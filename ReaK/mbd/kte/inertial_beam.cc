@@ -47,10 +47,8 @@ void inertial_beam_2D::doMotion(
   }
 }
 
-void inertial_beam_2D::doForce(kte_pass_flag aFlag,
-                               const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+void inertial_beam_2D::doForce([[maybe_unused]] kte_pass_flag aFlag,
+                               [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mAnchor1) || (!mAnchor2)) {
     return;
   }
@@ -98,10 +96,8 @@ void inertial_beam_3D::doMotion(
   }
 }
 
-void inertial_beam_3D::doForce(kte_pass_flag aFlag,
-                               const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+void inertial_beam_3D::doForce([[maybe_unused]] kte_pass_flag aFlag,
+                               [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mAnchor1) || (!mAnchor2)) {
     return;
   }

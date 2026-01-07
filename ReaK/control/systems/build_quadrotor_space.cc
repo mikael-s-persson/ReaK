@@ -15,6 +15,8 @@
 
 #include "ReaK/core/serialization/xml_archiver.h"
 
+#include <numbers>
+
 int main(int argc, char** argv) {
   using namespace ReaK;
   using namespace serialization;
@@ -33,7 +35,7 @@ int main(int argc, char** argv) {
   vect<double, 3> min_corner(0.0, 0.0, -5.0);  // min corner
   vect<double, 3> max_corner(5.0, 5.0, 0.0);   // max corner
   double v_max = 6.0;
-  double w_max = M_PI;
+  double w_max = std::numbers::pi;
   vect<double, 4> u_max(35.0, 5.0, 5.0, 3.0);
   mat<double, mat_structure::diagonal> weightR_mat(
       vect<double, 4>(25, 50, 50, 50));

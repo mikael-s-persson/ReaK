@@ -35,7 +35,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_DIRECT_INVERSE_KIN_TOPOMAP_H_
 #define REAK_TOPOLOGIES_SPACES_DIRECT_INVERSE_KIN_TOPOMAP_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/mbd/models/inverse_kinematics_model.h"
 

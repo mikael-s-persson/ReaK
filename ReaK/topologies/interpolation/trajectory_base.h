@@ -35,7 +35,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_TRAJECTORY_BASE_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_TRAJECTORY_BASE_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"

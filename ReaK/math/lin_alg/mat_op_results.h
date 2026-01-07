@@ -34,7 +34,6 @@
 #ifndef REAK_MATH_LIN_ALG_MAT_OP_RESULTS_H_
 #define REAK_MATH_LIN_ALG_MAT_OP_RESULTS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_alg_general.h"
 #include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_traits.h"

@@ -31,6 +31,8 @@
 #include "ReaK/core/serialization/xml_archiver.h"
 #include "ReaK/math/optimization/optim_exceptions.h"
 
+#include <numbers>
+
 using namespace ReaK;
 
 struct all_robot_info {
@@ -119,13 +121,13 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
     r_info->target_frame->Position[0] += 0.01;
   } else if (SO_KEY_PRESS_EVENT(event, B)) {
     r_info->target_frame->Quat *= ReaK::axis_angle<double>(
-        M_PI * 0.01, ReaK::vect<double, 3>(1.0, 0.0, 0.0));
+        std::numbers::pi * 0.01, ReaK::vect<double, 3>(1.0, 0.0, 0.0));
   } else if (SO_KEY_PRESS_EVENT(event, N)) {
     r_info->target_frame->Quat *= ReaK::axis_angle<double>(
-        M_PI * 0.01, ReaK::vect<double, 3>(0.0, 1.0, 0.0));
+        std::numbers::pi * 0.01, ReaK::vect<double, 3>(0.0, 1.0, 0.0));
   } else if (SO_KEY_PRESS_EVENT(event, M)) {
     r_info->target_frame->Quat *= ReaK::axis_angle<double>(
-        M_PI * 0.01, ReaK::vect<double, 3>(0.0, 0.0, 1.0));
+        std::numbers::pi * 0.01, ReaK::vect<double, 3>(0.0, 0.0, 1.0));
   } else if (SO_KEY_PRESS_EVENT(event, P)) {
     IK_enabled = !IK_enabled;
   };

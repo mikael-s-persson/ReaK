@@ -32,7 +32,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_SBASTAR_MANIP_PLANNERS_H_
 #define REAK_PLANNING_PATH_PLANNING_SBASTAR_MANIP_PLANNERS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/topologies/spaces/ndof_spaces.h"
@@ -43,7 +42,7 @@
 #include "ReaK/planning/path_planning/sbastar_path_planner.h"
 
 namespace ReaK::pp {
-
+#if 0
 // extern template class sbastar_planner<WORKSPACE>;
 
 #define RK_SBASTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(NDOF) \
@@ -85,7 +84,7 @@ RK_SBASTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(7)
 RK_SBASTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(8)
 RK_SBASTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(9)
 RK_SBASTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(10)
-
+#endif
 }  // namespace ReaK::pp
 
 #endif  // REAK_PLANNING_PATH_PLANNING_SBASTAR_MANIP_PLANNERS_H_

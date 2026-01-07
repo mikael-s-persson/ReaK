@@ -186,7 +186,6 @@ inline OutputIterator min_dist_linear_search(
   }
   std::sort_heap(output_queue.begin(), output_queue.end(), p_compare);
   for (auto [d, it] : output_queue) {
-    RK_UNUSED(d);
     *(output_first++) = *it;
   }
   return output_first;
@@ -288,12 +287,10 @@ inline std::pair<OutputIterator, OutputIterator> min_dist_linear_search(
   }
   std::sort_heap(pred_queue.begin(), pred_queue.end(), p_compare);
   for (auto [d, it] : pred_queue) {
-    RK_UNUSED(d);
     *(pred_first++) = *it;
   }
   std::sort_heap(succ_queue.begin(), succ_queue.end(), p_compare);
   for (auto [d, it] : succ_queue) {
-    RK_UNUSED(d);
     *(succ_first++) = *it;
   }
   return {pred_first, succ_first};
@@ -949,7 +946,6 @@ struct best_only_neighbor_search {
     }
     std::sort_heap(output.begin(), output.end(), p_compare);
     for (auto [d, v] : output) {
-      RK_UNUSED(d);
       *(output_first++) = v;
     }
     return output_first;

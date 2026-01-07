@@ -64,7 +64,6 @@ cc_library(
     ],
     deps = [
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/core/recorders",
         "//ReaK/core/rtti",
         "//ReaK/core/serialization:serialization_base",
@@ -90,7 +89,6 @@ cc_test(
     ],
     deps = [
         ":lin_alg",
-        "//ReaK/core/base:base_macros",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -103,7 +101,6 @@ cc_test(
     deps = [
         ":lin_alg",
         ":lin_alg_matchers",
-        "//ReaK/core/base:base_macros",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -116,7 +113,6 @@ cc_test(
     deps = [
         ":lin_alg",
         ":lin_alg_matchers",
-        "//ReaK/core/base:base_macros",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -132,7 +128,6 @@ cc_test(
     ],
     deps = [
         ":lin_alg",
-        "//ReaK/core/base:base_macros",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -145,7 +140,6 @@ cc_binary(
     deps = [
         ":lin_alg",
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "@com_google_absl//absl/log",
     ],
 )

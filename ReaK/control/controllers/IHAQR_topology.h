@@ -33,7 +33,6 @@
 #ifndef REAK_CONTROL_CONTROLLERS_IHAQR_TOPOLOGY_H_
 #define REAK_CONTROL_CONTROLLERS_IHAQR_TOPOLOGY_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/topologies/spaces/direct_kinematics_topomap.h"  // for write_joint_coordinates_impl
@@ -59,6 +58,7 @@
 #include "ReaK/math/lin_alg/mat_are_solver.h"
 #include "ReaK/math/lin_alg/mat_qr_decomp.h"
 
+#include <iostream>
 #include <type_traits>
 
 namespace ReaK::pp {

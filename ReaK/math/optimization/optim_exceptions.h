@@ -32,9 +32,8 @@
 #ifndef REAK_MATH_OPTIMIZATION_OPTIM_EXCEPTIONS_H_
 #define REAK_MATH_OPTIMIZATION_OPTIM_EXCEPTIONS_H_
 
-#include "ReaK/core/base/defs.h"
-
 #include <exception>
+#include <string>
 #include <utility>
 
 namespace ReaK::optim {

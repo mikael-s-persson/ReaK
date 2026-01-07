@@ -33,8 +33,8 @@
 #ifndef REAK_MBD_MODELS_MANIP_ERA_ARM_H_
 #define REAK_MBD_MODELS_MANIP_ERA_ARM_H_
 
+#include <numbers>
 #include <memory>
-#include "ReaK/core/base/defs.h"
 #include "ReaK/mbd/kte/kte_map_chain.h"
 #include "ReaK/mbd/models/inverse_kinematics_model.h"
 
@@ -75,11 +75,11 @@ class manip_ERA_kinematics : public inverse_kinematics_model {
       const vect<double, 3>& aPreferredElbowDir = (vect<double, 3>(0.0, 1.0,
                                                                    0.0)),
       const vect_n<double>& aJointLowerBounds =
-          vect_n<double>(-M_PI, -0.75 * M_PI, -0.75 * M_PI, -0.75 * M_PI,
-                         -0.75 * M_PI, -0.75 * M_PI, -M_PI),
+          vect_n<double>(-std::numbers::pi, -0.75 * std::numbers::pi, -0.75 * std::numbers::pi, -0.75 * std::numbers::pi,
+                         -0.75 * std::numbers::pi, -0.75 * std::numbers::pi, -std::numbers::pi),
       const vect_n<double>& aJointUpperBounds =
-          vect_n<double>(M_PI, 0.75 * M_PI, 0.75 * M_PI, 0.75 * M_PI,
-                         0.75 * M_PI, 0.75 * M_PI, M_PI));
+          vect_n<double>(std::numbers::pi, 0.75 * std::numbers::pi, 0.75 * std::numbers::pi, 0.75 * std::numbers::pi,
+                         0.75 * std::numbers::pi, 0.75 * std::numbers::pi, std::numbers::pi));
 
   ~manip_ERA_kinematics() override = default;
   ;

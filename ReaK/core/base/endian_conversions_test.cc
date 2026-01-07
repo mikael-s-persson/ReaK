@@ -22,7 +22,6 @@
  */
 
 #include "ReaK/core/base/endian_conversions.h"
-#include "ReaK/core/base/defs.h"
 
 #include <cstdint>
 

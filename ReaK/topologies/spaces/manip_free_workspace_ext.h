@@ -32,7 +32,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_MANIP_FREE_WORKSPACE_EXT_H_
 #define REAK_TOPOLOGIES_SPACES_MANIP_FREE_WORKSPACE_EXT_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/topologies/spaces/manip_free_workspace.h"
 

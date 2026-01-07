@@ -38,6 +38,7 @@
 #include "ReaK/mbd/kte/damper.h"
 #include "ReaK/mbd/kte/spring.h"
 
+#include <numbers>
 #include <thread>
 
 using namespace kte;
@@ -281,9 +282,9 @@ int main() {
   root_node test_on_sim;
 
   bool done_flag;
-  // auto ctrl_node = std::make_shared<pendulum_vmc_node>(M_PI * 0.5, done_flag);
+  // auto ctrl_node = std::make_shared<pendulum_vmc_node>(std::numbers::pi * 0.5, done_flag);
   auto ctrl_node =
-      std::make_shared<pendulum_control_node>(M_PI * 0.5, done_flag);
+      std::make_shared<pendulum_control_node>(std::numbers::pi * 0.5, done_flag);
   auto sim_node = std::make_shared<pendulum_simulation_node>(done_flag);
 
   ctrl_node->connectTo(sim_node);

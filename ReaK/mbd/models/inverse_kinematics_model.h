@@ -33,7 +33,6 @@
 #ifndef REAK_MBD_MODELS_INVERSE_KINEMATICS_MODEL_H_
 #define REAK_MBD_MODELS_INVERSE_KINEMATICS_MODEL_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/kinetostatics/kinetostatics.h"
 #include "ReaK/mbd/kte/jacobian_joint_map.h"
 #include "ReaK/mbd/models/direct_kinematics_model.h"

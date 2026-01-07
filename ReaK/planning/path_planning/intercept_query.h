@@ -33,7 +33,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_INTERCEPT_QUERY_H_
 #define REAK_PLANNING_PATH_PLANNING_INTERCEPT_QUERY_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
@@ -136,9 +135,7 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
         if (this->space->is_free(goal_pos)) {
           goal_knots.insert(goal_pos);
         }
-      } catch (std::exception& e) {
-        RK_UNUSED(e);
-      }
+      } catch ([[maybe_unused]] std::exception& e) {}
     }
 
     if (init_knot_count == goal_knots.size()) {
@@ -173,9 +170,7 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
           goal_knots.insert(goal_pos);
           return {goal_pos, tmp};
         }
-      } catch (std::exception& e) {
-        RK_UNUSED(e);
-      }
+      } catch ([[maybe_unused]] std::exception& e) {}
     }
 
     return {pos, std::numeric_limits<double>::infinity()};
@@ -208,9 +203,7 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
           goal_knots.insert(goal_pos);
           return tmp;
         }
-      } catch (std::exception& e) {
-        RK_UNUSED(e);
-      }
+      } catch ([[maybe_unused]] std::exception& e) {}
     }
 
     return std::numeric_limits<double>::infinity();

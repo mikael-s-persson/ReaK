@@ -30,7 +30,6 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/mbd/models/direct_kinematics_model.h"
 #include "ReaK/mbd/models/inverse_dynamics_model.h"

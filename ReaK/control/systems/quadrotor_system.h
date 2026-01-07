@@ -157,11 +157,8 @@ class quadrotor_system : public named_object {
    * \param t The current time (ignored).
    * \return The output-vector at a given state (x).
    */
-  output_type get_output(const state_space_type& space, const point_type& x,
-                         const input_type& u, const time_type t = 0.0) const {
-    RK_UNUSED(space);
-    RK_UNUSED(u);
-    RK_UNUSED(t);
+  output_type get_output([[maybe_unused]] const state_space_type& space, const point_type& x,
+                         [[maybe_unused]] const input_type& u, [[maybe_unused]] const time_type t = 0.0) const {
     return x;
   }
 

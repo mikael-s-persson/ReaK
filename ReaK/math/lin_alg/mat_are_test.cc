@@ -21,7 +21,6 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_are_solver.h"

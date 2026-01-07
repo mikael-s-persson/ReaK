@@ -32,7 +32,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_WAYPOINT_CONTAINER_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_WAYPOINT_CONTAINER_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"
 #include "ReaK/topologies/spaces/temporal_space.h"

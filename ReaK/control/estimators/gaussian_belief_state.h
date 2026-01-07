@@ -46,6 +46,7 @@
 #include "ReaK/control/estimators/belief_state_concept.h"
 #include "ReaK/control/estimators/covariance_concept.h"
 
+#include <numbers>
 #include <random>
 #include <type_traits>
 #include <utility>
@@ -419,7 +420,7 @@ mat_value_type_t<Matrix> gaussian_pdf_at_diff(const Vector& dx,
   }
 
   ValueType dist_x = -0.5 * (dx * Pinv_dx);
-  ValueType factor = pow(2.0 * M_PI, -0.5 * P.get_row_count()) / det_sqrt;
+  ValueType factor = pow(2.0 * std::numbers::pi, -0.5 * P.get_row_count()) / det_sqrt;
   return factor * exp(dist_x);
 }
 
@@ -446,7 +447,7 @@ mat_value_type_t<Matrix> gaussian_pdf_at_mean_value(const Matrix& P) {
     }
     det_sqrt = sqrt(det_sqrt);
   }
-  return pow(2.0 * M_PI, -0.5 * P.get_row_count()) / det_sqrt;
+  return pow(2.0 * std::numbers::pi, -0.5 * P.get_row_count()) / det_sqrt;
 }
 
 template <typename Vector, typename Matrix>

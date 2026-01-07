@@ -33,7 +33,6 @@
 #ifndef REAK_MATH_OPTIMIZATION_HESSIAN_APPROX_UPDATE_H_
 #define REAK_MATH_OPTIMIZATION_HESSIAN_APPROX_UPDATE_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_concepts.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"

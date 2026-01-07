@@ -21,7 +21,6 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/topologies/spaces/ndof_limits.h"
 

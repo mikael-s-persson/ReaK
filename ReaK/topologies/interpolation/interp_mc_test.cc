@@ -26,6 +26,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <numbers>
 
 #include "ReaK/topologies/spaces/differentiable_space.h"
 #include "ReaK/topologies/spaces/temporal_space.h"
@@ -204,9 +205,7 @@ void try_interpolation(const std::string& aMethodName, std::size_t& succ_count,
 
     ++succ_count;
 
-  } catch (std::exception& e) {
-    RK_UNUSED(e);
-  }
+  } catch ([[maybe_unused]] std::exception& e) {}
 }
 
 template <std::size_t StaticSpDim>
@@ -267,7 +266,7 @@ void perform_mc_tests(std::size_t dyn_sp_dim) {
   using TempPointType = typename pp::topology_traits<TempTopoType>::point_type;
 
   double max_freq = absl::GetFlag(FLAGS_space_max_frequency);
-  double max_rad_freq = max_freq * 2.0 * M_PI;  // rad/s
+  double max_rad_freq = max_freq * 2.0 * std::numbers::pi;  // rad/s
 
   Vector lb = Config::default_vect(dyn_sp_dim);
   Vector ub = Config::default_vect(dyn_sp_dim);
@@ -323,7 +322,7 @@ void perform_mc_tests(std::size_t dyn_sp_dim) {
     Vector curve_phase = Config::default_vect(dyn_sp_dim);
     for (std::size_t j = 0; j < curve_ampl.size(); ++j) {
       curve_ampl[j] = double(gbl_rng() % 1000) * 0.001;
-      curve_phase[j] = double(gbl_rng() % 1000) * (M_PI / 500.0);
+      curve_phase[j] = double(gbl_rng() % 1000) * (std::numbers::pi / 500.0);
     }
 
     for (double t = 0.0; t < 1.0 + 0.5 * interp_steps; t += interp_steps) {

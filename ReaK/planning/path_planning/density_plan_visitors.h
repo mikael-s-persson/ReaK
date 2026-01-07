@@ -32,7 +32,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_DENSITY_PLAN_VISITORS_H_
 #define REAK_PLANNING_PATH_PLANNING_DENSITY_PLAN_VISITORS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/planning/path_planning/density_calculators.h"

@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_INTERPOLATED_TRAJECTORY_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_INTERPOLATED_TRAJECTORY_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 #include "ReaK/topologies/interpolation/interpolator_concept.h"
 #include "ReaK/topologies/interpolation/spatial_trajectory_concept.h"

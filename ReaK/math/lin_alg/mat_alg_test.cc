@@ -22,7 +22,6 @@
  */
 
 #include "ReaK/math/lin_alg/mat_alg.h"
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_matchers.h"
 
 #include <cstdio>

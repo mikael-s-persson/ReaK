@@ -32,7 +32,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_SIMPLE_SBMP_REPORTERS_H_
 #define REAK_PLANNING_PATH_PLANNING_SIMPLE_SBMP_REPORTERS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 #include "ReaK/topologies/interpolation/seq_path_base.h"
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"

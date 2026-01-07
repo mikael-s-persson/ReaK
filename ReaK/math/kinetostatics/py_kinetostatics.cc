@@ -30,7 +30,6 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/math/kinetostatics/frame_2D.h"
 #include "ReaK/math/kinetostatics/frame_3D.h"

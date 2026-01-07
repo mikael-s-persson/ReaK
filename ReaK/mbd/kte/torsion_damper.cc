@@ -48,9 +48,7 @@ void torsion_damper_2D::doMotion(
 }
 
 void torsion_damper_2D::doForce(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mAnchor1) || (!mAnchor2)) {
     return;
   }
@@ -95,9 +93,7 @@ void torsion_damper_3D::doMotion(
 }
 
 void torsion_damper_3D::doForce(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mAnchor1) || (!mAnchor2)) {
     return;
   }

@@ -39,7 +39,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_INTERPOLATOR_CONCEPT_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_INTERPOLATOR_CONCEPT_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 #include "ReaK/topologies/spaces/temporal_space_concept.h"

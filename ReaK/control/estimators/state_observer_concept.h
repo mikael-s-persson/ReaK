@@ -47,7 +47,6 @@
 #include "ReaK/control/systems/discrete_sss_concept.h"
 #include "ReaK/control/systems/linear_ss_system_concept.h"
 #include "ReaK/control/systems/state_space_sys_concept.h"
-#include "ReaK/core/base/defs.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 
 namespace ReaK::ctrl {

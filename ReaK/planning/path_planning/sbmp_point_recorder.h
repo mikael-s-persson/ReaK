@@ -33,7 +33,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_SBMP_POINT_RECORDER_H_
 #define REAK_PLANNING_PATH_PLANNING_SBMP_POINT_RECORDER_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 #include "ReaK/core/recorders/ascii_recorder.h"
 #include "ReaK/core/recorders/data_record.h"

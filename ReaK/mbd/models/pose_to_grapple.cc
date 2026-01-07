@@ -99,8 +99,7 @@ int main(int argc, char** argv) {
     nvr_in["q_1"];
     nvr_in["q_2"];
     nvr_in["q_3"];
-  } catch (recorder::out_of_bounds& e) {
-    RK_UNUSED(e);
+  } catch ([[maybe_unused]] recorder::out_of_bounds& e) {
     try {
       nvr_in["time"];
       nvr_in["pos_x"];
@@ -117,8 +116,7 @@ int main(int argc, char** argv) {
       nvr_in["avel_y"];
       nvr_in["avel_z"];
       is_measured_pose = false;
-    } catch (recorder::out_of_bounds& e) {
-      RK_UNUSED(e);
+    } catch ([[maybe_unused]] recorder::out_of_bounds& e) {
       std::cerr << "Could not recognize the input data fields!" << std::endl;
       return 4;
     }
@@ -188,9 +186,7 @@ int main(int argc, char** argv) {
       }
       (*data_out) << recorder::data_recorder::end_value_row;
     }
-  } catch (recorder::end_of_record& e) {
-    RK_UNUSED(e);
-  }
+  } catch ([[maybe_unused]] recorder::end_of_record& e) {}
 
   (*data_out) << recorder::data_recorder::flush;
 

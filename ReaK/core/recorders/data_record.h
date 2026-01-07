@@ -33,7 +33,6 @@
 #ifndef REAK_CORE_RECORDERS_DATA_RECORD_H_
 #define REAK_CORE_RECORDERS_DATA_RECORD_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 
 #include <atomic>

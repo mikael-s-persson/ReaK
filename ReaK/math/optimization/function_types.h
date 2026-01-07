@@ -34,7 +34,6 @@
 #define REAK_MATH_OPTIMIZATION_FUNCTION_TYPES_H_
 
 #include <utility>
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/vect_alg.h"

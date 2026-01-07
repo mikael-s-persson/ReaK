@@ -22,7 +22,6 @@
  */
 
 #include "ReaK/math/lin_alg/vect_alg.h"
-#include "ReaK/core/base/defs.h"
 
 #include <cstdio>
 #include <fstream>

@@ -33,7 +33,6 @@
 #ifndef REAK_MBD_COIN3D_OI_READER_H_
 #define REAK_MBD_COIN3D_OI_READER_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/geometry/proximity/proxy_query_model.h"
 #include "ReaK/geometry/shapes/color.h"

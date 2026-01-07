@@ -43,7 +43,6 @@
 #ifndef REAK_MBD_KTE_DRY_REVOLUTE_JOINT_H_
 #define REAK_MBD_KTE_DRY_REVOLUTE_JOINT_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/mbd/kte/revolute_joint.h"
 

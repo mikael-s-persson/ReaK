@@ -37,7 +37,6 @@
 #define REAK_MATH_OPTIMIZATION_NL_INTERIOR_POINTS_METHODS_H_
 
 #include <utility>
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 #include "ReaK/math/lin_alg/mat_qr_decomp.h"

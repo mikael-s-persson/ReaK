@@ -252,7 +252,7 @@ class mat_lo_tri : public mat<T> {
       return size;
     };
 
-    void setRowCount(unsigned int aRowCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
+    void setRowCount(unsigned int aRowCount, [[maybe_unused]] bool aPreserveData = false) {
       q.resize(mat_triangular_size(aRowCount),T(0.0));
       size = aRowCount;
     };
@@ -261,7 +261,7 @@ class mat_lo_tri : public mat<T> {
       return size;
     };
 
-    void setColCount(unsigned int aColCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
+    void setColCount(unsigned int aColCount, [[maybe_unused]] bool aPreserveData = false) {
       q.resize(mat_triangular_size(aColCount),T(0.0));
       size = aColCount;
     };

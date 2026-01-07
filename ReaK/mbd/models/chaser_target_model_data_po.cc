@@ -47,9 +47,7 @@ chaser_target_data get_chaser_target_data_from_flags() {
     try {
       (*serialization::open_iarchive(absl::GetFlag(FLAGS_chaser_target_env))) >>
           scene_data;
-    } catch (std::exception& e) {
-      RK_UNUSED(e);
-    }
+    } catch ([[maybe_unused]] std::exception& e) {}
   }
 
   if (!absl::GetFlag(FLAGS_chaser_model_file).empty()) {

@@ -22,7 +22,6 @@
  */
 #include "ReaK/math/kinetostatics/rotations.h"
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_matchers.h"
 #include "ReaK/math/lin_alg/mat_norms.h"
@@ -33,6 +32,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <numbers>
 
 namespace ReaK {
 namespace {
@@ -45,19 +45,19 @@ using ::ReaK::testing::VectorIsNear;
 const double rel_tol = 10.0 * std::numeric_limits<double>::epsilon();
 
 auto R452D() {
-  return rot_mat_2D<double>(0.25F * double(M_PI));
+  return rot_mat_2D<double>(0.25 * std::numbers::pi);
 }
 
 auto T452D11() {
-  return trans_mat_2D<double>(0.25F * double(M_PI), vect<double, 2>(1.0, 1.0));
+  return trans_mat_2D<double>(0.25 * std::numbers::pi, vect<double, 2>(1.0, 1.0));
 }
 
 auto R45Z() {
-  std::array<double, 9> r_45z_a = {double(std::cos(0.25 * M_PI)),
-                                   double(std::sin(0.25 * M_PI)),
+  std::array<double, 9> r_45z_a = {double(std::cos(0.25 * std::numbers::pi)),
+                                   double(std::sin(0.25 * std::numbers::pi)),
                                    0.0,
-                                   double(-std::sin(0.25 * M_PI)),
-                                   double(std::cos(0.25 * M_PI)),
+                                   double(-std::sin(0.25 * std::numbers::pi)),
+                                   double(std::cos(0.25 * std::numbers::pi)),
                                    0.0,
                                    0.0,
                                    0.0,
@@ -70,20 +70,20 @@ auto Q45Z() {
 }
 
 auto E45Z() {
-  return euler_angles_TB<double>(0.25 * M_PI, 0.0, 0.0);
+  return euler_angles_TB<double>(0.25 * std::numbers::pi, 0.0, 0.0);
 }
 
 auto A45Z() {
-  return axis_angle<double>(0.25 * M_PI, vect<double, 3>(0.0, 0.0, 1.0));
+  return axis_angle<double>(0.25 * std::numbers::pi, vect<double, 3>(0.0, 0.0, 1.0));
 }
 
 auto T45Z() {
-  std::array<double, 16> t_45z_array = {std::cos(0.25 * M_PI),
-                                        std::sin(0.25 * M_PI),
+  std::array<double, 16> t_45z_array = {std::cos(0.25 * std::numbers::pi),
+                                        std::sin(0.25 * std::numbers::pi),
                                         0.0,
                                         0.0,
-                                        -std::sin(0.25 * M_PI),
-                                        std::cos(0.25 * M_PI),
+                                        -std::sin(0.25 * std::numbers::pi),
+                                        std::cos(0.25 * std::numbers::pi),
                                         0.0,
                                         0.0,
                                         0.0,
@@ -116,13 +116,13 @@ TEST(Rotation2d, Identity) {
 
 TEST(Rotation2d, GettersAndSetters) {
   rot_mat_2D<double> r_45deg(R452D());
-  EXPECT_NEAR(r_45deg.getAngle(), 0.25F * double(M_PI), rel_tol);
+  EXPECT_NEAR(r_45deg.getAngle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(r_45deg(0, 0), std::sqrt(0.5), rel_tol);
   EXPECT_NEAR(r_45deg(0, 1), -std::sqrt(0.5), 10.0 * rel_tol);
   EXPECT_NEAR(r_45deg(1, 0), std::sqrt(0.5), 10.0 * rel_tol);
   EXPECT_NEAR(r_45deg(1, 1), std::sqrt(0.5), rel_tol);
   rot_mat_2D<double> r_45deg_cpy(r_45deg);
-  EXPECT_NEAR(r_45deg_cpy.getAngle(), 0.25F * double(M_PI), rel_tol);
+  EXPECT_NEAR(r_45deg_cpy.getAngle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(trace(r_45deg_cpy), std::sqrt(2.0), rel_tol);
   EXPECT_NEAR(determinant(r_45deg_cpy), 1.0, rel_tol);
   r_45deg_cpy.setAngle(0.0);
@@ -141,9 +141,9 @@ TEST(Rotation2d, MatrixConversion) {
 TEST(Rotation2d, Products) {
   rot_mat_2D<double> r_45deg(R452D());
   rot_mat_2D<double> r_90deg = r_45deg * r_45deg;
-  EXPECT_NEAR(r_90deg.getAngle(), 0.5F * double(M_PI), 10.0 * rel_tol);
+  EXPECT_NEAR(r_90deg.getAngle(), 0.5 * std::numbers::pi, 10.0 * rel_tol);
   r_90deg *= r_45deg;
-  EXPECT_NEAR(r_90deg.getAngle(), 0.75F * double(M_PI), rel_tol);
+  EXPECT_NEAR(r_90deg.getAngle(), 0.75 * std::numbers::pi, rel_tol);
   vect<double, 2> v1 = r_45deg * vect<double, 2>(1.0, 1.0);
   EXPECT_NEAR(v1[0], 0.0, rel_tol);
   EXPECT_NEAR(v1[1], std::sqrt(2.0), 10.0 * rel_tol);
@@ -151,7 +151,7 @@ TEST(Rotation2d, Products) {
   EXPECT_NEAR(v1[1], 0.0, rel_tol);
   EXPECT_NEAR(v1[0], std::sqrt(2.0), 10.0 * rel_tol);
   r_90deg *= invert(r_45deg);
-  EXPECT_NEAR(r_90deg.getAngle(), 0.5F * double(M_PI), 10.0 * rel_tol);
+  EXPECT_NEAR(r_90deg.getAngle(), 0.5 * std::numbers::pi, 10.0 * rel_tol);
   EXPECT_NEAR((r_45deg * invert(r_45deg)).getAngle(), 0.0, rel_tol);
 }
 
@@ -226,19 +226,19 @@ TEST(Transform2d, GettersAndSetters) {
   EXPECT_NEAR(t_45deg_11(2, 2), 1.0, rel_tol);
 
   trans_mat_2D<double> t_45deg_11_cpy(t_45deg_11);
-  EXPECT_NEAR(t_45deg_11_cpy.getAngle(), 0.25 * double(M_PI), rel_tol);
+  EXPECT_NEAR(t_45deg_11_cpy.getAngle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(t_45deg_11_cpy.getTranslation()[0], 1.0, rel_tol);
   t_45deg_11_cpy.setAngle(0.0);
   EXPECT_NEAR(t_45deg_11_cpy.getAngle(), 0.0, rel_tol);
   t_45deg_11_cpy.setRotMat(R452D());
-  EXPECT_NEAR(t_45deg_11_cpy.getAngle(), 0.25 * double(M_PI), rel_tol);
+  EXPECT_NEAR(t_45deg_11_cpy.getAngle(), 0.25 * std::numbers::pi, rel_tol);
   t_45deg_11_cpy.setTranslation(vect<double, 2>(-1.0, -1.0));
   EXPECT_NEAR(t_45deg_11_cpy.getTranslation()[0], -1.0, rel_tol);
   EXPECT_NEAR(t_45deg_11_cpy.getTranslation()[1], -1.0, rel_tol);
   t_45deg_11_cpy.setTranslation(vect<double, 2>(1.0, 1.0));
   EXPECT_NEAR(trace(t_45deg_11_cpy), 1.0 + std::sqrt(2.0), rel_tol);
   EXPECT_NEAR(determinant(t_45deg_11_cpy), 1.0, rel_tol);
-  EXPECT_NEAR(invert(t_45deg_11).getAngle(), -0.25 * double(M_PI), rel_tol);
+  EXPECT_NEAR(invert(t_45deg_11).getAngle(), -0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(invert(t_45deg_11).getTranslation()[0], -std::sqrt(2.0),
               10.0 * rel_tol);
 }
@@ -302,7 +302,7 @@ TEST(Transform2d, MatrixProducts) {
               rel_tol);
   trans_mat_2D<double> t_ident;
   t_ident *= t_45deg_11;
-  EXPECT_NEAR(t_ident.getAngle(), 0.25 * double(M_PI), rel_tol);
+  EXPECT_NEAR(t_ident.getAngle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(t_ident.getTranslation()[0], 1.0, rel_tol);
   t_ident *= invert(t_45deg_11);
   EXPECT_NEAR(t_ident.getAngle(), 0.0, rel_tol);
@@ -441,33 +441,33 @@ TEST(Quaternion, Identity) {
 
 TEST(Quaternion, Copy) {
   quaternion<double> q_45z = Q45Z();
-  EXPECT_NEAR(q_45z[0], std::cos(0.125 * M_PI), rel_tol);
+  EXPECT_NEAR(q_45z[0], std::cos(0.125 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(q_45z[1], 0.0, rel_tol);
   EXPECT_NEAR(q_45z[2], 0.0, rel_tol);
-  EXPECT_NEAR(q_45z[3], std::sin(0.125 * M_PI), 10.0 * rel_tol);
+  EXPECT_NEAR(q_45z[3], std::sin(0.125 * std::numbers::pi), 10.0 * rel_tol);
   quaternion<double> q_45z_cpy(q_45z);
-  EXPECT_NEAR(q_45z_cpy[0], std::cos(0.125 * M_PI), rel_tol);
+  EXPECT_NEAR(q_45z_cpy[0], std::cos(0.125 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(q_45z_cpy[1], 0.0, rel_tol);
   EXPECT_NEAR(q_45z_cpy[2], 0.0, rel_tol);
-  EXPECT_NEAR(q_45z_cpy[3], std::sin(0.125 * M_PI), 10.0 * rel_tol);
+  EXPECT_NEAR(q_45z_cpy[3], std::sin(0.125 * std::numbers::pi), 10.0 * rel_tol);
   q_45z_cpy = q_45z;
-  EXPECT_NEAR(q_45z_cpy[0], std::cos(0.125 * M_PI), rel_tol);
+  EXPECT_NEAR(q_45z_cpy[0], std::cos(0.125 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(q_45z_cpy[1], 0.0, rel_tol);
   EXPECT_NEAR(q_45z_cpy[2], 0.0, rel_tol);
-  EXPECT_NEAR(q_45z_cpy[3], std::sin(0.125 * M_PI), 10.0 * rel_tol);
+  EXPECT_NEAR(q_45z_cpy[3], std::sin(0.125 * std::numbers::pi), 10.0 * rel_tol);
 }
 
 TEST(Quaternion, Products) {
   quaternion<double> q_ident = Q45Z() * Q45Z();
-  EXPECT_NEAR(q_ident[0], std::cos(0.25 * M_PI), 10.0 * rel_tol);
+  EXPECT_NEAR(q_ident[0], std::cos(0.25 * std::numbers::pi), 10.0 * rel_tol);
   EXPECT_NEAR(q_ident[1], 0.0, rel_tol);
   EXPECT_NEAR(q_ident[2], 0.0, rel_tol);
-  EXPECT_NEAR(q_ident[3], std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(q_ident[3], std::sin(0.25 * std::numbers::pi), rel_tol);
   q_ident *= invert(Q45Z());
-  EXPECT_NEAR(q_ident[0], std::cos(0.125 * M_PI), 10.0 * rel_tol);
+  EXPECT_NEAR(q_ident[0], std::cos(0.125 * std::numbers::pi), 10.0 * rel_tol);
   EXPECT_NEAR(q_ident[1], 0.0, rel_tol);
   EXPECT_NEAR(q_ident[2], 0.0, rel_tol);
-  EXPECT_NEAR(q_ident[3], std::sin(0.125 * M_PI), 10.0 * rel_tol);
+  EXPECT_NEAR(q_ident[3], std::sin(0.125 * std::numbers::pi), 10.0 * rel_tol);
   q_ident *= invert(Q45Z());
   EXPECT_NEAR(q_ident[0], 1.0, 100.0 * rel_tol);
   EXPECT_NEAR(q_ident[1], 0.0, rel_tol);
@@ -500,18 +500,18 @@ TEST(Quaternion, MatrixConversions) {
 
 TEST(Quaternion, EulerAnglesTBConversions) {
   quaternion<double> q_e_90z(Q45Z() * E45Z());
-  EXPECT_NEAR(q_e_90z[0], std::cos(0.25 * M_PI), 10.0 * rel_tol);
+  EXPECT_NEAR(q_e_90z[0], std::cos(0.25 * std::numbers::pi), 10.0 * rel_tol);
   EXPECT_NEAR(q_e_90z[1], 0.0, rel_tol);
   EXPECT_NEAR(q_e_90z[2], 0.0, rel_tol);
-  EXPECT_NEAR(q_e_90z[3], std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(q_e_90z[3], std::sin(0.25 * std::numbers::pi), rel_tol);
 }
 
 TEST(Quaternion, AxisAngleConversions) {
   quaternion<double> q_a_90z(Q45Z() * A45Z());
-  EXPECT_NEAR(q_a_90z[0], std::cos(0.25 * M_PI), 10.0 * rel_tol);
+  EXPECT_NEAR(q_a_90z[0], std::cos(0.25 * std::numbers::pi), 10.0 * rel_tol);
   EXPECT_NEAR(q_a_90z[1], 0.0, rel_tol);
   EXPECT_NEAR(q_a_90z[2], 0.0, rel_tol);
-  EXPECT_NEAR(q_a_90z[3], std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(q_a_90z[3], std::sin(0.25 * std::numbers::pi), rel_tol);
 }
 
 TEST(Quaternion, VectorOperations) {
@@ -529,11 +529,11 @@ TEST(EulerAnglesTB, Identity) {
 
 TEST(EulerAnglesTB, Copy) {
   euler_angles_TB<double> e_45z_cpy(E45Z());
-  EXPECT_NEAR(e_45z_cpy.yaw(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(e_45z_cpy.yaw(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(e_45z_cpy.pitch(), 0.0, rel_tol);
   EXPECT_NEAR(e_45z_cpy.roll(), 0.0, rel_tol);
   e_45z_cpy = E45Z();
-  EXPECT_NEAR(e_45z_cpy.yaw(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(e_45z_cpy.yaw(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(e_45z_cpy.pitch(), 0.0, rel_tol);
   EXPECT_NEAR(e_45z_cpy.roll(), 0.0, rel_tol);
   EXPECT_NEAR(trace(e_45z_cpy), 1.0 + std::sqrt(2.0), rel_tol);
@@ -542,11 +542,11 @@ TEST(EulerAnglesTB, Copy) {
 
 TEST(EulerAnglesTB, Rotation3dConversion) {
   euler_angles_TB<double> e_45z(R45Z());
-  EXPECT_NEAR(e_45z.yaw(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(e_45z.yaw(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(e_45z.pitch(), 0.0, rel_tol);
   EXPECT_NEAR(e_45z.roll(), 0.0, rel_tol);
   e_45z = R45Z();
-  EXPECT_NEAR(e_45z.yaw(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(e_45z.yaw(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(e_45z.pitch(), 0.0, rel_tol);
   EXPECT_NEAR(e_45z.roll(), 0.0, rel_tol);
   EXPECT_THAT(e_45z.getRotMat().getMat(),
@@ -559,11 +559,11 @@ TEST(EulerAnglesTB, Rotation3dConversion) {
 
 TEST(EulerAnglesTB, QuaternionConversion) {
   euler_angles_TB<double> e_45z(Q45Z());
-  EXPECT_NEAR(e_45z.yaw(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(e_45z.yaw(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(e_45z.pitch(), 0.0, rel_tol);
   EXPECT_NEAR(e_45z.roll(), 0.0, rel_tol);
   e_45z = Q45Z();
-  EXPECT_NEAR(e_45z.yaw(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(e_45z.yaw(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(e_45z.pitch(), 0.0, rel_tol);
   EXPECT_NEAR(e_45z.roll(), 0.0, rel_tol);
   EXPECT_NEAR((Q45Z() * invert(e_45z))[0], 1.0, rel_tol);
@@ -572,11 +572,11 @@ TEST(EulerAnglesTB, QuaternionConversion) {
 
 TEST(EulerAnglesTB, AxisAngleConversion) {
   euler_angles_TB<double> e_45z(A45Z());
-  EXPECT_NEAR(e_45z.yaw(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(e_45z.yaw(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(e_45z.pitch(), 0.0, rel_tol);
   EXPECT_NEAR(e_45z.roll(), 0.0, rel_tol);
   e_45z = A45Z();
-  EXPECT_NEAR(e_45z.yaw(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(e_45z.yaw(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_NEAR(e_45z.pitch(), 0.0, rel_tol);
   EXPECT_NEAR(e_45z.roll(), 0.0, rel_tol);
 }
@@ -588,11 +588,11 @@ TEST(AxisAngle, Identity) {
 
 TEST(AxisAngle, Copy) {
   axis_angle<double> a_45z_cpy(A45Z());
-  EXPECT_NEAR(a_45z_cpy.angle(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(a_45z_cpy.angle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_THAT(a_45z_cpy.axis(),
               VectorIsNear(vect<double, 3>(0.0, 0.0, 1.0), rel_tol));
   a_45z_cpy = A45Z();
-  EXPECT_NEAR(a_45z_cpy.angle(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(a_45z_cpy.angle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_THAT(a_45z_cpy.axis(),
               VectorIsNear(vect<double, 3>(0.0, 0.0, 1.0), rel_tol));
   EXPECT_NEAR(trace(a_45z_cpy), 1.0 + std::sqrt(2.0), rel_tol);
@@ -601,11 +601,11 @@ TEST(AxisAngle, Copy) {
 
 TEST(AxisAngle, Rotation3dConversion) {
   axis_angle<double> a_45z(R45Z());
-  EXPECT_NEAR(a_45z.angle(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(a_45z.angle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_THAT(a_45z.axis(),
               VectorIsNear(vect<double, 3>(0.0, 0.0, 1.0), rel_tol));
   a_45z = R45Z();
-  EXPECT_NEAR(a_45z.angle(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(a_45z.angle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_THAT(a_45z.axis(),
               VectorIsNear(vect<double, 3>(0.0, 0.0, 1.0), rel_tol));
   EXPECT_THAT(a_45z.getRotMat().getMat(),
@@ -618,11 +618,11 @@ TEST(AxisAngle, Rotation3dConversion) {
 
 TEST(AxisAngle, QuaternionConversion) {
   axis_angle<double> a_45z(Q45Z());
-  EXPECT_NEAR(a_45z.angle(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(a_45z.angle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_THAT(a_45z.axis(),
               VectorIsNear(vect<double, 3>(0.0, 0.0, 1.0), rel_tol));
   a_45z = Q45Z();
-  EXPECT_NEAR(a_45z.angle(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(a_45z.angle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_THAT(a_45z.axis(),
               VectorIsNear(vect<double, 3>(0.0, 0.0, 1.0), rel_tol));
   EXPECT_NEAR((Q45Z() * invert(a_45z))[0], 1.0, rel_tol);
@@ -631,11 +631,11 @@ TEST(AxisAngle, QuaternionConversion) {
 
 TEST(AxisAngle, EulerAnglesTBConversion) {
   axis_angle<double> a_45z(E45Z());
-  EXPECT_NEAR(a_45z.angle(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(a_45z.angle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_THAT(a_45z.axis(),
               VectorIsNear(vect<double, 3>(0.0, 0.0, 1.0), rel_tol));
   a_45z = E45Z();
-  EXPECT_NEAR(a_45z.angle(), 0.25 * M_PI, rel_tol);
+  EXPECT_NEAR(a_45z.angle(), 0.25 * std::numbers::pi, rel_tol);
   EXPECT_THAT(a_45z.axis(),
               VectorIsNear(vect<double, 3>(0.0, 0.0, 1.0), rel_tol));
 }
@@ -648,27 +648,27 @@ TEST(Transform3d, Identity) {
 TEST(Transform3d, Copy) {
   trans_mat_3D<double> t_45z(T45Z());
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
   trans_mat_3D<double> t_45z_cpy(t_45z);
   EXPECT_NEAR(elem_norm_2(t_45z_cpy), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z_cpy(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z_cpy(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z_cpy(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z_cpy(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z_cpy(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z_cpy(3, 3), 1.0, rel_tol);
   t_45z_cpy = t_45z;
   EXPECT_NEAR(elem_norm_2(t_45z_cpy), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z_cpy(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z_cpy(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z_cpy(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z_cpy(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z_cpy(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z_cpy(3, 3), 1.0, rel_tol);
   t_45z_cpy = trans_mat_3D<double>();
   t_45z_cpy *= t_45z;
   EXPECT_NEAR(elem_norm_2(t_45z_cpy), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z_cpy(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z_cpy(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z_cpy(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z_cpy(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z_cpy(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z_cpy(3, 3), 1.0, rel_tol);
 }
@@ -676,32 +676,32 @@ TEST(Transform3d, Copy) {
 TEST(Transform3d, Rotation3dConversion) {
   trans_mat_3D<double> t_45z(R45Z());
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
   t_45z = R45Z();
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
   rot_mat_3D<double> t_45z_rot = t_45z.getRotMat();
   EXPECT_NEAR(elem_norm_2(t_45z_rot), std::sqrt(3.0), rel_tol);
-  EXPECT_NEAR(t_45z_rot(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z_rot(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z_rot(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z_rot(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z_rot(2, 2), 1.0, rel_tol);
   mat<double, mat_structure::square> t_45z_mat = t_45z.getMat();
   EXPECT_NEAR(elem_norm_2(t_45z_mat), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z_mat(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z_mat(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z_mat(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z_mat(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z_mat(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z_mat(3, 3), 1.0, rel_tol);
   t_45z = trans_mat_3D<double>();
   t_45z *= R45Z();
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
 }
@@ -709,21 +709,21 @@ TEST(Transform3d, Rotation3dConversion) {
 TEST(Transform3d, QuaternionConversion) {
   trans_mat_3D<double> t_45z(Q45Z());
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
   t_45z = Q45Z();
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
   t_45z = trans_mat_3D<double>();
   t_45z *= Q45Z();
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
 }
@@ -731,21 +731,21 @@ TEST(Transform3d, QuaternionConversion) {
 TEST(Transform3d, EulerAnglesTBConversion) {
   trans_mat_3D<double> t_45z(E45Z());
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
   t_45z = E45Z();
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
   t_45z = trans_mat_3D<double>();
   t_45z *= E45Z();
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
 }
@@ -753,21 +753,21 @@ TEST(Transform3d, EulerAnglesTBConversion) {
 TEST(Transform3d, AxisAngleConversion) {
   trans_mat_3D<double> t_45z(A45Z());
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
   t_45z = A45Z();
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
   t_45z = trans_mat_3D<double>();
   t_45z *= A45Z();
   EXPECT_NEAR(elem_norm_2(t_45z), std::sqrt(4.0), rel_tol);
-  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z(3, 3), 1.0, rel_tol);
 }
@@ -775,8 +775,8 @@ TEST(Transform3d, AxisAngleConversion) {
 TEST(Transform3d, WithTranslation) {
   trans_mat_3D<double> t_45z_123(T45Z123());
   EXPECT_NEAR(elem_norm_2(t_45z_123), std::sqrt(18.0), 2.0 * rel_tol);
-  EXPECT_NEAR(t_45z_123(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z_123(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z_123(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z_123(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z_123(0, 3), 1.0, rel_tol);
   EXPECT_NEAR(t_45z_123(1, 3), 2.0, rel_tol);
   EXPECT_NEAR(t_45z_123(2, 3), 3.0, rel_tol);
@@ -786,8 +786,8 @@ TEST(Transform3d, WithTranslation) {
   mat<double, mat_structure::square> t_45z_mat_sym_skw(
       t_45z_123.getSymPart() + t_45z_123.getSkewSymPart());
   EXPECT_NEAR(elem_norm_2(t_45z_mat_sym_skw), std::sqrt(18.0), 2.0 * rel_tol);
-  EXPECT_NEAR(t_45z_mat_sym_skw(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z_mat_sym_skw(0, 1), -std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z_mat_sym_skw(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z_mat_sym_skw(0, 1), -std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z_mat_sym_skw(0, 3), 1.0, rel_tol);
   EXPECT_NEAR(t_45z_mat_sym_skw(1, 3), 2.0, rel_tol);
   EXPECT_NEAR(t_45z_mat_sym_skw(2, 3), 3.0, rel_tol);
@@ -799,8 +799,8 @@ TEST(Transform3d, WithTranslation) {
               MatrixIsIdentity(rel_tol));
   mat<double, mat_structure::square> t_45z_123_t = transpose(t_45z_123);
   EXPECT_NEAR(elem_norm_2(t_45z_123_t), std::sqrt(18.0), 2.0 * rel_tol);
-  EXPECT_NEAR(t_45z_123_t(0, 0), std::cos(0.25 * M_PI), rel_tol);
-  EXPECT_NEAR(t_45z_123_t(0, 1), std::sin(0.25 * M_PI), rel_tol);
+  EXPECT_NEAR(t_45z_123_t(0, 0), std::cos(0.25 * std::numbers::pi), rel_tol);
+  EXPECT_NEAR(t_45z_123_t(0, 1), std::sin(0.25 * std::numbers::pi), rel_tol);
   EXPECT_NEAR(t_45z_123_t(2, 2), 1.0, rel_tol);
   EXPECT_NEAR(t_45z_123_t(0, 3), 0.0, rel_tol);
   EXPECT_NEAR(t_45z_123_t(3, 1), 2.0, rel_tol);

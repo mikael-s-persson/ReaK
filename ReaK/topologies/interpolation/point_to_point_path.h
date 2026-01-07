@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_POINT_TO_POINT_PATH_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_POINT_TO_POINT_PATH_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"
 
 #include "ReaK/topologies/interpolation/spatial_path_concept.h"

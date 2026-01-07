@@ -33,7 +33,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_NDOF_SPACES_H_
 #define REAK_TOPOLOGIES_SPACES_NDOF_SPACES_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/serialization/serializable.h"
 #include "ReaK/math/kinetostatics/gen_coord.h"
 #include "ReaK/math/lin_alg/arithmetic_tuple.h"

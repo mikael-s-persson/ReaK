@@ -20,6 +20,7 @@
 #include "ReaK/core/serialization/archiver_factory.h"
 
 #include <filesystem>
+#include <numbers>
 #include <memory>
 #include <tuple>
 
@@ -116,7 +117,7 @@ int main(int argc, char** argv) {
         "joint2_cyl", std::shared_ptr<frame_3D<double>>(),
         pose_3D<double>(
             std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.0, 0.3302),
-            axis_angle<double>(M_PI * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
+            axis_angle<double>(std::numbers::pi * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
                 .getQuaternion()),
         0.34, 0.09);
     auto link2_cyl = std::make_shared<capped_cylinder>(
@@ -133,7 +134,7 @@ int main(int argc, char** argv) {
         "link3_wire_cyl", std::shared_ptr<frame_3D<double>>(),
         pose_3D<double>(
             std::weak_ptr<pose_3D<double>>(), vect<double, 3>(0.0, 0.1, 0.05),
-            axis_angle<double>(M_PI * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
+            axis_angle<double>(std::numbers::pi * 0.5, vect<double, 3>(1.0, 0.0, 0.0))
                 .getQuaternion()),
         0.15, 0.075);
     auto link5_cyl = std::make_shared<capped_cylinder>(
@@ -241,7 +242,7 @@ int main(int argc, char** argv) {
         "CRS_A465_kte_model",
         std::make_shared<frame_3D<double>>(
             base_frame, vect<double, 3>(0.0, -3.3, 0.3),  // aGlobalToBasePlate
-            axis_angle<double>(M_PI * 0.5, vect<double, 3>(0.0, 0.0, 1.0))
+            axis_angle<double>(std::numbers::pi * 0.5, vect<double, 3>(0.0, 0.0, 1.0))
                 .getQuaternion(),  // align the x-axis along the track.
             vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),
             vect<double, 3>(0.0, 0.0, 0.0), vect<double, 3>(0.0, 0.0, 0.0),

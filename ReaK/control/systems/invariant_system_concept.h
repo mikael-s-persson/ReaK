@@ -38,7 +38,6 @@
 #ifndef REAK_CONTROL_SYSTEMS_INVARIANT_SYSTEM_CONCEPT_H_
 #define REAK_CONTROL_SYSTEMS_INVARIANT_SYSTEM_CONCEPT_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/control/systems/discrete_linear_sss_concept.h"
 #include "ReaK/control/systems/linear_ss_system_concept.h"

@@ -71,6 +71,7 @@
 #include <Inventor/nodes/SoTranslation.h>    // for SoTranslation
 #include <Inventor/sensors/SoTimerSensor.h>  // for SoTimerSensor
 #include <cmath>
+#include <numbers>
 
 namespace ReaK::geom {
 
@@ -336,7 +337,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     sep->addChild(col);
 
     auto* ci_rot = new SoRotation;
-    ci_rot->rotation.setValue(SbVec3f(1.0, 0.0, 0.0), M_PI / 2.0);
+    ci_rot->rotation.setValue(SbVec3f(1.0, 0.0, 0.0), std::numbers::pi / 2.0);
     sep->addChild(ci_rot);
 
     auto* ci_cyl = new SoCylinder;
@@ -374,7 +375,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     sep->addChild(re_cube);
 
     auto* re_rot = new SoRotation;
-    re_rot->rotation.setValue(SbVec3f(1.0, 0.0, 0.0), M_PI / 2.0);
+    re_rot->rotation.setValue(SbVec3f(1.0, 0.0, 0.0), std::numbers::pi / 2.0);
     sep->addChild(re_rot);
 
     auto* re_trans_right = new SoTranslation;
@@ -620,7 +621,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     sep->addChild(col);
 
     auto* cy_rot = new SoRotation;
-    cy_rot->rotation.setValue(SbVec3f(1.0, 0.0, 0.0), M_PI / 2.0);
+    cy_rot->rotation.setValue(SbVec3f(1.0, 0.0, 0.0), std::numbers::pi / 2.0);
     sep->addChild(cy_rot);
 
     auto* cy_cyl = new SoCylinder;
@@ -638,7 +639,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     sep->addChild(col);
 
     auto* cy_rot = new SoRotation;
-    cy_rot->rotation.setValue(SbVec3f(1.0, 0.0, 0.0), M_PI / 2.0);
+    cy_rot->rotation.setValue(SbVec3f(1.0, 0.0, 0.0), std::numbers::pi / 2.0);
     sep->addChild(cy_rot);
 
     auto* cy_cyl = new SoCylinder;

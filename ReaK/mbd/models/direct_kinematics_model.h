@@ -33,7 +33,6 @@
 #ifndef REAK_MBD_MODELS_DIRECT_KINEMATICS_MODEL_H_
 #define REAK_MBD_MODELS_DIRECT_KINEMATICS_MODEL_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 #include "ReaK/math/kinetostatics/kinetostatics.h"
 #include "ReaK/math/lin_alg/mat_alg.h"

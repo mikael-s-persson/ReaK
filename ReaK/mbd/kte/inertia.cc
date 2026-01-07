@@ -42,10 +42,8 @@ void inertia_gen::doMotion(kte_pass_flag aFlag,
   }
 }
 
-void inertia_gen::doForce(kte_pass_flag aFlag,
-                          const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+void inertia_gen::doForce([[maybe_unused]] kte_pass_flag aFlag,
+                          [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mCenterOfMass) || (!mCenterOfMass->mFrame)) {
     return;
   }
@@ -77,10 +75,8 @@ void inertia_2D::doMotion(kte_pass_flag aFlag,
   }
 }
 
-void inertia_2D::doForce(kte_pass_flag aFlag,
-                         const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+void inertia_2D::doForce([[maybe_unused]] kte_pass_flag aFlag,
+                         [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mCenterOfMass) || (!mCenterOfMass->mFrame)) {
     return;
   }
@@ -118,10 +114,8 @@ void inertia_3D::doMotion(kte_pass_flag aFlag,
   }
 }
 
-void inertia_3D::doForce(kte_pass_flag aFlag,
-                         const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+void inertia_3D::doForce([[maybe_unused]] kte_pass_flag aFlag,
+                         [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if ((!mCenterOfMass) || (!mCenterOfMass->mFrame)) {
     return;
   }

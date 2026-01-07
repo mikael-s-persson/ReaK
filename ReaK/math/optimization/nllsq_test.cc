@@ -31,6 +31,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <numbers>
 #include <sstream>
 
 namespace ReaK::optim {
@@ -173,8 +174,8 @@ NLLSQProblemsTest::NLLSQProblemsTest() {
     J.set_col_count(3);
     J.set_row_count(3);
 
-    J(0, 0) = 50.0 * x[1] / (M_PI * (x[0] * x[0] + x[1] * x[1]));
-    J(0, 1) = -50.0 * x[0] / (M_PI * (x[0] * x[0] + x[1] * x[1]));
+    J(0, 0) = 50.0 * x[1] / (std::numbers::pi * (x[0] * x[0] + x[1] * x[1]));
+    J(0, 1) = -50.0 * x[0] / (std::numbers::pi * (x[0] * x[0] + x[1] * x[1]));
     J(0, 2) = 10.0;
 
     J(1, 0) = 10.0 * x[0] / (sqrt(x[0] * x[0] + x[1] * x[1]));

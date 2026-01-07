@@ -204,8 +204,7 @@ class num_int_dtnl_sys : public named_object {
    */
   template <typename StateSpaceType>
   output_type get_output(const StateSpaceType& state_space, const point_type& p,
-                         const input_type& u, const time_type& t = 0) {
-    RK_UNUSED(t);
+                         const input_type& u, [[maybe_unused]] const time_type& t = 0) {
     return sys->get_output(state_space, p, u, t);
   }
 
@@ -361,8 +360,7 @@ class num_int_dtnl_sys<state_rate_function_with_io<T>, NumIntegrator<T>>
    */
   template <typename StateSpaceType>
   output_type get_output(const StateSpaceType&, const point_type& p,
-                         const input_type& u, const time_type& t = 0) {
-    RK_UNUSED(t);
+                         const input_type& u, [[maybe_unused]] const time_type& t = 0) {
     output_type y;
 
     if (sys) {

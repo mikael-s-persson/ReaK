@@ -35,7 +35,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_RANDOM_SAMPLER_CONCEPT_H_
 #define REAK_TOPOLOGIES_SPACES_RANDOM_SAMPLER_CONCEPT_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
 
 #include <concepts>

@@ -42,7 +42,6 @@ cc_library(
     ],
     deps = [
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/math/integrators",
         "//ReaK/math/kinetostatics",
         "//ReaK/math/lin_alg",
@@ -66,7 +65,6 @@ cc_library(
     deps = [
         ":models",
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/core/serialization",
         "//ReaK/geometry/proximity",
         "//ReaK/geometry/shapes",

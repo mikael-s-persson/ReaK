@@ -33,7 +33,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_PATH_WRAPPER_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_PATH_WRAPPER_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/topologies/interpolation/path_base.h"
 #include "ReaK/topologies/interpolation/spatial_path_concept.h"

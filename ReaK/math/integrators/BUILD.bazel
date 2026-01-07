@@ -27,10 +27,7 @@ cc_library(
     hdrs = [
         "integrators_test_problems.h",
     ],
-    deps = [
-        ":integrators",
-        "//ReaK/core/base:base_macros",
-    ],
+    deps = [":integrators"],
 )
 
 cc_test(
@@ -48,7 +45,6 @@ cc_test(
     deps = [
         ":integrators",
         ":integrators_test_problems",
-        "//ReaK/core/base:base_macros",
         "//ReaK/core/serialization",
         "@com_google_googletest//:gtest_main",
     ],

@@ -35,7 +35,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_PROXY_MODEL_UPDATER_H_
 #define REAK_TOPOLOGIES_SPACES_PROXY_MODEL_UPDATER_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"

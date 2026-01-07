@@ -62,6 +62,7 @@
 #include "ReaK/math/optimization/optim_exceptions.h"
 
 #include <chrono>
+#include <numbers>
 
 struct env_element {
   std::shared_ptr<ReaK::frame_3D<double>> mdl_base;
@@ -206,7 +207,7 @@ Planner3DWindow::Planner3DWindow(QWidget* parent, Qt::WindowFlags flags)
   r_info.target_frame = pose_3D<double>(r_info.airship_frame,
       vect<double,3>(0.97 * std::sin(0.2 / 0.93),0.0,0.97 * std::cos(0.2 / 0.93)),
       axis_angle<double>(0.2 / 0.93 / 2.0,vect<double,3>(0.0,1.0,0.0)).getQuaternion()
-      * quaternion<double>::yrot(M_PI) * quaternion<double>::zrot(0.5 * M_PI));
+      * quaternion<double>::yrot(std::numbers::pi) * quaternion<double>::zrot(0.5 * std::numbers::pi));
   r_info.target_frame.Position += r_info.target_frame.Quat * (-0.3 * vect_k);
   
   r_info.robot_lab_proxy     = std::shared_ptr< ReaK::geom::proxy_query_pair_3D >(new ReaK::geom::proxy_query_pair_3D("robot_lab_proxy",r_info.robot_proxy, r_info.lab_proxy));
@@ -431,7 +432,7 @@ void Planner3DWindow::onTargetChange() {
       r_info.builder.arm_joint_4_coord->q = jt_sol[4];
       r_info.builder.arm_joint_5_coord->q = jt_sol[5];
       r_info.builder.arm_joint_6_coord->q = jt_sol[6];
-    } catch( ReaK::optim::infeasible_problem& e ) { RK_UNUSED(e); };
+    } catch([[maybe_unused]] ReaK::optim::infeasible_problem& e ) {}
     r_info.kin_chain->doMotion();
   };
   
@@ -492,7 +493,7 @@ void Planner3DWindow::executePlanner() {
       
       jt_desired = r_info.builder.compute_inverse_kinematics(r_info.target_frame.getGlobalPose());
       
-    } catch( ReaK::optim::infeasible_problem& e ) { RK_UNUSED(e);
+    } catch([[maybe_unused]] ReaK::optim::infeasible_problem& e ) {
       QMessageBox::critical(this,
                     "Inverse Kinematics Error!",
                     "The target frame cannot be reached! No inverse kinematics solution possible!",

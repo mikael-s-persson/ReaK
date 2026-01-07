@@ -34,7 +34,6 @@
 
 #include <cmath>
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/topologies/spaces/direct_kinematics_topomap.h"  // for write_joint_coordinates_impl

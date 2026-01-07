@@ -31,6 +31,7 @@
 #include "ReaK/mbd/kte/rigid_link.h"
 #include "ReaK/mbd/models/manip_3R3R_arm.h"
 
+#include <numbers>
 #include <utility>
 
 namespace ReaK::kte {
@@ -180,7 +181,7 @@ void manip_3R3R_kinematics::doDirectMotion() {
 }
 
 static double clamp_to_pi_range(double a) {
-  return (a > M_PI ? a - 2.0 * M_PI : (a < -M_PI ? a + 2.0 * M_PI : a));
+  return (a > std::numbers::pi ? a - 2.0 * std::numbers::pi : (a < -std::numbers::pi ? a + 2.0 * std::numbers::pi : a));
 }
 
 static const int fun_posture = 0;
@@ -252,7 +253,7 @@ void manip_3R3R_kinematics::doInverseMotion() {
     if (abs(joint_lower_bounds[1] + joint_lower_bounds[2]) > max_j23_angle) {
       max_j23_angle = abs(joint_lower_bounds[1] + joint_lower_bounds[2]);
     }
-    if (max_j23_angle < M_PI) {
+    if (max_j23_angle < std::numbers::pi) {
       c23_max = cos(max_j23_angle);
     }
     double low_elbow_to_desired_height =
@@ -284,10 +285,10 @@ void manip_3R3R_kinematics::doInverseMotion() {
   if ((abs(wrist_pos[0]) < pos_epsilon) && (abs(wrist_pos[1]) < pos_epsilon)) {
     /* we're in the joint 1 singularity directly above the origin */
     solns[fun_posture][0] = m_joints[0]->q;
-    solns[bun_posture][0] = clamp_to_pi_range(solns[fun_posture][0] + M_PI);
+    solns[bun_posture][0] = clamp_to_pi_range(solns[fun_posture][0] + std::numbers::pi);
   } else {
     solns[fun_posture][0] = atan2(wrist_pos[1], wrist_pos[0]);
-    solns[bun_posture][0] = clamp_to_pi_range(solns[fun_posture][0] + M_PI);
+    solns[bun_posture][0] = clamp_to_pi_range(solns[fun_posture][0] + std::numbers::pi);
   }
 
   /* set up some variables for later */
@@ -381,7 +382,7 @@ void manip_3R3R_kinematics::doInverseMotion() {
 
       solns[buf_posture + e_o][3] = (solns[fun_posture + e_o][3] = a4);
       solns[bun_posture + e_o][3] =
-          (solns[fuf_posture + e_o][3] = clamp_to_pi_range(a4 + M_PI));
+          (solns[fuf_posture + e_o][3] = clamp_to_pi_range(a4 + std::numbers::pi));
 
       solns[bun_posture + e_o][4] = (solns[fun_posture + e_o][4] = 0.0);
       solns[buf_posture + e_o][4] = (solns[fuf_posture + e_o][4] = 0.0);
@@ -394,7 +395,7 @@ void manip_3R3R_kinematics::doInverseMotion() {
       double a6 = atan2(s6, c6); /* wrist not flipped */
       solns[bun_posture + e_o][5] = (solns[fun_posture + e_o][5] = a6);
       solns[buf_posture + e_o][5] =
-          (solns[fuf_posture + e_o][5] = clamp_to_pi_range(a6 + M_PI));
+          (solns[fuf_posture + e_o][5] = clamp_to_pi_range(a6 + std::numbers::pi));
     } else {
       /* we're not singular in jt 5 */
       double a4 = atan2(EE_z_proj_F[1], jt5_i); /* F*N or B*F */
@@ -403,7 +404,7 @@ void manip_3R3R_kinematics::doInverseMotion() {
 
       solns[buf_posture + e_o][3] = (solns[fun_posture + e_o][3] = a4);
       solns[bun_posture + e_o][3] =
-          (solns[fuf_posture + e_o][3] = clamp_to_pi_range(a4 + M_PI));
+          (solns[fuf_posture + e_o][3] = clamp_to_pi_range(a4 + std::numbers::pi));
 
       double c5 = EE_z_axis[2] * c23 - EE_z_proj_F[0] * s23;
       double s5 = -c4 * jt5_i - s4 * EE_z_proj_F[1];
@@ -422,7 +423,7 @@ void manip_3R3R_kinematics::doInverseMotion() {
       double a6 = atan2(s6, c6); /* wrist not flipped */
       solns[bun_posture + e_o][5] = (solns[fun_posture + e_o][5] = a6);
       solns[buf_posture + e_o][5] =
-          (solns[fuf_posture + e_o][5] = clamp_to_pi_range(a6 + M_PI));
+          (solns[fuf_posture + e_o][5] = clamp_to_pi_range(a6 + std::numbers::pi));
     }
   }
 

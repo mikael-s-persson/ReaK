@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_SVP_NDOF_SAMPLERS_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_SVP_NDOF_SAMPLERS_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/topologies/spaces/bounded_space_concept.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"

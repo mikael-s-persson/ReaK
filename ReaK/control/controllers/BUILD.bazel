@@ -13,7 +13,6 @@ cc_library(
     ],
     deps = [
         "//ReaK/control/systems:concepts",
-        "//ReaK/core/base:base_macros",
         "//ReaK/topologies/spaces:concepts",
     ],
 )
@@ -29,7 +28,6 @@ cc_library(
         "//ReaK/control/integrators",
         "//ReaK/control/systems:concepts",
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/geometry/proximity",
         "//ReaK/math/lin_alg",
         "//ReaK/mbd/models",

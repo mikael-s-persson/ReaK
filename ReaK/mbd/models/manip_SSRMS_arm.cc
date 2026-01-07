@@ -30,6 +30,7 @@
 #include "ReaK/mbd/models/manip_SSRMS_arm.h"
 
 #include <cmath>
+#include <numbers>
 #include <utility>
 
 namespace ReaK::kte {
@@ -168,7 +169,7 @@ manip_SSRMS_kinematics::manip_SSRMS_kinematics(
       "manip_SSRMS_link_6", joint_6_end, joint_7_base,
       pose_3D<double>(std::weak_ptr<pose_3D<double>>(),
                       vect<double, 3>(link_lengths[5], -joint_offsets[5], 0.0),
-                      quaternion<double>::xrot(M_PI).getQuaternion()));
+                      quaternion<double>::xrot(std::numbers::pi).getQuaternion()));
 
   // create revolute joint
   auto joint_7 = std::make_shared<kte::revolute_joint_3D>(
@@ -205,7 +206,7 @@ void manip_SSRMS_kinematics::doDirectMotion() {
 }
 
 static double clamp_to_pi_range(double a) {
-  return (a > M_PI ? a - 2.0 * M_PI : (a < -M_PI ? a + 2.0 * M_PI : a));
+  return (a > std::numbers::pi ? a - 2.0 * std::numbers::pi : (a < -std::numbers::pi ? a + 2.0 * std::numbers::pi : a));
 }
 
 void manip_SSRMS_kinematics::doInverseMotion() {
@@ -463,7 +464,7 @@ void manip_SSRMS_kinematics::getJacobianMatrix(
   quaternion<double>::zrot q4(m_joints[3]->q);
   quaternion<double>::zrot q5(m_joints[4]->q);
   quaternion<double>::yrot q6(-m_joints[5]->q);
-  quaternion<double>::xrot q67(M_PI);
+  quaternion<double>::xrot q67(std::numbers::pi);
   quaternion<double>::zrot q7(m_joints[6]->q);
 
   vect<double, 3> a0(0.0, 0.0, joint_offsets[0]);
@@ -566,7 +567,7 @@ void manip_SSRMS_kinematics::getJacobianMatrixAndDerivative(
   quaternion<double>::zrot q4(m_joints[3]->q);
   quaternion<double>::zrot q5(m_joints[4]->q);
   quaternion<double>::yrot q6(-m_joints[5]->q);
-  quaternion<double>::xrot q67(M_PI);
+  quaternion<double>::xrot q67(std::numbers::pi);
   quaternion<double>::zrot q7(m_joints[6]->q);
 
   vect<double, 3> a1_p(link_lengths[0], -joint_offsets[1], 0.0);

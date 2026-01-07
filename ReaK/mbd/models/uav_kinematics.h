@@ -33,7 +33,6 @@
 #define REAK_MBD_MODELS_UAV_KINEMATICS_H_
 
 #include <memory>
-#include "ReaK/core/base/defs.h"
 #include "ReaK/mbd/kte/kte_map_chain.h"
 #include "ReaK/mbd/models/inverse_kinematics_model.h"
 

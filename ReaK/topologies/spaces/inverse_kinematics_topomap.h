@@ -33,7 +33,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_INVERSE_KINEMATICS_TOPOMAP_H_
 #define REAK_TOPOLOGIES_SPACES_INVERSE_KINEMATICS_TOPOMAP_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/kinetostatics/gen_coord.h"
 #include "ReaK/math/lin_alg/arithmetic_tuple.h"
 #include "ReaK/math/lin_alg/vect_alg.h"

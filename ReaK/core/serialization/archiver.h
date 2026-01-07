@@ -35,7 +35,6 @@
 #ifndef REAK_CORE_SERIALIZATION_ARCHIVER_H_
 #define REAK_CORE_SERIALIZATION_ARCHIVER_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/rtti/typed_object.h"
 
 #include <array>
@@ -206,44 +205,28 @@ class iarchive : public archive {
       const std::pair<std::string, std::string&>& s) = 0;
 
   /// Signaling a (dynamically) polymorphic field.
-  virtual void signal_polymorphic_field(const std::string& aBaseTypeName,
-                                        const unsigned int* aTypeID,
-                                        const std::string& aFieldName) {
-    RK_UNUSED(aBaseTypeName);
-    RK_UNUSED(aTypeID);
-    RK_UNUSED(aFieldName);
-  }
+  virtual void signal_polymorphic_field([[maybe_unused]] const std::string& aBaseTypeName,
+                                        [[maybe_unused]] const unsigned int* aTypeID,
+                                        [[maybe_unused]] const std::string& aFieldName) {}
 
   /// Signifying the start of a repeated field.
-  virtual void start_repeated_field(const std::string& aTypeName) {
-    RK_UNUSED(aTypeName);
-  }
+  virtual void start_repeated_field([[maybe_unused]] const std::string& aTypeName) {}
 
   /// Signifying the start of a repeated field.
-  virtual void start_repeated_field(const std::string& aTypeName,
-                                    const std::string& s) {
-    RK_UNUSED(aTypeName);
-    RK_UNUSED(s);
-  }
+  virtual void start_repeated_field([[maybe_unused]] const std::string& aTypeName,
+                                    [[maybe_unused]] const std::string& s) {}
 
   /// Signifying the finish of a repeated field.
   virtual void finish_repeated_field() {}
 
   /// Signifying the start of a repeated pair.
-  virtual void start_repeated_pair(const std::string& aTypeName1,
-                                   const std::string& aTypeName2) {
-    RK_UNUSED(aTypeName1);
-    RK_UNUSED(aTypeName2);
-  }
+  virtual void start_repeated_pair([[maybe_unused]] const std::string& aTypeName1,
+                                   [[maybe_unused]] const std::string& aTypeName2) {}
 
   /// Signifying the start of a repeated pair.
-  virtual void start_repeated_pair(const std::string& aTypeName1,
-                                   const std::string& aTypeName2,
-                                   const std::string& s) {
-    RK_UNUSED(aTypeName1);
-    RK_UNUSED(aTypeName2);
-    RK_UNUSED(s);
-  }
+  virtual void start_repeated_pair([[maybe_unused]] const std::string& aTypeName1,
+                                   [[maybe_unused]] const std::string& aTypeName2,
+                                   [[maybe_unused]] const std::string& s) {}
 
   /// Signifying the finish of a repeated pair.
   virtual void finish_repeated_pair() {}
@@ -1062,44 +1045,28 @@ class oarchive : public archive {
       const std::pair<std::string, const std::string&>& s) = 0;
 
   /// Signaling a (dynamically) polymorphic field.
-  virtual void signal_polymorphic_field(const std::string& aBaseTypeName,
-                                        const unsigned int* aTypeID,
-                                        const std::string& aFieldName) {
-    RK_UNUSED(aBaseTypeName);
-    RK_UNUSED(aTypeID);
-    RK_UNUSED(aFieldName);
-  }
+  virtual void signal_polymorphic_field([[maybe_unused]] const std::string& aBaseTypeName,
+                                        [[maybe_unused]] const unsigned int* aTypeID,
+                                        [[maybe_unused]] const std::string& aFieldName) {}
 
   /// Signifying the start of a repeated field.
-  virtual void start_repeated_field(const std::string& aTypeName) {
-    RK_UNUSED(aTypeName);
-  }
+  virtual void start_repeated_field([[maybe_unused]] const std::string& aTypeName) {}
 
   /// Signifying the start of a repeated field.
-  virtual void start_repeated_field(const std::string& aTypeName,
-                                    const std::string& s) {
-    RK_UNUSED(aTypeName);
-    RK_UNUSED(s);
-  }
+  virtual void start_repeated_field([[maybe_unused]] const std::string& aTypeName,
+                                    [[maybe_unused]] const std::string& s) {}
 
   /// Signifying the finish of a repeated field.
   virtual void finish_repeated_field() {}
 
   /// Signifying the start of a repeated pair.
-  virtual void start_repeated_pair(const std::string& aTypeName1,
-                                   const std::string& aTypeName2) {
-    RK_UNUSED(aTypeName1);
-    RK_UNUSED(aTypeName2);
-  }
+  virtual void start_repeated_pair([[maybe_unused]] const std::string& aTypeName1,
+                                   [[maybe_unused]] const std::string& aTypeName2) {}
 
   /// Signifying the start of a repeated pair.
-  virtual void start_repeated_pair(const std::string& aTypeName1,
-                                   const std::string& aTypeName2,
-                                   const std::string& s) {
-    RK_UNUSED(aTypeName1);
-    RK_UNUSED(aTypeName2);
-    RK_UNUSED(s);
-  }
+  virtual void start_repeated_pair([[maybe_unused]] const std::string& aTypeName1,
+                                   [[maybe_unused]] const std::string& aTypeName2,
+                                   [[maybe_unused]] const std::string& s) {}
 
   /// Signifying the finish of a repeated pair.
   virtual void finish_repeated_pair() {}

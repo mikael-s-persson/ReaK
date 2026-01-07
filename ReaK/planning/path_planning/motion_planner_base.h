@@ -38,7 +38,6 @@
 #define REAK_PLANNING_PATH_PLANNING_MOTION_PLANNER_BASE_H_
 
 #include <atomic>
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"

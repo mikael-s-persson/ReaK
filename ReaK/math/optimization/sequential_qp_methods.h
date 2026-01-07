@@ -35,7 +35,6 @@
 #ifndef REAK_MATH_OPTIMIZATION_SEQUENTIAL_QP_METHODS_H_
 #define REAK_MATH_OPTIMIZATION_SEQUENTIAL_QP_METHODS_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_num_exceptions.h"

@@ -42,9 +42,7 @@ void joint_dry_microslip_gen::doMotion(
 }
 
 void joint_dry_microslip_gen::doForce(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if (!mAnchor) {
     return;
   }
@@ -88,9 +86,7 @@ void joint_viscosity_gen::doMotion(
 }
 
 void joint_viscosity_gen::doForce(
-    kte_pass_flag aFlag, const std::shared_ptr<frame_storage>& aStorage) {
-  RK_UNUSED(aFlag);
-  RK_UNUSED(aStorage);
+    [[maybe_unused]] kte_pass_flag aFlag, [[maybe_unused]] const std::shared_ptr<frame_storage>& aStorage) {
   if (!mAnchor) {
     return;
   }

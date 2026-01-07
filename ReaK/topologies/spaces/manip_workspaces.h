@@ -32,7 +32,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_MANIP_WORKSPACES_H_
 #define REAK_TOPOLOGIES_SPACES_MANIP_WORKSPACES_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/topologies/spaces/joint_space_limits.h"

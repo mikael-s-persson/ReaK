@@ -32,7 +32,7 @@ int main() {
   foo.publish("foo", some_free_func);
 
   // Call the foo function like any other function (like std::function), even if it is being published:
-  bool b = foo(42, double());
+  [[maybe_unused]] bool b = foo(42, double());
   assert(b);
 
   // publish should work with anything that can be converted to std::function, e.g.,:
@@ -48,8 +48,6 @@ int main() {
 
   b = foo(42, double());
   assert(!b);
-
-  RK_UNUSED(b);
 
   return 0;
 };

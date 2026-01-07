@@ -37,7 +37,6 @@
 #ifndef REAK_CONTROL_SYSTEMS_LINEAR_SS_SYSTEM_CONCEPT_H_
 #define REAK_CONTROL_SYSTEMS_LINEAR_SS_SYSTEM_CONCEPT_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/arithmetic_tuple.h"
 
 #include "ReaK/control/systems/state_space_sys_concept.h"

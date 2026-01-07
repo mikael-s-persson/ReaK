@@ -21,7 +21,6 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/math/integrators/fixed_step_integrators.h"
 #include "ReaK/math/integrators/integrator.h"

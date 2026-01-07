@@ -19,7 +19,6 @@ cc_library(
         "spatial_trajectory_concept.h",
     ],
     deps = [
-        "//ReaK/core/base:base_macros",
         "//ReaK/topologies/spaces:concepts",
     ],
 )
@@ -63,7 +62,6 @@ cc_library(
     deps = [
         ":concepts",
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/core/sorting",
         "//ReaK/math/lin_alg",
         "//ReaK/math/optimization",
@@ -104,7 +102,6 @@ cc_library(
     deps = [
         ":concepts",
         ":interpolation",
-        "//ReaK/core/base:base_macros",
         "//ReaK/math/optimization",
         "//ReaK/topologies/spaces",
         "//ReaK/topologies/spaces:concepts",

@@ -32,7 +32,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_RRTSTAR_MANIP_PLANNERS_H_
 #define REAK_PLANNING_PATH_PLANNING_RRTSTAR_MANIP_PLANNERS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/named_object.h"
 
 #include "ReaK/topologies/spaces/manip_free_dynamic_workspace.h"
@@ -42,7 +41,7 @@
 #include "ReaK/planning/path_planning/rrtstar_path_planner.h"
 
 namespace ReaK::pp {
-
+#if 0
 // extern template class rrtstar_planner<WORKSPACE>;
 
 #define RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(NDOF) \
@@ -84,7 +83,7 @@ RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(7)
 RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(8)
 RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(9)
 RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(10)
-
+#endif
 }  // namespace ReaK::pp
 
 #endif  // REAK_PLANNING_PATH_PLANNING_RRTSTAR_MANIP_PLANNERS_H_

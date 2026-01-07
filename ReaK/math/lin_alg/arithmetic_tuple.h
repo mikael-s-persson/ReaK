@@ -36,7 +36,6 @@
 #ifndef REAK_MATH_LIN_ALG_ARITHMETIC_TUPLE_H_
 #define REAK_MATH_LIN_ALG_ARITHMETIC_TUPLE_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/rtti/so_register_type.h"
 #include "ReaK/core/rtti/typed_primitives.h"
 #include "ReaK/core/serialization/archiver.h"

@@ -82,12 +82,11 @@ class gyros_bias_state_model : public named_object {
 
   void construct_all_dimensions(std::size_t& state_dim,
                                 std::size_t& inv_corr_dim,
-                                std::size_t& actual_dim) {
+                                [[maybe_unused]] std::size_t& actual_dim) {
     state_start_index = state_dim;
     state_dim += 3;
     inv_corr_start_index = inv_corr_dim;
     inv_corr_dim += 3;
-    RK_UNUSED(actual_dim);
   }
 
   template <typename FlyWeight, typename StateSpaceType, typename InputType>
@@ -331,12 +330,11 @@ class accelerometer_bias_state_model : public named_object {
 
   void construct_all_dimensions(std::size_t& state_dim,
                                 std::size_t& inv_corr_dim,
-                                std::size_t& actual_dim) {
+                                [[maybe_unused]] std::size_t& actual_dim) {
     state_start_index = state_dim;
     state_dim += 3;
     inv_corr_start_index = inv_corr_dim;
     inv_corr_dim += 3;
-    RK_UNUSED(actual_dim);
   }
 
   template <typename FlyWeight, typename StateSpaceType, typename InputType>
@@ -600,12 +598,11 @@ class magnetometer_bias_state_model : public named_object {
 
   void construct_all_dimensions(std::size_t& state_dim,
                                 std::size_t& inv_corr_dim,
-                                std::size_t& actual_dim) {
+                                [[maybe_unused]] std::size_t& actual_dim) {
     state_start_index = state_dim;
     state_dim += 3;
     inv_corr_start_index = inv_corr_dim;
     inv_corr_dim += 3;
-    RK_UNUSED(actual_dim);
   }
 
   template <typename FlyWeight, typename StateSpaceType, typename InputType>

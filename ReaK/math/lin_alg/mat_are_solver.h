@@ -987,8 +987,7 @@ void solve_care_problem(const Matrix1& A, const Matrix2& B, const Matrix3& Q,
                                                               0);
   try {
     linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
-  } catch (singularity_error& e) {
-    RK_UNUSED(e);
+  } catch ([[maybe_unused]] singularity_error& e) {
     throw singularity_error(
         "The Continuous-time Algebraic Riccati Equation (CARE) cannot be "
         "solved! Usually "
@@ -1712,8 +1711,7 @@ void solve_dare_problem(const Matrix1& F, const Matrix2& G, const Matrix3& Q,
 
   try {
     linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
-  } catch (singularity_error& e) {
-    RK_UNUSED(e);
+  } catch ([[maybe_unused]] singularity_error& e) {
     throw singularity_error(
         "The Discrete-time Algebraic Riccati Equation (DARE) cannot be solved! "
         "Usually indicates "

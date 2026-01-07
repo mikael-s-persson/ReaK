@@ -39,7 +39,6 @@
 
 #include <memory>
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/serialization/serializable.h"
 
 /** Main namespace for ReaK */

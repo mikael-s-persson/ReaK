@@ -32,7 +32,6 @@
 #ifndef REAK_TOPOLOGIES_INTERPOLATION_GENERIC_INTERPOLATOR_FACTORY_H_
 #define REAK_TOPOLOGIES_INTERPOLATION_GENERIC_INTERPOLATOR_FACTORY_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/arithmetic_tuple.h"
 
 #include "ReaK/topologies/spaces/metric_space_tuple.h"

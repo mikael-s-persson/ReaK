@@ -35,7 +35,6 @@
 #define REAK_MBD_KTE_PRISMATIC_JOINT_H_
 
 #include <utility>
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/kinetostatics/motion_jacobians.h"
 
 #include "ReaK/mbd/kte/reacting_kte.h"

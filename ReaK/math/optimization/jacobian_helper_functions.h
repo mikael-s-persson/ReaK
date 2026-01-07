@@ -33,7 +33,6 @@
 #ifndef REAK_MATH_OPTIMIZATION_JACOBIAN_HELPER_FUNCTIONS_H_
 #define REAK_MATH_OPTIMIZATION_JACOBIAN_HELPER_FUNCTIONS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/math/lin_alg/mat_alg.h"
 #include "ReaK/math/lin_alg/mat_svd_method.h"
 

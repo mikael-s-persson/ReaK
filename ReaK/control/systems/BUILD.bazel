@@ -20,7 +20,6 @@ cc_library(
         "state_vector_concept.h",
     ],
     deps = [
-        "//ReaK/core/base:base_macros",
         "//ReaK/math/lin_alg",
         "//ReaK/topologies/spaces:concepts",
     ],
@@ -59,7 +58,6 @@ cc_library(
         ":concepts",
         "//ReaK/control/estimators",
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/math/integrators",
         "//ReaK/math/kinetostatics",
         "//ReaK/math/lin_alg",

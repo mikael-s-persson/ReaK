@@ -34,7 +34,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_SO3_TOPOLOGIES_H_
 #define REAK_TOPOLOGIES_SPACES_SO3_TOPOLOGIES_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/global_rng.h"
 #include "ReaK/core/base/named_object.h"
 

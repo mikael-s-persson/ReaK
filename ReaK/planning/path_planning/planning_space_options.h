@@ -32,7 +32,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_PLANNING_SPACE_OPTIONS_H_
 #define REAK_PLANNING_PATH_PLANNING_PLANNING_SPACE_OPTIONS_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/base/shared_object.h"
 
 namespace ReaK::pp {

@@ -25,7 +25,6 @@ cc_library(
     #defines = ["ENABLE_NETWORK_RECORDER"],
     deps = [
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         #${Boost_LIBRARIES}   # For network recorder with boost::asio
         #${EXTRA_SYSTEM_LIBS}
     ],

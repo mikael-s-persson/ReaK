@@ -192,18 +192,12 @@ class discretized_lti_sys : public named_object {
             WritableMatrix MatrixB>
   void get_state_transition_blocks(MatrixA& aA, MatrixB& aB,
                                    const StateSpaceType&,
-                                   const time_type& t_0 = time_type(),
-                                   const time_type& t_1 = time_type(),
-                                   const point_type& p_0 = point_type(),
-                                   const point_type& p_1 = point_type(),
-                                   const input_type& u_0 = input_type(),
-                                   const input_type& u_1 = input_type()) const {
-    RK_UNUSED(t_0);
-    RK_UNUSED(t_1);
-    RK_UNUSED(p_0);
-    RK_UNUSED(p_1);
-    RK_UNUSED(u_0);
-    RK_UNUSED(u_1);
+                                   [[maybe_unused]] const time_type& t_0 = time_type(),
+                                   [[maybe_unused]] const time_type& t_1 = time_type(),
+                                   [[maybe_unused]] const point_type& p_0 = point_type(),
+                                   [[maybe_unused]] const point_type& p_1 = point_type(),
+                                   [[maybe_unused]] const input_type& u_0 = input_type(),
+                                   [[maybe_unused]] const input_type& u_1 = input_type()) const {
     aA = Ad;
     aB = Bd;
   }
@@ -228,12 +222,9 @@ class discretized_lti_sys : public named_object {
             WritableMatrix MatrixD>
   void get_output_function_blocks(MatrixC& aC, MatrixD& aD,
                                   const StateSpaceType&,
-                                  const time_type& t = time_type(),
-                                  const point_type& p = point_type(),
-                                  const input_type& u = input_type()) const {
-    RK_UNUSED(t);
-    RK_UNUSED(p);
-    RK_UNUSED(u);
+                                  [[maybe_unused]] const time_type& t = time_type(),
+                                  [[maybe_unused]] const point_type& p = point_type(),
+                                  [[maybe_unused]] const input_type& u = input_type()) const {
     aC = Cd;
     aD = Dd;
   }
@@ -252,8 +243,7 @@ class discretized_lti_sys : public named_object {
    */
   template <typename StateSpaceType>
   point_type get_next_state(const StateSpaceType&, const point_type& p,
-                            const input_type& u, const time_type& t = 0) const {
-    RK_UNUSED(t);
+                            const input_type& u, [[maybe_unused]] const time_type& t = 0) const {
     using ReaK::from_vect;
     using ReaK::to_vect;
     return from_vect<point_type>(Ad * to_vect<value_type>(p) +
@@ -269,8 +259,7 @@ class discretized_lti_sys : public named_object {
    */
   template <typename StateSpaceType>
   output_type get_output(const StateSpaceType&, const point_type& p,
-                         const input_type& u, const time_type& t = 0) const {
-    RK_UNUSED(t);
+                         const input_type& u, [[maybe_unused]] const time_type& t = 0) const {
     return from_vect<output_type>(Cd * to_vect<value_type>(p) +
                                   Dd * to_vect<value_type>(u));
   }

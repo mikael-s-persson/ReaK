@@ -39,6 +39,8 @@
 #include "ReaK/core/serialization/xml_archiver.h"
 #include "ReaK/math/optimization/optim_exceptions.h"
 
+#include <numbers>
+
 using namespace ReaK;
 using namespace pp;
 using namespace ctrl;
@@ -105,13 +107,13 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
     r_info->target_frame->Position[0] += 0.01;
   } else if (SO_KEY_PRESS_EVENT(event, B)) {
     r_info->target_frame->Quat *= ReaK::axis_angle<double>(
-        M_PI * 0.01, ReaK::vect<double, 3>(1.0, 0.0, 0.0));
+        std::numbers::pi * 0.01, ReaK::vect<double, 3>(1.0, 0.0, 0.0));
   } else if (SO_KEY_PRESS_EVENT(event, N)) {
     r_info->target_frame->Quat *= ReaK::axis_angle<double>(
-        M_PI * 0.01, ReaK::vect<double, 3>(0.0, 1.0, 0.0));
+        std::numbers::pi * 0.01, ReaK::vect<double, 3>(0.0, 1.0, 0.0));
   } else if (SO_KEY_PRESS_EVENT(event, M)) {
     r_info->target_frame->Quat *= ReaK::axis_angle<double>(
-        M_PI * 0.01, ReaK::vect<double, 3>(0.0, 0.0, 1.0));
+        std::numbers::pi * 0.01, ReaK::vect<double, 3>(0.0, 0.0, 1.0));
   } else if (SO_KEY_PRESS_EVENT(event, L)) {
     proxy_show = !proxy_show;
     r_info->sw_proxy_show->whichChild.setValue(
@@ -201,9 +203,7 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
         sol_seps.back()->ref();
       };
 
-    } catch (ReaK::optim::infeasible_problem& e) {
-      RK_UNUSED(e);
-    };
+    } catch ([[maybe_unused]] ReaK::optim::infeasible_problem& e) {}
     PP_enabled = false;
 
     // Check the motion-graph separator and solution separators

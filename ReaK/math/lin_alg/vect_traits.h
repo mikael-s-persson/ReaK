@@ -32,7 +32,6 @@
 #ifndef REAK_MATH_LIN_ALG_VECT_TRAITS_H_
 #define REAK_MATH_LIN_ALG_VECT_TRAITS_H_
 
-#include "ReaK/core/base/defs.h"
 
 namespace ReaK {
 

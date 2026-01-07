@@ -32,7 +32,6 @@
 #ifndef REAK_MATH_OPTIMIZATION_LIMIT_FUNCTIONS_H_
 #define REAK_MATH_OPTIMIZATION_LIMIT_FUNCTIONS_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/math/lin_alg/vect_alg.h"
 #include "ReaK/math/lin_alg/vect_concepts.h"

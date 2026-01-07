@@ -33,7 +33,6 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_SOLUTION_PATH_FACTORIES_H_
 #define REAK_PLANNING_PATH_PLANNING_SOLUTION_PATH_FACTORIES_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/planning/path_planning/any_motion_graphs.h"
 #include "ReaK/topologies/spaces/metric_space_concept.h"
@@ -79,7 +78,6 @@ SolutionRecPtr register_basic_solution_path_impl(
     if constexpr (is_steerable_space_v<FreeSpaceType>) {
       auto [goal_steer_pt, goal_steer_record] =
           space.steer_position_toward(position[goal_node], 1.0, goal_pos);
-      RK_UNUSED(goal_steer_pt);
       waypoints.push_front(goal_pos);
       for (auto it = goal_steer_record.end_fraction_travel();
            it != goal_steer_record.begin_fraction_travel(); it -= 1.0) {
@@ -165,7 +163,6 @@ SolutionRecPtr register_optimal_solution_path_impl(
     if constexpr (is_steerable_space_v<FreeSpaceType>) {
       auto [goal_steer_pt, goal_steer_record] =
           space.steer_position_toward(position[goal_node], 1.0, goal_pos);
-      RK_UNUSED(goal_steer_pt);
       waypoints.push_front(goal_pos);
       for (auto it = goal_steer_record.end_fraction_travel();
            it != goal_steer_record.begin_fraction_travel(); it -= 1.0) {

@@ -32,7 +32,6 @@
 #ifndef REAK_GEOMETRY_SHAPES_COLOR_H_
 #define REAK_GEOMETRY_SHAPES_COLOR_H_
 
-#include "ReaK/core/base/defs.h"
 #include "ReaK/core/serialization/serializable.h"
 
 namespace ReaK {

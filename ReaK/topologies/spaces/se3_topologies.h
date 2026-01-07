@@ -32,7 +32,6 @@
 #ifndef REAK_TOPOLOGIES_SPACES_SE3_TOPOLOGIES_H_
 #define REAK_TOPOLOGIES_SPACES_SE3_TOPOLOGIES_H_
 
-#include "ReaK/core/base/defs.h"
 
 #include "ReaK/topologies/spaces/so3_topologies.h"
 

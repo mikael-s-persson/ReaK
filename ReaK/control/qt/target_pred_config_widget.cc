@@ -883,9 +883,7 @@ struct prediction_updater {
           a[14] = m[1];
           z[15] = m[2];
 
-        } catch (recorder::out_of_bounds& e) {
-          RK_UNUSED(e);
-        }
+        } catch ([[maybe_unused]] recorder::out_of_bounds& e) {}
 
         b_z.set_mean_state(z);
         b_u.set_mean_state(vect_n<double>(nvr_in["f_x"], nvr_in["f_y"],
@@ -964,9 +962,7 @@ struct prediction_updater {
           a[14] = m[1];
           z[15] = m[2];
 
-        } catch (ReaK::recorder::out_of_bounds& e) {
-          RK_UNUSED(e);
-        }
+        } catch ([[maybe_unused]] ReaK::recorder::out_of_bounds& e) {}
 
         b_z.set_mean_state(z);
         b_u.set_mean_state(vect_n<double>(nvr_in["f_x"], nvr_in["f_y"],
@@ -1099,8 +1095,7 @@ start_state_predictions(std::shared_ptr<Sat3DSystemType> satellite3D_system,
             0.0, sat_options.predict_time_horizon),
         predictor_future.get(), sat_options,
         sat_options.predict_time_horizon + (*current_target_anim_time));
-  } catch (std::runtime_error& e) {
-    RK_UNUSED(e);
+  } catch ([[maybe_unused]] std::runtime_error& e) {
     return std::shared_ptr<TargetPredConfigWidget::trajectory_type>();
   }
 }

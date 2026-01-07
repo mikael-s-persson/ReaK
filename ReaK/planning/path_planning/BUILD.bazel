@@ -56,7 +56,6 @@ cc_library(
     deps = [
         "//ReaK/control/controllers",
         "//ReaK/core/base",
-        "//ReaK/core/base:base_macros",
         "//ReaK/core/recorders",
         "//ReaK/math/lin_alg",
         "//ReaK/math/optimization",
@@ -69,33 +68,33 @@ cc_library(
     ],
 )
 
-[cc_library(
-    name = "manip_planners_%d" % dim_count,
-    srcs = [
-        "fadprm_manip_planners_dynamic.cc",
-        "fadprm_manip_planners_static.cc",
-        "prm_manip_planners_dynamic.cc",
-        "prm_manip_planners_static.cc",
-        #    "rrt_manip_planners_dynamic.cc",
-        "rrt_manip_planners_static.cc",
-        "rrtstar_manip_planners_dynamic.cc",
-        "rrtstar_manip_planners_static.cc",
-        "sbastar_manip_planners_dynamic.cc",
-        "sbastar_manip_planners_static.cc",
-    ],
-    local_defines = ["RK_PLANNERS_DIM=%d" % dim_count],
-    deps = [
-        ":path_planning_headers",
-        "//ReaK/core/base:base_macros",
-    ],
-) for dim_count in range(11)]
+#[cc_library(
+#    name = "manip_planners_%d" % dim_count,
+#    srcs = [
+#        "fadprm_manip_planners_dynamic.cc",
+#        "fadprm_manip_planners_static.cc",
+#        "prm_manip_planners_dynamic.cc",
+#        "prm_manip_planners_static.cc",
+#        #    "rrt_manip_planners_dynamic.cc",
+#        "rrt_manip_planners_static.cc",
+#        "rrtstar_manip_planners_dynamic.cc",
+#        "rrtstar_manip_planners_static.cc",
+#        "sbastar_manip_planners_dynamic.cc",
+#        "sbastar_manip_planners_static.cc",
+#    ],
+#    local_defines = ["RK_PLANNERS_DIM=%d" % dim_count],
+#    deps = [
+#        ":path_planning_headers",
+#    ],
+#) for dim_count in range(11)]
 
 cc_library(
     name = "path_planning",
     hdrs = [],
-    alwayslink = True,
     tags = ["cc_meta_forward_exports"],
-    deps = ["manip_planners_%d" % dim_count for dim_count in range(11)] + [":path_planning_headers"],
+    #    deps = ["manip_planners_%d" % dim_count for dim_count in range(11)] + [":path_planning_headers"],
+    deps = [":path_planning_headers"],
+    alwayslink = True,
 )
 
 cc_library(
@@ -173,4 +172,4 @@ cc_binary(
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
     ],
-) for dim_count in range(3, 20)]
+) for dim_count in range(3, 6)]
