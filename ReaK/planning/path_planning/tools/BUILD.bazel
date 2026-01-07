@@ -23,6 +23,7 @@ cc_binary(
         "//ReaK/topologies/interpolation",
         "//ReaK/topologies/interpolation:interpolated_spaces",
         "//ReaK/topologies/spaces",
+        "//ReaK/topologies/spaces:manip_spaces",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
     ],

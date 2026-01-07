@@ -7,13 +7,28 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "concepts",
+    hdrs = [
+        "belief_state_concept.h",
+        "covariance_concept.h",
+        "state_estimator_concept.h",
+        "state_observer_concept.h",
+    ],
+    deps = [
+        "//ReaK/control/controllers:concepts",
+        "//ReaK/control/systems:concepts",
+        "//ReaK/core/base:base_macros",
+        "//ReaK/math/lin_alg",
+        "//ReaK/topologies/spaces:concepts",
+    ],
+)
+
+cc_library(
     name = "estimators",
     hdrs = [
         "aggregate_kalman_filter.h",
-        "belief_state_concept.h",
         "belief_state_predictor.h",
         "covar_topology.h",
-        "covariance_concept.h",
         "covariance_info_matrix.h",
         "covariance_matrix.h",
         "decomp_covariance_matrix.h",
@@ -28,20 +43,22 @@ cc_library(
         "kalman_bucy_filter.h",
         "kalman_filter.h",
         "maximum_likelihood_mapping.h",
-        "state_estimator_concept.h",
-        "state_observer_concept.h",
         "symplectic_kalman_filter.h",
         "tsos_aug_inv_kalman_filter.h",
         "tsos_aug_kalman_filter.h",
         "unscented_kalman_filter.h",
     ],
     deps = [
+        ":concepts",
+        "//ReaK/control/systems:concepts",
         "//ReaK/core/base",
         "//ReaK/core/base:base_macros",
         "//ReaK/math/integrators",
         "//ReaK/math/lin_alg",
         "//ReaK/topologies/interpolation",
+        "//ReaK/topologies/interpolation:concepts",
         "//ReaK/topologies/spaces",
+        "//ReaK/topologies/spaces:concepts",
     ],
 )
 
@@ -67,6 +84,7 @@ cc_binary(
     deps = [
         ":estimators",
         "//ReaK/control/systems",
+        "//ReaK/control/systems:concepts",
         "//ReaK/control/systems:satellite_modeling_po",
         "//ReaK/core/base",
         "//ReaK/core/recorders:recorders_po",

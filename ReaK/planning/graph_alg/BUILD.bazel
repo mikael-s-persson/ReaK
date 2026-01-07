@@ -37,7 +37,7 @@ cc_library(
         "//ReaK/core/base",
         "//ReaK/core/base:base_macros",
         "//ReaK/math/optimization",
-        "//ReaK/topologies/spaces",
+        "//ReaK/topologies/spaces:concepts",
         "@bagl//bagl",
     ],
 )

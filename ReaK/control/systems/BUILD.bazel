@@ -7,6 +7,26 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "concepts",
+    srcs = [],
+    hdrs = [
+        "augmented_sss_concept.h",
+        "discrete_linear_sss_concept.h",
+        "discrete_sss_concept.h",
+        "invariant_system_concept.h",
+        "linear_ss_system_concept.h",
+        "sss_exceptions.h",
+        "state_space_sys_concept.h",
+        "state_vector_concept.h",
+    ],
+    deps = [
+        "//ReaK/core/base:base_macros",
+        "//ReaK/math/lin_alg",
+        "//ReaK/topologies/spaces:concepts",
+    ],
+)
+
+cc_library(
     name = "systems",
     srcs = [
         "airship_assembled_models.cc",
@@ -22,14 +42,9 @@ cc_library(
         "airship_drag_mixins.h",
         "airship_sonar_mixins.h",
         "airship_thruster_mixins.h",
-        "augmented_sss_concept.h",
         "augmented_to_state_mapping.h",
-        "discrete_linear_sss_concept.h",
-        "discrete_sss_concept.h",
         "discretized_lti_sys.h",
-        "invariant_system_concept.h",
         "kte_nl_system.h",
-        "linear_ss_system_concept.h",
         "lti_discrete_sys.h",
         "lti_ss_system.h",
         "near_buoyant_airship_models.h",
@@ -37,13 +52,11 @@ cc_library(
         "quadrotor_system.h",
         "satellite_basic_models.h",
         "satellite_invar_models.h",
-        "sss_exceptions.h",
-        "state_space_sys_concept.h",
         "state_space_system_tuple.h",
         "state_to_output_mapping.h",
-        "state_vector_concept.h",
     ],
     deps = [
+        ":concepts",
         "//ReaK/control/estimators",
         "//ReaK/core/base",
         "//ReaK/core/base:base_macros",
@@ -52,6 +65,7 @@ cc_library(
         "//ReaK/math/lin_alg",
         "//ReaK/mbd/kte",
         "//ReaK/topologies/spaces",
+        "//ReaK/topologies/spaces:concepts",
     ],
 )
 
@@ -66,6 +80,7 @@ cc_library(
         "satellite_modeling_po.h",
     ],
     deps = [
+        ":concepts",
         ":systems",
         "//ReaK/control/estimators",
         "//ReaK/core/recorders:recorders_po",

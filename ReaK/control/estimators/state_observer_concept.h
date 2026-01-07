@@ -42,7 +42,7 @@
 #ifndef REAK_CONTROL_CONTROLLERS_STATE_OBSERVER_CONCEPT_H_
 #define REAK_CONTROL_CONTROLLERS_STATE_OBSERVER_CONCEPT_H_
 
-#include "ReaK/control/controller/ss_controller_concept.h"
+#include "ReaK/control/controllers/ss_controller_concept.h"
 #include "ReaK/control/systems/discrete_linear_sss_concept.h"
 #include "ReaK/control/systems/discrete_sss_concept.h"
 #include "ReaK/control/systems/linear_ss_system_concept.h"

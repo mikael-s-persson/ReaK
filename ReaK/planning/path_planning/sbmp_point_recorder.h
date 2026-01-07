@@ -39,7 +39,6 @@
 #include "ReaK/core/recorders/data_record.h"
 #include "ReaK/planning/path_planning/basic_sbmp_reporters.h"
 #include "ReaK/topologies/interpolation/seq_trajectory_base.h"
-#include "ReaK/topologies/spaces/direct_kinematics_topomap.h"
 #include "ReaK/topologies/spaces/topological_map_concepts.h"
 
 #include <tuple>

@@ -7,16 +7,27 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "concepts",
+    hdrs = [
+        "ss_controller_concept.h",
+    ],
+    deps = [
+        "//ReaK/control/systems:concepts",
+        "//ReaK/core/base:base_macros",
+        "//ReaK/topologies/spaces:concepts",
+    ],
+)
+
+cc_library(
     name = "controllers",
     hdrs = [
         "IHAQR_topology.h",
         "MEAQR_topology.h",
         "lqr_controllers.h",
-        "ss_controller_concept.h",
     ],
     deps = [
         "//ReaK/control/integrators",
-        "//ReaK/control/systems",
+        "//ReaK/control/systems:concepts",
         "//ReaK/core/base",
         "//ReaK/core/base:base_macros",
         "//ReaK/geometry/proximity",
@@ -24,5 +35,7 @@ cc_library(
         "//ReaK/mbd/models",
         "//ReaK/topologies/interpolation",
         "//ReaK/topologies/spaces",
+        "//ReaK/topologies/spaces:concepts",
+        "//ReaK/topologies/spaces:manip_spaces",
     ],
 )

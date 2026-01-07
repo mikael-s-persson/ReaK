@@ -40,7 +40,6 @@
 
 #include "ReaK/mbd/models/inverse_kinematics_model.h"
 #include "ReaK/mbd/models/manip_clik_calculator.h"
-#include "ReaK/planning/path_planning/metric_space_search.h"
 
 #include "ReaK/topologies/spaces/joint_space_limits.h"
 #include "ReaK/topologies/spaces/joint_space_topologies.h"

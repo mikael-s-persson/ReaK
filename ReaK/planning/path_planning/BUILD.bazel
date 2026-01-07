@@ -63,6 +63,8 @@ cc_library(
         "//ReaK/planning/graph_alg",
         "//ReaK/topologies/interpolation",
         "//ReaK/topologies/spaces",
+        "//ReaK/topologies/spaces:concepts",
+        "//ReaK/topologies/spaces:manip_spaces",
         "@bagl//bagl",
     ],
 )

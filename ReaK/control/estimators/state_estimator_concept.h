@@ -25,8 +25,8 @@
 #define REAK_CONTROL_CONTROLLERS_STATE_ESTIMATOR_CONCEPT_H_
 
 #include "ReaK/control/estimators/belief_state_concept.h"
-#include "ReaK/control/estimators/discrete_sss_concept.h"
-#include "ReaK/control/estimators/state_vector_concept.h"
+#include "ReaK/control/systems/discrete_sss_concept.h"
+#include "ReaK/control/systems/state_vector_concept.h"
 
 namespace ReaK::ctrl {
 

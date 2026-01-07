@@ -7,6 +7,24 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "concepts",
+    srcs = [],
+    hdrs = [
+        "extrapolator_concept.h",
+        "interpolator_concept.h",
+        "predicted_trajectory_concept.h",
+        "sequential_path_concept.h",
+        "sequential_trajectory_concept.h",
+        "spatial_path_concept.h",
+        "spatial_trajectory_concept.h",
+    ],
+    deps = [
+        "//ReaK/core/base:base_macros",
+        "//ReaK/topologies/spaces:concepts",
+    ],
+)
+
+cc_library(
     name = "interpolation",
     srcs = [
         "sustained_acceleration_pulse_detail.cc",
@@ -19,24 +37,17 @@ cc_library(
         "cubic_hermite_interp.h",
         "discrete_point_path.h",
         "discrete_point_trajectory.h",
-        "extrapolator_concept.h",
         "interpolated_trajectory.h",
-        "interpolator_concept.h",
         "linear_interp.h",
         "path_base.h",
         "path_wrapper.h",
         "point_to_point_path.h",
         "point_to_point_trajectory.h",
-        "predicted_trajectory_concept.h",
         "quintic_hermite_interp.h",
         "seq_path_base.h",
         "seq_path_wrapper.h",
         "seq_trajectory_base.h",
         "seq_trajectory_wrapper.h",
-        "sequential_path_concept.h",
-        "sequential_trajectory_concept.h",
-        "spatial_path_concept.h",
-        "spatial_trajectory_concept.h",
         "sustained_acceleration_pulse.h",
         "sustained_acceleration_pulse_detail.h",
         "sustained_acceleration_pulse_ndof.h",
@@ -50,6 +61,7 @@ cc_library(
         "waypoint_container.h",
     ],
     deps = [
+        ":concepts",
         "//ReaK/core/base",
         "//ReaK/core/base:base_macros",
         "//ReaK/core/sorting",
@@ -57,6 +69,7 @@ cc_library(
         "//ReaK/math/optimization",
         "//ReaK/math/root_finders",
         "//ReaK/topologies/spaces",
+        "//ReaK/topologies/spaces:concepts",
     ],
 )
 
@@ -89,10 +102,12 @@ cc_library(
         "svp_samplers.h",
     ],
     deps = [
+        ":concepts",
         ":interpolation",
         "//ReaK/core/base:base_macros",
         "//ReaK/math/optimization",
         "//ReaK/topologies/spaces",
+        "//ReaK/topologies/spaces:concepts",
     ],
 )
 

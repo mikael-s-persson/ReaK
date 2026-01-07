@@ -21,11 +21,12 @@ cc_library(
         "runge_kutta5_integrator_sys.h",
     ],
     deps = [
-        "//ReaK/control/systems",
+        "//ReaK/control/systems:concepts",
         "//ReaK/core/base",
         "//ReaK/math/integrators",
         "//ReaK/math/lin_alg",
-        "//ReaK/topologies/interpolation",
+        "//ReaK/topologies/interpolation:concepts",
         "//ReaK/topologies/spaces",
+        "//ReaK/topologies/spaces:concepts",
     ],
 )
