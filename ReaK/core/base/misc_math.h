@@ -32,7 +32,7 @@
 #ifndef REAK_CORE_BASE_MISC_MATH_H_
 #define REAK_CORE_BASE_MISC_MATH_H_
 
-#include <cmath>
+#include <cstddef>
 
 namespace ReaK::math {
 

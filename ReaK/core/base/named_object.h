@@ -35,6 +35,7 @@
 #define REAK_CORE_BASE_NAMED_OBJECT_H_
 
 #include "ReaK/core/base/shared_object.h"
+#include "ReaK/core/rtti/typed_object.h"
 
 #include <string>
 

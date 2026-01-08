@@ -32,7 +32,6 @@
 #ifndef REAK_CORE_RTTI_SO_REGISTER_TYPE_H_
 #define REAK_CORE_RTTI_SO_REGISTER_TYPE_H_
 
-#include "ReaK/core/rtti/so_type.h"
 #include "ReaK/core/rtti/so_type_repo.h"
 
 namespace ReaK::rtti {

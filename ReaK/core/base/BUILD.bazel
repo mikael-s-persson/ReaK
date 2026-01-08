@@ -49,6 +49,7 @@ cc_library(
         "shared_object.h",
     ],
     deps = [
+        "//ReaK/core/rtti",
         "//ReaK/core/serialization:serialization_base",
     ],
 )

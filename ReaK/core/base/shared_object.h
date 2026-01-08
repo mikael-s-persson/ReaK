@@ -37,8 +37,7 @@
 #ifndef REAK_CORE_BASE_SHARED_OBJECT_H_
 #define REAK_CORE_BASE_SHARED_OBJECT_H_
 
-#include <memory>
-
+#include "ReaK/core/rtti/typed_object.h"
 #include "ReaK/core/serialization/serializable.h"
 
 /** Main namespace for ReaK */
@@ -59,8 +58,6 @@ class shared_object : public serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(shared_object, 0x80000001, 1, "shared_object",
                               serializable)
 };
-
-class empty_base_object {};
 
 /**
  * This structure is a simple callable structure that does nothing. It acts as a place-holder for

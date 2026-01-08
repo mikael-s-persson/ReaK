@@ -35,7 +35,6 @@
 
 #include "ReaK/core/base/cnst_string.h"
 
-#include <cstdio>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -333,6 +332,3 @@ so_type_ptr create_dummy_so_type(const unsigned int* aTypeID);
 }  // namespace ReaK
 
 #endif  // REAK_CORE_RTTI_SO_TYPE_H_
-
-#include "ReaK/core/rtti/typed_containers.h"
-#include "ReaK/core/rtti/typed_primitives.h"

@@ -34,6 +34,8 @@
 #ifndef REAK_CORE_BASE_SCOPE_GUARD_H_
 #define REAK_CORE_BASE_SCOPE_GUARD_H_
 
+#include <utility>
+
 namespace ReaK {
 
 /**

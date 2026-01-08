@@ -32,11 +32,11 @@
 #ifndef REAK_CORE_RTTI_RTTI_H_
 #define REAK_CORE_RTTI_RTTI_H_
 
-#include "ReaK/core/rtti/so_register_type.h"
-#include "ReaK/core/rtti/so_type.h"
-#include "ReaK/core/rtti/so_type_repo.h"
+#include "ReaK/core/rtti/so_register_type.h" // IWYU pragma: export
+#include "ReaK/core/rtti/so_type.h" // IWYU pragma: export
+#include "ReaK/core/rtti/so_type_repo.h" // IWYU pragma: export
 
-#include "ReaK/core/rtti/typed_containers.h"
-#include "ReaK/core/rtti/typed_primitives.h"
+#include "ReaK/core/rtti/typed_containers.h" // IWYU pragma: export
+#include "ReaK/core/rtti/typed_primitives.h" // IWYU pragma: export
 
 #endif  // REAK_CORE_RTTI_RTTI_H_

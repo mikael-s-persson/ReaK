@@ -35,12 +35,12 @@ bazel_dep(name = "google_benchmark", version = "1.8.4", repo_name = "com_google_
 bazel_dep(name = "eigen", version = "3.4.0")
 
 # Aspects to extract C++ metadata and fix dependency issues.
-# bazel run -c dbg //:cc_meta_refresh_all -- -c dbg
-# bazel run -c dbg @bazel_cc_meta//cc_meta:fix_deps
+# bazel run //:cc_meta_refresh_all
+# bazel run @bazel_cc_meta//cc_meta:fix_deps
 bazel_dep(name = "bazel_cc_meta", version = "0.0.0")
 git_override(
     module_name = "bazel_cc_meta",
-    commit = "ccabddc2a9016b3ee0a620e32ee6e71ecc8aa5f6",
+    commit = "5140e9cbd6bcb91d6e0e8812b333d1f677a50502",
     remote = "https://github.com/mikael-s-persson/bazel_cc_meta.git",
 )
 
