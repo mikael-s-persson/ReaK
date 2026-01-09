@@ -41,8 +41,8 @@ void bin_recorder::writeNames() {
   if ((!out_stream) || (!(*out_stream))) {
     return;
   }
-  unsigned int aColCount = colCount;
-  out_stream->write(reinterpret_cast<char*>(&aColCount), sizeof(unsigned int));
+  unsigned int col_count = colCount;
+  out_stream->write(reinterpret_cast<char*>(&col_count), sizeof(unsigned int));
   auto it = names.begin();
   for (; it != names.end(); ++it) {
     out_stream->write(it->c_str(), it->size() + 1);
@@ -86,9 +86,9 @@ bool bin_extractor::readNames() {
   if ((!in_stream) || (!(*in_stream))) {
     return false;
   }
-  unsigned int aColCount = 0;
-  in_stream->read(reinterpret_cast<char*>(&aColCount), sizeof(unsigned int));
-  colCount = aColCount;
+  unsigned int col_count = 0;
+  in_stream->read(reinterpret_cast<char*>(&col_count), sizeof(unsigned int));
+  colCount = col_count;
   std::array<char, 128> temp = {};
   for (unsigned int i = 0; i < colCount; ++i) {
     char* temp_ptr = temp.data();

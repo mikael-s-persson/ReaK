@@ -28,13 +28,11 @@
 #include "ReaK/mbd/kte/rigid_link.h"
 
 #include "ReaK/mbd/kte/force_actuator.h"
-#include "ReaK/mbd/kte/joint_backlash.h"
 #include "ReaK/mbd/kte/joint_friction.h"
-
-#include "ReaK/math/lin_alg/mat_num.h"
 
 #include "ReaK/core/recorders/ascii_recorder.h"
 
+#include <fstream>
 #include <memory>
 #include "ReaK/core/serialization/bin_archiver.h"
 #include "ReaK/core/serialization/protobuf_archiver.h"

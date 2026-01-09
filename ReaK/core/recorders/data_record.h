@@ -59,7 +59,7 @@ class out_of_bounds : public std::exception {
 
   ~out_of_bounds() noexcept override = default;
 
-  const char* what() const noexcept override {
+  [[nodiscard]] const char* what() const noexcept override {
     return "Data record went out of bounds!";
   }
 };
@@ -74,7 +74,7 @@ class end_of_record : public std::exception {
 
   ~end_of_record() noexcept override = default;
 
-  const char* what() const noexcept override {
+  [[nodiscard]] const char* what() const noexcept override {
     return "No more data rows in the record!";
   }
 };
@@ -90,7 +90,7 @@ class improper_flag : public std::exception {
 
   ~improper_flag() noexcept override = default;
 
-  const char* what() const noexcept override {
+  [[nodiscard]] const char* what() const noexcept override {
     return "Flagged operation requested on data recorder was invalid!";
   }
 };
@@ -149,26 +149,29 @@ class named_value_row {
  */
 class data_recorder : public shared_object {
  protected:
-  std::atomic<unsigned int> colCount;  ///< Holds the column count.
-  std::atomic<unsigned int>
-      rowCount;  ///< Holds the number of rows of data records.
-  std::atomic<unsigned int>
-      currentColumn;  ///< Holds the current column to which the next data entry will be written to.
-  unsigned int flushSampleRate{
-      50};  ///< Holds the sample rate at which the data is automatically flushed to the file.
-  unsigned int maxBufferSize{
-      500};  ///< Holds the maximum size for the data buffer, overload will trigger a file-flush.
-  std::vector<std::string> names;  ///< Holds the list of column names.
-  mutable std::map<std::string, std::size_t>
-      named_indices;  ///< Holds the map from the column names to the index within a value-row.
-  std::queue<double> values_rm;  ///< Holds the data buffer.
-  std::shared_ptr<std::ostream>
-      out_stream;  ///< Holds the output-stream of the data record.
+  // Holds the column count.
+  std::atomic<unsigned int> colCount;
+  // Holds the number of rows of data records.
+  std::atomic<unsigned int> rowCount;
+  // Holds the current column to which the next data entry will be written to.
+  std::atomic<unsigned int> currentColumn;
+  // Holds the sample rate at which the data is automatically flushed to the file.
+  unsigned int flushSampleRate{50};
+  // Holds the maximum size for the data buffer, overload will trigger a file-flush.
+  unsigned int maxBufferSize{500};
+  // Holds the list of column names.
+  std::vector<std::string> names;
+  // Holds the map from the column names to the index within a value-row.
+  mutable std::map<std::string, std::size_t> named_indices;
+  // Holds the data buffer.
+  std::queue<double> values_rm;
+  // Holds the output-stream of the data record.
+  std::shared_ptr<std::ostream> out_stream;
 
-  std::mutex
-      access_mutex;  ///< Mutex to lock the read/write on the data buffer.
-  std::shared_ptr<std::thread>
-      writing_thread;  ///< Holds the instance of the data writing thread.
+  // Mutex to lock the read/write on the data buffer.
+  std::mutex access_mutex;
+  // Holds the instance of the data writing thread.
+  std::shared_ptr<std::thread> writing_thread;
 
   /**
    * This class is used as a callable function-object for data writing thread.
@@ -277,8 +280,8 @@ class data_recorder : public shared_object {
    * Operator to record a vector of column names.
    */
   data_recorder& operator<<(const std::vector<std::string>& aNames) {
-    for (const auto& aName : aNames) {
-      (*this) << aName;
+    for (const auto& name : aNames) {
+      (*this) << name;
     }
     return *this;
   }
@@ -339,26 +342,29 @@ class data_recorder : public shared_object {
  */
 class data_extractor : public shared_object {
  protected:
-  std::atomic<unsigned int> colCount;  ///< Holds the column count.
-  std::atomic<unsigned int>
-      currentColumn;  ///< Holds the current column to which the next data entry will be read from.
-  std::atomic<unsigned int>
-      currentNameCol;  ///< Holds the current column to which the next name entry will be read from.
-  unsigned int flushSampleRate{
-      50};  ///< Holds the sample rate at which the data is automatically flushed to the file.
-  unsigned int minBufferSize{
-      20};  ///< Holds the minimum size for the data buffer, underload will trigger a file-read.
-  std::vector<std::string> names;  ///< Holds the list of column names.
-  mutable std::map<std::string, std::size_t>
-      named_indices;  ///< Holds the map from the column names to the index within a value-row.
-  std::queue<double> values_rm;  ///< Holds the data buffer.
-  std::shared_ptr<std::istream>
-      in_stream;  ///< Holds the input-stream of the data record.
+  // Holds the column count.
+  std::atomic<unsigned int> colCount;
+  // Holds the current column to which the next data entry will be read from.
+  std::atomic<unsigned int> currentColumn;
+  // Holds the current column to which the next name entry will be read from.
+  std::atomic<unsigned int> currentNameCol;
+  // Holds the sample rate at which the data is automatically flushed to the file.
+  unsigned int flushSampleRate{50};
+  // Holds the minimum size for the data buffer, underload will trigger a file-read.
+  unsigned int minBufferSize{20};
+  // Holds the list of column names.
+  std::vector<std::string> names;
+  // Holds the map from the column names to the index within a value-row.
+  mutable std::map<std::string, std::size_t> named_indices;
+  // Holds the data buffer.
+  std::queue<double> values_rm;
+  // Holds the input-stream of the data record.
+  std::shared_ptr<std::istream> in_stream;
 
-  std::mutex
-      access_mutex;  ///< Mutex to lock the read/write on the data buffer.
-  std::shared_ptr<std::thread>
-      reading_thread;  ///< Holds the instance of the data writing thread.
+  // Mutex to lock the read/write on the data buffer.
+  std::mutex access_mutex;
+  // Holds the instance of the data writing thread.
+  std::shared_ptr<std::thread> reading_thread;
 
   /**
    * This class is used as a callable function-object for data writing thread.

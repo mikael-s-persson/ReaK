@@ -35,8 +35,10 @@
 
 #include "ReaK/core/recorders/data_record.h"
 
-#include <fstream>
+#include <iosfwd>
+#include <memory>
 #include <utility>
+#include <string>
 
 namespace ReaK::recorder {
 

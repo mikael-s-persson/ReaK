@@ -162,11 +162,11 @@ void data_recorder::load(serialization::iarchive& A, unsigned int /*Version*/) {
   closeRecordProcess();
   std::unique_lock<std::mutex> lock_here(access_mutex);
   shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
-  unsigned int aColCount = 0;
-  A& RK_SERIAL_LOAD_WITH_ALIAS("colCount", aColCount) &
+  unsigned int col_count = 0;
+  A& RK_SERIAL_LOAD_WITH_ALIAS("colCount", col_count) &
       RK_SERIAL_LOAD_WITH_NAME(flushSampleRate) &
       RK_SERIAL_LOAD_WITH_NAME(maxBufferSize) & RK_SERIAL_LOAD_WITH_NAME(names);
-  colCount = aColCount;
+  colCount = col_count;
   for (std::size_t i = 0; i < colCount; ++i) {
     named_indices[names[i]] = i;
   }
@@ -318,11 +318,11 @@ void data_extractor::load(serialization::iarchive& A,
   closeExtractProcess();
   std::unique_lock<std::mutex> lock_here(access_mutex);
   shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
-  unsigned int aColCount = 0;
-  A& RK_SERIAL_LOAD_WITH_ALIAS("colCount", aColCount) &
+  unsigned int col_count = 0;
+  A& RK_SERIAL_LOAD_WITH_ALIAS("colCount", col_count) &
       RK_SERIAL_LOAD_WITH_NAME(flushSampleRate) &
       RK_SERIAL_LOAD_WITH_NAME(minBufferSize) & RK_SERIAL_LOAD_WITH_NAME(names);
-  colCount = aColCount;
+  colCount = col_count;
   for (std::size_t i = 0; i < names.size(); ++i) {
     named_indices[names[i]] = i;
   }

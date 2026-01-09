@@ -210,13 +210,13 @@ std::shared_ptr<data_recorder> data_stream_options::create_recorder() const {
 
   switch (kind) {
     case space_separated:
-      static_cast<ascii_recorder*>(result.get())->delimiter = " ";
+      static_cast<ascii_recorder*>(result.get())->delimiter = " "; // NOLINT
       break;
     case tab_separated:
-      static_cast<ascii_recorder*>(result.get())->delimiter = "\t";
+      static_cast<ascii_recorder*>(result.get())->delimiter = "\t"; // NOLINT
       break;
     case comma_separated:
-      static_cast<ascii_recorder*>(result.get())->delimiter = ",";
+      static_cast<ascii_recorder*>(result.get())->delimiter = ","; // NOLINT
       break;
     default:
       break;
@@ -327,13 +327,13 @@ data_stream_options::create_extractor() const {
 
   switch (kind) {
     case space_separated:
-      static_cast<ascii_extractor*>(result.first.get())->delimiter = " ";
+      static_cast<ascii_extractor*>(result.first.get())->delimiter = " "; // NOLINT
       break;
     case tab_separated:
-      static_cast<ascii_extractor*>(result.first.get())->delimiter = "\t";
+      static_cast<ascii_extractor*>(result.first.get())->delimiter = "\t"; // NOLINT
       break;
     case comma_separated:
-      static_cast<ascii_extractor*>(result.first.get())->delimiter = ",";
+      static_cast<ascii_extractor*>(result.first.get())->delimiter = ","; // NOLINT
       break;
     default:
       break;
@@ -346,7 +346,7 @@ data_stream_options::create_extractor() const {
     }
     result.second = names;
 
-    auto* data_in_tmp = static_cast<network_extractor*>(result.first.get());
+    auto* data_in_tmp = static_cast<network_extractor*>(result.first.get()); // NOLINT
     for (auto& name : names) {
       data_in_tmp->addName(name);
     }
@@ -358,7 +358,7 @@ data_stream_options::create_extractor() const {
       }
       result.second = names;
 
-      auto* data_in_tmp = static_cast<vector_extractor*>(result.first.get());
+      auto* data_in_tmp = static_cast<vector_extractor*>(result.first.get()); // NOLINT
       for (auto& name : names) {
         data_in_tmp->addName(name);
       }

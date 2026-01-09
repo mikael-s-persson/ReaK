@@ -35,7 +35,7 @@
 
 #include "ReaK/core/recorders/data_record.h"
 
-#include <fstream>
+#include <iosfwd>
 
 namespace ReaK::recorder {
 

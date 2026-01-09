@@ -21,27 +21,19 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <cmath>
 
 #include <iostream>
 
-using std::ptrdiff_t;
-using std::size_t;
-
-#include "ReaK/topologies/spaces/differentiable_space.h"
-#include "ReaK/topologies/spaces/line_topology.h"
-#include "ReaK/topologies/spaces/temporal_space.h"
-#include "ReaK/topologies/spaces/time_poisson_topology.h"
 #include "ReaK/topologies/spaces/time_topology.h"
-
-#include "ReaK/topologies/spaces/ndof_limits.h"
 #include "ReaK/topologies/spaces/ndof_spaces.h"
-
 #include "ReaK/core/recorders/ascii_recorder.h"
-#include "ReaK/topologies/interpolation/sustained_acceleration_pulse.h"
-#include "ReaK/topologies/interpolation/sustained_velocity_pulse.h"
 
+#include <fstream>
 #include <memory>
+#include <ranges>
+
 #include "ReaK/topologies/interpolation/sustained_acceleration_pulse_ndof_detail.h"
 #include "ReaK/topologies/interpolation/sustained_velocity_pulse_ndof_detail.h"
 
@@ -57,8 +49,8 @@ int main(int argc, char** argv) {
   } else {
     std::string tmp_fn = argv[1];
     in_filename =
-        std::string(std::find(tmp_fn.rbegin(), tmp_fn.rend(), '/').base(),
-                    std::find(tmp_fn.rbegin(), tmp_fn.rend(), '.').base() - 1);
+        std::string(std::ranges::find(std::ranges::reverse_view(tmp_fn), '/').base(),
+                    std::ranges::find(std::ranges::reverse_view(tmp_fn), '.').base() - 1);
     std::cout << "Filename is: " << in_filename << std::endl;
     task_src_ptr = std::shared_ptr<std::istream>(new std::ifstream(argv[1]));
   };

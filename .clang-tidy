@@ -1,0 +1,85 @@
+Checks: >
+         clang-analyzer-*,
+         readability-identifier-naming*,
+         absl-*,
+         bugprone-*,
+         -bugprone-branch-clone,
+         -bugprone-easily-swappable-parameters,
+         -bugprone-exception-escape,
+         -bugprone-implicit-widening-of-multiplication-result,
+         -bugprone-narrowing-conversions,
+         cert-*,
+         -cert-err58-cpp,
+         -cert-dcl21-cpp,
+         cppcoreguidelines-*,
+         -cppcoreguidelines-avoid-magic-numbers,
+         -cppcoreguidelines-non-private-member-variables-in-classes,
+         -cppcoreguidelines-pro-bounds-constant-array-index,
+         -cppcoreguidelines-narrowing-conversions,
+         google-build-*,
+         google-default-arguments,
+         google-explicit-constructor,
+         google-global-names-in-headers,
+         google-readability-casting,
+         google-runtime-int,
+         google-runtime-operator,
+         google-upgrade-googletest-case,
+         hicpp-exception-baseclass,
+         hicpp-multiway-paths-covered,
+         hicpp-no-assembler,
+         misc-*,
+         -misc-non-private-member-variables-in-classes,
+         modernize-*,
+         -modernize-use-constraints,
+         -modernize-use-std-print,
+         -modernize-use-trailing-return-type,
+         performance-*,
+         readability-*,
+         -readability-magic-numbers,
+         -readability-identifier-length,
+         -readability-convert-member-functions-to-static,
+         # Warnings (diagnostic) that either trigger too much on external libs or are clang-specific.
+         clang-diagnostic-float-equal,
+         clang-diagnostic-deprecated-copy-with-user-provided-dtor,
+         clang-diagnostic-deprecated-copy-with-dtor,
+         clang-diagnostic-implicit-int-conversion,
+         clang-diagnostic-implicit-int-conversion,
+         clang-diagnostic-shorten-64-to-32,
+         clang-diagnostic-implicit-int-float-conversion,
+         clang-diagnostic-comma,
+         clang-diagnostic-deprecated-dynamic-exception-spec,
+         clang-diagnostic-unreachable-code-break,
+         clang-diagnostic-unreachable-code-return,
+         clang-diagnostic-shadow-uncaptured-local,
+         clang-diagnostic-float-conversion,
+         clang-diagnostic-implicit-float-conversion,
+         clang-diagnostic-conversion,
+         clang-diagnostic-shadow-all,
+         clang-diagnostic-call-to-pure-virtual-from-ctor-dtor,
+         clang-diagnostic-dangling,
+         clang-diagnostic-integer-overflow,
+         clang-diagnostic-invalid-noreturn,
+         clang-diagnostic-null-arithmetic,
+         clang-diagnostic-null-conversion,
+         clang-diagnostic-unsequenced,
+         clang-diagnostic-unreachable-code-aggressive,
+         clang-diagnostic-void-pointer-to-int-cast,
+         clang-diagnostic-writable-strings,
+         clang-diagnostic-mismatched-parameter-types,
+         clang-diagnostic-mismatched-return-types'
+HeaderFilterRegex: '^.\/mapless\/.*$'
+WarningsAsErrors: '*'
+FormatStyle: file
+CheckOptions:
+- { key: readability-identifier-naming.ClassCase, value: lower_case}
+- { key: readability-identifier-naming.ConstexprVariableCase, value: lower_case }
+- { key: readability-identifier-naming.EnumCase, value: lower_case }
+- { key: readability-identifier-naming.EnumConstantCase, value: lower_case }
+- { key: readability-identifier-naming.FunctionCase, value: lower_case }
+- { key: readability-identifier-naming.GlobalConstantCase, value: lower_case }
+- { key: readability-identifier-naming.NamespaceCase, value: lower_case }
+- { key: readability-identifier-naming.StructCase, value: CamelCase }
+- { key: readability-identifier-naming.VariableCase, value: lower_case }
+- { key: performance-unnecessary-value-param.IncludeStyle, value: google}
+- { key: readability-function-cognitive-complexity.Threshold, value: 200}
+- { key: readability-function-cognitive-complexity.IgnoreMacros, value: true}
