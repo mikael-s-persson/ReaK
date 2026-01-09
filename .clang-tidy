@@ -78,7 +78,7 @@ CheckOptions:
 - { key: readability-identifier-naming.FunctionCase, value: lower_case }
 - { key: readability-identifier-naming.GlobalConstantCase, value: lower_case }
 - { key: readability-identifier-naming.NamespaceCase, value: lower_case }
-- { key: readability-identifier-naming.StructCase, value: CamelCase }
+- { key: readability-identifier-naming.StructCase, value: lower_case }
 - { key: readability-identifier-naming.VariableCase, value: lower_case }
 - { key: performance-unnecessary-value-param.IncludeStyle, value: google}
 - { key: readability-function-cognitive-complexity.Threshold, value: 200}

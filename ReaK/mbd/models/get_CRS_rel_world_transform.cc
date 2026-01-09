@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
   std::vector<std::string> data_in_names;
   std::tie(data_in, data_in_names) = data_in_opt.create_extractor();
 
-  named_value_row nvr_in = data_in->getFreshNamedValueRow();
+  named_value_row nvr_in = data_in->get_fresh_named_value_row();
 
   auto base_frame = std::make_shared<frame_3D<double>>();
 

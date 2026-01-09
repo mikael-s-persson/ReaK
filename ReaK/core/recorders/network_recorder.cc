@@ -37,21 +37,22 @@ class network_server_impl {
   virtual ~network_server_impl() = default;
 
   [[nodiscard]] virtual bool isOpen() const = 0;
-  virtual std::size_t writeRowBuffer() = 0;
+  virtual std::size_t write_row_buffer() = 0;
 
-  virtual void writeRow(std::queue<double>& values_rm, unsigned int colCount) {
+  virtual void write_row(std::queue<double>& values_rm,
+                         unsigned int col_count) {
     std::ostream s_tmp(&row_buf);
-    for (std::size_t i = 0; i < colCount; ++i) {
+    for (std::size_t i = 0; i < col_count; ++i) {
       double_to_ulong tmp;
       tmp.d = values_rm.front();
       hton_2ui32(tmp);
       s_tmp.write(reinterpret_cast<char*>(&tmp), sizeof(double));
       values_rm.pop();
     }
-    writeRowBuffer();
+    write_row_buffer();
   }
 
-  virtual void writeNames(const std::vector<std::string>& names) {
+  virtual void write_names(const std::vector<std::string>& names) {
     std::stringstream ss;
     for (const auto& name : names) {
       ss << " " << name;
@@ -60,9 +61,9 @@ class network_server_impl {
     uint32_t data_len = htonl(static_cast<std::uint32_t>(data_str.size()));
     std::ostream s_tmp(&row_buf);
     s_tmp.write(reinterpret_cast<char*>(&data_len), sizeof(uint32_t));
-    writeRowBuffer();  // <-- this was done in original UDP server.
+    write_row_buffer();  // <-- this was done in original UDP server.
     s_tmp.write(data_str.c_str(), data_str.size());
-    writeRowBuffer();
+    write_row_buffer();
   }
 };
 
@@ -74,22 +75,22 @@ class network_client_impl {
   virtual ~network_client_impl() = default;
 
   [[nodiscard]] virtual bool isOpen() const = 0;
-  virtual std::size_t readRowBuffer(std::size_t data_len) = 0;
+  virtual std::size_t read_row_buffer(std::size_t data_len) = 0;
 
-  virtual bool readRow(std::queue<double>& values_rm, unsigned int colCount) {
+  virtual bool read_row(std::queue<double>& values_rm, unsigned int col_count) {
     try {
-      std::size_t len = readRowBuffer(colCount * sizeof(double));
+      std::size_t len = read_row_buffer(col_count * sizeof(double));
       if (len == (std::numeric_limits<std::size_t>::max)()) {
         return true;
       }
-      if (len < colCount * sizeof(double)) {
+      if (len < col_count * sizeof(double)) {
         return false;
       }
     } catch (...) {
       return false;
     }
     std::istream s_tmp(&row_buf);
-    for (std::size_t i = 0; (i < colCount) && (s_tmp); ++i) {
+    for (std::size_t i = 0; (i < col_count) && (s_tmp); ++i) {
       double_to_ulong tmp;
       s_tmp.read(reinterpret_cast<char*>(&tmp), sizeof(double));
       ntoh_2ui32(tmp);
@@ -98,17 +99,17 @@ class network_client_impl {
     return true;
   }
 
-  virtual void readNames(std::vector<std::string>& names) {
+  virtual void read_names(std::vector<std::string>& names) {
     names.clear();
     uint32_t data_len = 0;
     {
-      while (readRowBuffer(sizeof(uint32_t)) ==
+      while (read_row_buffer(sizeof(uint32_t)) ==
              (std::numeric_limits<std::size_t>::max)()) {}
       std::istream s_tmp(&row_buf);
       s_tmp.read(reinterpret_cast<char*>(&data_len), sizeof(uint32_t));
       data_len = ntohl(data_len);
     }
-    while (readRowBuffer(data_len) ==
+    while (read_row_buffer(data_len) ==
            (std::numeric_limits<std::size_t>::max)()) {}
     std::istream s_tmp(&row_buf);
     std::string tmp_name;
@@ -135,7 +136,7 @@ class tcp_server_impl : public network_server_impl {
 
   [[nodiscard]] bool isOpen() const override { return socket.is_open(); }
 
-  std::size_t writeRowBuffer() override {
+  std::size_t write_row_buffer() override {
     std::size_t len = boost::asio::write(socket, row_buf);
     row_buf.consume(len);
     return len;
@@ -169,7 +170,7 @@ class tcp_client_impl : public network_client_impl {
 
   [[nodiscard]] bool isOpen() const override { return socket.is_open(); }
 
-  std::size_t readRowBuffer(std::size_t data_len) override {
+  std::size_t read_row_buffer(std::size_t data_len) override {
     boost::asio::streambuf::mutable_buffers_type bufs =
         row_buf.prepare(data_len);
     std::size_t len = boost::asio::read(socket, bufs);
@@ -203,7 +204,7 @@ class udp_server_impl : public network_server_impl {
 
   [[nodiscard]] bool isOpen() const override { return socket.is_open(); }
 
-  std::size_t writeRowBuffer() override {
+  std::size_t write_row_buffer() override {
     std::size_t len = socket.send_to(row_buf.data(), endpoint);
     row_buf.consume(len);
     return len;
@@ -247,7 +248,7 @@ class udp_client_impl : public network_client_impl {
 
   [[nodiscard]] bool isOpen() const override { return socket.is_open(); }
 
-  std::size_t readRowBuffer(std::size_t data_len) override {
+  std::size_t read_row_buffer(std::size_t data_len) override {
     if (socket.available() < data_len) {
       return (std::numeric_limits<std::size_t>::max)();
     }
@@ -287,13 +288,13 @@ class raw_udp_server_impl : public network_server_impl {
 
   [[nodiscard]] bool isOpen() const override { return socket.is_open(); }
 
-  std::size_t writeRowBuffer() override {
+  std::size_t write_row_buffer() override {
     std::size_t len = socket.send_to(row_buf.data(), endpoint);
     row_buf.consume(len);
     return len;
   }
 
-  void writeNames(const std::vector<std::string>& names) override {}
+  void write_names(const std::vector<std::string>& names) override {}
 };
 
 class raw_udp_client_impl : public network_client_impl {
@@ -325,7 +326,7 @@ class raw_udp_client_impl : public network_client_impl {
 
   [[nodiscard]] bool isOpen() const override { return socket.is_open(); }
 
-  std::size_t readRowBuffer(std::size_t data_len) override {
+  std::size_t read_row_buffer(std::size_t data_len) override {
     if (socket.available() < data_len) {
       return (std::numeric_limits<std::size_t>::max)();
     }
@@ -336,50 +337,50 @@ class raw_udp_client_impl : public network_client_impl {
     return len;
   }
 
-  void readNames(std::vector<std::string>& /*names*/) override {}
+  void read_names(std::vector<std::string>& /*names*/) override {}
 };
 
 }  // namespace detail
 
 network_recorder::network_recorder() = default;
 
-network_recorder::network_recorder(const std::string& aFileName) {
-  setFileName(aFileName);
+network_recorder::network_recorder(const std::string& file_name) {
+  set_file_name(file_name);
 }
 
 network_recorder::~network_recorder() {
-  closeRecordProcess();
+  close_record_process();
 }
 
-void network_recorder::writeRow() {
-  std::unique_lock<std::mutex> lock_here(access_mutex);
+void network_recorder::write_row() {
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
   std::shared_ptr<network_server_impl> pimpl_tmp = pimpl;
-  if ((pimpl_tmp) && (pimpl_tmp->isOpen()) && (rowCount > 0) &&
-      (colCount > 0)) {
-    pimpl_tmp->writeRow(values_rm, static_cast<unsigned int>(names.size()));
-    --rowCount;
+  if ((pimpl_tmp) && (pimpl_tmp->isOpen()) && (row_count_ > 0) &&
+      (col_count_ > 0)) {
+    pimpl_tmp->write_row(values_rm_, static_cast<unsigned int>(names_.size()));
+    --row_count_;
   }
 }
 
-void network_recorder::writeNames() {
-  std::unique_lock<std::mutex> lock_here(access_mutex);
+void network_recorder::write_names() {
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
   std::shared_ptr<network_server_impl> pimpl_tmp = pimpl;
-  if ((pimpl_tmp) && (pimpl_tmp->isOpen()) && (colCount > 0)) {
-    pimpl_tmp->writeNames(names);
+  if ((pimpl_tmp) && (pimpl_tmp->isOpen()) && (col_count_ > 0)) {
+    pimpl_tmp->write_names(names_);
   }
 }
 
-void network_recorder::setFileName(const std::string& aFileName) {
-  if (colCount != 0) {
+void network_recorder::set_file_name(const std::string& file_name) {
+  if (col_count_ != 0) {
     *this << close;
   }
 
-  std::unique_lock<std::mutex> lock_here(access_mutex);
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
 
   std::string proto = "tcp";
   std::string ip4addr = "localhost";
   unsigned short portnum = 17000;
-  std::stringstream ss(aFileName);
+  std::stringstream ss(file_name);
   std::getline(ss, proto, ':');
   std::getline(ss, ip4addr, ':');
   ss >> portnum;
@@ -392,61 +393,61 @@ void network_recorder::setFileName(const std::string& aFileName) {
     pimpl = std::make_shared<detail::raw_udp_server_impl>(ip4addr, portnum);
   }
 
-  colCount = static_cast<unsigned int>(names.size());
+  col_count_ = static_cast<unsigned int>(names_.size());
   lock_here.unlock();
-  writeNames();
+  write_names();
 }
 
 network_extractor::network_extractor() = default;
 
-network_extractor::network_extractor(const std::string& aFileName) {
-  setFileName(aFileName);
+network_extractor::network_extractor(const std::string& file_name) {
+  set_file_name(file_name);
 }
 
 network_extractor::~network_extractor() {
-  closeExtractProcess();
+  close_extract_process();
 }
 
-void network_extractor::addName(const std::string& s) {
-  if (colCount != 0) {
+void network_extractor::add_name(const std::string& s) {
+  if (col_count_ != 0) {
     *this >> close;
   }
 
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  names.push_back(s);
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  names_.push_back(s);
 }
 
-bool network_extractor::readRow() {
-  std::unique_lock<std::mutex> lock_here(access_mutex);
+bool network_extractor::read_row() {
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
   std::shared_ptr<network_client_impl> pimpl_tmp = pimpl;
-  if ((pimpl_tmp) && (pimpl_tmp->isOpen()) && (colCount > 0)) {
-    return pimpl_tmp->readRow(values_rm,
-                              static_cast<unsigned int>(names.size()));
+  if ((pimpl_tmp) && (pimpl_tmp->isOpen()) && (col_count_ > 0)) {
+    return pimpl_tmp->read_row(values_rm_,
+                               static_cast<unsigned int>(names_.size()));
   }
   return true;
 }
 
-bool network_extractor::readNames() {
+bool network_extractor::read_names() {
   std::shared_ptr<network_client_impl> pimpl_tmp = pimpl;
   if ((pimpl_tmp) && (pimpl_tmp->isOpen())) {
-    pimpl_tmp->readNames(names);
-    colCount = static_cast<unsigned int>(names.size());
+    pimpl_tmp->read_names(names_);
+    col_count_ = static_cast<unsigned int>(names_.size());
   }
   return true;
 }
 
-void network_extractor::setFileName(const std::string& aFileName) {
-  if (colCount != 0) {
+void network_extractor::set_file_name(const std::string& file_name) {
+  if (col_count_ != 0) {
     *this >> close;
   }
 
-  std::unique_lock<std::mutex> lock_here(access_mutex);
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
 
   // Example filename (or URI): "tcp:localhost:17000" or "raw_udp:192.168.0.42:16069"
   std::string proto = "tcp";
   std::string ip4addr = "localhost";
   unsigned short portnum = 17000;
-  std::stringstream ss(aFileName);
+  std::stringstream ss(file_name);
   std::getline(ss, proto, ':');
   std::getline(ss, ip4addr, ':');
   ss >> portnum;
@@ -459,10 +460,10 @@ void network_extractor::setFileName(const std::string& aFileName) {
     pimpl = std::make_shared<detail::raw_udp_client_impl>(ip4addr, portnum);
   };
 
-  readNames();
-  currentColumn = 0;
+  read_names();
+  current_column_ = 0;
 
-  reading_thread = std::make_shared<std::thread>(extract_process(*this));
+  reading_thread_ = std::make_shared<std::thread>(extract_process(*this));
 }
 
 }  // namespace ReaK::recorder

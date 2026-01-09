@@ -101,7 +101,7 @@ class protobuf_iarchive : public iarchive {
 
  public:
   explicit protobuf_iarchive(const std::string& FileName);
-  explicit protobuf_iarchive(std::istream& aStream);
+  explicit protobuf_iarchive(std::istream& stream);
   ~protobuf_iarchive() override;
 };
 
@@ -189,7 +189,7 @@ class protobuf_oarchive : public oarchive {
 
  public:
   explicit protobuf_oarchive(const std::string& FileName);
-  explicit protobuf_oarchive(std::ostream& aStream);
+  explicit protobuf_oarchive(std::ostream& stream);
   ~protobuf_oarchive() override;
 };
 
@@ -279,7 +279,7 @@ class protobuf_schemer : public oarchive {
   void finish_repeated_pair() override;
 
  public:
-  void print_schemes(std::ostream& aStream);
+  void print_schemes(std::ostream& stream);
 
   protobuf_schemer();
   ~protobuf_schemer() override;

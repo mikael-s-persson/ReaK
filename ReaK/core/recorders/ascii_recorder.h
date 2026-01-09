@@ -47,9 +47,10 @@ namespace ReaK::recorder {
  */
 class ascii_recorder : public data_recorder {
  protected:
-  void writeRow() override;
-  void writeNames() override;
-  void setStreamImpl(const std::shared_ptr<std::ostream>& aStreamPtr) override;
+  void write_row() override;
+  void write_names() override;
+  void set_stream_impl(
+      const std::shared_ptr<std::ostream>& stream_ptr) override;
 
  public:
   std::string delimiter;
@@ -60,12 +61,12 @@ class ascii_recorder : public data_recorder {
   ascii_recorder() : delimiter(" ") {}
 
   /**
-   * Constructor that opens a file with name aFileName.
+   * Constructor that opens a file with name file_name.
    */
-  explicit ascii_recorder(const std::string& aFileName,
+  explicit ascii_recorder(const std::string& file_name,
                           std::string aDelimiter = " ")
       : delimiter(std::move(aDelimiter)) {
-    setFileName(aFileName);
+    set_file_name(file_name);
   }
 
   /**
@@ -92,9 +93,10 @@ class ascii_recorder : public data_recorder {
  */
 class ascii_extractor : public data_extractor {
  protected:
-  bool readRow() override;
-  bool readNames() override;
-  void setStreamImpl(const std::shared_ptr<std::istream>& aStreamPtr) override;
+  bool read_row() override;
+  bool read_names() override;
+  void set_stream_impl(
+      const std::shared_ptr<std::istream>& stream_ptr) override;
 
  public:
   std::string delimiter;
@@ -105,12 +107,12 @@ class ascii_extractor : public data_extractor {
   ascii_extractor() : delimiter(" ") {}
 
   /**
-   * Constructor that opens a file with name aFileName.
+   * Constructor that opens a file with name file_name.
    */
-  explicit ascii_extractor(const std::string& aFileName,
+  explicit ascii_extractor(const std::string& file_name,
                            std::string aDelimiter = " ")
       : delimiter(std::move(aDelimiter)) {
-    setFileName(aFileName);
+    set_file_name(file_name);
   }
 
   /**

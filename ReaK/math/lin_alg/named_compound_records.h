@@ -61,13 +61,13 @@ namespace ReaK::recorder {
   vect<double,3> v(0.4, 0.3, 0.2);
 
   data_recorder& data_out = ...;
-  dr.nvr_data = data_out.getFreshNamedValueRow();
+  dr.nvr_data = data_out.get_fresh_named_value_row();
   dr["position_vector"] = p;
   dr["velocity_vector"] = v;
   data_out << dr.nvr_data;
 
   data_extractor& data_in = ...;
-  dr.nvr_data = data_in.getFreshNamedValueRow();
+  dr.nvr_data = data_in.get_fresh_named_value_row();
   data_in >> dr.nvr_data;
   p = dr["position_vector"].as< vect<double,3> >();
   v = dr["velocity_vector"].as< vect<double,3> >();

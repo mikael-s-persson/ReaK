@@ -107,7 +107,7 @@ class xml_iarchive : public iarchive {
 
  public:
   explicit xml_iarchive(const std::string& FileName);
-  explicit xml_iarchive(std::istream& aStream);
+  explicit xml_iarchive(std::istream& stream);
   ~xml_iarchive() override;
 };
 
@@ -178,7 +178,7 @@ class xml_oarchive : public oarchive {
 
  public:
   explicit xml_oarchive(const std::string& FileName);
-  explicit xml_oarchive(std::ostream& aStream);
+  explicit xml_oarchive(std::ostream& stream);
   ~xml_oarchive() override;
 };
 

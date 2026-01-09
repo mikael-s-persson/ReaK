@@ -45,7 +45,7 @@ TEST(RecordersTests, AsciiSpaceRecordExtract) {
     {
       ascii_recorder output_rec;
       output_rec.delimiter = " ";
-      output_rec.setStream(ss);
+      output_rec.set_stream(ss);
 
       EXPECT_NO_THROW(output_rec << "x"
                                  << "2*x"
@@ -61,9 +61,9 @@ TEST(RecordersTests, AsciiSpaceRecordExtract) {
     {
       ascii_extractor input_rec;
       input_rec.delimiter = " ";
-      input_rec.setStream(ss);
+      input_rec.set_stream(ss);
 
-      EXPECT_EQ(input_rec.getColCount(), 3);
+      EXPECT_EQ(input_rec.get_col_count(), 3);
 
       std::string s1;
       std::string s2;
@@ -93,7 +93,7 @@ TEST(RecordersTests, AsciiTabRecordExtract) {
     {
       ascii_recorder output_rec;
       output_rec.delimiter = "\t";
-      output_rec.setStream(ss);
+      output_rec.set_stream(ss);
 
       EXPECT_NO_THROW(output_rec << "x"
                                  << "2*x"
@@ -109,9 +109,9 @@ TEST(RecordersTests, AsciiTabRecordExtract) {
     {
       ascii_extractor input_rec;
       input_rec.delimiter = "\t";
-      input_rec.setStream(ss);
+      input_rec.set_stream(ss);
 
-      EXPECT_EQ(input_rec.getColCount(), 3);
+      EXPECT_EQ(input_rec.get_col_count(), 3);
 
       std::string s1;
       std::string s2;
@@ -141,7 +141,7 @@ TEST(RecordersTests, AsciiCommaRecordExtract) {
     {
       ascii_recorder output_rec;
       output_rec.delimiter = ", ";
-      output_rec.setStream(ss);
+      output_rec.set_stream(ss);
 
       EXPECT_NO_THROW(output_rec << "x"
                                  << "2*x"
@@ -157,9 +157,9 @@ TEST(RecordersTests, AsciiCommaRecordExtract) {
     {
       ascii_extractor input_rec;
       input_rec.delimiter = ", ";
-      input_rec.setStream(ss);
+      input_rec.set_stream(ss);
 
-      EXPECT_EQ(input_rec.getColCount(), 3);
+      EXPECT_EQ(input_rec.get_col_count(), 3);
 
       std::string s1;
       std::string s2;
@@ -189,13 +189,13 @@ TEST(RecordersTests, BinRecordExtract) {
     std::stringstream ss;
     {
       bin_recorder output_rec;
-      output_rec.setStream(ss);
+      output_rec.set_stream(ss);
 
       EXPECT_NO_THROW(output_rec << "x"
                                  << "2*x"
                                  << "x^2");
       EXPECT_NO_THROW(output_rec << data_recorder::end_name_row);
-      named_value_row vr = output_rec.getFreshNamedValueRow();
+      named_value_row vr = output_rec.get_fresh_named_value_row();
       for (double x = 0; x < 10.1; x += 0.5) {
         vr["x"] = x;
         vr["2*x"] = 2 * x;
@@ -207,9 +207,9 @@ TEST(RecordersTests, BinRecordExtract) {
 
     {
       bin_extractor input_rec;
-      input_rec.setStream(ss);
+      input_rec.set_stream(ss);
 
-      EXPECT_EQ(input_rec.getColCount(), 3);
+      EXPECT_EQ(input_rec.get_col_count(), 3);
 
       std::string s1;
       std::string s2;
@@ -218,7 +218,7 @@ TEST(RecordersTests, BinRecordExtract) {
       EXPECT_EQ(s1, "x");
       EXPECT_EQ(s2, "2*x");
       EXPECT_EQ(s3, "x^2");
-      named_value_row vr = input_rec.getFreshNamedValueRow();
+      named_value_row vr = input_rec.get_fresh_named_value_row();
       for (double x = 0; x < 10.1; x += 0.5) {
         EXPECT_NO_THROW(input_rec >> vr);
         EXPECT_NEAR(vr["x"], x, 1e-6);
@@ -275,7 +275,7 @@ TEST(RecordersTests, NetTcpRecordExtract) {
 
   network_extractor input_rec("tcp:localhost:17020");
 
-  EXPECT_EQ(input_rec.getColCount(), 3);
+  EXPECT_EQ(input_rec.get_col_count(), 3);
   std::string s1;
   std::string s2;
   std::string s3;
@@ -315,7 +315,7 @@ TEST(RecordersTests, NetUdpRecordExtract) {
 
   network_extractor input_rec("udp:localhost:17021");
 
-  EXPECT_EQ(input_rec.getColCount(), 3);
+  EXPECT_EQ(input_rec.get_col_count(), 3);
   std::string s1;
   std::string s2;
   std::string s3;
@@ -347,13 +347,13 @@ TEST(RecordersTests, NetRawUdpRecordExtract) {
   unsigned int server_sent = 0;
 
   network_extractor input_rec;
-  input_rec.addName("x");
-  input_rec.addName("2*x");
-  input_rec.addName("x^2");
+  input_rec.add_name("x");
+  input_rec.add_name("2*x");
+  input_rec.add_name("x^2");
 
-  input_rec.setFileName("raw_udp:localhost:17022");
+  input_rec.set_file_name("raw_udp:localhost:17022");
 
-  EXPECT_EQ(input_rec.getColCount(), 3);
+  EXPECT_EQ(input_rec.get_col_count(), 3);
   std::string s1;
   std::string s2;
   std::string s3;
@@ -390,7 +390,7 @@ TEST(RecordersTests, VectorRecordExtract) {
     std::vector<std::vector<double>> vec;
     {
       vector_recorder output_rec;
-      output_rec.setVecData(&vec);
+      output_rec.set_vec_data(&vec);
 
       EXPECT_NO_THROW(output_rec << "x"
                                  << "2*x"
@@ -405,12 +405,12 @@ TEST(RecordersTests, VectorRecordExtract) {
 
     {
       vector_extractor input_rec;
-      input_rec.setVecData(&vec);
+      input_rec.set_vec_data(&vec);
 
-      input_rec.addName("x");
-      input_rec.addName("2*x");
-      input_rec.addName("x^2");
-      EXPECT_EQ(input_rec.getColCount(), 3);
+      input_rec.add_name("x");
+      input_rec.add_name("2*x");
+      input_rec.add_name("x^2");
+      EXPECT_EQ(input_rec.get_col_count(), 3);
 
       std::string s1;
       std::string s2;

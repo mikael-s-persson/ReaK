@@ -51,13 +51,13 @@ class ptrobot2D_test_world_impl {
   ptrobot2D_test_world::point_type start_pos;
   ptrobot2D_test_world::point_type goal_pos;
 
-  explicit ptrobot2D_test_world_impl(const std::string& aFileName,
+  explicit ptrobot2D_test_world_impl(const std::string& file_name,
                                      double aRobotRadius = 1.0) {
 #ifdef REAK_HAS_OPENCV
-    world_map_image = cv::imread(aFileName);
+    world_map_image = cv::imread(file_name);
     if (world_map_image.empty()) {
       throw std::ios_base::failure("Could not open the world map image '" +
-                                   aFileName +
+                                   file_name +
                                    "'! File is missing, empty or invalid!");
     }
 

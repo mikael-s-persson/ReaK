@@ -159,12 +159,12 @@ void DataStreamOptWidget::onUpdateURIAndDataOpt() {
   data_opt.time_sync_name = ui->TimeSync_edit->text().toStdString();
 
   // create URI string to set the URI edit with.
-  ui->URI_edit->setText(QString::fromStdString(data_opt.get_URI()));
+  ui->URI_edit->setText(QString::fromStdString(data_opt.get_uri()));
 };
 
 void DataStreamOptWidget::onUpdateFieldsAndDataOpt() {
   // fill data_opt with the values of the URI.
-  data_opt.set_from_URI(ui->URI_edit->text().toStdString());
+  data_opt.set_from_uri(ui->URI_edit->text().toStdString());
   // fill the fields with the values from data_opt.
   switch (data_opt.kind) {
     case recorder::data_stream_options::binary:

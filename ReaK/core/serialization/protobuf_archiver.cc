@@ -120,9 +120,9 @@ protobuf_iarchive::protobuf_iarchive(const std::string& FileName) {
   }
 };
 
-protobuf_iarchive::protobuf_iarchive(std::istream& aStream) {
+protobuf_iarchive::protobuf_iarchive(std::istream& stream) {
 
-  file_stream = std::shared_ptr<std::istream>(&aStream, null_deleter());
+  file_stream = std::shared_ptr<std::istream>(&stream, null_deleter());
 
   std::string header;
   protobuf_iarchive::load_string(header);
@@ -517,11 +517,11 @@ protobuf_oarchive::protobuf_oarchive(const std::string& FileName) {
   protobuf_oarchive::save_unsigned_int(version);
 }
 
-protobuf_oarchive::protobuf_oarchive(std::ostream& aStream) {
+protobuf_oarchive::protobuf_oarchive(std::ostream& stream) {
   field_IDs.push(0);
   repeat_state.push(0);
 
-  file_stream = std::shared_ptr<std::ostream>(&aStream, null_deleter());
+  file_stream = std::shared_ptr<std::ostream>(&stream, null_deleter());
 
   std::string header = "reak_serialization::protobuf_archive";
   protobuf_oarchive::save_string(header);
@@ -989,9 +989,9 @@ protobuf_schemer::protobuf_schemer() {
 protobuf_schemer::~protobuf_schemer() = default;
 ;
 
-void protobuf_schemer::print_schemes(std::ostream& aStream) {
+void protobuf_schemer::print_schemes(std::ostream& stream) {
   for (auto& scheme : schemes) {
-    aStream << scheme << std::endl << std::endl;
+    stream << scheme << std::endl << std::endl;
   }
 }
 

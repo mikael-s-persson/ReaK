@@ -97,7 +97,7 @@ class bin_iarchive : public iarchive {
 
  public:
   explicit bin_iarchive(const std::string& FileName);
-  explicit bin_iarchive(std::istream& aStream);
+  explicit bin_iarchive(std::istream& stream);
   ~bin_iarchive() override;
 };
 
@@ -165,7 +165,7 @@ class bin_oarchive : public oarchive {
 
  public:
   explicit bin_oarchive(const std::string& FileName);
-  explicit bin_oarchive(std::ostream& aStream);
+  explicit bin_oarchive(std::ostream& stream);
   ~bin_oarchive() override;
 };
 

@@ -116,8 +116,8 @@ struct data_stream_options {
     buffer_size = aBufferSize;
   }
 
-  std::string get_URI() const;
-  void set_from_URI(const std::string& aURI);
+  std::string get_uri() const;
+  void set_from_uri(const std::string& aURI);
 
   /**
    * Default constructor.
@@ -142,15 +142,15 @@ struct data_stream_options {
 
   /**
    * Loads all the configurations from the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive from which to load all the configurations.
+   * \param a_file_name The file-name of the ReaK archive from which to load all the configurations.
    */
-  void load_all_configs(const std::string& aFileName);
+  void load_all_configs(const std::string& a_file_name);
 
   /**
    * Saves all the configurations to the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive to which to save all the configurations.
+   * \param a_file_name The file-name of the ReaK archive to which to save all the configurations.
    */
-  void save_all_configs(const std::string& aFileName) const;
+  void save_all_configs(const std::string& a_file_name) const;
 };
 
 }  // namespace ReaK::recorder

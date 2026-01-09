@@ -27,59 +27,59 @@
 
 namespace ReaK::recorder {
 
-void ascii_recorder::writeRow() {
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  if ((out_stream) && (*out_stream) && (rowCount > 0) && (colCount > 0)) {
-    (*out_stream) << std::endl;
-    (*out_stream) << values_rm.front();
-    values_rm.pop();
-    for (unsigned int i = 1; i < colCount; ++i) {
-      (*out_stream) << delimiter << values_rm.front();
-      values_rm.pop();
+void ascii_recorder::write_row() {
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  if ((out_stream_) && (*out_stream_) && (row_count_ > 0) && (col_count_ > 0)) {
+    (*out_stream_) << std::endl;
+    (*out_stream_) << values_rm_.front();
+    values_rm_.pop();
+    for (unsigned int i = 1; i < col_count_; ++i) {
+      (*out_stream_) << delimiter << values_rm_.front();
+      values_rm_.pop();
     }
-    --rowCount;
+    --row_count_;
   }
 }
 
-void ascii_recorder::writeNames() {
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  if ((!out_stream) || (!(*out_stream))) {
+void ascii_recorder::write_names() {
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  if ((!out_stream_) || (!(*out_stream_))) {
     return;
   }
-  (*out_stream) << "%";
-  auto it = names.begin();
-  for (; it != names.end(); ++it) {
-    (*out_stream) << delimiter << (*it);
+  (*out_stream_) << "%";
+  auto it = names_.begin();
+  for (; it != names_.end(); ++it) {
+    (*out_stream_) << delimiter << (*it);
   }
-  out_stream->flush();
+  out_stream_->flush();
 }
 
-void ascii_recorder::setStreamImpl(
-    const std::shared_ptr<std::ostream>& aStreamPtr) {
-  if (colCount != 0) {
+void ascii_recorder::set_stream_impl(
+    const std::shared_ptr<std::ostream>& stream_ptr) {
+  if (col_count_ != 0) {
     *this << close;
-    if ((aStreamPtr) && (*aStreamPtr)) {
-      std::unique_lock<std::mutex> lock_here(access_mutex);
-      out_stream = aStreamPtr;
-      out_stream->setf(std::ios::scientific, std::ios::floatfield);
-      out_stream->precision(11);
-      colCount = static_cast<unsigned int>(names.size());
+    if ((stream_ptr) && (*stream_ptr)) {
+      std::unique_lock<std::mutex> lock_here(access_mutex_);
+      out_stream_ = stream_ptr;
+      out_stream_->setf(std::ios::scientific, std::ios::floatfield);
+      out_stream_->precision(11);
+      col_count_ = static_cast<unsigned int>(names_.size());
       lock_here.unlock();
-      writeNames();
+      write_names();
     }
   } else {
-    if ((aStreamPtr) && (*aStreamPtr)) {
-      std::unique_lock<std::mutex> lock_here(access_mutex);
-      out_stream = aStreamPtr;
-      out_stream->setf(std::ios::scientific, std::ios::floatfield);
-      out_stream->precision(11);
+    if ((stream_ptr) && (*stream_ptr)) {
+      std::unique_lock<std::mutex> lock_here(access_mutex_);
+      out_stream_ = stream_ptr;
+      out_stream_->setf(std::ios::scientific, std::ios::floatfield);
+      out_stream_->precision(11);
     }
   }
 }
 
-bool ascii_extractor::readRow() {
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  if ((in_stream) && (*in_stream) && (colCount > 0)) {
+bool ascii_extractor::read_row() {
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  if ((in_stream) && (*in_stream) && (col_count_ > 0)) {
     std::string temp;
     std::getline(*in_stream, temp, '\n');
     if (!(*in_stream)) {
@@ -98,7 +98,7 @@ bool ascii_extractor::readRow() {
         if (!ss) {
           return false;
         }
-        values_rm.push(tmp);
+        values_rm_.push(tmp);
         ++i;
       }
       if (curr_end >= temp.size()) {
@@ -109,15 +109,15 @@ bool ascii_extractor::readRow() {
       curr_end = temp.find(delimiter, curr_start);
       temp_name = temp.substr(curr_start, curr_end - curr_start);
     }
-    if (i != colCount) {
+    if (i != col_count_) {
       return false;
     }
   }
   return !((in_stream) && !(*in_stream));
 }
 
-bool ascii_extractor::readNames() {
-  std::unique_lock<std::mutex> lock_here(access_mutex);
+bool ascii_extractor::read_names() {
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
   if ((!in_stream) || (!(*in_stream))) {
     return false;
   }
@@ -128,7 +128,7 @@ bool ascii_extractor::readNames() {
   std::string temp_name = temp.substr(curr_start, curr_end - curr_start);
   while (true) {
     if ((!temp_name.empty()) && (temp_name[0] != '%')) {
-      names.push_back(temp_name);
+      names_.push_back(temp_name);
     }
     if (curr_end >= temp.size()) {
       break;
@@ -138,20 +138,20 @@ bool ascii_extractor::readNames() {
     curr_end = temp.find(delimiter, curr_start);
     temp_name = temp.substr(curr_start, curr_end - curr_start);
   }
-  colCount = static_cast<unsigned int>(names.size());
+  col_count_ = static_cast<unsigned int>(names_.size());
   return true;
 }
 
-void ascii_extractor::setStreamImpl(
-    const std::shared_ptr<std::istream>& aStreamPtr) {
-  if (colCount != 0) {
+void ascii_extractor::set_stream_impl(
+    const std::shared_ptr<std::istream>& stream_ptr) {
+  if (col_count_ != 0) {
     *this >> close;
   }
-  if ((aStreamPtr) && (*aStreamPtr)) {
-    std::unique_lock<std::mutex> lock_here(access_mutex);
-    in_stream = aStreamPtr;
+  if ((stream_ptr) && (*stream_ptr)) {
+    std::unique_lock<std::mutex> lock_here(access_mutex_);
+    in_stream = stream_ptr;
     lock_here.unlock();
-    readNames();
+    read_names();
   }
 }
 

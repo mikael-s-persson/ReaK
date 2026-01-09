@@ -33,34 +33,34 @@
 /** Main namespace for ReaK */
 namespace ReaK::serialization {
 
-std::shared_ptr<iarchive> open_iarchive(const std::string& aFileName) {
+std::shared_ptr<iarchive> open_iarchive(const std::string& file_name) {
 
-  std::string fileExt = aFileName.substr(aFileName.find_last_of('.') + 1);
+  std::string file_ext = file_name.substr(file_name.find_last_of('.') + 1);
 
-  if ((fileExt == "rkx") || (fileExt == "xml")) {
-    return std::make_shared<xml_iarchive>(aFileName);
+  if ((file_ext == "rkx") || (file_ext == "xml")) {
+    return std::make_shared<xml_iarchive>(file_name);
   }
-  if ((fileExt == "rkb") || (fileExt == "bin")) {
-    return std::make_shared<bin_iarchive>(aFileName);
+  if ((file_ext == "rkb") || (file_ext == "bin")) {
+    return std::make_shared<bin_iarchive>(file_name);
   }
-  if (fileExt == "pbuf") {
-    return std::make_shared<protobuf_iarchive>(aFileName);
+  if (file_ext == "pbuf") {
+    return std::make_shared<protobuf_iarchive>(file_name);
   }
   throw std::ios_base::failure("Sorry, this file-type is not supported!");
 };
 
-std::shared_ptr<oarchive> open_oarchive(const std::string& aFileName) {
+std::shared_ptr<oarchive> open_oarchive(const std::string& file_name) {
 
-  std::string fileExt = aFileName.substr(aFileName.find_last_of('.') + 1);
+  std::string file_ext = file_name.substr(file_name.find_last_of('.') + 1);
 
-  if ((fileExt == "rkx") || (fileExt == "xml")) {
-    return std::make_shared<xml_oarchive>(aFileName);
+  if ((file_ext == "rkx") || (file_ext == "xml")) {
+    return std::make_shared<xml_oarchive>(file_name);
   }
-  if ((fileExt == "rkb") || (fileExt == "bin")) {
-    return std::make_shared<bin_oarchive>(aFileName);
+  if ((file_ext == "rkb") || (file_ext == "bin")) {
+    return std::make_shared<bin_oarchive>(file_name);
   }
-  if (fileExt == "pbuf") {
-    return std::make_shared<protobuf_oarchive>(aFileName);
+  if (file_ext == "pbuf") {
+    return std::make_shared<protobuf_oarchive>(file_name);
   }
   throw std::ios_base::failure("Sorry, this file-type is not supported!");
 };

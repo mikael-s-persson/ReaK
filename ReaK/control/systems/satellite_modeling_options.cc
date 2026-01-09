@@ -508,28 +508,28 @@ void satellite_model_options::save_all_configs_impl(
       RK_SERIAL_SAVE_WITH_NAME(system_kind_filters);
 }
 
-void satellite_model_options::load_all_configs(const std::string& aFileName) {
-  load_all_configs_impl(*(serialization::open_iarchive(aFileName)));
+void satellite_model_options::load_all_configs(const std::string& file_name) {
+  load_all_configs_impl(*(serialization::open_iarchive(file_name)));
 }
 
 void satellite_model_options::save_all_configs(
-    const std::string& aFileName) const {
-  save_all_configs_impl(*(serialization::open_oarchive(aFileName)));
+    const std::string& file_name) const {
+  save_all_configs_impl(*(serialization::open_oarchive(file_name)));
 }
 
-void satellite_model_options::load_mass_configs(const std::string& aFileName) {
-  *(serialization::open_iarchive(aFileName)) & RK_SERIAL_LOAD_WITH_NAME(mass) &
+void satellite_model_options::load_mass_configs(const std::string& file_name) {
+  *(serialization::open_iarchive(file_name)) & RK_SERIAL_LOAD_WITH_NAME(mass) &
       RK_SERIAL_LOAD_WITH_NAME(inertia_tensor);
 }
 
 void satellite_model_options::save_mass_configs(
-    const std::string& aFileName) const {
-  *(serialization::open_oarchive(aFileName)) & RK_SERIAL_SAVE_WITH_NAME(mass) &
+    const std::string& file_name) const {
+  *(serialization::open_oarchive(file_name)) & RK_SERIAL_SAVE_WITH_NAME(mass) &
       RK_SERIAL_SAVE_WITH_NAME(inertia_tensor);
 }
 
-void satellite_model_options::load_IMU_configs(const std::string& aFileName) {
-  *(serialization::open_iarchive(aFileName)) &
+void satellite_model_options::load_IMU_configs(const std::string& file_name) {
+  *(serialization::open_iarchive(file_name)) &
       RK_SERIAL_LOAD_WITH_NAME(IMU_orientation) &
       RK_SERIAL_LOAD_WITH_NAME(IMU_location) &
       RK_SERIAL_LOAD_WITH_NAME(earth_orientation) &
@@ -537,8 +537,8 @@ void satellite_model_options::load_IMU_configs(const std::string& aFileName) {
 }
 
 void satellite_model_options::save_IMU_configs(
-    const std::string& aFileName) const {
-  *(serialization::open_oarchive(aFileName)) &
+    const std::string& file_name) const {
+  *(serialization::open_oarchive(file_name)) &
       RK_SERIAL_SAVE_WITH_NAME(IMU_orientation) &
       RK_SERIAL_SAVE_WITH_NAME(IMU_location) &
       RK_SERIAL_SAVE_WITH_NAME(earth_orientation) &
@@ -546,62 +546,62 @@ void satellite_model_options::save_IMU_configs(
 }
 
 void satellite_model_options::load_input_disturbance(
-    const std::string& aFileName) {
-  *(serialization::open_iarchive(aFileName)) &
+    const std::string& file_name) {
+  *(serialization::open_iarchive(file_name)) &
       RK_SERIAL_LOAD_WITH_NAME(input_disturbance);
 }
 
 void satellite_model_options::save_input_disturbance(
-    const std::string& aFileName) const {
-  *(serialization::open_oarchive(aFileName)) &
+    const std::string& file_name) const {
+  *(serialization::open_oarchive(file_name)) &
       RK_SERIAL_SAVE_WITH_NAME(input_disturbance);
 }
 
 void satellite_model_options::load_measurement_noise(
-    const std::string& aFileName) {
-  *(serialization::open_iarchive(aFileName)) &
+    const std::string& file_name) {
+  *(serialization::open_iarchive(file_name)) &
       RK_SERIAL_LOAD_WITH_NAME(measurement_noise);
 }
 
 void satellite_model_options::save_measurement_noise(
-    const std::string& aFileName) const {
-  *(serialization::open_oarchive(aFileName)) &
+    const std::string& file_name) const {
+  *(serialization::open_oarchive(file_name)) &
       RK_SERIAL_SAVE_WITH_NAME(measurement_noise);
 }
 
 void satellite_model_options::load_artificial_noise(
-    const std::string& aFileName) {
-  *(serialization::open_iarchive(aFileName)) &
+    const std::string& file_name) {
+  *(serialization::open_iarchive(file_name)) &
       RK_SERIAL_LOAD_WITH_NAME(artificial_noise);
 }
 
 void satellite_model_options::save_artificial_noise(
-    const std::string& aFileName) const {
-  *(serialization::open_oarchive(aFileName)) &
+    const std::string& file_name) const {
+  *(serialization::open_oarchive(file_name)) &
       RK_SERIAL_SAVE_WITH_NAME(artificial_noise);
 }
 
 void satellite_model_options::load_steady_param_covariance(
-    const std::string& aFileName) {
-  *(serialization::open_iarchive(aFileName)) &
+    const std::string& file_name) {
+  *(serialization::open_iarchive(file_name)) &
       RK_SERIAL_LOAD_WITH_NAME(steady_param_covariance);
 }
 
 void satellite_model_options::save_steady_param_covariance(
-    const std::string& aFileName) const {
-  *(serialization::open_oarchive(aFileName)) &
+    const std::string& file_name) const {
+  *(serialization::open_oarchive(file_name)) &
       RK_SERIAL_SAVE_WITH_NAME(steady_param_covariance);
 }
 
 void satellite_model_options::load_initial_motion(
-    const std::string& aFileName) {
-  *(serialization::open_iarchive(aFileName)) &
+    const std::string& file_name) {
+  *(serialization::open_iarchive(file_name)) &
       RK_SERIAL_LOAD_WITH_NAME(initial_motion);
 }
 
 void satellite_model_options::save_initial_motion(
-    const std::string& aFileName) const {
-  *(serialization::open_oarchive(aFileName)) &
+    const std::string& file_name) const {
+  *(serialization::open_oarchive(file_name)) &
       RK_SERIAL_SAVE_WITH_NAME(initial_motion);
 }
 
@@ -647,13 +647,13 @@ void satellite_predictor_options::save_predict_configs_impl(
 }
 
 void satellite_predictor_options::load_prediction_configs(
-    const std::string& aFileName) {
-  load_predict_configs_impl(*(serialization::open_iarchive(aFileName)));
+    const std::string& file_name) {
+  load_predict_configs_impl(*(serialization::open_iarchive(file_name)));
 }
 
 void satellite_predictor_options::save_prediction_configs(
-    const std::string& aFileName) const {
-  save_predict_configs_impl(*(serialization::open_oarchive(aFileName)));
+    const std::string& file_name) const {
+  save_predict_configs_impl(*(serialization::open_oarchive(file_name)));
 }
 
 }  // namespace ReaK::ctrl

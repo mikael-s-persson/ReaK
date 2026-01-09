@@ -50,10 +50,10 @@ class vector_recorder : public data_recorder {
  protected:
   std::vector<std::vector<double>>* vec_data;
 
-  void writeRow() override;
-  void writeNames() override;
-  void setStreamImpl(const std::shared_ptr<std::ostream>& aStreamPtr) override {
-  }
+  void write_row() override;
+  void write_names() override;
+  void set_stream_impl(
+      const std::shared_ptr<std::ostream>& stream_ptr) override {}
 
  public:
   /**
@@ -62,20 +62,20 @@ class vector_recorder : public data_recorder {
   vector_recorder();
 
   /**
-   * Constructor that opens a file with name aFileName.
+   * Constructor that opens a file with name file_name.
    */
-  explicit vector_recorder(std::vector<std::vector<double>>* aVecData);
+  explicit vector_recorder(std::vector<std::vector<double>>* a_vec_data);
 
   /**
    * Destructor, closes the file.
    */
   ~vector_recorder() override;
 
-  void setVecData(std::vector<std::vector<double>>* aVecData);
+  void set_vec_data(std::vector<std::vector<double>>* a_vec_data);
 
-  std::vector<std::vector<double>>* getVecData() const { return vec_data; }
+  std::vector<std::vector<double>>* get_vec_data() const { return vec_data; }
 
-  void setFileName(const std::string& aFileName) override;
+  void set_file_name(const std::string& file_name) override;
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
@@ -101,13 +101,13 @@ class vector_extractor : public data_extractor {
   const std::vector<std::vector<double>>* vec_data;
   std::size_t cur_vec_index;
 
-  bool readRow() override;
-  bool readNames() override;
-  void setStreamImpl(const std::shared_ptr<std::istream>& aStreamPtr) override {
-  }
+  bool read_row() override;
+  bool read_names() override;
+  void set_stream_impl(
+      const std::shared_ptr<std::istream>& stream_ptr) override {}
 
  public:
-  void addName(const std::string& s);
+  void add_name(const std::string& s);
 
   /**
    * Default constructor.
@@ -115,22 +115,22 @@ class vector_extractor : public data_extractor {
   vector_extractor();
 
   /**
-   * Constructor that opens a file with name aFileName.
+   * Constructor that opens a file with name file_name.
    */
-  explicit vector_extractor(const std::vector<std::vector<double>>* aVecData);
+  explicit vector_extractor(const std::vector<std::vector<double>>* a_vec_data);
 
   /**
    * Destructor, closes the file.
    */
   ~vector_extractor() override;
 
-  void setVecData(const std::vector<std::vector<double>>* aVecData);
+  void set_vec_data(const std::vector<std::vector<double>>* a_vec_data);
 
-  const std::vector<std::vector<double>>& getVecData() const {
+  const std::vector<std::vector<double>>& get_vec_data() const {
     return *vec_data;
   }
 
-  void setFileName(const std::string& aFilename) override;
+  void set_file_name(const std::string& file_name) override;
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {

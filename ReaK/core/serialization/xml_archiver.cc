@@ -221,9 +221,9 @@ xml_iarchive::xml_iarchive(const std::string& FileName) {
   }
 };
 
-xml_iarchive::xml_iarchive(std::istream& aStream) {
+xml_iarchive::xml_iarchive(std::istream& stream) {
 
-  file_stream = std::shared_ptr<std::istream>(&aStream, null_deleter());
+  file_stream = std::shared_ptr<std::istream>(&stream, null_deleter());
 
   std::vector<unsigned int> typeID;
   archive_object_header global_hdr = readHeader("reak_serialization", typeID);
@@ -486,9 +486,9 @@ xml_oarchive::xml_oarchive(const std::string& FileName) {
   tabulation = 0;
 };
 
-xml_oarchive::xml_oarchive(std::ostream& aStream) {
+xml_oarchive::xml_oarchive(std::ostream& stream) {
 
-  file_stream = std::shared_ptr<std::ostream>(&aStream, null_deleter());
+  file_stream = std::shared_ptr<std::ostream>(&stream, null_deleter());
 
   (*file_stream)
       << R"(<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>)"

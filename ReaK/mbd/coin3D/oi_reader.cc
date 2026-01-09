@@ -90,12 +90,12 @@ double oi_reader::computeCharacteristicLength() {
 
 oi_reader::oi_reader() : mRoot(nullptr) {}
 
-oi_reader::oi_reader(const std::string& aFileName) : mRoot(nullptr) {
-  read_file(aFileName);
+oi_reader::oi_reader(const std::string& file_name) : mRoot(nullptr) {
+  read_file(file_name);
 }
 
-oi_reader::oi_reader(std::istream& aStream) : mRoot(nullptr) {
-  read_stream(aStream);
+oi_reader::oi_reader(std::istream& stream) : mRoot(nullptr) {
+  read_stream(stream);
 }
 
 oi_reader::oi_reader(const oi_reader& rhs) : mRoot(rhs.mRoot) {
@@ -134,9 +134,9 @@ oi_reader::~oi_reader() {
   }
 }
 
-oi_reader& oi_reader::read_file(const std::string& aFileName) {
+oi_reader& oi_reader::read_file(const std::string& file_name) {
   SoInput file_in;
-  if (file_in.openFile(aFileName.c_str()) == 0) {
+  if (file_in.openFile(file_name.c_str()) == 0) {
     return *this;
   }
 
@@ -154,16 +154,16 @@ oi_reader& oi_reader::read_file(const std::string& aFileName) {
   return *this;
 }
 
-oi_reader& oi_reader::read_stream(std::istream& aStream) {
-  if (!aStream) {
+oi_reader& oi_reader::read_stream(std::istream& stream) {
+  if (!stream) {
     return *this;
   }
-  aStream.seekg(0, std::istream::end);
-  int length = aStream.tellg();
-  aStream.seekg(0, std::istream::beg);
+  stream.seekg(0, std::istream::end);
+  int length = stream.tellg();
+  stream.seekg(0, std::istream::beg);
 
   char* buffer = new char[length];
-  aStream.read(buffer, length);
+  stream.read(buffer, length);
 
   SoInput file_in;
   file_in.setBuffer(buffer, length);

@@ -853,7 +853,7 @@ struct prediction_updater {
       (*current_target_anim_time) = last_time;
       double current_Pnorm =
           norm_2(b.get_covariance().get_matrix()(range(0, 12), range(0, 12)));
-      recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
+      recorder::named_value_row nvr_in = data_in->get_fresh_named_value_row();
       double init_time = -1000.0;
 
       while ((current_Pnorm > sat_options.predict_Pnorm_threshold) &&

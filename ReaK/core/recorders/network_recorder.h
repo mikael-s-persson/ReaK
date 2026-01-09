@@ -46,10 +46,10 @@ class network_client_impl;
  */
 class network_recorder : public data_recorder {
  protected:
-  void writeRow() override;
-  void writeNames() override;
-  void setStreamImpl(const std::shared_ptr<std::ostream>& aStreamPtr) override {
-  }
+  void write_row() override;
+  void write_names() override;
+  void set_stream_impl(
+      const std::shared_ptr<std::ostream>& stream_ptr) override {}
 
   std::shared_ptr<network_server_impl> pimpl;
 
@@ -60,16 +60,16 @@ class network_recorder : public data_recorder {
   network_recorder();
 
   /**
-   * Constructor that opens a file with name aFileName.
+   * Constructor that opens a file with name file_name.
    */
-  explicit network_recorder(const std::string& aFileName);
+  explicit network_recorder(const std::string& file_name);
 
   /**
    * Destructor, closes the file.
    */
   ~network_recorder() override;
 
-  void setFileName(const std::string& aFileName) override;
+  void set_file_name(const std::string& file_name) override;
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
@@ -88,15 +88,15 @@ class network_recorder : public data_recorder {
  */
 class network_extractor : public data_extractor {
  protected:
-  bool readRow() override;
-  bool readNames() override;
-  void setStreamImpl(const std::shared_ptr<std::istream>& aStreamPtr) override {
-  }
+  bool read_row() override;
+  bool read_names() override;
+  void set_stream_impl(
+      const std::shared_ptr<std::istream>& stream_ptr) override {}
 
   std::shared_ptr<network_client_impl> pimpl;
 
  public:
-  void addName(const std::string& s);
+  void add_name(const std::string& s);
 
   /**
    * Default constructor.
@@ -104,16 +104,16 @@ class network_extractor : public data_extractor {
   network_extractor();
 
   /**
-   * Constructor that opens a file with name aFileName.
+   * Constructor that opens a file with name file_name.
    */
-  explicit network_extractor(const std::string& aFileName);
+  explicit network_extractor(const std::string& file_name);
 
   /**
    * Destructor, closes the file.
    */
   ~network_extractor() override;
 
-  void setFileName(const std::string& aFilename) override;
+  void set_file_name(const std::string& file_name) override;
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {

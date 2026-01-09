@@ -32,33 +32,33 @@ namespace ReaK::recorder {
 namespace ch = std::chrono;
 using hrc = ch::high_resolution_clock;
 
-void data_recorder::closeRecordProcess() {
-  while (rowCount > 0) {
-    writeRow();
+void data_recorder::close_record_process() {
+  while (row_count_ > 0) {
+    write_row();
   }
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  colCount = 0;
-  if (writing_thread) {
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  col_count_ = 0;
+  if (writing_thread_) {
     lock_here.unlock();
-    if (writing_thread->joinable()) {
-      writing_thread->join();
+    if (writing_thread_->joinable()) {
+      writing_thread_->join();
     }
     lock_here.lock();
-    writing_thread.reset();
+    writing_thread_.reset();
   }
 }
 
-void data_recorder::record_process::operator()() {
+void data_recorder::record_process::operator()() const {
   hrc::time_point last_time = hrc::now();
-  while (parent.colCount != 0) {
+  while (parent->col_count_ != 0) {
     do {
-      parent.writeRow();
-    } while (parent.rowCount > parent.maxBufferSize);
+      parent->write_row();
+    } while (parent->row_count_ > parent->max_buffer_size_);
 
-    if (parent.flushSampleRate == 0) {
+    if (parent->flush_sample_rate_ == 0) {
       std::this_thread::yield();
     } else {
-      double time_period = 1.0 / parent.flushSampleRate;
+      double time_period = 1.0 / parent->flush_sample_rate_;
       hrc::time_point time_to_reach =
           last_time + ch::duration_cast<hrc::duration>(
                           ch::duration<double, std::ratio<1, 1>>(time_period));
@@ -69,142 +69,145 @@ void data_recorder::record_process::operator()() {
 }
 
 data_recorder::~data_recorder() {
-  closeRecordProcess();
+  close_record_process();
 }
 
 data_recorder& data_recorder::operator<<(double value) {
-  if (colCount == 0) {
+  if (col_count_ == 0) {
     throw end_of_record();
   }
-  if (currentColumn >= colCount) {
+  if (current_column_ >= col_count_) {
     throw out_of_bounds();
   }
 
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  values_rm.push(value);
-  ++currentColumn;
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  values_rm_.push(value);
+  ++current_column_;
   return *this;
 }
 
 data_recorder& data_recorder::operator<<(const named_value_row& values) {
-  if (colCount == 0) {
+  if (col_count_ == 0) {
     return *this;
   }
-  for (double value : values.values) {
+  for (double value : values.values_) {
     (*this) << value;
   }
   return (*this) << end_value_row;
 }
 
 data_recorder& data_recorder::operator<<(const std::string& name) {
-  if (colCount == 0) {
-    std::unique_lock<std::mutex> lock_here(access_mutex);
-    names.push_back(name);
+  if (col_count_ == 0) {
+    std::unique_lock<std::mutex> lock_here(access_mutex_);
+    names_.push_back(name);
   }
   return *this;
 }
 
 data_recorder& data_recorder::operator<<(flag some_flag) {
   if (some_flag == end_name_row) {
-    if (colCount != 0) {
+    if (col_count_ != 0) {
       throw improper_flag();
     }
-    std::unique_lock<std::mutex> lock_here(access_mutex);
-    colCount = static_cast<unsigned int>(names.size());
-    for (std::size_t i = 0; i < colCount; ++i) {
-      named_indices[names[i]] = i;
+    std::unique_lock<std::mutex> lock_here(access_mutex_);
+    col_count_ = static_cast<unsigned int>(names_.size());
+    for (std::size_t i = 0; i < col_count_; ++i) {
+      named_indices_[names_[i]] = i;
     }
     lock_here.unlock();
-    writeNames();
+    write_names();
     lock_here.lock();
-    currentColumn = 0;
-    rowCount = 0;
-    writing_thread = std::make_shared<std::thread>(record_process(*this));
+    current_column_ = 0;
+    row_count_ = 0;
+    writing_thread_ = std::make_shared<std::thread>(record_process(this));
   } else if (some_flag == end_value_row) {
-    if (colCount == 0) {
+    if (col_count_ == 0) {
       throw improper_flag();
     }
-    std::unique_lock<std::mutex> lock_here(access_mutex);
-    for (; currentColumn < colCount; ++currentColumn) {
-      values_rm.push(0.0);
+    std::unique_lock<std::mutex> lock_here(access_mutex_);
+    for (; current_column_ < col_count_; ++current_column_) {
+      values_rm_.push(0.0);
     }
-    currentColumn = 0;
-    ++rowCount;
+    current_column_ = 0;
+    ++row_count_;
   } else if (some_flag == flush) {
     // flush all data right away... normally would be done at the closure or pause...
     // not while doing other things because the function will not return until this is done.
-    while (rowCount > 0) {
-      writeRow();
+    while (row_count_ > 0) {
+      write_row();
     }
   } else if (some_flag == close) {
     // flush and stop thread.
-    closeRecordProcess();
+    close_record_process();
   }
   return *this;
 }
 
-void data_recorder::setFileName(const std::string& aFilename) {
-  auto file_out = std::make_shared<std::ofstream>(aFilename.c_str());
+void data_recorder::set_file_name(const std::string& file_name) {
+  auto file_out = std::make_shared<std::ofstream>(file_name.c_str());
   if (file_out->is_open()) {
-    setStreamImpl(file_out);
+    set_stream_impl(file_out);
   }
 }
 
 void data_recorder::save(serialization::oarchive& A,
                          unsigned int /*Version*/) const {
   shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
-  A& RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(colCount)) &
-      RK_SERIAL_SAVE_WITH_NAME(flushSampleRate) &
-      RK_SERIAL_SAVE_WITH_NAME(maxBufferSize) & RK_SERIAL_SAVE_WITH_NAME(names);
+  A& RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(col_count_)) &
+      RK_SERIAL_SAVE_WITH_NAME(flush_sample_rate_) &
+      RK_SERIAL_SAVE_WITH_NAME(max_buffer_size_) &
+      RK_SERIAL_SAVE_WITH_NAME(names_);
 }
 
 void data_recorder::load(serialization::iarchive& A, unsigned int /*Version*/) {
-  closeRecordProcess();
-  std::unique_lock<std::mutex> lock_here(access_mutex);
+  close_record_process();
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
   shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
   unsigned int col_count = 0;
-  A& RK_SERIAL_LOAD_WITH_ALIAS("colCount", col_count) &
-      RK_SERIAL_LOAD_WITH_NAME(flushSampleRate) &
-      RK_SERIAL_LOAD_WITH_NAME(maxBufferSize) & RK_SERIAL_LOAD_WITH_NAME(names);
-  colCount = col_count;
-  for (std::size_t i = 0; i < colCount; ++i) {
-    named_indices[names[i]] = i;
+  A& RK_SERIAL_LOAD_WITH_ALIAS("col_count_", col_count) &
+      RK_SERIAL_LOAD_WITH_NAME(flush_sample_rate_) &
+      RK_SERIAL_LOAD_WITH_NAME(max_buffer_size_) &
+      RK_SERIAL_LOAD_WITH_NAME(names_);
+  col_count_ = col_count;
+  for (std::size_t i = 0; i < col_count_; ++i) {
+    named_indices_[names_[i]] = i;
   }
-  rowCount = 0;
-  currentColumn = 0;
-  values_rm = std::queue<double>();
+  row_count_ = 0;
+  current_column_ = 0;
+  values_rm_ = std::queue<double>();
   lock_here.unlock();
-  writing_thread = std::make_shared<std::thread>(record_process(*this));
+  writing_thread_ = std::make_shared<std::thread>(record_process(this));
 }
 
-void data_extractor::closeExtractProcess() {
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  while (!values_rm.empty()) {
-    values_rm.pop();
+void data_extractor::close_extract_process() {
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  while (!values_rm_.empty()) {
+    values_rm_.pop();
   }
-  colCount = 0;
-  if (reading_thread) {
+  col_count_ = 0;
+  if (reading_thread_) {
     lock_here.unlock();
-    if (reading_thread->joinable()) {
-      reading_thread->join();
+    if (reading_thread_->joinable()) {
+      reading_thread_->join();
     }
     lock_here.lock();
-    reading_thread.reset();
+    reading_thread_.reset();
   }
 }
 
-void data_extractor::extract_process::operator()() {
+void data_extractor::extract_process::operator()() const {
   hrc::time_point last_time = hrc::now();
-  while (parent.colCount != 0) {
+  while (parent->col_count_ != 0) {
     do {
-      if (!parent.readRow()) {
+      if (!parent->read_row()) {
         return;
       }
-    } while (parent.values_rm.size() < parent.minBufferSize * parent.colCount);
-    if (parent.flushSampleRate == 0) {
+    } while (parent->values_rm_.size() <
+             parent->min_buffer_size_ * parent->col_count_);
+    if (parent->flush_sample_rate_ == 0) {
       std::this_thread::yield();
     } else {
-      double time_period = 1.0 / parent.flushSampleRate;
+      double time_period = 1.0 / parent->flush_sample_rate_;
       hrc::time_point time_to_reach =
           last_time + ch::duration_cast<hrc::duration>(
                           ch::duration<double, std::ratio<1, 1>>(time_period));
@@ -215,46 +218,46 @@ void data_extractor::extract_process::operator()() {
 }
 
 data_extractor::~data_extractor() {
-  closeExtractProcess();
+  close_extract_process();
 }
 
 data_extractor& data_extractor::operator>>(double& value) {
-  if (colCount == 0) {
+  if (col_count_ == 0) {
     throw end_of_record();
   }
-  if (currentColumn >= colCount) {
+  if (current_column_ >= col_count_) {
     throw out_of_bounds();
   }
-  while (values_rm.size() < colCount - currentColumn) {
+  while (values_rm_.size() < col_count_ - current_column_) {
     // This second size-test may look redundant,
     //  but values could have been extracted between the last test and this one
     //  (and failures have occurred because of this problem!)
-    if (!readRow() && (values_rm.size() < colCount - currentColumn)) {
+    if (!read_row() && (values_rm_.size() < col_count_ - current_column_)) {
       throw end_of_record();
     }
   }
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  value = values_rm.front();
-  values_rm.pop();
-  ++currentColumn;
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  value = values_rm_.front();
+  values_rm_.pop();
+  ++current_column_;
   return *this;
 }
 
 data_extractor& data_extractor::operator>>(std::string& name) {
-  if (currentNameCol >= colCount) {
+  if (current_name_col_ >= col_count_) {
     throw out_of_bounds();
   }
 
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  name = names[currentNameCol++];
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  name = names_[current_name_col_++];
   return *this;
 }
 
 data_extractor& data_extractor::operator>>(named_value_row& values) {
-  if (colCount == 0) {
+  if (col_count_ == 0) {
     return *this;
   }
-  for (double& value : values.values) {
+  for (double& value : values.values_) {
     (*this) >> value;
   }
   return (*this) >> end_value_row;
@@ -262,75 +265,77 @@ data_extractor& data_extractor::operator>>(named_value_row& values) {
 
 data_extractor& data_extractor::operator>>(flag some_flag) {
   if (some_flag == end_value_row) {
-    if (colCount == 0) {
+    if (col_count_ == 0) {
       throw improper_flag();
     }
-    std::unique_lock<std::mutex> lock_here(access_mutex);
-    for (; currentColumn < colCount; ++currentColumn) {
-      values_rm.pop();
+    std::unique_lock<std::mutex> lock_here(access_mutex_);
+    for (; current_column_ < col_count_; ++current_column_) {
+      values_rm_.pop();
     }
-    currentColumn = 0;
+    current_column_ = 0;
   } else if (some_flag == advance) {
     // flush all data right away... normally would be done at the closure or pause...
     // not while doing other things because the function will not return until this is done.
-    std::size_t last_count = values_rm.size();
+    std::size_t last_count = values_rm_.size();
     do {
-      last_count = values_rm.size();
-      if (!readRow()) {
+      last_count = values_rm_.size();
+      if (!read_row()) {
         break;
       }
-    } while ((values_rm.size() > last_count) &&
-             (values_rm.size() < minBufferSize * colCount));
+    } while ((values_rm_.size() > last_count) &&
+             (values_rm_.size() < min_buffer_size_ * col_count_));
   } else if (some_flag == close) {
     // flush and stop thread.
-    closeExtractProcess();
+    close_extract_process();
   }
   return *this;
 }
 
-void data_extractor::setStreamWrappedCall(
-    const std::shared_ptr<std::istream>& aStreamPtr) {
-  setStreamImpl(aStreamPtr);
-  for (std::size_t i = 0; i < colCount; ++i) {
-    named_indices[names[i]] = i;
+void data_extractor::set_stream_wrapped_call(
+    const std::shared_ptr<std::istream>& stream_ptr) {
+  set_stream_impl(stream_ptr);
+  for (std::size_t i = 0; i < col_count_; ++i) {
+    named_indices_[names_[i]] = i;
   }
-  currentColumn = 0;
-  reading_thread = std::make_shared<std::thread>(extract_process(*this));
+  current_column_ = 0;
+  reading_thread_ = std::make_shared<std::thread>(extract_process(this));
 }
 
-void data_extractor::setFileName(const std::string& aFilename) {
-  auto file_in = std::make_shared<std::ifstream>(aFilename.c_str());
+void data_extractor::set_file_name(const std::string& file_name) {
+  auto file_in = std::make_shared<std::ifstream>(file_name.c_str());
   if (file_in->is_open()) {
-    setStreamWrappedCall(file_in);
+    set_stream_wrapped_call(file_in);
   }
 }
 
 void data_extractor::save(serialization::oarchive& A,
                           unsigned int /*Version*/) const {
   shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
-  A& RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(colCount)) &
-      RK_SERIAL_SAVE_WITH_NAME(flushSampleRate) &
-      RK_SERIAL_SAVE_WITH_NAME(minBufferSize) & RK_SERIAL_SAVE_WITH_NAME(names);
+  A& RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(col_count_)) &
+      RK_SERIAL_SAVE_WITH_NAME(flush_sample_rate_) &
+      RK_SERIAL_SAVE_WITH_NAME(min_buffer_size_) &
+      RK_SERIAL_SAVE_WITH_NAME(names_);
 }
 
 void data_extractor::load(serialization::iarchive& A,
                           unsigned int /*Version*/) {
-  closeExtractProcess();
-  std::unique_lock<std::mutex> lock_here(access_mutex);
+  close_extract_process();
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
   shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
   unsigned int col_count = 0;
-  A& RK_SERIAL_LOAD_WITH_ALIAS("colCount", col_count) &
-      RK_SERIAL_LOAD_WITH_NAME(flushSampleRate) &
-      RK_SERIAL_LOAD_WITH_NAME(minBufferSize) & RK_SERIAL_LOAD_WITH_NAME(names);
-  colCount = col_count;
-  for (std::size_t i = 0; i < names.size(); ++i) {
-    named_indices[names[i]] = i;
+  A& RK_SERIAL_LOAD_WITH_ALIAS("col_count_", col_count) &
+      RK_SERIAL_LOAD_WITH_NAME(flush_sample_rate_) &
+      RK_SERIAL_LOAD_WITH_NAME(min_buffer_size_) &
+      RK_SERIAL_LOAD_WITH_NAME(names_);
+  col_count_ = col_count;
+  for (std::size_t i = 0; i < names_.size(); ++i) {
+    named_indices_[names_[i]] = i;
   }
-  currentColumn = 0;
-  currentNameCol = 0;
-  values_rm = std::queue<double>();
+  current_column_ = 0;
+  current_name_col_ = 0;
+  values_rm_ = std::queue<double>();
   lock_here.unlock();
-  reading_thread = std::make_shared<std::thread>(extract_process(*this));
+  reading_thread_ = std::make_shared<std::thread>(extract_process(this));
 }
 
 }  // namespace ReaK::recorder

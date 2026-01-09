@@ -102,16 +102,16 @@ class data_extractor;
 /**
  * This class is used to represent a complete row of entries (values) for a data recorder or extractor,
  * each associated with a column-name (names must be unique).
- * \note Objects of this class are created using the 'getFreshNamedValueRow' function in the data recorder / extractor
+ * \note Objects of this class are created using the 'get_fresh_named_value_row' function in the data recorder / extractor
  * classes.
  */
 class named_value_row {
  private:
-  const std::map<std::string, std::size_t>* p_named_indices;
-  std::vector<double> values;
+  const std::map<std::string, std::size_t>* p_named_indices_;
+  std::vector<double> values_;
 
   explicit named_value_row(const std::map<std::string, std::size_t>& aMap)
-      : p_named_indices(&aMap), values(aMap.size(), 0.0) {}
+      : p_named_indices_(&aMap), values_(aMap.size(), 0.0) {}
 
  public:
   friend class data_recorder;
@@ -123,11 +123,11 @@ class named_value_row {
    * \return A reference to the entry corresponding to the given name.
    */
   double& operator[](const std::string& s) {
-    auto it = p_named_indices->find(s);
-    if (it == p_named_indices->end()) {
+    auto it = p_named_indices_->find(s);
+    if (it == p_named_indices_->end()) {
       throw out_of_bounds();
     }
-    return values[it->second];
+    return values_[it->second];
   }
   /**
    * Entry-access function. This function can be used to obtain read-access to an entry associated to a given name.
@@ -135,11 +135,11 @@ class named_value_row {
    * \return The entry corresponding to the given name.
    */
   double operator[](const std::string& s) const {
-    auto it = p_named_indices->find(s);
-    if (it == p_named_indices->end()) {
+    auto it = p_named_indices_->find(s);
+    if (it == p_named_indices_->end()) {
       throw out_of_bounds();
     }
-    return values[it->second];
+    return values_[it->second];
   }
 };
 
@@ -150,52 +150,52 @@ class named_value_row {
 class data_recorder : public shared_object {
  protected:
   // Holds the column count.
-  std::atomic<unsigned int> colCount;
+  std::atomic<unsigned int> col_count_;
   // Holds the number of rows of data records.
-  std::atomic<unsigned int> rowCount;
+  std::atomic<unsigned int> row_count_;
   // Holds the current column to which the next data entry will be written to.
-  std::atomic<unsigned int> currentColumn;
+  std::atomic<unsigned int> current_column_;
   // Holds the sample rate at which the data is automatically flushed to the file.
-  unsigned int flushSampleRate{50};
+  unsigned int flush_sample_rate_{50};
   // Holds the maximum size for the data buffer, overload will trigger a file-flush.
-  unsigned int maxBufferSize{500};
+  unsigned int max_buffer_size_{500};
   // Holds the list of column names.
-  std::vector<std::string> names;
+  std::vector<std::string> names_;
   // Holds the map from the column names to the index within a value-row.
-  mutable std::map<std::string, std::size_t> named_indices;
+  mutable std::map<std::string, std::size_t> named_indices_;
   // Holds the data buffer.
-  std::queue<double> values_rm;
+  std::queue<double> values_rm_;
   // Holds the output-stream of the data record.
-  std::shared_ptr<std::ostream> out_stream;
+  std::shared_ptr<std::ostream> out_stream_;
 
   // Mutex to lock the read/write on the data buffer.
-  std::mutex access_mutex;
+  std::mutex access_mutex_;
   // Holds the instance of the data writing thread.
-  std::shared_ptr<std::thread> writing_thread;
+  std::shared_ptr<std::thread> writing_thread_;
 
   /**
    * This class is used as a callable function-object for data writing thread.
    */
   struct record_process {
    public:
-    data_recorder& parent;
-    explicit record_process(data_recorder& aParent) : parent(aParent){};
-    void operator()();
+    data_recorder* parent;
+    explicit record_process(data_recorder* a_parent) : parent(a_parent){};
+    void operator()() const;
   };
 
-  void closeRecordProcess();
+  void close_record_process();
 
   /**
    * Overridable function which writes data to the file in whichever format specific to the derived class.
    */
-  virtual void writeRow() {}
+  virtual void write_row() {}
   /**
    * Overridable function which writes column names to the file in whichever format specific to the derived class.
    */
-  virtual void writeNames() {}
+  virtual void write_names() {}
 
-  virtual void setStreamImpl(
-      const std::shared_ptr<std::ostream>& aStreamPtr) = 0;
+  virtual void set_stream_impl(
+      const std::shared_ptr<std::ostream>& stream_ptr) = 0;
 
  public:
   /**
@@ -203,44 +203,44 @@ class data_recorder : public shared_object {
    * \note A flushing sample rate of 0 signifies immediate transmission.
    * \return The flushing sample rate of this data streamer in Hz.
    */
-  unsigned int getFlushSampleRate() const { return flushSampleRate; }
+  unsigned int get_flush_sample_rate() const { return flush_sample_rate_; }
 
   /**
    * Sets the flushing sample rate of this data streamer in Hz.
    * \note A flushing sample rate of 0 signifies immediate transmission.
    * \param aFlushSampleRate The flushing sample rate of this data streamer in Hz.
    */
-  void setFlushSampleRate(unsigned int aFlushSampleRate) {
-    flushSampleRate = aFlushSampleRate;
+  void set_flush_sample_rate(unsigned int a_flush_sample_rate) {
+    flush_sample_rate_ = a_flush_sample_rate;
   }
 
   /**
    * Returns the maximum size of the data buffer, after which, data must be flushed to the stream.
    * \return The maximum size of the data buffer, after which, data must be flushed to the stream.
    */
-  unsigned int getMaxBufferSize() const { return maxBufferSize; }
+  unsigned int get_max_buffer_size() const { return max_buffer_size_; }
 
   /**
    * Sets the maximum size of the data buffer, after which, data must be flushed to the stream.
    * \param aMinBufferSize The maximum size of the data buffer, after which, data must be flushed to the stream.
    */
-  void setMaxBufferSize(unsigned int aMaxBufferSize) {
-    maxBufferSize = aMaxBufferSize;
+  void set_max_buffer_size(unsigned int a_max_buffer_size) {
+    max_buffer_size_ = a_max_buffer_size;
   }
 
   /**
    * This function is the factory to create named-value-row objects to represent a row of entries, addressable by name.
    * \return A fresh object that is ready to accept all the values of a row of entries to the data recorder.
    */
-  named_value_row getFreshNamedValueRow() const {
-    return named_value_row(named_indices);
+  named_value_row get_fresh_named_value_row() const {
+    return named_value_row(named_indices_);
   }
 
   /**
    * This function returns the number of columns in this recorder.
    * \return The number of columns in this recorder.
    */
-  unsigned int getColCount() const { return colCount; }
+  unsigned int get_col_count() const { return col_count_; }
 
   /// Data record-specific flags for special operations.
   enum flag {
@@ -254,7 +254,7 @@ class data_recorder : public shared_object {
    * Default Constructor.
    */
   data_recorder()
-      : shared_object(), colCount(0), rowCount(0), currentColumn(0) {}
+      : shared_object(), col_count_(0), row_count_(0), current_column_(0) {}
 
   /**
    * Destructor.
@@ -279,8 +279,8 @@ class data_recorder : public shared_object {
   /**
    * Operator to record a vector of column names.
    */
-  data_recorder& operator<<(const std::vector<std::string>& aNames) {
-    for (const auto& name : aNames) {
+  data_recorder& operator<<(const std::vector<std::string>& a_names) {
+    for (const auto& name : a_names) {
       (*this) << name;
     }
     return *this;
@@ -312,21 +312,21 @@ class data_recorder : public shared_object {
   /**
    * Sets the stream.
    */
-  void setStream(std::ostream& aStream) {
-    setStreamImpl(std::shared_ptr<std::ostream>(&aStream, null_deleter()));
+  void set_stream(std::ostream& stream) {
+    set_stream_impl(std::shared_ptr<std::ostream>(&stream, null_deleter()));
   }
 
   /**
    * Sets the stream via a shared-pointer.
    */
-  void setStream(const std::shared_ptr<std::ostream>& aStreamPtr) {
-    setStreamImpl(aStreamPtr);
+  void set_stream(const std::shared_ptr<std::ostream>& stream_ptr) {
+    set_stream_impl(stream_ptr);
   }
 
   /**
    * Sets the filename for the file.
    */
-  virtual void setFileName(const std::string& aFilename);
+  virtual void set_file_name(const std::string& file_name);
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override;
@@ -343,56 +343,56 @@ class data_recorder : public shared_object {
 class data_extractor : public shared_object {
  protected:
   // Holds the column count.
-  std::atomic<unsigned int> colCount;
+  std::atomic<unsigned int> col_count_;
   // Holds the current column to which the next data entry will be read from.
-  std::atomic<unsigned int> currentColumn;
+  std::atomic<unsigned int> current_column_;
   // Holds the current column to which the next name entry will be read from.
-  std::atomic<unsigned int> currentNameCol;
+  std::atomic<unsigned int> current_name_col_;
   // Holds the sample rate at which the data is automatically flushed to the file.
-  unsigned int flushSampleRate{50};
+  unsigned int flush_sample_rate_{50};
   // Holds the minimum size for the data buffer, underload will trigger a file-read.
-  unsigned int minBufferSize{20};
+  unsigned int min_buffer_size_{20};
   // Holds the list of column names.
-  std::vector<std::string> names;
+  std::vector<std::string> names_;
   // Holds the map from the column names to the index within a value-row.
-  mutable std::map<std::string, std::size_t> named_indices;
+  mutable std::map<std::string, std::size_t> named_indices_;
   // Holds the data buffer.
-  std::queue<double> values_rm;
+  std::queue<double> values_rm_;
   // Holds the input-stream of the data record.
   std::shared_ptr<std::istream> in_stream;
 
   // Mutex to lock the read/write on the data buffer.
-  std::mutex access_mutex;
+  std::mutex access_mutex_;
   // Holds the instance of the data writing thread.
-  std::shared_ptr<std::thread> reading_thread;
+  std::shared_ptr<std::thread> reading_thread_;
 
   /**
    * This class is used as a callable function-object for data writing thread.
    */
   struct extract_process {
    public:
-    data_extractor& parent;
-    explicit extract_process(data_extractor& aParent) : parent(aParent) {}
-    void operator()();
+    data_extractor* parent;
+    explicit extract_process(data_extractor* a_parent) : parent(a_parent) {}
+    void operator()() const;
   };
 
-  void closeExtractProcess();
+  void close_extract_process();
 
   /**
    * Overridable function which writes data to the file in whichever format specific to the derived class.
    */
-  virtual bool readRow() { return true; }
+  virtual bool read_row() { return true; }
   /**
    * Overridable function which writes column names to the file in whichever format specific to the derived class.
    */
-  virtual bool readNames() { return true; }
+  virtual bool read_names() { return true; }
   /**
    * Sets the filename for the file, overridable for the derived class which handles the file IO (or other).
    */
-  virtual void setStreamImpl(
-      const std::shared_ptr<std::istream>& aStreamPtr) = 0;
+  virtual void set_stream_impl(
+      const std::shared_ptr<std::istream>& stream_ptr) = 0;
 
-  void setStreamWrappedCall(const std::shared_ptr<std::istream>& aStreamPtr);
+  void set_stream_wrapped_call(const std::shared_ptr<std::istream>& stream_ptr);
 
  public:
   /**
@@ -400,55 +400,55 @@ class data_extractor : public shared_object {
    * \note A flushing sample rate of 0 signifies immediate transmission.
    * \return The flushing sample rate of this data streamer in Hz.
    */
-  unsigned int getFlushSampleRate() const { return flushSampleRate; }
+  unsigned int get_flush_sample_rate() const { return flush_sample_rate_; }
 
   /**
    * Sets the flushing sample rate of this data streamer in Hz.
    * \note A flushing sample rate of 0 signifies immediate transmission.
    * \param aFlushSampleRate The flushing sample rate of this data streamer in Hz.
    */
-  void setFlushSampleRate(unsigned int aFlushSampleRate) {
-    flushSampleRate = aFlushSampleRate;
+  void set_flush_sample_rate(unsigned int a_flush_sample_rate) {
+    flush_sample_rate_ = a_flush_sample_rate;
   }
 
   /**
    * Returns the minimum size of the data buffer, after which, data must be replenished from the stream.
    * \return The minimum size of the data buffer, after which, data must be replenished from the stream.
    */
-  unsigned int getMinBufferSize() const { return minBufferSize; }
+  unsigned int get_min_buffer_size() const { return min_buffer_size_; }
 
   /**
    * Sets the minimum size of the data buffer, after which, data must be replenished from the stream.
    * \param aMinBufferSize The minimum size of the data buffer, after which, data must be replenished from the stream.
    */
-  void setMinBufferSize(unsigned int aMinBufferSize) {
-    minBufferSize = aMinBufferSize;
+  void set_min_buffer_size(unsigned int a_min_buffer_size) {
+    min_buffer_size_ = a_min_buffer_size;
   }
 
   /**
    * This function is the factory to create named-value-row objects to represent a row of entries, addressable by name.
    * \return A fresh object that is ready to accept all the values of a row of entries to the data recorder.
    */
-  named_value_row getFreshNamedValueRow() const {
-    if (named_indices.size() != names.size()) {
-      for (std::size_t i = 0; i < names.size(); ++i) {
-        named_indices[names[i]] = i;
+  named_value_row get_fresh_named_value_row() const {
+    if (named_indices_.size() != names_.size()) {
+      for (std::size_t i = 0; i < names_.size(); ++i) {
+        named_indices_[names_[i]] = i;
       }
     }
-    return named_value_row(named_indices);
+    return named_value_row(named_indices_);
   }
 
   /**
    * Gets the current vector of column names.
    * \return The current vector of column names.
    */
-  const std::vector<std::string>& getNames() const { return names; }
+  const std::vector<std::string>& get_names() const { return names_; }
 
   /**
    * This function returns the number of columns in this extractor.
    * \return The number of columns in this extractor.
    */
-  unsigned int getColCount() const { return colCount; }
+  unsigned int get_col_count() const { return col_count_; }
 
   /// Data record-specific flags for special operations.
   enum flag {
@@ -461,7 +461,10 @@ class data_extractor : public shared_object {
    * Default Constructor.
    */
   data_extractor()
-      : shared_object(), colCount(0), currentColumn(0), currentNameCol(0) {}
+      : shared_object(),
+        col_count_(0),
+        current_column_(0),
+        current_name_col_(0) {}
 
   /**
    * Destructor.
@@ -502,22 +505,22 @@ class data_extractor : public shared_object {
   /**
    * Sets the stream.
    */
-  void setStream(std::istream& aStream) {
-    setStreamWrappedCall(
-        std::shared_ptr<std::istream>(&aStream, null_deleter()));
+  void set_stream(std::istream& stream) {
+    set_stream_wrapped_call(
+        std::shared_ptr<std::istream>(&stream, null_deleter()));
   }
 
   /**
    * Sets the stream via a shared-pointer.
    */
-  void setStream(const std::shared_ptr<std::istream>& aStreamPtr) {
-    setStreamWrappedCall(aStreamPtr);
+  void set_stream(const std::shared_ptr<std::istream>& stream_ptr) {
+    set_stream_wrapped_call(stream_ptr);
   }
 
   /**
    * Sets the filename for the file, overridable for the derived class which handles the file IO (or other).
    */
-  virtual void setFileName(const std::string& aFileName);
+  virtual void set_file_name(const std::string& file_name);
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override;

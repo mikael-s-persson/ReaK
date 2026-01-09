@@ -44,9 +44,10 @@ namespace ReaK::recorder {
  */
 class bin_recorder : public data_recorder {
  protected:
-  void writeRow() override;
-  void writeNames() override;
-  void setStreamImpl(const std::shared_ptr<std::ostream>& aStreamPtr) override;
+  void write_row() override;
+  void write_names() override;
+  void set_stream_impl(
+      const std::shared_ptr<std::ostream>& stream_ptr) override;
 
  public:
   /**
@@ -55,10 +56,10 @@ class bin_recorder : public data_recorder {
   bin_recorder() = default;
 
   /**
-   * Constructor that opens a file with name aFileName.
+   * Constructor that opens a file with name file_name.
    */
-  explicit bin_recorder(const std::string& aFileName) {
-    setFileName(aFileName);
+  explicit bin_recorder(const std::string& file_name) {
+    set_file_name(file_name);
   }
 
   /**
@@ -83,9 +84,10 @@ class bin_recorder : public data_recorder {
  */
 class bin_extractor : public data_extractor {
  protected:
-  bool readRow() override;
-  bool readNames() override;
-  void setStreamImpl(const std::shared_ptr<std::istream>& aStreamPtr) override;
+  bool read_row() override;
+  bool read_names() override;
+  void set_stream_impl(
+      const std::shared_ptr<std::istream>& stream_ptr) override;
 
  public:
   /**
@@ -94,10 +96,10 @@ class bin_extractor : public data_extractor {
   bin_extractor() = default;
 
   /**
-   * Constructor that opens a file with name aFileName.
+   * Constructor that opens a file with name file_name.
    */
-  explicit bin_extractor(const std::string& aFileName) {
-    setFileName(aFileName);
+  explicit bin_extractor(const std::string& file_name) {
+    set_file_name(file_name);
   }
 
   /**

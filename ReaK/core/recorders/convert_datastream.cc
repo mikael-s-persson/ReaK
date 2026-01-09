@@ -68,8 +68,8 @@ int main(int argc, char** argv) {
     }
     std::shared_ptr<data_recorder> data_out = data_out_opt.create_recorder();
 
-    named_value_row nvr_in = data_in->getFreshNamedValueRow();
-    named_value_row nvr_out = data_out->getFreshNamedValueRow();
+    named_value_row nvr_in = data_in->get_fresh_named_value_row();
+    named_value_row nvr_out = data_out->get_fresh_named_value_row();
 
     stc::time_point t_0 = stc::now();
     hrc::time_point hrt_0 = hrc::now();

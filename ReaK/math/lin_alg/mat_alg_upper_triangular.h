@@ -167,18 +167,18 @@ class mat_up_tri : public mat<T> {
      * Explicit constructor from a general matrix, copying only the upper triangular part.
      */
     explicit mat_up_tri(const mat<T>& M) :
-             q(mat_triangular_size((M.getRowCount() > M.getColCount() ? M.getRowCount() : M.getColCount())),T(0.0)),
-             size((M.getRowCount() > M.getColCount() ? M.getRowCount() : M.getColCount())) {
+             q(mat_triangular_size((M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count())),T(0.0)),
+             size((M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count())) {
       unsigned int k=0;
       unsigned int i=0;
-      unsigned int min_size = (M.getRowCount() > M.getColCount() ? M.getColCount() : M.getRowCount());
+      unsigned int min_size = (M.get_row_count() > M.get_col_count() ? M.get_col_count() : M.get_row_count());
       for(;i<min_size;k += ++i) {
         for(unsigned int j=0;j<i;++j) {
           q[k+j] = M(j,i);
         };
         q[k+i] = M(i,i);
       };
-      if(M.getRowCount() < M.getColCount()) {
+      if(M.get_row_count() < M.get_col_count()) {
         for(;i<size;k += ++i) {
              for(unsigned int j=0;j<min_size;++j)
             q[k+j] = M(j,i);
@@ -250,7 +250,7 @@ class mat_up_tri : public mat<T> {
         return T(0.0);
     };
 
-    unsigned int getRowCount() const {
+    unsigned int get_row_count() const {
       return size;
     };
 
@@ -259,7 +259,7 @@ class mat_up_tri : public mat<T> {
       size = aRowCount;
     };
 
-    unsigned int getColCount() const {
+    unsigned int get_col_count() const {
       return size;
     };
 
@@ -285,17 +285,17 @@ class mat_up_tri : public mat<T> {
      * Standard Assignment operator with a general matrix. Copying only the upper-triangular part of M.
      */
     mat_up_tri<T>& operator =(const mat<T>& M) {
-      q.resize(mat_triangular_size((M.getRowCount() > M.getColCount() ? M.getRowCount() : M.getColCount())),T(0.0));
-      size = (M.getRowCount() > M.getColCount() ? M.getRowCount() : M.getColCount());
+      q.resize(mat_triangular_size((M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count())),T(0.0));
+      size = (M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count());
       unsigned int k=0;
       unsigned int i=0;
-      unsigned int min_size = (M.getRowCount() > M.getColCount() ? M.getColCount() : M.getRowCount());
+      unsigned int min_size = (M.get_row_count() > M.get_col_count() ? M.get_col_count() : M.get_row_count());
       for(;i<min_size;k += ++i) {
         for(unsigned int j=0;j<i;++j)
           q[k+j] = M(j,i);
         q[k+i] = M(i,i);
       };
-      if(M.getRowCount() < M.getColCount()) {
+      if(M.get_row_count() < M.get_col_count()) {
         for(;i<size;k += ++i) {
              for(unsigned int j=0;j<min_size;++j)
             q[k+j] = M(j,i);
@@ -423,12 +423,12 @@ class mat_up_tri : public mat<T> {
      * \throw std::range_error if the matrix dimensions don't match.
      */
     mat_cm<T> operator *(const mat<T>& M) const throw(std::range_error) {
-      if(size != M.getRowCount())
+      if(size != M.get_row_count())
         throw std::range_error("Matrix dimension mismatch.");
-      mat_cm<T> result(size,M.getColCount());
+      mat_cm<T> result(size,M.get_col_count());
       unsigned int k=0;unsigned int i=0;
       for(;i<size;k += ++i)
-        for(unsigned int l=0;l<M.getColCount();++l)
+        for(unsigned int l=0;l<M.get_col_count();++l)
           for(unsigned int j=0;j<=i;++j)
             result.q[l*size+j] += q[k+j] * M(i,l);
       return result;

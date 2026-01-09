@@ -29,43 +29,44 @@ namespace recorder {
 
 vector_recorder::vector_recorder() : vec_data(){};
 
-vector_recorder::vector_recorder(std::vector<std::vector<double>>* aVecData)
-    : vec_data(aVecData) {
-  setFileName("");
+vector_recorder::vector_recorder(std::vector<std::vector<double>>* a_vec_data)
+    : vec_data(a_vec_data) {
+  set_file_name("");
 };
 
 vector_recorder::~vector_recorder() = default;
 ;
 
-void vector_recorder::writeRow() {
+void vector_recorder::write_row() {
   if (vec_data == nullptr) {
     return;
   }
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  if ((rowCount > 0) && (colCount > 0)) {
-    std::vector<double> v_tmp(colCount, 0.0);
-    for (std::size_t i = 0; i < colCount; ++i) {
-      v_tmp[i] = values_rm.front();
-      values_rm.pop();
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  if ((row_count_ > 0) && (col_count_ > 0)) {
+    std::vector<double> v_tmp(col_count_, 0.0);
+    for (std::size_t i = 0; i < col_count_; ++i) {
+      v_tmp[i] = values_rm_.front();
+      values_rm_.pop();
     };
     vec_data->push_back(v_tmp);
-    --rowCount;
+    --row_count_;
   };
 };
 
-void vector_recorder::writeNames(){};
+void vector_recorder::write_names(){};
 
-void vector_recorder::setFileName(const std::string& aFileName){};
+void vector_recorder::set_file_name(const std::string& file_name){};
 
-void vector_recorder::setVecData(std::vector<std::vector<double>>* aVecData) {
-  vec_data = aVecData;
+void vector_recorder::set_vec_data(
+    std::vector<std::vector<double>>* a_vec_data) {
+  vec_data = a_vec_data;
 };
 
 vector_extractor::vector_extractor() : vec_data(), cur_vec_index(0){};
 
 vector_extractor::vector_extractor(
-    const std::vector<std::vector<double>>* aVecData)
-    : vec_data(aVecData),
+    const std::vector<std::vector<double>>* a_vec_data)
+    : vec_data(a_vec_data),
       cur_vec_index(0){
 
       };
@@ -73,36 +74,36 @@ vector_extractor::vector_extractor(
 vector_extractor::~vector_extractor() = default;
 ;
 
-void vector_extractor::addName(const std::string& s) {
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  names.push_back(s);
-  ++colCount;
+void vector_extractor::add_name(const std::string& s) {
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  names_.push_back(s);
+  ++col_count_;
 };
 
-bool vector_extractor::readRow() {
+bool vector_extractor::read_row() {
   if ((vec_data == nullptr) || (cur_vec_index >= vec_data->size())) {
     return false;
   }
-  std::unique_lock<std::mutex> lock_here(access_mutex);
-  if (colCount > 0) {
+  std::unique_lock<std::mutex> lock_here(access_mutex_);
+  if (col_count_ > 0) {
     const std::vector<double>& v_tmp = (*vec_data)[cur_vec_index];
-    for (std::size_t i = 0; (i < colCount) && (i < v_tmp.size()); ++i) {
-      values_rm.push(v_tmp[i]);
+    for (std::size_t i = 0; (i < col_count_) && (i < v_tmp.size()); ++i) {
+      values_rm_.push(v_tmp[i]);
     }
     ++cur_vec_index;
   };
   return true;
 };
 
-bool vector_extractor::readNames() {
+bool vector_extractor::read_names() {
   return true;
 };
 
-void vector_extractor::setFileName(const std::string& aFileName){};
+void vector_extractor::set_file_name(const std::string& file_name){};
 
-void vector_extractor::setVecData(
-    const std::vector<std::vector<double>>* aVecData) {
-  vec_data = aVecData;
+void vector_extractor::set_vec_data(
+    const std::vector<std::vector<double>>* a_vec_data) {
+  vec_data = a_vec_data;
   cur_vec_index = 0;
 };
 };  // namespace recorder

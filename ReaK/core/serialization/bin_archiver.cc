@@ -57,9 +57,9 @@ bin_iarchive::bin_iarchive(const std::string& FileName) {
   }
 }
 
-bin_iarchive::bin_iarchive(std::istream& aStream) {
+bin_iarchive::bin_iarchive(std::istream& stream) {
 
-  file_stream = std::shared_ptr<std::istream>(&aStream, null_deleter());
+  file_stream = std::shared_ptr<std::istream>(&stream, null_deleter());
 
   std::string header;
   *this >> header;
@@ -294,8 +294,8 @@ bin_oarchive::bin_oarchive(const std::string& FileName) {
   *this << version;
 }
 
-bin_oarchive::bin_oarchive(std::ostream& aStream) {
-  file_stream = std::shared_ptr<std::ostream>(&aStream, null_deleter());
+bin_oarchive::bin_oarchive(std::ostream& stream) {
+  file_stream = std::shared_ptr<std::ostream>(&stream, null_deleter());
 
   *this << std::string("reak_serialization::bin_archive");
   unsigned int version = 2;

@@ -84,12 +84,12 @@ class oi_reader {
   /**
    * Default constructor from a file-name.
    */
-  explicit oi_reader(const std::string& aFileName);
+  explicit oi_reader(const std::string& file_name);
 
   /**
    * Default constructor from an input stream.
    */
-  explicit oi_reader(std::istream& aStream);
+  explicit oi_reader(std::istream& stream);
 
   oi_reader(const oi_reader& /*rhs*/);
   oi_reader& operator=(const oi_reader& /*rhs*/);
@@ -105,12 +105,12 @@ class oi_reader {
   /**
    * Open a given file.
    */
-  oi_reader& read_file(const std::string& aFileName);
+  oi_reader& read_file(const std::string& file_name);
 
   /**
    * Read scene-graph from a given stream.
    */
-  oi_reader& read_stream(std::istream& aStream);
+  oi_reader& read_stream(std::istream& stream);
 
   /**
    * Check if the.

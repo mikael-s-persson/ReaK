@@ -306,7 +306,7 @@ struct sat3D_meas_true_from_extractor {
       : data_in(aDataIn),
         sat_options(aSatOptions),
         skips(aSkips),
-        nvr_in(data_in->getFreshNamedValueRow()) {
+        nvr_in(data_in->get_fresh_named_value_row()) {
     step_once();
   }
 };
@@ -346,7 +346,7 @@ struct sat3D_estimate_result_to_recorder {
 
   void mark_prediction_start(double time) const {
     (*rec) << time;
-    for (unsigned int i = 1; i < rec->getColCount(); ++i) {
+    for (unsigned int i = 1; i < rec->get_col_count(); ++i) {
       (*rec) << 0.0;
     }
     (*rec) << ReaK::recorder::data_recorder::end_value_row;
@@ -406,10 +406,10 @@ struct sat3D_collect_stddevs {
 
   explicit sat3D_collect_stddevs(
       const std::shared_ptr<ReaK::recorder::data_recorder>& aRec)
-      : stddevs(aRec->getColCount(), 0.0), rec(aRec) {}
+      : stddevs(aRec->get_col_count(), 0.0), rec(aRec) {}
 
   void initialize() {
-    stddevs = ReaK::vect_n<double>(rec->getColCount(), 0.0);
+    stddevs = ReaK::vect_n<double>(rec->get_col_count(), 0.0);
     counter = 0;
   }
 
@@ -1645,7 +1645,7 @@ static void get_timeseries_from_rec(
   std::cout << "Reading data file..." << std::endl;
 
   try {
-    recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
+    recorder::named_value_row nvr_in = data_in->get_fresh_named_value_row();
     while (true) {
       (*data_in) >> nvr_in;
 

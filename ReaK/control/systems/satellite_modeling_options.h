@@ -446,101 +446,101 @@ struct satellite_model_options {
 
   /**
    * Loads all the configurations from the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive from which to load all the configurations.
+   * \param file_name The file-name of the ReaK archive from which to load all the configurations.
    */
-  void load_all_configs(const std::string& aFileName);
+  void load_all_configs(const std::string& file_name);
 
   /**
    * Saves all the configurations to the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive to which to save all the configurations.
+   * \param file_name The file-name of the ReaK archive to which to save all the configurations.
    */
-  void save_all_configs(const std::string& aFileName) const;
+  void save_all_configs(const std::string& file_name) const;
 
   /**
    * Loads the mass configurations (mass and inertia-tensor) from the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive from which to load the mass information.
+   * \param file_name The file-name of the ReaK archive from which to load the mass information.
    */
-  void load_mass_configs(const std::string& aFileName);
+  void load_mass_configs(const std::string& file_name);
 
   /**
    * Saves the mass configurations (mass and inertia-tensor) to the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive to which to save the mass information.
+   * \param file_name The file-name of the ReaK archive to which to save the mass information.
    */
-  void save_mass_configs(const std::string& aFileName) const;
+  void save_mass_configs(const std::string& file_name) const;
 
   /**
    * Loads the IMU configurations (orientation, location, Earth frame, and mag-field) from the
    * given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive from which to load the configs.
+   * \param file_name The file-name of the ReaK archive from which to load the configs.
    */
-  void load_IMU_configs(const std::string& aFileName);
+  void load_IMU_configs(const std::string& file_name);
 
   /**
    * Saves the IMU configurations (orientation, location, Earth frame, and mag-field) to the
    * given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive to which to save the configs.
+   * \param file_name The file-name of the ReaK archive to which to save the configs.
    */
-  void save_IMU_configs(const std::string& aFileName) const;
+  void save_IMU_configs(const std::string& file_name) const;
 
   /**
    * Loads the input-disturbance covariance matrix from the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive from which to load the matrix.
+   * \param file_name The file-name of the ReaK archive from which to load the matrix.
    */
-  void load_input_disturbance(const std::string& aFileName);
+  void load_input_disturbance(const std::string& file_name);
 
   /**
    * Saves the input-disturbance covariance matrix to the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive to which to save the matrix.
+   * \param file_name The file-name of the ReaK archive to which to save the matrix.
    */
-  void save_input_disturbance(const std::string& aFileName) const;
+  void save_input_disturbance(const std::string& file_name) const;
 
   /**
    * Loads the measurement-noise covariance matrix from the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive from which to load the matrix.
+   * \param file_name The file-name of the ReaK archive from which to load the matrix.
    */
-  void load_measurement_noise(const std::string& aFileName);
+  void load_measurement_noise(const std::string& file_name);
 
   /**
    * Saves the measurement-noise covariance matrix to the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive to which to save the matrix.
+   * \param file_name The file-name of the ReaK archive to which to save the matrix.
    */
-  void save_measurement_noise(const std::string& aFileName) const;
+  void save_measurement_noise(const std::string& file_name) const;
 
   /**
    * Loads the artificial measurement-noise covariance matrix from the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive from which to load the matrix.
+   * \param file_name The file-name of the ReaK archive from which to load the matrix.
    */
-  void load_artificial_noise(const std::string& aFileName);
+  void load_artificial_noise(const std::string& file_name);
 
   /**
    * Saves the artificial measurement-noise covariance matrix to the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive to which to save the matrix.
+   * \param file_name The file-name of the ReaK archive to which to save the matrix.
    */
-  void save_artificial_noise(const std::string& aFileName) const;
+  void save_artificial_noise(const std::string& file_name) const;
 
   /**
    * Loads the steady-state parameter covariance matrix from the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive from which to load the matrix.
+   * \param file_name The file-name of the ReaK archive from which to load the matrix.
    */
-  void load_steady_param_covariance(const std::string& aFileName);
+  void load_steady_param_covariance(const std::string& file_name);
 
   /**
    * Saves the steady-state parameter covariance matrix to the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive to which to save the matrix.
+   * \param file_name The file-name of the ReaK archive to which to save the matrix.
    */
-  void save_steady_param_covariance(const std::string& aFileName) const;
+  void save_steady_param_covariance(const std::string& file_name) const;
 
   /**
    * Loads the initial motion of the satellite from the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive from which to load the initial motion.
+   * \param file_name The file-name of the ReaK archive from which to load the initial motion.
    */
-  void load_initial_motion(const std::string& aFileName);
+  void load_initial_motion(const std::string& file_name);
 
   /**
    * Saves the initial motion of the satellite to the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive to which to save the initial motion.
+   * \param file_name The file-name of the ReaK archive to which to save the initial motion.
    */
-  void save_initial_motion(const std::string& aFileName) const;
+  void save_initial_motion(const std::string& file_name) const;
 };
 
 /**
@@ -609,15 +609,15 @@ struct satellite_predictor_options : satellite_model_options {
 
   /**
    * Loads the prediction configurations from the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive from which to load the prediction configurations.
+   * \param file_name The file-name of the ReaK archive from which to load the prediction configurations.
    */
-  void load_prediction_configs(const std::string& aFileName);
+  void load_prediction_configs(const std::string& file_name);
 
   /**
    * Saves the prediction configurations to the given file-name (ReaK archive).
-   * \param aFileName The file-name of the ReaK archive to which to save the prediction configurations.
+   * \param file_name The file-name of the ReaK archive to which to save the prediction configurations.
    */
-  void save_prediction_configs(const std::string& aFileName) const;
+  void save_prediction_configs(const std::string& file_name) const;
 };
 
 }  // namespace ReaK::ctrl

@@ -38,7 +38,7 @@
 
 namespace ReaK::recorder {
 
-std::string data_stream_options::get_URI() const {
+std::string data_stream_options::get_uri() const {
   std::string result;
 
   switch (kind) {
@@ -106,7 +106,7 @@ std::string data_stream_options::get_URI() const {
   return result;
 }
 
-void data_stream_options::set_from_URI(const std::string& aURI) {
+void data_stream_options::set_from_uri(const std::string& aURI) {
   std::size_t cur_i = 0;
   std::size_t cur_sep = aURI.find(':');
   std::string hdr_name = aURI.substr(0, cur_sep);
@@ -205,8 +205,8 @@ std::shared_ptr<data_recorder> data_stream_options::create_recorder() const {
       break;
   }
 
-  result->setFlushSampleRate(flush_rate);
-  result->setMaxBufferSize(buffer_size);
+  result->set_flush_sample_rate(flush_rate);
+  result->set_max_buffer_size(buffer_size);
 
   switch (kind) {
     case space_separated:
@@ -231,12 +231,12 @@ std::shared_ptr<data_recorder> data_stream_options::create_recorder() const {
     if ((d != std::string::npos) || (t != std::string::npos)) {
       // Record the current date and time:
       std::time_t t_ctime = std::time(nullptr);
-      std::array<char, 16> cdate_as_str;
+      std::array<char, 16> cdate_as_str = {};
       if (std::strftime(cdate_as_str.data(), cdate_as_str.size(), "%Y%m%d",
                         std::localtime(&t_ctime)) == 0) {
         cdate_as_str[0] = '\0';
       }
-      std::array<char, 16> ctime_as_str;
+      std::array<char, 16> ctime_as_str = {};
       if (std::strftime(ctime_as_str.data(), ctime_as_str.size(), "%H%M%S",
                         std::localtime(&t_ctime)) == 0) {
         ctime_as_str[0] = '\0';
@@ -269,20 +269,20 @@ std::shared_ptr<data_recorder> data_stream_options::create_recorder() const {
 
     switch (kind) {
       case tcp_stream:
-        result->setFileName("tcp:" + new_fname);
+        result->set_file_name("tcp:" + new_fname);
         break;
       case udp_stream:
-        result->setFileName("udp:" + new_fname);
+        result->set_file_name("udp:" + new_fname);
         break;
       case raw_udp_stream:
-        result->setFileName("raw_udp:" + new_fname);
+        result->set_file_name("raw_udp:" + new_fname);
         break;
       default:
-        result->setFileName(new_fname);
+        result->set_file_name(new_fname);
         break;
     }
   } else {
-    result->setStream(std::cout);
+    result->set_stream(std::cout);
   }
 
   if (static_cast<unsigned int>(!names.empty()) != 0U) {
@@ -322,8 +322,8 @@ data_stream_options::create_extractor() const {
       break;
   }
 
-  result.first->setFlushSampleRate(flush_rate);
-  result.first->setMinBufferSize(buffer_size);
+  result.first->set_flush_sample_rate(flush_rate);
+  result.first->set_min_buffer_size(buffer_size);
 
   switch (kind) {
     case space_separated:
@@ -346,9 +346,10 @@ data_stream_options::create_extractor() const {
     }
     result.second = names;
 
-    auto* data_in_tmp = static_cast<network_extractor*>(result.first.get()); // NOLINT
+    auto* data_in_tmp =
+        static_cast<network_extractor*>(result.first.get());  // NOLINT
     for (auto& name : names) {
-      data_in_tmp->addName(name);
+      data_in_tmp->add_name(name);
     }
   } else
 #endif  // ENABLE_NETWORK_RECORDER
@@ -358,33 +359,34 @@ data_stream_options::create_extractor() const {
       }
       result.second = names;
 
-      auto* data_in_tmp = static_cast<vector_extractor*>(result.first.get()); // NOLINT
+      auto* data_in_tmp =
+          static_cast<vector_extractor*>(result.first.get());  // NOLINT
       for (auto& name : names) {
-        data_in_tmp->addName(name);
+        data_in_tmp->add_name(name);
       }
     }
 
   if (file_name != "stdin") {
     switch (kind) {
       case tcp_stream:
-        result.first->setFileName("tcp:" + file_name);
+        result.first->set_file_name("tcp:" + file_name);
         break;
       case udp_stream:
-        result.first->setFileName("udp:" + file_name);
+        result.first->set_file_name("udp:" + file_name);
         break;
       case raw_udp_stream:
-        result.first->setFileName("raw_udp:" + file_name);
+        result.first->set_file_name("raw_udp:" + file_name);
         break;
       default:
-        result.first->setFileName(file_name);
+        result.first->set_file_name(file_name);
         break;
     }
   } else {
-    result.first->setStream(std::cin);
+    result.first->set_stream(std::cin);
   }
 
   if ((kind != raw_udp_stream) && (kind != vector_stream)) {
-    result.second.resize(result.first->getColCount(), "");
+    result.second.resize(result.first->get_col_count(), "");
     for (std::size_t i = 0; i < result.second.size(); ++i) {
       (*result.first) >> result.second[i];
     }
@@ -394,8 +396,8 @@ data_stream_options::create_extractor() const {
     }
 
     if (!time_sync_name.empty() &&
-        (std::find(result.second.begin(), result.second.end(),
-                   time_sync_name) == result.second.end())) {
+        (std::ranges::find(result.second, time_sync_name) ==
+         result.second.end())) {
       throw std::invalid_argument(time_sync_name + " as time-sync column-name");
     }
   }
@@ -403,10 +405,10 @@ data_stream_options::create_extractor() const {
   return result;
 }
 
-void data_stream_options::load_all_configs(const std::string& aFileName) {
+void data_stream_options::load_all_configs(const std::string& a_file_name) {
 
   std::shared_ptr<serialization::iarchive> p_ia =
-      serialization::open_iarchive(aFileName);
+      serialization::open_iarchive(a_file_name);
 
   std::string stream_kind;
 
@@ -435,10 +437,11 @@ void data_stream_options::load_all_configs(const std::string& aFileName) {
   }
 }
 
-void data_stream_options::save_all_configs(const std::string& aFileName) const {
+void data_stream_options::save_all_configs(
+    const std::string& a_file_name) const {
 
   std::shared_ptr<serialization::oarchive> p_oa =
-      serialization::open_oarchive(aFileName);
+      serialization::open_oarchive(a_file_name);
 
   std::string stream_kind;
 

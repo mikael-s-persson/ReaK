@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
     return 3;
   }
 
-  recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
+  recorder::named_value_row nvr_in = data_in->get_fresh_named_value_row();
 
   bool is_measured_pose = true;
   try {
