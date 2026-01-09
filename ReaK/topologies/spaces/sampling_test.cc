@@ -96,10 +96,10 @@ int main(int argc, char** argv) {
       world_image.ptr()[3 * 512 * int(v[0]) + 3 * int(v[1]) + 1] = 0;
       world_image.ptr()[3 * 512 * int(v[0]) + 3 * int(v[1]) + 2] = 255;
       if (i % output_interval == 0)
-        printResult(world_image, i, topo.getName());
+        printResult(world_image, i, topo.get_name());
     };
 
-    printResult(world_image, vertex_count, topo.getName());
+    printResult(world_image, vertex_count, topo.get_name());
 
   } catch (...) {
     std::cout
@@ -120,10 +120,10 @@ int main(int argc, char** argv) {
       world_image.ptr()[3 * 512 * int(v[0]) + 3 * int(v[1]) + 1] = 0;
       world_image.ptr()[3 * 512 * int(v[0]) + 3 * int(v[1]) + 2] = 255;
       if (i % output_interval == 0)
-        printResult(world_image, i, topo.getName());
+        printResult(world_image, i, topo.get_name());
     };
 
-    printResult(world_image, vertex_count, topo.getName());
+    printResult(world_image, vertex_count, topo.get_name());
 
   } catch (...) {
     std::cout
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
       };
     };
 
-    printResult(world_image, vertex_count, topo.getName());
+    printResult(world_image, vertex_count, topo.get_name());
 
   } catch (...) {
     std::cout
@@ -189,7 +189,7 @@ int main(int argc, char** argv) {
       };
     };
 
-    printResult(world_image, vertex_count, topo.getName());
+    printResult(world_image, vertex_count, topo.get_name());
 
   } catch (...) {
     std::cout

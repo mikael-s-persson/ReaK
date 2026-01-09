@@ -64,9 +64,9 @@ struct joint_limits_mapping : public named_object {
       const std::shared_ptr<kte::joint_limits_collection<T>>& aLimits = {})
       : named_object(), limits(aLimits) {
     if (limits) {
-      this->setName(limits->getName() + "_mapping");
+      this->set_name(limits->get_name() + "_mapping");
     } else {
-      this->setName("joint_limits_mapping");
+      this->set_name("joint_limits_mapping");
     }
   }
 
@@ -127,12 +127,12 @@ struct joint_limits_mapping : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(limits);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(limits);
   }
 

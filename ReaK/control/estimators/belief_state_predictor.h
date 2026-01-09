@@ -471,8 +471,8 @@ class belief_predicted_trajectory
             unsigned int /*unused*/) const override {
     std::unique_lock<std::recursive_mutex> lock_this(pred_seg_mutex);
 
-    base_class_type::save(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::save(A,
+                          base_class_type::get_static_object_type()->version());
     std::size_t prediction_assumption = pred_assumption;
     A& RK_SERIAL_SAVE_WITH_NAME(input) &
         RK_SERIAL_SAVE_WITH_NAME(pred_factory) &
@@ -482,8 +482,8 @@ class belief_predicted_trajectory
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     std::unique_lock<std::recursive_mutex> lock_this(pred_seg_mutex);
 
-    base_class_type::load(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::load(A,
+                          base_class_type::get_static_object_type()->version());
     std::size_t prediction_assumption = 0;
     A& RK_SERIAL_LOAD_WITH_NAME(input) &
         RK_SERIAL_LOAD_WITH_NAME(pred_factory) &

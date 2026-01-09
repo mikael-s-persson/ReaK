@@ -59,7 +59,7 @@ class vector_topology : public named_object {
 
   explicit vector_topology(const std::string& aName = "vector_topology")
       : named_object() {
-    setName(aName);
+    set_name(aName);
   }
 
   /*************************************************************************
@@ -118,13 +118,13 @@ class vector_topology : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400007, 1, "vector_topology",

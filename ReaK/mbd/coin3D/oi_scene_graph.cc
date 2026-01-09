@@ -232,7 +232,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
                            aGeom2D.getPose().Rotation.getAngle());
   sep->addChild(trans);
 
-  if (aGeom2D.getObjectType() == line_seg_2D::getStaticObjectType()) {
+  if (aGeom2D.get_object_type() == line_seg_2D::get_static_object_type()) {
     const auto& ln_geom = static_cast<const line_seg_2D&>(aGeom2D);
 
     auto* col = new SoBaseColor;
@@ -250,7 +250,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     ln_set->numVertices.set1Value(0, 2);
     sep->addChild(ln_set);
 
-  } else if (aGeom2D.getObjectType() == grid_2D::getStaticObjectType()) {
+  } else if (aGeom2D.get_object_type() == grid_2D::get_static_object_type()) {
     const auto& gd_geom = static_cast<const grid_2D&>(aGeom2D);
     double x_step =
         gd_geom.getDimensions()[0] / double(gd_geom.getSquareCounts()[0]);
@@ -290,8 +290,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     sep->addChild(coords);
     sep->addChild(ln_set);
 
-  } else if (aGeom2D.getObjectType() ==
-             coord_arrows_2D::getStaticObjectType()) {
+  } else if (aGeom2D.get_object_type() ==
+             coord_arrows_2D::get_static_object_type()) {
     const auto& ca_geom = static_cast<const coord_arrows_2D&>(aGeom2D);
 
     auto* sep_x = new SoSeparator;
@@ -328,7 +328,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
 
     sep->addChild(sep_y);
 
-  } else if (aGeom2D.getObjectType() == circle::getStaticObjectType()) {
+  } else if (aGeom2D.get_object_type() == circle::get_static_object_type()) {
     const auto& ci_geom = static_cast<const circle&>(aGeom2D);
 
     auto* col = new SoBaseColor;
@@ -345,7 +345,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     ci_cyl->height = 1e-4;
     sep->addChild(ci_cyl);
 
-  } else if (aGeom2D.getObjectType() == rectangle::getStaticObjectType()) {
+  } else if (aGeom2D.get_object_type() == rectangle::get_static_object_type()) {
     const auto& re_geom = static_cast<const rectangle&>(aGeom2D);
 
     auto* col = new SoBaseColor;
@@ -359,8 +359,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     re_cube->depth = 1e-4;
     sep->addChild(re_cube);
 
-  } else if (aGeom2D.getObjectType() ==
-             capped_rectangle::getStaticObjectType()) {
+  } else if (aGeom2D.get_object_type() ==
+             capped_rectangle::get_static_object_type()) {
     const auto& re_geom = static_cast<const rectangle&>(aGeom2D);
 
     auto* col = new SoBaseColor;
@@ -397,8 +397,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     re_cyl_left->height = 1e-4;
     sep->addChild(re_cyl_left);
 
-  } else if (aGeom2D.getObjectType() ==
-             composite_shape_2D::getStaticObjectType()) {
+  } else if (aGeom2D.get_object_type() ==
+             composite_shape_2D::get_static_object_type()) {
     const auto& comp_geom = static_cast<const composite_shape_2D&>(aGeom2D);
 
     using Iter = std::vector<std::shared_ptr<shape_2D>>::const_iterator;
@@ -435,7 +435,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
                            aGeom3D.getPose().Quat[0]);
   sep->addChild(trans);
 
-  if (aGeom3D.getObjectType() == line_seg_3D::getStaticObjectType()) {
+  if (aGeom3D.get_object_type() == line_seg_3D::get_static_object_type()) {
     const auto& ln_geom = static_cast<const line_seg_3D&>(aGeom3D);
 
     auto* col = new SoBaseColor;
@@ -454,7 +454,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     ln_set->numVertices.set1Value(0, 2);
     sep->addChild(ln_set);
 
-  } else if (aGeom3D.getObjectType() == grid_3D::getStaticObjectType()) {
+  } else if (aGeom3D.get_object_type() == grid_3D::get_static_object_type()) {
     const auto& gd_geom = static_cast<const grid_3D&>(aGeom3D);
     double x_step =
         gd_geom.getDimensions()[0] / double(gd_geom.getSquareCounts()[0]);
@@ -517,8 +517,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     sep->addChild(coords);
     sep->addChild(ln_set);
 
-  } else if (aGeom3D.getObjectType() ==
-             coord_arrows_3D::getStaticObjectType()) {
+  } else if (aGeom3D.get_object_type() ==
+             coord_arrows_3D::get_static_object_type()) {
     const auto& ca_geom = static_cast<const coord_arrows_3D&>(aGeom3D);
 
     auto* sep_x = new SoSeparator;
@@ -572,7 +572,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
 
     sep->addChild(sep_z);
 
-  } else if (aGeom3D.getObjectType() == plane::getStaticObjectType()) {
+  } else if (aGeom3D.get_object_type() == plane::get_static_object_type()) {
     const auto& pl_geom = static_cast<const plane&>(aGeom3D);
 
     auto* col = new SoBaseColor;
@@ -586,7 +586,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     pl_cube->depth = 1e-4;
     sep->addChild(pl_cube);
 
-  } else if (aGeom3D.getObjectType() == sphere::getStaticObjectType()) {
+  } else if (aGeom3D.get_object_type() == sphere::get_static_object_type()) {
     const auto& sp_geom = static_cast<const sphere&>(aGeom3D);
 
     auto* col = new SoBaseColor;
@@ -598,7 +598,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     sp_cyl->radius = sp_geom.getRadius();
     sep->addChild(sp_cyl);
 
-  } else if (aGeom3D.getObjectType() == box::getStaticObjectType()) {
+  } else if (aGeom3D.get_object_type() == box::get_static_object_type()) {
     const box& bx_geom = static_cast<const box&>(aGeom3D);
 
     auto* col = new SoBaseColor;
@@ -612,7 +612,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     bx_cube->depth = bx_geom.getDimensions()[2];
     sep->addChild(bx_cube);
 
-  } else if (aGeom3D.getObjectType() == cylinder::getStaticObjectType()) {
+  } else if (aGeom3D.get_object_type() == cylinder::get_static_object_type()) {
     const auto& cy_geom = static_cast<const cylinder&>(aGeom3D);
 
     auto* col = new SoBaseColor;
@@ -629,8 +629,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     cy_cyl->height = cy_geom.getLength();
     sep->addChild(cy_cyl);
 
-  } else if (aGeom3D.getObjectType() ==
-             capped_cylinder::getStaticObjectType()) {
+  } else if (aGeom3D.get_object_type() ==
+             capped_cylinder::get_static_object_type()) {
     const auto& cy_geom = static_cast<const capped_cylinder&>(aGeom3D);
 
     auto* col = new SoBaseColor;
@@ -663,8 +663,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     cy_sp_bottom->radius = cy_geom.getRadius();
     sep->addChild(cy_sp_bottom);
 
-  } else if (aGeom3D.getObjectType() ==
-             composite_shape_3D::getStaticObjectType()) {
+  } else if (aGeom3D.get_object_type() ==
+             composite_shape_3D::get_static_object_type()) {
     const auto& comp_geom = static_cast<const composite_shape_3D&>(aGeom3D);
 
     using Iter = std::vector<std::shared_ptr<shape_3D>>::const_iterator;

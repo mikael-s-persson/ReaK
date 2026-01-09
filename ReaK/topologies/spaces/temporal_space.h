@@ -372,7 +372,7 @@ class temporal_space : public named_object {
       const time_topology& aTime = time_topology(),                // NOLINT
       const distance_metric_type& aDist = distance_metric_type())  // NOLINT
       : named_object(), space(aSpace), time(aTime), dist(aDist) {
-    this->setName(aName);
+    this->set_name(aName);
   }
 
   using point_type = temporal_point<topology_point_type_t<space_topology>,
@@ -522,15 +522,15 @@ class temporal_space : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(space) & RK_SERIAL_SAVE_WITH_NAME(time) &
         RK_SERIAL_SAVE_WITH_NAME(dist);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(space) & RK_SERIAL_LOAD_WITH_NAME(time) &
         RK_SERIAL_LOAD_WITH_NAME(dist);
   }

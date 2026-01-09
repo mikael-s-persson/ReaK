@@ -55,7 +55,7 @@ struct maximum_likelihood_map : public named_object {
 
   using self = maximum_likelihood_map;
 
-  maximum_likelihood_map() { setName("maximum_likelihood_map"); }
+  maximum_likelihood_map() { set_name("maximum_likelihood_map"); }
 
   /**
    * This function extracts the most-likely-value from a belief-state.
@@ -82,11 +82,11 @@ struct maximum_likelihood_map : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2300014, 1, "maximum_likelihood_map",

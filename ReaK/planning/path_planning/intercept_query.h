@@ -300,7 +300,7 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(start_pos) &
         RK_SERIAL_SAVE_WITH_NAME(goal_traj) &
         RK_SERIAL_SAVE_WITH_NAME(max_num_results) &
@@ -309,7 +309,7 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(start_pos) &
         RK_SERIAL_LOAD_WITH_NAME(goal_traj) &
         RK_SERIAL_LOAD_WITH_NAME(max_num_results) &

@@ -452,13 +452,13 @@ class discrete_point_path : public waypoint_container<Space, Metric> {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_class_type::save(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::save(A,
+                          base_class_type::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_class_type::load(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::load(A,
+                          base_class_type::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2440013, 1, "discrete_point_path",

@@ -114,12 +114,12 @@ class virtual_kte_interface_gen : public kte_map {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mBase) & RK_SERIAL_SAVE_WITH_NAME(mEnd);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mBase) & RK_SERIAL_LOAD_WITH_NAME(mEnd);
   }
 
@@ -200,12 +200,12 @@ class virtual_kte_interface_2D : public kte_map {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mBase) & RK_SERIAL_SAVE_WITH_NAME(mEnd);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mBase) & RK_SERIAL_LOAD_WITH_NAME(mEnd);
   }
 
@@ -286,12 +286,12 @@ class virtual_kte_interface_3D : public kte_map {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mBase) & RK_SERIAL_SAVE_WITH_NAME(mEnd);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mBase) & RK_SERIAL_LOAD_WITH_NAME(mEnd);
   }
 

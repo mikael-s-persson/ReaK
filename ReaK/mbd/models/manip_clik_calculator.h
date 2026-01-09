@@ -161,13 +161,13 @@ class clik_bent_joints_cost_eval : public optim::cost_evaluator {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     optim::cost_evaluator::save(
-        A, optim::cost_evaluator::getStaticObjectType()->TypeVersion());
+        A, optim::cost_evaluator::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(joint_ids);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     optim::cost_evaluator::load(
-        A, optim::cost_evaluator::getStaticObjectType()->TypeVersion());
+        A, optim::cost_evaluator::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(joint_ids);
   }
 
@@ -319,7 +319,7 @@ class manip_clik_calculator : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(model) & RK_SERIAL_SAVE_WITH_NAME(cost_eval) &
         RK_SERIAL_SAVE_WITH_NAME(lower_bounds) &
         RK_SERIAL_SAVE_WITH_NAME(upper_bounds) &
@@ -329,7 +329,7 @@ class manip_clik_calculator : public shared_object {
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(model) & RK_SERIAL_LOAD_WITH_NAME(cost_eval) &
         RK_SERIAL_LOAD_WITH_NAME(lower_bounds) &
         RK_SERIAL_LOAD_WITH_NAME(upper_bounds) &

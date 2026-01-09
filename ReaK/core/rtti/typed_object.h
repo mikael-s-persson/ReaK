@@ -53,8 +53,8 @@ class typed_object {
   /**
    * This method is used to perform up- and down- casting of object pointers via a virtual call.
    */
-  virtual void* castTo(rtti::so_type* aTypeID) {
-    if (*(aTypeID->TypeID_begin()) == 0) {
+  virtual void* cast_to(rtti::so_type* tp) {
+    if (*(tp->id_begin()) == 0) {
       return static_cast<void*>(this);
     }
     return nullptr;
@@ -63,8 +63,8 @@ class typed_object {
   /**
    * This method is used to perform up- and down- casting of const-object pointers via a virtual call.
    */
-  virtual const void* castTo(rtti::so_type* aTypeID) const {
-    if (*(aTypeID->TypeID_begin()) == 0) {
+  virtual const void* cast_to(rtti::so_type* tp) const {
+    if (*(tp->id_begin()) == 0) {
       return static_cast<const void*>(this);
     }
     return nullptr;
@@ -74,27 +74,31 @@ class typed_object {
 
   /** This method fetches the object type structure from the ReaK::rtti system or creates it if it has not been
    * registered yet. */
-  [[nodiscard]] virtual rtti::so_type* getObjectType() const { return nullptr; }
+  [[nodiscard]] virtual rtti::so_type* get_object_type() const {
+    return nullptr;
+  }
   /** This method fetches the object type structure from the ReaK::rtti system or creates it if it has not been
    * registered yet. */
-  [[nodiscard]] static rtti::so_type* getStaticObjectType() { return nullptr; }
+  [[nodiscard]] static rtti::so_type* get_static_object_type() {
+    return nullptr;
+  }
 };
 
 namespace rtti {
 
 template <typename T>
 bool rk_is_of_type(const typed_object& obj) {
-  return (obj.castTo(T::getStaticObjectType()) != nullptr);
+  return (obj.cast_to(T::get_static_object_type()) != nullptr);
 }
 
 template <typename T>
 bool rk_is_of_type(const typed_object* obj) {
-  return (obj->castTo(T::getStaticObjectType()) != nullptr);
+  return (obj->cast_to(T::get_static_object_type()) != nullptr);
 }
 
 template <typename T>
 bool rk_is_of_type(const std::shared_ptr<const typed_object>& obj) {
-  return (obj->castTo(T::getStaticObjectType()) != nullptr);
+  return (obj->cast_to(T::get_static_object_type()) != nullptr);
 }
 
 /**
@@ -120,7 +124,7 @@ std::shared_ptr<Y> rk_dynamic_ptr_cast(const std::shared_ptr<U>& p) {
     return std::shared_ptr<Y>();
   }
   return std::shared_ptr<Y>(
-      p, static_cast<Y*>(p->castTo(Y::getStaticObjectType())));
+      p, static_cast<Y*>(p->cast_to(Y::get_static_object_type())));
 }
 
 template <typename Y, typename U, typename Deleter>
@@ -129,7 +133,7 @@ std::unique_ptr<Y, Deleter> rk_dynamic_ptr_cast(
   if (!p) {
     return std::unique_ptr<Y, Deleter>();
   }
-  void* tmp = p->castTo(Y::getStaticObjectType());
+  void* tmp = p->cast_to(Y::get_static_object_type());
   if (tmp) {
     std::unique_ptr<Y, Deleter> r(tmp, p.get_deleter());
     p.release();
@@ -140,88 +144,90 @@ std::unique_ptr<Y, Deleter> rk_dynamic_ptr_cast(
 
 template <typename T, typename Deleter>
 bool rk_is_of_type(const std::unique_ptr<const typed_object, Deleter>& obj) {
-  return (obj->castTo(T::getStaticObjectType()) != nullptr);
+  return (obj->cast_to(T::get_static_object_type()) != nullptr);
 }
 
 /// This MACRO creates a static (no-parameter) factory function for the current class CLASS_NAME.
 // NOLINTNEXTLINE
-#define RK_RTTI_MAKE_DEFAULT_FACTORY(CLASS_NAME)           \
-  static std::shared_ptr<::ReaK::shared_object> Create() { \
-    return std::shared_ptr<CLASS_NAME>(new CLASS_NAME());  \
-  }                                                        \
-  static ::ReaK::rtti::construct_ptr rk_rtti_CreatePtr() { \
-    return &Create;                                        \
+#define RK_RTTI_MAKE_DEFAULT_FACTORY(CLASS_NAME)            \
+  static std::shared_ptr<::ReaK::shared_object> Create() {  \
+    return std::shared_ptr<CLASS_NAME>(new CLASS_NAME());   \
+  }                                                         \
+  static ::ReaK::rtti::construct_ptr rk_rtti_create_ptr() { \
+    return &Create;                                         \
   }
 
 /// This MACRO registers a custom (no-parameter) factory function pointer for the current class.
 // NOLINTNEXTLINE
-#define RK_RTTI_REGISTER_CUSTOM_FACTORY(CLASS_FACTORY)     \
-  static ::ReaK::rtti::construct_ptr rk_rtti_CreatePtr() { \
-    return CLASS_FACTORY;                                  \
+#define RK_RTTI_REGISTER_CUSTOM_FACTORY(CLASS_FACTORY)      \
+  static ::ReaK::rtti::construct_ptr rk_rtti_create_ptr() { \
+    return CLASS_FACTORY;                                   \
   }
 
 /// This MACRO creates the static elements for the current class that registers the CLASS_ID and CLASS_NAME.
 // NOLINTNEXTLINE
-#define RK_RTTI_REGISTER_CLASS_ID(CLASS_NAME, CLASS_ID) \
-  static constexpr unsigned int rk_rtti_ID = CLASS_ID;  \
-  static constexpr auto rk_rtti_TypeName = std::string_view{CLASS_NAME};
+#define RK_RTTI_REGISTER_CLASS_ID(CLASS_NAME, CLASS_ID)     \
+  static constexpr unsigned int rk_rtti_type_id = CLASS_ID; \
+  static constexpr auto rk_rtti_type_name = std::string_view{CLASS_NAME};
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is
 /// guaranteed to be added if the class is instantiated).
 // NOLINTNEXTLINE
-#define RK_RTTI_REGISTER_CLASS_0BASE(CLASS_NAME, CLASS_VERSION)           \
-  static ::ReaK::rtti::so_type* getStaticObjectType() {                   \
-    static ::ReaK::rtti::so_type_ptr ptr(                                 \
-        ::ReaK::rtti::create_type_descriptor<CLASS_NAME>(CLASS_VERSION)); \
-    return ptr.ptr;                                                       \
-  }                                                                       \
-  ::ReaK::rtti::so_type* getObjectType() const override {                 \
-    (void)::ReaK::rtti::register_type<                                    \
-        CLASS_NAME>::impl; /* force instantiate */                        \
-    return CLASS_NAME::getStaticObjectType();                             \
-  }                                                                       \
-  void* castTo(::ReaK::rtti::so_type* aTypeID) override {                 \
-    if (*aTypeID == *(CLASS_NAME::getStaticObjectType())) {               \
-      return static_cast<void*>(this);                               \
-    }                                                                     \
-    return nullptr;                                                       \
-  }                                                                       \
-  const void* castTo(::ReaK::rtti::so_type* aTypeID) const override {     \
-    if (*aTypeID == *(CLASS_NAME::getStaticObjectType())) {               \
-      return static_cast<const void*>(this);                         \
-    }                                                                     \
-    return nullptr;                                                       \
+#define RK_RTTI_REGISTER_CLASS_0BASE(CLASS_NAME, CLASS_VERSION)            \
+  static ::ReaK::rtti::so_type* get_static_object_type() {                 \
+    static ::ReaK::rtti::so_type_ptr ptr(                                  \
+        ::ReaK::rtti::so_type_details::create_type_descriptor<CLASS_NAME>( \
+            CLASS_VERSION));                                               \
+    return ptr.ptr;                                                        \
+  }                                                                        \
+  ::ReaK::rtti::so_type* get_object_type() const override {                \
+    (void)::ReaK::rtti::register_type<                                     \
+        CLASS_NAME>::impl; /* force instantiate */                         \
+    return CLASS_NAME::get_static_object_type();                           \
+  }                                                                        \
+  void* cast_to(::ReaK::rtti::so_type* tp) override {                      \
+    if (*tp == *(CLASS_NAME::get_static_object_type())) {                  \
+      return static_cast<void*>(this);                                     \
+    }                                                                      \
+    return nullptr;                                                        \
+  }                                                                        \
+  const void* cast_to(::ReaK::rtti::so_type* tp) const override {          \
+    if (*tp == *(CLASS_NAME::get_static_object_type())) {                  \
+      return static_cast<const void*>(this);                               \
+    }                                                                      \
+    return nullptr;                                                        \
   }
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is
 /// guaranteed to be added if the class is instantiated).
 // NOLINTNEXTLINE
 #define RK_RTTI_REGISTER_CLASS_1BASE(CLASS_NAME, CLASS_VERSION, BASE_NAME) \
-  static ::ReaK::rtti::so_type* getStaticObjectType() {                    \
+  static ::ReaK::rtti::so_type* get_static_object_type() {                 \
     static ::ReaK::rtti::so_type_ptr ptr(                                  \
-        ::ReaK::rtti::create_type_descriptor<CLASS_NAME>(CLASS_VERSION));  \
+        ::ReaK::rtti::so_type_details::create_type_descriptor<CLASS_NAME>( \
+            CLASS_VERSION));                                               \
     static bool first_pass = true;                                         \
     if (first_pass) {                                                      \
-      ptr.ptr->addAncestor(BASE_NAME::getStaticObjectType());              \
+      ptr.ptr->add_ancestor(BASE_NAME::get_static_object_type());          \
     }                                                                      \
     return ptr.ptr;                                                        \
   }                                                                        \
-  ::ReaK::rtti::so_type* getObjectType() const override {                  \
+  ::ReaK::rtti::so_type* get_object_type() const override {                \
     (void)::ReaK::rtti::register_type<                                     \
         CLASS_NAME>::impl; /* force instantiate */                         \
-    return CLASS_NAME::getStaticObjectType();                              \
+    return CLASS_NAME::get_static_object_type();                           \
   }                                                                        \
-  void* castTo(::ReaK::rtti::so_type* aTypeID) override {                  \
-    if (*aTypeID == *(CLASS_NAME::getStaticObjectType())) {                \
-      return static_cast<void*>(this);                                \
+  void* cast_to(::ReaK::rtti::so_type* tp) override {                      \
+    if (*tp == *(CLASS_NAME::get_static_object_type())) {                  \
+      return static_cast<void*>(this);                                     \
     }                                                                      \
-    return BASE_NAME::castTo(aTypeID);                                     \
+    return BASE_NAME::cast_to(tp);                                         \
   }                                                                        \
-  const void* castTo(::ReaK::rtti::so_type* aTypeID) const override {      \
-    if (*aTypeID == *(CLASS_NAME::getStaticObjectType())) {                \
-      return static_cast<const void*>(this);                          \
+  const void* cast_to(::ReaK::rtti::so_type* tp) const override {          \
+    if (*tp == *(CLASS_NAME::get_static_object_type())) {                  \
+      return static_cast<const void*>(this);                               \
     }                                                                      \
-    return BASE_NAME::castTo(aTypeID);                                     \
+    return BASE_NAME::cast_to(tp);                                         \
   }
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is
@@ -229,40 +235,41 @@ bool rk_is_of_type(const std::unique_ptr<const typed_object, Deleter>& obj) {
 // NOLINTNEXTLINE
 #define RK_RTTI_REGISTER_CLASS_2BASE(CLASS_NAME, CLASS_VERSION, BASE_NAME1, \
                                      BASE_NAME2)                            \
-  static ::ReaK::rtti::so_type* getStaticObjectType() {                     \
+  static ::ReaK::rtti::so_type* get_static_object_type() {                  \
     static ::ReaK::rtti::so_type_ptr ptr(                                   \
-        ::ReaK::rtti::create_type_descriptor<CLASS_NAME>(CLASS_VERSION));   \
+        ::ReaK::rtti::so_type_details::create_type_descriptor<CLASS_NAME>(  \
+            CLASS_VERSION));                                                \
     static bool first_pass = true;                                          \
     if (first_pass) {                                                       \
-      ptr.ptr->addAncestor(BASE_NAME1::getStaticObjectType());              \
-      ptr.ptr->addAncestor(BASE_NAME2::getStaticObjectType());              \
+      ptr.ptr->add_ancestor(BASE_NAME1::get_static_object_type());          \
+      ptr.ptr->add_ancestor(BASE_NAME2::get_static_object_type());          \
     }                                                                       \
     return ptr.ptr;                                                         \
   }                                                                         \
-  ::ReaK::rtti::so_type* getObjectType() const override {                   \
+  ::ReaK::rtti::so_type* get_object_type() const override {                 \
     (void)::ReaK::rtti::register_type<                                      \
         CLASS_NAME>::impl; /* force instantiate */                          \
-    return CLASS_NAME::getStaticObjectType();                               \
+    return CLASS_NAME::get_static_object_type();                            \
   }                                                                         \
-  void* castTo(::ReaK::rtti::so_type* aTypeID) override {                   \
-    if (*aTypeID == *(CLASS_NAME::getStaticObjectType())) {                 \
-      return static_cast<void*>(this);                                 \
+  void* cast_to(::ReaK::rtti::so_type* tp) override {                       \
+    if (*tp == *(CLASS_NAME::get_static_object_type())) {                   \
+      return static_cast<void*>(this);                                      \
     }                                                                       \
-    void* result = BASE_NAME1::castTo(aTypeID);                             \
+    void* result = BASE_NAME1::cast_to(tp);                                 \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    return BASE_NAME2::castTo(aTypeID);                                     \
+    return BASE_NAME2::cast_to(tp);                                         \
   }                                                                         \
-  const void* castTo(::ReaK::rtti::so_type* aTypeID) const override {       \
-    if (*aTypeID == *(CLASS_NAME::getStaticObjectType())) {                 \
-      return static_cast<const void*>(this);                           \
+  const void* cast_to(::ReaK::rtti::so_type* tp) const override {           \
+    if (*tp == *(CLASS_NAME::get_static_object_type())) {                   \
+      return static_cast<const void*>(this);                                \
     }                                                                       \
-    const void* result = BASE_NAME1::castTo(aTypeID);                       \
+    const void* result = BASE_NAME1::cast_to(tp);                           \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    return BASE_NAME2::castTo(aTypeID);                                     \
+    return BASE_NAME2::cast_to(tp);                                         \
   }
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is
@@ -270,49 +277,50 @@ bool rk_is_of_type(const std::unique_ptr<const typed_object, Deleter>& obj) {
 // NOLINTNEXTLINE
 #define RK_RTTI_REGISTER_CLASS_3BASE(CLASS_NAME, CLASS_VERSION, BASE_NAME1, \
                                      BASE_NAME2, BASE_NAME3)                \
-  static ::ReaK::rtti::so_type* getStaticObjectType() {                     \
+  static ::ReaK::rtti::so_type* get_static_object_type() {                  \
     static ::ReaK::rtti::so_type_ptr ptr(                                   \
-        ::ReaK::rtti::create_type_descriptor<CLASS_NAME>(CLASS_VERSION));   \
+        ::ReaK::rtti::so_type_details::create_type_descriptor<CLASS_NAME>(  \
+            CLASS_VERSION));                                                \
     static bool first_pass = true;                                          \
     if (first_pass) {                                                       \
-      ptr.ptr->addAncestor(BASE_NAME1::getStaticObjectType());              \
-      ptr.ptr->addAncestor(BASE_NAME2::getStaticObjectType());              \
-      ptr.ptr->addAncestor(BASE_NAME3::getStaticObjectType());              \
+      ptr.ptr->add_ancestor(BASE_NAME1::get_static_object_type());          \
+      ptr.ptr->add_ancestor(BASE_NAME2::get_static_object_type());          \
+      ptr.ptr->add_ancestor(BASE_NAME3::get_static_object_type());          \
     }                                                                       \
     return ptr.ptr;                                                         \
   }                                                                         \
-  ::ReaK::rtti::so_type* getObjectType() const override {                   \
+  ::ReaK::rtti::so_type* get_object_type() const override {                 \
     (void)::ReaK::rtti::register_type<                                      \
         CLASS_NAME>::impl; /* force instantiate */                          \
-    return CLASS_NAME::getStaticObjectType();                               \
+    return CLASS_NAME::get_static_object_type();                            \
   }                                                                         \
-  void* castTo(::ReaK::rtti::so_type* aTypeID) override {                   \
-    if (*aTypeID == *(CLASS_NAME::getStaticObjectType())) {                 \
-      return static_cast<void*>(this);                                 \
+  void* cast_to(::ReaK::rtti::so_type* tp) override {                       \
+    if (*tp == *(CLASS_NAME::get_static_object_type())) {                   \
+      return static_cast<void*>(this);                                      \
     }                                                                       \
-    void* result = BASE_NAME1::castTo(aTypeID);                             \
+    void* result = BASE_NAME1::cast_to(tp);                                 \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    result = BASE_NAME2::castTo(aTypeID);                                   \
+    result = BASE_NAME2::cast_to(tp);                                       \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    return BASE_NAME3::castTo(aTypeID);                                     \
+    return BASE_NAME3::cast_to(tp);                                         \
   }                                                                         \
-  const void* castTo(::ReaK::rtti::so_type* aTypeID) const override {       \
-    if (*aTypeID == *(CLASS_NAME::getStaticObjectType())) {                 \
-      return static_cast<const void*>(this);                           \
+  const void* cast_to(::ReaK::rtti::so_type* tp) const override {           \
+    if (*tp == *(CLASS_NAME::get_static_object_type())) {                   \
+      return static_cast<const void*>(this);                                \
     }                                                                       \
-    const void* result = BASE_NAME1::castTo(aTypeID);                       \
+    const void* result = BASE_NAME1::cast_to(tp);                           \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    result = BASE_NAME2::castTo(aTypeID);                                   \
+    result = BASE_NAME2::cast_to(tp);                                       \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    return BASE_NAME3::castTo(aTypeID);                                     \
+    return BASE_NAME3::cast_to(tp);                                         \
   }
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is
@@ -320,58 +328,59 @@ bool rk_is_of_type(const std::unique_ptr<const typed_object, Deleter>& obj) {
 // NOLINTNEXTLINE
 #define RK_RTTI_REGISTER_CLASS_4BASE(CLASS_NAME, CLASS_VERSION, BASE_NAME1, \
                                      BASE_NAME2, BASE_NAME3, BASE_NAME4)    \
-  static ::ReaK::rtti::so_type* getStaticObjectType() {                     \
+  static ::ReaK::rtti::so_type* get_static_object_type() {                  \
     static ::ReaK::rtti::so_type_ptr ptr(                                   \
-        ::ReaK::rtti::create_type_descriptor<CLASS_NAME>(CLASS_VERSION));   \
+        ::ReaK::rtti::so_type_details::create_type_descriptor<CLASS_NAME>(  \
+            CLASS_VERSION));                                                \
     static bool first_pass = true;                                          \
     if (first_pass) {                                                       \
-      ptr.ptr->addAncestor(BASE_NAME1::getStaticObjectType());              \
-      ptr.ptr->addAncestor(BASE_NAME2::getStaticObjectType());              \
-      ptr.ptr->addAncestor(BASE_NAME3::getStaticObjectType());              \
-      ptr.ptr->addAncestor(BASE_NAME4::getStaticObjectType());              \
+      ptr.ptr->add_ancestor(BASE_NAME1::get_static_object_type());          \
+      ptr.ptr->add_ancestor(BASE_NAME2::get_static_object_type());          \
+      ptr.ptr->add_ancestor(BASE_NAME3::get_static_object_type());          \
+      ptr.ptr->add_ancestor(BASE_NAME4::get_static_object_type());          \
     }                                                                       \
     return ptr.ptr;                                                         \
   }                                                                         \
-  ::ReaK::rtti::so_type* getObjectType() const override {                   \
+  ::ReaK::rtti::so_type* get_object_type() const override {                 \
     (void)::ReaK::rtti::register_type<                                      \
         CLASS_NAME>::impl; /* force instantiate */                          \
-    return CLASS_NAME::getStaticObjectType();                               \
+    return CLASS_NAME::get_static_object_type();                            \
   }                                                                         \
-  void* castTo(::ReaK::rtti::so_type* aTypeID) override {                   \
-    if (*aTypeID == *(CLASS_NAME::getStaticObjectType())) {                 \
+  void* cast_to(::ReaK::rtti::so_type* tp) override {                       \
+    if (*tp == *(CLASS_NAME::get_static_object_type())) {                   \
       return reinterpret_cast<void*>(this);                                 \
     }                                                                       \
-    void* result = BASE_NAME1::castTo(aTypeID);                             \
+    void* result = BASE_NAME1::cast_to(tp);                                 \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    result = BASE_NAME2::castTo(aTypeID);                                   \
+    result = BASE_NAME2::cast_to(tp);                                       \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    result = BASE_NAME3::castTo(aTypeID);                                   \
+    result = BASE_NAME3::cast_to(tp);                                       \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    return BASE_NAME4::castTo(aTypeID);                                     \
+    return BASE_NAME4::cast_to(tp);                                         \
   }                                                                         \
-  const void* castTo(::ReaK::rtti::so_type* aTypeID) const override {       \
-    if (*aTypeID == *(CLASS_NAME::getStaticObjectType())) {                 \
+  const void* cast_to(::ReaK::rtti::so_type* tp) const override {           \
+    if (*tp == *(CLASS_NAME::get_static_object_type())) {                   \
       return reinterpret_cast<const void*>(this);                           \
     }                                                                       \
-    const void* result = BASE_NAME1::castTo(aTypeID);                       \
+    const void* result = BASE_NAME1::cast_to(tp);                           \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    result = BASE_NAME2::castTo(aTypeID);                                   \
+    result = BASE_NAME2::cast_to(tp);                                       \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    result = BASE_NAME3::castTo(aTypeID);                                   \
+    result = BASE_NAME3::cast_to(tp);                                       \
     if (result) {                                                           \
       return result;                                                        \
     }                                                                       \
-    return BASE_NAME4::castTo(aTypeID);                                     \
+    return BASE_NAME4::cast_to(tp);                                         \
   }
 
 /** This is a macro to setup the casting and ReaK::rtti registry related methods in a descendant class. For the class

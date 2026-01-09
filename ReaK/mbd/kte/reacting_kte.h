@@ -47,7 +47,7 @@ class reacting_kte_gen : public kte_map {
   /**
    * Default constructor.
    */
-  explicit reacting_kte_gen(const std::string& aName = "") { setName(aName); }
+  explicit reacting_kte_gen(const std::string& aName = "") { set_name(aName); }
 
   /**
    * Default destructor.
@@ -72,7 +72,7 @@ class reacting_kte_2D : public kte_map {
   /**
    * Default constructor.
    */
-  explicit reacting_kte_2D(const std::string& aName = "") { setName(aName); }
+  explicit reacting_kte_2D(const std::string& aName = "") { set_name(aName); }
 
   /**
    * Default destructor.
@@ -98,7 +98,7 @@ class reacting_kte_3D : public kte_map {
   /**
    * Default constructor.
    */
-  explicit reacting_kte_3D(const std::string& aName = "") { setName(aName); }
+  explicit reacting_kte_3D(const std::string& aName = "") { set_name(aName); }
 
   /**
    * Default destructor.

@@ -38,12 +38,12 @@ cylinder::cylinder(const std::string& aName,
 
 void cylinder::save(ReaK::serialization::oarchive& A,
                     unsigned int /*unused*/) const {
-  shape_3D::save(A, shape_3D::getStaticObjectType()->TypeVersion());
+  shape_3D::save(A, shape_3D::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mLength) & RK_SERIAL_SAVE_WITH_NAME(mRadius);
 }
 
 void cylinder::load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) {
-  shape_3D::load(A, shape_3D::getStaticObjectType()->TypeVersion());
+  shape_3D::load(A, shape_3D::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mLength) & RK_SERIAL_LOAD_WITH_NAME(mRadius);
 }
 

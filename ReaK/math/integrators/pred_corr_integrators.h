@@ -142,13 +142,13 @@ class adamsBM3_integrator : public integrator<T> {
   ~adamsBM3_integrator() override = default;
 
   void save(ReaK::serialization::oarchive& A, unsigned int) const override {
-    integrator<T>::save(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::save(A, integrator<T>::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mCorrectionCount) &
         RK_SERIAL_SAVE_WITH_NAME(prevY) & RK_SERIAL_SAVE_WITH_NAME(prevF1) &
         RK_SERIAL_SAVE_WITH_NAME(prevF2) & RK_SERIAL_SAVE_WITH_NAME(prevF3);
   }
   void load(ReaK::serialization::iarchive& A, unsigned int) override {
-    integrator<T>::load(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::load(A, integrator<T>::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mCorrectionCount) &
         RK_SERIAL_LOAD_WITH_NAME(prevY) & RK_SERIAL_LOAD_WITH_NAME(prevF1) &
         RK_SERIAL_LOAD_WITH_NAME(prevF2) & RK_SERIAL_LOAD_WITH_NAME(prevF3);
@@ -402,14 +402,14 @@ class adamsBM5_integrator : public integrator<T> {
   ~adamsBM5_integrator() override = default;
 
   void save(ReaK::serialization::oarchive& A, unsigned int) const override {
-    integrator<T>::save(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::save(A, integrator<T>::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mCorrectionCount) &
         RK_SERIAL_SAVE_WITH_NAME(prevY) & RK_SERIAL_SAVE_WITH_NAME(prevF1) &
         RK_SERIAL_SAVE_WITH_NAME(prevF2) & RK_SERIAL_SAVE_WITH_NAME(prevF3) &
         RK_SERIAL_SAVE_WITH_NAME(prevF4) & RK_SERIAL_SAVE_WITH_NAME(prevF5);
   }
   void load(ReaK::serialization::iarchive& A, unsigned int) override {
-    integrator<T>::load(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::load(A, integrator<T>::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mCorrectionCount) &
         RK_SERIAL_LOAD_WITH_NAME(prevY) & RK_SERIAL_LOAD_WITH_NAME(prevF1) &
         RK_SERIAL_LOAD_WITH_NAME(prevF2) & RK_SERIAL_LOAD_WITH_NAME(prevF3) &
@@ -666,14 +666,14 @@ class hamming_mod_integrator : public integrator<T> {
   ~hamming_mod_integrator() override = default;
 
   void save(ReaK::serialization::oarchive& A, unsigned int) const override {
-    integrator<T>::save(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::save(A, integrator<T>::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mY_n_3) & RK_SERIAL_SAVE_WITH_NAME(mY_n_2) &
         RK_SERIAL_SAVE_WITH_NAME(mY_n_1) & RK_SERIAL_SAVE_WITH_NAME(mYp_n_2) &
         RK_SERIAL_SAVE_WITH_NAME(mYp_n_1) & RK_SERIAL_SAVE_WITH_NAME(mP_n) &
         RK_SERIAL_SAVE_WITH_NAME(mC);
   }
   void load(ReaK::serialization::iarchive& A, unsigned int) override {
-    integrator<T>::load(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::load(A, integrator<T>::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mY_n_3) & RK_SERIAL_LOAD_WITH_NAME(mY_n_2) &
         RK_SERIAL_LOAD_WITH_NAME(mY_n_1) & RK_SERIAL_LOAD_WITH_NAME(mYp_n_2) &
         RK_SERIAL_LOAD_WITH_NAME(mYp_n_1) & RK_SERIAL_LOAD_WITH_NAME(mP_n) &
@@ -943,13 +943,13 @@ class hamming_iter_mod_integrator : public hamming_mod_integrator<T> {
 
   void save(ReaK::serialization::oarchive& A, unsigned int) const override {
     hamming_mod_integrator<T>::save(
-        A, hamming_mod_integrator<T>::getStaticObjectType()->TypeVersion());
+        A, hamming_mod_integrator<T>::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mTolerance) &
         RK_SERIAL_SAVE_WITH_NAME(mMaxIter);
   }
   void load(ReaK::serialization::iarchive& A, unsigned int) override {
     hamming_mod_integrator<T>::load(
-        A, hamming_mod_integrator<T>::getStaticObjectType()->TypeVersion());
+        A, hamming_mod_integrator<T>::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mTolerance) &
         RK_SERIAL_LOAD_WITH_NAME(mMaxIter);
   }

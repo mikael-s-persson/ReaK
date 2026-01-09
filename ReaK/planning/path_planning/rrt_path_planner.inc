@@ -223,9 +223,9 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(
 #undef RK_RRT_PLANNER_CALL_RRT_FUNCTION
 
   } else {
-    auto* p2p_query_ptr =
-        reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
-            path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
+    auto* p2p_query_ptr = reinterpret_cast<
+        path_planning_p2p_query<FreeSpaceType>*>(aQuery.cast_to(
+        path_planning_p2p_query<FreeSpaceType>::get_static_object_type()));
     if (p2p_query_ptr == nullptr) {
       return;
     }

@@ -36,13 +36,13 @@ grid_2D::grid_2D(const std::string& aName,
 
 void grid_2D::save(ReaK::serialization::oarchive& A,
                    unsigned int /*unused*/) const {
-  geometry_2D::save(A, geometry_2D::getStaticObjectType()->TypeVersion());
+  geometry_2D::save(A, geometry_2D::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mDimensions) &
       RK_SERIAL_SAVE_WITH_NAME(mSquareCounts);
 }
 
 void grid_2D::load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) {
-  geometry_2D::load(A, geometry_2D::getStaticObjectType()->TypeVersion());
+  geometry_2D::load(A, geometry_2D::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mDimensions) &
       RK_SERIAL_LOAD_WITH_NAME(mSquareCounts);
 }

@@ -199,7 +199,7 @@ class planning_option_collection : public shared_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(planning_algo) &
         RK_SERIAL_SAVE_WITH_NAME(max_vertices) &
         RK_SERIAL_SAVE_WITH_NAME(prog_interval) &
@@ -214,7 +214,7 @@ class planning_option_collection : public shared_object {
   }
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(planning_algo) &
         RK_SERIAL_LOAD_WITH_NAME(max_vertices) &
         RK_SERIAL_LOAD_WITH_NAME(prog_interval) &

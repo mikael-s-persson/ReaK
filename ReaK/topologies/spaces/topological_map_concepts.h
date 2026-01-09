@@ -122,14 +122,14 @@ struct bijection_cascade : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(map_outer) &
         RK_SERIAL_SAVE_WITH_NAME(map_inner) &
         RK_SERIAL_SAVE_WITH_NAME(mid_space);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(map_outer) &
         RK_SERIAL_LOAD_WITH_NAME(map_inner) &
         RK_SERIAL_LOAD_WITH_NAME(mid_space);
@@ -170,11 +170,11 @@ struct identity_topo_map : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240002D, 1, "identity_topo_map",

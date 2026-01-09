@@ -32,13 +32,13 @@ coord_arrows_2D::coord_arrows_2D(
 
 void coord_arrows_2D::save(ReaK::serialization::oarchive& A,
                            unsigned int /*unused*/) const {
-  geometry_2D::save(A, geometry_2D::getStaticObjectType()->TypeVersion());
+  geometry_2D::save(A, geometry_2D::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mArrowLength);
 }
 
 void coord_arrows_2D::load(ReaK::serialization::iarchive& A,
                            unsigned int /*unused*/) {
-  geometry_2D::load(A, geometry_2D::getStaticObjectType()->TypeVersion());
+  geometry_2D::load(A, geometry_2D::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mArrowLength);
 }
 

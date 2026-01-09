@@ -236,14 +236,14 @@ class waypoint_container_base : public shared_object {
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
     ReaK::shared_object::save(
-        A, shared_object::getStaticObjectType()->TypeVersion());
+        A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(space) & RK_SERIAL_SAVE_WITH_NAME(dist) &
         RK_SERIAL_SAVE_WITH_NAME(waypoints);
   }
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     ReaK::shared_object::load(
-        A, shared_object::getStaticObjectType()->TypeVersion());
+        A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(space) & RK_SERIAL_LOAD_WITH_NAME(dist) &
         RK_SERIAL_LOAD_WITH_NAME(waypoints);
   }
@@ -736,14 +736,14 @@ class waypoint_container_base<true, Space, MetricBase> : public shared_object {
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
     ReaK::shared_object::save(
-        A, shared_object::getStaticObjectType()->TypeVersion());
+        A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(space) & RK_SERIAL_SAVE_WITH_NAME(dist) &
         RK_SERIAL_SAVE_WITH_NAME(waypoints);
   }
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     ReaK::shared_object::load(
-        A, shared_object::getStaticObjectType()->TypeVersion());
+        A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(space) & RK_SERIAL_LOAD_WITH_NAME(dist) &
         RK_SERIAL_LOAD_WITH_NAME(waypoints);
   }
@@ -924,13 +924,13 @@ class waypoint_container
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_class_type::save(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::save(A,
+                          base_class_type::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_class_type::load(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::load(A,
+                          base_class_type::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2440001, 1, "waypoint_container",

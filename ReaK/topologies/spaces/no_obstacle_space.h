@@ -266,7 +266,7 @@ class no_obstacle_space : public named_object {
         m_rand_sampler(aRandSampler),
         m_start_point(aRandSampler(aSpace)),
         m_goal_point(aRandSampler(aSpace)) {
-    setName(aName);
+    set_name(aName);
   }
 
   no_obstacle_space() : no_obstacle_space("") {}
@@ -279,8 +279,8 @@ class no_obstacle_space : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(max_edge_length) &
         RK_SERIAL_SAVE_WITH_NAME(m_space) &
         RK_SERIAL_SAVE_WITH_NAME(m_distance) &
@@ -290,8 +290,8 @@ class no_obstacle_space : public named_object {
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(max_edge_length) &
         RK_SERIAL_LOAD_WITH_NAME(m_space) &
         RK_SERIAL_LOAD_WITH_NAME(m_distance) &

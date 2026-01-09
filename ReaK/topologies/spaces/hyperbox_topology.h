@@ -207,15 +207,15 @@ class hyperbox_topology : public vector_topology<Vector> {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(lower_corner) &
         RK_SERIAL_SAVE_WITH_NAME(upper_corner);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(lower_corner) &
         RK_SERIAL_LOAD_WITH_NAME(upper_corner);
   }

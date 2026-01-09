@@ -38,7 +38,7 @@
 namespace ReaK::kte {
 
 chaser_target_data::chaser_target_data() {
-  this->setName("chaser_target_model_data");
+  this->set_name("chaser_target_model_data");
 }
 
 void chaser_target_data::load_chaser(const std::string& fileName) {
@@ -128,7 +128,7 @@ void chaser_target_data::create_chaser_env_proxies() {
     for (std::size_t i = chaser_env_proxies.size(); i < env_proxy_models.size();
          ++i) {
       chaser_env_proxies.push_back(std::make_shared<geom::proxy_query_pair_3D>(
-          "chaser_env_proxy:" + env_proxy_models[i]->getName(), chaser_proxy,
+          "chaser_env_proxy:" + env_proxy_models[i]->get_name(), chaser_proxy,
           env_proxy_models[i]));
     }
   }
@@ -141,7 +141,7 @@ void chaser_target_data::create_target_env_proxies() {
     for (std::size_t i = target_env_proxies.size(); i < env_proxy_models.size();
          ++i) {
       target_env_proxies.push_back(std::make_shared<geom::proxy_query_pair_3D>(
-          "target_env_proxy:" + env_proxy_models[i]->getName(), target_proxy,
+          "target_env_proxy:" + env_proxy_models[i]->get_name(), target_proxy,
           env_proxy_models[i]));
     }
   }
@@ -149,7 +149,7 @@ void chaser_target_data::create_target_env_proxies() {
 
 void chaser_target_data::save(serialization::oarchive& A,
                               unsigned int /*unused*/) const {
-  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::save(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(chaser_base_frame) &
       RK_SERIAL_SAVE_WITH_NAME(chaser_kin_model) &
       RK_SERIAL_SAVE_WITH_NAME(chaser_jt_limits) &
@@ -168,7 +168,7 @@ void chaser_target_data::save(serialization::oarchive& A,
 
 void chaser_target_data::load(serialization::iarchive& A,
                               unsigned int /*unused*/) {
-  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::load(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(chaser_base_frame) &
       RK_SERIAL_LOAD_WITH_NAME(chaser_kin_model) &
       RK_SERIAL_LOAD_WITH_NAME(chaser_jt_limits) &

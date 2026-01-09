@@ -42,39 +42,15 @@
 namespace ReaK {
 
 /**
- * This class declares an interface for an object that has a name.
- */
-class named_interface {
- public:
-  virtual ~named_interface() = default;
-
-  /**
-   * This method returns the name of the object.
-   * \pre The name of the object is known to the object (privately).
-   * \post The name of the object is given to the caller as constant.
-   * \return The name of the object.
-   */
-  virtual const std::string& getName() const = 0;
-  /**
-   * This method sets the name of the object.
-   * \pre Any state.
-   * \post The name of the object is known to the object, or by default, this method has no effect, i.e., the name is
-   * read-only.
-   * \param aName The new name of the object.
-   */
-  virtual void setName(const std::string& aName) = 0;
-};
-
-/**
  * This class declares a base class for an object that stores a name string (read- and writable).
  */
-class named_object : public virtual shared_object, public named_interface {
+class named_object : public virtual shared_object {
  protected:
   std::string mName;
 
  public:
   /**
-   * Default Constructor. The name must be set by the derived class using the setName function.
+   * Default Constructor. The name must be set by the derived class using the set_name function.
    */
   named_object() = default;
 
@@ -86,14 +62,14 @@ class named_object : public virtual shared_object, public named_interface {
    * \post The name of the object is given to the caller as constant.
    * \return The name of the object.
    */
-  const std::string& getName() const override { return mName; }
+  [[nodiscard]] const std::string& get_name() const { return mName; }
   /**
    * This method sets the name of the object.
    * \pre Any state, mName is empty or not.
    * \post The name of the object is written to the data member mName.
    * \param aName The new name of the object.
    */
-  void setName(const std::string& aName) override { mName = aName; }
+  void set_name(const std::string& aName) { mName = aName; }
 
   /**
    * This method saves the content of the object to a serial archive of any type.
@@ -105,7 +81,7 @@ class named_object : public virtual shared_object, public named_interface {
    */
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& std::pair<std::string, const std::string&>("name", mName);
   }
 
@@ -119,7 +95,7 @@ class named_object : public virtual shared_object, public named_interface {
    *compatibility as much as desired).
    */
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& std::pair<std::string, std::string&>("name", mName);
   }
 

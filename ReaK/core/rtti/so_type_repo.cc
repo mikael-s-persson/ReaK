@@ -27,106 +27,100 @@
 
 namespace ReaK::rtti {
 
-so_type_repo& so_type_repo::getInstance() {
+so_type_repo& so_type_repo::get_instance() {
   static const unsigned int t = 0;
-  static so_type_ptr static_TypeMap = create_dummy_so_type(&t);
-  static so_type_repo RKSharedObjTypeRepo(static_TypeMap.ptr);
-  return RKSharedObjTypeRepo;
+  static so_type_ptr static_typemap = create_dummy_so_type(&t);
+  static so_type_repo rk_shared_obj_type_repo(static_typemap.ptr);
+  return rk_shared_obj_type_repo;
 }
 
-so_type_repo& getRKSharedObjTypeRepo() {
-  return so_type_repo::getInstance();
-}
-
-so_type_repo::so_type_repo(so_type* aTypeMap) : mTypeMap(aTypeMap) {
-  next = this;
-  prev = this;
-}
+so_type_repo::so_type_repo(so_type* type_map)
+    : type_map_(type_map), next_(this), prev_(this) {}
 
 so_type_repo::~so_type_repo() {
-  if (next != this) {
-    prev->next = next;
-    next->prev =
-        prev;  // take 'this' out of the ring (if not empty, of course).
+  if (next_ != this) {
+    prev_->next_ = next_;
+    next_->prev_ =
+        prev_;  // take 'this' out of the ring (if not empty, of course).
   }
 }
 
-bool so_type_repo::isInRing(so_type_repo* aRepo) {
+bool so_type_repo::is_in_ring(so_type_repo* repo) {
   so_type_repo* p = this;
-  while (p->next != this) {
-    if (p->next == aRepo) {
+  while (p->next_ != this) {
+    if (p->next_ == repo) {
       return true;
     }
-    p = p->next;
+    p = p->next_;
   }
   return false;
 }
 
 /// This function merges a repo with this.
-void so_type_repo::merge(so_type_repo* aRepo) {
-  if (aRepo == nullptr) {
+void so_type_repo::merge(so_type_repo* repo) {
+  if (repo == nullptr) {
     return;
   }
-  if (isInRing(aRepo)) {
+  if (is_in_ring(repo)) {
     return;
   }
-  if (next ==
+  if (next_ ==
       this) {  // this means that 'this' is a unique instance (not really a ring). 'this' can simply be linked
-               // into aRepo.
-    prev = aRepo->prev;
-    aRepo->prev = this;
-    next = aRepo;
-    prev->next = this;
+               // into repo.
+    prev_ = repo->prev_;
+    repo->prev_ = this;
+    next_ = repo;
+    prev_->next_ = this;
   } else if (
-      aRepo->next ==
-      aRepo) {  // this means that aRepo is a unique instance (not really a ring). aRepo can
-                // simply be linked into 'this'.
-    aRepo->prev = prev;
-    prev = aRepo;
-    aRepo->next = this;
-    aRepo->prev->next = aRepo;
-  } else {  // both repositories are distinct rings. Merge-in all the elements of aRepo's ring into 'this's ring.
-    so_type_repo* p = aRepo;
-    while (p->next != aRepo) {
-      so_type_repo* pn = p->next;
-      p->next = pn->next;
-      pn->next->prev = p;
-      pn->next = pn;
-      pn->prev = pn;  // this takes pn out of the ring.
-      merge(pn);      // now merge this single instance into 'this's ring.
+      repo->next_ ==
+      repo) {  // this means that repo is a unique instance (not really a ring). repo can
+               // simply be linked into 'this'.
+    repo->prev_ = prev_;
+    prev_ = repo;
+    repo->next_ = this;
+    repo->prev_->next_ = repo;
+  } else {  // both repositories are distinct rings. Merge-in all the elements of repo's ring into 'this's ring.
+    so_type_repo* p = repo;
+    while (p->next_ != repo) {
+      so_type_repo* pn = p->next_;
+      p->next_ = pn->next_;
+      pn->next_->prev_ = p;
+      pn->next_ = pn;
+      pn->prev_ = pn;  // this takes pn out of the ring.
+      merge(pn);       // now merge this single instance into 'this's ring.
     }
-    // at this point, all that remains is aRepo as a unique instance.
-    aRepo->prev = prev;
-    prev = aRepo;
-    aRepo->next = this;
-    aRepo->prev->next = aRepo;
+    // at this point, all that remains is repo as a unique instance.
+    repo->prev_ = prev_;
+    prev_ = repo;
+    repo->next_ = this;
+    repo->prev_->next_ = repo;
   }
 }
 
 /// This function finds a TypeID in the descendants (recusively) of this.
 
-so_type* so_type_repo::findType(const unsigned int* aTypeID) const {
-  so_type* result = mTypeMap->findDescendant(aTypeID);
+so_type* so_type_repo::find_type(const unsigned int* id) const {
+  so_type* result = type_map_->find_descendant(id);
   const so_type_repo* p = this;
-  while ((p->next != this) && (result == nullptr)) {
-    p = p->next;
-    result = p->mTypeMap->findDescendant(aTypeID);
+  while ((p->next_ != this) && (result == nullptr)) {
+    p = p->next_;
+    result = p->type_map_->find_descendant(id);
   }
   return result;
 }
 
-so_type* so_type_repo::findType(so_type* aTypeID) const {
-  return findType(aTypeID->TypeID_begin());
+so_type* so_type_repo::find_type(so_type* tp) const {
+  return find_type(tp->id_begin());
 }
 
 /// This function adds a type to the repo.
-so_type* so_type_repo::addType(so_type* aTypeID) {
-  so_type* r = findType(aTypeID);
-  if (((r) != nullptr) && (r->TypeVersion() > aTypeID->TypeVersion())) {
+so_type* so_type_repo::add_type(so_type* tp) {
+  so_type* r = find_type(tp);
+  if (((r) != nullptr) && (r->version() > tp->version())) {
     return r;
   }
 
-  return mTypeMap->addDescendant(aTypeID);
+  return type_map_->add_descendant(tp);
 }
 
 }  // namespace ReaK::rtti

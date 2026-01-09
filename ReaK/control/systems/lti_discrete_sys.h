@@ -97,7 +97,7 @@ class lti_discrete_sys : public named_object {
         C(aY_size, aX_size),
         D(aY_size, aU_size),
         dt(aDt) {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -105,7 +105,7 @@ class lti_discrete_sys : public named_object {
    */
   lti_discrete_sys(const self& rhs)
       : A(rhs.A), B(rhs.B), C(rhs.C), D(rhs.D), dt(rhs.dt) {
-    setName(rhs.getName());
+    set_name(rhs.get_name());
   }
 
   /**
@@ -122,7 +122,7 @@ class lti_discrete_sys : public named_object {
                    const MatrixD& aD, const time_difference_type& aDt,
                    const std::string& aName = "")
       : A(aA), B(aB), C(aC), D(aD), dt(aDt) {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -320,14 +320,14 @@ class lti_discrete_sys : public named_object {
 
   virtual void save(ReaK::serialization::oarchive& aA, unsigned int) const {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(dt) & RK_SERIAL_SAVE_WITH_NAME(A) &
         RK_SERIAL_SAVE_WITH_NAME(B) & RK_SERIAL_SAVE_WITH_NAME(C) &
         RK_SERIAL_SAVE_WITH_NAME(D);
   }
   virtual void load(ReaK::serialization::iarchive& aA, unsigned int) {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(dt) & RK_SERIAL_LOAD_WITH_NAME(A) &
         RK_SERIAL_LOAD_WITH_NAME(B) & RK_SERIAL_LOAD_WITH_NAME(C) &
         RK_SERIAL_LOAD_WITH_NAME(D);

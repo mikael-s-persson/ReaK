@@ -103,7 +103,7 @@ class gaussian_belief_space : public named_object {
       const std::string& aName = "")
       : mean_state_space(std::move(aMeanStateSpace)),
         covariance_space(std::move(aCovarianceSpace)) {
-    setName(aName);
+    set_name(aName);
   }
 
   gaussian_belief_space()
@@ -250,14 +250,14 @@ class gaussian_belief_space : public named_object {
   void save(ReaK::serialization::oarchive& aA,
             unsigned int /*unused*/) const override {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(mean_state_space) &
         RK_SERIAL_SAVE_WITH_NAME(covariance_space);
   }
   void load(ReaK::serialization::iarchive& aA,
             unsigned int /*unused*/) override {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(mean_state_space) &
         RK_SERIAL_LOAD_WITH_NAME(covariance_space);
   }

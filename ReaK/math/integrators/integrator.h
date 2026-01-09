@@ -171,7 +171,7 @@ class integrator : public named_object {
         mTime(),
         mStepSize(),
         mGetStateRate() {
-    setName(aName);
+    set_name(aName);
   }
   /// Parametrized constructor, see data members for meaning of parameters.
   integrator(const std::string& aName, const ReaK::vect_n<T>& aState,
@@ -183,7 +183,7 @@ class integrator : public named_object {
         mTime(aStartTime),
         mStepSize(aStepSize),
         mGetStateRate(aGetStateRate) {
-    setName(aName);
+    set_name(aName);
   }
   /// Default virtual destructor.
   ~integrator() override = default;
@@ -191,7 +191,7 @@ class integrator : public named_object {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     ReaK::named_object::save(
-        A, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        A, ReaK::named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mState) & RK_SERIAL_SAVE_WITH_NAME(mTime) &
         RK_SERIAL_SAVE_WITH_NAME(mStepSize) &
         RK_SERIAL_SAVE_WITH_NAME(mGetStateRate);
@@ -199,7 +199,7 @@ class integrator : public named_object {
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     ReaK::named_object::load(
-        A, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        A, ReaK::named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mState) & RK_SERIAL_LOAD_WITH_NAME(mTime) &
         RK_SERIAL_LOAD_WITH_NAME(mStepSize) &
         RK_SERIAL_LOAD_WITH_NAME(mGetStateRate);
@@ -261,14 +261,14 @@ class variable_step_integrator : public integrator<T> {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    integrator<T>::save(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::save(A, integrator<T>::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mMaxStepSize) &
         RK_SERIAL_SAVE_WITH_NAME(mMinStepSize) &
         RK_SERIAL_SAVE_WITH_NAME(mTolerance);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    integrator<T>::load(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::load(A, integrator<T>::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mMaxStepSize) &
         RK_SERIAL_LOAD_WITH_NAME(mMinStepSize) &
         RK_SERIAL_LOAD_WITH_NAME(mTolerance);

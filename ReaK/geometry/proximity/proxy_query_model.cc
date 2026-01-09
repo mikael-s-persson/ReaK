@@ -92,16 +92,16 @@ struct proxy_query_model_2D::variant_shape_cache {
   void addShape(const shape_2D& aShape) {
     any_shape tmp;
     // if the other is a circle..
-    if (aShape.getObjectType() == circle::getStaticObjectType()) {
+    if (aShape.get_object_type() == circle::get_static_object_type()) {
       tmp.value = static_cast<const circle&>(aShape);
     }
     // if the other is a capped_rectangle..
-    else if (aShape.getObjectType() ==
-             capped_rectangle::getStaticObjectType()) {
+    else if (aShape.get_object_type() ==
+             capped_rectangle::get_static_object_type()) {
       tmp.value = static_cast<const capped_rectangle&>(aShape);
     }
     // if the other is a rectangle..
-    else if (aShape.getObjectType() == rectangle::getStaticObjectType()) {
+    else if (aShape.get_object_type() == rectangle::get_static_object_type()) {
       tmp.value = static_cast<const rectangle&>(aShape);
     };
     shapes.push_back(tmp);
@@ -111,7 +111,7 @@ struct proxy_query_model_2D::variant_shape_cache {
 
 proxy_query_model_2D::proxy_query_model_2D(const std::string& aName)
     : mShapeCache(new variant_shape_cache()) {
-  setName(aName);
+  set_name(aName);
 }
 
 proxy_query_model_2D::~proxy_query_model_2D() {
@@ -158,7 +158,7 @@ void proxy_query_model_2D::doPrecomputePass() {
 
 void proxy_query_model_2D::save(ReaK::serialization::oarchive& A,
                                 unsigned int /*unused*/) const {
-  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::save(A, named_object::get_static_object_type()->version());
 
   // This is ugly and inefficient, but it keeps backward compatibility.
   std::vector<std::shared_ptr<shape_2D>> mShapeList;
@@ -173,7 +173,7 @@ void proxy_query_model_2D::save(ReaK::serialization::oarchive& A,
 
 void proxy_query_model_2D::load(ReaK::serialization::iarchive& A,
                                 unsigned int /*unused*/) {
-  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::load(A, named_object::get_static_object_type()->version());
   std::vector<std::shared_ptr<shape_2D>> mShapeList;
   A& RK_SERIAL_LOAD_WITH_NAME(mShapeList);
 
@@ -305,23 +305,24 @@ struct proxy_query_model_3D::variant_shape_cache {
   void addShape(const shape_3D& aShape) {
     any_shape tmp;
     // if the other is a plane..
-    if (aShape.getObjectType() == plane::getStaticObjectType()) {
+    if (aShape.get_object_type() == plane::get_static_object_type()) {
       tmp.value = static_cast<const plane&>(aShape);
     }
     // if the other is a sphere..
-    else if (aShape.getObjectType() == sphere::getStaticObjectType()) {
+    else if (aShape.get_object_type() == sphere::get_static_object_type()) {
       tmp.value = static_cast<const sphere&>(aShape);
     }
     // if the other is a ccylinder..
-    else if (aShape.getObjectType() == capped_cylinder::getStaticObjectType()) {
+    else if (aShape.get_object_type() ==
+             capped_cylinder::get_static_object_type()) {
       tmp.value = static_cast<const capped_cylinder&>(aShape);
     }
     // if the other is a cylinder..
-    else if (aShape.getObjectType() == cylinder::getStaticObjectType()) {
+    else if (aShape.get_object_type() == cylinder::get_static_object_type()) {
       tmp.value = static_cast<const cylinder&>(aShape);
     }
     // if the other is a box..
-    else if (aShape.getObjectType() == box::getStaticObjectType()) {
+    else if (aShape.get_object_type() == box::get_static_object_type()) {
       tmp.value = static_cast<const box&>(aShape);
     }
 
@@ -332,7 +333,7 @@ struct proxy_query_model_3D::variant_shape_cache {
 
 proxy_query_model_3D::proxy_query_model_3D(const std::string& aName)
     : mShapeCache(new variant_shape_cache()) {
-  setName(aName);
+  set_name(aName);
 }
 
 proxy_query_model_3D::~proxy_query_model_3D() {
@@ -379,7 +380,7 @@ void proxy_query_model_3D::doPrecomputePass() {
 
 void proxy_query_model_3D::save(ReaK::serialization::oarchive& A,
                                 unsigned int /*unused*/) const {
-  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::save(A, named_object::get_static_object_type()->version());
 
   // This is inefficient, but it keeps backward compatibility.
   std::vector<std::shared_ptr<shape_3D>> mShapeList;
@@ -394,7 +395,7 @@ void proxy_query_model_3D::save(ReaK::serialization::oarchive& A,
 
 void proxy_query_model_3D::load(ReaK::serialization::iarchive& A,
                                 unsigned int /*unused*/) {
-  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::load(A, named_object::get_static_object_type()->version());
   std::vector<std::shared_ptr<shape_3D>> mShapeList;
   A& RK_SERIAL_LOAD_WITH_NAME(mShapeList);
 

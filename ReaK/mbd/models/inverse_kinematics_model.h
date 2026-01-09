@@ -111,12 +111,12 @@ class inverse_kinematics_model : public direct_kinematics_model {
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     direct_kinematics_model::save(
-        A, direct_kinematics_model::getStaticObjectType()->TypeVersion());
+        A, direct_kinematics_model::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     direct_kinematics_model::load(
-        A, direct_kinematics_model::getStaticObjectType()->TypeVersion());
+        A, direct_kinematics_model::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(inverse_kinematics_model, 0xC2100050, 1,

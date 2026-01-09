@@ -148,14 +148,14 @@ class line_point_mindist_2D : public kte_map {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mBase) & RK_SERIAL_SAVE_WITH_NAME(mEnd) &
         RK_SERIAL_SAVE_WITH_NAME(mTangent) &
         RK_SERIAL_SAVE_WITH_NAME(mOriginMinDist);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mBase) & RK_SERIAL_LOAD_WITH_NAME(mEnd) &
         RK_SERIAL_LOAD_WITH_NAME(mTangent) &
         RK_SERIAL_LOAD_WITH_NAME(mOriginMinDist);
@@ -273,14 +273,14 @@ class line_point_mindist_3D : public kte_map {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mBase) & RK_SERIAL_SAVE_WITH_NAME(mEnd) &
         RK_SERIAL_SAVE_WITH_NAME(mTangent) &
         RK_SERIAL_SAVE_WITH_NAME(mOriginMinDist);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mBase) & RK_SERIAL_LOAD_WITH_NAME(mEnd) &
         RK_SERIAL_LOAD_WITH_NAME(mTangent) &
         RK_SERIAL_LOAD_WITH_NAME(mOriginMinDist);

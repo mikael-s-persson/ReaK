@@ -55,7 +55,7 @@ class kte_chain_geometry_2D : public named_object {
    * Default constructor.
    */
   explicit kte_chain_geometry_2D(const std::string& aName = "") {
-    this->setName(aName);
+    this->set_name(aName);
   }
 
   /**
@@ -87,14 +87,14 @@ class kte_chain_geometry_2D : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mGeomList) &
         RK_SERIAL_SAVE_WITH_NAME(mProxyShapeList);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mGeomList) &
         RK_SERIAL_LOAD_WITH_NAME(mProxyShapeList);
   }
@@ -114,7 +114,7 @@ class kte_chain_geometry_3D : public named_object {
    * Default constructor.
    */
   explicit kte_chain_geometry_3D(const std::string& aName = "") {
-    this->setName(aName);
+    this->set_name(aName);
   }
 
   /**
@@ -146,14 +146,14 @@ class kte_chain_geometry_3D : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mGeomList) &
         RK_SERIAL_SAVE_WITH_NAME(mProxyShapeList);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mGeomList) &
         RK_SERIAL_LOAD_WITH_NAME(mProxyShapeList);
   }

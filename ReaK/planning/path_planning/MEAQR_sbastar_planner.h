@@ -206,14 +206,14 @@ class MEAQR_sbastar_planner
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(m_init_dens_threshold) &
         RK_SERIAL_SAVE_WITH_NAME(m_init_relaxation) &
         RK_SERIAL_SAVE_WITH_NAME(m_SA_init_temperature);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(m_init_dens_threshold) &
         RK_SERIAL_LOAD_WITH_NAME(m_init_relaxation) &
         RK_SERIAL_LOAD_WITH_NAME(m_SA_init_temperature);
@@ -430,8 +430,8 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
       this->m_init_dens_threshold);
 
   auto* p2p_query_ptr =
-      reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
-          path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
+      reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.cast_to(
+          path_planning_p2p_query<FreeSpaceType>::get_static_object_type()));
 
   using MotionGraphType =
       bagl::adjacency_list<bagl::vec_s, bagl::vec_s, bagl::bidirectional_s,

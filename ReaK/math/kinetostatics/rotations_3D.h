@@ -424,9 +424,9 @@ namespace rtti {
 
 template <typename T>
 struct get_type_id<rot_mat_3D<T>> {
-  static constexpr unsigned int ID = 0x00000018;
+  static constexpr unsigned int id = 0x00000018;
   static constexpr auto type_name = std::string_view{"ReaK::rot_mat_3D"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const rot_mat_3D<T>&;
   using load_type = rot_mat_3D<T>&;
@@ -1107,9 +1107,9 @@ namespace rtti {
 
 template <typename T>
 struct get_type_id<quaternion<T>> {
-  static constexpr unsigned int ID = 0x0000001A;
+  static constexpr unsigned int id = 0x0000001A;
   static constexpr auto type_name = std::string_view{"ReaK::quaternion"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const quaternion<T>&;
   using load_type = quaternion<T>&;
@@ -1410,9 +1410,9 @@ namespace rtti {
 
 template <typename T>
 struct get_type_id<euler_angles_TB<T>> {
-  static constexpr unsigned int ID = 0x0000001B;
+  static constexpr unsigned int id = 0x0000001B;
   static constexpr auto type_name = std::string_view{"ReaK::euler_angles_TB"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const euler_angles_TB<T>&;
   using load_type = euler_angles_TB<T>&;
@@ -1745,9 +1745,9 @@ namespace rtti {
 
 template <typename T>
 struct get_type_id<axis_angle<T>> {
-  static constexpr unsigned int ID = 0x0000001C;
+  static constexpr unsigned int id = 0x0000001C;
   static constexpr auto type_name = std::string_view{"ReaK::axis_angle"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; };
+  static construct_ptr create_ptr() noexcept { return nullptr; };
 
   using save_type = const axis_angle<T>&;
   using load_type = axis_angle<T>&;
@@ -2275,9 +2275,9 @@ namespace rtti {
 
 template <typename T>
 struct get_type_id<trans_mat_3D<T>> {
-  static constexpr unsigned int ID = 0x00000019;
+  static constexpr unsigned int id = 0x00000019;
   static constexpr auto type_name = std::string_view{"ReaK::trans_mat_3D"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const trans_mat_3D<T>&;
   using load_type = trans_mat_3D<T>&;

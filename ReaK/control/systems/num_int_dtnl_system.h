@@ -135,7 +135,7 @@ class num_int_dtnl_sys : public named_object {
    */
   num_int_dtnl_sys(const std::string& aName = "")
       : sys(std::make_shared<CTSystem>()), integ(), dt() {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -148,7 +148,7 @@ class num_int_dtnl_sys : public named_object {
                    const time_difference_type& aDt,
                    const std::string& aName = "")
       : sys(aSys), integ(aInteg), dt(aDt) {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -210,13 +210,13 @@ class num_int_dtnl_sys : public named_object {
 
   virtual void save(ReaK::serialization::oarchive& aA, unsigned int) const {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(sys) & RK_SERIAL_SAVE_WITH_NAME(integ) &
         RK_SERIAL_SAVE_WITH_NAME(dt);
   }
   virtual void load(ReaK::serialization::iarchive& aA, unsigned int) {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(sys) & RK_SERIAL_LOAD_WITH_NAME(integ) &
         RK_SERIAL_LOAD_WITH_NAME(dt);
   }
@@ -289,7 +289,7 @@ class num_int_dtnl_sys<state_rate_function_with_io<T>, NumIntegrator<T>>
    * Default constructor.
    */
   num_int_dtnl_sys(const std::string& aName = "") : sys(), integ(), dt() {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -303,7 +303,7 @@ class num_int_dtnl_sys<state_rate_function_with_io<T>, NumIntegrator<T>>
                    const time_difference_type& aDt,
                    const std::string& aName = "")
       : sys(aSys), integ(aInteg), dt(aDt) {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -372,13 +372,13 @@ class num_int_dtnl_sys<state_rate_function_with_io<T>, NumIntegrator<T>>
 
   virtual void save(ReaK::serialization::oarchive& aA, unsigned int) const {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(sys) & RK_SERIAL_SAVE_WITH_NAME(integ) &
         RK_SERIAL_SAVE_WITH_NAME(dt);
   }
   virtual void load(ReaK::serialization::iarchive& aA, unsigned int) {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(sys) & RK_SERIAL_LOAD_WITH_NAME(integ) &
         RK_SERIAL_LOAD_WITH_NAME(dt);
   }

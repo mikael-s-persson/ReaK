@@ -32,11 +32,11 @@ shape_3D::shape_3D(const std::string& aName,
 
 void shape_3D::save(ReaK::serialization::oarchive& A,
                     unsigned int /*unused*/) const {
-  geometry_3D::save(A, geometry_3D::getStaticObjectType()->TypeVersion());
+  geometry_3D::save(A, geometry_3D::get_static_object_type()->version());
 }
 
 void shape_3D::load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) {
-  geometry_3D::load(A, geometry_3D::getStaticObjectType()->TypeVersion());
+  geometry_3D::load(A, geometry_3D::get_static_object_type()->version());
 }
 
 shape_3D_precompute_pack shape_3D::createPrecomputePack() const {

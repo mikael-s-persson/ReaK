@@ -611,11 +611,11 @@ class interpolated_topology<BaseTopology, svp_Ndof_interpolation_tag>
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240003A, 1, "interpolated_topology",

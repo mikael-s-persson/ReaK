@@ -80,7 +80,7 @@ class covariance_info_matrix : public named_object {
   explicit covariance_info_matrix(const matrix_type& aMat,
                                   const std::string& aName = "")
       : mat_info(aMat) {
-    setName(aName);
+    set_name(aName);
     invert_Cholesky(aMat, mat_info, std::numeric_limits<value_type>::epsilon());
   }
 
@@ -100,7 +100,7 @@ class covariance_info_matrix : public named_object {
             value_type((aLevel == covariance_initial_level::no_info
                             ? 0
                             : std::numeric_limits<value_type>::infinity()))) {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -164,12 +164,12 @@ class covariance_info_matrix : public named_object {
 
   void save(ReaK::serialization::oarchive& aA, unsigned int) const override {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(mat_info);
   }
   void load(ReaK::serialization::iarchive& aA, unsigned int) override {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(mat_info);
   }
 

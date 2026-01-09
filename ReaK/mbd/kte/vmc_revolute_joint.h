@@ -140,7 +140,7 @@ class vmc_revolute_joint_2D : public revolute_joint_2D {
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     revolute_joint_2D::save(
-        A, revolute_joint_2D::getStaticObjectType()->TypeVersion());
+        A, revolute_joint_2D::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mStictionCoef) &
         RK_SERIAL_SAVE_WITH_NAME(mSlipCoef) &
         RK_SERIAL_SAVE_WITH_NAME(mSlipVelocity);
@@ -148,7 +148,7 @@ class vmc_revolute_joint_2D : public revolute_joint_2D {
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     revolute_joint_2D::load(
-        A, revolute_joint_2D::getStaticObjectType()->TypeVersion());
+        A, revolute_joint_2D::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mStictionCoef) &
         RK_SERIAL_LOAD_WITH_NAME(mSlipCoef) &
         RK_SERIAL_LOAD_WITH_NAME(mSlipVelocity);
@@ -251,7 +251,7 @@ class vmc_revolute_joint_3D : public revolute_joint_3D {
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     revolute_joint_3D::save(
-        A, revolute_joint_3D::getStaticObjectType()->TypeVersion());
+        A, revolute_joint_3D::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mStictionCoef) &
         RK_SERIAL_SAVE_WITH_NAME(mSlipCoef) &
         RK_SERIAL_SAVE_WITH_NAME(mSlipVelocity);
@@ -259,7 +259,7 @@ class vmc_revolute_joint_3D : public revolute_joint_3D {
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     revolute_joint_3D::load(
-        A, revolute_joint_3D::getStaticObjectType()->TypeVersion());
+        A, revolute_joint_3D::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mStictionCoef) &
         RK_SERIAL_LOAD_WITH_NAME(mSlipCoef) &
         RK_SERIAL_LOAD_WITH_NAME(mSlipVelocity);

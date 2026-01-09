@@ -361,15 +361,15 @@ class discrete_ss_predicted_traj
   *******************************************************************************/
 
   void save(serialization::oarchive& A, unsigned int) const override {
-    base_class_type::save(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::save(A,
+                          base_class_type::get_static_object_type()->version());
     std::size_t prediction_assumption = pred_assumption;
     A& RK_SERIAL_SAVE_WITH_NAME(input) & RK_SERIAL_SAVE_WITH_NAME(dt_system);
   }
 
   void load(serialization::iarchive& A, unsigned int) override {
-    base_class_type::load(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::load(A,
+                          base_class_type::get_static_object_type()->version());
     std::size_t prediction_assumption = 0;
     A& RK_SERIAL_LOAD_WITH_NAME(input) & RK_SERIAL_LOAD_WITH_NAME(dt_system);
     updated_end = this->waypoints.begin();

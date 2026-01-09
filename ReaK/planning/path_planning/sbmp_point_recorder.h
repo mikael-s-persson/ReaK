@@ -287,7 +287,7 @@ class sbmp_point_recorder : public shared_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(next_reporter);
     if constexpr (!std::is_same_v<JointStateMapping, identity_topo_map>) {
       A& RK_SERIAL_SAVE_WITH_NAME(jt_space) &
@@ -298,7 +298,7 @@ class sbmp_point_recorder : public shared_object {
   }
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(next_reporter);
     if constexpr (!std::is_same_v<JointStateMapping, identity_topo_map>) {
       A& RK_SERIAL_LOAD_WITH_NAME(jt_space) &

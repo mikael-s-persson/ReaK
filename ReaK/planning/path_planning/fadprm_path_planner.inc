@@ -123,8 +123,8 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(
   fadprm_planner_visitor<FreeSpaceType> vis(this, &aQuery);
 
   auto* p2p_query_ptr =
-      reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
-          path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
+      reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.cast_to(
+          path_planning_p2p_query<FreeSpaceType>::get_static_object_type()));
 
 #define RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL                    \
   VertexProp vp_start;                                                 \

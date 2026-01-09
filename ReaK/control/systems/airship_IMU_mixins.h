@@ -153,12 +153,12 @@ class gyros_bias_state_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(gyros_bias_state_model, 0xC231002B, 1,
@@ -283,12 +283,12 @@ class sat_gyros_output_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(sat_gyros_output_model, 0xC231002C, 1,
@@ -401,12 +401,12 @@ class accelerometer_bias_state_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(accelerometer_bias_state_model, 0xC231002D, 1,
@@ -551,12 +551,12 @@ class sat_accelerometer_output_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(sat_accelerometer_output_model, 0xC231002E, 1,
@@ -669,12 +669,12 @@ class magnetometer_bias_state_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(magnetometer_bias_state_model, 0xC231002F, 1,
@@ -814,12 +814,12 @@ class sat_magnetometer_output_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(sat_magnetometer_output_model, 0xC2310030, 1,

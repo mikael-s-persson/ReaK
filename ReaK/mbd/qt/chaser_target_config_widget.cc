@@ -115,7 +115,7 @@ void ChaserTargetConfigWidget::loadChaserMdl() {
     };
 
     ui->chaser_filename_edit->setText(
-        QString::fromStdString(sceneData.chaser_kin_model->getName()));
+        QString::fromStdString(sceneData.chaser_kin_model->get_name()));
 
     if (view3d_menu) {
       std::shared_ptr<geom::oi_scene_graph> psg =
@@ -194,7 +194,7 @@ void ChaserTargetConfigWidget::loadTargetMdl() {
     };
 
     ui->target_filename_edit->setText(
-        QString::fromStdString(sceneData.target_kin_model->getName()));
+        QString::fromStdString(sceneData.target_kin_model->get_name()));
 
     if (view3d_menu) {
       std::shared_ptr<geom::oi_scene_graph> psg =
@@ -261,7 +261,7 @@ void ChaserTargetConfigWidget::addEnvMdl() {
     for (std::size_t i = ui->env_geoms_list->count();
          i < sceneData.env_geom_models.size(); ++i)
       ui->env_geoms_list->addItem(
-          QString::fromStdString(sceneData.env_geom_models[i]->getName()));
+          QString::fromStdString(sceneData.env_geom_models[i]->get_name()));
 
     if (view3d_menu) {
       std::shared_ptr<geom::oi_scene_graph> psg =
@@ -370,7 +370,7 @@ void ChaserTargetConfigWidget::loadCompleteModel(const std::string& aFilename) {
           QMessageBox::Ok);
     } else {
       ui->chaser_filename_edit->setText(
-          QString::fromStdString(sceneData.chaser_kin_model->getName()));
+          QString::fromStdString(sceneData.chaser_kin_model->get_name()));
 
       if (view3d_menu) {
         std::shared_ptr<geom::oi_scene_graph> psg_chase =
@@ -396,7 +396,7 @@ void ChaserTargetConfigWidget::loadCompleteModel(const std::string& aFilename) {
           QMessageBox::Ok);
     } else {
       ui->target_filename_edit->setText(
-          QString::fromStdString(sceneData.target_kin_model->getName()));
+          QString::fromStdString(sceneData.target_kin_model->get_name()));
 
       if (view3d_menu) {
         std::shared_ptr<geom::oi_scene_graph> psg_target =
@@ -411,7 +411,7 @@ void ChaserTargetConfigWidget::loadCompleteModel(const std::string& aFilename) {
     ui->env_geoms_list->clear();
     for (std::size_t i = 0; i < sceneData.env_geom_models.size(); ++i)
       ui->env_geoms_list->addItem(
-          QString::fromStdString(sceneData.env_geom_models[i]->getName()));
+          QString::fromStdString(sceneData.env_geom_models[i]->get_name()));
 
     if (view3d_menu) {
 

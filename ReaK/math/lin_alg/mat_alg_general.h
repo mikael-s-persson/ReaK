@@ -129,9 +129,9 @@ template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
 struct get_type_id<mat<T, Structure, Alignment, RowCount, ColCount>> {
-  static constexpr unsigned int ID = 0x00000012;
+  static constexpr unsigned int id = 0x00000012;
   static constexpr auto type_name = std::string_view{"mat"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const serializable&;
   using load_type = serializable&;
@@ -145,14 +145,14 @@ struct get_type_info<mat<T, Structure, Alignment, RowCount, ColCount>, Tail> {
   using alignment_ic = std::integral_constant<mat_alignment::tag, Alignment>;
   using row_count_ic = std::integral_constant<unsigned int, RowCount>;
   using col_count_ic = std::integral_constant<unsigned int, ColCount>;
-  using arg_type_info_seq =
-      std::conditional_t<(RowCount == 0) && (ColCount == 0),
-                         get_type_info_seq<T, structure_ic, alignment_ic>,
-                         get_type_info_seq<T, structure_ic, alignment_ic,
-                                           row_count_ic, col_count_ic>>;
-  using type =
-      type_id<mat<T, Structure, Alignment, RowCount, ColCount>,
-              typename arg_type_info_seq::template with_tail<Tail>::type::type>;
+  using arg_type_info_seq = std::conditional_t<
+      (RowCount == 0) && (ColCount == 0),
+      so_type_details::get_type_info_seq<T, structure_ic, alignment_ic>,
+      so_type_details::get_type_info_seq<T, structure_ic, alignment_ic,
+                                         row_count_ic, col_count_ic>>;
+  using type = so_type_details::type_id<
+      mat<T, Structure, Alignment, RowCount, ColCount>,
+      typename arg_type_info_seq::template with_tail<Tail>::type::type>;
   static constexpr auto type_name = ct_concat_v<
       get_type_id<mat<T, Structure, Alignment, RowCount, ColCount>>::type_name,
       lsl_left_bracket, arg_type_info_seq::type_name, lsl_right_bracket,

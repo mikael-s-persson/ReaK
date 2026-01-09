@@ -49,7 +49,7 @@ class obj_with_named_members : public ReaK::named_object {
   std::map<int, std::string> m_map;
 
   obj_with_named_members() {
-    setName("object_with_named_data_members");
+    set_name("object_with_named_data_members");
 
     m_uint = 42;
     m_int = 69;
@@ -155,7 +155,7 @@ class obj_with_named_members : public ReaK::named_object {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     ReaK::named_object::save(
-        A, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        A, ReaK::named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(m_uint) & RK_SERIAL_SAVE_WITH_NAME(m_int) &
         RK_SERIAL_SAVE_WITH_NAME(m_float) & RK_SERIAL_SAVE_WITH_NAME(m_double) &
         RK_SERIAL_SAVE_WITH_NAME(m_char) & RK_SERIAL_SAVE_WITH_NAME(m_bool) &
@@ -166,7 +166,7 @@ class obj_with_named_members : public ReaK::named_object {
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     ReaK::named_object::load(
-        A, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        A, ReaK::named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(m_uint) & RK_SERIAL_LOAD_WITH_NAME(m_int) &
         RK_SERIAL_LOAD_WITH_NAME(m_float) & RK_SERIAL_LOAD_WITH_NAME(m_double) &
         RK_SERIAL_LOAD_WITH_NAME(m_char) & RK_SERIAL_LOAD_WITH_NAME(m_bool) &
@@ -194,7 +194,7 @@ class obj_with_unnamed_members : public ReaK::named_object {
   std::map<int, std::string> m_map;
 
   obj_with_unnamed_members() {
-    setName("object_with_unnamed_data_members");
+    set_name("object_with_unnamed_data_members");
 
     m_uint = 42;
     m_int = 69;
@@ -300,14 +300,14 @@ class obj_with_unnamed_members : public ReaK::named_object {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     ReaK::named_object::save(
-        A, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        A, ReaK::named_object::get_static_object_type()->version());
     A << m_uint << m_int << m_float << m_double << m_char << m_bool << m_str
       << m_vect << m_list << m_set << m_map;
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     ReaK::named_object::load(
-        A, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        A, ReaK::named_object::get_static_object_type()->version());
     A >> m_uint >> m_int >> m_float >> m_double >> m_char >> m_bool >> m_str >>
         m_vect >> m_list >> m_set >> m_map;
   }

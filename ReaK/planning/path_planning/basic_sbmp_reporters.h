@@ -80,11 +80,11 @@ struct no_sbmp_report : public shared_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(no_sbmp_report, 0xC2460002, 1, "no_sbmp_report",
@@ -230,14 +230,14 @@ struct differ_sbmp_report_to_space : public shared_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(next_reporter) &
         RK_SERIAL_SAVE_WITH_NAME(interval_size) &
         RK_SERIAL_SAVE_WITH_NAME(file_path);
   }
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(next_reporter) &
         RK_SERIAL_LOAD_WITH_NAME(interval_size) &
         RK_SERIAL_LOAD_WITH_NAME(file_path);
@@ -317,12 +317,12 @@ struct timing_sbmp_report : public shared_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(next_reporter);
   }
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(next_reporter);
     last_time = std::chrono::high_resolution_clock::now();
   }
@@ -387,12 +387,12 @@ struct print_sbmp_progress : public shared_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(next_reporter);
   }
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(next_reporter);
   }
 
@@ -492,12 +492,12 @@ struct least_cost_sbmp_report : public shared_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(next_reporter);
   }
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(next_reporter);
     current_best = 1e10;
     last_node_count = 0;

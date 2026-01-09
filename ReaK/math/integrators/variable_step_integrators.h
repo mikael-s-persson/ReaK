@@ -101,11 +101,11 @@ class fehlberg45_integrator : public variable_step_integrator<T> {
 
   void save(ReaK::serialization::oarchive& A, unsigned int) const override {
     variable_step_integrator<T>::save(
-        A, variable_step_integrator<T>::getStaticObjectType()->TypeVersion());
+        A, variable_step_integrator<T>::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A, unsigned int) override {
     variable_step_integrator<T>::load(
-        A, variable_step_integrator<T>::getStaticObjectType()->TypeVersion());
+        A, variable_step_integrator<T>::get_static_object_type()->version());
   }
 
   using self = fehlberg45_integrator<T>;
@@ -328,11 +328,11 @@ class dormand_prince45_integrator : public variable_step_integrator<T> {
 
   void save(ReaK::serialization::oarchive& A, unsigned int) const override {
     variable_step_integrator<T>::save(
-        A, variable_step_integrator<T>::getStaticObjectType()->TypeVersion());
+        A, variable_step_integrator<T>::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A, unsigned int) override {
     variable_step_integrator<T>::load(
-        A, variable_step_integrator<T>::getStaticObjectType()->TypeVersion());
+        A, variable_step_integrator<T>::get_static_object_type()->version());
   }
 
   using self = dormand_prince45_integrator<T>;

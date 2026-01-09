@@ -665,9 +665,9 @@ namespace rtti {
 
 template <typename T, unsigned int Size>
 struct get_type_id<vect<T, Size>> {
-  static constexpr unsigned int ID = 0x00000011;
+  static constexpr unsigned int id = 0x00000011;
   static constexpr auto type_name = std::string_view{"vect"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const vect<T, Size>&;
   using load_type = vect<T, Size>&;
@@ -675,11 +675,11 @@ struct get_type_id<vect<T, Size>> {
 
 template <typename T, unsigned int Size, typename Tail>
 struct get_type_info<vect<T, Size>, Tail> {
-  using type =
-      type_id<vect<T, Size>,
-              typename get_type_info<
-                  T, get_type_info<std::integral_constant<unsigned int, Size>,
-                                   Tail>>::type>;
+  using type = so_type_details::type_id<
+      vect<T, Size>,
+      typename get_type_info<
+          T, get_type_info<std::integral_constant<unsigned int, Size>,
+                           Tail>>::type>;
   static constexpr auto type_name = ct_concat_v<
       get_type_id<vect<T, Size>>::type_name, lsl_left_bracket,
       get_type_id<T>::type_name, lsl_comma,

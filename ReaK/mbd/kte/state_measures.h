@@ -121,13 +121,13 @@ class position_measure_gen : public kte_map, public system_output {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
     if (mAnchor) {
       mPosMeasure = mAnchor->q;
@@ -220,13 +220,13 @@ class position_measure_2D : public kte_map, public system_output {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
     if (mAnchor) {
       mPosMeasure = mAnchor->Position;
@@ -319,13 +319,13 @@ class position_measure_3D : public kte_map, public system_output {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
     if (mAnchor) {
       mPosMeasure = mAnchor->Position;
@@ -417,13 +417,13 @@ class rotation_measure_2D : public kte_map, public system_output {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
     if (mAnchor) {
       mAngleMeasure = mAnchor->Rotation.getAngle();
@@ -518,13 +518,13 @@ class rotation_measure_3D : public kte_map, public system_output {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
     if (mAnchor) {
       mQuatMeasure = mAnchor->Quat;
@@ -615,13 +615,13 @@ class velocity_measure_gen : public kte_map, public system_output {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
     if (mAnchor) {
       mVelMeasure = mAnchor->q_dot;
@@ -714,13 +714,13 @@ class velocity_measure_2D : public kte_map, public system_output {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
     if (mAnchor) {
       mVelMeasure = mAnchor->Velocity;
@@ -813,13 +813,13 @@ class velocity_measure_3D : public kte_map, public system_output {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
     if (mAnchor) {
       mVelMeasure = mAnchor->Velocity;
@@ -910,13 +910,13 @@ class ang_velocity_measure_2D : public kte_map, public system_output {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
     if (mAnchor) {
       mAngVelMeasure = mAnchor->AngVelocity;
@@ -1011,13 +1011,13 @@ class ang_velocity_measure_3D : public kte_map, public system_output {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
     if (mAnchor) {
       mAngVelMeasure = mAnchor->AngVelocity;

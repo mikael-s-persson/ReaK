@@ -176,7 +176,7 @@ class midpoint_integrator_factory : public named_object {
         m_sys(aSystem),
         m_input_traj(aInputTraj),
         m_time_step(aTimeStep) {
-    setName(aName);
+    set_name(aName);
   }
 
   midpoint_integrator_factory() : midpoint_integrator_factory("") {}
@@ -243,16 +243,16 @@ class midpoint_integrator_factory : public named_object {
   *******************************************************************************/
 
   void save(serialization::oarchive& A, unsigned int) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(m_t_space) & RK_SERIAL_SAVE_WITH_NAME(m_sys) &
         RK_SERIAL_SAVE_WITH_NAME(m_input_traj) &
         RK_SERIAL_SAVE_WITH_NAME(m_time_step);
   }
 
   void load(serialization::iarchive& A, unsigned int) override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(m_t_space) & RK_SERIAL_LOAD_WITH_NAME(m_sys) &
         RK_SERIAL_LOAD_WITH_NAME(m_input_traj) &
         RK_SERIAL_LOAD_WITH_NAME(m_time_step);

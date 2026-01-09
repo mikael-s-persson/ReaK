@@ -174,7 +174,7 @@ class prismatic_joint_2D : public reacting_kte_gen {
 
   void save(serialization::oarchive& A, unsigned int Version) const override {
     reacting_kte_gen::save(
-        A, reacting_kte_gen::getStaticObjectType()->TypeVersion());
+        A, reacting_kte_gen::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mCoord) & RK_SERIAL_SAVE_WITH_NAME(mAxis) &
         RK_SERIAL_SAVE_WITH_NAME(mBase) & RK_SERIAL_SAVE_WITH_NAME(mEnd) &
         RK_SERIAL_SAVE_WITH_NAME(mJacobian);
@@ -182,7 +182,7 @@ class prismatic_joint_2D : public reacting_kte_gen {
 
   void load(serialization::iarchive& A, unsigned int Version) override {
     reacting_kte_gen::load(
-        A, reacting_kte_gen::getStaticObjectType()->TypeVersion());
+        A, reacting_kte_gen::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mCoord) & RK_SERIAL_LOAD_WITH_NAME(mAxis) &
         RK_SERIAL_LOAD_WITH_NAME(mBase) & RK_SERIAL_LOAD_WITH_NAME(mEnd) &
         RK_SERIAL_LOAD_WITH_NAME(mJacobian);
@@ -326,7 +326,7 @@ class prismatic_joint_3D : public reacting_kte_gen {
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     reacting_kte_gen::save(
-        A, reacting_kte_gen::getStaticObjectType()->TypeVersion());
+        A, reacting_kte_gen::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mCoord) & RK_SERIAL_SAVE_WITH_NAME(mAxis) &
         RK_SERIAL_SAVE_WITH_NAME(mBase) & RK_SERIAL_SAVE_WITH_NAME(mEnd) &
         RK_SERIAL_SAVE_WITH_NAME(mJacobian);
@@ -334,7 +334,7 @@ class prismatic_joint_3D : public reacting_kte_gen {
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     reacting_kte_gen::load(
-        A, reacting_kte_gen::getStaticObjectType()->TypeVersion());
+        A, reacting_kte_gen::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mCoord) & RK_SERIAL_LOAD_WITH_NAME(mAxis) &
         RK_SERIAL_LOAD_WITH_NAME(mBase) & RK_SERIAL_LOAD_WITH_NAME(mEnd) &
         RK_SERIAL_LOAD_WITH_NAME(mJacobian);

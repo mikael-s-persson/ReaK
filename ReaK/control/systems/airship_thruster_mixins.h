@@ -156,12 +156,12 @@ class airship3D_6dof_thrusters : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(airship3D_6dof_thrusters, 0xC2310027, 1,
@@ -291,14 +291,14 @@ class tryphon_n_thrusters : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(thruster_pos) &
         RK_SERIAL_SAVE_WITH_NAME(thruster_dir);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(thruster_pos) &
         RK_SERIAL_LOAD_WITH_NAME(thruster_dir);
   }

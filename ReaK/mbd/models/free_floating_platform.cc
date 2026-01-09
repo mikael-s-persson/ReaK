@@ -329,7 +329,7 @@ void free_floater_2D_kinematics::setDependentAccelerations(
 void free_floater_2D_kinematics::save(serialization::oarchive& A,
                                       unsigned int /*unused*/) const {
   inverse_kinematics_model::save(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   resyncEndEffectors();
   A& RK_SERIAL_SAVE_WITH_NAME(m_base_frame) &
       RK_SERIAL_SAVE_WITH_NAME(m_state_frame) &
@@ -342,7 +342,7 @@ void free_floater_2D_kinematics::save(serialization::oarchive& A,
 void free_floater_2D_kinematics::load(serialization::iarchive& A,
                                       unsigned int /*unused*/) {
   inverse_kinematics_model::load(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(m_base_frame) &
       RK_SERIAL_LOAD_WITH_NAME(m_state_frame) &
       RK_SERIAL_LOAD_WITH_NAME(m_state_jacobian) &
@@ -675,7 +675,7 @@ void free_floater_3D_kinematics::setDependentAccelerations(
 void free_floater_3D_kinematics::save(serialization::oarchive& A,
                                       unsigned int /*unused*/) const {
   inverse_kinematics_model::save(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   resyncEndEffectors();
   A& RK_SERIAL_SAVE_WITH_NAME(m_base_frame) &
       RK_SERIAL_SAVE_WITH_NAME(m_state_frame) &
@@ -688,7 +688,7 @@ void free_floater_3D_kinematics::save(serialization::oarchive& A,
 void free_floater_3D_kinematics::load(serialization::iarchive& A,
                                       unsigned int /*unused*/) {
   inverse_kinematics_model::load(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(m_base_frame) &
       RK_SERIAL_LOAD_WITH_NAME(m_state_frame) &
       RK_SERIAL_LOAD_WITH_NAME(m_state_jacobian) &

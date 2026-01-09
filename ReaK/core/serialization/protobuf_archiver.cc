@@ -215,8 +215,8 @@ iarchive& protobuf_iarchive::load_serializable_ptr(
 
   // Find the class in question in the repository.
   rtti::so_type* p =
-      rtti::so_type_repo::getInstance().findType(typeIDvect.data());
-  if ((p == nullptr) || (p->TypeVersion() < hdr.type_version)) {
+      rtti::so_type_repo::get_instance().find_type(typeIDvect.data());
+  if ((p == nullptr) || (p->version() < hdr.type_version)) {
     std::streampos end_pos = file_stream->tellg();
     if (std::streampos(hdr.size) + start_pos != end_pos) {
       if (!file_stream->seekg(start_pos + std::streampos(hdr.size))) {
@@ -226,7 +226,7 @@ iarchive& protobuf_iarchive::load_serializable_ptr(
     throw unsupported_type(unsupported_type::not_found_in_repo,
                            typeIDvect.data());
   }
-  std::shared_ptr<shared_object> po(p->CreateObject());
+  std::shared_ptr<shared_object> po(p->create_object());
   if (!po) {
     std::streampos end_pos = file_stream->tellg();
     if (std::streampos(hdr.size) + start_pos != end_pos) {
@@ -568,9 +568,9 @@ oarchive& protobuf_oarchive::saveToNewArchive_impl(
       mObjRegMap[Item] = hdr.object_ID;
     }
 
-    rtti::so_type* obj_type = Item->getObjectType();
-    type_ID = obj_type->TypeID_begin();
-    hdr.type_version = obj_type->TypeVersion();
+    rtti::so_type* obj_type = Item->get_object_type();
+    type_ID = obj_type->id_begin();
+    hdr.type_version = obj_type->version();
     hdr.is_external = true;
   } else {
     hdr.type_version = 0;
@@ -661,9 +661,9 @@ oarchive& protobuf_oarchive::save_serializable_ptr(
       mObjRegMap[Item] = hdr.object_ID;
     }
 
-    rtti::so_type* obj_type = Item->getObjectType();
-    type_ID = obj_type->TypeID_begin();
-    hdr.type_version = obj_type->TypeVersion();
+    rtti::so_type* obj_type = Item->get_object_type();
+    type_ID = obj_type->id_begin();
+    hdr.type_version = obj_type->version();
     hdr.is_external = false;
   } else {
     hdr.type_version = 0;
@@ -734,8 +734,8 @@ oarchive& protobuf_oarchive::save_serializable(const serializable& Item) {
   repeat_state.push(0);
 
   archive_object_header hdr;
-  const unsigned int* type_ID = Item.getObjectType()->TypeID_begin();
-  hdr.type_version = Item.getObjectType()->TypeVersion();
+  const unsigned int* type_ID = Item.get_object_type()->id_begin();
+  hdr.type_version = Item.get_object_type()->version();
   hdr.object_ID = 0;
   hdr.is_external = false;
   hdr.size = 0;
@@ -1035,7 +1035,7 @@ oarchive& protobuf_schemer::save_serializable_ptr(
   constexpr auto tname =
       rtti::get_type_id<serializable_shared_pointer>::type_name;
   std::string aObjTypeName = std::string(tname);
-  aObjTypeName += "<" + Item.second->getObjectType()->TypeName() + ">";
+  aObjTypeName += "<" + Item.second->get_object_type()->name() + ">";
   auto it = mObjRegMap.find(Item.second);
 
   if (it == mObjRegMap.end()) {
@@ -1056,7 +1056,7 @@ oarchive& protobuf_schemer::save_serializable_ptr(
     mObjRegistry.push_back(Item.second);
     mObjRegMap[Item.second] = mObjRegistry.size() - 1;
 
-    Item.second->save(*this, Item.second->getObjectType()->TypeVersion());
+    Item.second->save(*this, Item.second->get_object_type()->version());
     *file_stream << "}" << std::endl;
 
     file_stream = tmp_str_ptr;
@@ -1103,12 +1103,12 @@ oarchive& protobuf_schemer::save_serializable(
   field_IDs.push(2);
   repeat_state.push(0);
 
-  *file_stream << "message " << Item.second.getObjectType()->TypeName() << " {"
+  *file_stream << "message " << Item.second.get_object_type()->name() << " {"
                << std::endl
                << "  repeated uint32 type_ID = 0;" << std::endl
                << "  required uint32 version = 1;" << std::endl;
 
-  Item.second.save(*this, Item.second.getObjectType()->TypeVersion());
+  Item.second.save(*this, Item.second.get_object_type()->version());
 
   *file_stream << "}" << std::endl;
 
@@ -1116,10 +1116,10 @@ oarchive& protobuf_schemer::save_serializable(
   field_IDs.pop();
   repeat_state.pop();
 
-  auto itm = scheme_map.find(Item.second.getObjectType()->TypeName());
+  auto itm = scheme_map.find(Item.second.get_object_type()->name());
   if (itm == scheme_map.end()) {
     schemes.push_back(str_stream->str());
-    scheme_map[Item.second.getObjectType()->TypeName()] = schemes.size() - 1;
+    scheme_map[Item.second.get_object_type()->name()] = schemes.size() - 1;
   } else {
     std::string s_tmp = str_stream->str();
     if (schemes[itm->second].length() < s_tmp.length()) {
@@ -1131,8 +1131,8 @@ oarchive& protobuf_schemer::save_serializable(
     return *this;
   }
 
-  *file_stream << "  required " << Item.second.getObjectType()->TypeName()
-               << " " << Item.first << " = " << chunk_hdr << ";" << std::endl;
+  *file_stream << "  required " << Item.second.get_object_type()->name() << " "
+               << Item.first << " = " << chunk_hdr << ";" << std::endl;
 
   field_IDs.top() += 1;
 

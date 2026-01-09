@@ -202,8 +202,8 @@ struct sbastar_bundle_factory {
     Vertex start_node = add_vertex(motion_graph, std::move(vp_start));
     vis.m_start_node = std::any(start_node);
     auto* p2p_query_ptr =
-        reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(query.castTo(
-            path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
+        reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(query.cast_to(
+            path_planning_p2p_query<FreeSpaceType>::get_static_object_type()));
     if (p2p_query_ptr) {
       vertex_prop vp_goal;
       vp_goal.position = p2p_query_ptr->goal_pos;

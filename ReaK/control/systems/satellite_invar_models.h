@@ -286,14 +286,14 @@ class satellite2D_imdt_sys : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mMass) &
         RK_SERIAL_SAVE_WITH_NAME(mInertiaMoment) &
         RK_SERIAL_SAVE_WITH_NAME(mDt);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mMass) &
         RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment) &
         RK_SERIAL_LOAD_WITH_NAME(mDt);
@@ -414,13 +414,13 @@ class satellite3D_imdt_sys : public satellite3D_inv_dt_system {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     satellite3D_inv_dt_system::save(
-        A, satellite3D_inv_dt_system::getStaticObjectType()->TypeVersion());
+        A, satellite3D_inv_dt_system::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(approx_order);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     satellite3D_inv_dt_system::load(
-        A, satellite3D_inv_dt_system::getStaticObjectType()->TypeVersion());
+        A, satellite3D_inv_dt_system::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(approx_order);
   }
 
@@ -540,15 +540,13 @@ class satellite3D_gyro_imdt_sys : public satellite3D_gyro_inv_dt_system {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     satellite3D_gyro_inv_dt_system::save(
-        A,
-        satellite3D_gyro_inv_dt_system::getStaticObjectType()->TypeVersion());
+        A, satellite3D_gyro_inv_dt_system::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(approx_order);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     satellite3D_gyro_inv_dt_system::load(
-        A,
-        satellite3D_gyro_inv_dt_system::getStaticObjectType()->TypeVersion());
+        A, satellite3D_gyro_inv_dt_system::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(approx_order);
   }
 
@@ -717,7 +715,7 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     satellite3D_imdt_sys::save(
-        A, satellite3D_imdt_sys::getStaticObjectType()->TypeVersion());
+        A, satellite3D_imdt_sys::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(IMU_orientation) &
         RK_SERIAL_SAVE_WITH_NAME(IMU_location) &
         RK_SERIAL_SAVE_WITH_NAME(room_orientation) &
@@ -726,7 +724,7 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     satellite3D_imdt_sys::load(
-        A, satellite3D_imdt_sys::getStaticObjectType()->TypeVersion());
+        A, satellite3D_imdt_sys::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(IMU_orientation) &
         RK_SERIAL_LOAD_WITH_NAME(IMU_location) &
         RK_SERIAL_LOAD_WITH_NAME(room_orientation) &

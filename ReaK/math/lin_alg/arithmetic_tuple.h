@@ -742,9 +742,9 @@ namespace rtti {
 
 template <typename... T>
 struct get_type_id<arithmetic_tuple<T...>> {
-  static constexpr unsigned int ID = 0x0000002C;
+  static constexpr unsigned int id = 0x0000002C;
   static constexpr auto type_name = std::string_view{"arithmetic_tuple"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const arithmetic_tuple<T...>&;
   using load_type = arithmetic_tuple<T...>&;
@@ -752,12 +752,14 @@ struct get_type_id<arithmetic_tuple<T...>> {
 
 template <typename Tail, typename... T>
 struct get_type_info<arithmetic_tuple<T...>, Tail> {
-  using type = type_id<
-      arithmetic_tuple<T...>,
-      typename get_type_info_seq<T...>::template with_tail<Tail>::type::type>;
+  using type =
+      so_type_details::type_id<arithmetic_tuple<T...>,
+                               typename so_type_details::get_type_info_seq<
+                                   T...>::template with_tail<Tail>::type::type>;
   static constexpr auto type_name =
       ct_concat_v<get_type_id<arithmetic_tuple<T...>>::type_name,
-                  lsl_left_bracket, get_type_info_seq<T...>::type_name,
+                  lsl_left_bracket,
+                  so_type_details::get_type_info_seq<T...>::type_name,
                   lsl_right_bracket, get_type_name_tail<Tail>::value>;
 };
 

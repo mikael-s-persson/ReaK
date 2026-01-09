@@ -204,14 +204,14 @@ class sbastar_planner : public sample_based_planner<FreeSpaceType> {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(m_init_dens_threshold) &
         RK_SERIAL_SAVE_WITH_NAME(m_init_relaxation) &
         RK_SERIAL_SAVE_WITH_NAME(m_SA_init_temperature);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(m_init_dens_threshold) &
         RK_SERIAL_LOAD_WITH_NAME(m_init_relaxation) &
         RK_SERIAL_LOAD_WITH_NAME(m_SA_init_temperature);

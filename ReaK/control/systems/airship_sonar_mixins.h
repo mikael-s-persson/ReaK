@@ -150,12 +150,12 @@ class room_orientation_state_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(room_orientation_state_model, 0xC2310031, 1,
@@ -423,7 +423,7 @@ class sonars_in_room_output_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(sonar_pos) &
         RK_SERIAL_SAVE_WITH_NAME(sonar_dir) &
         RK_SERIAL_SAVE_WITH_NAME(lower_corner) &
@@ -432,7 +432,7 @@ class sonars_in_room_output_model : public named_object {
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(sonar_pos) &
         RK_SERIAL_LOAD_WITH_NAME(sonar_dir) &
         RK_SERIAL_LOAD_WITH_NAME(lower_corner) &

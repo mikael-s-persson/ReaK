@@ -232,9 +232,11 @@ namespace rtti {
 #define RK_RTTI_MAKE_TYPE_INFO_FOR_RPC_DETAIL_CLASS(VARIABLE, CLASSID)        \
   template <>                                                                 \
   struct get_type_id<::ReaK::rpc::detail::VARIABLE> {                         \
-    static constexpr unsigned int ID = CLASSID;                               \
+    static constexpr unsigned int id = CLASSID;                               \
     static constexpr auto type_name = std::string_view{#VARIABLE};            \
-    static construct_ptr CreatePtr() noexcept { return nullptr; }             \
+    static construct_ptr create_ptr() noexcept {                              \
+      return nullptr;                                                         \
+    }                                                                         \
                                                                               \
     typedef const serializable& save_type;                                    \
     typedef serializable& load_type;                                          \

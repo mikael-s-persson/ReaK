@@ -1017,9 +1017,9 @@ namespace rtti {
 
 template <typename T>
 struct get_type_id<quat<T>> {
-  static constexpr unsigned int ID = 0x0000002B;
+  static constexpr unsigned int id = 0x0000002B;
   static constexpr auto type_name = std::string_view{"ReaK::quat"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const quat<T>&;
   using load_type = quat<T>&;
@@ -1027,9 +1027,9 @@ struct get_type_id<quat<T>> {
 
 template <typename T>
 struct get_type_id<unit_quat<T>> {
-  static constexpr unsigned int ID = 0x0000002D;
+  static constexpr unsigned int id = 0x0000002D;
   static constexpr auto type_name = std::string_view{"ReaK::unit_quat"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const quat<T>&;
   using load_type = quat<T>&;

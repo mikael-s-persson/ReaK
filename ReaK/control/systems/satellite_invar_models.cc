@@ -36,7 +36,7 @@ satellite2D_imdt_sys::satellite2D_imdt_sys(const std::string& aName,
                                            double aMass, double aInertiaMoment,
                                            double aDt)
     : mMass(aMass), mInertiaMoment(aInertiaMoment), mDt(aDt) {
-  setName(aName);
+  set_name(aName);
   if ((mInertiaMoment < std::numeric_limits<double>::epsilon()) ||
       (mMass < std::numeric_limits<double>::epsilon())) {
     throw system_incoherency(

@@ -83,7 +83,7 @@ class decomp_covariance_matrix : public named_object {
       const matrix_block_type& aMatY = matrix_block_type(),
       const std::string& aName = "")
       : mat_X(aMatX), mat_Y(aMatY) {
-    setName(aName);
+    set_name(aName);
   }
 
   decomp_covariance_matrix() : decomp_covariance_matrix(matrix_block_type()) {}
@@ -98,7 +98,7 @@ class decomp_covariance_matrix : public named_object {
       covariance_initial_level aLevel = covariance_initial_level::full_info,
       const std::string& aName = "")
       : mat_X(aSize, value_type(0)), mat_Y(aSize, value_type(0)) {
-    setName(aName);
+    set_name(aName);
     if (aLevel == covariance_initial_level::full_info) {
       mat_Y = mat<value_type, mat_structure::identity>(aSize);
     } else {
@@ -185,12 +185,12 @@ class decomp_covariance_matrix : public named_object {
 
   void save(ReaK::serialization::oarchive& aA, unsigned int) const override {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(mat_X) & RK_SERIAL_SAVE_WITH_NAME(mat_Y);
   }
   void load(ReaK::serialization::iarchive& aA, unsigned int) override {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(mat_X) & RK_SERIAL_LOAD_WITH_NAME(mat_Y);
   }
 

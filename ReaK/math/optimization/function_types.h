@@ -82,11 +82,11 @@ class cost_evaluator : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(cost_evaluator, 0xC1500001, 1, "cost_evaluator",
@@ -144,13 +144,13 @@ class quadratic_cost_evaluator : public cost_evaluator {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     cost_evaluator::save(A,
-                         cost_evaluator::getStaticObjectType()->TypeVersion());
+                         cost_evaluator::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(c) & RK_SERIAL_SAVE_WITH_NAME(Q);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     cost_evaluator::load(A,
-                         cost_evaluator::getStaticObjectType()->TypeVersion());
+                         cost_evaluator::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(c) & RK_SERIAL_LOAD_WITH_NAME(Q);
   }
 
@@ -211,14 +211,14 @@ class added_cost_evaluator : public cost_evaluator {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     cost_evaluator::save(A,
-                         cost_evaluator::getStaticObjectType()->TypeVersion());
+                         cost_evaluator::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(first_eval) &
         RK_SERIAL_SAVE_WITH_NAME(second_eval);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     cost_evaluator::load(A,
-                         cost_evaluator::getStaticObjectType()->TypeVersion());
+                         cost_evaluator::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(first_eval) &
         RK_SERIAL_LOAD_WITH_NAME(second_eval);
   }

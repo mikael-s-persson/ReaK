@@ -67,7 +67,7 @@ struct Ndof_limits : public named_object {
    * Default constructor.
    */
   explicit Ndof_limits(const std::string& aName) : named_object() {
-    this->setName(aName);
+    this->set_name(aName);
   }
 
   Ndof_limits() : Ndof_limits("") {}
@@ -237,7 +237,7 @@ struct Ndof_limits : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(lower_bounds) &
         RK_SERIAL_SAVE_WITH_NAME(upper_bounds) &
         RK_SERIAL_SAVE_WITH_NAME(speed_limits) &
@@ -246,7 +246,7 @@ struct Ndof_limits : public named_object {
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(lower_bounds) &
         RK_SERIAL_LOAD_WITH_NAME(upper_bounds) &
         RK_SERIAL_LOAD_WITH_NAME(speed_limits) &
@@ -284,7 +284,7 @@ struct Ndof_limits<T, 0> : public named_object {
    * Default constructor.
    */
   explicit Ndof_limits(const std::string& aName) : named_object() {
-    this->setName(aName);
+    this->set_name(aName);
   }
 
   Ndof_limits() : Ndof_limits("") {}
@@ -454,7 +454,7 @@ struct Ndof_limits<T, 0> : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(lower_bounds) &
         RK_SERIAL_SAVE_WITH_NAME(upper_bounds) &
         RK_SERIAL_SAVE_WITH_NAME(speed_limits) &
@@ -463,7 +463,7 @@ struct Ndof_limits<T, 0> : public named_object {
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(lower_bounds) &
         RK_SERIAL_LOAD_WITH_NAME(upper_bounds) &
         RK_SERIAL_LOAD_WITH_NAME(speed_limits) &

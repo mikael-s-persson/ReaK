@@ -188,12 +188,12 @@ class seq_trajectory_wrapper
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(m_traj);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(m_traj);
   }
 

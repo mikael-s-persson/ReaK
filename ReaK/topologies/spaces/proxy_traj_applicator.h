@@ -109,14 +109,14 @@ class proxy_traj_applicator : public proxy_model_updater {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     proxy_model_updater::save(
-        A, proxy_model_updater::getStaticObjectType()->TypeVersion());
+        A, proxy_model_updater::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(static_applicator) &
         RK_SERIAL_SAVE_WITH_NAME(traj);
   };
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     proxy_model_updater::load(
-        A, proxy_model_updater::getStaticObjectType()->TypeVersion());
+        A, proxy_model_updater::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(static_applicator) &
         RK_SERIAL_LOAD_WITH_NAME(traj);
     if (traj) {

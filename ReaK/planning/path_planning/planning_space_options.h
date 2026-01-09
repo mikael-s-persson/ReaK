@@ -161,7 +161,7 @@ class planning_space_options : public shared_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(space_options) &
         RK_SERIAL_SAVE_WITH_NAME(output_space_options) &
         RK_SERIAL_SAVE_WITH_NAME(min_travel) &
@@ -169,7 +169,7 @@ class planning_space_options : public shared_object {
   }
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(space_options) &
         RK_SERIAL_LOAD_WITH_NAME(output_space_options) &
         RK_SERIAL_LOAD_WITH_NAME(min_travel) &

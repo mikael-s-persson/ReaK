@@ -152,7 +152,7 @@ void data_recorder::set_file_name(const std::string& file_name) {
 
 void data_recorder::save(serialization::oarchive& A,
                          unsigned int /*Version*/) const {
-  shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+  shared_object::save(A, shared_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(col_count_)) &
       RK_SERIAL_SAVE_WITH_NAME(flush_sample_rate_) &
       RK_SERIAL_SAVE_WITH_NAME(max_buffer_size_) &
@@ -162,7 +162,7 @@ void data_recorder::save(serialization::oarchive& A,
 void data_recorder::load(serialization::iarchive& A, unsigned int /*Version*/) {
   close_record_process();
   std::unique_lock<std::mutex> lock_here(access_mutex_);
-  shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+  shared_object::load(A, shared_object::get_static_object_type()->version());
   unsigned int col_count = 0;
   A& RK_SERIAL_LOAD_WITH_ALIAS("col_count_", col_count) &
       RK_SERIAL_LOAD_WITH_NAME(flush_sample_rate_) &
@@ -310,7 +310,7 @@ void data_extractor::set_file_name(const std::string& file_name) {
 
 void data_extractor::save(serialization::oarchive& A,
                           unsigned int /*Version*/) const {
-  shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+  shared_object::save(A, shared_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(col_count_)) &
       RK_SERIAL_SAVE_WITH_NAME(flush_sample_rate_) &
       RK_SERIAL_SAVE_WITH_NAME(min_buffer_size_) &
@@ -321,7 +321,7 @@ void data_extractor::load(serialization::iarchive& A,
                           unsigned int /*Version*/) {
   close_extract_process();
   std::unique_lock<std::mutex> lock_here(access_mutex_);
-  shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+  shared_object::load(A, shared_object::get_static_object_type()->version());
   unsigned int col_count = 0;
   A& RK_SERIAL_LOAD_WITH_ALIAS("col_count_", col_count) &
       RK_SERIAL_LOAD_WITH_NAME(flush_sample_rate_) &

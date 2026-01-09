@@ -198,13 +198,13 @@ class constant_trajectory : public shared_object {
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
     ReaK::shared_object::save(
-        A, shared_object::getStaticObjectType()->TypeVersion());
+        A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(start_point);
   }
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     ReaK::shared_object::load(
-        A, shared_object::getStaticObjectType()->TypeVersion());
+        A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(start_point);
   }
 

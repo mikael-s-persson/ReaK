@@ -50,7 +50,7 @@ struct kte_geom_2D_visitor {
 
   template <typename KTEType>
   void connect_to_base_or_end(const KTEType& aObj) {
-    const std::string& obj_name = aObj.getName();
+    const std::string& obj_name = aObj.get_name();
 
     auto it = parent->mGeomList.find(obj_name + "_base");
     if ((it != parent->mGeomList.end()) && (!it->second.empty())) {
@@ -102,7 +102,7 @@ struct kte_geom_2D_visitor {
   }
 
   void operator()(const inertia_2D& aObj) const {
-    const std::string& obj_name = aObj.getName();
+    const std::string& obj_name = aObj.get_name();
 
     auto it = parent->mGeomList.find(obj_name);
     if ((it != parent->mGeomList.end()) &&
@@ -134,7 +134,7 @@ struct kte_geom_3D_visitor {
 
   template <typename KTEType>
   void connect_to_base_or_end(const KTEType& aObj) {
-    const std::string& obj_name = aObj.getName();
+    const std::string& obj_name = aObj.get_name();
 
     auto it = parent->mGeomList.find(obj_name + "_base");
     if ((it != parent->mGeomList.end()) && (!it->second.empty())) {
@@ -186,7 +186,7 @@ struct kte_geom_3D_visitor {
   }
 
   void operator()(const inertia_3D& aObj) const {
-    const std::string& obj_name = aObj.getName();
+    const std::string& obj_name = aObj.get_name();
 
     auto it = parent->mGeomList.find(obj_name);
     if ((it != parent->mGeomList.end()) &&
@@ -221,7 +221,7 @@ kte_chain_geometry_2D::attachToKTEChain(const kte_map_chain& aKTEChain) const {
 
   // then, construct the colored_model_2D from the resulting (attached) geometries:
   auto result_geom =
-      std::make_shared<geom::colored_model_2D>(aKTEChain.getName() + "_geom");
+      std::make_shared<geom::colored_model_2D>(aKTEChain.get_name() + "_geom");
   for (const auto& it : mGeomList) {
     for (const auto& i : it.second) {
       if (i.mGeom) {
@@ -233,7 +233,7 @@ kte_chain_geometry_2D::attachToKTEChain(const kte_map_chain& aKTEChain) const {
 
   // then, construct the proxy_query_model_2D from the resulting (attached) geometries:
   auto result_prox = std::make_shared<geom::proxy_query_model_2D>(
-      aKTEChain.getName() + "_proxy");
+      aKTEChain.get_name() + "_proxy");
   for (const auto& it : mProxyShapeList) {
     for (const auto& i : it.second) {
       if (i) {
@@ -253,7 +253,7 @@ kte_chain_geometry_3D::attachToKTEChain(const kte_map_chain& aKTEChain) const {
 
   // then, construct the colored_model_3D from the resulting (attached) geometries:
   auto result_geom =
-      std::make_shared<geom::colored_model_3D>(aKTEChain.getName() + "_geom");
+      std::make_shared<geom::colored_model_3D>(aKTEChain.get_name() + "_geom");
   for (const auto& it : mGeomList) {
     for (const auto& i : it.second) {
       if (i.mGeom) {
@@ -265,7 +265,7 @@ kte_chain_geometry_3D::attachToKTEChain(const kte_map_chain& aKTEChain) const {
 
   // then, construct the proxy_query_model_3D from the resulting (attached) geometries:
   auto result_prox = std::make_shared<geom::proxy_query_model_3D>(
-      aKTEChain.getName() + "_proxy");
+      aKTEChain.get_name() + "_proxy");
   for (const auto& it : mProxyShapeList) {
     for (const auto& i : it.second) {
       if (i) {

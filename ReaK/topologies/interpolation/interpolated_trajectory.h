@@ -267,14 +267,14 @@ requires InterpolatorFactory<InterpFactory, Space,
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_class_type::save(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::save(A,
+                          base_class_type::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(interp_fact);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_class_type::load(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::load(A,
+                          base_class_type::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(interp_fact);
     interp_segments.clear();
   }

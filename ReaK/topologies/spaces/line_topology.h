@@ -65,7 +65,7 @@ class line_topology : public named_object {
 
   explicit line_topology(const std::string& aName = "line_topology")
       : named_object() {
-    setName(aName);
+    set_name(aName);
   }
 
   /*************************************************************************
@@ -152,13 +152,13 @@ class line_topology : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400001, 1, "line_topology",
@@ -304,13 +304,13 @@ class line_segment_topology : public line_topology<T> {
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     line_topology<T>::save(
-        A, line_topology<T>::getStaticObjectType()->TypeVersion());
+        A, line_topology<T>::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(start_pt) & RK_SERIAL_SAVE_WITH_NAME(end_pt);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     line_topology<T>::load(
-        A, line_topology<T>::getStaticObjectType()->TypeVersion());
+        A, line_topology<T>::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(start_pt) & RK_SERIAL_LOAD_WITH_NAME(end_pt);
   }
 

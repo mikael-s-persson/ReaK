@@ -50,7 +50,9 @@ class system_input : public virtual named_object {
   /**
    * Constructs a system input class with the given name.
    */
-  explicit system_input(const std::string& aName = "") { this->setName(aName); }
+  explicit system_input(const std::string& aName = "") {
+    this->set_name(aName);
+  }
 
   /**
    * Destructor.
@@ -78,13 +80,13 @@ class system_input : public virtual named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(system_input, 0xC2100033, 1, "system_input",

@@ -44,7 +44,7 @@ quadrotor_system::quadrotor_system(
       mInertiaMoment(aInertiaMoment),
       mTransDragCoefs(aTransDragCoefs),
       mRotDragCoefs(aRotDragCoefs) {
-  setName(aName);
+  set_name(aName);
   if ((mInertiaMoment.get_row_count() != 3) ||
       (mMass < std::numeric_limits<double>::epsilon())) {
     throw system_incoherency(
@@ -158,7 +158,7 @@ void quadrotor_system::get_linear_blocks(matrixA_type& A, matrixB_type& B,
 
 void quadrotor_system::save(ReaK::serialization::oarchive& A,
                             unsigned int /*unused*/) const {
-  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::save(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mMass) &
       RK_SERIAL_SAVE_WITH_NAME(mInertiaMoment) &
       RK_SERIAL_SAVE_WITH_NAME(mTransDragCoefs) &
@@ -167,7 +167,7 @@ void quadrotor_system::save(ReaK::serialization::oarchive& A,
 
 void quadrotor_system::load(ReaK::serialization::iarchive& A,
                             unsigned int /*unused*/) {
-  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::load(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mMass) &
       RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment) &
       RK_SERIAL_LOAD_WITH_NAME(mTransDragCoefs) &

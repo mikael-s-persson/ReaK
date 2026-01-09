@@ -808,13 +808,13 @@ class gaussian_belief_state : public virtual shared_object {
   void save(ReaK::serialization::oarchive& aA,
             unsigned int /*Version*/) const override {
     ReaK::shared_object::save(
-        aA, ReaK::shared_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::shared_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(mean_state) & RK_SERIAL_SAVE_WITH_NAME(covar);
   }
   void load(ReaK::serialization::iarchive& aA,
             unsigned int /*Version*/) override {
     ReaK::shared_object::load(
-        aA, ReaK::shared_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::shared_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(mean_state) & RK_SERIAL_LOAD_WITH_NAME(covar);
   }
 

@@ -95,7 +95,7 @@ struct proximity_solver {
     x[2] = (c1[1] + c2[1]) * 0.5;
     x[3] = (c1[2] + c2[2]) * 0.5;
 
-    if (mShape1->getObjectType() == geom::box::getStaticObjectType()) {
+    if (mShape1->get_object_type() == geom::box::get_static_object_type()) {
       std::shared_ptr<geom::box> bx_a =
           rtti::rk_dynamic_ptr_cast<geom::box>(mShape1);
       pose_3D<double> bx_a_pose = bx_a->getPose().getGlobalPose();
@@ -106,7 +106,7 @@ struct proximity_solver {
       if (min_dim > 0.5 * bx_a->getDimensions()[2]) {
         min_dim = 0.5 * bx_a->getDimensions()[2];
       }
-      if (mShape2->getObjectType() == geom::box::getStaticObjectType()) {
+      if (mShape2->get_object_type() == geom::box::get_static_object_type()) {
         // box-box case.
         std::shared_ptr<geom::box> bx_b =
             rtti::rk_dynamic_ptr_cast<geom::box>(mShape2);
@@ -123,8 +123,8 @@ struct proximity_solver {
 
         x[0] = norm_2(c2 - c1) / min_dim;
 
-        std::cout << "Checking proximity between Box '" << bx_a->getName()
-                  << "' and Box '" << bx_b->getName() << "'..." << std::endl;
+        std::cout << "Checking proximity between Box '" << bx_a->get_name()
+                  << "' and Box '" << bx_b->get_name() << "'..." << std::endl;
 
         try {
           optim::make_nlip_newton_tr(
@@ -161,8 +161,8 @@ struct proximity_solver {
 
         x[0] = norm_2(c2 - c1) / min_dim;
 
-        std::cout << "Checking proximity between Box '" << bx_a->getName()
-                  << "' and Cylinder '" << cy_b->getName() << "'..."
+        std::cout << "Checking proximity between Box '" << bx_a->get_name()
+                  << "' and Cylinder '" << cy_b->get_name() << "'..."
                   << std::endl;
 
         try {
@@ -195,7 +195,7 @@ struct proximity_solver {
       if (min_dim > cy_a->getRadius()) {
         min_dim = cy_a->getRadius();
       }
-      if (mShape2->getObjectType() == geom::box::getStaticObjectType()) {
+      if (mShape2->get_object_type() == geom::box::get_static_object_type()) {
         // cylinder-box case.
         std::shared_ptr<geom::box> bx_b =
             rtti::rk_dynamic_ptr_cast<geom::box>(mShape2);
@@ -212,8 +212,8 @@ struct proximity_solver {
 
         x[0] = norm_2(c2 - c1) / min_dim;
 
-        std::cout << "Checking proximity between Cylinder '" << cy_a->getName()
-                  << "' and Box '" << bx_b->getName() << "'..." << std::endl;
+        std::cout << "Checking proximity between Cylinder '" << cy_a->get_name()
+                  << "' and Box '" << bx_b->get_name() << "'..." << std::endl;
 
         try {
           optim::make_nlip_newton_tr(
@@ -251,8 +251,8 @@ struct proximity_solver {
 
         x[0] = norm_2(c2 - c1) / min_dim;
 
-        std::cout << "Checking proximity between Cylinder '" << cy_a->getName()
-                  << "' and Cylinder '" << cy_b->getName() << "'..."
+        std::cout << "Checking proximity between Cylinder '" << cy_a->get_name()
+                  << "' and Cylinder '" << cy_b->get_name() << "'..."
                   << std::endl;
 
         try {

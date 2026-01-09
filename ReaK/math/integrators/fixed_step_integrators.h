@@ -120,10 +120,10 @@ class euler_integrator : public integrator<T> {
   ~euler_integrator() override = default;
 
   void save(ReaK::serialization::oarchive& A, unsigned int) const override {
-    integrator<T>::save(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::save(A, integrator<T>::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A, unsigned int) override {
-    integrator<T>::load(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::load(A, integrator<T>::get_static_object_type()->version());
   }
 
   using self = euler_integrator<T>;
@@ -169,11 +169,11 @@ class midpoint_integrator : public integrator<T> {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    integrator<T>::save(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::save(A, integrator<T>::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    integrator<T>::load(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::load(A, integrator<T>::get_static_object_type()->version());
   }
 
   using self = midpoint_integrator<T>;
@@ -260,10 +260,10 @@ class runge_kutta4_integrator : public integrator<T> {
   ~runge_kutta4_integrator() override = default;
 
   void save(ReaK::serialization::oarchive& A, unsigned int) const override {
-    integrator<T>::save(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::save(A, integrator<T>::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A, unsigned int) override {
-    integrator<T>::load(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::load(A, integrator<T>::get_static_object_type()->version());
   }
 
   using self = runge_kutta4_integrator<T>;
@@ -370,10 +370,10 @@ class runge_kutta5_integrator : public integrator<T> {
   ~runge_kutta5_integrator() override = default;
 
   void save(ReaK::serialization::oarchive& A, unsigned int) const override {
-    integrator<T>::save(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::save(A, integrator<T>::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A, unsigned int) override {
-    integrator<T>::load(A, integrator<T>::getStaticObjectType()->TypeVersion());
+    integrator<T>::load(A, integrator<T>::get_static_object_type()->version());
   }
 
   using self = runge_kutta5_integrator<T>;

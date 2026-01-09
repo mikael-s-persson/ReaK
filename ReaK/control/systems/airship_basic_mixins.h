@@ -79,7 +79,7 @@ class airship_parameter_pack : public named_object {
         gravity_acc_vect(0.0, 0.0, -9.81),
         magnetic_field_vect(0.0, 0.0, 0.0),
         IMU_position(0.0, 0.0, 0.0) {
-    setName("airship_parameter_pack");
+    set_name("airship_parameter_pack");
   }
 
   void reset_parameters() {
@@ -109,7 +109,7 @@ class airship_parameter_pack : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mass) &
         RK_SERIAL_SAVE_WITH_NAME(added_mass_factor) &
         RK_SERIAL_SAVE_WITH_NAME(J) &
@@ -124,7 +124,7 @@ class airship_parameter_pack : public named_object {
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mass) &
         RK_SERIAL_LOAD_WITH_NAME(added_mass_factor) &
         RK_SERIAL_LOAD_WITH_NAME(J) &
@@ -186,7 +186,7 @@ class satellite_state_model : public named_object {
     return actual_state_start_index;
   }
 
-  satellite_state_model() { setName("satellite_state_model"); }
+  satellite_state_model() { set_name("satellite_state_model"); }
 
   void construct_all_dimensions(std::size_t& state_dim,
                                 std::size_t& inv_corr_dim,
@@ -346,12 +346,12 @@ class satellite_state_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(satellite_state_model, 0xC2310021, 1,
@@ -500,12 +500,12 @@ class near_buoyancy_state_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(near_buoyancy_state_model, 0xC2310022, 1,
@@ -857,12 +857,12 @@ class eccentricity_state_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(eccentricity_state_model, 0xC2310023, 1,
@@ -1019,12 +1019,12 @@ class cross_inertia_state_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(cross_inertia_state_model, 0xC2310026, 1,
@@ -1103,12 +1103,12 @@ class sat_position_output_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(sat_position_output_model, 0xC2310029, 1,
@@ -1192,12 +1192,12 @@ class sat_quaternion_output_model : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(sat_quaternion_output_model, 0xC231002A, 1,

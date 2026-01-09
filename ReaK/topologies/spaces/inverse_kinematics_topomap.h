@@ -117,12 +117,12 @@ class manip_inverse_kin_map : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(model);
   };
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(model);
   };
 
@@ -205,13 +205,13 @@ class manip_rl_inverse_kin_map : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(model) &
         RK_SERIAL_SAVE_WITH_NAME(joint_limits_map);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(model) &
         RK_SERIAL_LOAD_WITH_NAME(joint_limits_map);
   }
@@ -291,12 +291,12 @@ class manip_clik_kin_map : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(model) & RK_SERIAL_SAVE_WITH_NAME(clik_calc);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(model) & RK_SERIAL_LOAD_WITH_NAME(clik_calc);
   }
 
@@ -386,13 +386,13 @@ class manip_rl_clik_kin_map : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(model) & RK_SERIAL_SAVE_WITH_NAME(clik_calc) &
         RK_SERIAL_SAVE_WITH_NAME(joint_limits_map);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(model) & RK_SERIAL_LOAD_WITH_NAME(clik_calc) &
         RK_SERIAL_LOAD_WITH_NAME(joint_limits_map);
   }
@@ -475,13 +475,13 @@ class manip_clik_fig_kin_map : public manip_clik_kin_map {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     manip_clik_kin_map::save(
-        A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
+        A, manip_clik_kin_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(initial_guess);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     manip_clik_kin_map::load(
-        A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
+        A, manip_clik_kin_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(initial_guess);
   }
 
@@ -572,12 +572,12 @@ class manip_rl_clik_fig_kin_map : public manip_rl_clik_kin_map<RateLimitMap> {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(initial_guess);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(initial_guess);
   }
 
@@ -677,13 +677,13 @@ class manip_clik_rnd_restart_map : public manip_clik_kin_map {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     manip_clik_kin_map::save(
-        A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
+        A, manip_clik_kin_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(restart_count);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     manip_clik_kin_map::load(
-        A, manip_clik_kin_map::getStaticObjectType()->TypeVersion());
+        A, manip_clik_kin_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(restart_count);
   }
 
@@ -796,12 +796,12 @@ class manip_rl_clik_rnd_restart_map
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(restart_count);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(restart_count);
   }
 

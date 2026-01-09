@@ -41,18 +41,18 @@ geometry_2D::geometry_2D(const std::string& aName,
                          const pose_2D<double>& aPose)
     : mAnchor(std::move(aAnchor)), mPose(aPose) {
   mPose.Parent = mAnchor;
-  this->setName(aName);
+  this->set_name(aName);
 }
 
 void geometry_2D::save(ReaK::serialization::oarchive& A,
                        unsigned int /*unused*/) const {
-  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::save(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mAnchor) & RK_SERIAL_SAVE_WITH_NAME(mPose);
 }
 
 void geometry_2D::load(ReaK::serialization::iarchive& A,
                        unsigned int /*unused*/) {
-  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::load(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mAnchor) & RK_SERIAL_LOAD_WITH_NAME(mPose);
 }
 

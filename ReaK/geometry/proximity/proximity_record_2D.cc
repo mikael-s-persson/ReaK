@@ -27,14 +27,14 @@ namespace ReaK::geom {
 
 void proximity_record_2D::save(ReaK::serialization::oarchive& A,
                                unsigned int /*Version*/) const {
-  shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+  shared_object::save(A, shared_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mPoint1) & RK_SERIAL_SAVE_WITH_NAME(mPoint2) &
       RK_SERIAL_SAVE_WITH_NAME(mDistance);
 }
 
 void proximity_record_2D::load(ReaK::serialization::iarchive& A,
                                unsigned int /*Version*/) {
-  shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+  shared_object::load(A, shared_object::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mPoint1) & RK_SERIAL_LOAD_WITH_NAME(mPoint2) &
       RK_SERIAL_LOAD_WITH_NAME(mDistance);
 }

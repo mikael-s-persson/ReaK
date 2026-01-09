@@ -339,12 +339,12 @@ class satellite3D_gyro_lin_dt_system : public satellite3D_lin_dt_system {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     satellite3D_lin_dt_system::save(
-        A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+        A, satellite3D_lin_dt_system::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     satellite3D_lin_dt_system::load(
-        A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+        A, satellite3D_lin_dt_system::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_gyro_lin_dt_system, 0xC2310018, 1,
@@ -544,12 +544,12 @@ class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     satellite3D_lin_dt_system::save(
-        A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+        A, satellite3D_lin_dt_system::get_static_object_type()->version());
   };
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     satellite3D_lin_dt_system::load(
-        A, satellite3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+        A, satellite3D_lin_dt_system::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_inv_dt_system, 0xC2310014, 1,
@@ -667,12 +667,12 @@ class satellite3D_gyro_inv_dt_system : public satellite3D_inv_dt_system {
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     satellite3D_inv_dt_system::save(
-        A, satellite3D_inv_dt_system::getStaticObjectType()->TypeVersion());
+        A, satellite3D_inv_dt_system::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
     satellite3D_inv_dt_system::load(
-        A, satellite3D_inv_dt_system::getStaticObjectType()->TypeVersion());
+        A, satellite3D_inv_dt_system::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_gyro_inv_dt_system, 0xC2310019, 1,

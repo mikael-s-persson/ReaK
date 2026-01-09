@@ -125,13 +125,13 @@ iarchive& bin_iarchive::load_serializable_ptr(
 
   // Find the class in question in the repository.
   rtti::so_type* p =
-      rtti::so_type_repo::getInstance().findType(typeIDvect.data());
-  if ((p == nullptr) || (p->TypeVersion() < hdr.type_version)) {
+      rtti::so_type_repo::get_instance().find_type(typeIDvect.data());
+  if ((p == nullptr) || (p->version() < hdr.type_version)) {
     file_stream->ignore(hdr.size);
     throw unsupported_type(unsupported_type::not_found_in_repo,
                            typeIDvect.data());
   }
-  std::shared_ptr<shared_object> po(p->CreateObject());
+  std::shared_ptr<shared_object> po(p->create_object());
   if (!po) {
     file_stream->ignore(hdr.size);
     throw unsupported_type(unsupported_type::could_not_create,
@@ -321,9 +321,9 @@ oarchive& bin_oarchive::saveToNewArchive_impl(
       mObjRegMap[Item] = hdr.object_ID;
     }
 
-    rtti::so_type* obj_type = Item->getObjectType();
-    const unsigned int* type_ID = obj_type->TypeID_begin();
-    hdr.type_version = obj_type->TypeVersion();
+    rtti::so_type* obj_type = Item->get_object_type();
+    const unsigned int* type_ID = obj_type->id_begin();
+    hdr.type_version = obj_type->version();
     hdr.is_external = true;
     hdr.size = 0;
     while (((type_ID) != nullptr) && ((*type_ID) != 0U)) {
@@ -388,9 +388,9 @@ oarchive& bin_oarchive::save_serializable_ptr(
       mObjRegMap[Item] = hdr.object_ID;
     }
 
-    rtti::so_type* obj_type = Item->getObjectType();
-    const unsigned int* type_ID = obj_type->TypeID_begin();
-    hdr.type_version = obj_type->TypeVersion();
+    rtti::so_type* obj_type = Item->get_object_type();
+    const unsigned int* type_ID = obj_type->id_begin();
+    hdr.type_version = obj_type->version();
     hdr.is_external = false;
     hdr.size = 0;
     while (((type_ID) != nullptr) && ((*type_ID) != 0U)) {
@@ -438,8 +438,8 @@ oarchive& bin_oarchive::save_serializable_ptr(
 oarchive& bin_oarchive::save_serializable(const serializable& Item) {
   archive_object_header hdr;
 
-  const unsigned int* type_ID = Item.getObjectType()->TypeID_begin();
-  hdr.type_version = Item.getObjectType()->TypeVersion();
+  const unsigned int* type_ID = Item.get_object_type()->id_begin();
+  hdr.type_version = Item.get_object_type()->version();
   hdr.object_ID = 0;
   hdr.is_external = false;
   hdr.size = 0;

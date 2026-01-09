@@ -187,7 +187,7 @@ void UAV_kinematics::setDependentAccelerations(
 void UAV_kinematics::save(serialization::oarchive& A,
                           unsigned int /*unused*/) const {
   inverse_kinematics_model::save(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(m_base_frame) &
       RK_SERIAL_SAVE_WITH_NAME(m_motion_frame) &
       RK_SERIAL_SAVE_WITH_NAME(m_output_frame) &
@@ -196,7 +196,7 @@ void UAV_kinematics::save(serialization::oarchive& A,
 
 void UAV_kinematics::load(serialization::iarchive& A, unsigned int /*unused*/) {
   inverse_kinematics_model::load(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(m_base_frame) &
       RK_SERIAL_LOAD_WITH_NAME(m_motion_frame) &
       RK_SERIAL_LOAD_WITH_NAME(m_output_frame) &

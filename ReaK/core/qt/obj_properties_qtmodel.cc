@@ -111,35 +111,36 @@ bool ObjPropertiesQtModel::setData(const QModelIndex& index,
 
   std::pair<std::string, std::shared_ptr<serialization::type_scheme>> fld =
       current_fields.get_field(row);
-  rtti::so_type* p_type = fld.second->getObjectType();
+  rtti::so_type* p_type = fld.second->get_object_type();
   QVariant tmp = value;
 
   bool convertWorked = false;
-  if (p_type == serialization::primitive_scheme<int>::getStaticObjectType()) {
+  if (p_type ==
+      serialization::primitive_scheme<int>::get_static_object_type()) {
     convertWorked = tmp.convert(QVariant::Int);
   } else if ((p_type == serialization::primitive_scheme<
-                            unsigned char>::getStaticObjectType()) ||
+                            unsigned char>::get_static_object_type()) ||
              (p_type == serialization::primitive_scheme<
-                            unsigned int>::getStaticObjectType()) ||
+                            unsigned int>::get_static_object_type()) ||
              (p_type == serialization::primitive_scheme<
-                            long unsigned int>::getStaticObjectType())) {
+                            long unsigned int>::get_static_object_type())) {
     convertWorked = tmp.convert(QVariant::UInt);
-  } else if ((p_type ==
-              serialization::primitive_scheme<float>::getStaticObjectType()) ||
-             (p_type ==
-              serialization::primitive_scheme<double>::getStaticObjectType())) {
+  } else if ((p_type == serialization::primitive_scheme<
+                            float>::get_static_object_type()) ||
+             (p_type == serialization::primitive_scheme<
+                            double>::get_static_object_type())) {
     convertWorked = tmp.convert(QVariant::Double);
   } else if (p_type ==
-             serialization::primitive_scheme<char>::getStaticObjectType()) {
+             serialization::primitive_scheme<char>::get_static_object_type()) {
     convertWorked = tmp.convert(QVariant::Char);
   } else if (p_type ==
-             serialization::primitive_scheme<bool>::getStaticObjectType()) {
+             serialization::primitive_scheme<bool>::get_static_object_type()) {
     convertWorked = tmp.convert(QVariant::Bool);
   } else if (p_type == serialization::primitive_scheme<
-                           std::string>::getStaticObjectType()) {
+                           std::string>::get_static_object_type()) {
     convertWorked = tmp.convert(QVariant::String);
   } else if (p_type ==
-             serialization::serializable_ptr_scheme::getStaticObjectType()) {
+             serialization::serializable_ptr_scheme::get_static_object_type()) {
     convertWorked = tmp.convert(QVariant::String);
   };
   if (!convertWorked)
@@ -150,9 +151,10 @@ bool ObjPropertiesQtModel::setData(const QModelIndex& index,
   emit(dataChanged(index, index));
   emit sourceDataChanged();
   if (p_type ==
-      serialization::primitive_scheme<std::string>::getStaticObjectType())
+      serialization::primitive_scheme<std::string>::get_static_object_type())
     emit objectNameChanged(current_fields.get_object_name());
-  if (p_type == serialization::serializable_ptr_scheme::getStaticObjectType())
+  if (p_type ==
+      serialization::serializable_ptr_scheme::get_static_object_type())
     emit objectTreeChanged();
 
   return true;
@@ -201,52 +203,53 @@ QWidget* ObjPropertiesQtDelegate::createEditor(
 
   std::pair<std::string, std::shared_ptr<serialization::type_scheme>> fld =
       parentModel->current_fields.get_field(index.row());
-  rtti::so_type* p_type = fld.second->getObjectType();
+  rtti::so_type* p_type = fld.second->get_object_type();
 
-  if (p_type == serialization::primitive_scheme<bool>::getStaticObjectType()) {
+  if (p_type ==
+      serialization::primitive_scheme<bool>::get_static_object_type()) {
     QComboBox* box = new QComboBox(parent);
     box->addItem(QVariant(QBool(false)).toString(), QVariant(QBool(false)));
     box->addItem(QVariant(QBool(true)).toString(), QVariant(QBool(true)));
     return box;
   } else if (p_type ==
-             serialization::primitive_scheme<int>::getStaticObjectType()) {
+             serialization::primitive_scheme<int>::get_static_object_type()) {
     QSpinBox* box = new QSpinBox(parent);
     box->setMinimum(std::numeric_limits<int>::min());
     box->setMaximum(std::numeric_limits<int>::max());
     return box;
   } else if ((p_type == serialization::primitive_scheme<
-                            unsigned char>::getStaticObjectType()) ||
+                            unsigned char>::get_static_object_type()) ||
              (p_type == serialization::primitive_scheme<
-                            unsigned int>::getStaticObjectType()) ||
+                            unsigned int>::get_static_object_type()) ||
              (p_type == serialization::primitive_scheme<
-                            long unsigned int>::getStaticObjectType())) {
+                            long unsigned int>::get_static_object_type())) {
     QSpinBox* box = new QSpinBox(parent);
     box->setMinimum(0);
     box->setMaximum(std::numeric_limits<int>::max());
     return box;
-  } else if ((p_type ==
-              serialization::primitive_scheme<float>::getStaticObjectType()) ||
-             (p_type ==
-              serialization::primitive_scheme<double>::getStaticObjectType())) {
+  } else if ((p_type == serialization::primitive_scheme<
+                            float>::get_static_object_type()) ||
+             (p_type == serialization::primitive_scheme<
+                            double>::get_static_object_type())) {
     QDoubleSpinBox* box = new QDoubleSpinBox(parent);
     box->setMinimum(-std::numeric_limits<double>::infinity());
     box->setMaximum(std::numeric_limits<double>::infinity());
     box->setSingleStep(0.01);
     return box;
   } else if (p_type ==
-             serialization::primitive_scheme<char>::getStaticObjectType()) {
+             serialization::primitive_scheme<char>::get_static_object_type()) {
     QSpinBox* box = new QSpinBox(parent);
     box->setMinimum(std::numeric_limits<char>::min());
     box->setMaximum(std::numeric_limits<char>::max());
     return box;
   } else if (p_type == serialization::primitive_scheme<
-                           std::string>::getStaticObjectType()) {
+                           std::string>::get_static_object_type()) {
     return QStyledItemDelegate::createEditor(parent, option, index);
   } else if (p_type ==
-             serialization::serializable_ptr_scheme::getStaticObjectType()) {
+             serialization::serializable_ptr_scheme::get_static_object_type()) {
     QComboBox* box = new QComboBox(parent);
     rtti::so_type* type_ptr =
-        rtti::so_type_repo::getInstance().findType(fld.second->get_type_ID());
+        rtti::so_type_repo::get_instance().find_type(fld.second->get_type_ID());
     if (!type_ptr)
       return box;
     std::vector<std::string> v_tmp =
@@ -267,44 +270,45 @@ void ObjPropertiesQtDelegate::setEditorData(QWidget* editor,
 
   std::pair<std::string, std::shared_ptr<serialization::type_scheme>> fld =
       parentModel->current_fields.get_field(index.row());
-  rtti::so_type* p_type = fld.second->getObjectType();
+  rtti::so_type* p_type = fld.second->get_object_type();
 
-  if (p_type == serialization::primitive_scheme<bool>::getStaticObjectType()) {
+  if (p_type ==
+      serialization::primitive_scheme<bool>::get_static_object_type()) {
     QComboBox* box = static_cast<QComboBox*>(editor);
     bool value = parentModel->data(index, Qt::DisplayRole).toBool();
     box->setCurrentIndex(box->findData(QVariant(value)));
     return;
   } else if (p_type ==
-             serialization::primitive_scheme<int>::getStaticObjectType()) {
+             serialization::primitive_scheme<int>::get_static_object_type()) {
     QSpinBox* box = static_cast<QSpinBox*>(editor);
     box->setValue(parentModel->data(index, Qt::DisplayRole).toInt());
     return;
   } else if ((p_type == serialization::primitive_scheme<
-                            unsigned char>::getStaticObjectType()) ||
+                            unsigned char>::get_static_object_type()) ||
              (p_type == serialization::primitive_scheme<
-                            unsigned int>::getStaticObjectType()) ||
+                            unsigned int>::get_static_object_type()) ||
              (p_type == serialization::primitive_scheme<
-                            long unsigned int>::getStaticObjectType())) {
+                            long unsigned int>::get_static_object_type())) {
     QSpinBox* box = static_cast<QSpinBox*>(editor);
     box->setValue(parentModel->data(index, Qt::DisplayRole).toInt());
     return;
-  } else if ((p_type ==
-              serialization::primitive_scheme<float>::getStaticObjectType()) ||
-             (p_type ==
-              serialization::primitive_scheme<double>::getStaticObjectType())) {
+  } else if ((p_type == serialization::primitive_scheme<
+                            float>::get_static_object_type()) ||
+             (p_type == serialization::primitive_scheme<
+                            double>::get_static_object_type())) {
     QDoubleSpinBox* box = static_cast<QDoubleSpinBox*>(editor);
     box->setValue(parentModel->data(index, Qt::DisplayRole).toDouble());
     return;
   } else if (p_type ==
-             serialization::primitive_scheme<char>::getStaticObjectType()) {
+             serialization::primitive_scheme<char>::get_static_object_type()) {
     QSpinBox* box = static_cast<QSpinBox*>(editor);
     box->setValue(parentModel->data(index, Qt::DisplayRole).toInt());
     return;
   } else if (p_type == serialization::primitive_scheme<
-                           std::string>::getStaticObjectType()) {
+                           std::string>::get_static_object_type()) {
     return QStyledItemDelegate::setEditorData(editor, index);
   } else if (p_type ==
-             serialization::serializable_ptr_scheme::getStaticObjectType()) {
+             serialization::serializable_ptr_scheme::get_static_object_type()) {
     QComboBox* box = static_cast<QComboBox*>(editor);
     box->setCurrentIndex(
         box->findText(parentModel->data(index, Qt::DisplayRole).toString()));
@@ -323,48 +327,49 @@ void ObjPropertiesQtDelegate::setModelData(QWidget* editor,
 
   std::pair<std::string, std::shared_ptr<serialization::type_scheme>> fld =
       parentModel->current_fields.get_field(index.row());
-  rtti::so_type* p_type = fld.second->getObjectType();
+  rtti::so_type* p_type = fld.second->get_object_type();
 
-  if (p_type == serialization::primitive_scheme<bool>::getStaticObjectType()) {
+  if (p_type ==
+      serialization::primitive_scheme<bool>::get_static_object_type()) {
     QComboBox* box = static_cast<QComboBox*>(editor);
     parentModel->setData(index, box->itemData(box->currentIndex()),
                          Qt::EditRole);
     return;
   } else if (p_type ==
-             serialization::primitive_scheme<int>::getStaticObjectType()) {
+             serialization::primitive_scheme<int>::get_static_object_type()) {
     QSpinBox* box = static_cast<QSpinBox*>(editor);
     box->interpretText();
     parentModel->setData(index, QVariant(box->value()), Qt::EditRole);
     return;
   } else if ((p_type == serialization::primitive_scheme<
-                            unsigned char>::getStaticObjectType()) ||
+                            unsigned char>::get_static_object_type()) ||
              (p_type == serialization::primitive_scheme<
-                            unsigned int>::getStaticObjectType()) ||
+                            unsigned int>::get_static_object_type()) ||
              (p_type == serialization::primitive_scheme<
-                            long unsigned int>::getStaticObjectType())) {
+                            long unsigned int>::get_static_object_type())) {
     QSpinBox* box = static_cast<QSpinBox*>(editor);
     box->interpretText();
     parentModel->setData(index, QVariant(box->value()), Qt::EditRole);
     return;
-  } else if ((p_type ==
-              serialization::primitive_scheme<float>::getStaticObjectType()) ||
-             (p_type ==
-              serialization::primitive_scheme<double>::getStaticObjectType())) {
+  } else if ((p_type == serialization::primitive_scheme<
+                            float>::get_static_object_type()) ||
+             (p_type == serialization::primitive_scheme<
+                            double>::get_static_object_type())) {
     QDoubleSpinBox* box = static_cast<QDoubleSpinBox*>(editor);
     box->interpretText();
     parentModel->setData(index, QVariant(box->value()), Qt::EditRole);
     return;
   } else if (p_type ==
-             serialization::primitive_scheme<char>::getStaticObjectType()) {
+             serialization::primitive_scheme<char>::get_static_object_type()) {
     QSpinBox* box = static_cast<QSpinBox*>(editor);
     box->interpretText();
     parentModel->setData(index, QVariant(box->value()), Qt::EditRole);
     return;
   } else if (p_type == serialization::primitive_scheme<
-                           std::string>::getStaticObjectType()) {
+                           std::string>::get_static_object_type()) {
     return QStyledItemDelegate::setModelData(editor, model, index);
   } else if (p_type ==
-             serialization::serializable_ptr_scheme::getStaticObjectType()) {
+             serialization::serializable_ptr_scheme::get_static_object_type()) {
     QComboBox* box = static_cast<QComboBox*>(editor);
     QString value = box->itemText(box->currentIndex());
     if (value != "New object...")
@@ -377,7 +382,8 @@ void ObjPropertiesQtDelegate::setModelData(QWidget* editor,
       diag_w.setupUi(&diag);
 
       rtti::so_type* basetype_ptr =
-          rtti::getRKSharedObjTypeRepo().findType(fld.second->get_type_ID());
+          rtti::so_type_repo::get_instance().find_type(
+              fld.second->get_type_ID());
       if (!basetype_ptr)
         return;
 
@@ -386,16 +392,17 @@ void ObjPropertiesQtDelegate::setModelData(QWidget* editor,
       while (!btype_stack.empty()) {
         rtti::so_type* tmp_bt = btype_stack.top();
         btype_stack.pop();
-        if (tmp_bt->isConcrete()) {
+        if (tmp_bt->is_concrete()) {
           QListWidgetItem* itm_ptr =
-              new QListWidgetItem(QString::fromStdString(tmp_bt->TypeName()));
+              new QListWidgetItem(QString::fromStdString(tmp_bt->name()));
           itm_ptr->setData(
               Qt::UserRole,
-              QVariant(reinterpret_cast<quint64>(tmp_bt->TypeID_begin())));
+              QVariant(reinterpret_cast<quint64>(tmp_bt->id_begin())));
           diag_w.listWidget->addItem(itm_ptr);
         };
-        for (std::size_t i = 0; i < tmp_bt->getDirectDescendantCount(); ++i) {
-          rtti::so_type* tmp = tmp_bt->getDirectDescendant(i);
+        for (std::size_t i = 0; i < tmp_bt->get_direct_descendant_count();
+             ++i) {
+          rtti::so_type* tmp = tmp_bt->get_direct_descendant(i);
           if (tmp)
             btype_stack.push(tmp);
         };
@@ -409,13 +416,13 @@ void ObjPropertiesQtDelegate::setModelData(QWidget* editor,
       const unsigned int* newobj_typeID = reinterpret_cast<const unsigned int*>(
           diag_w.listWidget->currentItem()->data(Qt::UserRole).toULongLong());
       rtti::so_type* newobj_typeptr =
-          basetype_ptr->findDescendant(newobj_typeID);
+          basetype_ptr->find_descendant(newobj_typeID);
       if (!newobj_typeptr)
         return;
 
       // Execute the "set initial values" dialog.
       std::shared_ptr<shared_object> newobj_ptr =
-          newobj_typeptr->CreateObject();
+          newobj_typeptr->create_object();
       parentModel->setDataNewObject(index, newobj_ptr);
     };
     return;

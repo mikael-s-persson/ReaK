@@ -154,15 +154,15 @@ class free_joint_2D : public reacting_kte_2D {
   void applyReactionForce(vect<double, 2> aForce, double aTorque) override;
 
   void save(serialization::oarchive& A, unsigned int Version) const override {
-    reacting_kte_2D::save(
-        A, reacting_kte_2D::getStaticObjectType()->TypeVersion());
+    reacting_kte_2D::save(A,
+                          reacting_kte_2D::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mCoord) & RK_SERIAL_SAVE_WITH_NAME(mBase) &
         RK_SERIAL_SAVE_WITH_NAME(mEnd) & RK_SERIAL_SAVE_WITH_NAME(mJacobian);
   }
 
   void load(serialization::iarchive& A, unsigned int Version) override {
-    reacting_kte_2D::load(
-        A, reacting_kte_2D::getStaticObjectType()->TypeVersion());
+    reacting_kte_2D::load(A,
+                          reacting_kte_2D::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mCoord) & RK_SERIAL_LOAD_WITH_NAME(mBase) &
         RK_SERIAL_LOAD_WITH_NAME(mEnd) & RK_SERIAL_LOAD_WITH_NAME(mJacobian);
   }
@@ -287,15 +287,15 @@ class free_joint_3D : public reacting_kte_3D {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    reacting_kte_3D::save(
-        A, reacting_kte_3D::getStaticObjectType()->TypeVersion());
+    reacting_kte_3D::save(A,
+                          reacting_kte_3D::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mCoord) & RK_SERIAL_SAVE_WITH_NAME(mBase) &
         RK_SERIAL_SAVE_WITH_NAME(mEnd) & RK_SERIAL_SAVE_WITH_NAME(mJacobian);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    reacting_kte_3D::load(
-        A, reacting_kte_3D::getStaticObjectType()->TypeVersion());
+    reacting_kte_3D::load(A,
+                          reacting_kte_3D::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mCoord) & RK_SERIAL_LOAD_WITH_NAME(mBase) &
         RK_SERIAL_LOAD_WITH_NAME(mEnd) & RK_SERIAL_LOAD_WITH_NAME(mJacobian);
   }

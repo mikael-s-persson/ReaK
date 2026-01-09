@@ -55,9 +55,9 @@ void export_base() {
 
   class_<ReaK::named_interface, std::shared_ptr<ReaK::named_interface>,
          boost::noncopyable>("NamedInterface", no_init)
-      .def("get_name", pure_virtual(&ReaK::named_interface::getName),
+      .def("get_name", pure_virtual(&ReaK::named_interface::get_name),
            return_value_policy<copy_const_reference>())
-      .def("set_name", pure_virtual(&ReaK::named_interface::setName));
+      .def("set_name", pure_virtual(&ReaK::named_interface::set_name));
 
   class_<ReaK::named_object, bases<ReaK::shared_object, ReaK::named_interface>,
          std::shared_ptr<ReaK::named_object>>("NamedObj");

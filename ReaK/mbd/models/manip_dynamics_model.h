@@ -314,17 +314,17 @@ class manipulator_dynamics_model : public manipulator_kinematics_model,
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     manipulator_kinematics_model::save(
-        A, manipulator_kinematics_model::getStaticObjectType()->TypeVersion());
+        A, manipulator_kinematics_model::get_static_object_type()->version());
     state_rate_function<double>::save(
-        A, state_rate_function<double>::getStaticObjectType()->TypeVersion());
+        A, state_rate_function<double>::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mMassCalc);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     manipulator_kinematics_model::load(
-        A, manipulator_kinematics_model::getStaticObjectType()->TypeVersion());
+        A, manipulator_kinematics_model::get_static_object_type()->version());
     state_rate_function<double>::load(
-        A, state_rate_function<double>::getStaticObjectType()->TypeVersion());
+        A, state_rate_function<double>::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mMassCalc);
   }
 

@@ -62,7 +62,7 @@ struct state_to_output_map : public named_object {
 
   explicit state_to_output_map(const std::shared_ptr<StateSpaceSystem>& aSys)
       : named_object(), ss_system(aSys) {
-    setName("state_to_output_map");
+    set_name("state_to_output_map");
   }
 
   state_to_output_map()
@@ -99,11 +99,11 @@ struct state_to_output_map : public named_object {
   *******************************************************************************/
 
   virtual void save(ReaK::serialization::oarchive& A, unsigned int) const {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(ss_system);
   }
   virtual void load(ReaK::serialization::iarchive& A, unsigned int) {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(ss_system);
   }
 

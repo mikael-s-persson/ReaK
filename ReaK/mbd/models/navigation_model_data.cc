@@ -33,7 +33,7 @@
 namespace ReaK::kte {
 
 navigation_scenario::navigation_scenario() {
-  this->setName("navigation_scenario");
+  this->set_name("navigation_scenario");
 }
 
 void navigation_scenario::load_robot(const std::string& fileName) {
@@ -91,7 +91,7 @@ void navigation_scenario::create_robot_env_proxies() {
     for (std::size_t i = robot_env_proxies.size(); i < env_proxy_models.size();
          ++i) {
       robot_env_proxies.push_back(std::make_shared<geom::proxy_query_pair_3D>(
-          "robot_env_proxy:" + env_proxy_models[i]->getName(), robot_proxy,
+          "robot_env_proxy:" + env_proxy_models[i]->get_name(), robot_proxy,
           env_proxy_models[i]));
     }
   }
@@ -99,7 +99,7 @@ void navigation_scenario::create_robot_env_proxies() {
 
 void navigation_scenario::save(serialization::oarchive& A,
                                unsigned int /*unused*/) const {
-  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::save(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(robot_base_frame) &
       RK_SERIAL_SAVE_WITH_NAME(robot_kin_model) &
       RK_SERIAL_SAVE_WITH_NAME(robot_jt_limits) &
@@ -113,7 +113,7 @@ void navigation_scenario::save(serialization::oarchive& A,
 
 void navigation_scenario::load(serialization::iarchive& A,
                                unsigned int /*unused*/) {
-  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::load(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(robot_base_frame) &
       RK_SERIAL_LOAD_WITH_NAME(robot_kin_model) &
       RK_SERIAL_LOAD_WITH_NAME(robot_jt_limits) &

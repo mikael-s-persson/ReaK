@@ -80,7 +80,7 @@ class covariance_matrix : public named_object {
   template <ReadableMatrix Matrix>
   explicit covariance_matrix(Matrix aMat, const std::string& aName = "")
       : mat_cov(std::move(aMat)) {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -97,7 +97,7 @@ class covariance_matrix : public named_object {
             value_type((aLevel == covariance_initial_level::full_info
                             ? 0
                             : std::numeric_limits<value_type>::infinity()))) {
-    setName(aName);
+    set_name(aName);
   }
 
   covariance_matrix() : covariance_matrix(0) {}
@@ -152,13 +152,13 @@ class covariance_matrix : public named_object {
   void save(ReaK::serialization::oarchive& aA,
             unsigned int /*unused*/) const override {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(mat_cov);
   }
   void load(ReaK::serialization::iarchive& aA,
             unsigned int /*unused*/) override {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(mat_cov);
   }
 

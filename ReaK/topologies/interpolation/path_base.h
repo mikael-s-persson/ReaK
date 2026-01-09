@@ -58,7 +58,7 @@ class path_base : public named_object {
    * \param aName The name for this object.
    */
   explicit path_base(const std::string& aName = "") : named_object() {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -95,11 +95,11 @@ class path_base : public named_object {
   *******************************************************************************/
 
   void save(serialization::oarchive& A, unsigned int) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC244000C, 1, "path_base", named_object)

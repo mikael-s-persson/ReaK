@@ -76,7 +76,7 @@ class quaternion_topology : public named_object {
    */
   explicit quaternion_topology(const std::string& aName = "quaternion_topology")
       : named_object() {
-    setName(aName);
+    set_name(aName);
   }
 
   /*************************************************************************
@@ -178,13 +178,13 @@ class quaternion_topology : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240000C, 1, "quaternion_topology",
@@ -279,12 +279,12 @@ class rate_limited_quat_space : public quaternion_topology<T> {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base::save(A, base::getStaticObjectType()->TypeVersion());
+    base::save(A, base::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(max_angular_speed);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base::load(A, base::getStaticObjectType()->TypeVersion());
+    base::load(A, base::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(max_angular_speed);
   }
 
@@ -327,11 +327,11 @@ class ang_velocity_3D_topology : public hyperball_topology<vect<T, 3>> {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base::save(A, base::getStaticObjectType()->TypeVersion());
+    base::save(A, base::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base::load(A, base::getStaticObjectType()->TypeVersion());
+    base::load(A, base::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240000D, 1, "ang_velocity_3D_topology",
@@ -373,11 +373,11 @@ class ang_accel_3D_topology : public hyperball_topology<vect<T, 3>> {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base::save(A, base::getStaticObjectType()->TypeVersion());
+    base::save(A, base::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base::load(A, base::getStaticObjectType()->TypeVersion());
+    base::load(A, base::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240000E, 1, "ang_accel_3D_topology",

@@ -127,17 +127,17 @@ struct proximity_solver {
     using std::cos;
     using std::sin;
 
-    if (mShape1->getObjectType() == geom::box::getStaticObjectType()) {
+    if (mShape1->get_object_type() == geom::box::get_static_object_type()) {
       std::shared_ptr<geom::box> bx_a =
           rtti::rk_dynamic_ptr_cast<geom::box>(mShape1);
       pose_3D<double> bx_a_pose = bx_a->getPose().getGlobalPose();
-      if (mShape2->getObjectType() == geom::box::getStaticObjectType()) {
+      if (mShape2->get_object_type() == geom::box::get_static_object_type()) {
         // box-box case.
         auto bx_b = rtti::rk_dynamic_ptr_cast<geom::box>(mShape2);
         pose_3D<double> bx_b_pose = bx_b->getPose().getGlobalPose();
 
-        std::cout << "Checking proximity between Box '" << bx_a->getName()
-                  << "' and Box '" << bx_b->getName() << "'..." << std::endl;
+        std::cout << "Checking proximity between Box '" << bx_a->get_name()
+                  << "' and Box '" << bx_b->get_name() << "'..." << std::endl;
 
         result = geom::findProximityByGJKEPA(
             geom::box_support_func(*bx_a, bx_a_pose),
@@ -161,8 +161,8 @@ struct proximity_solver {
         auto cy_b = rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape2);
         pose_3D<double> cy_b_pose = cy_b->getPose().getGlobalPose();
 
-        std::cout << "Checking proximity between Box '" << bx_a->getName()
-                  << "' and Cylinder '" << cy_b->getName() << "'..."
+        std::cout << "Checking proximity between Box '" << bx_a->get_name()
+                  << "' and Cylinder '" << cy_b->get_name() << "'..."
                   << std::endl;
 
         result = geom::findProximityByGJKEPA(
@@ -185,13 +185,13 @@ struct proximity_solver {
     } else {
       auto cy_a = rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape1);
       pose_3D<double> cy_a_pose = cy_a->getPose().getGlobalPose();
-      if (mShape2->getObjectType() == geom::box::getStaticObjectType()) {
+      if (mShape2->get_object_type() == geom::box::get_static_object_type()) {
         // cylinder-box case.
         auto bx_b = rtti::rk_dynamic_ptr_cast<geom::box>(mShape2);
         pose_3D<double> bx_b_pose = bx_b->getPose().getGlobalPose();
 
-        std::cout << "Checking proximity between Cylinder '" << cy_a->getName()
-                  << "' and Box '" << bx_b->getName() << "'..." << std::endl;
+        std::cout << "Checking proximity between Cylinder '" << cy_a->get_name()
+                  << "' and Box '" << bx_b->get_name() << "'..." << std::endl;
 
         result = geom::findProximityByGJKEPA(
             geom::cylinder_support_func(*cy_a, cy_a_pose),
@@ -215,8 +215,8 @@ struct proximity_solver {
         auto cy_b = rtti::rk_dynamic_ptr_cast<geom::cylinder>(mShape2);
         pose_3D<double> cy_b_pose = cy_b->getPose().getGlobalPose();
 
-        std::cout << "Checking proximity between Cylinder '" << cy_a->getName()
-                  << "' and Cylinder '" << cy_b->getName() << "'..."
+        std::cout << "Checking proximity between Cylinder '" << cy_a->get_name()
+                  << "' and Cylinder '" << cy_b->get_name() << "'..."
                   << std::endl;
 
         result = geom::findProximityByGJKEPA(

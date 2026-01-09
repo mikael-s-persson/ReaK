@@ -116,12 +116,12 @@ class IHAQR_point_type : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(x);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(x);
   }
 
@@ -432,7 +432,7 @@ class IHAQR_topology : public named_object {
         m_time_step(aTimeStep),
         m_max_time_horizon(aMaxTimeHorizon),
         m_goal_proximity_threshold(aGoalProximityThreshold) {
-    setName(aName);
+    set_name(aName);
   }
 
   IHAQR_topology() : IHAQR_topology("IHAQR_topology") {}
@@ -561,8 +561,8 @@ class IHAQR_topology : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(m_system) & RK_SERIAL_SAVE_WITH_NAME(m_space) &
         RK_SERIAL_SAVE_WITH_NAME(m_get_sample) &
         RK_SERIAL_SAVE_WITH_NAME(m_input_space) &
@@ -574,8 +574,8 @@ class IHAQR_topology : public named_object {
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(m_system) & RK_SERIAL_LOAD_WITH_NAME(m_space) &
         RK_SERIAL_LOAD_WITH_NAME(m_get_sample) &
         RK_SERIAL_LOAD_WITH_NAME(m_input_space) &
@@ -605,7 +605,7 @@ struct get_proper_metric<
 
 class IHAQR_to_state_mapper : public named_object {
  public:
-  IHAQR_to_state_mapper() { setName("IHAQR_to_state_mapper"); }
+  IHAQR_to_state_mapper() { set_name("IHAQR_to_state_mapper"); }
 
   template <typename StateSpace, typename StateSpaceSystem,
             typename StateSpaceSampler>
@@ -638,11 +638,11 @@ class IHAQR_to_state_mapper : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(IHAQR_to_state_mapper, 0xC2400037, 1,
@@ -798,14 +798,14 @@ class IHAQR_topology_with_CD
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(m_model) &
         RK_SERIAL_SAVE_WITH_NAME(m_proxy_env_2D) &
         RK_SERIAL_SAVE_WITH_NAME(m_proxy_env_3D);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(m_model) &
         RK_SERIAL_LOAD_WITH_NAME(m_proxy_env_2D) &
         RK_SERIAL_LOAD_WITH_NAME(m_proxy_env_3D);

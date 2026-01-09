@@ -37,13 +37,13 @@ rectangle::rectangle(const std::string& aName,
 
 void rectangle::save(ReaK::serialization::oarchive& A,
                      unsigned int /*unused*/) const {
-  shape_2D::save(A, shape_2D::getStaticObjectType()->TypeVersion());
+  shape_2D::save(A, shape_2D::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mDimensions);
 }
 
 void rectangle::load(ReaK::serialization::iarchive& A,
                      unsigned int /*unused*/) {
-  shape_2D::load(A, shape_2D::getStaticObjectType()->TypeVersion());
+  shape_2D::load(A, shape_2D::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mDimensions);
 }
 

@@ -123,15 +123,15 @@ class position_control_gen : public kte_map, public system_input {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::save(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
+    system_input::save(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::load(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
+    system_input::load(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
   }
 
@@ -225,15 +225,15 @@ class position_control_2D : public kte_map, public system_input {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::save(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
+    system_input::save(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::load(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
+    system_input::load(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
   }
 
@@ -327,15 +327,15 @@ class position_control_3D : public kte_map, public system_input {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::save(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
+    system_input::save(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::load(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
+    system_input::load(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
   }
 
@@ -422,15 +422,15 @@ class rotation_control_2D : public kte_map, public system_input {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::save(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
+    system_input::save(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::load(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
+    system_input::load(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
   }
 
@@ -523,15 +523,15 @@ class rotation_control_3D : public kte_map, public system_input {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::save(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
+    system_input::save(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::load(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
+    system_input::load(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
   }
 
@@ -618,15 +618,15 @@ class velocity_control_gen : public kte_map, public system_input {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::save(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
+    system_input::save(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::load(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
+    system_input::load(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
   }
 
@@ -719,15 +719,15 @@ class velocity_control_2D : public kte_map, public system_input {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::save(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
+    system_input::save(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::load(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
+    system_input::load(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
   }
 
@@ -820,15 +820,15 @@ class velocity_control_3D : public kte_map, public system_input {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::save(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
+    system_input::save(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::load(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
+    system_input::load(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
   }
 
@@ -915,15 +915,15 @@ class ang_velocity_control_2D : public kte_map, public system_input {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::save(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
+    system_input::save(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::load(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
+    system_input::load(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
   }
 
@@ -1019,15 +1019,15 @@ class ang_velocity_control_3D : public kte_map, public system_input {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::save(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
+    system_input::save(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
-    system_input::load(A, system_input::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
+    system_input::load(A, system_input::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor);
   }
 

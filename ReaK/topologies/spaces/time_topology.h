@@ -61,7 +61,7 @@ class time_topology : public named_object {
   static constexpr std::size_t dimensions = 1;
 
   explicit time_topology(const std::string& aName = "time_topology") {
-    setName(aName);
+    set_name(aName);
   }
 
   /*************************************************************************
@@ -162,13 +162,13 @@ class time_topology : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(time_topology, 0xC2400002, 1, "time_topology",

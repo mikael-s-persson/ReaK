@@ -102,7 +102,7 @@ class kte_nl_system : public named_object {
   /**
    * Default constructor.
    */
-  kte_nl_system(const std::string& aName = "") { setName(aName); }
+  kte_nl_system(const std::string& aName = "") { set_name(aName); }
 
   /**
    * Standard copy-constructor.
@@ -116,7 +116,7 @@ class kte_nl_system : public named_object {
         outputs(rhs.outputs),
         chain(rhs.chain),
         mass_calc(rhs.mass_calc) {
-    setName(rhs.getName());
+    set_name(rhs.get_name());
   }
 
   /**
@@ -401,7 +401,7 @@ class kte_nl_system : public named_object {
 
   virtual void save(ReaK::serialization::oarchive& aA, unsigned int) const {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(dofs_gen) & RK_SERIAL_SAVE_WITH_NAME(dofs_2D) &
         RK_SERIAL_SAVE_WITH_NAME(dofs_3D) & RK_SERIAL_SAVE_WITH_NAME(inputs) &
         RK_SERIAL_SAVE_WITH_NAME(outputs) & RK_SERIAL_SAVE_WITH_NAME(chain) &
@@ -409,7 +409,7 @@ class kte_nl_system : public named_object {
   }
   virtual void load(ReaK::serialization::iarchive& aA, unsigned int) {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(dofs_gen) & RK_SERIAL_LOAD_WITH_NAME(dofs_2D) &
         RK_SERIAL_LOAD_WITH_NAME(dofs_3D) & RK_SERIAL_LOAD_WITH_NAME(inputs) &
         RK_SERIAL_LOAD_WITH_NAME(outputs) & RK_SERIAL_LOAD_WITH_NAME(chain) &

@@ -246,11 +246,11 @@ class MEAQR_point_type : public IHAQR_point_type<StateSpace, StateSpaceSystem> {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400034, 1, "MEAQR_point_type",
@@ -713,7 +713,7 @@ class MEAQR_topology : public named_object {
       : named_object(),
         m_IHAQR_space(aIHAQRSpace),
         m_idle_to_cost_ratio(aIdleToCostRatio) {
-    setName(aName);
+    set_name(aName);
   }
 
   MEAQR_topology() : MEAQR_topology("MEAQR_topology") {}
@@ -856,15 +856,15 @@ class MEAQR_topology : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(m_IHAQR_space) &
         RK_SERIAL_SAVE_WITH_NAME(m_idle_to_cost_ratio);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(m_IHAQR_space) &
         RK_SERIAL_LOAD_WITH_NAME(m_idle_to_cost_ratio);
   }
@@ -888,7 +888,7 @@ struct get_proper_metric<
 
 class MEAQR_to_state_mapper : public named_object {
  public:
-  MEAQR_to_state_mapper() { setName("MEAQR_to_state_mapper"); }
+  MEAQR_to_state_mapper() { set_name("MEAQR_to_state_mapper"); }
 
   template <typename StateSpace, typename StateSpaceSystem,
             typename StateSpaceSampler>
@@ -921,11 +921,11 @@ class MEAQR_to_state_mapper : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(MEAQR_to_state_mapper, 0xC2400038, 1,
@@ -1077,14 +1077,14 @@ class MEAQR_topology_with_CD
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(m_model) &
         RK_SERIAL_SAVE_WITH_NAME(m_proxy_env_2D) &
         RK_SERIAL_SAVE_WITH_NAME(m_proxy_env_3D);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(m_model) &
         RK_SERIAL_LOAD_WITH_NAME(m_proxy_env_2D) &
         RK_SERIAL_LOAD_WITH_NAME(m_proxy_env_3D);

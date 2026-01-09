@@ -339,9 +339,9 @@ namespace rtti {
 
 template <typename T>
 struct get_type_id<rot_mat_2D<T>> {
-  static constexpr unsigned int ID = 0x00000016;
+  static constexpr unsigned int id = 0x00000016;
   static constexpr auto type_name = std::string_view{"ReaK::rot_mat_2D"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const rot_mat_2D<T>&;
   using load_type = rot_mat_2D<T>&;
@@ -728,9 +728,9 @@ namespace rtti {
 
 template <typename T>
 struct get_type_id<trans_mat_2D<T>> {
-  static constexpr unsigned int ID = 0x00000017;
+  static constexpr unsigned int id = 0x00000017;
   static constexpr auto type_name = std::string_view{"ReaK::trans_mat_2D"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const trans_mat_2D<T>&;
   using load_type = trans_mat_2D<T>&;

@@ -90,7 +90,7 @@ QVariant ObjTreeQtModel::data(const QModelIndex& index, int role) const {
         serialization::get_objtree_name(*obj_graph, item)));
   } else {  // column 1
     std::shared_ptr<serializable> item_ptr = (*obj_graph)[item].p_obj;
-    std::string s_tmp = item_ptr->getObjectType()->TypeName();
+    std::string s_tmp = item_ptr->get_object_type()->name();
     if (s_tmp.length() > 40) {
       // Try to eliminate the template arguments.
       std::string::iterator it = std::find(s_tmp.begin(), s_tmp.end(), '<');

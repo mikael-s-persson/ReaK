@@ -220,7 +220,7 @@ class seq_path_base : public named_object {
    * \param aName The name for this object.
    */
   explicit seq_path_base(const std::string& aName = "") : named_object() {
-    setName(aName);
+    set_name(aName);
   }
 
   ~seq_path_base() override = default;
@@ -264,11 +264,11 @@ class seq_path_base : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2440011, 1, "seq_path_base",

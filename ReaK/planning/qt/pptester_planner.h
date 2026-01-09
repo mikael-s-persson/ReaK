@@ -65,7 +65,7 @@ class pptester_planner {
 
   virtual bool run(const cv::Mat& aWorldMap) = 0;
 
-  virtual std::string getName() const = 0;
+  virtual std::string get_name() const = 0;
 
   void executePath(std::function<void()> aCompletedMotionCallback) {
     mCompletedMotionCallback = aCompletedMotionCallback;

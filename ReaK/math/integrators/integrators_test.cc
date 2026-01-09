@@ -69,7 +69,7 @@ void computeSolution(const ProblemPtr& prob, Integrator& integ,
   }
 
   std::cout << "Generating reference solution for problem: "
-            << prob->getObjectType()->TypeName() << " with t in ["
+            << prob->get_object_type()->name() << " with t in ["
             << prob->getInitialTime() << "," << prob->getFinalTime() << "]"
             << std::endl;
 
@@ -107,7 +107,7 @@ const RefProblemSet& getRefProblemSet() {
   static RefProblemSet prob_set;
   if (first_pass) {
     ReaK::dormand_prince45_integrator<double> integ;
-    integ.setName("reference_integrator_ode45");
+    integ.set_name("reference_integrator_ode45");
 
     {
       std::ifstream file_in("integ_records/hires.pb");
@@ -290,12 +290,12 @@ TEST(Integrators, EulerIntegrator) {
 
   for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
     // HIRES_iv_problem is the only problem for which Euler is not a complete disaster.
-    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+    if (prob_ptr->get_object_type()->name() != "HIRES_iv_problem<double>") {
       continue;
     }
 
     euler_integrator<double> integ;
-    integ.setName("euler_integrator");
+    integ.set_name("euler_integrator");
 
     SolutionTrace test_sol_trace;
     computeSolution(prob_ptr, integ, test_sol_trace, 1e-4, 1e-3, 1e-3);
@@ -333,12 +333,12 @@ TEST(Integrators, MidpointIntegrator) {
 
   for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
     // HIRES_iv_problem is the only problem for which Midpoint is not a complete disaster.
-    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+    if (prob_ptr->get_object_type()->name() != "HIRES_iv_problem<double>") {
       continue;
     }
 
     midpoint_integrator<double> integ;
-    integ.setName("midpoint_integrator");
+    integ.set_name("midpoint_integrator");
 
     SolutionTrace test_sol_trace;
     computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-3, 1e-3);
@@ -376,12 +376,12 @@ TEST(Integrators, RungeKutta4Integrator) {
 
   for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
     // HIRES_iv_problem is the only problem for which RungeKutta4 is not a complete disaster.
-    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+    if (prob_ptr->get_object_type()->name() != "HIRES_iv_problem<double>") {
       continue;
     }
 
     runge_kutta4_integrator<double> integ;
-    integ.setName("runge_kutta4_integrator");
+    integ.set_name("runge_kutta4_integrator");
 
     SolutionTrace test_sol_trace;
     computeSolution(prob_ptr, integ, test_sol_trace, 1e-2, 1e-3, 1e-3);
@@ -419,12 +419,12 @@ TEST(Integrators, RungeKutta5Integrator) {
 
   for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
     // HIRES_iv_problem is the only problem for which RungeKutta5 is not a complete disaster.
-    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+    if (prob_ptr->get_object_type()->name() != "HIRES_iv_problem<double>") {
       continue;
     }
 
     runge_kutta5_integrator<double> integ;
-    integ.setName("runge_kutta5_integrator");
+    integ.set_name("runge_kutta5_integrator");
 
     SolutionTrace test_sol_trace;
     computeSolution(prob_ptr, integ, test_sol_trace, 2e-2, 1e-3, 1e-3);
@@ -461,12 +461,12 @@ TEST(Integrators, Fehlberg45Integrator) {
   const RefProblemSet& ref_set = getRefProblemSet();
 
   for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
-    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+    if (prob_ptr->get_object_type()->name() != "HIRES_iv_problem<double>") {
       continue;
     }
 
     fehlberg45_integrator<double> integ;
-    integ.setName("fehlberg45_integrator");
+    integ.set_name("fehlberg45_integrator");
 
     SolutionTrace test_sol_trace;
     computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);
@@ -506,12 +506,12 @@ TEST(Integrators, DormandPrince45Integrator) {
   const RefProblemSet& ref_set = getRefProblemSet();
 
   for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
-    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+    if (prob_ptr->get_object_type()->name() != "HIRES_iv_problem<double>") {
       continue;
     }
 
     dormand_prince45_integrator<double> integ;
-    integ.setName("dormand_prince45_integrator");
+    integ.set_name("dormand_prince45_integrator");
 
     SolutionTrace test_sol_trace;
     computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);
@@ -551,12 +551,12 @@ TEST(Integrators, AdamsBM3Integrator) {
   const RefProblemSet& ref_set = getRefProblemSet();
 
   for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
-    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+    if (prob_ptr->get_object_type()->name() != "HIRES_iv_problem<double>") {
       continue;
     }
 
     adamsBM3_integrator<double> integ;
-    integ.setName("adamsBM3_integrator");
+    integ.set_name("adamsBM3_integrator");
 
     SolutionTrace test_sol_trace;
     computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);
@@ -596,12 +596,12 @@ TEST(Integrators, AdamsBM5Integrator) {
   const RefProblemSet& ref_set = getRefProblemSet();
 
   for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
-    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+    if (prob_ptr->get_object_type()->name() != "HIRES_iv_problem<double>") {
       continue;
     }
 
     adamsBM5_integrator<double> integ;
-    integ.setName("adamsBM5_integrator");
+    integ.set_name("adamsBM5_integrator");
 
     SolutionTrace test_sol_trace;
     computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);
@@ -641,12 +641,12 @@ TEST(Integrators, HammingModIntegrator) {
   const RefProblemSet& ref_set = getRefProblemSet();
 
   for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
-    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+    if (prob_ptr->get_object_type()->name() != "HIRES_iv_problem<double>") {
       continue;
     }
 
     hamming_mod_integrator<double> integ;
-    integ.setName("hamming_mod_integrator");
+    integ.set_name("hamming_mod_integrator");
 
     SolutionTrace test_sol_trace;
     computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);
@@ -686,12 +686,12 @@ TEST(Integrators, HammingIterModIntegrator) {
   const RefProblemSet& ref_set = getRefProblemSet();
 
   for (const auto& [prob_ptr, ref_sol_trace] : ref_set) {
-    if (prob_ptr->getObjectType()->TypeName() != "HIRES_iv_problem<double>") {
+    if (prob_ptr->get_object_type()->name() != "HIRES_iv_problem<double>") {
       continue;
     }
 
     hamming_iter_mod_integrator<double> integ;
-    integ.setName("hamming_iter_mod_integrator");
+    integ.set_name("hamming_iter_mod_integrator");
 
     SolutionTrace test_sol_trace;
     computeSolution(prob_ptr, integ, test_sol_trace, 1e-3, 1e-4, 1e-4);

@@ -192,7 +192,7 @@ airship3D_imdt_em_sys::airship3D_imdt_em_sys(
       mInertiaMoment(aInertiaMoment),
       mDt(aDt),
       mGravityAcc(aGravityAcc) {
-  setName(aName);
+  set_name(aName);
   if (mDt < std::numeric_limits<double>::epsilon()) {
     throw system_incoherency(
         "The time step is below numerical tolerance in airship3D_imdt_em_sys's "
@@ -659,7 +659,7 @@ airship3D_imdt_em_sys::get_invariant_prior_frame(
 
 void airship3D_imdt_em_sys::save(ReaK::serialization::oarchive& A,
                                  unsigned int /*unused*/) const {
-  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::save(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mMass) &
       RK_SERIAL_SAVE_WITH_NAME(mInertiaMoment) & RK_SERIAL_SAVE_WITH_NAME(mDt) &
       RK_SERIAL_SAVE_WITH_NAME(mGravityAcc);
@@ -667,7 +667,7 @@ void airship3D_imdt_em_sys::save(ReaK::serialization::oarchive& A,
 
 void airship3D_imdt_em_sys::load(ReaK::serialization::iarchive& A,
                                  unsigned int /*unused*/) {
-  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::load(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mMass) &
       RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment) & RK_SERIAL_LOAD_WITH_NAME(mDt) &
       RK_SERIAL_LOAD_WITH_NAME(mGravityAcc);
@@ -781,7 +781,7 @@ airship3D_imdt_emd_sys::airship3D_imdt_emd_sys(
       mInertiaMoment(aInertiaMoment),
       mDt(aDt),
       mGravityAcc(aGravityAcc) {
-  setName(aName);
+  set_name(aName);
   if (mDt < std::numeric_limits<double>::epsilon()) {
     throw system_incoherency(
         "The time step is below numerical tolerance in "
@@ -1409,7 +1409,7 @@ airship3D_imdt_emd_sys::get_invariant_prior_frame(
 
 void airship3D_imdt_emd_sys::save(ReaK::serialization::oarchive& A,
                                   unsigned int /*unused*/) const {
-  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::save(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mMass) &
       RK_SERIAL_SAVE_WITH_NAME(mInertiaMoment) & RK_SERIAL_SAVE_WITH_NAME(mDt) &
       RK_SERIAL_SAVE_WITH_NAME(mGravityAcc);
@@ -1417,7 +1417,7 @@ void airship3D_imdt_emd_sys::save(ReaK::serialization::oarchive& A,
 
 void airship3D_imdt_emd_sys::load(ReaK::serialization::iarchive& A,
                                   unsigned int /*unused*/) {
-  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::load(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mMass) &
       RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment) & RK_SERIAL_LOAD_WITH_NAME(mDt) &
       RK_SERIAL_LOAD_WITH_NAME(mGravityAcc);
@@ -1468,13 +1468,13 @@ void airship3D_gyro_imdt_emd_sys::get_output_function_blocks(
 void airship3D_gyro_imdt_emd_sys::save(ReaK::serialization::oarchive& A,
                                        unsigned int /*unused*/) const {
   airship3D_imdt_emd_sys::save(
-      A, airship3D_imdt_emd_sys::getStaticObjectType()->TypeVersion());
+      A, airship3D_imdt_emd_sys::get_static_object_type()->version());
 }
 
 void airship3D_gyro_imdt_emd_sys::load(ReaK::serialization::iarchive& A,
                                        unsigned int /*unused*/) {
   airship3D_imdt_emd_sys::load(
-      A, airship3D_imdt_emd_sys::getStaticObjectType()->TypeVersion());
+      A, airship3D_imdt_emd_sys::get_static_object_type()->version());
 }
 
 #define RK_D_INF std::numeric_limits<double>::infinity()
@@ -1586,7 +1586,7 @@ airship3D_imdt_emdJ_sys::airship3D_imdt_emdJ_sys(
       mInertiaMoment(aInertiaMoment),
       mDt(aDt),
       mGravityAcc(aGravityAcc) {
-  setName(aName);
+  set_name(aName);
   if (mDt < std::numeric_limits<double>::epsilon()) {
     throw system_incoherency(
         "The time step is below numerical tolerance in "
@@ -2264,7 +2264,7 @@ airship3D_imdt_emdJ_sys::get_invariant_prior_frame(
 
 void airship3D_imdt_emdJ_sys::save(ReaK::serialization::oarchive& A,
                                    unsigned int /*unused*/) const {
-  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::save(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mMass) &
       RK_SERIAL_SAVE_WITH_NAME(mInertiaMoment) & RK_SERIAL_SAVE_WITH_NAME(mDt) &
       RK_SERIAL_SAVE_WITH_NAME(mGravityAcc);
@@ -2272,7 +2272,7 @@ void airship3D_imdt_emdJ_sys::save(ReaK::serialization::oarchive& A,
 
 void airship3D_imdt_emdJ_sys::load(ReaK::serialization::iarchive& A,
                                    unsigned int /*unused*/) {
-  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::load(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mMass) &
       RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment) & RK_SERIAL_LOAD_WITH_NAME(mDt) &
       RK_SERIAL_LOAD_WITH_NAME(mGravityAcc);
@@ -2324,13 +2324,13 @@ void airship3D_gyro_imdt_emdJ_sys::get_output_function_blocks(
 void airship3D_gyro_imdt_emdJ_sys::save(ReaK::serialization::oarchive& A,
                                         unsigned int /*unused*/) const {
   airship3D_imdt_emdJ_sys::save(
-      A, airship3D_imdt_emdJ_sys::getStaticObjectType()->TypeVersion());
+      A, airship3D_imdt_emdJ_sys::get_static_object_type()->version());
 }
 
 void airship3D_gyro_imdt_emdJ_sys::load(ReaK::serialization::iarchive& A,
                                         unsigned int /*unused*/) {
   airship3D_imdt_emdJ_sys::load(
-      A, airship3D_imdt_emdJ_sys::getStaticObjectType()->TypeVersion());
+      A, airship3D_imdt_emdJ_sys::get_static_object_type()->version());
 }
 
 }  // namespace ReaK::ctrl

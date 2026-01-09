@@ -91,8 +91,8 @@ class time_poisson_topology : public time_topology {
   *******************************************************************************/
 
   void save(serialization::oarchive& A, unsigned int aVersion) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(time_step) &
         RK_SERIAL_SAVE_WITH_NAME(mean_discrete_time);
     if (aVersion > 1) {
@@ -101,8 +101,8 @@ class time_poisson_topology : public time_topology {
   }
 
   void load(serialization::iarchive& A, unsigned int aVersion) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(time_step) &
         RK_SERIAL_LOAD_WITH_NAME(mean_discrete_time);
     if (aVersion > 1) {

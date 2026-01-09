@@ -145,11 +145,11 @@ class MEAQR_rrtstar_planner
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC246000D, 1, "MEAQR_rrtstar_planner",
@@ -292,8 +292,8 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::
       this, &aQuery);
 
   auto* p2p_query_ptr =
-      reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.castTo(
-          path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
+      reinterpret_cast<path_planning_p2p_query<FreeSpaceType>*>(aQuery.cast_to(
+          path_planning_p2p_query<FreeSpaceType>::get_static_object_type()));
 
   using MotionGraphType =
       bagl::adjacency_list<bagl::vec_s, bagl::vec_s, bagl::bidirectional_s,

@@ -58,13 +58,13 @@ class colored_geometry_2D : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mColor) & RK_SERIAL_SAVE_WITH_NAME(mGeom);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mColor) & RK_SERIAL_LOAD_WITH_NAME(mGeom);
   }
 
@@ -82,7 +82,7 @@ class colored_model_2D : public named_object {
    * Default constructor.
    */
   explicit colored_model_2D(const std::string& aName = "") {
-    this->setName(aName);
+    this->set_name(aName);
   }
 
   /**
@@ -107,14 +107,14 @@ class colored_model_2D : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchorList) &
         RK_SERIAL_SAVE_WITH_NAME(mGeomList);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchorList) &
         RK_SERIAL_LOAD_WITH_NAME(mGeomList);
   }
@@ -139,13 +139,13 @@ class colored_geometry_3D : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mColor) & RK_SERIAL_SAVE_WITH_NAME(mGeom);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mColor) & RK_SERIAL_LOAD_WITH_NAME(mGeom);
   }
 
@@ -162,7 +162,7 @@ class colored_model_3D : public named_object {
   /**
    * Default constructor.
    */
-  explicit colored_model_3D(const std::string& aName = "") { setName(aName); }
+  explicit colored_model_3D(const std::string& aName = "") { set_name(aName); }
 
   /**
    * Default destructor.
@@ -186,14 +186,14 @@ class colored_model_3D : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchorList) &
         RK_SERIAL_SAVE_WITH_NAME(mGeomList);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchorList) &
         RK_SERIAL_LOAD_WITH_NAME(mGeomList);
   }

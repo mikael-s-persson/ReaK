@@ -370,11 +370,11 @@ class interpolated_topology_base : public BaseTopology {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    BaseTopology::save(A, BaseTopology::getStaticObjectType()->TypeVersion());
+    BaseTopology::save(A, BaseTopology::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    BaseTopology::load(A, BaseTopology::getStaticObjectType()->TypeVersion());
+    BaseTopology::load(A, BaseTopology::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2400039, 1, "interpolated_topology_base",
@@ -430,7 +430,7 @@ class wrapped_interp_topology : public named_object {
   explicit wrapped_interp_topology(std::shared_ptr<wrapped_base_type> aSpace =
                                        std::shared_ptr<wrapped_base_type>())
       : m_space(std::move(aSpace)) {
-    setName("wrapped_interp_topology");
+    set_name("wrapped_interp_topology");
   }
 
   explicit operator wrapped_base_type&() { return *m_space; }
@@ -603,12 +603,12 @@ class wrapped_interp_topology : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(m_space);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(m_space);
   }
 
@@ -1000,11 +1000,11 @@ class interpolated_topology : public interpolated_topology_base<BaseTopology> {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC240003A, 1, "interpolated_topology",

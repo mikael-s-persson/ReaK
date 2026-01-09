@@ -69,10 +69,10 @@ class bin_recorder : public data_recorder {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    data_recorder::save(A, data_recorder::getStaticObjectType()->TypeVersion());
+    data_recorder::save(A, data_recorder::get_static_object_type()->version());
   }
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    data_recorder::load(A, data_recorder::getStaticObjectType()->TypeVersion());
+    data_recorder::load(A, data_recorder::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(bin_recorder, 0x81100004, 1, "bin_recorder",
@@ -110,11 +110,11 @@ class bin_extractor : public data_extractor {
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     data_extractor::save(A,
-                         data_extractor::getStaticObjectType()->TypeVersion());
+                         data_extractor::get_static_object_type()->version());
   }
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     data_extractor::load(A,
-                         data_extractor::getStaticObjectType()->TypeVersion());
+                         data_extractor::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(bin_extractor, 0x81200004, 1, "bin_extractor",

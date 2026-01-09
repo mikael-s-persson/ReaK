@@ -68,11 +68,11 @@ class proxy_model_updater : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC2400029, 1, "proxy_model_updater",
@@ -105,11 +105,11 @@ class proxy_model_applicator : public shared_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*Version*/) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*Version*/) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(self, 0xC240003B, 1, "proxy_model_applicator",
@@ -175,14 +175,14 @@ class any_model_applicator : public proxy_model_applicator<JointSpace> {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(dk_topomap) &
         RK_SERIAL_SAVE_WITH_NAME(map_to_jt_space) &
         RK_SERIAL_SAVE_WITH_NAME(inter_space);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(dk_topomap) &
         RK_SERIAL_LOAD_WITH_NAME(map_to_jt_space) &
         RK_SERIAL_LOAD_WITH_NAME(inter_space);
@@ -235,12 +235,12 @@ class any_model_applicator<JointSpace, DKTopoMap, identity_topo_map, JointSpace>
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::save(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(dk_topomap);
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    base_type::load(A, base_type::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(dk_topomap);
   }
 

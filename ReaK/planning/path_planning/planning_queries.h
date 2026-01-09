@@ -230,7 +230,7 @@ class planning_query : public named_object {
   planning_query(const std::string& aName,
                  const std::shared_ptr<space_type>& aWorld)
       : named_object(), space(aWorld) {
-    setName(aName);
+    set_name(aName);
   }
 
   ~planning_query() override = default;
@@ -241,12 +241,12 @@ class planning_query : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(space);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(space);
   }
 

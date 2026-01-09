@@ -94,14 +94,14 @@ class lti_system_ss : public named_object {
         B(aX_size, aU_size),
         C(aY_size, aX_size),
         D(aY_size, aU_size) {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
    * Standard copy-constructor.
    */
   lti_system_ss(const self& rhs) : A(rhs.A), B(rhs.B), C(rhs.C), D(rhs.D) {
-    setName(rhs.getName());
+    set_name(rhs.get_name());
   }
 
   /**
@@ -116,7 +116,7 @@ class lti_system_ss : public named_object {
   lti_system_ss(const MatrixA& aA, const MatrixB& aB, const MatrixC& aC,
                 const MatrixD& aD, const std::string& aName = "")
       : A(aA), B(aB), C(aC), D(aD) {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -276,13 +276,13 @@ class lti_system_ss : public named_object {
 
   virtual void save(ReaK::serialization::oarchive& aA, unsigned int) const {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(A) & RK_SERIAL_SAVE_WITH_NAME(B) &
         RK_SERIAL_SAVE_WITH_NAME(C) & RK_SERIAL_SAVE_WITH_NAME(D);
   }
   virtual void load(ReaK::serialization::iarchive& aA, unsigned int) {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(A) & RK_SERIAL_LOAD_WITH_NAME(B) &
         RK_SERIAL_LOAD_WITH_NAME(C) & RK_SERIAL_LOAD_WITH_NAME(D);
   }

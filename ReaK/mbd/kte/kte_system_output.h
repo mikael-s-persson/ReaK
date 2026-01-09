@@ -51,7 +51,7 @@ class system_output : public virtual named_object {
    * Constructs a system input class with the given name.
    */
   explicit system_output(const std::string& aName = "") {
-    this->setName(aName);
+    this->set_name(aName);
   }
 
   /**
@@ -75,13 +75,13 @@ class system_output : public virtual named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(system_output, 0xC2100034, 1, "system_output",

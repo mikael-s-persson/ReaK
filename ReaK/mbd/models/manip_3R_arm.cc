@@ -345,7 +345,7 @@ void manip_3R_2D_kinematics::setDependentAccelerations(
 void manip_3R_2D_kinematics::save(serialization::oarchive& A,
                                   unsigned int /*unused*/) const {
   inverse_kinematics_model::save(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(m_base_frame) &
       RK_SERIAL_SAVE_WITH_NAME(m_joints) & RK_SERIAL_SAVE_WITH_NAME(m_EE) &
       RK_SERIAL_SAVE_WITH_NAME(m_link1_length) &
@@ -357,7 +357,7 @@ void manip_3R_2D_kinematics::save(serialization::oarchive& A,
 void manip_3R_2D_kinematics::load(serialization::iarchive& A,
                                   unsigned int /*unused*/) {
   inverse_kinematics_model::load(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(m_base_frame) &
       RK_SERIAL_LOAD_WITH_NAME(m_joints) & RK_SERIAL_LOAD_WITH_NAME(m_EE) &
       RK_SERIAL_LOAD_WITH_NAME(m_link1_length) &
@@ -725,7 +725,7 @@ void manip_3R_3D_kinematics::setDependentAccelerations(
 void manip_3R_3D_kinematics::save(serialization::oarchive& A,
                                   unsigned int /*unused*/) const {
   inverse_kinematics_model::save(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(m_base_frame) &
       RK_SERIAL_SAVE_WITH_NAME(m_joints) & RK_SERIAL_SAVE_WITH_NAME(m_EE) &
       RK_SERIAL_SAVE_WITH_NAME(m_link1_length) &
@@ -739,7 +739,7 @@ void manip_3R_3D_kinematics::save(serialization::oarchive& A,
 void manip_3R_3D_kinematics::load(serialization::iarchive& A,
                                   unsigned int /*unused*/) {
   inverse_kinematics_model::load(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(m_base_frame) &
       RK_SERIAL_LOAD_WITH_NAME(m_joints) & RK_SERIAL_LOAD_WITH_NAME(m_EE) &
       RK_SERIAL_LOAD_WITH_NAME(m_link1_length) &

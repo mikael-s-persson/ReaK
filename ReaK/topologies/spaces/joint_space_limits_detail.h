@@ -61,14 +61,14 @@ void create_rl_joint_space_impl(OutSpace& space_out, const InSpace& space_in,
     using ValueType = typename RateLimitMap::value_type;
 
     line_segment_topology<ValueType> topo_0(
-        get<0>(space_in).getName() + "_rl",
+        get<0>(space_in).get_name() + "_rl",
         (get<0>(space_in).origin() - get<0>(space_in).get_radius()) /
             j_limits.gen_speed_limits[gen_i],
         (get<0>(space_in).origin() + get<0>(space_in).get_radius()) /
             j_limits.gen_speed_limits[gen_i]);
     if constexpr (InOrder > 0) {
       line_segment_topology<ValueType> topo_1(
-          get<1>(space_in).getName() + "_rl",
+          get<1>(space_in).get_name() + "_rl",
           (get<1>(space_in).origin() - get<1>(space_in).get_radius()) /
               j_limits.gen_accel_limits[gen_i],
           (get<1>(space_in).origin() + get<1>(space_in).get_radius()) /
@@ -77,7 +77,7 @@ void create_rl_joint_space_impl(OutSpace& space_out, const InSpace& space_in,
                                         j_limits.gen_accel_limits[gen_i]);
       if constexpr (InOrder > 1) {
         line_segment_topology<ValueType> topo_2(
-            get<2>(space_in).getName() + "_rl",
+            get<2>(space_in).get_name() + "_rl",
             (get<2>(space_in).origin() - get<2>(space_in).get_radius()) /
                 j_limits.gen_jerk_limits[gen_i],
             (get<2>(space_in).origin() + get<2>(space_in).get_radius()) /
@@ -128,14 +128,14 @@ void create_rl_joint_space_impl(OutSpace& space_out, const InSpace& space_in,
     if constexpr (InOrder == 0) {
       space_out = OutSpace(arithmetic_tuple(
           hyperbox_topology<VectorType, inf_norm_distance_metric>(
-              get<0>(space_in).getName() + "_rl", lower_bnd, upper_bnd)));
+              get<0>(space_in).get_name() + "_rl", lower_bnd, upper_bnd)));
     } else if constexpr (InOrder == 1) {
       space_out = OutSpace(
           arithmetic_tuple(
               hyperbox_topology<VectorType, inf_norm_distance_metric>(
-                  get<0>(space_in).getName() + "_rl", lower_bnd, upper_bnd),
+                  get<0>(space_in).get_name() + "_rl", lower_bnd, upper_bnd),
               hyperbox_topology<VectorType, inf_norm_distance_metric>(
-                  get<1>(space_in).getName() + "_rl", -speed_lim, speed_lim)),
+                  get<1>(space_in).get_name() + "_rl", -speed_lim, speed_lim)),
           manhattan_tuple_distance(),
           arithmetic_tuple(
               Ndof_reach_time_differentiation<VectorType>(speed_lim)));
@@ -143,11 +143,11 @@ void create_rl_joint_space_impl(OutSpace& space_out, const InSpace& space_in,
       space_out = OutSpace(
           arithmetic_tuple(
               hyperbox_topology<VectorType, inf_norm_distance_metric>(
-                  get<0>(space_in).getName() + "_rl", lower_bnd, upper_bnd),
+                  get<0>(space_in).get_name() + "_rl", lower_bnd, upper_bnd),
               hyperbox_topology<VectorType, inf_norm_distance_metric>(
-                  get<1>(space_in).getName() + "_rl", -speed_lim, speed_lim),
+                  get<1>(space_in).get_name() + "_rl", -speed_lim, speed_lim),
               hyperbox_topology<VectorType, inf_norm_distance_metric>(
-                  get<2>(space_in).getName() + "_rl", -accel_lim, accel_lim)),
+                  get<2>(space_in).get_name() + "_rl", -accel_lim, accel_lim)),
           manhattan_tuple_distance(),
           arithmetic_tuple(
               Ndof_reach_time_differentiation<VectorType>(speed_lim),
@@ -165,12 +165,12 @@ void create_rl_joint_space_impl(OutSpace& space_out, const InSpace& space_in,
     using PosTopoOutType = arithmetic_tuple_element_t<0, OutSpace>;
     using RotTopoOutType = arithmetic_tuple_element_t<1, OutSpace>;
 
-    BoxTopo pos_0(get<0>(get<0>(space_in)).getName() + "_rl",
+    BoxTopo pos_0(get<0>(get<0>(space_in)).get_name() + "_rl",
                   get<0>(get<0>(space_in)).get_lower_corner() *
                       (ValueType(1.0) / j_limits.frame2D_speed_limits[f2d_i]),
                   get<0>(get<0>(space_in)).get_upper_corner() *
                       (ValueType(1.0) / j_limits.frame2D_speed_limits[f2d_i]));
-    LineSegTopo rot_0(get<0>(get<1>(space_in)).getName() + "_rl",
+    LineSegTopo rot_0(get<0>(get<1>(space_in)).get_name() + "_rl",
                       (get<0>(get<1>(space_in)).origin() -
                        get<0>(get<1>(space_in)).get_radius()) /
                           j_limits.frame2D_speed_limits[f2d_i + 1],
@@ -179,12 +179,12 @@ void create_rl_joint_space_impl(OutSpace& space_out, const InSpace& space_in,
                           j_limits.frame2D_speed_limits[f2d_i + 1]);
     if constexpr (InOrder > 0) {
       BallTopo pos_1(
-          get<1>(get<0>(space_in)).getName() + "_rl",
+          get<1>(get<0>(space_in)).get_name() + "_rl",
           get<1>(get<0>(space_in)).origin() *
               (ValueType(1.0) / j_limits.frame2D_accel_limits[f2d_i]),
           get<1>(get<0>(space_in)).get_radius() /
               j_limits.frame2D_accel_limits[f2d_i]);
-      LineSegTopo rot_1(get<1>(get<1>(space_in)).getName() + "_rl",
+      LineSegTopo rot_1(get<1>(get<1>(space_in)).get_name() + "_rl",
                         (get<1>(get<1>(space_in)).origin() -
                          get<1>(get<1>(space_in)).get_radius()) /
                             j_limits.frame2D_accel_limits[f2d_i + 1],
@@ -200,12 +200,12 @@ void create_rl_joint_space_impl(OutSpace& space_out, const InSpace& space_in,
 
       if constexpr (InOrder > 1) {
         BallTopo pos_2(
-            get<2>(get<0>(space_in)).getName() + "_rl",
+            get<2>(get<0>(space_in)).get_name() + "_rl",
             get<2>(get<0>(space_in)).origin() *
                 (ValueType(1.0) / j_limits.frame2D_jerk_limits[f2d_i]),
             get<2>(get<0>(space_in)).get_radius() /
                 j_limits.frame2D_jerk_limits[f2d_i]);
-        LineSegTopo rot_2(get<2>(get<1>(space_in)).getName() + "_rl",
+        LineSegTopo rot_2(get<2>(get<1>(space_in)).get_name() + "_rl",
                           (get<2>(get<1>(space_in)).origin() -
                            get<2>(get<1>(space_in)).get_radius()) /
                               j_limits.frame2D_jerk_limits[f2d_i + 1],
@@ -260,22 +260,22 @@ void create_rl_joint_space_impl(OutSpace& space_out, const InSpace& space_in,
     using PosTopoOutType = arithmetic_tuple_element_t<0, OutSpace>;
     using RotTopoOutType = arithmetic_tuple_element_t<1, OutSpace>;
 
-    BoxTopo pos_0(get<0>(get<0>(space_in)).getName() + "_rl",
+    BoxTopo pos_0(get<0>(get<0>(space_in)).get_name() + "_rl",
                   get<0>(get<0>(space_in)).get_lower_corner() *
                       (ValueType(1.0) / j_limits.frame3D_speed_limits[f3d_i]),
                   get<0>(get<0>(space_in)).get_upper_corner() *
                       (ValueType(1.0) / j_limits.frame3D_speed_limits[f3d_i]));
-    QuatTopo rot_0(get<0>(get<1>(space_in)).getName() + "_rl",
+    QuatTopo rot_0(get<0>(get<1>(space_in)).get_name() + "_rl",
                    j_limits.frame3D_speed_limits[f3d_i + 1]);
 
     if constexpr (InOrder > 0) {
       BallTopo pos_1(
-          get<1>(get<0>(space_in)).getName() + "_rl",
+          get<1>(get<0>(space_in)).get_name() + "_rl",
           get<1>(get<0>(space_in)).origin() *
               (ValueType(1.0) / j_limits.frame3D_accel_limits[f3d_i]),
           get<1>(get<0>(space_in)).get_radius() /
               j_limits.frame3D_accel_limits[f3d_i]);
-      AngVelTopo rot_1(get<1>(get<1>(space_in)).getName() + "_rl",
+      AngVelTopo rot_1(get<1>(get<1>(space_in)).get_name() + "_rl",
                        get<1>(get<1>(space_in)).get_radius() /
                            j_limits.frame3D_accel_limits[f3d_i + 1]);
       reach_time_differentiation pos_diff_0(
@@ -287,12 +287,12 @@ void create_rl_joint_space_impl(OutSpace& space_out, const InSpace& space_in,
 
       if constexpr (InOrder > 1) {
         BallTopo pos_2(
-            get<2>(get<0>(space_in)).getName() + "_rl",
+            get<2>(get<0>(space_in)).get_name() + "_rl",
             get<2>(get<0>(space_in)).origin() *
                 (ValueType(1.0) / j_limits.frame3D_jerk_limits[f3d_i]),
             get<2>(get<0>(space_in)).get_radius() /
                 j_limits.frame3D_jerk_limits[f3d_i]);
-        AngAccTopo rot_2(get<2>(get<1>(space_in)).getName() + "_rl",
+        AngAccTopo rot_2(get<2>(get<1>(space_in)).get_name() + "_rl",
                          get<2>(get<1>(space_in)).get_radius() /
                              j_limits.frame3D_jerk_limits[f3d_i + 1]);
         reach_time_differentiation pos_diff_1(
@@ -365,7 +365,7 @@ void create_normal_joint_space_impl(OutSpace& space_out,
     using ValueType = typename RateLimitMap::value_type;
 
     line_segment_topology<ValueType> topo_0(
-        get<0>(space_in).getName() + "_non_rl",
+        get<0>(space_in).get_name() + "_non_rl",
         (get<0>(space_in).origin() - get<0>(space_in).get_radius()) *
             j_limits.gen_speed_limits[gen_i],
         (get<0>(space_in).origin() + get<0>(space_in).get_radius()) *
@@ -373,14 +373,14 @@ void create_normal_joint_space_impl(OutSpace& space_out,
 
     if constexpr (InOrder > 0) {
       line_segment_topology<ValueType> topo_1(
-          get<1>(space_in).getName() + "_non_rl",
+          get<1>(space_in).get_name() + "_non_rl",
           (get<1>(space_in).origin() - get<1>(space_in).get_radius()) *
               j_limits.gen_accel_limits[gen_i],
           (get<1>(space_in).origin() + get<1>(space_in).get_radius()) *
               j_limits.gen_accel_limits[gen_i]);
       if constexpr (InOrder > 1) {
         line_segment_topology<ValueType> topo_2(
-            get<2>(space_in).getName() + "_non_rl",
+            get<2>(space_in).get_name() + "_non_rl",
             (get<2>(space_in).origin() - get<2>(space_in).get_radius()) *
                 j_limits.gen_jerk_limits[gen_i],
             (get<2>(space_in).origin() + get<2>(space_in).get_radius()) *
@@ -423,13 +423,13 @@ void create_normal_joint_space_impl(OutSpace& space_out,
       ++gen_i;
     }
     hyperbox_topology<VectorType, manhattan_distance_metric> topo_0(
-        get<0>(space_in).getName() + "_non_rl", lower_bnd, upper_bnd);
+        get<0>(space_in).get_name() + "_non_rl", lower_bnd, upper_bnd);
     if constexpr (InOrder > 0) {
       hyperbox_topology<VectorType, manhattan_distance_metric> topo_1(
-          get<1>(space_in).getName() + "_non_rl", -speed_lim, speed_lim);
+          get<1>(space_in).get_name() + "_non_rl", -speed_lim, speed_lim);
       if constexpr (InOrder > 1) {
         hyperbox_topology<VectorType, manhattan_distance_metric> topo_2(
-            get<2>(space_in).getName() + "_non_rl", -accel_lim, accel_lim);
+            get<2>(space_in).get_name() + "_non_rl", -accel_lim, accel_lim);
         space_out = OutSpace(arithmetic_tuple(
             std::move(topo_0), std::move(topo_1), std::move(topo_2)));
       } else {
@@ -451,12 +451,12 @@ void create_normal_joint_space_impl(OutSpace& space_out,
     using PosTopoOutType = arithmetic_tuple_element_t<0, OutSpace>;
     using RotTopoOutType = arithmetic_tuple_element_t<1, OutSpace>;
 
-    BoxTopo pos_0(get<0>(get<0>(space_in)).getName() + "_non_rl",
+    BoxTopo pos_0(get<0>(get<0>(space_in)).get_name() + "_non_rl",
                   get<0>(get<0>(space_in)).get_lower_corner() *
                       j_limits.frame2D_speed_limits[f2d_i],
                   get<0>(get<0>(space_in)).get_upper_corner() *
                       j_limits.frame2D_speed_limits[f2d_i]);
-    LineSegTopo rot_0(get<0>(get<1>(space_in)).getName() + "_non_rl",
+    LineSegTopo rot_0(get<0>(get<1>(space_in)).get_name() + "_non_rl",
                       (get<0>(get<1>(space_in)).origin() -
                        get<0>(get<1>(space_in)).get_radius()) *
                           j_limits.frame2D_speed_limits[f2d_i + 1],
@@ -465,12 +465,12 @@ void create_normal_joint_space_impl(OutSpace& space_out,
                           j_limits.frame2D_speed_limits[f2d_i + 1]);
 
     if constexpr (InOrder > 0) {
-      BallTopo pos_1(get<1>(get<0>(space_in)).getName() + "_non_rl",
+      BallTopo pos_1(get<1>(get<0>(space_in)).get_name() + "_non_rl",
                      get<1>(get<0>(space_in)).origin() *
                          j_limits.frame2D_accel_limits[f2d_i],
                      get<1>(get<0>(space_in)).get_radius() *
                          j_limits.frame2D_accel_limits[f2d_i]);
-      LineSegTopo rot_1(get<1>(get<1>(space_in)).getName() + "_non_rl",
+      LineSegTopo rot_1(get<1>(get<1>(space_in)).get_name() + "_non_rl",
                         (get<1>(get<1>(space_in)).origin() -
                          get<1>(get<1>(space_in)).get_radius()) *
                             j_limits.frame2D_accel_limits[f2d_i + 1],
@@ -478,12 +478,12 @@ void create_normal_joint_space_impl(OutSpace& space_out,
                          get<1>(get<1>(space_in)).get_radius()) *
                             j_limits.frame2D_accel_limits[f2d_i + 1]);
       if constexpr (InOrder > 1) {
-        BallTopo pos_2(get<2>(get<0>(space_in)).getName() + "_non_rl",
+        BallTopo pos_2(get<2>(get<0>(space_in)).get_name() + "_non_rl",
                        get<2>(get<0>(space_in)).origin() *
                            j_limits.frame2D_jerk_limits[f2d_i],
                        get<2>(get<0>(space_in)).get_radius() *
                            j_limits.frame2D_jerk_limits[f2d_i]);
-        LineSegTopo rot_2(get<2>(get<1>(space_in)).getName() + "_non_rl",
+        LineSegTopo rot_2(get<2>(get<1>(space_in)).get_name() + "_non_rl",
                           (get<2>(get<1>(space_in)).origin() -
                            get<2>(get<1>(space_in)).get_radius()) *
                               j_limits.frame2D_jerk_limits[f2d_i + 1],
@@ -523,29 +523,29 @@ void create_normal_joint_space_impl(OutSpace& space_out,
     using PosTopoOutType = arithmetic_tuple_element_t<0, OutSpace>;
     using RotTopoOutType = arithmetic_tuple_element_t<1, OutSpace>;
 
-    BoxTopo pos_0(get<0>(get<0>(space_in)).getName() + "_non_rl",
+    BoxTopo pos_0(get<0>(get<0>(space_in)).get_name() + "_non_rl",
                   get<0>(get<0>(space_in)).get_lower_corner() *
                       j_limits.frame3D_speed_limits[f3d_i],
                   get<0>(get<0>(space_in)).get_upper_corner() *
                       j_limits.frame3D_speed_limits[f3d_i]);
-    QuatTopo rot_0(get<0>(get<1>(space_in)).getName() + "_non_rl");
+    QuatTopo rot_0(get<0>(get<1>(space_in)).get_name() + "_non_rl");
 
     if constexpr (InOrder > 0) {
-      BallTopo pos_1(get<1>(get<0>(space_in)).getName() + "_non_rl",
+      BallTopo pos_1(get<1>(get<0>(space_in)).get_name() + "_non_rl",
                      get<1>(get<0>(space_in)).origin() *
                          j_limits.frame3D_accel_limits[f3d_i],
                      get<1>(get<0>(space_in)).get_radius() *
                          j_limits.frame3D_accel_limits[f3d_i]);
-      AngVelTopo rot_1(get<1>(get<1>(space_in)).getName() + "_non_rl",
+      AngVelTopo rot_1(get<1>(get<1>(space_in)).get_name() + "_non_rl",
                        get<1>(get<1>(space_in)).get_radius() *
                            j_limits.frame3D_accel_limits[f3d_i + 1]);
       if constexpr (InOrder > 1) {
-        BallTopo pos_2(get<2>(get<0>(space_in)).getName() + "_non_rl",
+        BallTopo pos_2(get<2>(get<0>(space_in)).get_name() + "_non_rl",
                        get<2>(get<0>(space_in)).origin() *
                            j_limits.frame3D_jerk_limits[f3d_i],
                        get<2>(get<0>(space_in)).get_radius() *
                            j_limits.frame3D_jerk_limits[f3d_i]);
-        AngAccTopo rot_2(get<2>(get<1>(space_in)).getName() + "_non_rl",
+        AngAccTopo rot_2(get<2>(get<1>(space_in)).get_name() + "_non_rl",
                          get<2>(get<1>(space_in)).get_radius() *
                              j_limits.frame3D_jerk_limits[f3d_i + 1]);
         space_out = OutSpace(arithmetic_tuple(

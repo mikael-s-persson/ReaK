@@ -543,13 +543,13 @@ class quintic_hermite_interp_traj
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base_class_type::save(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::save(A,
+                          base_class_type::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    base_class_type::load(
-        A, base_class_type::getStaticObjectType()->TypeVersion());
+    base_class_type::load(A,
+                          base_class_type::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0xC2440005, 1,
@@ -562,10 +562,10 @@ namespace rtti {
 
 template <>
 struct get_type_id<pp::quintic_hermite_interpolation_tag> {
-  static constexpr unsigned int ID = 3;
+  static constexpr unsigned int id = 3;
   static constexpr auto type_name =
       std::string_view{"quintic_hermite_interpolation_tag"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 };
 
 }  // namespace rtti

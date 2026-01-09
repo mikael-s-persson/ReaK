@@ -310,7 +310,7 @@ class frame_2D : public pose_2D<T> {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    base::save(A, base::getStaticObjectType()->TypeVersion());
+    base::save(A, base::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(Velocity) &
         RK_SERIAL_SAVE_WITH_NAME(AngVelocity) &
         RK_SERIAL_SAVE_WITH_NAME(Acceleration) &
@@ -319,7 +319,7 @@ class frame_2D : public pose_2D<T> {
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    base::load(A, base::getStaticObjectType()->TypeVersion());
+    base::load(A, base::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(Velocity) &
         RK_SERIAL_LOAD_WITH_NAME(AngVelocity) &
         RK_SERIAL_LOAD_WITH_NAME(Acceleration) &

@@ -32,11 +32,11 @@ shape_2D::shape_2D(const std::string& aName,
 
 void shape_2D::save(ReaK::serialization::oarchive& A,
                     unsigned int /*unused*/) const {
-  geometry_2D::save(A, geometry_2D::getStaticObjectType()->TypeVersion());
+  geometry_2D::save(A, geometry_2D::get_static_object_type()->version());
 }
 
 void shape_2D::load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) {
-  geometry_2D::load(A, geometry_2D::getStaticObjectType()->TypeVersion());
+  geometry_2D::load(A, geometry_2D::get_static_object_type()->version());
 }
 
 shape_2D_precompute_pack shape_2D::createPrecomputePack() const {

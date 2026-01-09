@@ -417,7 +417,7 @@ void manip_P3R3R_kinematics::setJointAccelerations(
 void manip_P3R3R_kinematics::save(serialization::oarchive& A,
                                   unsigned int /*unused*/) const {
   inverse_kinematics_model::save(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(m_base_frame) &
       RK_SERIAL_SAVE_WITH_NAME(m_track_coord) &
       RK_SERIAL_SAVE_WITH_NAME(m_output_frame) &
@@ -430,7 +430,7 @@ void manip_P3R3R_kinematics::save(serialization::oarchive& A,
 void manip_P3R3R_kinematics::load(serialization::iarchive& A,
                                   unsigned int /*unused*/) {
   inverse_kinematics_model::load(
-      A, inverse_kinematics_model::getStaticObjectType()->TypeVersion());
+      A, inverse_kinematics_model::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(m_base_frame) &
       RK_SERIAL_LOAD_WITH_NAME(m_track_coord) &
       RK_SERIAL_LOAD_WITH_NAME(m_output_frame) &

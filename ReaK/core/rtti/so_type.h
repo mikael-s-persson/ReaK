@@ -55,10 +55,10 @@ using construct_ptr = std::shared_ptr<shared_object> (*)();
 // this is really the only thing that the class needs to define
 template <typename T>
 struct get_type_id {
-  static constexpr unsigned int ID = T::rk_rtti_ID;
-  static constexpr auto type_name = T::rk_rtti_TypeName;
+  static constexpr unsigned int id = T::rk_rtti_type_id;
+  static constexpr auto type_name = T::rk_rtti_type_name;
 
-  static construct_ptr CreatePtr() noexcept { return T::rk_rtti_CreatePtr(); }
+  static construct_ptr create_ptr() noexcept { return T::rk_rtti_create_ptr(); }
 
   using save_type = const serializable&;
   using load_type = serializable&;
@@ -70,35 +70,35 @@ static constexpr auto lsl_comma = std::string_view{","};
 
 template <unsigned int U>
 struct get_type_id<std::integral_constant<unsigned int, U>> {
-  static constexpr unsigned int ID = U;
-  static constexpr auto type_name = ct_itoa_v<ID>;
+  static constexpr unsigned int id = U;
+  static constexpr auto type_name = ct_itoa_v<id>;
 
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 };
 
 template <>
 struct get_type_id<std::true_type> {
-  static constexpr unsigned int ID = 2;
+  static constexpr unsigned int id = 2;
   static constexpr auto type_name = std::string_view{"true"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 };
 
 template <>
 struct get_type_id<std::false_type> {
-  static constexpr unsigned int ID = 1;
+  static constexpr unsigned int id = 1;
   static constexpr auto type_name = std::string_view{"false"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 };
 
 template <int I>
 struct get_type_id<std::integral_constant<int, I>> {
-  static constexpr unsigned int ID = I;
-  static constexpr auto type_name = ct_itoa_v<ID>;
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static constexpr unsigned int id = I;
+  static constexpr auto type_name = ct_itoa_v<id>;
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 };
 
 struct null_type_id {
-  static constexpr unsigned int ID = 0;
+  static constexpr unsigned int id = 0;
 };
 
 struct null_type_info {
@@ -108,20 +108,20 @@ struct null_type_info {
 
 template <>
 struct get_type_id<null_type_info> {
-  static constexpr unsigned int ID = 0;
+  static constexpr unsigned int id = 0;
   static constexpr std::string_view type_name = {};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 };
 
-namespace {
+namespace so_type_details {
 
 template <typename T, typename Tail = null_type_id>
 struct type_id {
   using tail = Tail;
-  static constexpr unsigned int ID = ::ReaK::rtti::get_type_id<T>::ID;
+  static constexpr unsigned int id = ::ReaK::rtti::get_type_id<T>::id;
 };
 
-}  // namespace
+}  // namespace so_type_details
 
 template <typename Tail>
 struct get_type_name_tail {
@@ -135,12 +135,12 @@ struct get_type_name_tail<null_type_info> {
 
 template <typename T, typename Tail = null_type_info>
 struct get_type_info {
-  using type = type_id<T, typename Tail::type>;
+  using type = so_type_details::type_id<T, typename Tail::type>;
   static constexpr auto type_name =
       ct_concat_v<get_type_id<T>::type_name, get_type_name_tail<Tail>::value>;
 };
 
-namespace {
+namespace so_type_details {
 
 template <typename... T>
 struct get_type_info_seq;
@@ -167,23 +167,24 @@ struct get_type_info_seq<T1, T...> {
                   get_type_info_seq<T...>::type_name>;
 };
 
-}  // namespace
+}  // namespace so_type_details
 
 template <template <typename...> class U, typename Tail, typename... T>
 struct get_type_info<U<T...>, Tail> {
-  using type = type_id<
-      U<T...>,
-      typename get_type_info_seq<T...>::template with_tail<Tail>::type::type>;
+  using type =
+      so_type_details::type_id<U<T...>,
+                               typename so_type_details::get_type_info_seq<
+                                   T...>::template with_tail<Tail>::type::type>;
   static constexpr auto type_name =
       ct_concat_v<get_type_id<U<T...>>::type_name, lsl_left_bracket,
-                  get_type_info_seq<T...>::type_name, lsl_right_bracket,
-                  get_type_name_tail<Tail>::value>;
+                  so_type_details::get_type_info_seq<T...>::type_name,
+                  lsl_right_bracket, get_type_name_tail<Tail>::value>;
 };
 
 template <unsigned int U, typename Tail>
 struct get_type_info<std::integral_constant<unsigned int, U>, Tail> {
-  using type =
-      type_id<std::integral_constant<unsigned int, U>, typename Tail::type>;
+  using type = so_type_details::type_id<std::integral_constant<unsigned int, U>,
+                                        typename Tail::type>;
   static constexpr auto type_name = ct_concat_v<
       get_type_id<std::integral_constant<unsigned int, U>>::type_name,
       get_type_name_tail<Tail>::value>;
@@ -191,7 +192,7 @@ struct get_type_info<std::integral_constant<unsigned int, U>, Tail> {
 
 template <typename Tail>
 struct get_type_info<std::true_type, Tail> {
-  using type = type_id<std::true_type, typename Tail::type>;
+  using type = so_type_details::type_id<std::true_type, typename Tail::type>;
   static constexpr auto type_name =
       ct_concat_v<get_type_id<std::true_type>::type_name,
                   get_type_name_tail<Tail>::value>;
@@ -199,7 +200,7 @@ struct get_type_info<std::true_type, Tail> {
 
 template <typename Tail>
 struct get_type_info<std::false_type, Tail> {
-  using type = type_id<std::false_type, typename Tail::type>;
+  using type = so_type_details::type_id<std::false_type, typename Tail::type>;
   static constexpr auto type_name =
       ct_concat_v<get_type_id<std::false_type>::type_name,
                   get_type_name_tail<Tail>::value>;
@@ -207,7 +208,8 @@ struct get_type_info<std::false_type, Tail> {
 
 template <int I, typename Tail>
 struct get_type_info<std::integral_constant<int, I>, Tail> {
-  using type = type_id<std::integral_constant<int, I>, typename Tail::type>;
+  using type = so_type_details::type_id<std::integral_constant<int, I>,
+                                        typename Tail::type>;
   static constexpr auto type_name =
       ct_concat_v<get_type_id<std::integral_constant<int, I>>::type_name,
                   get_type_name_tail<Tail>::value>;
@@ -223,12 +225,11 @@ class so_type {
   so_type(const so_type&) = delete;
   so_type& operator=(const so_type&) = delete;
 
-  static so_type* createTypeInfo(unsigned int aTypeVersion,
-                                 unsigned int* aTypeID,
-                                 std::string_view aTypeName,
-                                 construct_ptr aConstruct);
+  static so_type* create_type_info(unsigned int a_version, unsigned int* a_id,
+                                   std::string_view a_name,
+                                   construct_ptr a_construct);
 
-  static unsigned int* createTypeID(unsigned int aTypeIDSize);
+  static unsigned int* create_type_id(unsigned int a_id_length);
 
  protected:
   so_type() = default;
@@ -237,47 +238,47 @@ class so_type {
 
  public:
   /// This function adds a Descendant of this.
-  so_type* addDescendant(so_type* aObj);
+  so_type* add_descendant(so_type* tp);
 
-  so_type* addAncestor(so_type* aObj);
+  so_type* add_ancestor(so_type* tp);
 
   /// This function finds a TypeID in the descendants (recusively) of this.
-  so_type* findDescendant(const unsigned int* aTypeID);
+  so_type* find_descendant(const unsigned int* id);
 
   /// This function gets the number of direct descendants of this.
-  unsigned int getDirectDescendantCount();
+  unsigned int get_direct_descendant_count();
 
   /// This function gets a type record by index in the direct descendants of this.
-  so_type* getDirectDescendant(unsigned int aIndex);
+  so_type* get_direct_descendant(unsigned int id);
 
   /// This function checks if a typeID is parent to this.
-  so_type* findAncestor(const unsigned int* aTypeID);
+  so_type* find_ancestor(const unsigned int* id);
 
   /// This function finds a TypeID in the descendants (recusively) of this.
-  so_type* findDescendant(so_type* aTypeID);
+  so_type* find_descendant(so_type* tp);
 
   /// This function checks if a typeID is parent to this.
-  so_type* findAncestor(so_type* aTypeID);
+  so_type* find_ancestor(so_type* tp);
 
   /// This function inserts this into a global repo.
-  void insertToRepo(so_type* aRepo);
+  void insert_to_repo(so_type* repo);
 
-  [[nodiscard]] const unsigned int* TypeID_begin() const;
+  [[nodiscard]] const unsigned int* id_begin() const;
 
-  [[nodiscard]] unsigned int TypeVersion() const;
+  [[nodiscard]] unsigned int version() const;
 
-  [[nodiscard]] const std::string& TypeName() const;
+  [[nodiscard]] const std::string& name() const;
 
-  [[nodiscard]] std::shared_ptr<shared_object> CreateObject() const;
+  [[nodiscard]] std::shared_ptr<shared_object> create_object() const;
 
-  [[nodiscard]] bool isConcrete() const;
+  [[nodiscard]] bool is_concrete() const;
 
   friend bool operator==(const so_type& t1, const so_type& t2) {
-    return compare_equal(t1.TypeID_begin(), t2.TypeID_begin());
+    return compare_equal(t1.id_begin(), t2.id_begin());
   }
 
   friend bool operator!=(const so_type& t1, const so_type& t2) {
-    return !compare_equal(t1.TypeID_begin(), t2.TypeID_begin());
+    return !compare_equal(t1.id_begin(), t2.id_begin());
   }
 };
 
@@ -287,7 +288,7 @@ struct so_type_ptr {
   ~so_type_ptr();
 };
 
-namespace {
+namespace so_type_details {
 
 template <typename T>
 struct get_type_id_prop;
@@ -304,29 +305,29 @@ struct get_type_id_prop {
       get_type_id_prop<typename T::tail>::count + 1;
   static unsigned int at(unsigned int i) {
     if (i == 0) {
-      return T::ID;
+      return T::id;
     }
     return get_type_id_prop<typename T::tail>::at(--i);
   }
 };
 
 template <typename T>
-so_type_ptr create_type_descriptor(unsigned int aVersion = 1) {
+so_type_ptr create_type_descriptor(unsigned int version = 1) {
   using SizeType = unsigned int;
-  const SizeType TypeIDLength =
+  const SizeType id_length =
       get_type_id_prop<typename get_type_info<T>::type>::count;
-  SizeType* typeID = so_type::createTypeID(TypeIDLength);
-  for (SizeType i = 0; i < TypeIDLength; ++i) {
-    typeID[i] = get_type_id_prop<typename get_type_info<T>::type>::at(i);
+  SizeType* id = so_type::create_type_id(id_length);
+  for (SizeType i = 0; i < id_length; ++i) {
+    id[i] = get_type_id_prop<typename get_type_info<T>::type>::at(i);
   }
   constexpr auto tname = get_type_info<T>::type_name;
-  return so_type_ptr(so_type::createTypeInfo(aVersion, typeID, tname,
-                                             get_type_id<T>::CreatePtr()));
+  return so_type_ptr(so_type::create_type_info(version, id, tname,
+                                               get_type_id<T>::create_ptr()));
 }
 
-}  // namespace
+}  // namespace so_type_details
 
-so_type_ptr create_dummy_so_type(const unsigned int* aTypeID);
+so_type_ptr create_dummy_so_type(const unsigned int* id);
 
 }  // namespace rtti
 }  // namespace ReaK

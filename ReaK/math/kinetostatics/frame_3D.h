@@ -375,7 +375,7 @@ class frame_3D : public pose_3D<T> {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    pose_3D<T>::save(A, pose_3D<T>::getStaticObjectType()->TypeVersion());
+    pose_3D<T>::save(A, pose_3D<T>::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(Velocity) &
         RK_SERIAL_SAVE_WITH_NAME(AngVelocity) &
         RK_SERIAL_SAVE_WITH_NAME(Acceleration) &
@@ -384,7 +384,7 @@ class frame_3D : public pose_3D<T> {
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    pose_3D<T>::load(A, pose_3D<T>::getStaticObjectType()->TypeVersion());
+    pose_3D<T>::load(A, pose_3D<T>::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(Velocity) &
         RK_SERIAL_LOAD_WITH_NAME(AngVelocity) &
         RK_SERIAL_LOAD_WITH_NAME(Acceleration) &

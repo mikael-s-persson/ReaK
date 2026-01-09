@@ -128,7 +128,7 @@ class discretized_lti_sys : public named_object {
   discretized_lti_sys(const LTISystem& aSys = LTISystem(),
                       const time_difference_type& aDt = 1)
       : dt(aDt) {
-    setName(aSys.getName());
+    set_name(aSys.get_name());
 
     aSys.get_linear_blocks(Ad, Bd, Cd, Dd);
 
@@ -149,7 +149,7 @@ class discretized_lti_sys : public named_object {
    */
   discretized_lti_sys(const self& rhs)
       : dt(rhs.dt), Ad(rhs.Ad), Bd(rhs.Bd), Cd(rhs.Cd), Dd(rhs.Dd) {
-    setName(rhs.getName());
+    set_name(rhs.get_name());
   }
 
   /**
@@ -270,14 +270,14 @@ class discretized_lti_sys : public named_object {
 
   virtual void save(ReaK::serialization::oarchive& aA, unsigned int) const {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(dt) & RK_SERIAL_SAVE_WITH_NAME(Ad) &
         RK_SERIAL_SAVE_WITH_NAME(Bd) & RK_SERIAL_SAVE_WITH_NAME(Cd) &
         RK_SERIAL_SAVE_WITH_NAME(Dd);
   }
   virtual void load(ReaK::serialization::iarchive& aA, unsigned int) {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(dt) & RK_SERIAL_LOAD_WITH_NAME(Ad) &
         RK_SERIAL_LOAD_WITH_NAME(Bd) & RK_SERIAL_LOAD_WITH_NAME(Cd) &
         RK_SERIAL_LOAD_WITH_NAME(Dd);

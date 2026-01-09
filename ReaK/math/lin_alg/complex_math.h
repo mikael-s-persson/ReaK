@@ -495,9 +495,9 @@ namespace rtti {
 
 template <typename T>
 struct get_type_id<complex<T>> {
-  static constexpr unsigned int ID = 0x00000007;
+  static constexpr unsigned int id = 0x00000007;
   static constexpr auto type_name = std::string_view{"ReaK::complex"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const complex<T>&;
   using load_type = complex<T>&;

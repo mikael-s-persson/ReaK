@@ -345,7 +345,7 @@ ptrobot2D_test_world::ptrobot2D_test_world()
               ptrobot2D_test_world::point_type(0, 0)),
       m_distance(get(distance_metric, m_space)),
       m_rand_sampler(get(random_sampler, m_space)) {
-  setName("ptrobot2D_space_with_obstacles");
+  set_name("ptrobot2D_space_with_obstacles");
 }
 
 ptrobot2D_test_world::ptrobot2D_test_world(const std::string& aWorldMapImage,
@@ -360,7 +360,7 @@ ptrobot2D_test_world::ptrobot2D_test_world(const std::string& aWorldMapImage,
                                                pimpl->grid_height)),
       m_distance(get(distance_metric, m_space)),
       m_rand_sampler(get(random_sampler, m_space)) {
-  setName("ptrobot2D_space_with_obstacles");
+  set_name("ptrobot2D_space_with_obstacles");
 }
 
 ptrobot2D_test_world::ptrobot2D_test_world(const ptrobot2D_test_world& rhs)
@@ -373,7 +373,7 @@ ptrobot2D_test_world::ptrobot2D_test_world(const ptrobot2D_test_world& rhs)
                                                pimpl->grid_height)),
       m_distance(get(distance_metric, m_space)),
       m_rand_sampler(get(random_sampler, m_space)) {
-  setName("ptrobot2D_space_with_obstacles");
+  set_name("ptrobot2D_space_with_obstacles");
 }
 
 ptrobot2D_test_world& ptrobot2D_test_world::operator=(
@@ -401,7 +401,7 @@ ptrobot2D_test_world::~ptrobot2D_test_world() {
 void ptrobot2D_test_world::save(serialization::oarchive& A,
                                 unsigned int /*unused*/) const {
   ReaK::named_object::save(A,
-                           named_object::getStaticObjectType()->TypeVersion());
+                           named_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(world_map_file_name) &
       RK_SERIAL_SAVE_WITH_NAME(robot_radius) &
       RK_SERIAL_SAVE_WITH_NAME(max_edge_length) &
@@ -412,7 +412,7 @@ void ptrobot2D_test_world::save(serialization::oarchive& A,
 void ptrobot2D_test_world::load(serialization::iarchive& A,
                                 unsigned int /*unused*/) {
   ReaK::named_object::load(A,
-                           named_object::getStaticObjectType()->TypeVersion());
+                           named_object::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(world_map_file_name) &
       RK_SERIAL_LOAD_WITH_NAME(robot_radius) &
       RK_SERIAL_LOAD_WITH_NAME(max_edge_length) &

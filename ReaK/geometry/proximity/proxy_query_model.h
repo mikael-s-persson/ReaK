@@ -108,7 +108,7 @@ class proxy_query_pair_2D : public named_object {
                                std::shared_ptr<proxy_query_model_2D> aModel2 =
                                    std::shared_ptr<proxy_query_model_2D>())
       : mModel1(std::move(aModel1)), mModel2(std::move(aModel2)) {
-    this->setName(aName);
+    this->set_name(aName);
   }
 
   /**
@@ -127,13 +127,13 @@ class proxy_query_pair_2D : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mModel1) & RK_SERIAL_SAVE_WITH_NAME(mModel2);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mModel1) & RK_SERIAL_LOAD_WITH_NAME(mModel2);
   }
 
@@ -206,7 +206,7 @@ class proxy_query_pair_3D : public named_object {
                                std::shared_ptr<proxy_query_model_3D> aModel2 =
                                    std::shared_ptr<proxy_query_model_3D>())
       : mModel1(std::move(aModel1)), mModel2(std::move(aModel2)) {
-    this->setName(aName);
+    this->set_name(aName);
   }
 
   /**
@@ -225,13 +225,13 @@ class proxy_query_pair_3D : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mModel1) & RK_SERIAL_SAVE_WITH_NAME(mModel2);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mModel1) & RK_SERIAL_LOAD_WITH_NAME(mModel2);
   }
 

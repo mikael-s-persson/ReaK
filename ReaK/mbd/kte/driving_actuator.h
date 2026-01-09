@@ -99,13 +99,13 @@ class driving_actuator_gen : public force_actuator_gen, public system_input {
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     force_actuator_gen::save(
-        A, force_actuator_gen::getStaticObjectType()->TypeVersion());
+        A, force_actuator_gen::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mDriveForce);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     force_actuator_gen::load(
-        A, force_actuator_gen::getStaticObjectType()->TypeVersion());
+        A, force_actuator_gen::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mDriveForce);
   }
 
@@ -194,14 +194,14 @@ class driving_actuator_2D : public force_actuator_2D, public system_input {
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     force_actuator_2D::save(
-        A, force_actuator_2D::getStaticObjectType()->TypeVersion());
+        A, force_actuator_2D::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mDriveForce) &
         RK_SERIAL_SAVE_WITH_NAME(mDriveTorque);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     force_actuator_2D::load(
-        A, force_actuator_2D::getStaticObjectType()->TypeVersion());
+        A, force_actuator_2D::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mDriveForce) &
         RK_SERIAL_LOAD_WITH_NAME(mDriveTorque);
   }
@@ -299,14 +299,14 @@ class driving_actuator_3D : public force_actuator_3D, public system_input {
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     force_actuator_3D::save(
-        A, force_actuator_3D::getStaticObjectType()->TypeVersion());
+        A, force_actuator_3D::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mDriveForce) &
         RK_SERIAL_SAVE_WITH_NAME(mDriveTorque);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     force_actuator_3D::load(
-        A, force_actuator_3D::getStaticObjectType()->TypeVersion());
+        A, force_actuator_3D::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mDriveForce) &
         RK_SERIAL_LOAD_WITH_NAME(mDriveTorque);
   }

@@ -42,9 +42,9 @@ namespace ReaK::rtti {
 
 template <>
 struct get_type_id<std::int32_t> {
-  static constexpr unsigned int ID = 0x00000001;
+  static constexpr unsigned int id = 0x00000001;
   static constexpr auto type_name = std::string_view{"int"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = std::int32_t;
   using load_type = std::int32_t&;
@@ -52,9 +52,9 @@ struct get_type_id<std::int32_t> {
 
 template <>
 struct get_type_id<std::int64_t> {
-  static constexpr unsigned int ID = 0x00000001;
+  static constexpr unsigned int id = 0x00000001;
   static constexpr auto type_name = std::string_view{"int"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = std::int64_t;
   using load_type = std::int64_t&;
@@ -62,9 +62,9 @@ struct get_type_id<std::int64_t> {
 
 template <>
 struct get_type_id<std::uint32_t> {
-  static constexpr unsigned int ID = 0x00000002;
+  static constexpr unsigned int id = 0x00000002;
   static constexpr auto type_name = std::string_view{"unsigned int"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = std::uint32_t;
   using load_type = std::uint32_t&;
@@ -72,9 +72,9 @@ struct get_type_id<std::uint32_t> {
 
 template <>
 struct get_type_id<std::uint64_t> {
-  static constexpr unsigned int ID = 0x00000002;
+  static constexpr unsigned int id = 0x00000002;
   static constexpr auto type_name = std::string_view{"unsigned int"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = std::uint64_t;
   using load_type = std::uint64_t&;
@@ -82,9 +82,9 @@ struct get_type_id<std::uint64_t> {
 
 template <>
 struct get_type_id<char> {
-  static constexpr unsigned int ID = 0x00000031;
+  static constexpr unsigned int id = 0x00000031;
   static constexpr auto type_name = std::string_view{"char"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = char;
   using load_type = char&;
@@ -92,9 +92,9 @@ struct get_type_id<char> {
 
 template <>
 struct get_type_id<unsigned char> {
-  static constexpr unsigned int ID = 0x00000032;
+  static constexpr unsigned int id = 0x00000032;
   static constexpr auto type_name = std::string_view{"unsigned char"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = unsigned char;
   using load_type = unsigned char&;
@@ -102,9 +102,9 @@ struct get_type_id<unsigned char> {
 
 template <>
 struct get_type_id<float> {
-  static constexpr unsigned int ID = 0x00000003;
+  static constexpr unsigned int id = 0x00000003;
   static constexpr auto type_name = std::string_view{"float"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = float;
   using load_type = float&;
@@ -112,9 +112,9 @@ struct get_type_id<float> {
 
 template <>
 struct get_type_id<double> {
-  static constexpr unsigned int ID = 0x00000004;
+  static constexpr unsigned int id = 0x00000004;
   static constexpr auto type_name = std::string_view{"double"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = double;
   using load_type = double&;
@@ -122,9 +122,9 @@ struct get_type_id<double> {
 
 template <>
 struct get_type_id<bool> {
-  static constexpr unsigned int ID = 0x00000005;
+  static constexpr unsigned int id = 0x00000005;
   static constexpr auto type_name = std::string_view{"bool"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = bool;
   using load_type = bool&;
@@ -132,9 +132,9 @@ struct get_type_id<bool> {
 
 template <>
 struct get_type_id<std::string> {
-  static constexpr unsigned int ID = 0x00000006;
+  static constexpr unsigned int id = 0x00000006;
   static constexpr auto type_name = std::string_view{"string"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const std::string&;
   using load_type = std::string&;
@@ -142,7 +142,7 @@ struct get_type_id<std::string> {
 
 template <typename Tail>
 struct get_type_info<std::string, Tail> {
-  using type = type_id<std::string, typename Tail::type>;
+  using type = so_type_details::type_id<std::string, typename Tail::type>;
   static constexpr auto type_name =
       ct_concat_v<get_type_id<std::string>::type_name,
                   get_type_name_tail<Tail>::value>;
@@ -150,9 +150,9 @@ struct get_type_info<std::string, Tail> {
 
 template <typename T>
 struct get_type_id<std::shared_ptr<T>> {
-  static constexpr unsigned int ID = get_type_id<T>::ID;
+  static constexpr unsigned int id = get_type_id<T>::id;
   static constexpr auto type_name = std::string_view{"shared_ptr"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const std::shared_ptr<T>&;
   using load_type = std::shared_ptr<T>&;
@@ -160,9 +160,9 @@ struct get_type_id<std::shared_ptr<T>> {
 
 template <typename T>
 struct get_type_id<std::weak_ptr<T>> {
-  static constexpr unsigned int ID = get_type_id<T>::ID;
+  static constexpr unsigned int id = get_type_id<T>::id;
   static constexpr auto type_name = std::string_view{"weak_ptr"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const std::weak_ptr<T>&;
   using load_type = std::weak_ptr<T>&;
@@ -170,9 +170,9 @@ struct get_type_id<std::weak_ptr<T>> {
 
 template <typename T>
 struct get_type_id<std::unique_ptr<T>> {
-  static constexpr unsigned int ID = get_type_id<T>::ID;
+  static constexpr unsigned int id = get_type_id<T>::id;
   static constexpr auto type_name = std::string_view{"unique_ptr"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const std::unique_ptr<T>&;
   using load_type = std::unique_ptr<T>&;

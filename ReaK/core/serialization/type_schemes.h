@@ -74,9 +74,9 @@ class type_scheme : public shared_object {
   const std::string& get_type_name() const { return m_type_name; }
 
   /**
-   * This function returns the ID of the type represented by this type-scheme, as a null-terminated list of unsigned
+   * This function returns the id of the type represented by this type-scheme, as a null-terminated list of unsigned
    * integers.
-   * \return The ID of the type represented by this type-scheme, as a null-terminated list of unsigned integers.
+   * \return The id of the type represented by this type-scheme, as a null-terminated list of unsigned integers.
    */
   const unsigned int* get_type_ID() const { return m_type_ID_ptr; }
 
@@ -113,7 +113,7 @@ class type_scheme : public shared_object {
   void save(serialization::oarchive& A,
             unsigned int /*Version*/) const override {
     ReaK::shared_object::save(
-        A, shared_object::getStaticObjectType()->TypeVersion());
+        A, shared_object::get_static_object_type()->version());
     std::vector<unsigned int> ID_vect;
     const unsigned int* tmp = m_type_ID_ptr;
     while (((tmp) != nullptr) && ((*tmp) != 0U)) {
@@ -128,17 +128,17 @@ class type_scheme : public shared_object {
 
   void load(serialization::iarchive& A, unsigned int /*Version*/) override {
     ReaK::shared_object::load(
-        A, shared_object::getStaticObjectType()->TypeVersion());
+        A, shared_object::get_static_object_type()->version());
     std::vector<unsigned int> ID_vect;
     A& RK_SERIAL_LOAD_WITH_ALIAS("TypeName", m_type_name) &
         RK_SERIAL_LOAD_WITH_ALIAS("TypeID", ID_vect) &
         RK_SERIAL_LOAD_WITH_ALIAS("TypeVersion", m_type_version);
     rtti::so_type* tmp_wptr =
-        rtti::getRKSharedObjTypeRepo().findType(ID_vect.data());
+        rtti::so_type_repo::get_instance().find_type(ID_vect.data());
     if (tmp_wptr == nullptr) {
       m_type_ID_ptr = nullptr;
     } else {
-      m_type_ID_ptr = tmp_wptr->TypeID_begin();
+      m_type_ID_ptr = tmp_wptr->id_begin();
     }
   }
 
@@ -158,7 +158,7 @@ class primitive_scheme : public type_scheme {
     constexpr auto tname = rtti::get_type_id<T>::type_name;
     m_type_name = std::string(tname);
     auto* tmp_ptr = new unsigned int[2];
-    tmp_ptr[0] = rtti::get_type_id<T>::ID;
+    tmp_ptr[0] = rtti::get_type_id<T>::id;
     tmp_ptr[1] = 0;
     m_type_ID_ptr = tmp_ptr;
   }
@@ -176,11 +176,11 @@ class primitive_scheme : public type_scheme {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    type_scheme::save(A, type_scheme::getStaticObjectType()->TypeVersion());
+    type_scheme::save(A, type_scheme::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    type_scheme::load(A, type_scheme::getStaticObjectType()->TypeVersion());
+    type_scheme::load(A, type_scheme::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(self, 0x81300002, 1, "primitive_scheme",
@@ -218,12 +218,12 @@ class vector_type_scheme : public type_scheme {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    type_scheme::save(A, type_scheme::getStaticObjectType()->TypeVersion());
+    type_scheme::save(A, type_scheme::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_ALIAS("ValueType", m_value_type);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    type_scheme::load(A, type_scheme::getStaticObjectType()->TypeVersion());
+    type_scheme::load(A, type_scheme::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_ALIAS("ValueType", m_value_type);
   }
 
@@ -269,13 +269,13 @@ class map_type_scheme : public type_scheme {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    type_scheme::save(A, type_scheme::getStaticObjectType()->TypeVersion());
+    type_scheme::save(A, type_scheme::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_ALIAS("KeyType", m_key_type) &
         RK_SERIAL_SAVE_WITH_ALIAS("ValueType", m_value_type);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    type_scheme::load(A, type_scheme::getStaticObjectType()->TypeVersion());
+    type_scheme::load(A, type_scheme::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_ALIAS("KeyType", m_key_type) &
         RK_SERIAL_LOAD_WITH_ALIAS("ValueType", m_value_type);
   }
@@ -328,12 +328,12 @@ class serializable_obj_scheme : public type_scheme {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    type_scheme::save(A, type_scheme::getStaticObjectType()->TypeVersion());
+    type_scheme::save(A, type_scheme::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_ALIAS("Fields", m_fields);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    type_scheme::load(A, type_scheme::getStaticObjectType()->TypeVersion());
+    type_scheme::load(A, type_scheme::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_ALIAS("Fields", m_fields);
   }
 
@@ -378,12 +378,12 @@ class serializable_ptr_scheme : public type_scheme {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    type_scheme::save(A, type_scheme::getStaticObjectType()->TypeVersion());
+    type_scheme::save(A, type_scheme::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_ALIAS("ObjIDField", m_object_ID_scheme);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    type_scheme::load(A, type_scheme::getStaticObjectType()->TypeVersion());
+    type_scheme::load(A, type_scheme::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_ALIAS("ObjIDField", m_object_ID_scheme);
   }
 

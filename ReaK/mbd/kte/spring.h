@@ -168,7 +168,7 @@ class spring_gen : public kte_map {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor1) & RK_SERIAL_SAVE_WITH_NAME(mAnchor2) &
         RK_SERIAL_SAVE_WITH_NAME(mRestLength) &
         RK_SERIAL_SAVE_WITH_NAME(mStiffness) &
@@ -176,7 +176,7 @@ class spring_gen : public kte_map {
   }
 
   void load(ReaK::serialization::iarchive& A, unsigned int Version) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor1) & RK_SERIAL_LOAD_WITH_NAME(mAnchor2) &
         RK_SERIAL_LOAD_WITH_NAME(mRestLength) &
         RK_SERIAL_LOAD_WITH_NAME(mStiffness) &
@@ -307,7 +307,7 @@ class spring_2D : public kte_map {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor1) & RK_SERIAL_SAVE_WITH_NAME(mAnchor2) &
         RK_SERIAL_SAVE_WITH_NAME(mRestLength) &
         RK_SERIAL_SAVE_WITH_NAME(mStiffness) &
@@ -315,7 +315,7 @@ class spring_2D : public kte_map {
   }
 
   void load(ReaK::serialization::iarchive& A, unsigned int Version) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor1) & RK_SERIAL_LOAD_WITH_NAME(mAnchor2) &
         RK_SERIAL_LOAD_WITH_NAME(mRestLength) &
         RK_SERIAL_LOAD_WITH_NAME(mStiffness) &
@@ -446,7 +446,7 @@ class spring_3D : public kte_map {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mAnchor1) & RK_SERIAL_SAVE_WITH_NAME(mAnchor2) &
         RK_SERIAL_SAVE_WITH_NAME(mRestLength) &
         RK_SERIAL_SAVE_WITH_NAME(mStiffness) &
@@ -454,7 +454,7 @@ class spring_3D : public kte_map {
   }
 
   void load(ReaK::serialization::iarchive& A, unsigned int Version) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mAnchor1) & RK_SERIAL_LOAD_WITH_NAME(mAnchor2) &
         RK_SERIAL_LOAD_WITH_NAME(mRestLength) &
         RK_SERIAL_LOAD_WITH_NAME(mStiffness) &

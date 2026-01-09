@@ -38,18 +38,18 @@ class test_class : public ReaK::named_object {
   std::string last_name;
 
   test_class(const std::string& aName = "") : ReaK::named_object() {
-    this->setName(aName);
+    this->set_name(aName);
   };
 
   virtual void save(ReaK::serialization::oarchive& A, unsigned int) const {
     ReaK::named_object::save(
-        A, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        A, ReaK::named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mass) & RK_SERIAL_SAVE_WITH_NAME(count) &
         RK_SERIAL_SAVE_WITH_NAME(last_name);
   };
   virtual void load(ReaK::serialization::iarchive& A, unsigned int) {
     ReaK::named_object::load(
-        A, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        A, ReaK::named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mass) & RK_SERIAL_LOAD_WITH_NAME(count) &
         RK_SERIAL_LOAD_WITH_NAME(last_name);
   };

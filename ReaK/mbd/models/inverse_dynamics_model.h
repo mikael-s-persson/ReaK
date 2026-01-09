@@ -129,11 +129,11 @@ class inverse_dynamics_model : public kte_map {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(inverse_dynamics_model, 0xC210004F, 1,

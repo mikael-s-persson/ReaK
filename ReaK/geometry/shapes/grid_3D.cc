@@ -36,13 +36,13 @@ grid_3D::grid_3D(const std::string& aName,
 
 void grid_3D::save(ReaK::serialization::oarchive& A,
                    unsigned int /*unused*/) const {
-  geometry_3D::save(A, geometry_3D::getStaticObjectType()->TypeVersion());
+  geometry_3D::save(A, geometry_3D::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mDimensions) &
       RK_SERIAL_SAVE_WITH_NAME(mSquareCounts);
 }
 
 void grid_3D::load(ReaK::serialization::iarchive& A, unsigned int /*unused*/) {
-  geometry_3D::load(A, geometry_3D::getStaticObjectType()->TypeVersion());
+  geometry_3D::load(A, geometry_3D::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mDimensions) &
       RK_SERIAL_LOAD_WITH_NAME(mSquareCounts);
 }

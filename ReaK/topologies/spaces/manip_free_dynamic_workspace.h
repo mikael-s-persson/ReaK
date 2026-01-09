@@ -289,8 +289,8 @@ class manip_dynamic_env : public named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(min_interval) &
         RK_SERIAL_SAVE_WITH_NAME(m_space) &
         RK_SERIAL_SAVE_WITH_NAME(m_prox_env.m_applicator) &
@@ -300,8 +300,8 @@ class manip_dynamic_env : public named_object {
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(min_interval) &
         RK_SERIAL_LOAD_WITH_NAME(m_space) &
         RK_SERIAL_LOAD_WITH_NAME(m_prox_env.m_applicator) &

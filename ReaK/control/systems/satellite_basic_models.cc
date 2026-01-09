@@ -99,7 +99,7 @@ satellite3D_lin_dt_system::satellite3D_lin_dt_system(
     const std::string& aName, double aMass,
     const mat<double, mat_structure::symmetric>& aInertiaMoment, double aDt)
     : mMass(aMass), mInertiaMoment(aInertiaMoment), mDt(aDt) {
-  setName(aName);
+  set_name(aName);
   if (mDt < std::numeric_limits<double>::epsilon()) {
     throw system_incoherency(
         "The time step is below numerical tolerance in "
@@ -265,14 +265,14 @@ void satellite3D_lin_dt_system::get_output_function_blocks(
 
 void satellite3D_lin_dt_system::save(ReaK::serialization::oarchive& A,
                                      unsigned int /*unused*/) const {
-  named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::save(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mMass) &
       RK_SERIAL_SAVE_WITH_NAME(mInertiaMoment) & RK_SERIAL_SAVE_WITH_NAME(mDt);
 }
 
 void satellite3D_lin_dt_system::load(ReaK::serialization::iarchive& A,
                                      unsigned int /*unused*/) {
-  named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  named_object::load(A, named_object::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mMass) &
       RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment) & RK_SERIAL_LOAD_WITH_NAME(mDt);
   if ((mInertiaMoment.get_row_count() != 3) ||

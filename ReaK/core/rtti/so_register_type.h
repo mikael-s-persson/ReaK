@@ -43,7 +43,7 @@ struct register_type {
 
   struct register_type_impl {
     explicit register_type_impl(int /*unused*/) {
-      so_type_repo::getInstance().addType(T::getStaticObjectType());
+      so_type_repo::get_instance().add_type(T::get_static_object_type());
     }
   };
   static const register_type_impl impl;
@@ -52,7 +52,7 @@ struct register_type {
    * Explanation of registration scheme:
    * The register_type template is instantiated for every class that has a RK_RTTI_REGISTER
    * MACRO in its declaration. That MACRO inserts an invocation of the "impl" static member
-   * within a virtual function (the getObjectType() function), which has the effect of forcing
+   * within a virtual function (the get_object_type() function), which has the effect of forcing
    * this static member to be considered as "used somewhere", which means the compiler must
    * generate its static initialization code, i.e., the constructor of register_type_impl
    * must get executed before entering main, and in that constructor, the type is registered

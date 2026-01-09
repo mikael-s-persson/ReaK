@@ -117,14 +117,14 @@ class inertia_gen : public kte_map {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mCenterOfMass) &
         RK_SERIAL_SAVE_WITH_NAME(mMass);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mCenterOfMass) &
         RK_SERIAL_LOAD_WITH_NAME(mMass);
   }
@@ -223,14 +223,14 @@ class inertia_2D : public kte_map {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mCenterOfMass) &
         RK_SERIAL_SAVE_WITH_NAME(mMass) &
         RK_SERIAL_SAVE_WITH_NAME(mMomentOfInertia);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mCenterOfMass) &
         RK_SERIAL_LOAD_WITH_NAME(mMass) &
         RK_SERIAL_LOAD_WITH_NAME(mMomentOfInertia);
@@ -332,14 +332,14 @@ class inertia_3D : public kte_map {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    kte_map::save(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::save(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mCenterOfMass) &
         RK_SERIAL_SAVE_WITH_NAME(mMass) &
         RK_SERIAL_SAVE_WITH_NAME(mInertiaTensor);
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    kte_map::load(A, kte_map::getStaticObjectType()->TypeVersion());
+    kte_map::load(A, kte_map::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mCenterOfMass) &
         RK_SERIAL_LOAD_WITH_NAME(mMass) &
         RK_SERIAL_LOAD_WITH_NAME(mInertiaTensor);

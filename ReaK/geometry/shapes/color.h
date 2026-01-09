@@ -96,9 +96,9 @@ namespace rtti {
 
 template <>
 struct get_type_id<geom::color> {
-  static constexpr unsigned int ID = 0x00000031;
+  static constexpr unsigned int id = 0x00000031;
   static constexpr auto type_name = std::string_view{"color"};
-  static construct_ptr CreatePtr() noexcept { return nullptr; }
+  static construct_ptr create_ptr() noexcept { return nullptr; }
 
   using save_type = const serializable&;
   using load_type = serializable&;

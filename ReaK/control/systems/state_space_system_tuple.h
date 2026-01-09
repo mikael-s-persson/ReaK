@@ -193,13 +193,13 @@ class ss_system_input_tuple : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(data);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(data);
     construct_input_dimensions();
   }
@@ -369,13 +369,13 @@ class ss_system_output_tuple : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(data);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(data);
     construct_output_dimensions();
   }
@@ -691,13 +691,13 @@ class ss_system_state_tuple : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(systems);
   }
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(systems);
     construct_all_dimensions();
   }
@@ -895,7 +895,7 @@ class state_space_system_tuple : public named_object {
    */
   explicit state_space_system_tuple(const std::string& aName, double aDt = 0.01)
       : dt(aDt) {
-    setName(aName);
+    set_name(aName);
   }
 
   state_space_system_tuple() : state_space_system_tuple("") {}
@@ -916,7 +916,7 @@ class state_space_system_tuple : public named_object {
         state_models(aStateModels),
         input_models(aInputModels),
         output_models(aOutputModels) {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -1129,7 +1129,7 @@ class state_space_system_tuple : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(dt) & RK_SERIAL_SAVE_WITH_NAME(sys_params) &
         RK_SERIAL_SAVE_WITH_NAME(state_models) &
         RK_SERIAL_SAVE_WITH_NAME(input_models) &
@@ -1138,7 +1138,7 @@ class state_space_system_tuple : public named_object {
 
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(dt) & RK_SERIAL_LOAD_WITH_NAME(sys_params) &
         RK_SERIAL_LOAD_WITH_NAME(state_models) &
         RK_SERIAL_LOAD_WITH_NAME(input_models) &

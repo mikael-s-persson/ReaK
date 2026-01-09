@@ -61,7 +61,7 @@ class direct_kinematics_model : public virtual named_object {
    * Default constructor.
    */
   explicit direct_kinematics_model(const std::string& aName = "") {
-    setName(aName);
+    set_name(aName);
   }
 
   /**
@@ -373,11 +373,11 @@ class direct_kinematics_model : public virtual named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_CONCRETE_1BASE(direct_kinematics_model, 0xC210004F, 1,

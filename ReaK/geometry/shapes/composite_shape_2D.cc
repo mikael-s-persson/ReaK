@@ -34,13 +34,13 @@ composite_shape_2D::composite_shape_2D(const std::string& aName)
 
 void composite_shape_2D::save(ReaK::serialization::oarchive& A,
                               unsigned int /*unused*/) const {
-  shape_2D::save(A, shape_2D::getStaticObjectType()->TypeVersion());
+  shape_2D::save(A, shape_2D::get_static_object_type()->version());
   A& RK_SERIAL_SAVE_WITH_NAME(mShapes);
 }
 
 void composite_shape_2D::load(ReaK::serialization::iarchive& A,
                               unsigned int /*unused*/) {
-  shape_2D::load(A, shape_2D::getStaticObjectType()->TypeVersion());
+  shape_2D::load(A, shape_2D::get_static_object_type()->version());
   A& RK_SERIAL_LOAD_WITH_NAME(mShapes);
 }
 

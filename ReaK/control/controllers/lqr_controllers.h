@@ -122,7 +122,7 @@ class dt_ih_lqr_controller : public named_object {
       const std::shared_ptr<TrajectoryType>& aTraj =
           std::shared_ptr<TrajectoryType>())
       : m_sys(aSys), m_state_space(aSpace), m_traj(aTraj), Q(aQ), R(aR) {
-    setName(aName);
+    set_name(aName);
   }
 
   dt_ih_lqr_controller() : dt_ih_lqr_controller("") {}
@@ -257,7 +257,7 @@ class dt_ih_lqr_controller : public named_object {
 
   void save(ReaK::serialization::oarchive& aA, unsigned int) const override {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(m_sys) &
         RK_SERIAL_SAVE_WITH_NAME(m_state_space) &
         RK_SERIAL_SAVE_WITH_NAME(m_traj) & RK_SERIAL_SAVE_WITH_NAME(Q) &
@@ -265,7 +265,7 @@ class dt_ih_lqr_controller : public named_object {
   }
   void load(ReaK::serialization::iarchive& aA, unsigned int) override {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(m_sys) &
         RK_SERIAL_LOAD_WITH_NAME(m_state_space) &
         RK_SERIAL_LOAD_WITH_NAME(m_traj) & RK_SERIAL_LOAD_WITH_NAME(Q) &
@@ -353,7 +353,7 @@ class ct_ih_lqr_controller : public named_object {
       const std::shared_ptr<TrajectoryType>& aTraj =
           std::shared_ptr<TrajectoryType>())
       : m_sys(aSys), m_state_space(aSpace), m_traj(aTraj), Q(aQ), R(aR) {
-    setName(aName);
+    set_name(aName);
   };
 
   ct_ih_lqr_controller() : ct_ih_lqr_controller("") {}
@@ -491,7 +491,7 @@ class ct_ih_lqr_controller : public named_object {
 
   void save(ReaK::serialization::oarchive& aA, unsigned int) const override {
     ReaK::named_object::save(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_SAVE_WITH_NAME(m_sys) &
         RK_SERIAL_SAVE_WITH_NAME(m_state_space) &
         RK_SERIAL_SAVE_WITH_NAME(m_traj) & RK_SERIAL_SAVE_WITH_NAME(Q) &
@@ -499,7 +499,7 @@ class ct_ih_lqr_controller : public named_object {
   }
   void load(ReaK::serialization::iarchive& aA, unsigned int) override {
     ReaK::named_object::load(
-        aA, ReaK::named_object::getStaticObjectType()->TypeVersion());
+        aA, ReaK::named_object::get_static_object_type()->version());
     aA& RK_SERIAL_LOAD_WITH_NAME(m_sys) &
         RK_SERIAL_LOAD_WITH_NAME(m_state_space) &
         RK_SERIAL_LOAD_WITH_NAME(m_traj) & RK_SERIAL_LOAD_WITH_NAME(Q) &

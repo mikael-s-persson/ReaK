@@ -74,7 +74,7 @@ struct joint_limits_collection : public named_object {
    */
   explicit joint_limits_collection(const std::string& aName = "")
       : named_object() {
-    this->setName(aName);
+    this->set_name(aName);
   }
 
   /*******************************************************************************
@@ -83,7 +83,7 @@ struct joint_limits_collection : public named_object {
 
   void save(ReaK::serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::save(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(gen_speed_limits) &
         RK_SERIAL_SAVE_WITH_NAME(gen_accel_limits) &
         RK_SERIAL_SAVE_WITH_NAME(gen_jerk_limits) &
@@ -96,7 +96,7 @@ struct joint_limits_collection : public named_object {
   }
   void load(ReaK::serialization::iarchive& A,
             unsigned int /*unused*/) override {
-    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    named_object::load(A, named_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(gen_speed_limits) &
         RK_SERIAL_LOAD_WITH_NAME(gen_accel_limits) &
         RK_SERIAL_LOAD_WITH_NAME(gen_jerk_limits) &

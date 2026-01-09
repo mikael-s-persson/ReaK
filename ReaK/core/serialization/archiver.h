@@ -405,8 +405,8 @@ class iarchive : public archive {
       in >> *Item;
       return in;
     }
-    in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(),
-                                T::getStaticObjectType()->TypeID_begin(),
+    in.signal_polymorphic_field(T::get_static_object_type()->name(),
+                                T::get_static_object_type()->id_begin(),
                                 "Item");
     serializable_shared_pointer tmp;
     in >> tmp;
@@ -427,8 +427,8 @@ class iarchive : public archive {
       in& std::pair<std::string, T&>(Item.first, *(Item.second));
       return in;
     }
-    in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(),
-                                T::getStaticObjectType()->TypeID_begin(),
+    in.signal_polymorphic_field(T::get_static_object_type()->name(),
+                                T::get_static_object_type()->id_begin(),
                                 Item.first);
     serializable_shared_pointer tmp;
     in& std::pair<std::string, serializable_shared_pointer&>(Item.first, tmp);
@@ -444,8 +444,8 @@ class iarchive : public archive {
   template <typename T>
   friend iarchive& operator>>(iarchive& in, std::weak_ptr<T>& Item) {
     static_assert(std::is_convertible_v<T*, serializable*>);
-    in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(),
-                                T::getStaticObjectType()->TypeID_begin(),
+    in.signal_polymorphic_field(T::get_static_object_type()->name(),
+                                T::get_static_object_type()->id_begin(),
                                 "Item");
     serializable_shared_pointer tmp;
     in >> tmp;
@@ -462,8 +462,8 @@ class iarchive : public archive {
   friend iarchive& operator&(
       iarchive& in, const std::pair<std::string, std::weak_ptr<T>&>& Item) {
     static_assert(std::is_convertible_v<T*, serializable*>);
-    in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(),
-                                T::getStaticObjectType()->TypeID_begin(),
+    in.signal_polymorphic_field(T::get_static_object_type()->name(),
+                                T::get_static_object_type()->id_begin(),
                                 Item.first);
     serializable_shared_pointer tmp;
     in& std::pair<std::string, serializable_shared_pointer&>(Item.first, tmp);
@@ -1255,8 +1255,8 @@ class oarchive : public archive {
       }
       return out;
     }
-    out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(),
-                                 T::getStaticObjectType()->TypeID_begin(),
+    out.signal_polymorphic_field(T::get_static_object_type()->name(),
+                                 T::get_static_object_type()->id_begin(),
                                  "Item");
     serializable_shared_pointer tmp;
     if (Item) {
@@ -1276,8 +1276,8 @@ class oarchive : public archive {
       }
       return out;
     }
-    out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(),
-                                 T::getStaticObjectType()->TypeID_begin(),
+    out.signal_polymorphic_field(T::get_static_object_type()->name(),
+                                 T::get_static_object_type()->id_begin(),
                                  Item.first);
     serializable_shared_pointer tmp;
     if (Item.second) {
@@ -1291,8 +1291,8 @@ class oarchive : public archive {
   template <typename T>
   friend oarchive& operator<<(oarchive& out, const std::weak_ptr<T>& Item) {
     static_assert(std::is_convertible_v<const T*, const serializable*>);
-    out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(),
-                                 T::getStaticObjectType()->TypeID_begin(),
+    out.signal_polymorphic_field(T::get_static_object_type()->name(),
+                                 T::get_static_object_type()->id_begin(),
                                  "Item");
     serializable_shared_pointer tmp;
     if (!Item.expired()) {
@@ -1307,8 +1307,8 @@ class oarchive : public archive {
       oarchive& out,
       const std::pair<std::string, const std::weak_ptr<T>&>& Item) {
     static_assert(std::is_convertible_v<const T*, const serializable*>);
-    out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(),
-                                 T::getStaticObjectType()->TypeID_begin(),
+    out.signal_polymorphic_field(T::get_static_object_type()->name(),
+                                 T::get_static_object_type()->id_begin(),
                                  Item.first);
     serializable_shared_pointer tmp;
     if (!Item.second.expired()) {

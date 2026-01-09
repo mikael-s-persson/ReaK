@@ -167,12 +167,13 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
 
   // first check if the model is a kte-chain:
   const void* p_chain =
-      aModel.castTo(kte::kte_map_chain::getStaticObjectType());
+      aModel.cast_to(kte::kte_map_chain::get_static_object_type());
   if (p_chain != nullptr) {
     return aSG << static_cast<const kte::kte_map_chain&>(aModel);
   }
 
-  if (aModel.castTo(kte::revolute_joint_3D::getStaticObjectType()) != nullptr) {
+  if (aModel.cast_to(kte::revolute_joint_3D::get_static_object_type()) !=
+      nullptr) {
     const auto& rev_joint = static_cast<const kte::revolute_joint_3D&>(aModel);
 
     auto* sep = new SoSeparator;
@@ -230,7 +231,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor3DMap[rev_joint.BaseFrame()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::revolute_joint_2D::getStaticObjectType()) !=
+  } else if (aModel.cast_to(kte::revolute_joint_2D::get_static_object_type()) !=
              nullptr) {
     const auto& rev_joint = static_cast<const kte::revolute_joint_2D&>(aModel);
 
@@ -279,7 +280,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor2DMap[rev_joint.BaseFrame()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::prismatic_joint_3D::getStaticObjectType()) !=
+  } else if (aModel.cast_to(
+                 kte::prismatic_joint_3D::get_static_object_type()) !=
              nullptr) {
     const auto& pri_joint = static_cast<const kte::prismatic_joint_3D&>(aModel);
 
@@ -340,7 +342,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor3DMap[pri_joint.BaseFrame()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::prismatic_joint_2D::getStaticObjectType()) !=
+  } else if (aModel.cast_to(
+                 kte::prismatic_joint_2D::get_static_object_type()) !=
              nullptr) {
     const auto& pri_joint = static_cast<const kte::prismatic_joint_2D&>(aModel);
     using std::atan2;
@@ -396,7 +399,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor2DMap[pri_joint.BaseFrame()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::free_joint_3D::getStaticObjectType()) !=
+  } else if (aModel.cast_to(kte::free_joint_3D::get_static_object_type()) !=
              nullptr) {
     const auto& fr_joint = static_cast<const kte::free_joint_3D&>(aModel);
 
@@ -506,7 +509,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor3DMap[fr_joint.BaseFrame()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::free_joint_2D::getStaticObjectType()) !=
+  } else if (aModel.cast_to(kte::free_joint_2D::get_static_object_type()) !=
              nullptr) {
     const auto& fr_joint = static_cast<const kte::free_joint_2D&>(aModel);
 
@@ -555,7 +558,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor2DMap[fr_joint.BaseFrame()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::rigid_link_3D::getStaticObjectType()) !=
+  } else if (aModel.cast_to(kte::rigid_link_3D::get_static_object_type()) !=
              nullptr) {
     const auto& lnk_obj = static_cast<const kte::rigid_link_3D&>(aModel);
 
@@ -609,7 +612,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor3DMap[lnk_obj.BaseFrame()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::rigid_link_2D::getStaticObjectType()) !=
+  } else if (aModel.cast_to(kte::rigid_link_2D::get_static_object_type()) !=
              nullptr) {
     const auto& lnk_obj = static_cast<const kte::rigid_link_2D&>(aModel);
     using std::atan2;
@@ -655,7 +658,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor2DMap[lnk_obj.BaseFrame()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::spring_3D::getStaticObjectType()) != nullptr) {
+  } else if (aModel.cast_to(kte::spring_3D::get_static_object_type()) !=
+             nullptr) {
     const auto& spr_obj = static_cast<const kte::spring_3D&>(aModel);
 
     {
@@ -731,7 +735,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     aSG.mRootSwitch->addChild(
         sep);  // always at the root because "trans" is a global transformation.
 
-  } else if (aModel.castTo(kte::spring_2D::getStaticObjectType()) != nullptr) {
+  } else if (aModel.cast_to(kte::spring_2D::get_static_object_type()) !=
+             nullptr) {
     const auto& spr_obj = static_cast<const kte::spring_2D&>(aModel);
 
     {
@@ -795,7 +800,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     aSG.mRootSwitch->addChild(
         sep);  // always at the root because "trans" is a global transformation.
 
-  } else if (aModel.castTo(kte::damper_3D::getStaticObjectType()) != nullptr) {
+  } else if (aModel.cast_to(kte::damper_3D::get_static_object_type()) !=
+             nullptr) {
     const auto& dmp_obj = static_cast<const kte::damper_3D&>(aModel);
 
     {
@@ -874,7 +880,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     aSG.mRootSwitch->addChild(
         sep);  // always at the root because "trans" is a global transformation.
 
-  } else if (aModel.castTo(kte::damper_2D::getStaticObjectType()) != nullptr) {
+  } else if (aModel.cast_to(kte::damper_2D::get_static_object_type()) !=
+             nullptr) {
     const auto& dmp_obj = static_cast<const kte::damper_2D&>(aModel);
 
     {
@@ -938,7 +945,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     aSG.mRootSwitch->addChild(
         sep);  // always at the root because "trans" is a global transformation.
 
-  } else if (aModel.castTo(kte::torsion_spring_3D::getStaticObjectType()) !=
+  } else if (aModel.cast_to(kte::torsion_spring_3D::get_static_object_type()) !=
              nullptr) {
     const auto& tor_spr = static_cast<const kte::torsion_spring_3D&>(aModel);
     using std::atan2;
@@ -987,7 +994,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor3DMap[tor_spr.Anchor1()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::torsion_spring_2D::getStaticObjectType()) !=
+  } else if (aModel.cast_to(kte::torsion_spring_2D::get_static_object_type()) !=
              nullptr) {
     const auto& tor_spr = static_cast<const kte::torsion_spring_2D&>(aModel);
     using std::atan2;
@@ -1036,7 +1043,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor2DMap[tor_spr.Anchor1()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::torsion_damper_3D::getStaticObjectType()) !=
+  } else if (aModel.cast_to(kte::torsion_damper_3D::get_static_object_type()) !=
              nullptr) {
     const auto& tor_dmp = static_cast<const kte::torsion_damper_3D&>(aModel);
     using std::atan2;
@@ -1085,7 +1092,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor3DMap[tor_dmp.Anchor1()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::torsion_damper_2D::getStaticObjectType()) !=
+  } else if (aModel.cast_to(kte::torsion_damper_2D::get_static_object_type()) !=
              nullptr) {
     const auto& tor_dmp = static_cast<const kte::torsion_damper_2D&>(aModel);
     using std::atan2;
@@ -1134,7 +1141,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor2DMap[tor_dmp.Anchor1()].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::inertia_3D::getStaticObjectType()) != nullptr) {
+  } else if (aModel.cast_to(kte::inertia_3D::get_static_object_type()) !=
+             nullptr) {
     const auto& cm_obj = static_cast<const kte::inertia_3D&>(aModel);
 
     auto* sep = new SoSeparator;
@@ -1165,7 +1173,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       aSG.mAnchor3DMap[cm_obj.CenterOfMass()->mFrame].first->addChild(sep);
     }
 
-  } else if (aModel.castTo(kte::inertia_2D::getStaticObjectType()) != nullptr) {
+  } else if (aModel.cast_to(kte::inertia_2D::get_static_object_type()) !=
+             nullptr) {
     const auto& cm_obj = static_cast<const kte::inertia_2D&>(aModel);
 
     auto* sep = new SoSeparator;

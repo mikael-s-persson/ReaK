@@ -190,7 +190,7 @@ void KTEModelViewerEditor::loadFromArchive(serialization::iarchive& in,
       return;
     };
 
-    std::string kin_mdl_name = kte_geom->getName();
+    std::string kin_mdl_name = kte_geom->get_name();
     objtree_sch_bld << kte_geom;
     serialization::object_node_desc kte_geom_id =
         objtree_edit.add_new_object(kte_geom);

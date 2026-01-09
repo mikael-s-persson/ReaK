@@ -68,8 +68,8 @@ std::string::iterator xml_field_editor::mark_field(
       it_end2 += test_seq.length();
     }
     it_prev = it_end2;
-  } else if (scheme->getObjectType() ==
-             serializable_obj_scheme::getStaticObjectType()) {
+  } else if (scheme->get_object_type() ==
+             serializable_obj_scheme::get_static_object_type()) {
     std::string test_seq = "<" + fld_name;
     std::string::iterator it =
         std::search(it_prev, it_end, test_seq.begin(), test_seq.end());
@@ -94,8 +94,8 @@ std::string::iterator xml_field_editor::mark_field(
       it_end2 += test_seq.length();
     }
     it_prev = it_end2;
-  } else if (scheme->getObjectType() ==
-             serializable_ptr_scheme::getStaticObjectType()) {
+  } else if (scheme->get_object_type() ==
+             serializable_ptr_scheme::get_static_object_type()) {
     std::string test_seq = "<" + fld_name;
     std::string::iterator it =
         std::search(it_prev, it_end, test_seq.begin(), test_seq.end());
@@ -112,8 +112,8 @@ std::string::iterator xml_field_editor::mark_field(
       it_end2 += test_seq.length();
     }
     it_prev = it_end2;
-  } else if (scheme->getObjectType() ==
-             vector_type_scheme::getStaticObjectType()) {
+  } else if (scheme->get_object_type() ==
+             vector_type_scheme::get_static_object_type()) {
     std::string test_seq = "<" + fld_name + "_count";
     std::string::iterator it =
         std::search(it_prev, it_end, test_seq.begin(), test_seq.end());
@@ -143,8 +143,8 @@ std::string::iterator xml_field_editor::mark_field(
       ss << fld_name << "_q[" << i << "]";
       it = mark_field(it_prev, it_end, ss.str(), scheme->get_field(0).second);
     }
-  } else if (scheme->getObjectType() ==
-             map_type_scheme::getStaticObjectType()) {
+  } else if (scheme->get_object_type() ==
+             map_type_scheme::get_static_object_type()) {
     std::string test_seq = "<" + fld_name + "_count";
     std::string::iterator it =
         std::search(it_prev, it_end, test_seq.begin(), test_seq.end());
@@ -197,7 +197,7 @@ std::shared_ptr<type_scheme> xml_field_editor::get_type_scheme() const {
   if (!cur_ptr) {
     return {};
   }
-  std::string t_name = cur_ptr->getObjectType()->TypeName();
+  std::string t_name = cur_ptr->get_object_type()->name();
   if (t_name.empty()) {
     return {};
   }
@@ -223,10 +223,9 @@ void xml_field_editor::set_complete_src(const std::string& aXMLSrc) {
   if (!cur_ptr) {
     return;
   }
-  cur_ptr->load(p_parent->ot_input_arc,
-                cur_ptr->getObjectType()->TypeVersion());
+  cur_ptr->load(p_parent->ot_input_arc, cur_ptr->get_object_type()->version());
 
-  std::string t_name = cur_ptr->getObjectType()->TypeName();
+  std::string t_name = cur_ptr->get_object_type()->name();
   if (t_name.empty()) {
     return;
   }
@@ -261,7 +260,7 @@ xml_field_editor::xml_field_editor(objtree_editor* aParent,
   if (!cur_ptr) {
     return;
   }
-  std::string t_name = cur_ptr->getObjectType()->TypeName();
+  std::string t_name = cur_ptr->get_object_type()->name();
   if (t_name.empty()) {
     return;
   }
@@ -312,8 +311,8 @@ std::string xml_field_editor::get_field_value(std::size_t aIndex) const {
   std::string& xml_src = (*(p_parent->get_object_graph()))[node].xml_src;
   std::string::iterator it = xml_src.begin() + src_markers[aIndex];
   std::string test_str;
-  if (field_schemes[aIndex]->getObjectType() ==
-      serializable_ptr_scheme::getStaticObjectType()) {
+  if (field_schemes[aIndex]->get_object_type() ==
+      serializable_ptr_scheme::get_static_object_type()) {
     test_str = "object_ID=\"";
   } else {
     test_str = ">\"";
@@ -325,8 +324,8 @@ std::string xml_field_editor::get_field_value(std::size_t aIndex) const {
   }
   it += test_str.length();
   std::string::iterator it_end = std::find(it, xml_src.end(), '\"');
-  if (field_schemes[aIndex]->getObjectType() ==
-      serializable_ptr_scheme::getStaticObjectType()) {
+  if (field_schemes[aIndex]->get_object_type() ==
+      serializable_ptr_scheme::get_static_object_type()) {
     object_node_desc fld_node = 0;
     std::stringstream(std::string(it, it_end)) >> fld_node;
     return get_object_name(fld_node);
@@ -343,8 +342,8 @@ void xml_field_editor::set_field_value(std::size_t aIndex,
   std::string& xml_src = (*(p_parent->get_object_graph()))[node].xml_src;
   std::string::iterator it = xml_src.begin() + src_markers[aIndex];
   std::string test_str;
-  if (field_schemes[aIndex]->getObjectType() ==
-      serializable_ptr_scheme::getStaticObjectType()) {
+  if (field_schemes[aIndex]->get_object_type() ==
+      serializable_ptr_scheme::get_static_object_type()) {
     test_str = "object_ID=\"";
   } else {
     test_str = ">\"";
@@ -359,8 +358,8 @@ void xml_field_editor::set_field_value(std::size_t aIndex,
   std::string new_xml_src(xml_src.begin(), it);
   std::ptrdiff_t len_diff = aValue.length() - orig_len;
 
-  if (field_schemes[aIndex]->getObjectType() ==
-      serializable_ptr_scheme::getStaticObjectType()) {
+  if (field_schemes[aIndex]->get_object_type() ==
+      serializable_ptr_scheme::get_static_object_type()) {
     object_node_desc orig_node = 0;
     object_node_desc new_node = 0;
     std::stringstream(std::string(it, it_end)) >> orig_node;
@@ -434,7 +433,7 @@ void xml_field_editor::set_field_value(std::size_t aIndex,
       (*(p_parent->get_object_graph()))[node].p_obj;
   if (cur_ptr) {
     cur_ptr->load(p_parent->ot_input_arc,
-                  cur_ptr->getObjectType()->TypeVersion());
+                  cur_ptr->get_object_type()->version());
   }
 }
 
@@ -445,8 +444,8 @@ void xml_field_editor::set_field_value(const std::string& aName,
 
 void xml_field_editor::set_field_newptr(
     std::size_t aIndex, const std::shared_ptr<serializable>& aNewPtr) {
-  if (field_schemes[aIndex]->getObjectType() !=
-      serializable_ptr_scheme::getStaticObjectType()) {
+  if (field_schemes[aIndex]->get_object_type() !=
+      serializable_ptr_scheme::get_static_object_type()) {
     return;
   }
   std::string& xml_src = (*(p_parent->get_object_graph()))[node].xml_src;
@@ -501,7 +500,7 @@ void xml_field_editor::set_field_newptr(
       (*(p_parent->get_object_graph()))[node].p_obj;
   if (cur_ptr) {
     cur_ptr->load(p_parent->ot_input_arc,
-                  cur_ptr->getObjectType()->TypeVersion());
+                  cur_ptr->get_object_type()->version());
   }
 }
 
@@ -968,9 +967,9 @@ oarchive& objtree_oarchive::save_serializable_ptr(
       add_edge(current_node, object_ID, *obj_graph);
     }
 
-    rtti::so_type* obj_type = Item.second->getObjectType();
-    const unsigned int* type_ID = obj_type->TypeID_begin();
-    unsigned int type_version = obj_type->TypeVersion();
+    rtti::so_type* obj_type = Item.second->get_object_type();
+    const unsigned int* type_ID = obj_type->id_begin();
+    unsigned int type_version = obj_type->version();
 
     (*current_ss) << "<" << Item.first << " type_ID=\"";
     while (*type_ID != 0U) {
@@ -1009,8 +1008,8 @@ oarchive& objtree_oarchive::save_serializable(const serializable& Item) {
 oarchive& objtree_oarchive::save_serializable(
     const std::pair<std::string, const serializable&>& Item) {
   archive_object_header hdr;
-  const unsigned int* type_ID = Item.second.getObjectType()->TypeID_begin();
-  hdr.type_version = Item.second.getObjectType()->TypeVersion();
+  const unsigned int* type_ID = Item.second.get_object_type()->id_begin();
+  hdr.type_version = Item.second.get_object_type()->version();
   hdr.object_ID = 0;
   hdr.size = 0;
   hdr.is_external = false;
@@ -1154,7 +1153,7 @@ object_node_desc objtree_editor::add_new_object(
   add_edge(aParent, result, *obj_graph);
   ot_output_arc.register_new_object(result);
   ot_output_arc.fresh_current_node(result);
-  aNewObj->save(ot_output_arc, aNewObj->getObjectType()->TypeVersion());
+  aNewObj->save(ot_output_arc, aNewObj->get_object_type()->version());
   ot_output_arc.save_current_stream();
   return result;
 }
@@ -1201,7 +1200,7 @@ std::vector<std::string> objtree_editor::get_objects_derived_from(
   std::vector<std::string> result;
   for (auto v : vertices(*obj_graph)) {
     std::shared_ptr<serializable> p_obj = (*obj_graph)[v].p_obj;
-    if ((p_obj) && ((p_obj->castTo(aType)) != nullptr)) {
+    if ((p_obj) && ((p_obj->cast_to(aType)) != nullptr)) {
       result.push_back(get_object_name(v));
     }
   }
@@ -1214,7 +1213,7 @@ std::string get_objtree_name(const object_graph& obj_graph,
       rtti::rk_dynamic_ptr_cast<named_object>(obj_graph[node_id].p_obj);
   std::stringstream ss;
   if (item_ptr) {
-    ss << item_ptr->getName() << " (ID:" << node_id << ")";
+    ss << item_ptr->get_name() << " (ID:" << node_id << ")";
   } else {
     ss << "Object (ID:" << node_id << ")";
   }

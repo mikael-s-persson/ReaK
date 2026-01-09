@@ -270,7 +270,7 @@ class manipulator_kinematics_model : public direct_kinematics_model {
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
     direct_kinematics_model::save(
-        A, direct_kinematics_model::getStaticObjectType()->TypeVersion());
+        A, direct_kinematics_model::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(mCoords) & RK_SERIAL_SAVE_WITH_NAME(mFrames2D) &
         RK_SERIAL_SAVE_WITH_NAME(mFrames3D) &
         RK_SERIAL_SAVE_WITH_NAME(mDependentGenCoords) &
@@ -281,7 +281,7 @@ class manipulator_kinematics_model : public direct_kinematics_model {
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
     direct_kinematics_model::load(
-        A, direct_kinematics_model::getStaticObjectType()->TypeVersion());
+        A, direct_kinematics_model::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(mCoords) & RK_SERIAL_LOAD_WITH_NAME(mFrames2D) &
         RK_SERIAL_LOAD_WITH_NAME(mFrames3D) &
         RK_SERIAL_LOAD_WITH_NAME(mDependentGenCoords) &

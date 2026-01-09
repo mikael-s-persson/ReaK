@@ -30,19 +30,19 @@
 
 namespace ReaK::rtti {
 
-static unsigned int* create_dummy_so_type_id(const unsigned int* aTypeID) {
+static unsigned int* create_dummy_so_type_id(const unsigned int* id) {
   using SizeType = unsigned int;
-  SizeType TypeIDLength = 0;
-  while ((aTypeID != nullptr) && (aTypeID[TypeIDLength] != 0)) {
-    ++TypeIDLength;
+  SizeType id_length = 0;
+  while ((id != nullptr) && (id[id_length] != 0)) {
+    ++id_length;
   }
-  ++TypeIDLength;
-  SizeType* typeID = so_type::createTypeID(TypeIDLength);
-  for (SizeType i = 0; i < TypeIDLength - 1; ++i) {
-    typeID[i] = aTypeID[i];
+  ++id_length;
+  SizeType* new_id = so_type::create_type_id(id_length);
+  for (SizeType i = 0; i < id_length - 1; ++i) {
+    new_id[i] = id[i];
   }
-  typeID[TypeIDLength - 1] = 0;
-  return typeID;
+  new_id[id_length - 1] = 0;
+  return new_id;
 }
 
 class so_type_impl : public so_type {
@@ -55,8 +55,8 @@ class so_type_impl : public so_type {
       return false;
     }
 
-    const unsigned int* pid1 = t1->mTypeID;
-    const unsigned int* pid2 = t2->mTypeID;
+    const unsigned int* pid1 = t1->type_id;
+    const unsigned int* pid2 = t2->type_id;
     while (((*pid1) != 0U) && ((*pid2) != 0U)) {
       if (*pid1 < *pid2) {
         return true;
@@ -72,48 +72,47 @@ class so_type_impl : public so_type {
 
   using compare_ptr_t = bool (*)(so_type_impl*, so_type_impl*);
 
-  unsigned int mTypeVersion;
-  unsigned int* mTypeID;
-  std::string mTypeName;
-  construct_ptr mConstruct;
+  unsigned int type_version;
+  unsigned int* type_id;
+  std::string type_name;
+  construct_ptr construct;
 
-  std::set<so_type_impl*, compare_ptr_t> mDescendants;
-  std::set<so_type_impl*, compare_ptr_t> mAncestors;
+  std::set<so_type_impl*, compare_ptr_t> descendants;
+  std::set<so_type_impl*, compare_ptr_t> ancestors;
 
   using iter = std::set<so_type_impl*, compare_ptr_t>::iterator;
 
-  so_type_impl(unsigned int aTypeVersion, unsigned int* aTypeID,
-               std::string_view aTypeName, construct_ptr aConstruct)
-      : mTypeVersion(aTypeVersion),
-        mTypeID(aTypeID),
-        mTypeName(aTypeName),
-        mConstruct(aConstruct),
-        mDescendants(&compare_ptr),
-        mAncestors(&compare_ptr) {}
+  so_type_impl(unsigned int a_version, unsigned int* a_id,
+               std::string_view a_name, construct_ptr a_construct)
+      : type_version(a_version),
+        type_id(a_id),
+        type_name(a_name),
+        construct(a_construct),
+        descendants(&compare_ptr),
+        ancestors(&compare_ptr) {}
 
-  ~so_type_impl() { delete[] mTypeID; }
+  ~so_type_impl() { delete[] type_id; }
 
   /// This function finds a TypeID in the descendants (recusively) of this.
-  so_type_impl* findDescendant_impl(const unsigned int* aTypeID) {
-    if (compare_equal(aTypeID, this->mTypeID)) {
+  so_type_impl* find_descendant_impl(const unsigned int* id) {
+    if (compare_equal(id, this->type_id)) {
       return this;
     }
 
-    if (mDescendants.empty()) {
+    if (descendants.empty()) {
       return nullptr;
     }
 
-    unsigned int* d_typeID = create_dummy_so_type_id(aTypeID);
-    so_type_impl d(0, d_typeID, "Root", nullptr);
-    auto it = mDescendants.lower_bound(&d);
+    unsigned int* d_type_id = create_dummy_so_type_id(id);
+    so_type_impl d(0, d_type_id, "Root", nullptr);
+    auto it = descendants.lower_bound(&d);
 
-    if ((it != mDescendants.end()) &&
-        (compare_equal((*it)->mTypeID, aTypeID))) {
+    if ((it != descendants.end()) && (compare_equal((*it)->type_id, id))) {
       return (*it);
     }
 
-    for (it = mDescendants.begin(); it != mDescendants.end(); ++it) {
-      so_type_impl* p = (*it)->findDescendant_impl(aTypeID);
+    for (it = descendants.begin(); it != descendants.end(); ++it) {
+      so_type_impl* p = (*it)->find_descendant_impl(id);
       if (p != nullptr) {
         return p;
       }
@@ -123,43 +122,43 @@ class so_type_impl : public so_type {
   }
 
   /// This function gets the number of direct descendants of this.
-  [[nodiscard]] unsigned int getDescendantCount_impl() const {
-    return static_cast<unsigned int>(mDescendants.size());
+  [[nodiscard]] unsigned int get_descendant_count_impl() const {
+    return static_cast<unsigned int>(descendants.size());
   }
 
   /// This function gets a Type record by index in the direct descendants of this.
-  so_type_impl* getDescendant_impl(unsigned int aIndex) const {
-    if (aIndex >= mDescendants.size()) {
+  [[nodiscard]] so_type_impl* get_descendant_impl(unsigned int aIndex) const {
+    if (aIndex >= descendants.size()) {
       return nullptr;
     }
 
-    auto it = mDescendants.begin();
+    auto it = descendants.begin();
     std::advance(it, aIndex);
     return *it;
   }
 
   /// This function checks if a typeID is parent to this.
-  so_type_impl* findAncestor_impl(const unsigned int* aTypeID) {
-    if (compare_equal(aTypeID, this->mTypeID)) {
+  so_type_impl* find_ancestor_impl(const unsigned int* id) {
+    if (compare_equal(id, this->type_id)) {
       return this;
     }
 
-    if (mAncestors.empty()) {
+    if (ancestors.empty()) {
       return nullptr;
     }
 
-    unsigned int* d_typeID = create_dummy_so_type_id(aTypeID);
-    so_type_impl d(0, d_typeID, "Root", nullptr);
-    auto it = mAncestors.lower_bound(&d);
+    unsigned int* d_type_id = create_dummy_so_type_id(id);
+    so_type_impl d(0, d_type_id, "Root", nullptr);
+    auto it = ancestors.lower_bound(&d);
 
-    if ((it != mAncestors.end()) && ((*it) != nullptr) &&
-        (compare_equal((*it)->mTypeID, aTypeID))) {
+    if ((it != ancestors.end()) && ((*it) != nullptr) &&
+        (compare_equal((*it)->type_id, id))) {
       return *it;
     }
 
-    for (it = mAncestors.begin(); it != mAncestors.end(); ++it) {
+    for (it = ancestors.begin(); it != ancestors.end(); ++it) {
       if (*it != nullptr) {
-        so_type_impl* p = (*it)->findAncestor_impl(aTypeID);
+        so_type_impl* p = (*it)->find_ancestor_impl(id);
         if (p != nullptr) {
           return p;
         }
@@ -169,56 +168,56 @@ class so_type_impl : public so_type {
     return nullptr;
   }
 
-  so_type_impl* addDescendant_impl(so_type_impl* aObj) {
-    auto it = mDescendants.lower_bound(aObj);
-    if ((it != mDescendants.end()) &&
-        (compare_equal((*it)->mTypeID, aObj->mTypeID))) {
-      if ((*it)->mTypeVersion < aObj->mTypeVersion) {
-        mDescendants.erase(it);
-        mDescendants.insert(aObj);
+  so_type_impl* add_descendant_impl(so_type_impl* tp) {
+    auto it = descendants.lower_bound(tp);
+    if ((it != descendants.end()) &&
+        (compare_equal((*it)->type_id, tp->type_id))) {
+      if ((*it)->type_version < tp->type_version) {
+        descendants.erase(it);
+        descendants.insert(tp);
       } else {
         return *it;
       }
     } else {
-      mDescendants.insert(it, aObj);
+      descendants.insert(it, tp);
     }
-    return aObj;
+    return tp;
   }
 
-  so_type_impl* addAncestor_impl(so_type_impl* aObj) {
-    if (aObj != nullptr) {
-      auto it = mAncestors.lower_bound(aObj);
-      if ((it != mAncestors.end()) && ((*it) != nullptr) &&
-          (compare_equal((*it)->mTypeID, aObj->mTypeID))) {
-        if ((*it)->mTypeVersion < aObj->mTypeVersion) {
-          mAncestors.erase(it);
-          mAncestors.insert(aObj);
+  so_type_impl* add_ancestor_impl(so_type_impl* tp) {
+    if (tp != nullptr) {
+      auto it = ancestors.lower_bound(tp);
+      if ((it != ancestors.end()) && ((*it) != nullptr) &&
+          (compare_equal((*it)->type_id, tp->type_id))) {
+        if ((*it)->type_version < tp->type_version) {
+          ancestors.erase(it);
+          ancestors.insert(tp);
         } else {
           return *it;
         }
       } else {
-        mAncestors.insert(aObj);
+        ancestors.insert(tp);
       }
-      aObj->addDescendant_impl(this);
+      tp->add_descendant_impl(this);
     }
-    return aObj;
+    return tp;
   }
 
   /// This function inserts this into a global repo.
-  void insertToRepo_impl(so_type_impl* aRepo) {
+  void insert_to_repo_impl(so_type_impl* repo) {
     // Update all ancestors if there are any.
-    for (auto it = mAncestors.begin(); it != mAncestors.end();) {
-      so_type_impl* p = aRepo->findDescendant_impl((*it)->mTypeID);
+    for (auto it = ancestors.begin(); it != ancestors.end();) {
+      so_type_impl* p = repo->find_descendant_impl((*it)->type_id);
       if ((p != nullptr) && (p != *it)) {
-        mAncestors.erase(it++);
-        mAncestors.insert(p);
-        p->addDescendant_impl(
+        ancestors.erase(it++);
+        ancestors.insert(p);
+        p->add_descendant_impl(
             this);  // Register as descendant of that ancestor.
       } else {
         if (p == nullptr) {
           p = (*it);
           if (p != nullptr) {
-            p->insertToRepo_impl(aRepo);
+            p->insert_to_repo_impl(repo);
           }
         }
         ++it;
@@ -226,49 +225,48 @@ class so_type_impl : public so_type {
     }
 
     // Add to global repo if there is no ancestors to this.
-    if ((*(this->mTypeID) != 0) && (mAncestors.empty())) {
-      aRepo->addDescendant_impl(this);
+    if ((*(this->type_id) != 0) && (ancestors.empty())) {
+      repo->add_descendant_impl(this);
     }
 
     // insert all the descendants.
-    for (auto* mDescendant : mDescendants) {
-      if (mDescendant != nullptr) {
-        mDescendant->insertToRepo_impl(aRepo);
+    for (auto* desc : descendants) {
+      if (desc != nullptr) {
+        desc->insert_to_repo_impl(repo);
       }
     }
   }
 };
 
-so_type* so_type::createTypeInfo(unsigned int aTypeVersion,
-                                 unsigned int* aTypeID,
-                                 std::string_view aTypeName,
-                                 construct_ptr aConstruct) {
-  return new so_type_impl(aTypeVersion, aTypeID, aTypeName, aConstruct);
+so_type* so_type::create_type_info(unsigned int a_version, unsigned int* a_id,
+                                   std::string_view a_name,
+                                   construct_ptr a_construct) {
+  return new so_type_impl(a_version, a_id, a_name, a_construct);
 }
 
-so_type_ptr create_dummy_so_type(const unsigned int* aTypeID) {
+so_type_ptr create_dummy_so_type(const unsigned int* id) {
   using SizeType = unsigned int;
-  SizeType TypeIDLength = 0;
-  while ((aTypeID != nullptr) && (aTypeID[TypeIDLength] != 0)) {
-    ++TypeIDLength;
+  SizeType id_length = 0;
+  while ((id != nullptr) && (id[id_length] != 0)) {
+    ++id_length;
   }
-  ++TypeIDLength;
-  SizeType* typeID = so_type::createTypeID(TypeIDLength);
-  for (SizeType i = 0; i < TypeIDLength - 1; ++i) {
-    typeID[i] = aTypeID[i];
+  ++id_length;
+  SizeType* new_id = so_type::create_type_id(id_length);
+  for (SizeType i = 0; i < id_length - 1; ++i) {
+    new_id[i] = id[i];
   }
-  typeID[TypeIDLength - 1] = 0;
-  return so_type_ptr{new so_type_impl(0, typeID, "Root", nullptr)};
+  new_id[id_length - 1] = 0;
+  return so_type_ptr{new so_type_impl(0, new_id, "Root", nullptr)};
 }
 
 so_type_ptr::~so_type_ptr() {
   delete static_cast<so_type_impl*>(ptr);
 }
 
-unsigned int* so_type::createTypeID(unsigned int aTypeIDSize) {
+unsigned int* so_type::create_type_id(unsigned int id_length) {
   using SizeType = unsigned int;
-  return new SizeType
-      [aTypeIDSize];  // this is just to ensure that new / delete are in same TU
+  // this is just to ensure that new / delete are in same TU
+  return new SizeType[id_length];
 }
 
 bool so_type::compare_equal(const unsigned int* pid1,
@@ -284,75 +282,73 @@ bool so_type::compare_equal(const unsigned int* pid1,
 }
 
 /// This function adds a Descendant of this.
-so_type* so_type::addDescendant(so_type* aObj) {
-  return static_cast<so_type_impl*>(this)->addDescendant_impl(
-      static_cast<so_type_impl*>(aObj));
+so_type* so_type::add_descendant(so_type* tp) {
+  return static_cast<so_type_impl*>(this)->add_descendant_impl(
+      static_cast<so_type_impl*>(tp));
 }
 
-so_type* so_type::addAncestor(so_type* aObj) {
-  return static_cast<so_type_impl*>(this)->addAncestor_impl(
-      static_cast<so_type_impl*>(aObj));
-}
-
-/// This function finds a TypeID in the descendants (recusively) of this.
-so_type* so_type::findDescendant(const unsigned int* aTypeID) {
-  return static_cast<so_type_impl*>(this)->findDescendant_impl(aTypeID);
+so_type* so_type::add_ancestor(so_type* tp) {
+  return static_cast<so_type_impl*>(this)->add_ancestor_impl(
+      static_cast<so_type_impl*>(tp));
 }
 
 /// This function finds a TypeID in the descendants (recusively) of this.
-so_type* so_type::findDescendant(so_type* aTypeID) {
-  return static_cast<so_type_impl*>(this)->findDescendant_impl(
-      aTypeID->TypeID_begin());
+so_type* so_type::find_descendant(const unsigned int* id) {
+  return static_cast<so_type_impl*>(this)->find_descendant_impl(id);
+}
+
+/// This function finds a TypeID in the descendants (recusively) of this.
+so_type* so_type::find_descendant(so_type* tp) {
+  return static_cast<so_type_impl*>(this)->find_descendant_impl(tp->id_begin());
 }
 
 /// This function gets the number of direct descendants of this.
-unsigned int so_type::getDirectDescendantCount() {
-  return static_cast<so_type_impl*>(this)->getDescendantCount_impl();
+unsigned int so_type::get_direct_descendant_count() {
+  return static_cast<so_type_impl*>(this)->get_descendant_count_impl();
 }
 
 /// This function gets a type record by index in the direct descendants of this.
-so_type* so_type::getDirectDescendant(unsigned int aIndex) {
-  return static_cast<so_type_impl*>(this)->getDescendant_impl(aIndex);
+so_type* so_type::get_direct_descendant(unsigned int id) {
+  return static_cast<so_type_impl*>(this)->get_descendant_impl(id);
 }
 
 /// This function checks if a typeID is parent to this.
-so_type* so_type::findAncestor(const unsigned int* aTypeID) {
-  return static_cast<so_type_impl*>(this)->findAncestor_impl(aTypeID);
+so_type* so_type::find_ancestor(const unsigned int* id) {
+  return static_cast<so_type_impl*>(this)->find_ancestor_impl(id);
 }
 
 /// This function checks if a typeID is parent to this.
-so_type* so_type::findAncestor(so_type* aTypeID) {
-  return static_cast<so_type_impl*>(this)->findAncestor_impl(
-      aTypeID->TypeID_begin());
+so_type* so_type::find_ancestor(so_type* tp) {
+  return static_cast<so_type_impl*>(this)->find_ancestor_impl(tp->id_begin());
 }
 
 /// This function inserts this into a global repo.
-void so_type::insertToRepo(so_type* aRepo) {
-  static_cast<so_type_impl*>(this)->insertToRepo_impl(
-      static_cast<so_type_impl*>(aRepo));
+void so_type::insert_to_repo(so_type* repo) {
+  static_cast<so_type_impl*>(this)->insert_to_repo_impl(
+      static_cast<so_type_impl*>(repo));
 }
 
-const unsigned int* so_type::TypeID_begin() const {
-  return static_cast<const so_type_impl*>(this)->mTypeID;
+const unsigned int* so_type::id_begin() const {
+  return static_cast<const so_type_impl*>(this)->type_id;
 }
 
-unsigned int so_type::TypeVersion() const {
-  return static_cast<const so_type_impl*>(this)->mTypeVersion;
+unsigned int so_type::version() const {
+  return static_cast<const so_type_impl*>(this)->type_version;
 }
 
-const std::string& so_type::TypeName() const {
-  return static_cast<const so_type_impl*>(this)->mTypeName;
+const std::string& so_type::name() const {
+  return static_cast<const so_type_impl*>(this)->type_name;
 }
 
-std::shared_ptr<shared_object> so_type::CreateObject() const {
-  if (static_cast<const so_type_impl*>(this)->mConstruct != nullptr) {
-    return static_cast<const so_type_impl*>(this)->mConstruct();
+std::shared_ptr<shared_object> so_type::create_object() const {
+  if (static_cast<const so_type_impl*>(this)->construct != nullptr) {
+    return static_cast<const so_type_impl*>(this)->construct();
   }
   return {};
 }
 
-bool so_type::isConcrete() const {
-  return (static_cast<const so_type_impl*>(this)->mConstruct != nullptr);
+bool so_type::is_concrete() const {
+  return (static_cast<const so_type_impl*>(this)->construct != nullptr);
 }
 
 }  // namespace ReaK::rtti

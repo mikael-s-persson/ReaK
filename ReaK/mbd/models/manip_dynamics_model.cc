@@ -248,7 +248,7 @@ void manipulator_dynamics_model::computeStateRate(double aTime,
     linsolve_Cholesky(Msys, acc_as_mat);
   } catch ([[maybe_unused]] singularity_error& e) {
     std::stringstream ss;
-    ss << "Mass matrix is singular in the manipulator model '" << getName()
+    ss << "Mass matrix is singular in the manipulator model '" << get_name()
        << "' at time " << aTime << " seconds.";
     throw singularity_error(ss.str());
   }

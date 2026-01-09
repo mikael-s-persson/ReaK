@@ -48,7 +48,7 @@ void try_visit_kte(Visitor& vis, kte_map& aModel) {
     try_visit_kte<Tuple, Idx - 1, Visitor>(vis, aModel);
 
     using TestType = std::tuple_element_t<Idx - 1, Tuple>;
-    if (aModel.castTo(TestType::getStaticObjectType())) {
+    if (aModel.cast_to(TestType::get_static_object_type())) {
       vis(static_cast<TestType&>(aModel));
     }
   }
@@ -63,7 +63,7 @@ void visit_kte(Visitor& vis, kte_map& aModel) {
 
   detail::try_visit_kte<Tuple, std::tuple_size_v<Tuple>, Visitor>(vis, aModel);
 
-  if (aModel.castTo(kte_map_chain::getStaticObjectType())) {
+  if (aModel.cast_to(kte_map_chain::get_static_object_type())) {
     visit_kte_chain<Tuple, Visitor>(vis, static_cast<kte_map_chain&>(aModel));
   }
 }

@@ -58,7 +58,7 @@ class kte_map : public virtual named_object {
   /**
    * Default constructor.
    */
-  explicit kte_map(const std::string& aName) { this->setName(aName); }
+  explicit kte_map(const std::string& aName) { this->set_name(aName); }
 
   kte_map() : kte_map("") {}
 
@@ -108,13 +108,13 @@ class kte_map : public virtual named_object {
 
   void save(serialization::oarchive& A,
             unsigned int /*unused*/) const override {
-    ReaK::named_object::save(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::save(A,
+                             named_object::get_static_object_type()->version());
   }
 
   void load(serialization::iarchive& A, unsigned int /*unused*/) override {
-    ReaK::named_object::load(
-        A, named_object::getStaticObjectType()->TypeVersion());
+    ReaK::named_object::load(A,
+                             named_object::get_static_object_type()->version());
   }
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(kte_map, 0xC2100001, 1, "kte_map", named_object)

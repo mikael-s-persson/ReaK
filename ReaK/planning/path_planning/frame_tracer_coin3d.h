@@ -312,7 +312,7 @@ class frame_tracer_3D : public shared_object {
   *******************************************************************************/
 
   void save(serialization::oarchive& A, unsigned int) const override {
-    shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::save(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(next_reporter) &
         RK_SERIAL_SAVE_WITH_NAME(mdl_applicator) &
         RK_SERIAL_SAVE_WITH_NAME(interval_size) &
@@ -320,7 +320,7 @@ class frame_tracer_3D : public shared_object {
   }
 
   void load(serialization::iarchive& A, unsigned int) override {
-    shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+    shared_object::load(A, shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(next_reporter) &
         RK_SERIAL_LOAD_WITH_NAME(mdl_applicator) &
         RK_SERIAL_LOAD_WITH_NAME(interval_size) &
