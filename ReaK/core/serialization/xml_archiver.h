@@ -51,25 +51,25 @@ class xml_iarchive : public iarchive {
   std::shared_ptr<std::istream> file_stream;
   std::string storage;
 
-  char getNextChar();
-  std::string readToken();
-  void skipToEndToken(const std::string& name);
-  static void trimStr(std::string& s);
-  bool readNamedValue(const std::string& value_name, std::string& value_str);
-  archive_object_header readHeader(const std::string& obj_name,
-                                   std::vector<std::uint32_t>& outTypeID);
+  char get_next_char();
+  std::string read_token();
+  void skip_to_end_token(const std::string& name);
+  static void trim_str(std::string& s);
+  bool read_named_value(const std::string& value_name, std::string& value_str);
+  archive_object_header read_header(const std::string& obj_name,
+                                    std::vector<std::uint32_t>& out_type_id);
 
  protected:
-  iarchive& load_serializable_ptr(serializable_shared_pointer& Item) override;
+  iarchive& load_serializable_ptr(serializable_shared_pointer& item) override;
 
   iarchive& load_serializable_ptr(
-      const std::pair<std::string, serializable_shared_pointer&>& Item)
+      const std::pair<std::string, serializable_shared_pointer&>& item)
       override;
 
-  iarchive& load_serializable(serializable& Item) override;
+  iarchive& load_serializable(serializable& item) override;
 
   iarchive& load_serializable(
-      const std::pair<std::string, serializable&>& Item) override;
+      const std::pair<std::string, serializable&>& item) override;
 
   iarchive& load_char(char& i) override;
 
@@ -106,7 +106,7 @@ class xml_iarchive : public iarchive {
   iarchive& load_string(const std::pair<std::string, std::string&>& s) override;
 
  public:
-  explicit xml_iarchive(const std::string& FileName);
+  explicit xml_iarchive(const std::string& file_name);
   explicit xml_iarchive(std::istream& stream);
   ~xml_iarchive() override;
 };
@@ -119,27 +119,27 @@ class xml_oarchive : public oarchive {
   std::shared_ptr<std::ostream> file_stream;
   unsigned int tabulation;
 
-  void addTabulations();
+  void add_tabulations();
 
  protected:
-  oarchive& saveToNewArchive_impl(const serializable_shared_pointer& Item,
-                                  const std::string& FileName) override;
+  oarchive& save_to_new_archive_impl(const serializable_shared_pointer& item,
+                                     const std::string& file_name) override;
 
-  oarchive& saveToNewArchiveNamed_impl(
-      const std::pair<std::string, const serializable_shared_pointer&>& Item,
-      const std::string& FileName) override;
-
-  oarchive& save_serializable_ptr(
-      const serializable_shared_pointer& Item) override;
+  oarchive& save_to_new_archive_named_impl(
+      const std::pair<std::string, const serializable_shared_pointer&>& item,
+      const std::string& file_name) override;
 
   oarchive& save_serializable_ptr(
-      const std::pair<std::string, const serializable_shared_pointer&>& Item)
+      const serializable_shared_pointer& item) override;
+
+  oarchive& save_serializable_ptr(
+      const std::pair<std::string, const serializable_shared_pointer&>& item)
       override;
 
-  oarchive& save_serializable(const serializable& Item) override;
+  oarchive& save_serializable(const serializable& item) override;
 
   oarchive& save_serializable(
-      const std::pair<std::string, const serializable&>& Item) override;
+      const std::pair<std::string, const serializable&>& item) override;
 
   oarchive& save_char(char i) override;
 
@@ -177,7 +177,7 @@ class xml_oarchive : public oarchive {
       const std::pair<std::string, const std::string&>& s) override;
 
  public:
-  explicit xml_oarchive(const std::string& FileName);
+  explicit xml_oarchive(const std::string& file_name);
   explicit xml_oarchive(std::ostream& stream);
   ~xml_oarchive() override;
 };

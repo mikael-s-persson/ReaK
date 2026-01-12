@@ -52,16 +52,16 @@ class protobuf_iarchive : public iarchive {
   std::shared_ptr<std::istream> file_stream;
 
  protected:
-  iarchive& load_serializable_ptr(serializable_shared_pointer& Item) override;
+  iarchive& load_serializable_ptr(serializable_shared_pointer& item) override;
 
   iarchive& load_serializable_ptr(
-      const std::pair<std::string, serializable_shared_pointer&>& Item)
+      const std::pair<std::string, serializable_shared_pointer&>& item)
       override;
 
-  iarchive& load_serializable(serializable& Item) override;
+  iarchive& load_serializable(serializable& item) override;
 
   iarchive& load_serializable(
-      const std::pair<std::string, serializable&>& Item) override;
+      const std::pair<std::string, serializable&>& item) override;
 
   iarchive& load_char(char& i) override;
 
@@ -100,7 +100,7 @@ class protobuf_iarchive : public iarchive {
   iarchive& load_string(const std::pair<std::string, std::string&>& s) override;
 
  public:
-  explicit protobuf_iarchive(const std::string& FileName);
+  explicit protobuf_iarchive(const std::string& file_name);
   explicit protobuf_iarchive(std::istream& stream);
   ~protobuf_iarchive() override;
 };
@@ -111,28 +111,28 @@ class protobuf_iarchive : public iarchive {
 class protobuf_oarchive : public oarchive {
  private:
   std::shared_ptr<std::ostream> file_stream;
-  std::stack<std::uint64_t> field_IDs;
+  std::stack<std::uint64_t> field_ids;
   std::stack<std::uint64_t> repeat_state;
 
  protected:
-  oarchive& saveToNewArchive_impl(const serializable_shared_pointer& Item,
-                                  const std::string& FileName) override;
+  oarchive& save_to_new_archive_impl(const serializable_shared_pointer& item,
+                                     const std::string& file_name) override;
 
-  oarchive& saveToNewArchiveNamed_impl(
-      const std::pair<std::string, const serializable_shared_pointer&>& Item,
-      const std::string& FileName) override;
-
-  oarchive& save_serializable_ptr(
-      const serializable_shared_pointer& Item) override;
+  oarchive& save_to_new_archive_named_impl(
+      const std::pair<std::string, const serializable_shared_pointer&>& item,
+      const std::string& file_name) override;
 
   oarchive& save_serializable_ptr(
-      const std::pair<std::string, const serializable_shared_pointer&>& Item)
+      const serializable_shared_pointer& item) override;
+
+  oarchive& save_serializable_ptr(
+      const std::pair<std::string, const serializable_shared_pointer&>& item)
       override;
 
-  oarchive& save_serializable(const serializable& Item) override;
+  oarchive& save_serializable(const serializable& item) override;
 
   oarchive& save_serializable(
-      const std::pair<std::string, const serializable&>& Item) override;
+      const std::pair<std::string, const serializable&>& item) override;
 
   oarchive& save_char(char i) override;
 
@@ -171,24 +171,24 @@ class protobuf_oarchive : public oarchive {
   oarchive& save_string(
       const std::pair<std::string, const std::string&>& s) override;
 
-  void start_repeated_field(const std::string& aTypeName) override;
+  void start_repeated_field(const std::string& type_name) override;
 
-  void start_repeated_field(const std::string& aTypeName,
+  void start_repeated_field(const std::string& type_name,
                             const std::string& s) override;
 
   void finish_repeated_field() override;
 
-  void start_repeated_pair(const std::string& aTypeName1,
-                           const std::string& aTypeName2) override;
+  void start_repeated_pair(const std::string& type_name_1,
+                           const std::string& type_name_2) override;
 
-  void start_repeated_pair(const std::string& aTypeName1,
-                           const std::string& aTypeName2,
+  void start_repeated_pair(const std::string& type_name_1,
+                           const std::string& type_name_2,
                            const std::string& s) override;
 
   void finish_repeated_pair() override;
 
  public:
-  explicit protobuf_oarchive(const std::string& FileName);
+  explicit protobuf_oarchive(const std::string& file_name);
   explicit protobuf_oarchive(std::ostream& stream);
   ~protobuf_oarchive() override;
 };
@@ -199,7 +199,7 @@ class protobuf_oarchive : public oarchive {
 class protobuf_schemer : public oarchive {
  private:
   std::shared_ptr<std::ostream> file_stream;
-  std::stack<std::uint64_t> field_IDs;
+  std::stack<std::uint64_t> field_ids;
   std::stack<std::uint64_t> repeat_state;
 
   std::vector<std::string> schemes;
@@ -208,12 +208,12 @@ class protobuf_schemer : public oarchive {
  protected:
   std::uint64_t get_chunk_hdr();
 
-  oarchive& saveToNewArchive_impl(const serializable_shared_pointer& Item,
-                                  const std::string& FileName) override;
+  oarchive& save_to_new_archive_impl(const serializable_shared_pointer& Item,
+                                     const std::string& file_name) override;
 
-  oarchive& saveToNewArchiveNamed_impl(
+  oarchive& save_to_new_archive_named_impl(
       const std::pair<std::string, const serializable_shared_pointer&>& Item,
-      const std::string& FileName) override;
+      const std::string& file_name) override;
 
   oarchive& save_serializable_ptr(
       const serializable_shared_pointer& Item) override;
@@ -262,19 +262,19 @@ class protobuf_schemer : public oarchive {
   oarchive& save_string(
       const std::pair<std::string, const std::string&>& s) override;
 
-  void start_repeated_field(const std::string& aTypeName) override;
+  void start_repeated_field(const std::string& type_name) override;
 
-  void start_repeated_field(const std::string& aTypeName,
-                            const std::string& aName) override;
+  void start_repeated_field(const std::string& type_name,
+                            const std::string& name) override;
 
   void finish_repeated_field() override;
 
-  void start_repeated_pair(const std::string& aTypeName1,
-                           const std::string& aTypeName2) override;
+  void start_repeated_pair(const std::string& type_name_1,
+                           const std::string& type_name_2) override;
 
-  void start_repeated_pair(const std::string& aTypeName1,
-                           const std::string& aTypeName2,
-                           const std::string& aName) override;
+  void start_repeated_pair(const std::string& type_name_1,
+                           const std::string& type_name_2,
+                           const std::string& name) override;
 
   void finish_repeated_pair() override;
 

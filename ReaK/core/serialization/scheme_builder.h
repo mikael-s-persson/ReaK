@@ -57,26 +57,26 @@ class scheme_builder : public oarchive {
 
  protected:
   template <typename T>
-  void save_primitive(const std::string& aName);
+  void save_primitive(const std::string& name);
 
-  oarchive& saveToNewArchive_impl(const serializable_shared_pointer& Item,
-                                  const std::string& FileName) override;
+  oarchive& save_to_new_archive_impl(const serializable_shared_pointer& item,
+                                     const std::string& file_name) override;
 
-  oarchive& saveToNewArchiveNamed_impl(
-      const std::pair<std::string, const serializable_shared_pointer&>& Item,
-      const std::string& FileName) override;
-
-  oarchive& save_serializable_ptr(
-      const serializable_shared_pointer& Item) override;
+  oarchive& save_to_new_archive_named_impl(
+      const std::pair<std::string, const serializable_shared_pointer&>& item,
+      const std::string& file_name) override;
 
   oarchive& save_serializable_ptr(
-      const std::pair<std::string, const serializable_shared_pointer&>& Item)
+      const serializable_shared_pointer& item) override;
+
+  oarchive& save_serializable_ptr(
+      const std::pair<std::string, const serializable_shared_pointer&>& item)
       override;
 
-  oarchive& save_serializable(const serializable& Item) override;
+  oarchive& save_serializable(const serializable& item) override;
 
   oarchive& save_serializable(
-      const std::pair<std::string, const serializable&>& Item) override;
+      const std::pair<std::string, const serializable&>& item) override;
 
   oarchive& save_char(char i) override;
 
@@ -113,23 +113,23 @@ class scheme_builder : public oarchive {
   oarchive& save_string(
       const std::pair<std::string, const std::string&>& s) override;
 
-  void signal_polymorphic_field(const std::string& aBaseTypeName,
-                                const std::uint32_t* aTypeID,
-                                const std::string& aFieldName) override;
+  void signal_polymorphic_field(const std::string& base_type_name,
+                                const std::uint32_t* type_id,
+                                const std::string& field_name) override;
 
-  void start_repeated_field(const std::string& aTypeName) override;
+  void start_repeated_field(const std::string& type_name) override;
 
-  void start_repeated_field(const std::string& aTypeName,
-                            const std::string& aName) override;
+  void start_repeated_field(const std::string& type_name,
+                            const std::string& name) override;
 
   void finish_repeated_field() override;
 
-  void start_repeated_pair(const std::string& aTypeName1,
-                           const std::string& aTypeName2) override;
+  void start_repeated_pair(const std::string& type_name_1,
+                           const std::string& type_name_2) override;
 
-  void start_repeated_pair(const std::string& aTypeName1,
-                           const std::string& aTypeName2,
-                           const std::string& aName) override;
+  void start_repeated_pair(const std::string& type_name_1,
+                           const std::string& type_name_2,
+                           const std::string& name) override;
 
   void finish_repeated_pair() override;
 

@@ -50,16 +50,16 @@ class bin_iarchive : public iarchive {
   std::shared_ptr<std::istream> file_stream;
 
  protected:
-  iarchive& load_serializable_ptr(serializable_shared_pointer& Item) override;
+  iarchive& load_serializable_ptr(serializable_shared_pointer& item) override;
 
   iarchive& load_serializable_ptr(
-      const std::pair<std::string, serializable_shared_pointer&>& Item)
+      const std::pair<std::string, serializable_shared_pointer&>& item)
       override;
 
-  iarchive& load_serializable(serializable& Item) override;
+  iarchive& load_serializable(serializable& item) override;
 
   iarchive& load_serializable(
-      const std::pair<std::string, serializable&>& Item) override;
+      const std::pair<std::string, serializable&>& item) override;
 
   iarchive& load_char(char& i) override;
 
@@ -96,7 +96,7 @@ class bin_iarchive : public iarchive {
   iarchive& load_string(const std::pair<std::string, std::string&>& s) override;
 
  public:
-  explicit bin_iarchive(const std::string& FileName);
+  explicit bin_iarchive(const std::string& file_name);
   explicit bin_iarchive(std::istream& stream);
   ~bin_iarchive() override;
 };
@@ -109,24 +109,24 @@ class bin_oarchive : public oarchive {
   std::shared_ptr<std::ostream> file_stream;
 
  protected:
-  oarchive& saveToNewArchive_impl(const serializable_shared_pointer& Item,
-                                  const std::string& FileName) override;
+  oarchive& save_to_new_archive_impl(const serializable_shared_pointer& item,
+                                     const std::string& file_name) override;
 
-  oarchive& saveToNewArchiveNamed_impl(
-      const std::pair<std::string, const serializable_shared_pointer&>& Item,
-      const std::string& FileName) override;
-
-  oarchive& save_serializable_ptr(
-      const serializable_shared_pointer& Item) override;
+  oarchive& save_to_new_archive_named_impl(
+      const std::pair<std::string, const serializable_shared_pointer&>& item,
+      const std::string& file_name) override;
 
   oarchive& save_serializable_ptr(
-      const std::pair<std::string, const serializable_shared_pointer&>& Item)
+      const serializable_shared_pointer& item) override;
+
+  oarchive& save_serializable_ptr(
+      const std::pair<std::string, const serializable_shared_pointer&>& item)
       override;
 
-  oarchive& save_serializable(const serializable& Item) override;
+  oarchive& save_serializable(const serializable& item) override;
 
   oarchive& save_serializable(
-      const std::pair<std::string, const serializable&>& Item) override;
+      const std::pair<std::string, const serializable&>& item) override;
 
   oarchive& save_char(char i) override;
 
@@ -164,7 +164,7 @@ class bin_oarchive : public oarchive {
       const std::pair<std::string, const std::string&>& s) override;
 
  public:
-  explicit bin_oarchive(const std::string& FileName);
+  explicit bin_oarchive(const std::string& file_name);
   explicit bin_oarchive(std::ostream& stream);
   ~bin_oarchive() override;
 };

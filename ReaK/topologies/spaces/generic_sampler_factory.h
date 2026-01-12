@@ -42,8 +42,7 @@
 
 namespace ReaK::pp {
 
-namespace detail {
-namespace {
+namespace generate_sampler_factory_details {
 
 template <typename Sampler, typename PointType, typename SpaceType,
           typename Factory>
@@ -115,8 +114,7 @@ void generate_sample_impl(
       result, space, tuple_sample_generator<Sampler>(sampler));
 }
 
-}  // namespace
-}  // namespace detail
+}  // namespace generate_sampler_factory_details
 
 /**
  * This functor class implements a generic sampler in a topology.
@@ -147,13 +145,15 @@ class generic_sampler {
   point_type operator()(const topology& space,
                         const OtherFactory& aNewParent) const {
     point_type result;
-    detail::generate_sample_impl(sampler, result, space, aNewParent);
+    generate_sampler_factory_details::generate_sample_impl(sampler, result,
+                                                           space, aNewParent);
     return result;
   }
 
   point_type operator()(const topology& space) const {
     point_type result;
-    detail::generate_sample_impl(sampler, result, space, *parent);
+    generate_sampler_factory_details::generate_sample_impl(sampler, result,
+                                                           space, *parent);
     return result;
   }
 };
@@ -179,13 +179,15 @@ class generic_sampler<Sampler, SpaceType, void> {
   point_type operator()(const topology& space,
                         const OtherFactory& aParent) const {
     point_type result;
-    detail::generate_sample_impl(sampler, result, space, aParent);
+    generate_sampler_factory_details::generate_sample_impl(sampler, result,
+                                                           space, aParent);
     return result;
   }
 
   point_type operator()(const topology& space) const {
     point_type result;
-    detail::generate_sample_impl(sampler, result, space);
+    generate_sampler_factory_details::generate_sample_impl(sampler, result,
+                                                           space);
     return result;
   }
 };

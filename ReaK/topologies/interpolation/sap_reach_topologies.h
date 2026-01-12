@@ -77,7 +77,8 @@ struct sap_reach_topo_impl {
                                    const point_type& a, double fraction,
                                    const point_type& b) {
     try {
-      generic_interpolator_impl<sap_interpolator, BaseTopology, time_topology>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          sap_interpolator, BaseTopology, time_topology>
           interp;
       interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
       double dt_min = interp.get_minimum_travel_time();
@@ -101,7 +102,8 @@ struct sap_reach_topo_impl {
                                    double min_dist_interval,
                                    validity_predicate_type predicate) {
     try {
-      generic_interpolator_impl<sap_interpolator, BaseTopology, time_topology>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          sap_interpolator, BaseTopology, time_topology>
           interp;
       interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
       double dt_min = interp.get_minimum_travel_time();
@@ -140,7 +142,8 @@ struct sap_reach_topo_impl {
                                     const point_type& a, double fraction,
                                     const point_type& b) {
     try {
-      generic_interpolator_impl<sap_interpolator, BaseTopology, time_topology>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          sap_interpolator, BaseTopology, time_topology>
           interp;
       interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
       double dt_min = interp.get_minimum_travel_time();
@@ -164,7 +167,8 @@ struct sap_reach_topo_impl {
                                     double min_dist_interval,
                                     validity_predicate_type predicate) {
     try {
-      generic_interpolator_impl<sap_interpolator, BaseTopology, time_topology>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          sap_interpolator, BaseTopology, time_topology>
           interp;
       interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
       double dt_min = interp.get_minimum_travel_time();
@@ -273,8 +277,8 @@ struct sap_reach_topo_impl<BaseTopology, true> {
     }
 
     try {
-      generic_interpolator_impl<sap_interpolator, base_space_topo,
-                                base_time_topo>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          sap_interpolator, base_space_topo, base_time_topo>
           interp;
       double dt_total =
           (b.time - a.time);  // the free time that I have along the path.
@@ -313,8 +317,8 @@ struct sap_reach_topo_impl<BaseTopology, true> {
         return move_pt_toward(b_space, rt_dist, a, fraction, b);
       }
 
-      generic_interpolator_impl<sap_interpolator, base_space_topo,
-                                base_time_topo>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          sap_interpolator, base_space_topo, base_time_topo>
           interp;
       interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(),
                         b_space.get_time_topology(), rt_dist);
@@ -362,8 +366,8 @@ struct sap_reach_topo_impl<BaseTopology, true> {
     }
 
     try {
-      generic_interpolator_impl<sap_interpolator, base_space_topo,
-                                base_time_topo>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          sap_interpolator, base_space_topo, base_time_topo>
           interp;
       double dt_total =
           (b.time - a.time);  // the free time that I have along the path.
@@ -402,8 +406,8 @@ struct sap_reach_topo_impl<BaseTopology, true> {
         return move_pt_back_to(b_space, rt_dist, a, fraction, b);
       }
 
-      generic_interpolator_impl<sap_interpolator, base_space_topo,
-                                base_time_topo>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          sap_interpolator, base_space_topo, base_time_topo>
           interp;
       interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(),
                         b_space.get_time_topology(), rt_dist);
@@ -615,8 +619,8 @@ class interpolated_topology<BaseTopology, sap_interpolation_tag>
 template <typename SpaceType, typename TimeTopology>
 struct get_tagged_spatial_interpolator<sap_interpolation_tag, SpaceType,
                                        TimeTopology> {
-  using type = detail::generic_interpolator_impl<sap_interpolator, SpaceType,
-                                                 TimeTopology>;
+  using type = generic_interpolator_factory_details::generic_interpolator_impl<
+      sap_interpolator, SpaceType, TimeTopology>;
   using pseudo_factory_type = sap_reach_time_metric<TimeTopology>;
 };
 

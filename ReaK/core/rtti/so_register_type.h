@@ -36,8 +36,6 @@
 
 namespace ReaK::rtti {
 
-namespace {
-
 template <typename T>
 struct register_type {
 
@@ -69,7 +67,6 @@ struct register_type {
 
 template <typename T>
 const typename register_type<T>::register_type_impl register_type<T>::impl(0);
-}  // namespace
 
 }  // namespace ReaK::rtti
 

@@ -34,7 +34,6 @@
 
 #include <array>
 #include <cstdint>
-#include <string>
 #include <string_view>
 
 /** Main namespace for ReaK */
@@ -55,8 +54,7 @@ constexpr std::size_t fnv_1a_hash(const std::string_view& text) {
   return fnv_1a_hash_impl(text, text.size());
 }
 
-namespace detail {
-namespace {
+namespace cnst_string_details {
 
 template <std::string_view const&... Strs>
 struct concat_constexpr_strings {
@@ -77,15 +75,13 @@ struct concat_constexpr_strings {
   static constexpr std::string_view value{arr.data(), arr.size()};
 };
 
-}  // namespace
-}  // namespace detail
+}  // namespace cnst_string_details
 
 template <std::string_view const&... Strs>
 static constexpr auto ct_concat_v =
-    detail::concat_constexpr_strings<Strs...>::value;
+    cnst_string_details::concat_constexpr_strings<Strs...>::value;
 
-namespace detail {
-namespace {
+namespace cnst_string_details {
 
 template <unsigned int N>
 struct ct_itoa_impl {
@@ -108,11 +104,10 @@ struct ct_itoa_impl {
   static constexpr std::string_view value{arr.data(), arr.size()};
 };
 
-}  // namespace
-}  // namespace detail
+}  // namespace cnst_string_details
 
 template <unsigned int N>
-static constexpr auto ct_itoa_v = detail::ct_itoa_impl<N>().value;
+static constexpr auto ct_itoa_v = cnst_string_details::ct_itoa_impl<N>().value;
 
 }  // namespace ReaK
 

@@ -111,24 +111,6 @@ class any_sbmp_reporter : public shared_object {
                               shared_object)
 };
 
-namespace detail {
-namespace {
-
-template <bool IsSteerable, typename FreeSpaceType>
-struct get_sbmp_reporter_any_property_type {
-  using type = topology_point_type_t<FreeSpaceType>;
-  static std::string name() { return "vertex_position"; }
-};
-
-template <typename FreeSpaceType>
-struct get_sbmp_reporter_any_property_type<true, FreeSpaceType> {
-  using type = steerable_space_steer_record_t<FreeSpaceType>;
-  static std::string name() { return "edge_steer_rec"; }
-};
-
-}  // namespace
-}  // namespace detail
-
 /**
  * This class can be used to wrap a SBMP Reporter into a dynamically polymorphic SBMP/SBPP Reporter
  * (SBMPReporterConcept and SBPPReporterConcept). This operates on type-erasure via the ReaK::graph::any_graph class.

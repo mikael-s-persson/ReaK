@@ -79,8 +79,8 @@ struct svp_reach_time_metric : public serializable {
   template <typename Point, typename Topology>
   double operator()(const Point& a, const Point& b, const Topology& s) const {
     try {
-      detail::generic_interpolator_impl<svp_interpolator, Topology,
-                                        TimeSpaceType>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          svp_interpolator, Topology, TimeSpaceType>
           interp;
       interp.initialize(a, b, 0.0, s, *t_space, *this);
       return interp.get_minimum_travel_time();
@@ -100,8 +100,8 @@ struct svp_reach_time_metric : public serializable {
   template <typename PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& s) const {
     try {
-      detail::generic_interpolator_impl<svp_interpolator, Topology,
-                                        TimeSpaceType>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          svp_interpolator, Topology, TimeSpaceType>
           interp;
       interp.initialize(s.origin(), s.adjust(s.origin(), a), 0.0, s, *t_space,
                         *this);
@@ -174,8 +174,8 @@ struct svp_reach_time_metric<TimeSpaceType, true> : public serializable {
     double d = std::numeric_limits<double>::infinity();
     try {
       // guarantee symmetry by computing reach-times in both directions:
-      detail::generic_interpolator_impl<svp_interpolator, Topology,
-                                        TimeSpaceType>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          svp_interpolator, Topology, TimeSpaceType>
           interp;
       interp.initialize(a, b, 0.0, s, *t_space, *this);
       d = interp.get_minimum_travel_time();
@@ -206,8 +206,8 @@ struct svp_reach_time_metric<TimeSpaceType, true> : public serializable {
     try {
       auto p = s.adjust(s.origin(), a);
       // guarantee symmetry by computing reach-times in both directions:
-      detail::generic_interpolator_impl<svp_interpolator, Topology,
-                                        TimeSpaceType>
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          svp_interpolator, Topology, TimeSpaceType>
           interp;
       interp.initialize(s.origin(), p, 0.0, s, *t_space, *this);
       d = interp.get_minimum_travel_time();

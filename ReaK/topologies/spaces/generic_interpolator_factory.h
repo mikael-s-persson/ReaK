@@ -39,12 +39,12 @@
 #include "ReaK/topologies/spaces/temporal_space_concept.h"
 #include "ReaK/topologies/spaces/time_topology.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace ReaK::pp {
 
-namespace detail {
-namespace {
+namespace generic_interpolator_factory_details {
 
 template <template <typename, typename> class InterpolatorImpl,
           typename SpaceType, typename TimeSpaceType>
@@ -107,9 +107,7 @@ struct gen_interp_impl_mintime {
   template <typename Interpolator>
   int operator()(const Interpolator& interp) const {
     double r0 = interp.get_minimum_travel_time();
-    if ((*p_result) < r0) {
-      (*p_result) = r0;
-    }
+    *p_result = std::max(*p_result, r0);
     return int{};
   }
 };
@@ -156,7 +154,7 @@ class generic_interpolator_impl<InterpolatorImpl,
                                                          dt_total));
   }
 
-  double get_minimum_travel_time() const {
+  [[nodiscard]] double get_minimum_travel_time() const {
     double result = 0.0;
     arithmetic_tuple_details::tuple_for_each(interp,
                                              gen_interp_impl_mintime(result));
@@ -164,8 +162,7 @@ class generic_interpolator_impl<InterpolatorImpl,
   }
 };
 
-}  // namespace
-}  // namespace detail
+}  // namespace generic_interpolator_factory_details
 
 /**
  * This functor class implements a generic interpolation in a temporal topology.
@@ -184,8 +181,8 @@ class generic_interpolator {
   using TimeSpaceType = typename temporal_space_traits<topology>::time_topology;
 
   using interpolator_impl_type =
-      detail::generic_interpolator_impl<InterpolatorImpl, SpaceType,
-                                        TimeSpaceType>;
+      generic_interpolator_factory_details::generic_interpolator_impl<
+          InterpolatorImpl, SpaceType, TimeSpaceType>;
 
  private:
   const Factory* parent;
@@ -225,25 +222,26 @@ class generic_interpolator {
   const point_type* get_end_point() const { return end_point; }
 
   template <typename Metric>
-  requires DistanceMetric<Metric, topology> double travel_distance_to(
-      const point_type& pt, const Metric& dist) const {
-    if (parent && start_point) {
+    requires DistanceMetric<Metric, topology>
+  double travel_distance_to(const point_type& pt, const Metric& dist) const {
+    if (parent != nullptr && start_point != nullptr) {
       return dist(pt, *start_point, *(parent->get_temporal_space()));
     }
     return 0.0;
   }
 
   template <typename Metric>
-  requires DistanceMetric<Metric, topology> double travel_distance_from(
-      const point_type& pt, const Metric& dist) const {
-    if (parent && end_point) {
+    requires DistanceMetric<Metric, topology>
+  double travel_distance_from(const point_type& pt, const Metric& dist) const {
+    if (parent != nullptr && end_point != nullptr) {
       return dist(*end_point, pt, *(parent->get_temporal_space()));
     }
     return 0.0;
   }
 
   point_type get_point_at_time(double t) const {
-    if (!parent || !start_point || !end_point) {
+    if ((parent == nullptr) || (start_point == nullptr) ||
+        (end_point == nullptr)) {
       return point_type();
     }
 
@@ -264,15 +262,15 @@ class generic_interpolator {
     return result;
   }
 
-  double get_minimum_travel_time() const {
-    if (parent && start_point && end_point) {
+  [[nodiscard]] double get_minimum_travel_time() const {
+    if (parent != nullptr && start_point != nullptr && end_point != nullptr) {
       return interp.get_minimum_travel_time();
     }
     return std::numeric_limits<double>::infinity();
   }
 
-  bool is_segment_feasible() const {
-    if (parent && start_point && end_point) {
+  [[nodiscard]] bool is_segment_feasible() const {
+    if (parent != nullptr && start_point != nullptr && end_point != nullptr) {
       return (interp.get_minimum_travel_time() <
               end_point->time - start_point->time);
     }

@@ -62,9 +62,9 @@ struct object_graph_node {
   std::string xml_src;
 
   explicit object_graph_node(
-      std::shared_ptr<serializable> PObj = std::shared_ptr<serializable>(),
-      std::string aXMLSrc = "")
-      : p_obj(std::move(PObj)), xml_src(std::move(aXMLSrc)){};
+      std::shared_ptr<serializable> pobj = std::shared_ptr<serializable>(),
+      std::string xmlsrc = "")
+      : p_obj(std::move(pobj)), xml_src(std::move(xmlsrc)){};
 };
 
 using object_graph =
@@ -84,36 +84,36 @@ class xml_field_editor {
       std::string::iterator it_prev, std::string::iterator it_end,
       const std::string& fld_name,
       const std::shared_ptr<ReaK::serialization::type_scheme>& scheme);
-  std::uint64_t get_field_index(const std::string& aName) const;
-  std::string get_object_name(object_node_desc aNode) const;
+  [[nodiscard]] std::uint64_t get_field_index(const std::string& name) const;
+  [[nodiscard]] std::string get_object_name(object_node_desc a_node) const;
 
  public:
   friend class objtree_editor;
 
-  std::shared_ptr<type_scheme> get_type_scheme() const;
-  const std::string& get_complete_src() const;
-  void set_complete_src(const std::string& aXMLSrc);
-  std::string get_object_name() const;
+  [[nodiscard]] std::shared_ptr<type_scheme> get_type_scheme() const;
+  [[nodiscard]] const std::string& get_complete_src() const;
+  void set_complete_src(const std::string& xml_src);
+  [[nodiscard]] std::string get_object_name() const;
 
-  xml_field_editor(objtree_editor* aParent, object_node_desc aNode);
+  xml_field_editor(objtree_editor* a_parent, object_node_desc a_node);
 
-  std::uint64_t get_total_field_count() const;
-  std::pair<std::string, std::shared_ptr<type_scheme>> get_field(
-      std::uint64_t aIndex) const;
+  [[nodiscard]] std::uint64_t get_total_field_count() const;
+  [[nodiscard]] std::pair<std::string, std::shared_ptr<type_scheme>> get_field(
+      std::uint64_t index) const;
 
-  std::string get_field_src(std::uint64_t aIndex) const;
-  std::string get_field_src(const std::string& aName) const;
+  [[nodiscard]] std::string get_field_src(std::uint64_t index) const;
+  [[nodiscard]] std::string get_field_src(const std::string& name) const;
 
-  std::string get_field_value(std::uint64_t aIndex) const;
-  std::string get_field_value(const std::string& aName) const;
+  [[nodiscard]] std::string get_field_value(std::uint64_t index) const;
+  [[nodiscard]] std::string get_field_value(const std::string& name) const;
 
-  void set_field_value(std::uint64_t aIndex, const std::string& aValue);
-  void set_field_value(const std::string& aName, const std::string& aValue);
+  void set_field_value(std::uint64_t index, const std::string& value);
+  void set_field_value(const std::string& name, const std::string& value);
 
-  void set_field_newptr(std::uint64_t aIndex,
-                        const std::shared_ptr<serializable>& aNewPtr);
-  void set_field_newptr(const std::string& aName,
-                        const std::shared_ptr<serializable>& aNewPtr);
+  void set_field_newptr(std::uint64_t index,
+                        const std::shared_ptr<serializable>& new_ptr);
+  void set_field_newptr(const std::string& name,
+                        const std::shared_ptr<serializable>& new_ptr);
 };
 
 /**
@@ -125,25 +125,25 @@ class objtree_iarchive : public iarchive {
   std::shared_ptr<std::stringstream> current_ss;
   object_node_desc obj_graph_root;
 
-  char getNextChar();
-  std::string readToken();
-  void skipToEndToken(const std::string& name);
-  static void trimStr(std::string& s);
-  bool readNamedValue(const std::string& value_name, std::string& value_str);
-  archive_object_header readHeader(const std::string& obj_name,
-                                   std::vector<std::uint32_t>& outTypeID);
+  char get_next_char();
+  std::string read_token();
+  void skip_to_end_token(const std::string& name);
+  static void trim_str(std::string& s);
+  bool read_named_value(const std::string& value_name, std::string& value_str);
+  archive_object_header read_header(const std::string& obj_name,
+                                    std::vector<std::uint32_t>& out_type_id);
 
  protected:
-  iarchive& load_serializable_ptr(serializable_shared_pointer& Item) override;
+  iarchive& load_serializable_ptr(serializable_shared_pointer& item) override;
 
   iarchive& load_serializable_ptr(
-      const std::pair<std::string, serializable_shared_pointer&>& Item)
+      const std::pair<std::string, serializable_shared_pointer&>& item)
       override;
 
-  iarchive& load_serializable(serializable& Item) override;
+  iarchive& load_serializable(serializable& item) override;
 
   iarchive& load_serializable(
-      const std::pair<std::string, serializable&>& Item) override;
+      const std::pair<std::string, serializable&>& item) override;
 
   iarchive& load_char(char& i) override;
 
@@ -179,17 +179,21 @@ class objtree_iarchive : public iarchive {
 
   iarchive& load_string(const std::pair<std::string, std::string&>& s) override;
 
-  void load_current_from_node(object_node_desc aNode);
+  void load_current_from_node(object_node_desc a_node);
 
  public:
   friend class objtree_editor;
   friend class xml_field_editor;
 
-  std::shared_ptr<object_graph> get_object_graph() const { return obj_graph; }
-  object_node_desc get_root_node() const { return obj_graph_root; }
+  [[nodiscard]] std::shared_ptr<object_graph> get_object_graph() const {
+    return obj_graph;
+  }
+  [[nodiscard]] object_node_desc get_root_node() const {
+    return obj_graph_root;
+  }
 
-  explicit objtree_iarchive(std::shared_ptr<object_graph> aObjGraph,
-                            object_node_desc aRoot = object_node_desc(0));
+  explicit objtree_iarchive(std::shared_ptr<object_graph> a_obj_graph,
+                            object_node_desc a_root = object_node_desc{});
   ~objtree_iarchive() override;
 };
 
@@ -204,24 +208,24 @@ class objtree_oarchive : public oarchive {
   object_node_desc current_node;
 
  protected:
-  oarchive& saveToNewArchive_impl(const serializable_shared_pointer& Item,
-                                  const std::string& FileName) override;
+  oarchive& save_to_new_archive_impl(const serializable_shared_pointer& item,
+                                     const std::string& file_name) override;
 
-  oarchive& saveToNewArchiveNamed_impl(
-      const std::pair<std::string, const serializable_shared_pointer&>& Item,
-      const std::string& FileName) override;
-
-  oarchive& save_serializable_ptr(
-      const serializable_shared_pointer& Item) override;
+  oarchive& save_to_new_archive_named_impl(
+      const std::pair<std::string, const serializable_shared_pointer&>& item,
+      const std::string& file_name) override;
 
   oarchive& save_serializable_ptr(
-      const std::pair<std::string, const serializable_shared_pointer&>& Item)
+      const serializable_shared_pointer& item) override;
+
+  oarchive& save_serializable_ptr(
+      const std::pair<std::string, const serializable_shared_pointer&>& item)
       override;
 
-  oarchive& save_serializable(const serializable& Item) override;
+  oarchive& save_serializable(const serializable& item) override;
 
   oarchive& save_serializable(
-      const std::pair<std::string, const serializable&>& Item) override;
+      const std::pair<std::string, const serializable&>& item) override;
 
   oarchive& save_char(char i) override;
 
@@ -258,11 +262,11 @@ class objtree_oarchive : public oarchive {
   oarchive& save_string(
       const std::pair<std::string, const std::string&>& s) override;
 
-  void register_new_object(object_node_desc aNode);
-  void unregister_object(object_node_desc aNode);
+  void register_new_object(object_node_desc a_node);
+  void unregister_object(object_node_desc a_node);
   void save_current_stream();
-  void load_current_from_node(object_node_desc aNode);
-  void fresh_current_node(object_node_desc aNode);
+  void load_current_from_node(object_node_desc a_node);
+  void fresh_current_node(object_node_desc a_node);
 
  public:
   friend class objtree_editor;
@@ -270,11 +274,11 @@ class objtree_oarchive : public oarchive {
   std::shared_ptr<object_graph> get_object_graph() const { return obj_graph; }
   object_node_desc get_root_node() const { return obj_graph_root; }
 
-  void set_current_node(object_node_desc aNode) { current_node = aNode; }
+  void set_current_node(object_node_desc a_node) { current_node = a_node; }
   object_node_desc get_current_node() const { return current_node; }
 
-  explicit objtree_oarchive(std::shared_ptr<object_graph> aObjGraph,
-                            object_node_desc aRoot = object_node_desc(0));
+  explicit objtree_oarchive(std::shared_ptr<object_graph> a_obj_graph,
+                            object_node_desc a_root = object_node_desc{});
   ~objtree_oarchive() override;
 };
 
@@ -299,36 +303,38 @@ class objtree_editor {
   objtree_editor(const objtree_editor&) = delete;             // non-copyable.
   objtree_editor& operator=(const objtree_editor&) = delete;  // non-assignable.
 
-  const std::shared_ptr<object_graph>& get_object_graph() const {
+  [[nodiscard]] const std::shared_ptr<object_graph>& get_object_graph() const {
     return obj_graph;
   }
-  object_node_desc get_root_node() const { return obj_graph_root; }
+  [[nodiscard]] object_node_desc get_root_node() const {
+    return obj_graph_root;
+  }
 
   objtree_editor();
-  explicit objtree_editor(std::shared_ptr<object_graph> aObjGraph,
-                          object_node_desc aRoot = object_node_desc(0));
+  explicit objtree_editor(std::shared_ptr<object_graph> a_obj_graph,
+                          object_node_desc a_root = object_node_desc{});
 
   /**
    * This function adds a new object node to the object graph. In this version, the new object has a
-   * given parent and is assumed to replace the 'aOldChild' node as child of the given parent. This
+   * given parent and is assumed to replace the 'old_child' node as child of the given parent. This
    * has the effect of severing that parent-child connection of the old child (unless null) and replacing
    * it with a parent-child connection for the new node.
-   * \param aNewObj The new object node to add to the object graph.
+   * \param new_obj The new object node to add to the object graph.
    * \return The vertex descriptor of the node within the object-graph.
    */
   object_node_desc add_new_object(
-      const std::shared_ptr<serializable>& aNewObj, object_node_desc aParent,
-      object_node_desc aOldChild = object_node_desc(0));
+      const std::shared_ptr<serializable>& new_obj, object_node_desc a_parent,
+      object_node_desc old_child = object_node_desc{});
 
   /**
    * This function adds a new object node to the object graph. In this version, the new object has no
    * parent, and is thus defaulted as being a child of the root node.
-   * \param aNewObj The new object node to add to the object graph.
+   * \param new_obj The new object node to add to the object graph.
    * \return The vertex descriptor of the node within the object-graph.
    */
   object_node_desc add_new_object(
-      const std::shared_ptr<serializable>& aNewObj) {
-    return add_new_object(aNewObj, obj_graph_root);
+      const std::shared_ptr<serializable>& new_obj) {
+    return add_new_object(new_obj, obj_graph_root);
   }
 
   /**
@@ -336,51 +342,51 @@ class objtree_editor {
    * cannot be performed unless the object has been severed from all its parent-child connections.
    * With shared-ownership semantics, this function should, in principle, trigger the actual deletion
    * of the object referred to by the node being deleted.
-   * \param aNode The node to be removed from the graph.
+   * \param a_node The node to be removed from the graph.
    */
-  void remove_object(object_node_desc aNode);
+  void remove_object(object_node_desc a_node);
 
   /**
    * This function replaces (or reroutes) the object graph such that a new child node replaces the old child
    * in a parent-child connection (edge of the graph). Both the new or old child could be null nodes, meaning
    * that either a connection is severed or created, respectively.
-   * \param aParent The parent of which a child is swapped for another.
-   * \param aNewChild The new child that will come and replace the current (old) child. If the new child is null, then
+   * \param a_parent The parent of which a child is swapped for another.
+   * \param new_child The new child that will come and replace the current (old) child. If the new child is null, then
    * the parent-child connection is simply severed.
-   * \param aOldChild The current (or old) child to be replaced. If the old child is null, then a new parent-child
+   * \param old_child The current (or old) child to be replaced. If the old child is null, then a new parent-child
    * connection is created.
    */
-  void replace_child(object_node_desc aParent, object_node_desc aNewChild,
-                     object_node_desc aOldChild);
+  void replace_child(object_node_desc a_parent, object_node_desc new_child,
+                     object_node_desc old_child);
 
   /**
    * This function severs the parent-child connection (edge of the graph).
-   * \param aParent The parent from which a child is severed.
-   * \param aOldChild The current (or old) child to be severed.
+   * \param a_parent The parent from which a child is severed.
+   * \param old_child The current (or old) child to be severed.
    */
-  void sever_child(object_node_desc aParent, object_node_desc aOldChild) {
-    replace_child(aParent, object_node_desc(0), aOldChild);
+  void sever_child(object_node_desc a_parent, object_node_desc old_child) {
+    replace_child(a_parent, object_node_desc{}, old_child);
   }
 
   /**
    * This function creates a parent-child connection (edge of the graph).
-   * \param aParent The parent to which a child is added.
-   * \param aNewChild The new child that will become a child of the parent node.
+   * \param a_parent The parent to which a child is added.
+   * \param new_child The new child that will become a child of the parent node.
    */
-  void create_child(object_node_desc aParent, object_node_desc aNewChild) {
-    replace_child(aParent, aNewChild, object_node_desc(0));
+  void create_child(object_node_desc a_parent, object_node_desc new_child) {
+    replace_child(a_parent, new_child, object_node_desc{});
   }
 
   /**
    * This function returns a field-editor linked to a given node in the object-tree.
-   * \param aNode The node to which to link the newly created field-editor.
+   * \param a_node The node to which to link the newly created field-editor.
    * \return A field-editor linked to the given node.
    */
-  xml_field_editor create_field_editor(object_node_desc aNode) {
-    return {this, aNode};
+  xml_field_editor create_field_editor(object_node_desc a_node) {
+    return {this, a_node};
   }
 
-  std::string get_object_name(object_node_desc aNode) const;
+  std::string get_object_name(object_node_desc a_node) const;
 
   /**
    * This function returns the list of objects in the object graph which are derived from

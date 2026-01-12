@@ -45,8 +45,6 @@
 
 namespace ReaK::pp::detail {
 
-namespace {
-
 /*****************************************************************************************************
                                  FUNCTIONS TO CREATE RATE-LIMITED JOINT-SPACES
 ******************************************************************************************************/
@@ -795,7 +793,6 @@ void create_normal_joint_vectors_impl(OutPoint& result, const InPoint& pt,
   create_normal_joint_vector_impl(result, pt, j_limits, gen_i, f2d_i, f3d_i);
 }
 
-}  // namespace
 }  // namespace ReaK::pp::detail
 
 #endif  // REAK_TOPOLOGIES_SPACES_JOINT_SPACE_LIMITS_DETAIL_H_

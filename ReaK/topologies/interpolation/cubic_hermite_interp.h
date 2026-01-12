@@ -343,8 +343,8 @@ class cubic_hermite_interp_factory : public serializable {
 template <typename SpaceType, typename TimeTopology>
 struct get_tagged_spatial_interpolator<cubic_hermite_interpolation_tag,
                                        SpaceType, TimeTopology> {
-  using type = detail::generic_interpolator_impl<cubic_hermite_interpolator,
-                                                 SpaceType, TimeTopology>;
+  using type = generic_interpolator_factory_details::generic_interpolator_impl<
+      cubic_hermite_interpolator, SpaceType, TimeTopology>;
   using pseudo_factory_type = void*;
 };
 

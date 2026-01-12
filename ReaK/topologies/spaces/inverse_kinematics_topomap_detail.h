@@ -45,7 +45,6 @@
 #include <type_traits>
 
 namespace ReaK::pp::detail {
-namespace {
 
 template <typename PointType, typename InSpace>
 void read_one_joint_coord_impl(
@@ -116,8 +115,6 @@ void write_dependent_coordinates_impl(
   std::size_t f3d_i = 0;
   write_one_dependent_coord_impl(pt, space_in, gen_i, f2d_i, f3d_i, model);
 }
-
-}  // namespace
 
 }  // namespace ReaK::pp::detail
 

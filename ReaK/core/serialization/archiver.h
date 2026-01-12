@@ -211,11 +211,11 @@ class iarchive : public archive {
 
   /// Signifying the start of a repeated field.
   virtual void start_repeated_field(
-      [[maybe_unused]] const std::string& aTypeName) {}
+      [[maybe_unused]] const std::string& type_name) {}
 
   /// Signifying the start of a repeated field.
   virtual void start_repeated_field(
-      [[maybe_unused]] const std::string& aTypeName,
+      [[maybe_unused]] const std::string& type_name,
       [[maybe_unused]] const std::string& s) {}
 
   /// Signifying the finish of a repeated field.
@@ -223,13 +223,13 @@ class iarchive : public archive {
 
   /// Signifying the start of a repeated pair.
   virtual void start_repeated_pair(
-      [[maybe_unused]] const std::string& aTypeName1,
-      [[maybe_unused]] const std::string& aTypeName2) {}
+      [[maybe_unused]] const std::string& type_name_1,
+      [[maybe_unused]] const std::string& type_name_2) {}
 
   /// Signifying the start of a repeated pair.
   virtual void start_repeated_pair(
-      [[maybe_unused]] const std::string& aTypeName1,
-      [[maybe_unused]] const std::string& aTypeName2,
+      [[maybe_unused]] const std::string& type_name_1,
+      [[maybe_unused]] const std::string& type_name_2,
       [[maybe_unused]] const std::string& s) {}
 
   /// Signifying the finish of a repeated pair.
@@ -962,11 +962,11 @@ class oarchive : public archive {
   std::map<serializable_shared_pointer, std::uint64_t>& mObjRegMap;
 
   /// Saving a serializable object to an external archive.
-  virtual oarchive& saveToNewArchive_impl(
+  virtual oarchive& save_to_new_archive_impl(
       const serializable_shared_pointer& Item, const std::string& FileName) = 0;
 
   /// Saving a serializable object with a name to an external archive.
-  virtual oarchive& saveToNewArchiveNamed_impl(
+  virtual oarchive& save_to_new_archive_named_impl(
       const std::pair<std::string, const serializable_shared_pointer&>& Item,
       const std::string& FileName) = 0;
 
@@ -1045,11 +1045,11 @@ class oarchive : public archive {
 
   /// Signifying the start of a repeated field.
   virtual void start_repeated_field(
-      [[maybe_unused]] const std::string& aTypeName) {}
+      [[maybe_unused]] const std::string& type_name) {}
 
   /// Signifying the start of a repeated field.
   virtual void start_repeated_field(
-      [[maybe_unused]] const std::string& aTypeName,
+      [[maybe_unused]] const std::string& type_name,
       [[maybe_unused]] const std::string& s) {}
 
   /// Signifying the finish of a repeated field.
@@ -1057,13 +1057,13 @@ class oarchive : public archive {
 
   /// Signifying the start of a repeated pair.
   virtual void start_repeated_pair(
-      [[maybe_unused]] const std::string& aTypeName1,
-      [[maybe_unused]] const std::string& aTypeName2) {}
+      [[maybe_unused]] const std::string& type_name_1,
+      [[maybe_unused]] const std::string& type_name_2) {}
 
   /// Signifying the start of a repeated pair.
   virtual void start_repeated_pair(
-      [[maybe_unused]] const std::string& aTypeName1,
-      [[maybe_unused]] const std::string& aTypeName2,
+      [[maybe_unused]] const std::string& type_name_1,
+      [[maybe_unused]] const std::string& type_name_2,
       [[maybe_unused]] const std::string& s) {}
 
   /// Signifying the finish of a repeated pair.
@@ -1082,16 +1082,16 @@ class oarchive : public archive {
   ~oarchive() override = default;
 
   /// Saving a serializable object to an external archive.
-  oarchive& saveToNewArchive(serializable_shared_pointer Item,
-                             const std::string& FileName) {
-    return saveToNewArchive_impl(Item, FileName);
+  oarchive& save_to_new_archive(serializable_shared_pointer Item,
+                                const std::string& FileName) {
+    return save_to_new_archive_impl(Item, FileName);
   }
 
   /// Saving a serializable object with a name to an external archive.
-  oarchive& saveToNewArchiveNamed(
+  oarchive& save_to_new_archive_named(
       const std::pair<std::string, const serializable_shared_pointer&>& Item,
       const std::string& FileName) {
-    return saveToNewArchiveNamed_impl(Item, FileName);
+    return save_to_new_archive_named_impl(Item, FileName);
   }
 
   /// Saving a serializable object.

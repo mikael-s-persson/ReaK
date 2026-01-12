@@ -38,10 +38,10 @@
 
 namespace ReaK::serialization {
 
-bin_iarchive::bin_iarchive(const std::string& FileName) {
+bin_iarchive::bin_iarchive(const std::string& file_name) {
 
   file_stream = std::make_shared<std::ifstream>(
-      FileName.c_str(), std::ios::binary | std::ios::in);
+      file_name.c_str(), std::ios::binary | std::ios::in);
 
   std::string header;
   *this >> header;
@@ -78,18 +78,18 @@ bin_iarchive::bin_iarchive(std::istream& stream) {
 bin_iarchive::~bin_iarchive() = default;
 
 iarchive& bin_iarchive::load_serializable_ptr(
-    serializable_shared_pointer& Item) {
+    serializable_shared_pointer& item) {
   archive_object_header hdr;
-  Item = serializable_shared_pointer();
+  item = serializable_shared_pointer();
 
-  std::vector<unsigned int> typeIDvect;
-  unsigned int i = 0;
-  do {
+  std::vector<unsigned int> type_id_vect;
+  unsigned int i = 1;
+  while (i != 0) {
     std::uint64_t tmp_i = 0;
     bin_iarchive::load_unsigned_int(tmp_i);
     i = static_cast<unsigned int>(tmp_i);
-    typeIDvect.push_back(i);
-  } while (i != 0);
+    type_id_vect.push_back(i);
+  }
 
   std::uint64_t tmp_tv = 0;
   bin_iarchive::load_unsigned_int(tmp_tv);
@@ -102,7 +102,7 @@ iarchive& bin_iarchive::load_serializable_ptr(
     return *this;
   }
   if ((hdr.object_ID < mObjRegistry.size()) && (mObjRegistry[hdr.object_ID])) {
-    Item = mObjRegistry[hdr.object_ID];
+    item = mObjRegistry[hdr.object_ID];
     file_stream->ignore(hdr.size);
     return *this;
   }
@@ -118,41 +118,41 @@ iarchive& bin_iarchive::load_serializable_ptr(
 
     bin_iarchive a(
         ext_filename);  // if this throws, let it propagate up (no point catching and throwing).
-    a >> Item;
+    a >> item;
 
     return *this;
   }
 
   // Find the class in question in the repository.
   rtti::so_type* p =
-      rtti::so_type_repo::get_instance().find_type(typeIDvect.data());
+      rtti::so_type_repo::get_instance().find_type(type_id_vect.data());
   if ((p == nullptr) || (p->version() < hdr.type_version)) {
     file_stream->ignore(hdr.size);
     throw unsupported_type(unsupported_type::not_found_in_repo,
-                           typeIDvect.data());
+                           type_id_vect.data());
   }
   std::shared_ptr<shared_object> po(p->create_object());
   if (!po) {
     file_stream->ignore(hdr.size);
     throw unsupported_type(unsupported_type::could_not_create,
-                           typeIDvect.data());
+                           type_id_vect.data());
   }
 
-  Item = po;
+  item = po;
   if (hdr.object_ID <
       mObjRegistry
           .size()) {  // somehow this object-ID was previously skipped over.
-    mObjRegistry[hdr.object_ID] = Item;
+    mObjRegistry[hdr.object_ID] = item;
   } else if (hdr.object_ID == mObjRegistry.size()) {
     mObjRegistry.push_back(
-        Item);  // in theory, only this condition should occur
+        item);  // in theory, only this condition should occur
   } else if (hdr.object_ID > mObjRegistry.size()) {
     mObjRegistry.resize(hdr.object_ID + 1);
-    mObjRegistry[hdr.object_ID] = Item;
+    mObjRegistry[hdr.object_ID] = item;
   }
 
   std::streampos start_pos = file_stream->tellg();
-  Item->load(*this, hdr.type_version);
+  item->load(*this, hdr.type_version);
   std::streampos end_pos = file_stream->tellg();
 
   if (std::streampos(hdr.size) + start_pos != end_pos) {
@@ -163,24 +163,24 @@ iarchive& bin_iarchive::load_serializable_ptr(
 }
 
 iarchive& bin_iarchive::load_serializable_ptr(
-    const std::pair<std::string, serializable_shared_pointer&>& Item) {
-  return bin_iarchive::load_serializable_ptr(Item.second);
+    const std::pair<std::string, serializable_shared_pointer&>& item) {
+  return bin_iarchive::load_serializable_ptr(item.second);
 }
 
-iarchive& bin_iarchive::load_serializable(serializable& Item) {
+iarchive& bin_iarchive::load_serializable(serializable& item) {
   archive_object_header hdr;
 
-  std::vector<unsigned int> typeIDvect;
-  unsigned int i = 0;
-  do {
+  std::vector<unsigned int> type_id_vect;
+  unsigned int i = 1;
+  while (i != 0) {
     *this >> i;
-    typeIDvect.push_back(i);
-  } while (i != 0);
+    type_id_vect.push_back(i);
+  }
 
   *this >> hdr.type_version >> hdr.size;
 
   std::streampos start_pos = file_stream->tellg();
-  Item.load(*this, hdr.type_version);
+  item.load(*this, hdr.type_version);
   std::streampos end_pos = file_stream->tellg();
 
   if (std::streampos(hdr.size) + start_pos != end_pos) {
@@ -191,8 +191,8 @@ iarchive& bin_iarchive::load_serializable(serializable& Item) {
 }
 
 iarchive& bin_iarchive::load_serializable(
-    const std::pair<std::string, serializable&>& Item) {
-  return bin_iarchive::load_serializable(Item.second);
+    const std::pair<std::string, serializable&>& item) {
+  return bin_iarchive::load_serializable(item.second);
 }
 
 iarchive& bin_iarchive::load_char(char& i) {
@@ -277,9 +277,9 @@ iarchive& bin_iarchive::load_string(
   return bin_iarchive::load_string(s.second);
 }
 
-bin_oarchive::bin_oarchive(const std::string& FileName) {
+bin_oarchive::bin_oarchive(const std::string& file_name) {
   file_stream = std::make_shared<std::ofstream>(
-      FileName.c_str(), std::ios::binary | std::ios::out);
+      file_name.c_str(), std::ios::binary | std::ios::out);
 
   *this << std::string("reak_serialization::bin_archive");
   unsigned int version = 2;
@@ -296,31 +296,31 @@ bin_oarchive::bin_oarchive(std::ostream& stream) {
 
 bin_oarchive::~bin_oarchive() = default;
 
-oarchive& bin_oarchive::saveToNewArchive_impl(
-    const serializable_shared_pointer& Item, const std::string& FileName) {
+oarchive& bin_oarchive::save_to_new_archive_impl(
+    const serializable_shared_pointer& item, const std::string& file_name) {
   archive_object_header hdr;
   bool already_saved(false);
 
-  if (Item) {
-    auto it = mObjRegMap.find(Item);
+  if (item) {
+    auto it = mObjRegMap.find(item);
 
     if (it != mObjRegMap.end()) {
       hdr.object_ID = it->second;
       already_saved = true;
     } else {
       hdr.object_ID = mObjRegistry.size();
-      mObjRegistry.push_back(Item);
-      mObjRegMap[Item] = hdr.object_ID;
+      mObjRegistry.push_back(item);
+      mObjRegMap[item] = hdr.object_ID;
     }
 
-    rtti::so_type* obj_type = Item->get_object_type();
-    const unsigned int* type_ID = obj_type->id_begin();
+    rtti::so_type* obj_type = item->get_object_type();
+    const unsigned int* type_id = obj_type->id_begin();
     hdr.type_version = obj_type->version();
     hdr.is_external = true;
     hdr.size = 0;
-    while (((type_ID) != nullptr) && ((*type_ID) != 0U)) {
-      bin_oarchive::save_unsigned_int(*type_ID);
-      ++type_ID;
+    while (((type_id) != nullptr) && ((*type_id) != 0U)) {
+      bin_oarchive::save_unsigned_int(*type_id);
+      ++type_id;
     }
   } else {
     hdr.type_version = 0;
@@ -343,51 +343,51 @@ oarchive& bin_oarchive::saveToNewArchive_impl(
     bin_oarchive::save_unsigned_int(hdr.size);
 
     std::streampos start_pos = file_stream->tellp();
-    bin_oarchive::save_string(FileName);
+    bin_oarchive::save_string(file_name);
     std::streampos end_pos = file_stream->tellp();
     hdr.size = end_pos - start_pos;
     file_stream->seekp(size_pos);
     bin_oarchive::save_unsigned_int(hdr.size);
     file_stream->seekp(end_pos);
 
-    bin_oarchive a(FileName);
-    a << Item;
+    bin_oarchive a(file_name);
+    a << item;
   }
 
   return *this;
 }
 
-oarchive& bin_oarchive::saveToNewArchiveNamed_impl(
-    const std::pair<std::string, const serializable_shared_pointer&>& Item,
-    const std::string& FileName) {
-  return bin_oarchive::saveToNewArchive_impl(Item.second, FileName);
+oarchive& bin_oarchive::save_to_new_archive_named_impl(
+    const std::pair<std::string, const serializable_shared_pointer&>& item,
+    const std::string& file_name) {
+  return bin_oarchive::save_to_new_archive_impl(item.second, file_name);
 }
 
 oarchive& bin_oarchive::save_serializable_ptr(
-    const serializable_shared_pointer& Item) {
+    const serializable_shared_pointer& item) {
   archive_object_header hdr;
   bool already_saved(false);
 
-  if (Item) {
-    auto it = mObjRegMap.find(Item);
+  if (item) {
+    auto it = mObjRegMap.find(item);
 
     if (it != mObjRegMap.end()) {
       hdr.object_ID = it->second;
       already_saved = true;
     } else {
       hdr.object_ID = mObjRegistry.size();
-      mObjRegistry.push_back(Item);
-      mObjRegMap[Item] = hdr.object_ID;
+      mObjRegistry.push_back(item);
+      mObjRegMap[item] = hdr.object_ID;
     }
 
-    rtti::so_type* obj_type = Item->get_object_type();
-    const unsigned int* type_ID = obj_type->id_begin();
+    rtti::so_type* obj_type = item->get_object_type();
+    const unsigned int* type_id = obj_type->id_begin();
     hdr.type_version = obj_type->version();
     hdr.is_external = false;
     hdr.size = 0;
-    while (((type_ID) != nullptr) && ((*type_ID) != 0U)) {
-      bin_oarchive::save_unsigned_int(*type_ID);
-      ++type_ID;
+    while (((type_id) != nullptr) && ((*type_id) != 0U)) {
+      bin_oarchive::save_unsigned_int(*type_id);
+      ++type_id;
     }
   } else {
     hdr.type_version = 0;
@@ -410,7 +410,7 @@ oarchive& bin_oarchive::save_serializable_ptr(
     bin_oarchive::save_unsigned_int(hdr.size);
 
     std::streampos start_pos = file_stream->tellp();
-    Item->save(*this, hdr.type_version);
+    item->save(*this, hdr.type_version);
     std::streampos end_pos = file_stream->tellp();
 
     hdr.size = end_pos - start_pos;
@@ -423,22 +423,22 @@ oarchive& bin_oarchive::save_serializable_ptr(
 }
 
 oarchive& bin_oarchive::save_serializable_ptr(
-    const std::pair<std::string, const serializable_shared_pointer&>& Item) {
-  return bin_oarchive::save_serializable_ptr(Item.second);
+    const std::pair<std::string, const serializable_shared_pointer&>& item) {
+  return bin_oarchive::save_serializable_ptr(item.second);
 }
 
-oarchive& bin_oarchive::save_serializable(const serializable& Item) {
+oarchive& bin_oarchive::save_serializable(const serializable& item) {
   archive_object_header hdr;
 
-  const unsigned int* type_ID = Item.get_object_type()->id_begin();
-  hdr.type_version = Item.get_object_type()->version();
+  const unsigned int* type_id = item.get_object_type()->id_begin();
+  hdr.type_version = item.get_object_type()->version();
   hdr.object_ID = 0;
   hdr.is_external = false;
   hdr.size = 0;
 
-  while (*type_ID != 0U) {
-    bin_oarchive::save_unsigned_int(*type_ID);
-    ++type_ID;
+  while (*type_id != 0U) {
+    bin_oarchive::save_unsigned_int(*type_id);
+    ++type_id;
   }
   bin_oarchive::save_unsigned_int(0);
 
@@ -448,7 +448,7 @@ oarchive& bin_oarchive::save_serializable(const serializable& Item) {
   bin_oarchive::save_unsigned_int(hdr.size);
 
   std::streampos start_pos = file_stream->tellp();
-  Item.save(*this, hdr.type_version);
+  item.save(*this, hdr.type_version);
   std::streampos end_pos = file_stream->tellp();
 
   hdr.size = end_pos - start_pos;
@@ -460,8 +460,8 @@ oarchive& bin_oarchive::save_serializable(const serializable& Item) {
 }
 
 oarchive& bin_oarchive::save_serializable(
-    const std::pair<std::string, const serializable&>& Item) {
-  return bin_oarchive::save_serializable(Item.second);
+    const std::pair<std::string, const serializable&>& item) {
+  return bin_oarchive::save_serializable(item.second);
 }
 
 oarchive& bin_oarchive::save_char(char i) {

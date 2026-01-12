@@ -23,7 +23,6 @@
 
 #include "ReaK/core/serialization/scheme_builder.h"
 
-#include "ReaK/core/base/shared_object.h"
 #include "ReaK/core/rtti/rtti.h"
 
 #include "ReaK/core/serialization/type_schemes.h"
@@ -49,32 +48,32 @@ scheme_builder::~scheme_builder() {
   }
 }
 
-oarchive& scheme_builder::saveToNewArchive_impl(
-    const serializable_shared_pointer& Item, const std::string& FileName) {
+oarchive& scheme_builder::save_to_new_archive_impl(
+    const serializable_shared_pointer& item, const std::string& /*file_name*/) {
   return scheme_builder::save_serializable_ptr(
-      std::pair<std::string, const serializable_shared_pointer&>("item", Item));
+      std::pair<std::string, const serializable_shared_pointer&>("item", item));
 }
 
-oarchive& scheme_builder::saveToNewArchiveNamed_impl(
-    const std::pair<std::string, const serializable_shared_pointer&>& Item,
-    const std::string& FileName) {
-  return scheme_builder::save_serializable_ptr(Item);
+oarchive& scheme_builder::save_to_new_archive_named_impl(
+    const std::pair<std::string, const serializable_shared_pointer&>& item,
+    const std::string& /*file_name*/) {
+  return scheme_builder::save_serializable_ptr(item);
 }
 
 oarchive& scheme_builder::save_serializable_ptr(
-    const serializable_shared_pointer& Item) {
+    const serializable_shared_pointer& item) {
   return scheme_builder::save_serializable_ptr(
       std::pair<std::string, const serializable_shared_pointer&>("item_ptr",
-                                                                 Item));
+                                                                 item));
 }
 
 oarchive& scheme_builder::save_serializable_ptr(
-    const std::pair<std::string, const serializable_shared_pointer&>& Item) {
-  if (!Item.second) {
+    const std::pair<std::string, const serializable_shared_pointer&>& item) {
+  if (!item.second) {
     return *this;
   }
 
-  auto it = mObjRegMap.find(Item.second);
+  auto it = mObjRegMap.find(item.second);
 
   if (it != mObjRegMap.end()) {
     return *this;  // this object was already processed, in which case we just don't do anything.
@@ -83,7 +82,7 @@ oarchive& scheme_builder::save_serializable_ptr(
   std::map<std::string, std::shared_ptr<type_scheme>>& scheme_map =
       get_global_schemes();
 
-  rtti::so_type* so_type_ptr = Item.second->get_object_type();
+  rtti::so_type* so_type_ptr = item.second->get_object_type();
 
   // See if we need to add the std::shared_ptr< Type > type-scheme for this object type.
   constexpr auto tname =
@@ -93,18 +92,18 @@ oarchive& scheme_builder::save_serializable_ptr(
   auto itm = scheme_map.find(ptr_type_name);
   if (itm == scheme_map.end()) {
     constexpr auto iname = rtti::get_type_id<std::uint32_t>::type_name;
-    auto objID_itm = scheme_map.find(std::string(iname));
-    std::shared_ptr<type_scheme> objID_sch;
-    if (objID_itm == scheme_map.end()) {
-      objID_sch = std::make_shared<primitive_scheme<std::size_t>>();
-      scheme_map[std::string(iname)] = objID_sch;
+    auto obj_id_itm = scheme_map.find(std::string(iname));
+    std::shared_ptr<type_scheme> obj_id_sch;
+    if (obj_id_itm == scheme_map.end()) {
+      obj_id_sch = std::make_shared<primitive_scheme<std::size_t>>();
+      scheme_map[std::string(iname)] = obj_id_sch;
     } else {
-      objID_sch = objID_itm->second;
+      obj_id_sch = obj_id_itm->second;
     }
 
     auto ser_sch_ptr = std::make_shared<serializable_ptr_scheme>(
         so_type_ptr->name(), so_type_ptr->id_begin(), so_type_ptr->version(),
-        objID_sch);
+        obj_id_sch);
     scheme_map[ptr_type_name] = ser_sch_ptr;
   }
 
@@ -114,25 +113,25 @@ oarchive& scheme_builder::save_serializable_ptr(
       std::make_shared<serializable_obj_scheme>("DummyType", nullptr, 0));
 
   save_serializable(
-      std::pair<std::string, const serializable&>("Dummy", *(Item.second)));
+      std::pair<std::string, const serializable&>("Dummy", *(item.second)));
 
   field_stack.pop();
 
   return *this;
 }
 
-oarchive& scheme_builder::save_serializable(const serializable& Item) {
+oarchive& scheme_builder::save_serializable(const serializable& item) {
   return scheme_builder::save_serializable(
-      std::pair<std::string, const serializable&>("item", Item));
+      std::pair<std::string, const serializable&>("item", item));
 }
 
 oarchive& scheme_builder::save_serializable(
-    const std::pair<std::string, const serializable&>& Item) {
+    const std::pair<std::string, const serializable&>& item) {
 
   std::map<std::string, std::shared_ptr<type_scheme>>& scheme_map =
       get_global_schemes();
 
-  rtti::so_type* so_type_ptr = Item.second.get_object_type();
+  rtti::so_type* so_type_ptr = item.second.get_object_type();
 
   auto itm = scheme_map.find(so_type_ptr->name());
   std::shared_ptr<type_scheme> sch_ptr;
@@ -144,19 +143,19 @@ oarchive& scheme_builder::save_serializable(
 
     field_stack.push(ser_sch_ptr);
 
-    Item.second.save(*this, so_type_ptr->version());
+    item.second.save(*this, so_type_ptr->version());
 
     field_stack.pop();
   } else {
     sch_ptr = itm->second;
   }
 
-  field_stack.top()->add_field(Item.first, sch_ptr);
+  field_stack.top()->add_field(item.first, sch_ptr);
   return *this;
 }
 
 template <typename T>
-void scheme_builder::save_primitive(const std::string& aName) {
+void scheme_builder::save_primitive(const std::string& name) {
 
   std::map<std::string, std::shared_ptr<type_scheme>>& scheme_map =
       get_global_schemes();
@@ -171,7 +170,7 @@ void scheme_builder::save_primitive(const std::string& aName) {
     sch_ptr = itm->second;
   }
 
-  field_stack.top()->add_field(aName, sch_ptr);
+  field_stack.top()->add_field(name, sch_ptr);
 }
 
 oarchive& scheme_builder::save_char(char i) {
@@ -254,9 +253,9 @@ oarchive& scheme_builder::save_string(
   return *this;
 }
 
-void scheme_builder::signal_polymorphic_field(const std::string& aBaseTypeName,
-                                              const std::uint32_t* aTypeID,
-                                              const std::string& aFieldName) {
+void scheme_builder::signal_polymorphic_field(const std::string& base_type_name,
+                                              const std::uint32_t* type_id,
+                                              const std::string& field_name) {
 
   std::map<std::string, std::shared_ptr<type_scheme>>& scheme_map =
       get_global_schemes();
@@ -265,26 +264,26 @@ void scheme_builder::signal_polymorphic_field(const std::string& aBaseTypeName,
   constexpr auto tname =
       rtti::get_type_id<serializable_shared_pointer>::type_name;
   std::string ptr_type_name = std::string(tname);
-  ptr_type_name += "<" + aBaseTypeName + ">";
+  ptr_type_name += "<" + base_type_name + ">";
   auto itm = scheme_map.find(ptr_type_name);
   std::shared_ptr<type_scheme> sch_ptr;
   if (itm == scheme_map.end()) {
     constexpr auto iname = rtti::get_type_id<std::uint32_t>::type_name;
-    auto objID_itm = scheme_map.find(std::string(iname));
-    std::shared_ptr<type_scheme> objID_sch;
-    if (objID_itm == scheme_map.end()) {
-      objID_sch = std::make_shared<primitive_scheme<std::size_t>>();
-      scheme_map[std::string(iname)] = objID_sch;
+    auto obj_id_itm = scheme_map.find(std::string(iname));
+    std::shared_ptr<type_scheme> obj_id_sch;
+    if (obj_id_itm == scheme_map.end()) {
+      obj_id_sch = std::make_shared<primitive_scheme<std::size_t>>();
+      scheme_map[std::string(iname)] = obj_id_sch;
     } else {
-      objID_sch = objID_itm->second;
+      obj_id_sch = obj_id_itm->second;
     }
 
     rtti::so_type* so_type_sptr =
-        rtti::so_type_repo::get_instance().find_type(aTypeID);
+        rtti::so_type_repo::get_instance().find_type(type_id);
     if (so_type_sptr != nullptr) {
       auto ser_sch_ptr = std::make_shared<serializable_ptr_scheme>(
           so_type_sptr->name(), so_type_sptr->id_begin(),
-          so_type_sptr->version(), objID_sch);
+          so_type_sptr->version(), obj_id_sch);
       scheme_map[ptr_type_name] = ser_sch_ptr;
       sch_ptr = ser_sch_ptr;
 
@@ -307,21 +306,20 @@ void scheme_builder::signal_polymorphic_field(const std::string& aBaseTypeName,
   }
 
   // add the field to the current list (top of stack).
-  field_stack.top()->add_field(aFieldName, sch_ptr);
+  field_stack.top()->add_field(field_name, sch_ptr);
 }
 
-void scheme_builder::start_repeated_field(const std::string& aTypeName) {
+void scheme_builder::start_repeated_field(const std::string& type_name) {
   field_stack.top()->pop_last_field();  // pop the count field.
-  value_name_stack.push(
-      std::pair<std::string, std::string>("values", aTypeName));
+  value_name_stack.emplace("values", type_name);
   field_stack.push(
       std::make_shared<serializable_obj_scheme>("DummyType", nullptr, 0));
 }
 
-void scheme_builder::start_repeated_field(const std::string& aTypeName,
-                                          const std::string& aName) {
+void scheme_builder::start_repeated_field(const std::string& type_name,
+                                          const std::string& name) {
   field_stack.top()->pop_last_field();  // pop the count field.
-  value_name_stack.push(std::pair<std::string, std::string>(aName, aTypeName));
+  value_name_stack.emplace(name, type_name);
   field_stack.push(
       std::make_shared<serializable_obj_scheme>("DummyType", nullptr, 0));
 }
@@ -349,21 +347,21 @@ void scheme_builder::finish_repeated_field() {
   value_name_stack.pop();
 }
 
-void scheme_builder::start_repeated_pair(const std::string& aTypeName1,
-                                         const std::string& aTypeName2) {
+void scheme_builder::start_repeated_pair(const std::string& type_name_1,
+                                         const std::string& type_name_2) {
   field_stack.top()->pop_last_field();  // pop the count field.
-  value_name_stack.push(std::pair<std::string, std::string>("map", aTypeName1));
-  value_name_stack.push(std::pair<std::string, std::string>("map", aTypeName2));
+  value_name_stack.emplace("map", type_name_1);
+  value_name_stack.emplace("map", type_name_2);
   field_stack.push(
       std::make_shared<serializable_obj_scheme>("DummyType", nullptr, 0));
 }
 
-void scheme_builder::start_repeated_pair(const std::string& aTypeName1,
-                                         const std::string& aTypeName2,
-                                         const std::string& aName) {
+void scheme_builder::start_repeated_pair(const std::string& type_name_1,
+                                         const std::string& type_name_2,
+                                         const std::string& name) {
   field_stack.top()->pop_last_field();  // pop the count field.
-  value_name_stack.push(std::pair<std::string, std::string>(aName, aTypeName1));
-  value_name_stack.push(std::pair<std::string, std::string>(aName, aTypeName2));
+  value_name_stack.emplace(name, type_name_1);
+  value_name_stack.emplace(name, type_name_2);
   field_stack.push(
       std::make_shared<serializable_obj_scheme>("DummyType", nullptr, 0));
 }
