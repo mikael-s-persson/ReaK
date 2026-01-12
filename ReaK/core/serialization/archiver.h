@@ -1003,8 +1003,7 @@ class oarchive : public archive {
   virtual oarchive& save_int(std::int64_t i) = 0;
 
   /// Saving an integer value with a name.
-  virtual oarchive& save_int(
-      const std::pair<std::string, std::int64_t>& i) = 0;
+  virtual oarchive& save_int(const std::pair<std::string, std::int64_t>& i) = 0;
 
   /// Saving an unsigned integer value.
   virtual oarchive& save_unsigned_int(std::uint64_t u) = 0;

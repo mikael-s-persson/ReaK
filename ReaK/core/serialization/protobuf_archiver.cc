@@ -1104,7 +1104,8 @@ oarchive& protobuf_schemer::save_unsigned_char(
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required uint32 " << u.first << " = " << chunk_hdr << ";\n";
+  *file_stream << "  required uint32 " << u.first << " = " << chunk_hdr
+               << ";\n";
   field_IDs.top() += 1;
   return *this;
 }
@@ -1136,7 +1137,8 @@ oarchive& protobuf_schemer::save_unsigned_int(
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required uint32 " << u.first << " = " << chunk_hdr << ";\n";
+  *file_stream << "  required uint32 " << u.first << " = " << chunk_hdr
+               << ";\n";
   field_IDs.top() += 1;
   return *this;
 }
@@ -1165,7 +1167,8 @@ oarchive& protobuf_schemer::save_double(
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required double " << d.first << " = " << chunk_hdr << ";\n";
+  *file_stream << "  required double " << d.first << " = " << chunk_hdr
+               << ";\n";
   field_IDs.top() += 1;
   return *this;
 }
@@ -1195,7 +1198,8 @@ oarchive& protobuf_schemer::save_string(
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required string " << s.first << " = " << chunk_hdr << ";\n";
+  *file_stream << "  required string " << s.first << " = " << chunk_hdr
+               << ";\n";
   field_IDs.top() += 1;
   return *this;
 }

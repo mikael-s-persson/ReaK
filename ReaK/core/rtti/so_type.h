@@ -184,8 +184,9 @@ struct get_type_info<U<T...>, Tail> {
 
 template <std::uint32_t U, typename Tail>
 struct get_type_info<std::integral_constant<std::uint32_t, U>, Tail> {
-  using type = so_type_details::type_id<std::integral_constant<std::uint32_t, U>,
-                                        typename Tail::type>;
+  using type =
+      so_type_details::type_id<std::integral_constant<std::uint32_t, U>,
+                               typename Tail::type>;
   static constexpr auto type_name = ct_concat_v<
       get_type_id<std::integral_constant<std::uint32_t, U>>::type_name,
       get_type_name_tail<Tail>::value>;
@@ -235,7 +236,8 @@ class so_type {
  protected:
   so_type() = default;
 
-  static bool compare_equal(const std::uint32_t* pid1, const std::uint32_t* pid2);
+  static bool compare_equal(const std::uint32_t* pid1,
+                            const std::uint32_t* pid2);
 
  public:
   /// This function adds a Descendant of this.

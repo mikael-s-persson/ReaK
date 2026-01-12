@@ -59,9 +59,9 @@ TEST(EndianConversionTests, AllCases) {
   // Tests for other-endian systems:
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunreachable-code"
-  constexpr auto other_en = (std::endian::native == std::endian::little
-                                 ? std::endian::big
-                                 : std::endian::little);
+  constexpr auto other_en =
+      (std::endian::native == std::endian::little ? std::endian::big
+                                                  : std::endian::little);
 #pragma GCC diagnostic pop
 
   // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)

@@ -101,9 +101,9 @@ struct star_neighborhood {
       return;
     }
     const std::size_t log_N = std::bit_width(N);
-    find_neighbors(
-        p, output_first, g, free_space, position, 4 * log_N,
-        gamma_value * pow(log_N / static_cast<double>(N), 1.0 / c_space_dimensions));
+    find_neighbors(p, output_first, g, free_space, position, 4 * log_N,
+                   gamma_value * pow(log_N / static_cast<double>(N),
+                                     1.0 / c_space_dimensions));
   }
 
   /**
@@ -138,9 +138,10 @@ struct star_neighborhood {
       return;
     }
     const std::size_t log_N = std::bit_width(N);
-    find_neighbors(
-        p, pred_first, succ_first, g, free_space, position, 4 * log_N,
-        gamma_value * pow(log_N / static_cast<double>(N), 1.0 / c_space_dimensions));
+    find_neighbors(p, pred_first, succ_first, g, free_space, position,
+                   4 * log_N,
+                   gamma_value * pow(log_N / static_cast<double>(N),
+                                     1.0 / c_space_dimensions));
   }
 };
 

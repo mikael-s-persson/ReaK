@@ -182,7 +182,8 @@ std::string::iterator xml_field_editor::mark_field(
   return it_prev;
 }
 
-std::uint64_t xml_field_editor::get_field_index(const std::string& aName) const {
+std::uint64_t xml_field_editor::get_field_index(
+    const std::string& aName) const {
   for (std::uint64_t i = 0; i < src_markers.size(); ++i) {
     if (aName == field_names[i]) {
       return i;

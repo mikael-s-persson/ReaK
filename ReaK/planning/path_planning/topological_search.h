@@ -496,8 +496,8 @@ struct linear_neighbor_search_base {
     auto u_rg = vertices(g);
     return *(min_dist_linear_search(
         u_rg.begin(), u_rg.end(),
-        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
-            &p, &space, position),
+        topological_search_details::linear_neighbor_search_distance_functor<
+            Space, PositionMap>(&p, &space, position),
         m_compare, std::numeric_limits<double>::infinity()));
   }
 
@@ -529,8 +529,8 @@ struct linear_neighbor_search_base {
     auto u_rg = vertices(g);
     return min_dist_linear_search(
         u_rg.begin(), u_rg.end(), output_first,
-        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
-            &p, &space, position),
+        topological_search_details::linear_neighbor_search_distance_functor<
+            Space, PositionMap>(&p, &space, position),
         m_compare, max_neighbors, radius);
   }
 
@@ -551,8 +551,8 @@ struct linear_neighbor_search_base {
                          const Space& space, PositionMap position) const {
     return min_dist_linear_search(
         first, last,
-        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
-            &p, &space, position),
+        topological_search_details::linear_neighbor_search_distance_functor<
+            Space, PositionMap>(&p, &space, position),
         m_compare, std::numeric_limits<double>::infinity());
   }
 
@@ -585,8 +585,8 @@ struct linear_neighbor_search_base {
       double radius = std::numeric_limits<double>::infinity()) const {
     return min_dist_linear_search(
         first, last, output_first,
-        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
-            &p, &space, position),
+        topological_search_details::linear_neighbor_search_distance_functor<
+            Space, PositionMap>(&p, &space, position),
         m_compare, max_neighbors, radius);
   }
 };
@@ -691,8 +691,8 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
     auto u_rg = vertices(g);
     return min_dist_linear_search(
         p, u_rg.begin(), u_rg.end(), pred_first, succ_first,
-        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
-            &p, &space, position),
+        topological_search_details::linear_neighbor_search_distance_functor<
+            Space, PositionMap>(&p, &space, position),
         m_compare, max_neighbors, radius);
   }
 
@@ -727,8 +727,8 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
       double radius = std::numeric_limits<double>::infinity()) const {
     return min_dist_linear_search(
         p, first, last, pred_first, succ_first,
-        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
-            &p, &space, position),
+        topological_search_details::linear_neighbor_search_distance_functor<
+            Space, PositionMap>(&p, &space, position),
         m_compare, max_neighbors, radius);
   }
 };
@@ -856,10 +856,10 @@ struct best_only_neighbor_search {
     */
   template <bagl::concepts::VertexListGraph Graph, MetricSpace Space,
             typename PositionMap>
-  requires bagl::concepts::IncidenceGraph<Graph>
-      bagl::graph_vertex_descriptor_t<Graph> operator()(
-          const bagl::property_traits_value_t<PositionMap>& p, Graph& g,
-          const Space& space, PositionMap position) {
+    requires bagl::concepts::IncidenceGraph<Graph>
+  bagl::graph_vertex_descriptor_t<Graph> operator()(
+      const bagl::property_traits_value_t<PositionMap>& p, Graph& g,
+      const Space& space, PositionMap position) {
     using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
     if (m_vertex_num_divider == 0) {
       m_vertex_num_divider = 1;
@@ -928,11 +928,12 @@ struct best_only_neighbor_search {
     */
   template <bagl::concepts::VertexListGraph Graph, MetricSpace Space,
             typename PositionMap, typename OutputIterator>
-  requires bagl::concepts::IncidenceGraph<Graph> OutputIterator
-  operator()(const bagl::property_traits_value_t<PositionMap>& p,
-             OutputIterator output_first, Graph& g, const Space& space,
-             PositionMap position, std::size_t max_neighbors = 1,
-             double radius = std::numeric_limits<double>::infinity()) {
+    requires bagl::concepts::IncidenceGraph<Graph>
+  OutputIterator operator()(
+      const bagl::property_traits_value_t<PositionMap>& p,
+      OutputIterator output_first, Graph& g, const Space& space,
+      PositionMap position, std::size_t max_neighbors = 1,
+      double radius = std::numeric_limits<double>::infinity()) {
     using Vertex = bagl::graph_vertex_descriptor_t<Graph>;
     const auto p_compare = [&](const auto& lhs, const auto& rhs) {
       return m_compare(lhs.first, rhs.first);

@@ -268,7 +268,7 @@ iarchive& xml_iarchive::load_serializable_ptr(
 
     xml_iarchive a(
         ext_filename);  // if this throws, let it propagate up (no point catching and throwing).
-    a& Item;
+    a & Item;
 
     return *this;
   };
@@ -545,7 +545,8 @@ oarchive& xml_oarchive::saveToNewArchiveNamed_impl(
       ++type_ID;
     };
     (*file_stream) << "0\" version=\"" << hdr.type_version << "\" object_ID=\""
-                   << hdr.object_ID << R"(" is_external="true">)" << "\n";
+                   << hdr.object_ID << R"(" is_external="true">)"
+                   << "\n";
   } else {
     already_saved = true;
 
@@ -563,7 +564,7 @@ oarchive& xml_oarchive::saveToNewArchiveNamed_impl(
     tabulation--;
 
     xml_oarchive a(FileName);
-    a& Item;
+    a & Item;
   };
 
   addTabulations();
@@ -608,7 +609,8 @@ oarchive& xml_oarchive::save_serializable_ptr(
       ++type_ID;
     };
     (*file_stream) << "0\" version=\"" << hdr.type_version << "\" object_ID=\""
-                   << hdr.object_ID << R"(" is_external="false">)" << "\n";
+                   << hdr.object_ID << R"(" is_external="false">)"
+                   << "\n";
   } else {
     already_saved = true;
 
@@ -687,8 +689,7 @@ oarchive& xml_oarchive::save_unsigned_char(
 };
 
 oarchive& xml_oarchive::save_int(std::int64_t i) {
-  return xml_oarchive::save_int(
-      std::pair<std::string, std::int64_t>("int", i));
+  return xml_oarchive::save_int(std::pair<std::string, std::int64_t>("int", i));
 };
 
 oarchive& xml_oarchive::save_int(

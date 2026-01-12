@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+  - repo: local
+    hooks:
+      - id: clang-format
+        name: clang-format
+        description: 'Format C++ (clang-format)'
+        language: script
+        types_or: [c++, c, cuda]
+        entry: bazel-ReaK/external/toolchains_llvm++llvm+llvm_toolchain_llvm/bin/clang-format
+        args: ["-i", "-style=file"]

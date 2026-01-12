@@ -98,9 +98,9 @@ struct adaptive_star_nbhd {
       gamma_value =
           3.0 * find_neighbors.get_characteristic_size(g, free_space, position);
     }
-    find_neighbors(
-        p, output_first, g, free_space, position, 4 * log_N,
-        gamma_value * pow(log_N / static_cast<double>(N), 1.0 / c_space_dimensions));
+    find_neighbors(p, output_first, g, free_space, position, 4 * log_N,
+                   gamma_value * pow(log_N / static_cast<double>(N),
+                                     1.0 / c_space_dimensions));
   }
 
   /**
@@ -140,9 +140,10 @@ struct adaptive_star_nbhd {
       gamma_value =
           3.0 * find_neighbors.get_characteristic_size(g, free_space, position);
     }
-    find_neighbors(
-        p, pred_first, succ_first, g, free_space, position, 4 * log_N,
-        gamma_value * pow(log_N / static_cast<double>(N), 1.0 / c_space_dimensions));
+    find_neighbors(p, pred_first, succ_first, g, free_space, position,
+                   4 * log_N,
+                   gamma_value * pow(log_N / static_cast<double>(N),
+                                     1.0 / c_space_dimensions));
   }
 };
 

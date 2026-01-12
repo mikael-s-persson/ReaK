@@ -32,8 +32,8 @@
 #ifndef REAK_CORE_BASE_ENDIAN_CONVERSIONS_H_
 #define REAK_CORE_BASE_ENDIAN_CONVERSIONS_H_
 
-#include <cstdint>
 #include <bit>
+#include <cstdint>
 #include <cstring>
 #include <type_traits>
 
@@ -44,9 +44,15 @@ namespace ReaK {
 #define RK_BSWAP_U16(X) _byteswap_ushort(X)
 #define RK_BSWAP_U32(X) _byteswap_ulong(X)
 #define RK_BSWAP_U64(X) _byteswap_uint64(X)
-#define RK_BSWAP_I16(X) std::bit_cast<const std::int16_t>(_byteswap_ushort(std::bit_cast<const std::uint16_t>(X)))
-#define RK_BSWAP_I32(X) std::bit_cast<const std::int32_t>(_byteswap_ulong(std::bit_cast<const std::uint32_t>(X)))
-#define RK_BSWAP_I64(X) std::bit_cast<const std::int64_t>(_byteswap_uint64(std::bit_cast<const std::uint64_t>(X)))
+#define RK_BSWAP_I16(X)              \
+  std::bit_cast<const std::int16_t>( \
+      _byteswap_ushort(std::bit_cast<const std::uint16_t>(X)))
+#define RK_BSWAP_I32(X)              \
+  std::bit_cast<const std::int32_t>( \
+      _byteswap_ulong(std::bit_cast<const std::uint32_t>(X)))
+#define RK_BSWAP_I64(X)              \
+  std::bit_cast<const std::int64_t>( \
+      _byteswap_uint64(std::bit_cast<const std::uint64_t>(X)))
 #else
 #define RK_BSWAP_U16(X) __builtin_bswap16(X)
 #define RK_BSWAP_U32(X) __builtin_bswap32(X)
@@ -85,7 +91,9 @@ void to_endian(T& v) {
         static_assert(sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8);
       }
     } else {
-      using U = std::conditional_t<sizeof(T) == 2, std::uint16_t, std::conditional_t<sizeof(T) == 4, std::uint32_t, std::uint64_t>>;
+      using U = std::conditional_t<
+          sizeof(T) == 2, std::uint16_t,
+          std::conditional_t<sizeof(T) == 4, std::uint32_t, std::uint64_t>>;
       U u{};
       static_assert(sizeof(u) == sizeof(T));
       std::memcpy(&u, &v, sizeof(u));
