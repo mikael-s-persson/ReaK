@@ -23,6 +23,7 @@
 
 #include "ReaK/core/serialization/protobuf_archiver.h"
 
+#include "ReaK/core/base/endian_conversions.h"
 #include "ReaK/core/base/shared_object.h"
 #include "ReaK/core/rtti/rtti.h"
 
@@ -35,58 +36,6 @@
 #include <string>
 
 namespace ReaK::serialization {
-
-namespace {
-
-union float_to_ulong {
-  float f;
-  std::uint32_t ui32;
-};
-
-union double_to_ulong {
-  double d;
-  std::uint64_t ui64;
-  std::uint32_t ui32[2];  // NOLINT
-};
-
-union llong_to_ulong {
-  std::int64_t i64;
-  std::uint64_t ui64;
-  std::uint32_t ui32[2];  // NOLINT
-};
-
-union ulong_to_uword {
-  std::uint32_t ui32;
-  std::uint16_t ui16[2];  // NOLINT
-  std::uint8_t ui8[4];    // NOLINT
-};
-
-void le2h_1ui32(std::uint32_t& value) {
-  if constexpr (std::endian::native == std::endian::big) {
-    ulong_to_uword tmp;
-    tmp.ui32 = value;
-    std::uint8_t tmp_b = tmp.ui8[0];
-    tmp.ui8[0] = tmp.ui8[3];
-    tmp.ui8[3] = tmp_b;
-    tmp_b = tmp.ui8[1];
-    tmp.ui8[1] = tmp.ui8[2];
-    tmp.ui8[2] = tmp_b;
-    value = tmp.ui32;
-  }
-}
-
-template <typename UnionT>
-void le2h_2ui32(UnionT& value) {
-  if constexpr (std::endian::native == std::endian::big) {
-    le2h_1ui32(value.ui32[0]);
-    le2h_1ui32(value.ui32[1]);
-    std::uint32_t tmp = value.ui32[0];
-    value.ui32[0] = value.ui32[1];
-    value.ui32[1] = tmp;
-  }
-}
-
-}  // namespace
 
 static const char* bad_stream_msg =
     "Protobuf archive could not be loaded due to an unexpected failure or bad "
@@ -109,7 +58,7 @@ protobuf_iarchive::protobuf_iarchive(const std::string& FileName) {
 
   std::string header;
   protobuf_iarchive::load_string(header);
-  std::size_t version = 0;
+  std::uint64_t version = 0;
   protobuf_iarchive::load_unsigned_int(version);
 
   if (!(header == "reak_serialization::protobuf_archive")) {
@@ -126,7 +75,7 @@ protobuf_iarchive::protobuf_iarchive(std::istream& stream) {
 
   std::string header;
   protobuf_iarchive::load_string(header);
-  std::size_t version = 0;
+  std::uint64_t version = 0;
   protobuf_iarchive::load_unsigned_int(version);
 
   if (!(header == "reak_serialization::protobuf_archive")) {
@@ -145,7 +94,7 @@ iarchive& protobuf_iarchive::load_serializable_ptr(
   archive_object_header hdr;
   Item = serializable_shared_pointer();
 
-  std::size_t chunk_hdr = 0;
+  std::uint64_t chunk_hdr = 0;
   protobuf_iarchive::load_varint(chunk_hdr);
   if ((chunk_hdr & 0x07) != 2) {
     std::streampos current_pos = file_stream->tellg();
@@ -269,7 +218,7 @@ iarchive& protobuf_iarchive::load_serializable_ptr(
 iarchive& protobuf_iarchive::load_serializable(serializable& Item) {
   archive_object_header hdr;
 
-  std::size_t chunk_hdr = 0;
+  std::uint64_t chunk_hdr = 0;
   protobuf_iarchive::load_varint(chunk_hdr);
   if ((chunk_hdr & 0x07) != 2) {
     std::streampos current_pos = file_stream->tellg();
@@ -314,7 +263,7 @@ iarchive& protobuf_iarchive::load_serializable(
 }
 
 iarchive& protobuf_iarchive::load_char(char& i) {
-  std::ptrdiff_t il = 0;
+  std::int64_t il = 0;
   protobuf_iarchive::load_int(il);
   i = static_cast<char>(il);
   return *this;
@@ -325,7 +274,7 @@ iarchive& protobuf_iarchive::load_char(const std::pair<std::string, char&>& i) {
 }
 
 iarchive& protobuf_iarchive::load_unsigned_char(unsigned char& u) {
-  std::size_t ul = 0;
+  std::uint64_t ul = 0;
   protobuf_iarchive::load_unsigned_int(ul);
   u = static_cast<unsigned char>(ul);
   return *this;
@@ -336,19 +285,19 @@ iarchive& protobuf_iarchive::load_unsigned_char(
   return protobuf_iarchive::load_unsigned_char(u.second);
 }
 
-iarchive& protobuf_iarchive::load_int(std::ptrdiff_t& i) {
-  std::size_t u = 0;
+iarchive& protobuf_iarchive::load_int(std::int64_t& i) {
+  std::uint64_t u = 0;
   protobuf_iarchive::load_unsigned_int(u);
-  i = (u >> 1) ^ (-static_cast<std::ptrdiff_t>(u & 1));
+  i = (u >> 1) ^ (-static_cast<std::int64_t>(u & 1));
   return *this;
 }
 
 iarchive& protobuf_iarchive::load_int(
-    const std::pair<std::string, std::ptrdiff_t&>& i) {
+    const std::pair<std::string, std::int64_t&>& i) {
   return protobuf_iarchive::load_int(i.second);
 }
 
-void protobuf_iarchive::load_varint(std::size_t& u) {
+void protobuf_iarchive::load_varint(std::uint64_t& u) {
   u = 0;
   std::uint8_t tmp = 0;
   if (!file_stream->read(reinterpret_cast<char*>(&tmp), 1)) {
@@ -365,8 +314,8 @@ void protobuf_iarchive::load_varint(std::size_t& u) {
   }
 }
 
-iarchive& protobuf_iarchive::load_unsigned_int(std::size_t& u) {
-  std::size_t chunk_hdr = 0;
+iarchive& protobuf_iarchive::load_unsigned_int(std::uint64_t& u) {
+  std::uint64_t chunk_hdr = 0;
   protobuf_iarchive::load_varint(chunk_hdr);
   if ((chunk_hdr & 0x07) != 0) {
     std::streampos current_pos = file_stream->tellg();
@@ -386,12 +335,12 @@ iarchive& protobuf_iarchive::load_unsigned_int(std::size_t& u) {
 }
 
 iarchive& protobuf_iarchive::load_unsigned_int(
-    const std::pair<std::string, std::size_t&>& u) {
+    const std::pair<std::string, std::uint64_t&>& u) {
   return protobuf_iarchive::load_unsigned_int(u.second);
 }
 
 iarchive& protobuf_iarchive::load_float(float& f) {
-  std::size_t chunk_hdr = 0;
+  std::uint64_t chunk_hdr = 0;
   protobuf_iarchive::load_varint(chunk_hdr);
   if ((chunk_hdr & 0x07) != 5) {
     std::streampos current_pos = file_stream->tellg();
@@ -405,12 +354,10 @@ iarchive& protobuf_iarchive::load_float(float& f) {
        << (current_pos - start_pos) << ".";
     throw std::ios_base::failure(ss.str());
   }
-  float_to_ulong tmp;
-  if (!file_stream->read(reinterpret_cast<char*>(&tmp), sizeof(float))) {
+  if (!file_stream->read(reinterpret_cast<char*>(&f), sizeof(float))) {
     throw std::ios_base::failure(unexpected_eof_msg);
   }
-  le2h_1ui32(tmp.ui32);
-  f = tmp.f;
+  from_endian<std::endian::little>(f);
   return *this;
 }
 
@@ -420,7 +367,7 @@ iarchive& protobuf_iarchive::load_float(
 }
 
 iarchive& protobuf_iarchive::load_double(double& d) {
-  std::size_t chunk_hdr = 0;
+  std::uint64_t chunk_hdr = 0;
   protobuf_iarchive::load_varint(chunk_hdr);
   if ((chunk_hdr & 0x07) != 1) {
     std::streampos current_pos = file_stream->tellg();
@@ -434,12 +381,10 @@ iarchive& protobuf_iarchive::load_double(double& d) {
        << (current_pos - start_pos) << ".";
     throw std::ios_base::failure(ss.str());
   }
-  double_to_ulong tmp;
-  if (!file_stream->read(reinterpret_cast<char*>(&tmp), sizeof(double))) {
+  if (!file_stream->read(reinterpret_cast<char*>(&d), sizeof(double))) {
     throw std::ios_base::failure(unexpected_eof_msg);
   }
-  le2h_2ui32(tmp);
-  d = tmp.d;
+  from_endian<std::endian::little>(d);
   return *this;
 }
 
@@ -449,7 +394,7 @@ iarchive& protobuf_iarchive::load_double(
 }
 
 iarchive& protobuf_iarchive::load_bool(bool& b) {
-  std::size_t chunk_hdr = 0;
+  std::uint64_t chunk_hdr = 0;
   protobuf_iarchive::load_varint(chunk_hdr);
   if ((chunk_hdr & 0x07) != 0) {
     std::streampos current_pos = file_stream->tellg();
@@ -476,7 +421,7 @@ iarchive& protobuf_iarchive::load_bool(const std::pair<std::string, bool&>& b) {
 }
 
 iarchive& protobuf_iarchive::load_string(std::string& s) {
-  std::size_t chunk_hdr = 0;
+  std::uint64_t chunk_hdr = 0;
   protobuf_iarchive::load_varint(chunk_hdr);
   if ((chunk_hdr & 0x07) != 2) {
     std::streampos current_pos = file_stream->tellg();
@@ -490,7 +435,7 @@ iarchive& protobuf_iarchive::load_string(std::string& s) {
        << (current_pos - start_pos) << ".";
     throw std::ios_base::failure(ss.str());
   }
-  std::size_t u = 0;
+  std::uint64_t u = 0;
   protobuf_iarchive::load_varint(u);
   s.resize(u);
   if (!file_stream->read(s.data(), u)) {
@@ -513,7 +458,7 @@ protobuf_oarchive::protobuf_oarchive(const std::string& FileName) {
 
   std::string header = "reak_serialization::protobuf_archive";
   protobuf_oarchive::save_string(header);
-  std::size_t version = 2;
+  std::uint64_t version = 2;
   protobuf_oarchive::save_unsigned_int(version);
 }
 
@@ -525,7 +470,7 @@ protobuf_oarchive::protobuf_oarchive(std::ostream& stream) {
 
   std::string header = "reak_serialization::protobuf_archive";
   protobuf_oarchive::save_string(header);
-  std::size_t version = 2;
+  std::uint64_t version = 2;
   protobuf_oarchive::save_unsigned_int(version);
 }
 
@@ -533,7 +478,7 @@ protobuf_oarchive::~protobuf_oarchive() = default;
 
 oarchive& protobuf_oarchive::saveToNewArchive_impl(
     const serializable_shared_pointer& Item, const std::string& FileName) {
-  std::size_t chunk_hdr =
+  std::uint64_t chunk_hdr =
       (field_IDs.top() << 3) | 2;  // wire-type 2: length-delimited.
   if ((repeat_state.top() & 0x02) != 0U) {
     if ((repeat_state.top() & 0x04) != 0U) {
@@ -603,7 +548,7 @@ oarchive& protobuf_oarchive::saveToNewArchive_impl(
   repeat_state.pop();
 
   str_stream->seekp(0, std::ios::end);
-  hdr.size = static_cast<std::size_t>(str_stream->tellp());
+  hdr.size = static_cast<std::uint64_t>(str_stream->tellp());
   str_stream->clear();
 
   protobuf_oarchive::save_varint(hdr.size);
@@ -626,7 +571,7 @@ oarchive& protobuf_oarchive::saveToNewArchiveNamed_impl(
 
 oarchive& protobuf_oarchive::save_serializable_ptr(
     const serializable_shared_pointer& Item) {
-  std::size_t chunk_hdr =
+  std::uint64_t chunk_hdr =
       (field_IDs.top() << 3) | 2;  // wire-type 2: length-delimited.
   if ((repeat_state.top() & 0x02) != 0U) {
     if ((repeat_state.top() & 0x04) != 0U) {
@@ -693,7 +638,7 @@ oarchive& protobuf_oarchive::save_serializable_ptr(
   repeat_state.pop();
 
   str_stream->seekp(0, std::ios::end);
-  hdr.size = static_cast<std::size_t>(str_stream->tellp());
+  hdr.size = static_cast<std::uint64_t>(str_stream->tellp());
   str_stream->clear();
 
   protobuf_oarchive::save_varint(hdr.size);
@@ -714,7 +659,7 @@ oarchive& protobuf_oarchive::save_serializable_ptr(
 }
 
 oarchive& protobuf_oarchive::save_serializable(const serializable& Item) {
-  std::size_t chunk_hdr =
+  std::uint64_t chunk_hdr =
       (field_IDs.top() << 3) | 2;  // wire-type 2: length-delimited.
   if ((repeat_state.top() & 0x02) != 0U) {
     if ((repeat_state.top() & 0x04) != 0U) {
@@ -757,7 +702,7 @@ oarchive& protobuf_oarchive::save_serializable(const serializable& Item) {
   repeat_state.pop();
 
   str_stream->seekp(0, std::ios::end);
-  hdr.size = static_cast<std::size_t>(str_stream->tellp());
+  hdr.size = static_cast<std::uint64_t>(str_stream->tellp());
   str_stream->clear();
 
   protobuf_oarchive::save_varint(hdr.size);
@@ -794,18 +739,18 @@ oarchive& protobuf_oarchive::save_unsigned_char(
   return protobuf_oarchive::save_unsigned_char(u.second);
 }
 
-oarchive& protobuf_oarchive::save_int(std::ptrdiff_t i) {
+oarchive& protobuf_oarchive::save_int(std::int64_t i) {
   protobuf_oarchive::save_unsigned_int((i << 1) ^
-                                       (i >> (sizeof(std::ptrdiff_t) * 8 - 1)));
+                                       (i >> (sizeof(std::int64_t) * 8 - 1)));
   return *this;
 }
 
 oarchive& protobuf_oarchive::save_int(
-    const std::pair<std::string, std::ptrdiff_t>& i) {
+    const std::pair<std::string, std::int64_t>& i) {
   return protobuf_oarchive::save_int(i.second);
 }
 
-void protobuf_oarchive::save_varint(std::size_t u) {
+void protobuf_oarchive::save_varint(std::uint64_t u) {
   std::array<std::uint8_t, 10> buf = {
       0, 0, 0, 0, 0,
       0, 0, 0, 0, 0};  // 80-bits, supports at most a 64-bit varint.
@@ -824,8 +769,8 @@ void protobuf_oarchive::save_varint(std::size_t u) {
   }
 }
 
-oarchive& protobuf_oarchive::save_unsigned_int(std::size_t u) {
-  std::size_t chunk_hdr = (field_IDs.top() << 3);  // wire-type 0: varint.
+oarchive& protobuf_oarchive::save_unsigned_int(std::uint64_t u) {
+  std::uint64_t chunk_hdr = (field_IDs.top() << 3);  // wire-type 0: varint.
   if ((repeat_state.top() & 0x02) != 0U) {
     if ((repeat_state.top() & 0x04) != 0U) {
       chunk_hdr += 8;
@@ -841,12 +786,12 @@ oarchive& protobuf_oarchive::save_unsigned_int(std::size_t u) {
 }
 
 oarchive& protobuf_oarchive::save_unsigned_int(
-    const std::pair<std::string, std::size_t>& u) {
+    const std::pair<std::string, std::uint64_t>& u) {
   return protobuf_oarchive::save_unsigned_int(u.second);
 }
 
 oarchive& protobuf_oarchive::save_float(float f) {
-  std::size_t chunk_hdr = (field_IDs.top() << 3) | 5;  // wire-type 5: 32-bit.
+  std::uint64_t chunk_hdr = (field_IDs.top() << 3) | 5;  // wire-type 5: 32-bit.
   if ((repeat_state.top() & 0x02) != 0U) {
     if ((repeat_state.top() & 0x04) != 0U) {
       chunk_hdr += 8;
@@ -854,10 +799,8 @@ oarchive& protobuf_oarchive::save_float(float f) {
     repeat_state.top() ^= 0x04;
   }
   protobuf_oarchive::save_varint(chunk_hdr);
-  float_to_ulong tmp = {f};
-  le2h_1ui32(tmp.ui32);
-  if (!file_stream->write(reinterpret_cast<char*>(&tmp),
-                          sizeof(float_to_ulong))) {
+  to_endian<std::endian::little>(f);
+  if (!file_stream->write(reinterpret_cast<char*>(&f), sizeof(float))) {
     throw std::ios_base::failure(bad_out_stream_msg);
   }
   if (repeat_state.top() == 0U) {
@@ -872,7 +815,7 @@ oarchive& protobuf_oarchive::save_float(
 }
 
 oarchive& protobuf_oarchive::save_double(double d) {
-  std::size_t chunk_hdr = (field_IDs.top() << 3) | 1;  // wire-type 1: 64-bit.
+  std::uint64_t chunk_hdr = (field_IDs.top() << 3) | 1;  // wire-type 1: 64-bit.
   if ((repeat_state.top() & 0x02) != 0U) {
     if ((repeat_state.top() & 0x04) != 0U) {
       chunk_hdr += 8;
@@ -880,10 +823,8 @@ oarchive& protobuf_oarchive::save_double(double d) {
     repeat_state.top() ^= 0x04;
   }
   protobuf_oarchive::save_varint(chunk_hdr);
-  double_to_ulong tmp = {d};
-  le2h_2ui32(tmp);
-  if (!file_stream->write(reinterpret_cast<char*>(&tmp),
-                          sizeof(double_to_ulong))) {
+  to_endian<std::endian::little>(d);
+  if (!file_stream->write(reinterpret_cast<char*>(&d), sizeof(double))) {
     throw std::ios_base::failure(bad_out_stream_msg);
   }
   if (repeat_state.top() == 0U) {
@@ -898,7 +839,7 @@ oarchive& protobuf_oarchive::save_double(
 }
 
 oarchive& protobuf_oarchive::save_bool(bool b) {
-  std::size_t chunk_hdr = (field_IDs.top() << 3);  // wire-type 0: varint.
+  std::uint64_t chunk_hdr = (field_IDs.top() << 3);  // wire-type 0: varint.
   if ((repeat_state.top() & 0x02) != 0U) {
     if ((repeat_state.top() & 0x04) != 0U) {
       chunk_hdr += 8;
@@ -924,7 +865,7 @@ oarchive& protobuf_oarchive::save_bool(const std::pair<std::string, bool>& b) {
 }
 
 oarchive& protobuf_oarchive::save_string(const std::string& s) {
-  std::size_t chunk_hdr =
+  std::uint64_t chunk_hdr =
       (field_IDs.top() << 3) | 2;  // wire-type 2: length-delimited.
   if ((repeat_state.top() & 0x02) != 0U) {
     if ((repeat_state.top() & 0x04) != 0U) {
@@ -933,7 +874,7 @@ oarchive& protobuf_oarchive::save_string(const std::string& s) {
     repeat_state.top() ^= 0x04;
   }
   protobuf_oarchive::save_varint(chunk_hdr);
-  std::size_t u = s.length();
+  std::uint64_t u = s.length();
   protobuf_oarchive::save_varint(u);
   if (!file_stream->write(s.data(), s.length())) {
     throw std::ios_base::failure(bad_out_stream_msg);
@@ -991,12 +932,12 @@ protobuf_schemer::~protobuf_schemer() = default;
 
 void protobuf_schemer::print_schemes(std::ostream& stream) {
   for (auto& scheme : schemes) {
-    stream << scheme << std::endl << std::endl;
+    stream << scheme << "\n\n";
   }
 }
 
-std::size_t protobuf_schemer::get_chunk_hdr() {
-  std::size_t chunk_hdr = 0;
+std::uint64_t protobuf_schemer::get_chunk_hdr() {
+  std::uint64_t chunk_hdr = 0;
   if ((repeat_state.top() & 0x08) != 0U) {
     return ~chunk_hdr;
   }
@@ -1030,7 +971,7 @@ oarchive& protobuf_schemer::save_serializable_ptr(
     return *this;
   }
 
-  std::size_t chunk_hdr = get_chunk_hdr();
+  std::uint64_t chunk_hdr = get_chunk_hdr();
 
   constexpr auto tname =
       rtti::get_type_id<serializable_shared_pointer>::type_name;
@@ -1047,17 +988,17 @@ oarchive& protobuf_schemer::save_serializable_ptr(
     field_IDs.push(4);
     repeat_state.push(0);
 
-    *file_stream << "message " << aObjTypeName << " {" << std::endl
-                 << "  repeated uint32 type_ID = 0;" << std::endl
-                 << "  required uint32 version = 1;" << std::endl
-                 << "  required luid32 object_ID = 2;" << std::endl
-                 << "  required bool is_external = 3;" << std::endl;
+    *file_stream << "message " << aObjTypeName << " {\n"
+                 << "  repeated uint32 type_ID = 0;\n"
+                 << "  required uint32 version = 1;\n"
+                 << "  required luid32 object_ID = 2;\n"
+                 << "  required bool is_external = 3;\n";
 
     mObjRegistry.push_back(Item.second);
     mObjRegMap[Item.second] = mObjRegistry.size() - 1;
 
     Item.second->save(*this, Item.second->get_object_type()->version());
-    *file_stream << "}" << std::endl;
+    *file_stream << "}\n";
 
     file_stream = tmp_str_ptr;
     field_IDs.pop();
@@ -1080,7 +1021,7 @@ oarchive& protobuf_schemer::save_serializable_ptr(
   }
 
   *file_stream << "  required " << aObjTypeName << " " << Item.first << " = "
-               << chunk_hdr << ";" << std::endl;
+               << chunk_hdr << ";\n";
 
   field_IDs.top() += 1;
 
@@ -1094,7 +1035,7 @@ oarchive& protobuf_schemer::save_serializable(const serializable& Item) {
 
 oarchive& protobuf_schemer::save_serializable(
     const std::pair<std::string, const serializable&>& Item) {
-  std::size_t chunk_hdr = get_chunk_hdr();
+  std::uint64_t chunk_hdr = get_chunk_hdr();
 
   std::shared_ptr<std::ostream> tmp_str_ptr = file_stream;
 
@@ -1103,14 +1044,13 @@ oarchive& protobuf_schemer::save_serializable(
   field_IDs.push(2);
   repeat_state.push(0);
 
-  *file_stream << "message " << Item.second.get_object_type()->name() << " {"
-               << std::endl
-               << "  repeated uint32 type_ID = 0;" << std::endl
-               << "  required uint32 version = 1;" << std::endl;
+  *file_stream << "message " << Item.second.get_object_type()->name() << " {\n"
+               << "  repeated uint32 type_ID = 0;\n"
+               << "  required uint32 version = 1;\n";
 
   Item.second.save(*this, Item.second.get_object_type()->version());
 
-  *file_stream << "}" << std::endl;
+  *file_stream << "}\n";
 
   file_stream = tmp_str_ptr;
   field_IDs.pop();
@@ -1132,7 +1072,7 @@ oarchive& protobuf_schemer::save_serializable(
   }
 
   *file_stream << "  required " << Item.second.get_object_type()->name() << " "
-               << Item.first << " = " << chunk_hdr << ";" << std::endl;
+               << Item.first << " = " << chunk_hdr << ";\n";
 
   field_IDs.top() += 1;
 
@@ -1144,12 +1084,11 @@ oarchive& protobuf_schemer::save_char(char i) {
 }
 
 oarchive& protobuf_schemer::save_char(const std::pair<std::string, char>& i) {
-  std::size_t chunk_hdr = get_chunk_hdr();
+  std::uint64_t chunk_hdr = get_chunk_hdr();
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required int32 " << i.first << " = " << chunk_hdr << ";"
-               << std::endl;
+  *file_stream << "  required int32 " << i.first << " = " << chunk_hdr << ";\n";
   field_IDs.top() += 1;
   return *this;
 }
@@ -1161,46 +1100,43 @@ oarchive& protobuf_schemer::save_unsigned_char(unsigned char u) {
 
 oarchive& protobuf_schemer::save_unsigned_char(
     const std::pair<std::string, unsigned char>& u) {
-  std::size_t chunk_hdr = get_chunk_hdr();
+  std::uint64_t chunk_hdr = get_chunk_hdr();
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required uint32 " << u.first << " = " << chunk_hdr << ";"
-               << std::endl;
+  *file_stream << "  required uint32 " << u.first << " = " << chunk_hdr << ";\n";
   field_IDs.top() += 1;
   return *this;
 }
 
-oarchive& protobuf_schemer::save_int(std::ptrdiff_t i) {
+oarchive& protobuf_schemer::save_int(std::int64_t i) {
   return protobuf_schemer::save_int(
-      std::pair<std::string, std::ptrdiff_t>("i", i));
+      std::pair<std::string, std::int64_t>("i", i));
 }
 
 oarchive& protobuf_schemer::save_int(
-    const std::pair<std::string, std::ptrdiff_t>& i) {
-  std::size_t chunk_hdr = get_chunk_hdr();
+    const std::pair<std::string, std::int64_t>& i) {
+  std::uint64_t chunk_hdr = get_chunk_hdr();
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required int32 " << i.first << " = " << chunk_hdr << ";"
-               << std::endl;
+  *file_stream << "  required int32 " << i.first << " = " << chunk_hdr << ";\n";
   field_IDs.top() += 1;
   return *this;
 }
 
-oarchive& protobuf_schemer::save_unsigned_int(std::size_t u) {
+oarchive& protobuf_schemer::save_unsigned_int(std::uint64_t u) {
   return protobuf_schemer::save_unsigned_int(
-      std::pair<std::string, std::size_t>("u", u));
+      std::pair<std::string, std::uint64_t>("u", u));
 }
 
 oarchive& protobuf_schemer::save_unsigned_int(
-    const std::pair<std::string, std::size_t>& u) {
-  std::size_t chunk_hdr = get_chunk_hdr();
+    const std::pair<std::string, std::uint64_t>& u) {
+  std::uint64_t chunk_hdr = get_chunk_hdr();
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required uint32 " << u.first << " = " << chunk_hdr << ";"
-               << std::endl;
+  *file_stream << "  required uint32 " << u.first << " = " << chunk_hdr << ";\n";
   field_IDs.top() += 1;
   return *this;
 }
@@ -1210,12 +1146,11 @@ oarchive& protobuf_schemer::save_float(float f) {
 }
 
 oarchive& protobuf_schemer::save_float(const std::pair<std::string, float>& f) {
-  std::size_t chunk_hdr = get_chunk_hdr();
+  std::uint64_t chunk_hdr = get_chunk_hdr();
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required float " << f.first << " = " << chunk_hdr << ";"
-               << std::endl;
+  *file_stream << "  required float " << f.first << " = " << chunk_hdr << ";\n";
   field_IDs.top() += 1;
   return *this;
 }
@@ -1226,12 +1161,11 @@ oarchive& protobuf_schemer::save_double(double d) {
 
 oarchive& protobuf_schemer::save_double(
     const std::pair<std::string, double>& d) {
-  std::size_t chunk_hdr = get_chunk_hdr();
+  std::uint64_t chunk_hdr = get_chunk_hdr();
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required double " << d.first << " = " << chunk_hdr << ";"
-               << std::endl;
+  *file_stream << "  required double " << d.first << " = " << chunk_hdr << ";\n";
   field_IDs.top() += 1;
   return *this;
 }
@@ -1241,12 +1175,11 @@ oarchive& protobuf_schemer::save_bool(bool b) {
 }
 
 oarchive& protobuf_schemer::save_bool(const std::pair<std::string, bool>& b) {
-  std::size_t chunk_hdr = get_chunk_hdr();
+  std::uint64_t chunk_hdr = get_chunk_hdr();
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required bool " << b.first << " = " << chunk_hdr << ";"
-               << std::endl;
+  *file_stream << "  required bool " << b.first << " = " << chunk_hdr << ";\n";
   field_IDs.top() += 1;
   return *this;
 }
@@ -1258,12 +1191,11 @@ oarchive& protobuf_schemer::save_string(const std::string& s) {
 
 oarchive& protobuf_schemer::save_string(
     const std::pair<std::string, const std::string&>& s) {
-  std::size_t chunk_hdr = get_chunk_hdr();
+  std::uint64_t chunk_hdr = get_chunk_hdr();
   if (~chunk_hdr == 0) {
     return *this;
   }
-  *file_stream << "  required string " << s.first << " = " << chunk_hdr << ";"
-               << std::endl;
+  *file_stream << "  required string " << s.first << " = " << chunk_hdr << ";\n";
   field_IDs.top() += 1;
   return *this;
 }
@@ -1271,14 +1203,14 @@ oarchive& protobuf_schemer::save_string(
 void protobuf_schemer::start_repeated_field(const std::string& aTypeName) {
   repeat_state.push(9);
   *file_stream << "  repeated " << aTypeName << " value = " << field_IDs.top()
-               << ";" << std::endl;
+               << ";\n";
 }
 
 void protobuf_schemer::start_repeated_field(const std::string& aTypeName,
                                             const std::string& aName) {
   repeat_state.push(9);
   *file_stream << "  repeated " << aTypeName << " " << aName << " = "
-               << field_IDs.top() << ";" << std::endl;
+               << field_IDs.top() << ";\n";
 }
 
 void protobuf_schemer::finish_repeated_field() {
@@ -1290,9 +1222,9 @@ void protobuf_schemer::start_repeated_pair(const std::string& aTypeName1,
                                            const std::string& aTypeName2) {
   repeat_state.push(11);
   *file_stream << "  repeated " << aTypeName1
-               << " map_key = " << field_IDs.top() << ";" << std::endl
+               << " map_key = " << field_IDs.top() << ";\n"
                << "  repeated " << aTypeName2
-               << " map_value = " << (field_IDs.top() + 1) << ";" << std::endl;
+               << " map_value = " << (field_IDs.top() + 1) << ";\n";
 }
 
 void protobuf_schemer::start_repeated_pair(const std::string& aTypeName1,
@@ -1300,9 +1232,9 @@ void protobuf_schemer::start_repeated_pair(const std::string& aTypeName1,
                                            const std::string& aName) {
   repeat_state.push(11);
   *file_stream << "  repeated " << aTypeName1 << " " << aName
-               << "_key = " << field_IDs.top() << ";" << std::endl
+               << "_key = " << field_IDs.top() << ";\n"
                << "  repeated " << aTypeName2 << " " << aName
-               << "_value = " << (field_IDs.top() + 1) << ";" << std::endl;
+               << "_value = " << (field_IDs.top() + 1) << ";\n";
 }
 
 void protobuf_schemer::finish_repeated_pair() {

@@ -62,7 +62,7 @@ class so_type_repo {
   void merge(so_type_repo* repo);
 
   /// This function finds a id in the descendants (recusively) of this.
-  so_type* find_type(const unsigned int* id) const;
+  so_type* find_type(const std::uint32_t* id) const;
 
   /// This function finds a type in the descendants (recusively) of this.
   so_type* find_type(so_type* tp) const;

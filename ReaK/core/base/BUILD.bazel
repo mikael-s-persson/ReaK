@@ -43,7 +43,6 @@ cc_library(
     srcs = [],
     hdrs = [
         "global_rng.h",
-        "misc_math.h",
         "named_object.h",
         "scope_guard.h",
         "shared_object.h",

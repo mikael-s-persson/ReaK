@@ -30,8 +30,8 @@
 
 namespace ReaK::rtti {
 
-static unsigned int* create_dummy_so_type_id(const unsigned int* id) {
-  using SizeType = unsigned int;
+static std::uint32_t* create_dummy_so_type_id(const std::uint32_t* id) {
+  using SizeType = std::uint32_t;
   SizeType id_length = 0;
   while ((id != nullptr) && (id[id_length] != 0)) {
     ++id_length;
@@ -55,8 +55,8 @@ class so_type_impl : public so_type {
       return false;
     }
 
-    const unsigned int* pid1 = t1->type_id;
-    const unsigned int* pid2 = t2->type_id;
+    const std::uint32_t* pid1 = t1->type_id;
+    const std::uint32_t* pid2 = t2->type_id;
     while (((*pid1) != 0U) && ((*pid2) != 0U)) {
       if (*pid1 < *pid2) {
         return true;
@@ -72,8 +72,8 @@ class so_type_impl : public so_type {
 
   using compare_ptr_t = bool (*)(so_type_impl*, so_type_impl*);
 
-  unsigned int type_version;
-  unsigned int* type_id;
+  std::uint32_t type_version;
+  std::uint32_t* type_id;
   std::string type_name;
   construct_ptr construct;
 
@@ -82,7 +82,7 @@ class so_type_impl : public so_type {
 
   using iter = std::set<so_type_impl*, compare_ptr_t>::iterator;
 
-  so_type_impl(unsigned int a_version, unsigned int* a_id,
+  so_type_impl(std::uint32_t a_version, std::uint32_t* a_id,
                std::string_view a_name, construct_ptr a_construct)
       : type_version(a_version),
         type_id(a_id),
@@ -94,7 +94,7 @@ class so_type_impl : public so_type {
   ~so_type_impl() { delete[] type_id; }
 
   /// This function finds a TypeID in the descendants (recusively) of this.
-  so_type_impl* find_descendant_impl(const unsigned int* id) {
+  so_type_impl* find_descendant_impl(const std::uint32_t* id) {
     if (compare_equal(id, this->type_id)) {
       return this;
     }
@@ -103,7 +103,7 @@ class so_type_impl : public so_type {
       return nullptr;
     }
 
-    unsigned int* d_type_id = create_dummy_so_type_id(id);
+    std::uint32_t* d_type_id = create_dummy_so_type_id(id);
     so_type_impl d(0, d_type_id, "Root", nullptr);
     auto it = descendants.lower_bound(&d);
 
@@ -122,12 +122,12 @@ class so_type_impl : public so_type {
   }
 
   /// This function gets the number of direct descendants of this.
-  [[nodiscard]] unsigned int get_descendant_count_impl() const {
-    return static_cast<unsigned int>(descendants.size());
+  [[nodiscard]] std::uint32_t get_descendant_count_impl() const {
+    return static_cast<std::uint32_t>(descendants.size());
   }
 
   /// This function gets a Type record by index in the direct descendants of this.
-  [[nodiscard]] so_type_impl* get_descendant_impl(unsigned int aIndex) const {
+  [[nodiscard]] so_type_impl* get_descendant_impl(std::uint32_t aIndex) const {
     if (aIndex >= descendants.size()) {
       return nullptr;
     }
@@ -138,7 +138,7 @@ class so_type_impl : public so_type {
   }
 
   /// This function checks if a typeID is parent to this.
-  so_type_impl* find_ancestor_impl(const unsigned int* id) {
+  so_type_impl* find_ancestor_impl(const std::uint32_t* id) {
     if (compare_equal(id, this->type_id)) {
       return this;
     }
@@ -147,7 +147,7 @@ class so_type_impl : public so_type {
       return nullptr;
     }
 
-    unsigned int* d_type_id = create_dummy_so_type_id(id);
+    std::uint32_t* d_type_id = create_dummy_so_type_id(id);
     so_type_impl d(0, d_type_id, "Root", nullptr);
     auto it = ancestors.lower_bound(&d);
 
@@ -238,14 +238,14 @@ class so_type_impl : public so_type {
   }
 };
 
-so_type* so_type::create_type_info(unsigned int a_version, unsigned int* a_id,
+so_type* so_type::create_type_info(std::uint32_t a_version, std::uint32_t* a_id,
                                    std::string_view a_name,
                                    construct_ptr a_construct) {
   return new so_type_impl(a_version, a_id, a_name, a_construct);
 }
 
-so_type_ptr create_dummy_so_type(const unsigned int* id) {
-  using SizeType = unsigned int;
+so_type_ptr create_dummy_so_type(const std::uint32_t* id) {
+  using SizeType = std::uint32_t;
   SizeType id_length = 0;
   while ((id != nullptr) && (id[id_length] != 0)) {
     ++id_length;
@@ -263,14 +263,14 @@ so_type_ptr::~so_type_ptr() {
   delete static_cast<so_type_impl*>(ptr);
 }
 
-unsigned int* so_type::create_type_id(unsigned int id_length) {
-  using SizeType = unsigned int;
+std::uint32_t* so_type::create_type_id(std::uint32_t id_length) {
+  using SizeType = std::uint32_t;
   // this is just to ensure that new / delete are in same TU
   return new SizeType[id_length];
 }
 
-bool so_type::compare_equal(const unsigned int* pid1,
-                            const unsigned int* pid2) {
+bool so_type::compare_equal(const std::uint32_t* pid1,
+                            const std::uint32_t* pid2) {
   while (((*pid1) != 0U) && ((*pid2) != 0U)) {
     if (*pid1 != *pid2) {
       return false;
@@ -293,7 +293,7 @@ so_type* so_type::add_ancestor(so_type* tp) {
 }
 
 /// This function finds a TypeID in the descendants (recusively) of this.
-so_type* so_type::find_descendant(const unsigned int* id) {
+so_type* so_type::find_descendant(const std::uint32_t* id) {
   return static_cast<so_type_impl*>(this)->find_descendant_impl(id);
 }
 
@@ -303,17 +303,17 @@ so_type* so_type::find_descendant(so_type* tp) {
 }
 
 /// This function gets the number of direct descendants of this.
-unsigned int so_type::get_direct_descendant_count() {
+std::uint32_t so_type::get_direct_descendant_count() {
   return static_cast<so_type_impl*>(this)->get_descendant_count_impl();
 }
 
 /// This function gets a type record by index in the direct descendants of this.
-so_type* so_type::get_direct_descendant(unsigned int id) {
+so_type* so_type::get_direct_descendant(std::uint32_t id) {
   return static_cast<so_type_impl*>(this)->get_descendant_impl(id);
 }
 
 /// This function checks if a typeID is parent to this.
-so_type* so_type::find_ancestor(const unsigned int* id) {
+so_type* so_type::find_ancestor(const std::uint32_t* id) {
   return static_cast<so_type_impl*>(this)->find_ancestor_impl(id);
 }
 
@@ -328,11 +328,11 @@ void so_type::insert_to_repo(so_type* repo) {
       static_cast<so_type_impl*>(repo));
 }
 
-const unsigned int* so_type::id_begin() const {
+const std::uint32_t* so_type::id_begin() const {
   return static_cast<const so_type_impl*>(this)->type_id;
 }
 
-unsigned int so_type::version() const {
+std::uint32_t so_type::version() const {
   return static_cast<const so_type_impl*>(this)->type_version;
 }
 

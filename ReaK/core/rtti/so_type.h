@@ -35,6 +35,7 @@
 
 #include "ReaK/core/base/cnst_string.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -55,7 +56,7 @@ using construct_ptr = std::shared_ptr<shared_object> (*)();
 // this is really the only thing that the class needs to define
 template <typename T>
 struct get_type_id {
-  static constexpr unsigned int id = T::rk_rtti_type_id;
+  static constexpr std::uint32_t id = T::rk_rtti_type_id;
   static constexpr auto type_name = T::rk_rtti_type_name;
 
   static construct_ptr create_ptr() noexcept { return T::rk_rtti_create_ptr(); }
@@ -68,9 +69,9 @@ static constexpr auto lsl_left_bracket = std::string_view{"<"};
 static constexpr auto lsl_right_bracket = std::string_view{">"};
 static constexpr auto lsl_comma = std::string_view{","};
 
-template <unsigned int U>
-struct get_type_id<std::integral_constant<unsigned int, U>> {
-  static constexpr unsigned int id = U;
+template <std::uint32_t U>
+struct get_type_id<std::integral_constant<std::uint32_t, U>> {
+  static constexpr std::uint32_t id = U;
   static constexpr auto type_name = ct_itoa_v<id>;
 
   static construct_ptr create_ptr() noexcept { return nullptr; }
@@ -78,27 +79,27 @@ struct get_type_id<std::integral_constant<unsigned int, U>> {
 
 template <>
 struct get_type_id<std::true_type> {
-  static constexpr unsigned int id = 2;
+  static constexpr std::uint32_t id = 2;
   static constexpr auto type_name = std::string_view{"true"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
 
 template <>
 struct get_type_id<std::false_type> {
-  static constexpr unsigned int id = 1;
+  static constexpr std::uint32_t id = 1;
   static constexpr auto type_name = std::string_view{"false"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
 
-template <int I>
-struct get_type_id<std::integral_constant<int, I>> {
-  static constexpr unsigned int id = I;
+template <std::int32_t I>
+struct get_type_id<std::integral_constant<std::int32_t, I>> {
+  static constexpr std::uint32_t id = I;
   static constexpr auto type_name = ct_itoa_v<id>;
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
 
 struct null_type_id {
-  static constexpr unsigned int id = 0;
+  static constexpr std::uint32_t id = 0;
 };
 
 struct null_type_info {
@@ -108,7 +109,7 @@ struct null_type_info {
 
 template <>
 struct get_type_id<null_type_info> {
-  static constexpr unsigned int id = 0;
+  static constexpr std::uint32_t id = 0;
   static constexpr std::string_view type_name = {};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -118,7 +119,7 @@ namespace so_type_details {
 template <typename T, typename Tail = null_type_id>
 struct type_id {
   using tail = Tail;
-  static constexpr unsigned int id = ::ReaK::rtti::get_type_id<T>::id;
+  static constexpr std::uint32_t id = ::ReaK::rtti::get_type_id<T>::id;
 };
 
 }  // namespace so_type_details
@@ -181,12 +182,12 @@ struct get_type_info<U<T...>, Tail> {
                   lsl_right_bracket, get_type_name_tail<Tail>::value>;
 };
 
-template <unsigned int U, typename Tail>
-struct get_type_info<std::integral_constant<unsigned int, U>, Tail> {
-  using type = so_type_details::type_id<std::integral_constant<unsigned int, U>,
+template <std::uint32_t U, typename Tail>
+struct get_type_info<std::integral_constant<std::uint32_t, U>, Tail> {
+  using type = so_type_details::type_id<std::integral_constant<std::uint32_t, U>,
                                         typename Tail::type>;
   static constexpr auto type_name = ct_concat_v<
-      get_type_id<std::integral_constant<unsigned int, U>>::type_name,
+      get_type_id<std::integral_constant<std::uint32_t, U>>::type_name,
       get_type_name_tail<Tail>::value>;
 };
 
@@ -225,16 +226,16 @@ class so_type {
   so_type(const so_type&) = delete;
   so_type& operator=(const so_type&) = delete;
 
-  static so_type* create_type_info(unsigned int a_version, unsigned int* a_id,
+  static so_type* create_type_info(std::uint32_t a_version, std::uint32_t* a_id,
                                    std::string_view a_name,
                                    construct_ptr a_construct);
 
-  static unsigned int* create_type_id(unsigned int a_id_length);
+  static std::uint32_t* create_type_id(std::uint32_t a_id_length);
 
  protected:
   so_type() = default;
 
-  static bool compare_equal(const unsigned int* pid1, const unsigned int* pid2);
+  static bool compare_equal(const std::uint32_t* pid1, const std::uint32_t* pid2);
 
  public:
   /// This function adds a Descendant of this.
@@ -243,16 +244,16 @@ class so_type {
   so_type* add_ancestor(so_type* tp);
 
   /// This function finds a TypeID in the descendants (recusively) of this.
-  so_type* find_descendant(const unsigned int* id);
+  so_type* find_descendant(const std::uint32_t* id);
 
   /// This function gets the number of direct descendants of this.
-  unsigned int get_direct_descendant_count();
+  std::uint32_t get_direct_descendant_count();
 
   /// This function gets a type record by index in the direct descendants of this.
-  so_type* get_direct_descendant(unsigned int id);
+  so_type* get_direct_descendant(std::uint32_t id);
 
   /// This function checks if a typeID is parent to this.
-  so_type* find_ancestor(const unsigned int* id);
+  so_type* find_ancestor(const std::uint32_t* id);
 
   /// This function finds a TypeID in the descendants (recusively) of this.
   so_type* find_descendant(so_type* tp);
@@ -263,9 +264,9 @@ class so_type {
   /// This function inserts this into a global repo.
   void insert_to_repo(so_type* repo);
 
-  [[nodiscard]] const unsigned int* id_begin() const;
+  [[nodiscard]] const std::uint32_t* id_begin() const;
 
-  [[nodiscard]] unsigned int version() const;
+  [[nodiscard]] std::uint32_t version() const;
 
   [[nodiscard]] const std::string& name() const;
 
@@ -295,15 +296,15 @@ struct get_type_id_prop;
 
 template <>
 struct get_type_id_prop<null_type_id> {
-  static constexpr unsigned int count = 1;
-  static unsigned int at(unsigned int /*unused*/) { return 0; }
+  static constexpr std::uint32_t count = 1;
+  static std::uint32_t at(std::uint32_t /*unused*/) { return 0; }
 };
 
 template <typename T>
 struct get_type_id_prop {
-  static constexpr unsigned int count =
+  static constexpr std::uint32_t count =
       get_type_id_prop<typename T::tail>::count + 1;
-  static unsigned int at(unsigned int i) {
+  static std::uint32_t at(std::uint32_t i) {
     if (i == 0) {
       return T::id;
     }
@@ -312,8 +313,8 @@ struct get_type_id_prop {
 };
 
 template <typename T>
-so_type_ptr create_type_descriptor(unsigned int version = 1) {
-  using SizeType = unsigned int;
+so_type_ptr create_type_descriptor(std::uint32_t version = 1) {
+  using SizeType = std::uint32_t;
   const SizeType id_length =
       get_type_id_prop<typename get_type_info<T>::type>::count;
   SizeType* id = so_type::create_type_id(id_length);
@@ -327,7 +328,7 @@ so_type_ptr create_type_descriptor(unsigned int version = 1) {
 
 }  // namespace so_type_details
 
-so_type_ptr create_dummy_so_type(const unsigned int* id);
+so_type_ptr create_dummy_so_type(const std::uint32_t* id);
 
 }  // namespace rtti
 }  // namespace ReaK

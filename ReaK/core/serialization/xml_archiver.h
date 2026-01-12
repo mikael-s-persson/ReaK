@@ -57,7 +57,7 @@ class xml_iarchive : public iarchive {
   static void trimStr(std::string& s);
   bool readNamedValue(const std::string& value_name, std::string& value_str);
   archive_object_header readHeader(const std::string& obj_name,
-                                   std::vector<unsigned int>& outTypeID);
+                                   std::vector<std::uint32_t>& outTypeID);
 
  protected:
   iarchive& load_serializable_ptr(serializable_shared_pointer& Item) override;
@@ -80,14 +80,14 @@ class xml_iarchive : public iarchive {
   iarchive& load_unsigned_char(
       const std::pair<std::string, unsigned char&>& u) override;
 
-  iarchive& load_int(std::ptrdiff_t& i) override;
+  iarchive& load_int(std::int64_t& i) override;
 
-  iarchive& load_int(const std::pair<std::string, std::ptrdiff_t&>& i) override;
+  iarchive& load_int(const std::pair<std::string, std::int64_t&>& i) override;
 
-  iarchive& load_unsigned_int(std::size_t& u) override;
+  iarchive& load_unsigned_int(std::uint64_t& u) override;
 
   iarchive& load_unsigned_int(
-      const std::pair<std::string, std::size_t&>& u) override;
+      const std::pair<std::string, std::uint64_t&>& u) override;
 
   iarchive& load_float(float& f) override;
 
@@ -150,14 +150,14 @@ class xml_oarchive : public oarchive {
   oarchive& save_unsigned_char(
       const std::pair<std::string, unsigned char>& u) override;
 
-  oarchive& save_int(std::ptrdiff_t i) override;
+  oarchive& save_int(std::int64_t i) override;
 
-  oarchive& save_int(const std::pair<std::string, std::ptrdiff_t>& i) override;
+  oarchive& save_int(const std::pair<std::string, std::int64_t>& i) override;
 
-  oarchive& save_unsigned_int(std::size_t u) override;
+  oarchive& save_unsigned_int(std::uint64_t u) override;
 
   oarchive& save_unsigned_int(
-      const std::pair<std::string, std::size_t>& u) override;
+      const std::pair<std::string, std::uint64_t>& u) override;
 
   oarchive& save_float(float f) override;
 

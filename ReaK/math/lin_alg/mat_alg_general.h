@@ -129,7 +129,7 @@ template <typename T, mat_structure::tag Structure,
           mat_alignment::tag Alignment, unsigned int RowCount,
           unsigned int ColCount>
 struct get_type_id<mat<T, Structure, Alignment, RowCount, ColCount>> {
-  static constexpr unsigned int id = 0x00000012;
+  static constexpr std::uint32_t id = 0x00000012;
   static constexpr auto type_name = std::string_view{"mat"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 

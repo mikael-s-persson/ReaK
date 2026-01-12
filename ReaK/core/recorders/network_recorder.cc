@@ -43,10 +43,8 @@ class network_server_impl {
                          unsigned int col_count) {
     std::ostream s_tmp(&row_buf);
     for (std::size_t i = 0; i < col_count; ++i) {
-      double_to_ulong tmp;
-      tmp.d = values_rm.front();
-      hton_2ui32(tmp);
-      s_tmp.write(reinterpret_cast<char*>(&tmp), sizeof(double));
+      hton_any(values_rm.front());
+      s_tmp.write(reinterpret_cast<char*>(&values_rm.front()), sizeof(double));
       values_rm.pop();
     }
     write_row_buffer();
@@ -58,9 +56,10 @@ class network_server_impl {
       ss << " " << name;
     }
     std::string data_str = ss.str();
-    uint32_t data_len = htonl(static_cast<std::uint32_t>(data_str.size()));
+    auto data_len = static_cast<std::uint32_t>(data_str.size());
+    hton_any(data_len);
     std::ostream s_tmp(&row_buf);
-    s_tmp.write(reinterpret_cast<char*>(&data_len), sizeof(uint32_t));
+    s_tmp.write(reinterpret_cast<char*>(&data_len), sizeof(std::uint32_t));
     write_row_buffer();  // <-- this was done in original UDP server.
     s_tmp.write(data_str.c_str(), data_str.size());
     write_row_buffer();
@@ -91,23 +90,23 @@ class network_client_impl {
     }
     std::istream s_tmp(&row_buf);
     for (std::size_t i = 0; (i < col_count) && (s_tmp); ++i) {
-      double_to_ulong tmp;
+      double tmp;
       s_tmp.read(reinterpret_cast<char*>(&tmp), sizeof(double));
-      ntoh_2ui32(tmp);
-      values_rm.push(tmp.d);
+      ntoh_any(tmp);
+      values_rm.push(tmp);
     }
     return true;
   }
 
   virtual void read_names(std::vector<std::string>& names) {
     names.clear();
-    uint32_t data_len = 0;
+    std::uint32_t data_len = 0;
     {
       while (read_row_buffer(sizeof(uint32_t)) ==
              (std::numeric_limits<std::size_t>::max)()) {}
       std::istream s_tmp(&row_buf);
-      s_tmp.read(reinterpret_cast<char*>(&data_len), sizeof(uint32_t));
-      data_len = ntohl(data_len);
+      s_tmp.read(reinterpret_cast<char*>(&data_len), sizeof(std::uint32_t));
+      ntoh_any(data_len);
     }
     while (read_row_buffer(data_len) ==
            (std::numeric_limits<std::size_t>::max)()) {}

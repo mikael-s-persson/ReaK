@@ -56,8 +56,6 @@
 #include "ReaK/planning/path_planning/path_planner_options.h"
 #include "ReaK/planning/path_planning/planning_visitors.h"
 
-#include "ReaK/core/base/misc_math.h"
-
 #include <stack>
 
 namespace ReaK::pp {

@@ -111,7 +111,7 @@ namespace rtti {
 template <>
 struct get_type_id<
     std::integral_constant<mat_alignment::tag, mat_alignment::column_major>> {
-  static constexpr unsigned int id = 1;
+  static constexpr std::uint32_t id = 1;
   static constexpr auto type_name = std::string_view{"column_major"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -119,7 +119,7 @@ struct get_type_id<
 template <>
 struct get_type_id<
     std::integral_constant<mat_alignment::tag, mat_alignment::row_major>> {
-  static constexpr unsigned int id = 2;
+  static constexpr std::uint32_t id = 2;
   static constexpr auto type_name = std::string_view{"row_major"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -137,7 +137,7 @@ struct get_type_info<std::integral_constant<mat_alignment::tag, U>, Tail> {
 template <>
 struct get_type_id<
     std::integral_constant<mat_structure::tag, mat_structure::rectangular>> {
-  static constexpr unsigned int id = 1;
+  static constexpr std::uint32_t id = 1;
   static constexpr auto type_name = std::string_view{"rectangular"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -145,7 +145,7 @@ struct get_type_id<
 template <>
 struct get_type_id<
     std::integral_constant<mat_structure::tag, mat_structure::square>> {
-  static constexpr unsigned int id = 2;
+  static constexpr std::uint32_t id = 2;
   static constexpr auto type_name = std::string_view{"square"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -153,7 +153,7 @@ struct get_type_id<
 template <>
 struct get_type_id<
     std::integral_constant<mat_structure::tag, mat_structure::symmetric>> {
-  static constexpr unsigned int id = 3;
+  static constexpr std::uint32_t id = 3;
   static constexpr auto type_name = std::string_view{"symmetric"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -161,7 +161,7 @@ struct get_type_id<
 template <>
 struct get_type_id<
     std::integral_constant<mat_structure::tag, mat_structure::skew_symmetric>> {
-  static constexpr unsigned int id = 4;
+  static constexpr std::uint32_t id = 4;
   static constexpr auto type_name = std::string_view{"skew_symmetric"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -169,7 +169,7 @@ struct get_type_id<
 template <>
 struct get_type_id<
     std::integral_constant<mat_structure::tag, mat_structure::diagonal>> {
-  static constexpr unsigned int id = 5;
+  static constexpr std::uint32_t id = 5;
   static constexpr auto type_name = std::string_view{"diagonal"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -177,7 +177,7 @@ struct get_type_id<
 template <>
 struct get_type_id<std::integral_constant<mat_structure::tag,
                                           mat_structure::upper_triangular>> {
-  static constexpr unsigned int id = 6;
+  static constexpr std::uint32_t id = 6;
   static constexpr auto type_name = std::string_view{"upper_triangular"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -185,7 +185,7 @@ struct get_type_id<std::integral_constant<mat_structure::tag,
 template <>
 struct get_type_id<std::integral_constant<mat_structure::tag,
                                           mat_structure::lower_triangular>> {
-  static constexpr unsigned int id = 7;
+  static constexpr std::uint32_t id = 7;
   static constexpr auto type_name = std::string_view{"lower_triangular"};
   static construct_ptr create_ptr() { return nullptr; }
 };
@@ -193,7 +193,7 @@ struct get_type_id<std::integral_constant<mat_structure::tag,
 template <>
 struct get_type_id<
     std::integral_constant<mat_structure::tag, mat_structure::orthogonal>> {
-  static constexpr unsigned int id = 8;
+  static constexpr std::uint32_t id = 8;
   static constexpr auto type_name = std::string_view{"orthogonal"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -201,7 +201,7 @@ struct get_type_id<
 template <>
 struct get_type_id<
     std::integral_constant<mat_structure::tag, mat_structure::tridiagonal>> {
-  static constexpr unsigned int id = 9;
+  static constexpr std::uint32_t id = 9;
   static constexpr auto type_name = std::string_view{"tridiagonal"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -209,7 +209,7 @@ struct get_type_id<
 template <>
 struct get_type_id<
     std::integral_constant<mat_structure::tag, mat_structure::nil>> {
-  static constexpr unsigned int id = 10;
+  static constexpr std::uint32_t id = 10;
   static constexpr auto type_name = std::string_view{"nil"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -217,7 +217,7 @@ struct get_type_id<
 template <>
 struct get_type_id<
     std::integral_constant<mat_structure::tag, mat_structure::identity>> {
-  static constexpr unsigned int id = 11;
+  static constexpr std::uint32_t id = 11;
   static constexpr auto type_name = std::string_view{"identity"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -225,7 +225,7 @@ struct get_type_id<
 template <>
 struct get_type_id<
     std::integral_constant<mat_structure::tag, mat_structure::scalar>> {
-  static constexpr unsigned int id = 12;
+  static constexpr std::uint32_t id = 12;
   static constexpr auto type_name = std::string_view{"scalar"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };
@@ -233,7 +233,7 @@ struct get_type_id<
 template <>
 struct get_type_id<
     std::integral_constant<mat_structure::tag, mat_structure::permutation>> {
-  static constexpr unsigned int id = 13;
+  static constexpr std::uint32_t id = 13;
   static constexpr auto type_name = std::string_view{"permutation"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 };

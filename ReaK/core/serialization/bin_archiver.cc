@@ -85,13 +85,13 @@ iarchive& bin_iarchive::load_serializable_ptr(
   std::vector<unsigned int> typeIDvect;
   unsigned int i = 0;
   do {
-    std::size_t tmp_i = 0;
+    std::uint64_t tmp_i = 0;
     bin_iarchive::load_unsigned_int(tmp_i);
     i = static_cast<unsigned int>(tmp_i);
     typeIDvect.push_back(i);
   } while (i != 0);
 
-  std::size_t tmp_tv = 0;
+  std::uint64_t tmp_tv = 0;
   bin_iarchive::load_unsigned_int(tmp_tv);
   hdr.type_version = static_cast<unsigned int>(tmp_tv);
   bin_iarchive::load_unsigned_int(hdr.object_ID);
@@ -214,37 +214,31 @@ iarchive& bin_iarchive::load_unsigned_char(
   return bin_iarchive::load_unsigned_char(u.second);
 }
 
-iarchive& bin_iarchive::load_int(std::ptrdiff_t& i) {
-  llong_to_ulong tmp;
-  file_stream->read(reinterpret_cast<char*>(&tmp), sizeof(llong_to_ulong));
-  ntoh_2ui32(tmp);
-  i = static_cast<std::ptrdiff_t>(tmp.i64);
+iarchive& bin_iarchive::load_int(std::int64_t& i) {
+  file_stream->read(reinterpret_cast<char*>(&i), sizeof(std::int64_t));
+  ntoh_any(i);
   return *this;
 }
 
 iarchive& bin_iarchive::load_int(
-    const std::pair<std::string, std::ptrdiff_t&>& i) {
+    const std::pair<std::string, std::int64_t&>& i) {
   return bin_iarchive::load_int(i.second);
 }
 
-iarchive& bin_iarchive::load_unsigned_int(std::size_t& u) {
-  llong_to_ulong tmp;
-  file_stream->read(reinterpret_cast<char*>(&tmp), sizeof(llong_to_ulong));
-  ntoh_2ui32(tmp);
-  u = static_cast<std::size_t>(tmp.ui64);
+iarchive& bin_iarchive::load_unsigned_int(std::uint64_t& u) {
+  file_stream->read(reinterpret_cast<char*>(&u), sizeof(std::uint64_t));
+  ntoh_any(u);
   return *this;
 }
 
 iarchive& bin_iarchive::load_unsigned_int(
-    const std::pair<std::string, std::size_t&>& u) {
+    const std::pair<std::string, std::uint64_t&>& u) {
   return bin_iarchive::load_unsigned_int(u.second);
 }
 
 iarchive& bin_iarchive::load_float(float& f) {
-  float_to_ulong tmp;
-  file_stream->read(reinterpret_cast<char*>(&tmp), sizeof(float_to_ulong));
-  ntoh_1ui32(tmp);
-  f = tmp.f;
+  file_stream->read(reinterpret_cast<char*>(&f), sizeof(float));
+  ntoh_any(f);
   return *this;
 }
 
@@ -253,10 +247,8 @@ iarchive& bin_iarchive::load_float(const std::pair<std::string, float&>& f) {
 }
 
 iarchive& bin_iarchive::load_double(double& d) {
-  double_to_ulong tmp;
-  file_stream->read(reinterpret_cast<char*>(&tmp), sizeof(double_to_ulong));
-  ntoh_2ui32(tmp);
-  d = tmp.d;
+  file_stream->read(reinterpret_cast<char*>(&d), sizeof(double));
+  ntoh_any(d);
   return *this;
 }
 
@@ -491,36 +483,31 @@ oarchive& bin_oarchive::save_unsigned_char(
   return bin_oarchive::save_unsigned_char(u.second);
 }
 
-oarchive& bin_oarchive::save_int(std::ptrdiff_t i) {
-  llong_to_ulong tmp;
-  tmp.i64 = i;
-  hton_2ui32(tmp);
-  file_stream->write(reinterpret_cast<char*>(&tmp), sizeof(llong_to_ulong));
+oarchive& bin_oarchive::save_int(std::int64_t i) {
+  hton_any(i);
+  file_stream->write(reinterpret_cast<char*>(&i), sizeof(std::int64_t));
   return *this;
 }
 
 oarchive& bin_oarchive::save_int(
-    const std::pair<std::string, std::ptrdiff_t>& i) {
+    const std::pair<std::string, std::int64_t>& i) {
   return bin_oarchive::save_int(i.second);
 }
 
-oarchive& bin_oarchive::save_unsigned_int(std::size_t u) {
-  llong_to_ulong tmp;
-  tmp.ui64 = u;
-  hton_2ui32(tmp);
-  file_stream->write(reinterpret_cast<char*>(&tmp), sizeof(llong_to_ulong));
+oarchive& bin_oarchive::save_unsigned_int(std::uint64_t u) {
+  hton_any(u);
+  file_stream->write(reinterpret_cast<char*>(&u), sizeof(std::uint64_t));
   return *this;
 }
 
 oarchive& bin_oarchive::save_unsigned_int(
-    const std::pair<std::string, std::size_t>& u) {
+    const std::pair<std::string, std::uint64_t>& u) {
   return bin_oarchive::save_unsigned_int(u.second);
 }
 
 oarchive& bin_oarchive::save_float(float f) {
-  float_to_ulong tmp = {f};
-  hton_1ui32(tmp);
-  file_stream->write(reinterpret_cast<char*>(&tmp), sizeof(float_to_ulong));
+  hton_any(f);
+  file_stream->write(reinterpret_cast<char*>(&f), sizeof(float));
   return *this;
 }
 
@@ -529,9 +516,8 @@ oarchive& bin_oarchive::save_float(const std::pair<std::string, float>& f) {
 }
 
 oarchive& bin_oarchive::save_double(double d) {
-  double_to_ulong tmp = {d};
-  hton_2ui32(tmp);
-  file_stream->write(reinterpret_cast<char*>(&tmp), sizeof(double_to_ulong));
+  hton_any(d);
+  file_stream->write(reinterpret_cast<char*>(&d), sizeof(double));
   return *this;
 }
 

@@ -28,7 +28,7 @@
 namespace ReaK::rtti {
 
 so_type_repo& so_type_repo::get_instance() {
-  static const unsigned int t = 0;
+  static const std::uint32_t t = 0;
   static so_type_ptr static_typemap = create_dummy_so_type(&t);
   static so_type_repo rk_shared_obj_type_repo(static_typemap.ptr);
   return rk_shared_obj_type_repo;
@@ -99,7 +99,7 @@ void so_type_repo::merge(so_type_repo* repo) {
 
 /// This function finds a TypeID in the descendants (recusively) of this.
 
-so_type* so_type_repo::find_type(const unsigned int* id) const {
+so_type* so_type_repo::find_type(const std::uint32_t* id) const {
   so_type* result = type_map_->find_descendant(id);
   const so_type_repo* p = this;
   while ((p->next_ != this) && (result == nullptr)) {

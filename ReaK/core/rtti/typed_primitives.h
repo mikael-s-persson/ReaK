@@ -42,7 +42,7 @@ namespace ReaK::rtti {
 
 template <>
 struct get_type_id<std::int32_t> {
-  static constexpr unsigned int id = 0x00000001;
+  static constexpr std::uint32_t id = 0x00000001;
   static constexpr auto type_name = std::string_view{"int"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -52,7 +52,7 @@ struct get_type_id<std::int32_t> {
 
 template <>
 struct get_type_id<std::int64_t> {
-  static constexpr unsigned int id = 0x00000001;
+  static constexpr std::uint32_t id = 0x00000001;
   static constexpr auto type_name = std::string_view{"int"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -62,7 +62,7 @@ struct get_type_id<std::int64_t> {
 
 template <>
 struct get_type_id<std::uint32_t> {
-  static constexpr unsigned int id = 0x00000002;
+  static constexpr std::uint32_t id = 0x00000002;
   static constexpr auto type_name = std::string_view{"unsigned int"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -72,7 +72,7 @@ struct get_type_id<std::uint32_t> {
 
 template <>
 struct get_type_id<std::uint64_t> {
-  static constexpr unsigned int id = 0x00000002;
+  static constexpr std::uint32_t id = 0x00000002;
   static constexpr auto type_name = std::string_view{"unsigned int"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -82,7 +82,7 @@ struct get_type_id<std::uint64_t> {
 
 template <>
 struct get_type_id<char> {
-  static constexpr unsigned int id = 0x00000031;
+  static constexpr std::uint32_t id = 0x00000031;
   static constexpr auto type_name = std::string_view{"char"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -92,7 +92,7 @@ struct get_type_id<char> {
 
 template <>
 struct get_type_id<unsigned char> {
-  static constexpr unsigned int id = 0x00000032;
+  static constexpr std::uint32_t id = 0x00000032;
   static constexpr auto type_name = std::string_view{"unsigned char"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -102,7 +102,7 @@ struct get_type_id<unsigned char> {
 
 template <>
 struct get_type_id<float> {
-  static constexpr unsigned int id = 0x00000003;
+  static constexpr std::uint32_t id = 0x00000003;
   static constexpr auto type_name = std::string_view{"float"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -112,7 +112,7 @@ struct get_type_id<float> {
 
 template <>
 struct get_type_id<double> {
-  static constexpr unsigned int id = 0x00000004;
+  static constexpr std::uint32_t id = 0x00000004;
   static constexpr auto type_name = std::string_view{"double"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -122,7 +122,7 @@ struct get_type_id<double> {
 
 template <>
 struct get_type_id<bool> {
-  static constexpr unsigned int id = 0x00000005;
+  static constexpr std::uint32_t id = 0x00000005;
   static constexpr auto type_name = std::string_view{"bool"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -132,7 +132,7 @@ struct get_type_id<bool> {
 
 template <>
 struct get_type_id<std::string> {
-  static constexpr unsigned int id = 0x00000006;
+  static constexpr std::uint32_t id = 0x00000006;
   static constexpr auto type_name = std::string_view{"string"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -150,7 +150,7 @@ struct get_type_info<std::string, Tail> {
 
 template <typename T>
 struct get_type_id<std::shared_ptr<T>> {
-  static constexpr unsigned int id = get_type_id<T>::id;
+  static constexpr std::uint32_t id = get_type_id<T>::id;
   static constexpr auto type_name = std::string_view{"shared_ptr"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -160,7 +160,7 @@ struct get_type_id<std::shared_ptr<T>> {
 
 template <typename T>
 struct get_type_id<std::weak_ptr<T>> {
-  static constexpr unsigned int id = get_type_id<T>::id;
+  static constexpr std::uint32_t id = get_type_id<T>::id;
   static constexpr auto type_name = std::string_view{"weak_ptr"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 
@@ -170,7 +170,7 @@ struct get_type_id<std::weak_ptr<T>> {
 
 template <typename T>
 struct get_type_id<std::unique_ptr<T>> {
-  static constexpr unsigned int id = get_type_id<T>::id;
+  static constexpr std::uint32_t id = get_type_id<T>::id;
   static constexpr auto type_name = std::string_view{"unique_ptr"};
   static construct_ptr create_ptr() noexcept { return nullptr; }
 

@@ -22,10 +22,14 @@
  */
 
 #include "ReaK/core/base/endian_conversions.h"
+#include <netinet/in.h>
 
 #include <cstdint>
 
 #include "gtest/gtest.h"
+
+namespace ReaK {
+namespace {
 
 union wrap_uint8_t {
   std::uint8_t u;
@@ -51,121 +55,124 @@ union wrap_uint64_t {
   unsigned char c[8];  // NOLINT
 };
 
-namespace ReaK {
-namespace {
-
 TEST(EndianConversionTests, AllCases) {
-  // Tests for little-endian systems:
-  if (1000 != htonl(1000)) {
+  // Tests for other-endian systems:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
+  constexpr auto other_en = (std::endian::native == std::endian::little
+                                 ? std::endian::big
+                                 : std::endian::little);
+#pragma GCC diagnostic pop
 
-    wrap_uint8_t u8;
-    u8.u = 0x0A;
-    hton_any(u8.u);
-    EXPECT_EQ(u8.c[0], 0x0A) << "uint8 conversion to network order failed!";
+  // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
+  wrap_uint8_t v8{};
+  v8.u = 0x0A;
+  to_endian<other_en>(v8.u);
+  EXPECT_EQ(v8.c[0], 0x0A) << "uint8 conversion to other endianness failed!";
 
-    u8.i = 0x0A;
-    hton_any(u8.i);
-    EXPECT_EQ(u8.c[0], 0x0A) << "int8 conversion to network order failed!";
+  v8.i = 0x0A;
+  to_endian<other_en>(v8.i);
+  EXPECT_EQ(v8.c[0], 0x0A) << "int8 conversion to other endianness failed!";
 
-    wrap_uint16_t u16;
-    u16.u = 0x0A0B;
-    hton_any(u16.u);
-    EXPECT_EQ(u16.c[0], 0x0A) << "uint16 conversion to network order failed!";
-    EXPECT_EQ(u16.c[1], 0x0B) << "uint16 conversion to network order failed!";
+  wrap_uint16_t v16{};
+  v16.u = 0x0A0B;
+  to_endian<other_en>(v16.u);
+  EXPECT_EQ(v16.c[0], 0x0A) << "uint16 conversion to other endianness failed!";
+  EXPECT_EQ(v16.c[1], 0x0B) << "uint16 conversion to other endianness failed!";
 
-    u16.i = 0x0A0B;
-    hton_any(u16.i);
-    EXPECT_EQ(u16.c[0], 0x0A) << "int16 conversion to network order failed!";
-    EXPECT_EQ(u16.c[1], 0x0B) << "int16 conversion to network order failed!";
+  v16.i = 0x0A0B;
+  to_endian<other_en>(v16.i);
+  EXPECT_EQ(v16.c[0], 0x0A) << "int16 conversion to other endianness failed!";
+  EXPECT_EQ(v16.c[1], 0x0B) << "int16 conversion to other endianness failed!";
 
-    wrap_uint32_t u32;
-    u32.u = 0x0A0B0C0D;
-    hton_any(u32.u);
-    EXPECT_EQ(u32.c[0], 0x0A) << "uint32 conversion to network order failed!";
-    EXPECT_EQ(u32.c[1], 0x0B) << "uint32 conversion to network order failed!";
-    EXPECT_EQ(u32.c[2], 0x0C) << "uint32 conversion to network order failed!";
-    EXPECT_EQ(u32.c[3], 0x0D) << "uint32 conversion to network order failed!";
+  wrap_uint32_t v32{};
+  v32.u = 0x0A0B0C0D;
+  to_endian<other_en>(v32.u);
+  EXPECT_EQ(v32.c[0], 0x0A) << "uint32 conversion to other endianness failed!";
+  EXPECT_EQ(v32.c[1], 0x0B) << "uint32 conversion to other endianness failed!";
+  EXPECT_EQ(v32.c[2], 0x0C) << "uint32 conversion to other endianness failed!";
+  EXPECT_EQ(v32.c[3], 0x0D) << "uint32 conversion to other endianness failed!";
 
-    u32.i = 0x0A0B0C0D;
-    hton_any(u32.i);
-    EXPECT_EQ(u32.c[0], 0x0A) << "int32 conversion to network order failed!";
-    EXPECT_EQ(u32.c[1], 0x0B) << "int32 conversion to network order failed!";
-    EXPECT_EQ(u32.c[2], 0x0C) << "int32 conversion to network order failed!";
-    EXPECT_EQ(u32.c[3], 0x0D) << "int32 conversion to network order failed!";
+  v32.i = 0x0A0B0C0D;
+  to_endian<other_en>(v32.i);
+  EXPECT_EQ(v32.c[0], 0x0A) << "int32 conversion to other endianness failed!";
+  EXPECT_EQ(v32.c[1], 0x0B) << "int32 conversion to other endianness failed!";
+  EXPECT_EQ(v32.c[2], 0x0C) << "int32 conversion to other endianness failed!";
+  EXPECT_EQ(v32.c[3], 0x0D) << "int32 conversion to other endianness failed!";
 
-    wrap_uint64_t u64;
-    u64.u = 0x0A0B0C0D0E0F;
-    hton_any(u64.u);
-    EXPECT_EQ(u64.c[0], 0x00) << "uint64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[1], 0x00) << "uint64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[2], 0x0A) << "uint64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[3], 0x0B) << "uint64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[4], 0x0C) << "uint64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[5], 0x0D) << "uint64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[6], 0x0E) << "uint64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[7], 0x0F) << "uint64 conversion to network order failed!";
+  wrap_uint64_t v64{};
+  v64.u = 0x0A0B0C0D0E0FULL;
+  to_endian<other_en>(v64.u);
+  EXPECT_EQ(v64.c[0], 0x00) << "uint64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[1], 0x00) << "uint64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[2], 0x0A) << "uint64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[3], 0x0B) << "uint64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[4], 0x0C) << "uint64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[5], 0x0D) << "uint64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[6], 0x0E) << "uint64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[7], 0x0F) << "uint64 conversion to other endianness failed!";
 
-    u64.i = 0x0A0B0C0D0E0F;
-    hton_any(u64.i);
-    EXPECT_EQ(u64.c[0], 0x00) << "int64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[1], 0x00) << "int64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[2], 0x0A) << "int64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[3], 0x0B) << "int64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[4], 0x0C) << "int64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[5], 0x0D) << "int64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[6], 0x0E) << "int64 conversion to network order failed!";
-    EXPECT_EQ(u64.c[7], 0x0F) << "int64 conversion to network order failed!";
-  }
+  v64.i = 0x0A0B0C0D0E0FLL;
+  to_endian<other_en>(v64.i);
+  EXPECT_EQ(v64.c[0], 0x00) << "int64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[1], 0x00) << "int64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[2], 0x0A) << "int64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[3], 0x0B) << "int64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[4], 0x0C) << "int64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[5], 0x0D) << "int64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[6], 0x0E) << "int64 conversion to other endianness failed!";
+  EXPECT_EQ(v64.c[7], 0x0F) << "int64 conversion to other endianness failed!";
+  // NOLINTEND(cppcoreguidelines-pro-type-union-access)
 
   std::uint8_t u8 = 0x0A;
-  ntoh_any(u8);
-  hton_any(u8);
+  to_endian<other_en>(u8);
+  from_endian<other_en>(u8);
   EXPECT_EQ(u8, 0x0A);
 
   std::int8_t i8 = 0x0A;
-  ntoh_any(i8);
-  hton_any(i8);
+  to_endian<other_en>(i8);
+  from_endian<other_en>(i8);
   EXPECT_EQ(i8, 0x0A);
 
   std::uint16_t u16 = 0x0A0B;
-  hton_any(u16);
-  ntoh_any(u16);
+  to_endian<other_en>(u16);
+  from_endian<other_en>(u16);
   EXPECT_EQ(u16, 0x0A0B);
 
   std::int16_t i16 = 0x0A0B;
-  hton_any(i16);
-  ntoh_any(i16);
+  to_endian<other_en>(i16);
+  from_endian<other_en>(i16);
   EXPECT_EQ(i16, 0x0A0B);
 
   std::uint32_t u32 = 0x0A0B0C0D;
-  hton_any(u32);
-  ntoh_any(u32);
+  to_endian<other_en>(u32);
+  from_endian<other_en>(u32);
   EXPECT_EQ(u32, 0x0A0B0C0D);
 
   std::int32_t i32 = 0x0A0B0C0D;
-  hton_any(i32);
-  ntoh_any(i32);
+  to_endian<other_en>(i32);
+  from_endian<other_en>(i32);
   EXPECT_EQ(i32, 0x0A0B0C0D);
 
-  std::uint64_t u64 = 0x0A0B0C0D0E0F;
-  hton_any(u64);
-  ntoh_any(u64);
+  std::uint64_t u64 = 0x0A0B0C0D0E0FULL;
+  to_endian<other_en>(u64);
+  from_endian<other_en>(u64);
   EXPECT_EQ(u64, 0x0A0B0C0D0E0F);
 
-  std::int64_t i64 = 0x0A0B0C0D0E0F;
-  hton_any(i64);
-  ntoh_any(i64);
+  std::int64_t i64 = 0x0A0B0C0D0E0FLL;
+  to_endian<other_en>(i64);
+  from_endian<other_en>(i64);
   EXPECT_EQ(i64, 0x0A0B0C0D0E0F);
 
-  float f(3.14159);
-  hton_any(f);
-  ntoh_any(f);
-  EXPECT_EQ(f, float(3.14159));
+  float f(3.1F);
+  to_endian<other_en>(f);
+  from_endian<other_en>(f);
+  EXPECT_EQ(f, 3.1F);
 
-  double d(3.14159);
-  hton_any(d);
-  ntoh_any(d);
-  EXPECT_EQ(d, double(3.14159));
+  double d(3.1);
+  to_endian<other_en>(d);
+  from_endian<other_en>(d);
+  EXPECT_EQ(d, 3.1);
 }
 
 }  // namespace

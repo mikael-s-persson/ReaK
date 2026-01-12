@@ -32,196 +32,94 @@
 #ifndef REAK_CORE_BASE_ENDIAN_CONVERSIONS_H_
 #define REAK_CORE_BASE_ENDIAN_CONVERSIONS_H_
 
-#include <netinet/in.h>
 #include <cstdint>
 #include <bit>
+#include <cstring>
+#include <type_traits>
 
 namespace ReaK {
 
-union short_to_ushort {
-  std::int16_t i16;
-  std::uint16_t ui16;
-};
+// NOLINTBEGIN
+#if defined(_MSC_VER)
+#define RK_BSWAP_U16(X) _byteswap_ushort(X)
+#define RK_BSWAP_U32(X) _byteswap_ulong(X)
+#define RK_BSWAP_U64(X) _byteswap_uint64(X)
+#define RK_BSWAP_I16(X) std::bit_cast<const std::int16_t>(_byteswap_ushort(std::bit_cast<const std::uint16_t>(X)))
+#define RK_BSWAP_I32(X) std::bit_cast<const std::int32_t>(_byteswap_ulong(std::bit_cast<const std::uint32_t>(X)))
+#define RK_BSWAP_I64(X) std::bit_cast<const std::int64_t>(_byteswap_uint64(std::bit_cast<const std::uint64_t>(X)))
+#else
+#define RK_BSWAP_U16(X) __builtin_bswap16(X)
+#define RK_BSWAP_U32(X) __builtin_bswap32(X)
+#define RK_BSWAP_U64(X) __builtin_bswap64(X)
+#define RK_BSWAP_I16(X) __builtin_bswap16(X)
+#define RK_BSWAP_I32(X) __builtin_bswap32(X)
+#define RK_BSWAP_I64(X) __builtin_bswap64(X)
+#endif
+// NOLINTEND
 
-union float_to_ulong {
-  float f;
-  std::uint32_t ui32;
-};
-
-union long_to_ulong {
-  std::int32_t i32;
-  std::uint32_t ui32;
-};
-
-union double_to_ulong {
-  double d;
-  std::uint32_t ui32[2];  // NOLINT
-};
-
-union llong_to_ulong {
-  std::int64_t i64;
-  std::uint64_t ui64;
-  std::uint32_t ui32[2];  // NOLINT
-};
-
-template <typename UnionT>
-void ntoh_1ui16(UnionT& value) {
-  if constexpr (std::endian::native != std::endian::big) {
-    value.ui16 = ntohs(value.ui16);
+template <std::endian En, typename T>
+void to_endian(T& v) {
+  if constexpr (std::endian::native == En || sizeof(T) == 1) {
+    return;
+  } else {
+    if constexpr (std::is_integral_v<T>) {
+      if constexpr (sizeof(T) == 2) {
+        if constexpr (std::is_signed_v<T>) {
+          v = RK_BSWAP_I16(v);
+        } else {
+          v = RK_BSWAP_U16(v);
+        }
+      } else if constexpr (sizeof(T) == 4) {
+        if constexpr (std::is_signed_v<T>) {
+          v = RK_BSWAP_I32(v);
+        } else {
+          v = RK_BSWAP_U32(v);
+        }
+      } else if constexpr (sizeof(T) == 8) {
+        if constexpr (std::is_signed_v<T>) {
+          v = RK_BSWAP_I64(v);
+        } else {
+          v = RK_BSWAP_U64(v);
+        }
+      } else {
+        static_assert(sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8);
+      }
+    } else {
+      using U = std::conditional_t<sizeof(T) == 2, std::uint16_t, std::conditional_t<sizeof(T) == 4, std::uint32_t, std::uint64_t>>;
+      U u{};
+      static_assert(sizeof(u) == sizeof(T));
+      std::memcpy(&u, &v, sizeof(u));
+      if constexpr (sizeof(T) == 2) {
+        u = RK_BSWAP_U16(u);
+      } else if constexpr (sizeof(T) == 4) {
+        u = RK_BSWAP_U32(u);
+      } else if constexpr (sizeof(T) == 8) {
+        u = RK_BSWAP_U64(u);
+      } else {
+        static_assert(sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8);
+      }
+      std::memcpy(&v, &u, sizeof(u));
+    }
   }
 }
 
-template <typename UnionT>
-void hton_1ui16(UnionT& value) {
-  if constexpr (std::endian::native != std::endian::big) {
-    value.ui16 = htons(value.ui16);
-  }
-}
-
-template <typename UnionT>
-void ntoh_1ui32(UnionT& value) {
-  if constexpr (std::endian::native != std::endian::big) {
-    value.ui32 = ntohl(value.ui32);
-  }
-}
-
-template <typename UnionT>
-void hton_1ui32(UnionT& value) {
-  if constexpr (std::endian::native != std::endian::big) {
-    value.ui32 = htonl(value.ui32);
-  }
-}
-
-template <typename UnionT>
-void ntoh_2ui32(UnionT& value) {
-  if constexpr (std::endian::native != std::endian::big) {
-    uint32_t tmp = ntohl(value.ui32[0]);
-    value.ui32[0] = ntohl(value.ui32[1]);
-    value.ui32[1] = tmp;
-  }
-}
-
-template <typename UnionT>
-void hton_2ui32(UnionT& value) {
-  if constexpr (std::endian::native != std::endian::big) {
-    uint32_t tmp = htonl(value.ui32[0]);
-    value.ui32[0] = htonl(value.ui32[1]);
-    value.ui32[1] = tmp;
-  }
+template <std::endian En, typename T>
+void from_endian(T& v) {
+  // Conversion from or to is the same code.
+  to_endian<En, T>(v);
 }
 
 // Overloaded versions for different primitive types:
 
-inline void ntoh_any(std::uint8_t& /*unused*/){};
-inline void ntoh_any(std::int8_t& /*unused*/){};
-
-inline void hton_any(std::uint8_t& /*unused*/){};
-inline void hton_any(std::int8_t& /*unused*/){};
-
-inline void hton_any(std::uint16_t& s) {
-  short_to_ushort tmp;
-  tmp.ui16 = s;
-  hton_1ui16(tmp);
-  s = tmp.ui16;
+template <typename T>
+void ntoh_any(T& v) {
+  static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
+  to_endian<std::endian::big>(v);
 }
-inline void hton_any(std::int16_t& s) {
-  short_to_ushort tmp;
-  tmp.i16 = s;
-  hton_1ui16(tmp);
-  s = tmp.i16;
-}
-
-inline void ntoh_any(std::uint16_t& s) {
-  short_to_ushort tmp;
-  tmp.ui16 = s;
-  ntoh_1ui16(tmp);
-  s = tmp.ui16;
-}
-inline void ntoh_any(std::int16_t& s) {
-  short_to_ushort tmp;
-  tmp.i16 = s;
-  ntoh_1ui16(tmp);
-  s = tmp.i16;
-}
-
-inline void hton_any(std::uint32_t& i) {
-  long_to_ulong tmp;
-  tmp.ui32 = i;
-  hton_1ui32(tmp);
-  i = tmp.ui32;
-}
-inline void hton_any(std::int32_t& i) {
-  long_to_ulong tmp;
-  tmp.i32 = i;
-  hton_1ui32(tmp);
-  i = tmp.i32;
-}
-
-inline void ntoh_any(std::uint32_t& i) {
-  long_to_ulong tmp;
-  tmp.ui32 = i;
-  ntoh_1ui32(tmp);
-  i = tmp.ui32;
-}
-inline void ntoh_any(std::int32_t& i) {
-  long_to_ulong tmp;
-  tmp.i32 = i;
-  ntoh_1ui32(tmp);
-  i = tmp.i32;
-}
-
-inline void hton_any(std::uint64_t& i) {
-  llong_to_ulong tmp;
-  tmp.ui64 = i;
-  hton_2ui32(tmp);
-  i = tmp.ui64;
-}
-inline void hton_any(std::int64_t& i) {
-  llong_to_ulong tmp;
-  tmp.i64 = i;
-  hton_2ui32(tmp);
-  i = tmp.i64;
-}
-
-inline void ntoh_any(std::uint64_t& i) {
-  llong_to_ulong tmp;
-  tmp.ui64 = i;
-  ntoh_2ui32(tmp);
-  i = tmp.ui64;
-}
-inline void ntoh_any(std::int64_t& i) {
-  llong_to_ulong tmp;
-  tmp.i64 = i;
-  ntoh_2ui32(tmp);
-  i = tmp.i64;
-}
-
-inline void hton_any(float& f) {
-  float_to_ulong tmp;
-  tmp.f = f;
-  hton_1ui32(tmp);
-  f = tmp.f;
-}
-
-inline void ntoh_any(float& f) {
-  float_to_ulong tmp;
-  tmp.f = f;
-  ntoh_1ui32(tmp);
-  f = tmp.f;
-}
-
-inline void hton_any(double& d) {
-  double_to_ulong tmp;
-  tmp.d = d;
-  hton_2ui32(tmp);
-  d = tmp.d;
-}
-
-inline void ntoh_any(double& d) {
-  double_to_ulong tmp;
-  tmp.d = d;
-  ntoh_2ui32(tmp);
-  d = tmp.d;
+template <typename T>
+void hton_any(T& v) {
+  static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
+  from_endian<std::endian::big>(v);
 }
 
 }  // namespace ReaK

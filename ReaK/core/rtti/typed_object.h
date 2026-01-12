@@ -167,7 +167,7 @@ bool rk_is_of_type(const std::unique_ptr<const typed_object, Deleter>& obj) {
 /// This MACRO creates the static elements for the current class that registers the CLASS_ID and CLASS_NAME.
 // NOLINTNEXTLINE
 #define RK_RTTI_REGISTER_CLASS_ID(CLASS_NAME, CLASS_ID)     \
-  static constexpr unsigned int rk_rtti_type_id = CLASS_ID; \
+  static constexpr std::uint32_t rk_rtti_type_id = CLASS_ID; \
   static constexpr auto rk_rtti_type_name = std::string_view{CLASS_NAME};
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is

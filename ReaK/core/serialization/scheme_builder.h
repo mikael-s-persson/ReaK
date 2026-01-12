@@ -114,7 +114,7 @@ class scheme_builder : public oarchive {
       const std::pair<std::string, const std::string&>& s) override;
 
   void signal_polymorphic_field(const std::string& aBaseTypeName,
-                                const unsigned int* aTypeID,
+                                const std::uint32_t* aTypeID,
                                 const std::string& aFieldName) override;
 
   void start_repeated_field(const std::string& aTypeName) override;

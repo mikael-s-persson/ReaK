@@ -49,6 +49,7 @@
 #ifndef REAK_PLANNING_PATH_PLANNING_TOPOLOGICAL_SEARCH_H_
 #define REAK_PLANNING_PATH_PLANNING_TOPOLOGICAL_SEARCH_H_
 
+#include <bit>
 #include <cmath>
 
 #include "bagl/graph_concepts.h"
@@ -64,8 +65,6 @@
 #include <vector>
 
 #include "ReaK/topologies/spaces/metric_space_concept.h"
-
-#include "ReaK/core/base/misc_math.h"
 
 namespace ReaK::pp {
 
@@ -383,8 +382,7 @@ struct composite_NNsynchro {
   }
 };
 
-namespace detail {
-namespace {
+namespace topological_search_details {
 
 template <typename Space, typename PositionMap>
 struct linear_neighbor_search_distance_functor {
@@ -414,8 +412,7 @@ struct linear_neighbor_search_distance_functor {
   }
 };
 
-}  // namespace
-}  // namespace detail
+}  // namespace topological_search_details
 
 /**
   * This functor template performs a linear nearest-neighbor search through a graph by invoquing
@@ -450,9 +447,12 @@ struct linear_neighbor_search_base {
     auto u_rg = vertices(g);
     auto ui = u_rg.begin();
     auto ui_end = u_rg.end();
-    std::size_t N = num_vertices(g);
-    std::size_t log_N = math::highest_set_bit(N) + 1;
-    std::size_t step = N / log_N;
+    const std::size_t N = num_vertices(g);
+    if (N == 0) {
+      return std::numeric_limits<double>::infinity();
+    }
+    const std::size_t log_N = std::bit_width(N);
+    const std::size_t step = N / log_N;
 
     auto ui_cur = ui;
     double avg_max_dist = 0.0;
@@ -496,7 +496,7 @@ struct linear_neighbor_search_base {
     auto u_rg = vertices(g);
     return *(min_dist_linear_search(
         u_rg.begin(), u_rg.end(),
-        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
+        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, std::numeric_limits<double>::infinity()));
   }
@@ -529,7 +529,7 @@ struct linear_neighbor_search_base {
     auto u_rg = vertices(g);
     return min_dist_linear_search(
         u_rg.begin(), u_rg.end(), output_first,
-        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
+        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, max_neighbors, radius);
   }
@@ -551,7 +551,7 @@ struct linear_neighbor_search_base {
                          const Space& space, PositionMap position) const {
     return min_dist_linear_search(
         first, last,
-        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
+        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, std::numeric_limits<double>::infinity());
   }
@@ -585,7 +585,7 @@ struct linear_neighbor_search_base {
       double radius = std::numeric_limits<double>::infinity()) const {
     return min_dist_linear_search(
         first, last, output_first,
-        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
+        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, max_neighbors, radius);
   }
@@ -624,9 +624,12 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
     auto u_rg = vertices(g);
     auto ui = u_rg.begin();
     auto ui_end = u_rg.end();
-    std::size_t N = num_vertices(g);
-    std::size_t log_N = math::highest_set_bit(N) + 1;
-    std::size_t step = N / log_N;
+    const std::size_t N = num_vertices(g);
+    if (N == 0) {
+      return std::numeric_limits<double>::infinity();
+    }
+    const std::size_t log_N = std::bit_width(N);
+    const std::size_t step = N / log_N;
 
     auto ui_cur = ui;
     double avg_max_dist = 0.0;
@@ -688,7 +691,7 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
     auto u_rg = vertices(g);
     return min_dist_linear_search(
         p, u_rg.begin(), u_rg.end(), pred_first, succ_first,
-        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
+        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, max_neighbors, radius);
   }
@@ -724,7 +727,7 @@ struct linear_neighbor_search_base<Graph, CompareFunction, true> {
       double radius = std::numeric_limits<double>::infinity()) const {
     return min_dist_linear_search(
         p, first, last, pred_first, succ_first,
-        detail::linear_neighbor_search_distance_functor<Space, PositionMap>(
+        topological_search_details::linear_neighbor_search_distance_functor<Space, PositionMap>(
             &p, &space, position),
         m_compare, max_neighbors, radius);
   }

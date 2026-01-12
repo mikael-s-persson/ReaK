@@ -92,7 +92,7 @@ oarchive& scheme_builder::save_serializable_ptr(
   ptr_type_name += "<" + so_type_ptr->name() + ">";
   auto itm = scheme_map.find(ptr_type_name);
   if (itm == scheme_map.end()) {
-    constexpr auto iname = rtti::get_type_id<unsigned int>::type_name;
+    constexpr auto iname = rtti::get_type_id<std::uint32_t>::type_name;
     auto objID_itm = scheme_map.find(std::string(iname));
     std::shared_ptr<type_scheme> objID_sch;
     if (objID_itm == scheme_map.end()) {
@@ -255,7 +255,7 @@ oarchive& scheme_builder::save_string(
 }
 
 void scheme_builder::signal_polymorphic_field(const std::string& aBaseTypeName,
-                                              const unsigned int* aTypeID,
+                                              const std::uint32_t* aTypeID,
                                               const std::string& aFieldName) {
 
   std::map<std::string, std::shared_ptr<type_scheme>>& scheme_map =
@@ -269,7 +269,7 @@ void scheme_builder::signal_polymorphic_field(const std::string& aBaseTypeName,
   auto itm = scheme_map.find(ptr_type_name);
   std::shared_ptr<type_scheme> sch_ptr;
   if (itm == scheme_map.end()) {
-    constexpr auto iname = rtti::get_type_id<unsigned int>::type_name;
+    constexpr auto iname = rtti::get_type_id<std::uint32_t>::type_name;
     auto objID_itm = scheme_map.find(std::string(iname));
     std::shared_ptr<type_scheme> objID_sch;
     if (objID_itm == scheme_map.end()) {
@@ -292,7 +292,7 @@ void scheme_builder::signal_polymorphic_field(const std::string& aBaseTypeName,
       field_stack.push(
           std::make_shared<serializable_obj_scheme>("DummyType", nullptr, 0));
 
-      for (unsigned int i = 0; i < so_type_sptr->get_direct_descendant_count();
+      for (std::uint32_t i = 0; i < so_type_sptr->get_direct_descendant_count();
            ++i) {
         rtti::so_type* tmp = so_type_sptr->get_direct_descendant(i);
         signal_polymorphic_field(tmp->name(), tmp->id_begin(), "Dummy");

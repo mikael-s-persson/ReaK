@@ -76,7 +76,7 @@ class xml_field_editor {
  private:
   objtree_editor* p_parent;
   object_node_desc node;
-  std::vector<std::size_t> src_markers;
+  std::vector<std::uint64_t> src_markers;
   std::vector<std::shared_ptr<type_scheme>> field_schemes;
   std::vector<std::string> field_names;
 
@@ -84,7 +84,7 @@ class xml_field_editor {
       std::string::iterator it_prev, std::string::iterator it_end,
       const std::string& fld_name,
       const std::shared_ptr<ReaK::serialization::type_scheme>& scheme);
-  std::size_t get_field_index(const std::string& aName) const;
+  std::uint64_t get_field_index(const std::string& aName) const;
   std::string get_object_name(object_node_desc aNode) const;
 
  public:
@@ -97,20 +97,20 @@ class xml_field_editor {
 
   xml_field_editor(objtree_editor* aParent, object_node_desc aNode);
 
-  std::size_t get_total_field_count() const;
+  std::uint64_t get_total_field_count() const;
   std::pair<std::string, std::shared_ptr<type_scheme>> get_field(
-      std::size_t aIndex) const;
+      std::uint64_t aIndex) const;
 
-  std::string get_field_src(std::size_t aIndex) const;
+  std::string get_field_src(std::uint64_t aIndex) const;
   std::string get_field_src(const std::string& aName) const;
 
-  std::string get_field_value(std::size_t aIndex) const;
+  std::string get_field_value(std::uint64_t aIndex) const;
   std::string get_field_value(const std::string& aName) const;
 
-  void set_field_value(std::size_t aIndex, const std::string& aValue);
+  void set_field_value(std::uint64_t aIndex, const std::string& aValue);
   void set_field_value(const std::string& aName, const std::string& aValue);
 
-  void set_field_newptr(std::size_t aIndex,
+  void set_field_newptr(std::uint64_t aIndex,
                         const std::shared_ptr<serializable>& aNewPtr);
   void set_field_newptr(const std::string& aName,
                         const std::shared_ptr<serializable>& aNewPtr);
@@ -131,7 +131,7 @@ class objtree_iarchive : public iarchive {
   static void trimStr(std::string& s);
   bool readNamedValue(const std::string& value_name, std::string& value_str);
   archive_object_header readHeader(const std::string& obj_name,
-                                   std::vector<unsigned int>& outTypeID);
+                                   std::vector<std::uint32_t>& outTypeID);
 
  protected:
   iarchive& load_serializable_ptr(serializable_shared_pointer& Item) override;
@@ -154,14 +154,14 @@ class objtree_iarchive : public iarchive {
   iarchive& load_unsigned_char(
       const std::pair<std::string, unsigned char&>& u) override;
 
-  iarchive& load_int(std::ptrdiff_t& i) override;
+  iarchive& load_int(std::int64_t& i) override;
 
-  iarchive& load_int(const std::pair<std::string, std::ptrdiff_t&>& i) override;
+  iarchive& load_int(const std::pair<std::string, std::int64_t&>& i) override;
 
-  iarchive& load_unsigned_int(std::size_t& u) override;
+  iarchive& load_unsigned_int(std::uint64_t& u) override;
 
   iarchive& load_unsigned_int(
-      const std::pair<std::string, std::size_t&>& u) override;
+      const std::pair<std::string, std::uint64_t&>& u) override;
 
   iarchive& load_float(float& f) override;
 
@@ -232,14 +232,14 @@ class objtree_oarchive : public oarchive {
   oarchive& save_unsigned_char(
       const std::pair<std::string, unsigned char>& u) override;
 
-  oarchive& save_int(std::ptrdiff_t i) override;
+  oarchive& save_int(std::int64_t i) override;
 
-  oarchive& save_int(const std::pair<std::string, std::ptrdiff_t>& i) override;
+  oarchive& save_int(const std::pair<std::string, std::int64_t>& i) override;
 
-  oarchive& save_unsigned_int(std::size_t u) override;
+  oarchive& save_unsigned_int(std::uint64_t u) override;
 
   oarchive& save_unsigned_int(
-      const std::pair<std::string, std::size_t>& u) override;
+      const std::pair<std::string, std::uint64_t>& u) override;
 
   oarchive& save_float(float f) override;
 

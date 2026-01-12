@@ -89,37 +89,10 @@ static QString last_used_path;
 
 namespace {
 
-union double_to_ulong {
-  double d;
-  uint64_t ui64;
-  uint32_t ui32[2];
-};
-
-template <typename UnionT>
-void ntoh_2ui32(UnionT& value) {
-  if constexpr (std::endian::native != std::endian::big) {
-    uint32_t tmp = ntohl(value.ui32[0]);
-    value.ui32[0] = ntohl(value.ui32[1]);
-    value.ui32[1] = tmp;
-  }
-};
-
-template <typename UnionT>
-void hton_2ui32(UnionT& value) {
-  if constexpr (std::endian::native != std::endian::big) {
-    uint32_t tmp = htonl(value.ui32[0]);
-    value.ui32[0] = htonl(value.ui32[1]);
-    value.ui32[1] = tmp;
-  }
-};
-
 #ifdef RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
 void write_double_to_net_stream(std::ostream& out, double value) {
-  double_to_ulong tmp;
-  tmp.d = value;
-  hton_2ui32(tmp);
-  out.write(reinterpret_cast<char*>(&tmp), sizeof(double));
-  //   out.write(reinterpret_cast<char*>(&value),sizeof(double));
+  hton_any(value);
+  out.write(reinterpret_cast<char*>(&value), sizeof(double));
 };
 #endif
 };  // namespace

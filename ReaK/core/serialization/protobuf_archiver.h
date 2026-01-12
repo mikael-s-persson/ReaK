@@ -72,16 +72,16 @@ class protobuf_iarchive : public iarchive {
   iarchive& load_unsigned_char(
       const std::pair<std::string, unsigned char&>& u) override;
 
-  iarchive& load_int(std::ptrdiff_t& i) override;
+  iarchive& load_int(std::int64_t& i) override;
 
-  iarchive& load_int(const std::pair<std::string, std::ptrdiff_t&>& i) override;
+  iarchive& load_int(const std::pair<std::string, std::int64_t&>& i) override;
 
-  virtual void load_varint(std::size_t& u);
+  virtual void load_varint(std::uint64_t& u);
 
-  iarchive& load_unsigned_int(std::size_t& u) override;
+  iarchive& load_unsigned_int(std::uint64_t& u) override;
 
   iarchive& load_unsigned_int(
-      const std::pair<std::string, std::size_t&>& u) override;
+      const std::pair<std::string, std::uint64_t&>& u) override;
 
   iarchive& load_float(float& f) override;
 
@@ -111,8 +111,8 @@ class protobuf_iarchive : public iarchive {
 class protobuf_oarchive : public oarchive {
  private:
   std::shared_ptr<std::ostream> file_stream;
-  std::stack<std::size_t> field_IDs;
-  std::stack<std::size_t> repeat_state;
+  std::stack<std::uint64_t> field_IDs;
+  std::stack<std::uint64_t> repeat_state;
 
  protected:
   oarchive& saveToNewArchive_impl(const serializable_shared_pointer& Item,
@@ -143,16 +143,16 @@ class protobuf_oarchive : public oarchive {
   oarchive& save_unsigned_char(
       const std::pair<std::string, unsigned char>& u) override;
 
-  oarchive& save_int(std::ptrdiff_t i) override;
+  oarchive& save_int(std::int64_t i) override;
 
-  oarchive& save_int(const std::pair<std::string, std::ptrdiff_t>& i) override;
+  oarchive& save_int(const std::pair<std::string, std::int64_t>& i) override;
 
-  void save_varint(std::size_t u);
+  void save_varint(std::uint64_t u);
 
-  oarchive& save_unsigned_int(std::size_t u) override;
+  oarchive& save_unsigned_int(std::uint64_t u) override;
 
   oarchive& save_unsigned_int(
-      const std::pair<std::string, std::size_t>& u) override;
+      const std::pair<std::string, std::uint64_t>& u) override;
 
   oarchive& save_float(float f) override;
 
@@ -199,14 +199,14 @@ class protobuf_oarchive : public oarchive {
 class protobuf_schemer : public oarchive {
  private:
   std::shared_ptr<std::ostream> file_stream;
-  std::stack<std::size_t> field_IDs;
-  std::stack<std::size_t> repeat_state;
+  std::stack<std::uint64_t> field_IDs;
+  std::stack<std::uint64_t> repeat_state;
 
   std::vector<std::string> schemes;
-  std::map<std::string, std::size_t> scheme_map;
+  std::map<std::string, std::uint64_t> scheme_map;
 
  protected:
-  std::size_t get_chunk_hdr();
+  std::uint64_t get_chunk_hdr();
 
   oarchive& saveToNewArchive_impl(const serializable_shared_pointer& Item,
                                   const std::string& FileName) override;
@@ -236,14 +236,14 @@ class protobuf_schemer : public oarchive {
   oarchive& save_unsigned_char(
       const std::pair<std::string, unsigned char>& u) override;
 
-  oarchive& save_int(std::ptrdiff_t i) override;
+  oarchive& save_int(std::int64_t i) override;
 
-  oarchive& save_int(const std::pair<std::string, std::ptrdiff_t>& i) override;
+  oarchive& save_int(const std::pair<std::string, std::int64_t>& i) override;
 
-  oarchive& save_unsigned_int(std::size_t u) override;
+  oarchive& save_unsigned_int(std::uint64_t u) override;
 
   oarchive& save_unsigned_int(
-      const std::pair<std::string, std::size_t>& u) override;
+      const std::pair<std::string, std::uint64_t>& u) override;
 
   oarchive& save_float(float f) override;
 

@@ -35,7 +35,8 @@
 #ifndef REAK_PLANNING_GRAPH_ALG_NEIGHBORHOOD_FUNCTORS_H_
 #define REAK_PLANNING_GRAPH_ALG_NEIGHBORHOOD_FUNCTORS_H_
 
-#include "ReaK/core/base/misc_math.h"
+#include <bit>
+#include <cstddef>
 
 #include "bagl/graph_traits.h"
 #include "bagl/property_map.h"
@@ -95,11 +96,14 @@ struct star_neighborhood {
                   OutputIterator output_first, Graph& g,
                   const Topology& free_space, PositionMap position) const {
     using std::pow;
-    std::size_t N = num_vertices(g);
-    std::size_t log_N = math::highest_set_bit(N) + 1;
+    const std::size_t N = num_vertices(g);
+    if (N == 0) {
+      return;
+    }
+    const std::size_t log_N = std::bit_width(N);
     find_neighbors(
         p, output_first, g, free_space, position, 4 * log_N,
-        gamma_value * pow(log_N / double(N), 1.0 / c_space_dimensions));
+        gamma_value * pow(log_N / static_cast<double>(N), 1.0 / c_space_dimensions));
   }
 
   /**
@@ -129,11 +133,14 @@ struct star_neighborhood {
                   const Topology& free_space, PositionMap position) const {
     using std::log2;
     using std::pow;
-    std::size_t N = num_vertices(g);
-    std::size_t log_N = math::highest_set_bit(N) + 1;
+    const std::size_t N = num_vertices(g);
+    if (N == 0) {
+      return;
+    }
+    const std::size_t log_N = std::bit_width(N);
     find_neighbors(
         p, pred_first, succ_first, g, free_space, position, 4 * log_N,
-        gamma_value * pow(log_N / double(N), 1.0 / c_space_dimensions));
+        gamma_value * pow(log_N / static_cast<double>(N), 1.0 / c_space_dimensions));
   }
 };
 

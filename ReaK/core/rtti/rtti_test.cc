@@ -34,12 +34,12 @@ class dummy_rtti_test : public ReaK::shared_object {
   dummy_rtti_test() = default;
 
   void save(ReaK::serialization::oarchive& A,
-            unsigned int /*Version*/) const override {
+            std::uint32_t /*Version*/) const override {
     ReaK::shared_object::save(
         A, ReaK::shared_object::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
-            unsigned int /*Version*/) override {
+            std::uint32_t /*Version*/) override {
     ReaK::shared_object::load(
         A, ReaK::shared_object::get_static_object_type()->version());
   }
@@ -56,12 +56,12 @@ class dummy_rtti_template : public ReaK::shared_object {
   dummy_rtti_template() = default;
 
   void save(ReaK::serialization::oarchive& A,
-            unsigned int /*Version*/) const override {
+            std::uint32_t /*Version*/) const override {
     ReaK::shared_object::save(
         A, ReaK::shared_object::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
-            unsigned int /*Version*/) override {
+            std::uint32_t /*Version*/) override {
     ReaK::shared_object::load(
         A, ReaK::shared_object::get_static_object_type()->version());
   }
@@ -100,12 +100,12 @@ class dummy_rtti_template2 : public ReaK::shared_object {
   dummy_rtti_template2() = default;
 
   void save(ReaK::serialization::oarchive& A,
-            unsigned int /*Version*/) const override {
+            std::uint32_t /*Version*/) const override {
     ReaK::shared_object::save(
         A, ReaK::shared_object::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
-            unsigned int /*Version*/) override {
+            std::uint32_t /*Version*/) override {
     ReaK::shared_object::load(
         A, ReaK::shared_object::get_static_object_type()->version());
   }
@@ -121,13 +121,13 @@ class dummy_rtti_base1 : public virtual ReaK::shared_object {
   dummy_rtti_base1() = default;
 
   void save(ReaK::serialization::oarchive& A,
-            unsigned int /*Version*/) const override {
+            std::uint32_t /*Version*/) const override {
     ReaK::shared_object::save(
         A, ReaK::shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(b1_value);
   }
   void load(ReaK::serialization::iarchive& A,
-            unsigned int /*Version*/) override {
+            std::uint32_t /*Version*/) override {
     ReaK::shared_object::load(
         A, ReaK::shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(b1_value);
@@ -144,13 +144,13 @@ class dummy_rtti_base2 : public virtual ReaK::shared_object {
   dummy_rtti_base2() = default;
 
   void save(ReaK::serialization::oarchive& A,
-            unsigned int /*Version*/) const override {
+            std::uint32_t /*Version*/) const override {
     ReaK::shared_object::save(
         A, ReaK::shared_object::get_static_object_type()->version());
     A& RK_SERIAL_SAVE_WITH_NAME(b2_value);
   }
   void load(ReaK::serialization::iarchive& A,
-            unsigned int /*Version*/) override {
+            std::uint32_t /*Version*/) override {
     ReaK::shared_object::load(
         A, ReaK::shared_object::get_static_object_type()->version());
     A& RK_SERIAL_LOAD_WITH_NAME(b2_value);
@@ -166,14 +166,14 @@ class dummy_rtti_multi_inherit : public dummy_rtti_base1,
   dummy_rtti_multi_inherit() = default;
 
   void save(ReaK::serialization::oarchive& A,
-            unsigned int /*unused*/) const override {
+            std::uint32_t /*unused*/) const override {
     dummy_rtti_base1::save(
         A, dummy_rtti_base1::get_static_object_type()->version());
     dummy_rtti_base2::save(
         A, dummy_rtti_base2::get_static_object_type()->version());
   }
   void load(ReaK::serialization::iarchive& A,
-            unsigned int /*unused*/) override {
+            std::uint32_t /*unused*/) override {
     dummy_rtti_base1::load(
         A, dummy_rtti_base1::get_static_object_type()->version());
     dummy_rtti_base2::load(
@@ -195,7 +195,7 @@ TEST(RttiTests, AllCases) {
     EXPECT_EQ(p_tp->name(), "dummy_rtti_test");
     EXPECT_EQ(p_tp->version(), 1);
     EXPECT_TRUE(p_tp->is_concrete());
-    const unsigned int* t_id = p_tp->id_begin();
+    const std::uint32_t* t_id = p_tp->id_begin();
     EXPECT_EQ(*t_id, 0xFFFFFFF0);
     EXPECT_EQ(*(t_id + 1), 0);
 
@@ -220,9 +220,9 @@ TEST(RttiTests, AllCases) {
     rtti::so_type* p_tp_5 = rtti::so_type_repo::get_instance().find_type(p_tp);
     EXPECT_EQ(p_tp_5, p_tp);
 
-    unsigned int desc_count = p_so_tp->get_direct_descendant_count();
+    std::uint32_t desc_count = p_so_tp->get_direct_descendant_count();
     bool found_descendant_in_so_type = false;
-    for (unsigned int i = 0; i < desc_count; ++i) {
+    for (std::uint32_t i = 0; i < desc_count; ++i) {
       rtti::so_type* tmp_tp = p_so_tp->get_direct_descendant(i);
       if (tmp_tp == p_tp) {
         found_descendant_in_so_type = true;
@@ -255,7 +255,7 @@ TEST(RttiTests, AllCases) {
     EXPECT_EQ(p_tp->name(), "dummy_rtti_template<10,dummy_rtti_test>");
     EXPECT_EQ(p_tp->version(), 1);
     EXPECT_TRUE(p_tp->is_concrete());
-    const unsigned int* t_id = p_tp->id_begin();
+    const std::uint32_t* t_id = p_tp->id_begin();
     EXPECT_EQ(*t_id, 0xFFFFFFF1);
     EXPECT_EQ(*(t_id + 1), 10);
     EXPECT_EQ(*(t_id + 2), 0xFFFFFFF0);
@@ -282,9 +282,9 @@ TEST(RttiTests, AllCases) {
     rtti::so_type* p_tp_5 = rtti::so_type_repo::get_instance().find_type(p_tp);
     EXPECT_EQ(p_tp_5, p_tp);
 
-    unsigned int desc_count = p_so_tp->get_direct_descendant_count();
+    std::uint32_t desc_count = p_so_tp->get_direct_descendant_count();
     bool found_descendant_in_so_type = false;
-    for (unsigned int i = 0; i < desc_count; ++i) {
+    for (std::uint32_t i = 0; i < desc_count; ++i) {
       rtti::so_type* tmp_tp = p_so_tp->get_direct_descendant(i);
       if (tmp_tp == p_tp) {
         found_descendant_in_so_type = true;
@@ -319,7 +319,7 @@ TEST(RttiTests, AllCases) {
     EXPECT_EQ(p_tp->name(), "dummy_rtti_template2<int,dummy_rtti_test>");
     EXPECT_EQ(p_tp->version(), 1);
     EXPECT_TRUE(p_tp->is_concrete());
-    const unsigned int* t_id = p_tp->id_begin();
+    const std::uint32_t* t_id = p_tp->id_begin();
     EXPECT_EQ(*t_id, 0xFFFFFFF2);
     EXPECT_EQ(*(t_id + 1), 0x00000001);
     EXPECT_EQ(*(t_id + 2), 0xFFFFFFF0);
@@ -346,9 +346,9 @@ TEST(RttiTests, AllCases) {
     rtti::so_type* p_tp_5 = rtti::so_type_repo::get_instance().find_type(p_tp);
     EXPECT_EQ(p_tp_5, p_tp);
 
-    unsigned int desc_count = p_so_tp->get_direct_descendant_count();
+    std::uint32_t desc_count = p_so_tp->get_direct_descendant_count();
     bool found_descendant_in_so_type = false;
-    for (unsigned int i = 0; i < desc_count; ++i) {
+    for (std::uint32_t i = 0; i < desc_count; ++i) {
       rtti::so_type* tmp_tp = p_so_tp->get_direct_descendant(i);
       if (tmp_tp == p_tp) {
         found_descendant_in_so_type = true;
@@ -382,7 +382,7 @@ TEST(RttiTests, AllCases) {
     EXPECT_EQ(p_tp->name(), "dummy_rtti_multi_inherit");
     EXPECT_EQ(p_tp->version(), 1);
     EXPECT_TRUE(p_tp->is_concrete());
-    const unsigned int* t_id = p_tp->id_begin();
+    const std::uint32_t* t_id = p_tp->id_begin();
     EXPECT_EQ(*t_id, 0xFFFFFFF5);
     EXPECT_EQ(*(t_id + 1), 0);
 
@@ -415,9 +415,9 @@ TEST(RttiTests, AllCases) {
     rtti::so_type* p_tp_5 = rtti::so_type_repo::get_instance().find_type(p_tp);
     EXPECT_EQ(p_tp_5, p_tp);
 
-    unsigned int b1_desc_count = p_b1_tp->get_direct_descendant_count();
+    std::uint32_t b1_desc_count = p_b1_tp->get_direct_descendant_count();
     bool found_descendant_in_b1_so_type = false;
-    for (unsigned int i = 0; i < b1_desc_count; ++i) {
+    for (std::uint32_t i = 0; i < b1_desc_count; ++i) {
       rtti::so_type* tmp_tp = p_b1_tp->get_direct_descendant(i);
       if (tmp_tp == p_tp) {
         found_descendant_in_b1_so_type = true;
@@ -425,9 +425,9 @@ TEST(RttiTests, AllCases) {
     }
     EXPECT_TRUE(found_descendant_in_b1_so_type);
 
-    unsigned int b2_desc_count = p_b2_tp->get_direct_descendant_count();
+    std::uint32_t b2_desc_count = p_b2_tp->get_direct_descendant_count();
     bool found_descendant_in_b2_so_type = false;
-    for (unsigned int i = 0; i < b2_desc_count; ++i) {
+    for (std::uint32_t i = 0; i < b2_desc_count; ++i) {
       rtti::so_type* tmp_tp = p_b2_tp->get_direct_descendant(i);
       if (tmp_tp == p_tp) {
         found_descendant_in_b2_so_type = true;

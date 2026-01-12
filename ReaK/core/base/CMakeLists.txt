@@ -2,14 +2,6 @@
 
 reak_cc_library(
   NAME
-    base_macros
-  HDRS
-    "defs.h"
-  PUBLIC
-)
-
-reak_cc_library(
-  NAME
     cnst_string
   HDRS
     "cnst_string.h"
@@ -51,7 +43,6 @@ reak_cc_library(
     base
   HDRS
     "global_rng.h"
-    "misc_math.h"
     "named_object.h"
     "scope_guard.h"
     "shared_object.h"
