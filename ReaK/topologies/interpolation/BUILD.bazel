@@ -129,8 +129,8 @@ cc_binary(
         ":interpolation",
         "//ReaK/core/base",
         "//ReaK/topologies/spaces",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
     ],
 )
 
@@ -168,8 +168,8 @@ cc_binary(
         ":interpolation",
         "//ReaK/core/base",
         "//ReaK/topologies/spaces",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
     ],
 )
 
@@ -183,7 +183,7 @@ cc_binary(
         ":interpolation",
         "//ReaK/core/base",
         "//ReaK/topologies/spaces",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
     ],
 )

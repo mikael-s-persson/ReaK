@@ -45,7 +45,7 @@ cc_test(
     ],
     deps = [
         ":optimization",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -57,7 +57,7 @@ cc_test(
     deps = [
         ":optimization",
         "//ReaK/math/lin_alg:lin_alg_matchers",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -68,7 +68,7 @@ cc_test(
     ],
     deps = [
         ":optimization",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -79,7 +79,7 @@ cc_test(
     ],
     deps = [
         ":optimization",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -92,7 +92,7 @@ cc_test(
         ":optimization",
         "//ReaK/core/base",
         "//ReaK/math/lin_alg:lin_alg_matchers",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -105,7 +105,7 @@ cc_test(
         ":optimization",
         "//ReaK/math/lin_alg",
         "//ReaK/math/lin_alg:lin_alg_matchers",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -118,6 +118,6 @@ cc_test(
         ":optimization",
         "//ReaK/math/lin_alg",
         "//ReaK/math/lin_alg:lin_alg_matchers",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )

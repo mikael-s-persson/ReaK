@@ -4,19 +4,19 @@ make_cc_meta_deviations(
     name = "reak_cc_meta_deviations",
     deviations = {
         # benchmark and benchmark_main export the benchmark headers and are always linked in.
-        "@com_google_benchmark//:benchmark": {"exports": [
+        "@google_benchmark//:benchmark": {"exports": [
             "benchmark/benchmark.h",
         ]},
-        "@com_google_benchmark//:benchmark_main": {
+        "@google_benchmark//:benchmark_main": {
             "alwaysused": True,
             "forward_exports": True,
         },
         # gtest and gtest_main export the gtest headers and are always linked in.
-        "@com_google_googletest//:gtest": {"exports": [
+        "@googletest//:gtest": {"exports": [
             "gtest/gtest.h",
             "gmock/gmock.h",
         ]},
-        "@com_google_googletest//:gtest_main": {
+        "@googletest//:gtest_main": {
             "alwaysused": True,
             "forward_exports": True,
         },
@@ -29,4 +29,3 @@ refresh_cc_meta(
     cc_meta_aspect = "//:defs.bzl%reak_cc_meta_aspect",
     visibility = ["//visibility:public"],
 )
-

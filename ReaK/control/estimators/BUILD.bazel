@@ -89,9 +89,9 @@ cc_binary(
         "//ReaK/core/serialization",
         "//ReaK/topologies/interpolation",
         "//ReaK/topologies/spaces",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
-        "@com_google_absl//absl/log",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
+        "@abseil-cpp//absl/log",
     ],
 )
 
@@ -108,8 +108,8 @@ cc_binary(
         "//ReaK/core/serialization",
         "//ReaK/topologies/interpolation",
         "//ReaK/topologies/spaces",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
-        "@com_google_absl//absl/log",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
+        "@abseil-cpp//absl/log",
     ],
 )

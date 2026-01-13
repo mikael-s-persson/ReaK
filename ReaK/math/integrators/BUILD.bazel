@@ -46,6 +46,6 @@ cc_test(
         ":integrators",
         ":integrators_test_problems",
         "//ReaK/core/serialization",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )

@@ -87,7 +87,7 @@ cc_library(
         "//ReaK/math/lin_alg",
         "//ReaK/topologies/interpolation",
         "//ReaK/topologies/spaces",
-        "@com_google_absl//absl/flags:flag",
+        "@abseil-cpp//absl/flags:flag",
     ],
 )
 

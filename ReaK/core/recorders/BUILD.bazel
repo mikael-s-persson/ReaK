@@ -38,7 +38,7 @@ cc_test(
     #defines = ["ENABLE_NETWORK_RECORDER"],
     deps = [
         ":recorders",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -56,8 +56,8 @@ cc_library(
     deps = [
         ":recorders",
         "//ReaK/core/serialization",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -68,7 +68,7 @@ cc_binary(
     ],
     deps = [
         ":recorders_po",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
     ],
 )

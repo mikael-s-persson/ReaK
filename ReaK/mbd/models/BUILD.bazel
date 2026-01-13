@@ -70,7 +70,7 @@ cc_library(
         "//ReaK/geometry/shapes",
         "//ReaK/math/optimization",
         "//ReaK/mbd/kte",
-        "@com_google_absl//absl/flags:flag",
+        "@abseil-cpp//absl/flags:flag",
     ],
 )
 
@@ -100,8 +100,8 @@ cc_binary(
         "//ReaK/geometry/proximity",
         "//ReaK/geometry/shapes",
         "//ReaK/mbd/kte",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
     ],
 )
 
@@ -115,8 +115,8 @@ cc_binary(
         "//ReaK/core/serialization",
         "//ReaK/geometry/shapes",
         "//ReaK/mbd/kte",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
     ],
 )
 
@@ -129,7 +129,7 @@ cc_binary(
         ":models",
         "//ReaK/core/recorders:recorders_po",
         "//ReaK/math/kinetostatics",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:parse",
     ],
 )
 
@@ -145,8 +145,8 @@ cc_binary(
         "//ReaK/geometry/proximity",
         "//ReaK/geometry/shapes",
         "//ReaK/mbd/kte",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
     ],
 )
 
@@ -161,7 +161,7 @@ cc_binary(
         "//ReaK/core/serialization",
         "//ReaK/geometry/proximity",
         "//ReaK/geometry/shapes",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
     ],
 )

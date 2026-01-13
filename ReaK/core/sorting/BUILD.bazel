@@ -27,7 +27,7 @@ cc_test(
   srcs = ["sorting_test.cc",],
   deps = [
     ":sorting",
-    "@com_google_googletest//:gtest_main",
+    "@googletest//:gtest_main",
   ],
 )
 

@@ -39,7 +39,7 @@ cc_test(
         ":kinetostatics",
         "//ReaK/math/lin_alg",
         "//ReaK/math/lin_alg:lin_alg_matchers",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -51,7 +51,7 @@ cc_test(
     deps = [
         ":kinetostatics",
         "//ReaK/math/lin_alg:lin_alg_matchers",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 

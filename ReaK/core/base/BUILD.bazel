@@ -18,7 +18,7 @@ cc_test(
     srcs = ["cnst_string_test.cc"],
     deps = [
         ":cnst_string",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -34,7 +34,7 @@ cc_test(
     srcs = ["endian_conversions_test.cc"],
     deps = [
         ":endian_conversions",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 

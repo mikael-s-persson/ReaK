@@ -110,7 +110,7 @@ cc_library(
     deps = [
         ":path_planning_headers",
         "//ReaK/core/serialization",
-        "@com_google_absl//absl/flags:flag",
+        "@abseil-cpp//absl/flags:flag",
     ],
 )
 
@@ -151,8 +151,8 @@ cc_binary(
         "//ReaK/core/serialization",
         "//ReaK/math/optimization",
         "//ReaK/topologies/spaces",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
     ],
 )
 
@@ -169,7 +169,7 @@ cc_binary(
         "//ReaK/math/optimization",
         "//ReaK/topologies/interpolation",
         "//ReaK/topologies/spaces",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
     ],
 ) for dim_count in range(3, 6)]
