@@ -1,8 +1,8 @@
 # This cmake module sets up compiler flags, doxygen macros, and custom target macros
 # for use when building parts of the ReaK library.
-# 
-# 
-# 
+#
+#
+#
 
 #=============================================================================
 # Copyright 2014 Sven Mikael Persson <mikael.s.persson@gmail.com>
@@ -165,12 +165,12 @@ function(reak_cc_library)
   else()
     set(REAK_CC_LIB_IS_INTERFACE 0)
   endif()
-  
-  foreach(hdr_file IN LISTS REAK_CC_HDRS)
+
+  foreach(hdr_file IN LISTS REAK_CC_LIB_HDRS)
     if(${hdr_file} MATCHES ".*\\.(h|inc|hpp|tpp)")
       string(FIND "${CMAKE_CURRENT_SOURCE_DIR}/${hdr_file}" "ReaK/" _hdr_file_reak_pos REVERSE)
-      if(${_hdr_file_reak_pos} LESS "0")
-        string(SUBSTRING "${CMAKE_CURRENT_SOURCE_DIR}/${hdr_file}" ${_hdr_file_reak_pos} -1 REAK_CC_LIB_BUILD_INCLUDE_DIR)
+      if(NOT ${_hdr_file_reak_pos} LESS "0")
+        string(SUBSTRING "${CMAKE_CURRENT_SOURCE_DIR}/${hdr_file}" 0 ${_hdr_file_reak_pos} REAK_CC_LIB_BUILD_INCLUDE_DIR)
         break()
       endif()
     endif()
@@ -255,7 +255,7 @@ Cflags: -I\${includedir}${PC_CFLAGS}\n")
     )
     target_compile_definitions(${_NAME} INTERFACE ${REAK_CC_LIB_DEFINES})
   endif()
-  
+
   if(REAK_ENABLE_CLANG_TIDY)
     set_target_properties(${_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
   endif()
@@ -320,21 +320,21 @@ function(reak_cc_test)
   target_link_libraries(${_NAME} PUBLIC ${REAK_CC_TEST_DEPS} PRIVATE ${REAK_CC_TEST_LINKOPTS})
 
   add_test(NAME ${_NAME} COMMAND "${CMAKE_CURRENT_BINARY_DIR}/${_NAME}")
-  
+
   foreach(_testdata_file ${REAK_CC_TEST_TESTDATA})
     get_filename_component(_testdata_file_dir ${_testdata_file} DIRECTORY)
     add_custom_command(TARGET ${_NAME} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E 
+      COMMAND ${CMAKE_COMMAND} -E
       make_directory "${CMAKE_CURRENT_BINARY_DIR}/${_testdata_file_dir}")
     add_custom_command(TARGET ${_NAME} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E 
+      COMMAND ${CMAKE_COMMAND} -E
       copy "${CMAKE_CURRENT_SOURCE_DIR}/${_testdata_file}" "${CMAKE_CURRENT_BINARY_DIR}/${_testdata_file_dir}")
   endforeach()
-  
+
   if(REAK_ENABLE_CLANG_TIDY)
     set_target_properties(${_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
   endif()
-  
+
   message(STATUS "Registered cc_test: ${_NAME}")
 endfunction()
 
@@ -381,13 +381,10 @@ function(reak_cc_binary)
   target_compile_options(${_NAME} PRIVATE ${REAK_CC_BIN_COPTS})
 
   target_link_libraries(${_NAME} PUBLIC ${REAK_CC_BIN_DEPS} PRIVATE ${REAK_CC_BIN_LINKOPTS})
-  
+
   if(REAK_ENABLE_CLANG_TIDY)
     set_target_properties(${_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
   endif()
 
   message(STATUS "Registered cc_binary: ${REAK_CC_BIN_NAME}")
 endfunction()
-
-
-
